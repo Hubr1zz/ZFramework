@@ -1,0 +1,14 @@
+{
+  "name": "TEngine.RTS.Runtime",
+  "rootNamespace": "TEngine.RTS",
+  "references": ["TEngine.RTS.Contracts", "TEngine.Runtime", "UniTask"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": ["UNITY_EDITOR"],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

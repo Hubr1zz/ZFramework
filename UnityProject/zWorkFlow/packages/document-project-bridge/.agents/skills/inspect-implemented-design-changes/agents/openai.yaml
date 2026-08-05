@@ -1,0 +1,7 @@
+interface:
+  display_name: "Implemented Design Change Check"
+  short_description: "只读检查已实现后又修改的设计文档"
+  default_prompt: "Use $inspect-implemented-design-changes to inspect implemented design documents that changed later."
+
+policy:
+  allow_implicit_invocation: false

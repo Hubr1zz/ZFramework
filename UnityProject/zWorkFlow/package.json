@@ -1,0 +1,33 @@
+{
+  "name": "@hubr1zz/zworkflow",
+  "version": "0.1.0",
+  "description": "Cross-platform bootstrap CLI for zWorkFlow",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "zworkflow": "bin/zworkflow.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hubr1zz/zWorkFlow.git"
+  },
+  "files": [
+    ".agent-memory",
+    ".agents",
+    ".claude",
+    ".codex",
+    "assets",
+    "bin",
+    "packages",
+    "setup",
+    "test",
+    "*.md",
+    "LICENSE"
+  ]
+}

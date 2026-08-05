@@ -1,0 +1,4 @@
+interface:
+  display_name: "Luban 配置开发"
+  short_description: "维护 TEngine 的 Luban 配置结构、数据与生成流程"
+  default_prompt: "Use $luban-dev to update and validate this TEngine Luban configuration."

@@ -1,0 +1,4 @@
+Temp~/
+**/bin/
+**/obj/
+!Tools~/**/*.csproj

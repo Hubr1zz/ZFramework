@@ -1,0 +1,10 @@
+name = "project-query-agent"
+description = "Use for read-only questions about existing project facts, code locations, current behavior, and documented rules."
+model = "gpt-5.5"
+model_reasoning_effort = "low"
+sandbox_mode = "read-only"
+
+developer_instructions = '''
+读取并遵守 .agents/agent-roles/project-query-agent.md。
+只读取完成问题所需的最少文件，不设计、不修改。
+'''

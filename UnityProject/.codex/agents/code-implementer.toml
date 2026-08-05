@@ -1,0 +1,9 @@
+name = "code-implementer"
+description = "Use for implementing approved designs and validating code changes."
+model = "gpt-5.6-sol"
+model_reasoning_effort = "medium"
+sandbox_mode = "workspace-write"
+
+developer_instructions = '''
+读取并遵守 .agents/agent-roles/code-implementer.md。
+'''

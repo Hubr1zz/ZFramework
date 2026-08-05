@@ -1,0 +1,12 @@
+# >>> zWorkFlow local preferences >>>
+.DS_Store
+__pycache__/
+*.py[cod]
+/openspec/workbench-config.json
+/openspec/design-source.json
+/.agent-memory/team/MAINTAINERS.md
+/.agent-memory/team/members/
+/.agent-memory/zworkflow/local/
+!/zWorkFlow/bin/
+!/zWorkFlow/bin/zworkflow.mjs
+# <<< zWorkFlow local preferences <<<

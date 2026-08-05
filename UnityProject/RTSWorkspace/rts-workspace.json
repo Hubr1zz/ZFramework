@@ -1,0 +1,44 @@
+{
+    "schemaVersion": 1,
+    "generatedUtc": "2026-08-04T16:08:01.5913784Z",
+    "activeCompileUnit": "Default",
+    "activeSession": "DefaultSession",
+    "sessionDescriptor": "RTSWorkspace/Sessions/DefaultSession/session.json",
+    "reuseAnalysis": "RTSWorkspace/Sessions/DefaultSession/reuse-analysis.md",
+    "launchProfile": "Sandbox",
+    "rtsTestEntryScriptId": "framework.session-entry",
+    "dummyManifest": "RTSWorkspace/Sessions/DefaultSession/asset-map.json",
+    "runtimeStatus": "RTSWorkspace/Sessions/DefaultSession/runtime-status.json",
+    "sessions": [
+        "DefaultSession"
+    ],
+    "sessionDependencies": [],
+    "sourceRoots": [
+        "D:\\UnityProjects\\ZFramework\\UnityProject\\RTSWorkspace/Sessions\\DefaultSession\\Sources"
+    ],
+    "referenceAssemblies": [
+        "D:\\UnityProjects\\ZFramework\\UnityProject\\Library\\ScriptAssemblies\\TEngine.RTS.Contracts.dll"
+    ],
+    "baseModules": [],
+    "capabilities": [
+        "IRtsWorldServiceV1",
+        "IRtsTargetQueryV1",
+        "IRtsDamageServiceV1",
+        "IRtsProjectileServiceV1",
+        "IRtsEffectServiceV1",
+        "IRtsObjectPoolV1",
+        "IRtsAnimationServiceV1",
+        "IRtsAudioServiceV1",
+        "IRtsTimerServiceV1"
+    ],
+    "allowedTasks": [
+        "compile",
+        "validate-runtime-data",
+        "restart-scene",
+        "validate-production"
+    ],
+    "tests": [
+        "dotnet run --project Packages/com.tengine.rts/Tools~/KernelSmokeTests",
+        "dotnet build Packages/com.tengine.rts/Tools~/ProductionCompileSmoke"
+    ]
+}

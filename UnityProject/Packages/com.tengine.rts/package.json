@@ -1,0 +1,8 @@
+{
+  "name": "com.tengine.rts",
+  "version": "0.7.0",
+  "displayName": "TEngine Roslyn Runtime Scripts",
+  "description": "Editor-first runtime script experimentation layer for TEngine.",
+  "unity": "2022.3",
+  "author": { "name": "TEngine" }
+}

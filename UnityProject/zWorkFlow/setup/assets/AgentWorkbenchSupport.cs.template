@@ -1,0 +1,703 @@
+#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using UnityEngine;
+
+namespace AgentWorkflow.Editor
+{
+    [Serializable]
+    internal sealed class AgentWorkbenchConfig
+    {
+        public int schemaVersion = 6;
+        public string currentLanguage = "zh-CN";
+        public string themeMode = "normal";
+        public float defaultWindowWidth = 1100f;
+        public float defaultWindowHeight = 720f;
+        public bool hasSavedWindowPosition;
+        public float windowPositionX;
+        public float windowPositionY;
+        public string[] headingColorsDark = AgentWorkbenchTheme.DefaultDarkHex.ToArray();
+        public string[] headingColorsLight = AgentWorkbenchTheme.DefaultLightHex.ToArray();
+        public string markdownBodyColorDark = "#D8DEE8";
+        public string markdownBodyColorLight = "#30343A";
+        public string workbenchBodyColorDark = AgentWorkbenchTheme.DefaultDarkPrimaryTextHex;
+        public string workbenchBodyColorLight = AgentWorkbenchTheme.DefaultLightPrimaryTextHex;
+        public string workbenchBackgroundColorDark = AgentWorkbenchTheme.DefaultDarkBackgroundHex;
+        public string workbenchBackgroundColorLight = AgentWorkbenchTheme.DefaultLightBackgroundHex;
+        public string workbenchPanelColorDark = AgentWorkbenchTheme.DefaultDarkPanelHex;
+        public string workbenchPanelColorLight = AgentWorkbenchTheme.DefaultLightPanelHex;
+        public string markdownApplicationPath = "";
+        public SpecFolderConfig[] specFolders = Array.Empty<SpecFolderConfig>();
+        public SpecFolderAssignment[] specFolderAssignments = Array.Empty<SpecFolderAssignment>();
+        public float dependencyGraphPanX;
+        public float dependencyGraphPanY;
+        public float dependencyGraphZoom = 1f;
+        public string dependencyGraphLayoutSignature = "";
+        public DependencyGraphNodePosition[] dependencyGraphNodePositions =
+            Array.Empty<DependencyGraphNodePosition>();
+    }
+
+    [Serializable]
+    internal sealed class SpecFolderConfig
+    {
+        public string id;
+        public string name;
+    }
+
+    [Serializable]
+    internal sealed class SpecFolderAssignment
+    {
+        public string capability;
+        public string folderId;
+    }
+
+    [Serializable]
+    internal sealed class DependencyGraphNodePosition
+    {
+        public string nodeId;
+        public float x;
+        public float y;
+    }
+
+    internal static class AgentWorkbenchConfigStore
+    {
+        internal static string PathFor(string projectRoot) =>
+            Path.Combine(projectRoot, "openspec", "workbench-config.json");
+
+        internal static AgentWorkbenchConfig Load(string projectRoot)
+        {
+            var path = PathFor(projectRoot);
+            AgentWorkbenchConfig config = null;
+            if (File.Exists(path))
+            {
+                try
+                {
+                    config = JsonUtility.FromJson<AgentWorkbenchConfig>(File.ReadAllText(path, Encoding.UTF8));
+                }
+                catch
+                {
+                    // Fall back to a valid default; Save will repair the file after a user edit.
+                }
+            }
+
+            config ??= new AgentWorkbenchConfig();
+            var migratedFromV1 = config.schemaVersion < 2;
+            var migrated = config.schemaVersion < 6;
+            if (migratedFromV1 && config.headingColorsDark != null &&
+                config.headingColorsDark.SequenceEqual(AgentWorkbenchTheme.LegacyDarkHex, StringComparer.OrdinalIgnoreCase))
+                config.headingColorsDark = AgentWorkbenchTheme.DefaultDarkHex.ToArray();
+            config.schemaVersion = 6;
+            config.headingColorsDark = NormalizeColors(config.headingColorsDark, AgentWorkbenchTheme.DefaultDarkHex);
+            config.headingColorsLight = NormalizeColors(config.headingColorsLight, AgentWorkbenchTheme.DefaultLightHex);
+            config.markdownBodyColorDark = NormalizeColor(config.markdownBodyColorDark, "#D8DEE8");
+            config.markdownBodyColorLight = NormalizeColor(config.markdownBodyColorLight, "#30343A");
+            config.workbenchBodyColorDark = NormalizeColor(
+                config.workbenchBodyColorDark,
+                AgentWorkbenchTheme.DefaultDarkPrimaryTextHex);
+            config.workbenchBodyColorLight = NormalizeColor(
+                config.workbenchBodyColorLight,
+                AgentWorkbenchTheme.DefaultLightPrimaryTextHex);
+            config.workbenchBackgroundColorDark = NormalizeColor(
+                config.workbenchBackgroundColorDark,
+                AgentWorkbenchTheme.DefaultDarkBackgroundHex);
+            config.workbenchBackgroundColorLight = NormalizeColor(
+                config.workbenchBackgroundColorLight,
+                AgentWorkbenchTheme.DefaultLightBackgroundHex);
+            config.workbenchPanelColorDark = NormalizeColor(
+                config.workbenchPanelColorDark,
+                AgentWorkbenchTheme.DefaultDarkPanelHex);
+            config.workbenchPanelColorLight = NormalizeColor(
+                config.workbenchPanelColorLight,
+                AgentWorkbenchTheme.DefaultLightPanelHex);
+            config.markdownApplicationPath ??= string.Empty;
+            config.specFolders ??= Array.Empty<SpecFolderConfig>();
+            config.specFolderAssignments ??= Array.Empty<SpecFolderAssignment>();
+            config.dependencyGraphLayoutSignature ??= string.Empty;
+            config.dependencyGraphNodePositions ??= Array.Empty<DependencyGraphNodePosition>();
+            if (migrated && config.dependencyGraphZoom <= 0f)
+                config.dependencyGraphZoom = 1f;
+            config.dependencyGraphZoom = Mathf.Clamp(config.dependencyGraphZoom, 0.55f, 1.8f);
+            config.currentLanguage = config.currentLanguage == "en-US" ? "en-US" : "zh-CN";
+            config.themeMode = config.themeMode == "dark" ? "dark" : "normal";
+            if (!File.Exists(path) || migrated)
+                Save(projectRoot, config);
+            return config;
+        }
+
+        internal static void Save(string projectRoot, AgentWorkbenchConfig config)
+        {
+            var path = PathFor(projectRoot);
+            Directory.CreateDirectory(Path.GetDirectoryName(path) ?? projectRoot);
+            File.WriteAllText(path, JsonUtility.ToJson(config, true) + Environment.NewLine, Encoding.UTF8);
+        }
+
+        private static string[] NormalizeColors(string[] values, IReadOnlyList<string> defaults)
+        {
+            var result = new string[6];
+            for (var index = 0; index < result.Length; index++)
+                result[index] = values != null && index < values.Length && !string.IsNullOrWhiteSpace(values[index])
+                    ? values[index]
+                    : defaults[index];
+            return result;
+        }
+
+        private static string NormalizeColor(string value, string fallback) =>
+            ColorUtility.TryParseHtmlString(value, out _) ? value : fallback;
+    }
+
+    internal static class AgentWorkbenchTheme
+    {
+        internal static readonly string[] DefaultDarkHex =
+            { "#8CC5FF", "#FFC56B", "#72E3C2", "#D2AEFF", "#FFA5A1", "#9EDCF0" };
+        internal static readonly string[] LegacyDarkHex =
+            { "#7AB8FF", "#FFB852", "#61DBB8", "#C79EFF", "#FF9490", "#8CD1EB" };
+        internal static readonly string[] DefaultLightHex =
+            { "#1A57A8", "#9E570A", "#0A7357", "#6B389E", "#AB3330", "#1A6B85" };
+        internal const string DefaultDarkPrimaryTextHex = "#E6EBF2";
+        internal const string DefaultLightPrimaryTextHex = "#21262E";
+        internal const string DefaultDarkBackgroundHex = "#13161B";
+        internal const string DefaultLightBackgroundHex = "#C9CCD1";
+        internal const string DefaultDarkPanelHex = "#1B1F26";
+        internal const string DefaultLightPanelHex = "#D4D6DB";
+
+        private static string[] _dark = DefaultDarkHex;
+        private static string[] _light = DefaultLightHex;
+        private static string _bodyDark = "#D8DEE8";
+        private static string _bodyLight = "#30343A";
+        private static string _workbenchBodyDark = DefaultDarkPrimaryTextHex;
+        private static string _workbenchBodyLight = DefaultLightPrimaryTextHex;
+        private static string _workbenchBackgroundDark = DefaultDarkBackgroundHex;
+        private static string _workbenchBackgroundLight = DefaultLightBackgroundHex;
+        private static string _workbenchPanelDark = DefaultDarkPanelHex;
+        private static string _workbenchPanelLight = DefaultLightPanelHex;
+        private static Texture2D _panelTexture;
+        private static Texture2D _sectionTexture;
+        private static Texture2D _lightPanelTexture;
+        private static Texture2D _lightSectionTexture;
+        internal static bool IsDarkMode { get; private set; }
+        internal static readonly Color DarkControlTint = new(0.58f, 0.62f, 0.69f);
+        internal static readonly Color LightControlTint = new(0.90f, 0.91f, 0.92f);
+        internal static Color DarkBackground => ParseThemeColor(
+            _workbenchBackgroundDark,
+            new Color(0.075f, 0.086f, 0.105f));
+        internal static Color LightBackground => ParseThemeColor(
+            _workbenchBackgroundLight,
+            new Color(0.79f, 0.80f, 0.82f));
+        internal static Color DarkPrimaryText => ParseThemeColor(
+            _workbenchBodyDark,
+            new Color(0.90f, 0.92f, 0.95f));
+        internal static Color LightPrimaryText => ParseThemeColor(
+            _workbenchBodyLight,
+            new Color(0.13f, 0.15f, 0.18f));
+        internal static Color DarkPanel => ParseThemeColor(
+            _workbenchPanelDark,
+            new Color(0.105f, 0.122f, 0.15f));
+        internal static Color LightPanel => ParseThemeColor(
+            _workbenchPanelLight,
+            new Color(0.83f, 0.84f, 0.86f));
+        internal static Color DarkSection => DarkPanel;
+        internal static Color LightSection => LightPanel;
+
+        internal static void Apply(AgentWorkbenchConfig config)
+        {
+            _dark = config?.headingColorsDark ?? DefaultDarkHex;
+            _light = config?.headingColorsLight ?? DefaultLightHex;
+            _bodyDark = config?.markdownBodyColorDark ?? "#D8DEE8";
+            _bodyLight = config?.markdownBodyColorLight ?? "#30343A";
+            _workbenchBodyDark = config?.workbenchBodyColorDark ?? DefaultDarkPrimaryTextHex;
+            _workbenchBodyLight = config?.workbenchBodyColorLight ?? DefaultLightPrimaryTextHex;
+            _workbenchBackgroundDark = config?.workbenchBackgroundColorDark ?? DefaultDarkBackgroundHex;
+            _workbenchBackgroundLight = config?.workbenchBackgroundColorLight ?? DefaultLightBackgroundHex;
+            _workbenchPanelDark = config?.workbenchPanelColorDark ?? DefaultDarkPanelHex;
+            _workbenchPanelLight = config?.workbenchPanelColorLight ?? DefaultLightPanelHex;
+            ResetPanelTextures();
+            IsDarkMode = config?.themeMode == "dark";
+        }
+
+        internal static Color HeadingColor(int level, bool darkTheme)
+        {
+            var colors = darkTheme ? _dark : _light;
+            var index = Mathf.Clamp(level - 1, 0, 5);
+            return ColorUtility.TryParseHtmlString(colors[index], out var color) ? color : Color.white;
+        }
+
+        internal static Color MarkdownBodyColor()
+        {
+            var value = IsDarkMode ? _bodyDark : _bodyLight;
+            return ColorUtility.TryParseHtmlString(value, out var color)
+                ? color
+                : (IsDarkMode ? DarkPrimaryText : new Color(0.19f, 0.20f, 0.23f));
+        }
+
+        private static Color ParseThemeColor(string value, Color fallback) =>
+            ColorUtility.TryParseHtmlString(value, out var color) ? color : fallback;
+
+        internal static Texture2D DarkPanelTexture =>
+            _panelTexture != null ? _panelTexture : _panelTexture = SolidTexture(DarkPanel);
+
+        internal static Texture2D DarkSectionTexture =>
+            _sectionTexture != null ? _sectionTexture : _sectionTexture = SolidTexture(DarkSection);
+
+        internal static Texture2D LightPanelTexture =>
+            _lightPanelTexture != null ? _lightPanelTexture : _lightPanelTexture = SolidTexture(LightPanel);
+
+        internal static Texture2D LightSectionTexture =>
+            _lightSectionTexture != null ? _lightSectionTexture : _lightSectionTexture = SolidTexture(LightSection);
+
+        private static Texture2D SolidTexture(Color color)
+        {
+            var texture = new Texture2D(1, 1)
+            {
+                hideFlags = HideFlags.HideAndDontSave,
+                name = "AgentWorkbenchThemeColor"
+            };
+            texture.SetPixel(0, 0, color);
+            texture.Apply();
+            return texture;
+        }
+
+        private static void ResetPanelTextures()
+        {
+            DestroyTexture(ref _panelTexture);
+            DestroyTexture(ref _sectionTexture);
+            DestroyTexture(ref _lightPanelTexture);
+            DestroyTexture(ref _lightSectionTexture);
+        }
+
+        private static void DestroyTexture(ref Texture2D texture)
+        {
+            if (texture != null)
+                UnityEngine.Object.DestroyImmediate(texture);
+            texture = null;
+        }
+    }
+
+    internal static class AgentWorkbenchText
+    {
+        private static string _language = "zh-CN";
+        private static readonly Dictionary<string, (string Zh, string En)> Values = new()
+        {
+            ["window.title"] = ("Agent 工作台", "Agent Workbench"),
+            ["window.open"] = ("打开 Agent 工作台", "Open Agent Workbench"),
+            ["toolbar.refresh"] = ("刷新", "Refresh"),
+            ["toolbar.graph"] = ("关系图谱", "Spec Graph"),
+            ["toolbar.engineering"] = ("工程能力", "Engineering"),
+            ["toolbar.openRoot"] = ("在资源管理器中打开", "Open in File Explorer"),
+            ["toolbar.designSync"] = ("设计文档设置", "Design Document Settings"),
+            ["toolbar.documentBridge"] = ("文档桥接", "Document Bridge"),
+            ["toolbar.config"] = ("配置", "Settings"),
+            ["toolbar.introduction"] = ("介绍", "Introduction"),
+            ["toolbar.dark"] = ("深色", "Dark"),
+            ["toolbar.normal"] = ("浅色", "Light"),
+            ["main.refactor"] = ("增量维护", "Maintenance"),
+            ["engineering.title"] = ("工程能力目录", "Engineering Capability Catalog"),
+            ["engineering.summary"] = ("Plugin 记录外部依赖与使用依据；Architecture 是强制复用且修改前需确认的独立能力；System 是项目耦合系统。", "Plugins record dependencies and usage rationale; Architecture is mandatory, reusable, and confirmation-gated; System is project-specific."),
+            ["engineering.missing"] = ("尚未安装工程能力目录：{0}", "Engineering capability catalog is not installed: {0}"),
+            ["engineering.invalid"] = ("工程能力目录读取失败：{0}", "Failed to read engineering capability catalog: {0}"),
+            ["engineering.all"] = ("全部", "All"),
+            ["engineering.plugin"] = ("Plugin 插件", "Plugin"),
+            ["engineering.architecture"] = ("Architecture 架构", "Architecture"),
+            ["engineering.system"] = ("System 系统", "System"),
+            ["engineering.empty"] = ("当前分类没有条目。", "No entries in this category."),
+            ["engineering.policyLevel"] = ("策略级别", "Policy Level"),
+            ["engineering.policy"] = ("使用策略", "Usage Notes"),
+            ["engineering.savePolicy"] = ("保存使用策略", "Save Usage Notes"),
+            ["engineering.policySaved"] = ("使用策略已保存。", "Usage notes saved."),
+            ["engineering.version"] = ("版本", "Version"),
+            ["engineering.source"] = ("来源", "Source"),
+            ["engineering.capabilities"] = ("能力", "Capabilities"),
+            ["engineering.constraints"] = ("约束", "Constraints"),
+            ["engineering.evidence"] = ("证据", "Evidence"),
+            ["engineering.dependencies"] = ("依赖", "Dependencies"),
+            ["engineering.decisionBasis"] = ("判断依据（留空时 Agent 根据项目风格判断）", "Decision basis (Agent infers from project style when empty)"),
+            ["engineering.saveBasis"] = ("保存判断依据", "Save decision basis"),
+            ["engineering.saved"] = ("Plugin 判断依据已保存。", "Plugin decision basis saved."),
+            ["engineering.architectureLocked"] = ("Architecture 固定为 required + locked。Agent 必须优先复用；修改目录条目、公共契约或实现前必须先取得用户确认。", "Architecture is always required + locked. Agents must reuse it and obtain user confirmation before changing its entry, public contract, or implementation."),
+            ["engineering.architectureInvalid"] = ("该 Architecture 条目未满足 required + locked，目录需要由 Agent 在用户确认后修复。", "This Architecture entry is not required + locked. An Agent must repair it after user confirmation."),
+            ["engineering.openEvidence"] = ("打开", "Open"),
+            ["main.openSpec"] = ("OpenSpec", "OpenSpec"),
+            ["main.imports"] = ("导入报告", "Import Reports"),
+            ["common.all"] = ("全部", "All"),
+            ["common.none"] = ("无", "None"),
+            ["common.open"] = ("打开", "Open"),
+            ["common.back"] = ("← 返回", "← Back"),
+            ["common.unset"] = ("未选择", "Not selected"),
+            ["common.unregistered"] = ("未登记", "Unregistered"),
+            ["common.unknown"] = ("未记录", "Not recorded"),
+            ["common.category"] = ("分类", "Category"),
+            ["common.source"] = ("来源", "Source"),
+            ["common.status"] = ("状态", "Status"),
+            ["common.type"] = ("类型", "Type"),
+            ["common.created"] = ("生成", "Created"),
+            ["common.missing"] = ("缺失", "Missing"),
+            ["common.openFolder"] = ("打开目录", "Open Folder"),
+            ["common.delete"] = ("删除", "Delete"),
+            ["guidance.button"] = ("引擎配置", "Engine Setup"),
+            ["guidance.references"] = ("拖拽引用", "Inspector References"),
+            ["guidance.parameters"] = ("可调参数", "Tunable Parameters"),
+            ["guidance.sceneSetup"] = ("场景安装", "Scene Setup"),
+            ["guidance.usage"] = ("使用方式", "Usage"),
+            ["common.confirm"] = ("确认", "Confirm"),
+            ["common.cancel"] = ("取消", "Cancel"),
+            ["spec.formal"] = ("正式 Spec", "Formal Specs"),
+            ["spec.graph"] = ("关系图谱", "Dependency Graph"),
+            ["spec.changes"] = ("Changes", "Changes"),
+            ["spec.architecture"] = ("System 系统", "System"),
+            ["spec.feature"] = ("Feature 实现", "Feature"),
+            ["spec.rule"] = ("游戏规则", "Game Rule"),
+            ["spec.uncategorized"] = ("未分类", "Uncategorized"),
+            ["spec.empty"] = ("当前筛选下没有正式 Spec。", "No formal specs match the current filters."),
+            ["spec.select"] = ("从左侧选择一个正式 Spec。", "Select a formal spec from the left."),
+            ["spec.list"] = ("Spec 列表", "Spec List"),
+            ["spec.content"] = ("Spec 内容", "Spec Content"),
+            ["spec.folder"] = ("文件夹", "Folder"),
+            ["spec.assignFolder"] = ("设置文件夹分类", "Assign folder category"),
+            ["spec.currentFolder"] = ("当前文件夹：{0}", "Current folder: {0}"),
+            ["spec.allFolders"] = ("全部文件夹", "All Folders"),
+            ["spec.noFolder"] = ("未分配", "Unassigned"),
+            ["spec.newFolder"] = ("新建文件夹", "New Folder"),
+            ["spec.folderName"] = ("文件夹名称", "Folder name"),
+            ["spec.create"] = ("创建", "Create"),
+            ["spec.evidence"] = ("代码证据", "Code Evidence"),
+            ["spec.dependenciesNone"] = ("依赖：无", "Dependencies: none"),
+            ["spec.cycle"] = ("循环依赖", "Dependency cycle"),
+            ["spec.dependency"] = ("依赖", "Dependency"),
+            ["spec.blockingDependency"] = ("阻塞", "Blocking"),
+            ["spec.rawMarkdown"] = ("原始 Markdown", "Raw Markdown"),
+            ["spec.openFile"] = ("打开文件", "Open File"),
+            ["spec.preview"] = ("预览", "Preview"),
+            ["spec.rawText"] = ("编辑 Markdown", "Edit Markdown"),
+            ["spec.save"] = ("保存", "Save"),
+            ["spec.discard"] = ("放弃修改", "Discard"),
+            ["spec.cancel"] = ("取消", "Cancel"),
+            ["spec.unsavedTitle"] = ("存在未保存的 Spec 修改", "Unsaved Spec Changes"),
+            ["spec.unsavedMessage"] = ("当前原 MD 文本尚未保存。是否先保存？", "The current raw Markdown has unsaved changes. Save them first?"),
+            ["spec.rename"] = ("重命名", "Rename"),
+            ["spec.renameHint"] = ("右键 Spec 条目可重命名显示名称", "Right-click a spec item to rename its display title"),
+            ["spec.deleteFolder"] = ("删除文件夹分类", "Delete Folder Category"),
+            ["spec.deleteFolderConfirm"] = ("确定删除空文件夹分类“{0}”吗？", "Delete the empty folder category “{0}”?"),
+            ["spec.emptyFolder"] = ("当前文件夹没有正式 Spec 或 Change。", "This folder contains no formal specs or changes."),
+            ["spec.renameEmpty"] = ("Spec 名称不能为空。", "Spec name cannot be empty."),
+            ["change.renameEmpty"] = ("Change 名称不能为空。", "Change name cannot be empty."),
+            ["import.renameEmpty"] = ("Draft Change 名称不能为空。", "Draft Change name cannot be empty."),
+            ["spec.codeReadiness"] = ("Code Readiness", "Code Readiness"),
+            ["import.records"] = ("导入记录", "Import Runs"),
+            ["import.recordInfo"] = ("导入记录信息", "Import run information"),
+            ["import.proposals"] = ("Spec 提案", "Spec Proposals"),
+            ["import.selectRun"] = ("从左侧选择一条导入记录，进入该批次的 Spec 提案列表。", "Select an import run on the left to view its spec proposals."),
+            ["import.empty"] = ("还没有设计导入记录。完成“设计导入”后在此查看。", "No design imports yet. Run a design import to create one."),
+            ["import.categoryEmpty"] = ("当前分类没有 Draft Change。", "There are no Draft Changes in this category."),
+            ["import.scopeAll"] = ("全部范围", "All scopes"),
+            ["import.noSpecs"] = ("本次导入没有可读取的 Spec 提案。", "This import contains no readable spec proposals."),
+            ["import.documents"] = ("来源文档", "Source documents"),
+            ["import.requirementDocuments"] = ("需求", "requirements"),
+            ["import.contextDocuments"] = ("上下文", "context"),
+            ["import.duplicateCandidates"] = ("重复候选", "Duplicate candidates"),
+            ["import.auditNotices"] = ("导入提示", "Import notices"),
+            ["import.showNotices"] = ("显示提示", "Show Notices"),
+            ["import.hideNotices"] = ("隐藏提示", "Hide Notices"),
+            ["import.jumpToSource"] = ("跳转", "Open"),
+            ["import.uncertainties"] = ("不确定项", "uncertainties"),
+            ["import.ambiguousLinks"] = ("歧义链接", "ambiguous links"),
+            ["import.uncertainty"] = ("设计不确定项", "Design uncertainty"),
+            ["import.presentationMissing"] = ("美术表现缺失", "Presentation missing"),
+            ["import.missingDescription"] = ("缺失", "Missing detail"),
+            ["import.ambiguousLink"] = ("跨来源链接歧义", "Cross-source link ambiguity"),
+            ["import.preservedConstraint"] = ("保留的跨层约束", "Preserved cross-layer constraint"),
+            ["import.mixedDescription"] = ("无法可靠拆分的混合描述", "Mixed description requiring review"),
+            ["import.copyId"] = ("复制修改 ID", "Copy Revision ID"),
+            ["import.openSpec"] = ("打开 Spec", "Open Spec"),
+            ["import.transfer"] = ("转移到 Changes", "Move to Changes"),
+            ["import.approveChange"] = ("批准为 Change", "Approve Change"),
+            ["import.viewPairedFeature"] = ("查看配对 Feature", "View Paired Feature"),
+            ["import.openPairedFeature"] = ("打开配对 Feature：{0}", "Open Paired Feature: {0}"),
+            ["import.pairedFeatureMissing"] = ("缺少配对 Feature，无法完成配对审批。", "The paired Feature is missing, so paired approval cannot continue."),
+            ["import.ruleFollowsFeatureApproval"] = ("玩法规则不独立批准；它会随配对 Feature 一起转为正式 Change。", "Game rules are not approved independently; they move with the paired Feature."),
+            ["import.ruleSpecSummary"] = ("详细审核、依赖、实现差异、任务和实现 Spec 由配对 Feature 承载。", "The paired Feature owns detailed review, dependencies, implementation differences, tasks, and implementation spec."),
+            ["import.pairedRule"] = ("配对玩法规则", "Paired Game Rule"),
+            ["import.openPairedRule"] = ("打开配对玩法规则：{0}", "Open Paired Game Rule: {0}"),
+            ["import.publishRule"] = ("批准为 Change", "Approve Change"),
+            ["import.transferred"] = ("已加入 Changes", "In Changes"),
+            ["import.blocked"] = ("存在未解决 Gap，暂不能加入正式 Changes。", "Unresolved gaps prevent moving this proposal to Changes."),
+            ["import.resolveGaps"] = ("请先解决该 Spec 的 Gaps", "Resolve this spec's gaps first"),
+            ["import.alreadyChange"] = ("该 Spec 已在 Changes 中", "This spec is already in Changes"),
+            ["import.noDelta"] = ("该 Spec 与正式版本没有可生成的差异", "This spec has no delta from the formal version"),
+            ["import.moved"] = ("已转移到 Changes：{0}", "Moved to Changes: {0}"),
+            ["import.approvalBlocked"] = ("暂不能审批：{0}", "Approval blocked: {0}"),
+            ["import.approvalReady"] = ("审批门禁已通过：审核项与依赖均满足。", "Approval gate passed: review items and dependencies are satisfied."),
+            ["import.approvalReadyWithModifiedEvidence"] = ("审批门禁已通过；{0} 条“修改过”的代码证据将在 apply 开始前自动重新核验。", "Approval gate passed; {0} modified code evidence item(s) will be reverified automatically before apply."),
+            ["import.evidenceUnavailable"] = ("代码证据“{0}”当前为“{1}”，需要先修复证据", "Code evidence “{0}” is “{1}” and must be repaired first"),
+            ["import.missingDraftArtifacts"] = ("Draft Change 工件不完整", "Draft Change artifacts are incomplete"),
+            ["import.missingArtifact"] = ("缺少 Draft Change 工件：{0}", "Missing Draft Change artifact: {0}"),
+            ["import.resolveConflictFirst"] = ("请先解决同 capability 的版本冲突", "Resolve conflicting versions of this capability first"),
+            ["import.dependencyNotFormal"] = ("依赖“{0}”既没有正式 Spec，也没有已批准的活动 Change", "Dependency “{0}” has neither a formal Spec nor an approved active Change"),
+            ["import.dependencyChangeNotApproved"] = ("依赖 Change“{0}”尚未批准为 implementation-change", "Dependency Change “{0}” is not approved as an implementation-change"),
+            ["import.approveTitle"] = ("批准 Draft Change", "Approve Draft Change"),
+            ["import.approveConfirm"] = ("确认“{0}”的设计已冻结且依赖齐全，并转为可实施的正式 Change 吗？", "Confirm that “{0}” is design-complete with formal dependencies and promote it to an implementation-ready Change?"),
+            ["import.publishRuleTitle"] = ("批准 Draft Change", "Approve Draft Change"),
+            ["import.publishRuleConfirm"] = ("确认批准“{0}”吗？它将进入正式 Change；apply 不触碰正式 Spec，只有之后显式 sync 才会合入。", "Approve “{0}”? It will become a formal Change; apply leaves formal Specs untouched, and only a later explicit sync merges it."),
+            ["import.archiveExists"] = ("今天已存在同名归档，请先处理现有归档", "An archive with this name already exists today"),
+            ["import.rulePublished"] = ("已批准为正式 Change：{0}", "Approved as formal Change: {0}"),
+            ["review.title"] = ("审核问题与实现差异", "Review Issues and Implementation Deltas"),
+            ["review.none"] = ("没有审核问题。", "No review issues."),
+            ["review.blocking"] = ("阻塞", "Blocking"),
+            ["review.warning"] = ("警告", "Warning"),
+            ["review.info"] = ("提示", "Info"),
+            ["review.designConflict"] = ("设计冲突", "Design Conflict"),
+            ["review.dependencyMissing"] = ("依赖缺失", "Missing Dependency"),
+            ["review.implementationDelta"] = ("实现差异", "Implementation Delta"),
+            ["review.issueOpen"] = ("存在未解决的审核问题", "An unresolved review issue remains"),
+            ["review.acceptNonBlocking"] = ("忽略此非阻塞项", "Accept this non-blocking issue"),
+            ["review.acceptTitle"] = ("接受非阻塞审核项", "Accept Non-blocking Issue"),
+            ["review.acceptConfirm"] = ("确认忽略“{0}”吗？工作台会记录接受人和时间。", "Accept “{0}”? The workbench will record who accepted it and when."),
+            ["review.acceptedBy"] = ("已由 {0} 接受 · {1}", "Accepted by {0} · {1}"),
+            ["review.acceptedInWorkbench"] = ("用户在工作台确认接受此非阻塞项", "Accepted as non-blocking in the workbench"),
+            ["review.level"] = ("级别", "Level"),
+            ["review.kind"] = ("类型", "Type"),
+            ["review.content"] = ("具体内容", "Details"),
+            ["review.accept"] = ("接受", "Accept"),
+            ["review.acceptanceNote"] = ("接受备注", "Acceptance Note"),
+            ["review.unknownActor"] = ("未注明", "Unspecified"),
+            ["review.formalSpec"] = ("正式 Spec", "Formal Spec"),
+            ["review.awaitingApproval"] = ("等待审批", "Awaiting approval"),
+            ["evidence.verified"] = ("有效", "Verified"),
+            ["evidence.modified"] = ("修改过", "Modified"),
+            ["evidence.missing"] = ("文件缺失", "Missing"),
+            ["evidence.invalid"] = ("已失效", "Invalid"),
+            ["evidence.unverified"] = ("未核验", "Unverified"),
+            ["review.missing"] = ("不存在对应 Spec 或 Change", "No matching Spec or Change"),
+            ["dependency.name"] = ("名称", "Name"),
+            ["dependency.artifact"] = ("工件", "Artifact"),
+            ["dependency.status"] = ("状态", "Status"),
+            ["dependency.change"] = ("Change", "Change"),
+            ["dependency.available"] = ("可用", "Available"),
+            ["dependency.applied"] = ("已实现", "Applied"),
+            ["dependency.missing"] = ("缺失", "Missing"),
+            ["import.versions"] = ("个版本", "versions"),
+            ["import.conflictTitle"] = ("冲突版本", "Conflicting Versions"),
+            ["import.conflictHint"] = ("这些 Spec 名称相同但内容不同。请预览并选择保留一个版本。", "These specs have the same name but different content. Preview them and choose one version to keep."),
+            ["import.useVersion"] = ("确认采用此版本", "Use This Version"),
+            ["import.resolveTitle"] = ("解决 Draft Spec 冲突", "Resolve Draft Spec Conflict"),
+            ["import.resolveConfirm"] = ("确认保留当前版本，并删除同组中的其他版本吗？", "Keep the selected version and delete all other versions in this group?"),
+            ["import.deleteTitle"] = ("删除 Draft Spec", "Delete Draft Spec"),
+            ["import.deleteConfirm"] = ("确定删除当前 Draft Change（含配对能力）吗？此操作无法撤销。", "Delete this Draft Change, including paired capabilities? This cannot be undone."),
+            ["settings.title"] = ("工作台配置", "Workbench Settings"),
+            ["settings.language"] = ("当前语言", "Current Language"),
+            ["settings.chinese"] = ("中文", "Chinese"),
+            ["settings.english"] = ("英文", "English"),
+            ["settings.generationLanguage"] = ("生成时默认语言（权威语言）", "Default generation language (authority)"),
+            ["settings.followDesignLanguage"] = ("跟随设计文档", "Follow design documents"),
+            ["settings.generationLanguageHint"] = ("只影响之后生成的权威文件；已有 Spec 的权威文件仍保持原路径和原语言。", "Only affects future authoritative files; existing Specs keep their canonical path and language."),
+            ["translation.missing"] = ("当前语言尚未翻译。为避免显示不完整或混合语言内容，工作台不会回退显示权威正文。", "This content has not been translated into the current language. The workbench does not fall back to canonical text."),
+            ["translation.stale"] = ("翻译版本已落后于权威文件，请同步后再预览。", "This translation is behind the canonical file. Sync it before previewing."),
+            ["translation.readOnly"] = ("当前显示的是非权威语言版本，不能在工作台直接修改 Markdown。请让 Agent 同时修改权威文件和翻译。", "The current view is a non-authoritative translation and cannot be edited here. Ask the Agent to update both files."),
+            ["translation.copyCommand"] = ("复制翻译 / 同步指令", "Copy translation / sync command"),
+            ["translation.commandCopied"] = ("翻译指令已复制", "Translation command copied"),
+            ["settings.headingColors"] = ("Markdown 标题颜色", "Markdown Heading Colors"),
+            ["settings.workbenchColors"] = ("工作台颜色", "Workbench Colors"),
+            ["settings.workbenchBody"] = ("工作台正文", "Workbench Body"),
+            ["settings.workbenchBackground"] = ("工作台背景", "Workbench Background"),
+            ["settings.workbenchPanel"] = ("工作台面板", "Workbench Panel"),
+            ["settings.configPath"] = ("配置文件", "Config File"),
+            ["settings.defaultSize"] = ("默认窗口尺寸", "Default Window Size"),
+            ["settings.saved"] = ("配置已保存。", "Settings saved."),
+            ["settings.darkTheme"] = ("深色", "Dark"),
+            ["settings.lightTheme"] = ("浅色", "Light"),
+            ["settings.currentTheme"] = ("当前工作台主题", "Current Workbench Theme"),
+            ["settings.themeMode"] = ("主题模式", "Theme Mode"),
+            ["settings.normalTheme"] = ("浅色", "Light"),
+            ["settings.themeHint"] = ("工作台主题独立保存，不读取 Unity 编辑器主题设置。", "The workbench theme is stored independently and does not read the Unity Editor theme."),
+            ["settings.bodyColors"] = ("Markdown 正文颜色", "Markdown Body Colors"),
+            ["settings.markdownApplication"] = ("Markdown 打开软件", "Markdown Application"),
+            ["settings.systemDefault"] = ("系统默认", "System Default"),
+            ["settings.chooseApplication"] = ("选择", "Choose"),
+            ["settings.clearApplication"] = ("清除", "Clear"),
+            ["settings.applicationHint"] = ("留空时使用系统默认软件；可选择 Obsidian、VS Code 等应用程序。", "Leave empty to use the system default; you can select Obsidian, VS Code, or another application."),
+            ["intro.title"] = ("工作流介绍", "Workflow Introduction"),
+            ["intro.overview"] = ("使用介绍", "User Introduction"),
+            ["intro.quickstart"] = ("快速上手", "Quick Start"),
+            ["intro.missing"] = ("未找到介绍文件：{0}", "Introduction file not found: {0}"),
+            ["queue.maintainer"] = ("维护人", "Maintainer"),
+            ["queue.note"] = ("维护备注", "Maintenance Note"),
+            ["queue.pending"] = ("待处理", "Pending"),
+            ["queue.progress"] = ("进行中", "In Progress"),
+            ["queue.done"] = ("已维护", "Maintained"),
+            ["queue.empty"] = ("当前页签没有项目。", "No items in this tab."),
+            ["sync.title"] = ("设计文档设置", "Design Document Settings"),
+            ["sync.instructions"] = ("指令列表", "Command List"),
+            ["evidence.tooltip"] = ("按 Unity GUID 定位并跳转到记录行；路径后显示对应功能", "Locate by Unity GUID and jump to the recorded line; the related feature follows the path"),
+            ["evidence.missingPath"] = ("未记录显示路径", "Display path not recorded"),
+            ["common.unassessed"] = ("未评估", "Not assessed"),
+            ["common.unverified"] = ("未核验", "Not verified"),
+            ["common.noDetails"] = ("未说明", "No details"),
+            ["common.description"] = ("描述", "Description"),
+            ["common.priority"] = ("优先级", "Priority"),
+            ["common.file"] = ("文件", "File"),
+            ["common.maintainedAt"] = ("维护时间", "Maintained At"),
+            ["common.differences"] = ("差异 / 冲突", "Differences / Conflicts"),
+            ["common.noVerification"] = ("没有结构化核验信息。", "No structured verification data."),
+            ["common.copied"] = ("已复制：{0}", "Copied: {0}"),
+            ["common.readFailed"] = ("读取失败：{0}", "Read failed: {0}"),
+            ["common.another"] = ("另 {0} 项", "{0} more"),
+            ["common.verification"] = ("Verification", "Verification"),
+            ["common.dependencies"] = ("依赖", "Dependencies"),
+            ["common.blocking"] = ("阻塞", "Blocking"),
+            ["graph.title"] = ("Spec / Change 关系图谱", "Spec / Change Graph"),
+            ["graph.changeNode"] = ("Change", "Change"),
+            ["graph.reset"] = ("重置视图", "Reset View"),
+            ["graph.empty"] = ("尚未生成可显示的正式 Spec 或 Change 数据。", "No formal Spec or Change data is available for the graph."),
+            ["graph.help"] = ("待 Sync 表示 Change 已完全实现；实现中包含未开始、部分完成或延后缺口；待合入 Delta 标记被未同步 Change 修改的 Spec；阻塞只用于依赖未满足的 Change。", "Pending Sync means a Change is fully implemented; In Progress includes not started, partial, or deferred-gap work; Pending Delta marks a Spec targeted by an unsynced Change; Blocked applies to Changes with unmet dependencies."),
+            ["graph.select"] = ("选择节点以查看信息。", "Select a node to view details."),
+            ["graph.viewSpec"] = ("在正式 Spec 中查看", "View in Formal Specs"),
+            ["graph.viewChange"] = ("在 Changes 中查看", "View in Changes"),
+            ["graph.showChanges"] = ("显示 Changes", "Show Changes"),
+            ["graph.hideChanges"] = ("隐藏 Changes", "Hide Changes"),
+            ["graph.changeTargetsSpec"] = ("该 Change 将修改此 Spec", "This Change targets the Spec"),
+            ["spec.designSources"] = ("设计文档来源", "Design Sources"),
+            ["spec.openDesignSource"] = ("打开设计来源", "Open Design Source"),
+            ["graph.direct"] = ("直接依赖", "Direct dependencies"),
+            ["graph.dependents"] = ("被依赖", "Dependents"),
+            ["graph.blockedNone"] = ("阻塞依赖：无", "Blocking dependencies: none"),
+            ["graph.blockingLinks"] = ("阻塞 · 点击定位依赖", "Blocking · click to locate"),
+            ["graph.pendingLinks"] = ("待合入 · 点击查看 Change", "Pending · click to view change"),
+            ["graph.more"] = ("另 {0} 项", "{0} more"),
+            ["graph.nodeTip"] = ("单击查看节点，拖动调整位置", "Click to view the node; drag to reposition"),
+            ["graph.implementationOutline"] = ("核心实现思路", "Core implementation outline"),
+            ["graph.implementationOutlineEmpty"] = ("尚未记录核心实现思路。", "No core implementation outline has been recorded."),
+            ["graph.pendingDeltas"] = ("待合入 Delta", "Pending deltas"),
+            ["graph.status.pendingSync"] = ("待 Sync", "Pending Sync"),
+            ["graph.status.inProgress"] = ("实现中", "In Progress"),
+            ["graph.status.deltaPending"] = ("待合入 Delta", "Pending Delta"),
+            ["graph.status.implemented"] = ("已实现", "Implemented"),
+            ["graph.status.blocked"] = ("阻塞", "Blocked"),
+            ["graph.pendingDeltasEmpty"] = ("没有待合入的 Change。", "No pending changes target this spec."),
+            ["graph.syncConflict"] = ("同步冲突", "Sync conflict"),
+            ["graph.mergeReview"] = ("待合并审查", "Merge review required"),
+            ["graph.mergeSafe"] = ("可保留式合并", "Safe preserved merge"),
+            ["change.syncStatus"] = ("Spec 同步", "Spec sync"),
+            ["change.syncValidation"] = ("同步校验", "Sync validation"),
+            ["sync.sources"] = ("文档来源", "Document Sources"),
+            ["sync.package"] = ("文档包", "Document Package"),
+            ["sync.documents"] = ("设计文档", "Design Documents"),
+            ["sync.addDocuments"] = ("添加设计文档路径", "Add Design Document Path"),
+            ["sync.remove"] = ("移除", "Remove"),
+            ["sync.select"] = ("选择", "Select"),
+            ["sync.checkNow"] = ("立即检查", "Check Now"),
+            ["sync.ledger"] = ("变更账本", "Change Ledger"),
+            ["sync.openDocument"] = ("打开文档", "Open Document"),
+            ["sync.bridgeHint"] = ("项目侧只读设计包的实现后变更账本；检查不会自动调用设计导入或创建 Proposal。", "The project reads the design package's post-implementation change ledger without writing it. Checking never invokes Design Import or creates proposals automatically."),
+            ["sync.notConfigured"] = ("未配置", "Not configured"),
+            ["sync.packageNotSelected"] = ("未选择文档包", "Document package not selected"),
+            ["sync.packageKeyNotFound"] = ("所选路径及附近目录中未找到关键文件：{0}，未记录该路径。", "The required file was not found in or near the selected path: {0}. The path was not saved."),
+            ["sync.packageFound"] = ("已找到文档包：{0}", "Document package found: {0}"),
+            ["sync.pathMissing"] = ("路径不存在", "Path does not exist"),
+            ["sync.ledgerMissing"] = ("设计包尚未创建实现后变更账本", "The design package has no post-implementation change ledger"),
+            ["sync.noImplementedChanges"] = ("没有已实现后又修改的设计文档", "No implemented design documents changed afterward"),
+            ["sync.implementedChangesFound"] = ("发现 {0} 条实现后设计变更", "Found {0} post-implementation design changes"),
+            ["sync.changedAfterImplementedAt"] = ("实现：{0} · 后续变更：{1}", "Implemented: {0} · Changed later: {1}"),
+            ["sync.detectedByFingerprint"] = ("当前文档指纹与实现基线不同；设计包尚未补充变更摘要。", "The current document fingerprint differs from the implementation baseline; the design package has not added a change summary yet."),
+            ["sync.manualChange"] = ("手动修改", "Manual change"),
+            ["sync.bridgeStatus"] = ("实现后设计变更", "Post-implementation Design Changes"),
+            ["sync.documentStructure"] = ("设计文档结构（{0} 个文件）", "Design Document Structure ({0} files)"),
+            ["sync.progress"] = ("实现进度", "Implementation Progress"),
+            ["sync.changedAfterImplementation"] = ("实现后修改", "Changed After Implementation"),
+            ["sync.changeSummary"] = ("修改摘要", "Change Summary"),
+            ["sync.changedYes"] = ("有修改", "Changed"),
+            ["sync.changedNo"] = ("无修改", "Unchanged"),
+            ["sync.statusImplemented"] = ("已实现", "Implemented"),
+            ["sync.statusInProgress"] = ("实现中", "In Progress"),
+            ["sync.statusNotImplemented"] = ("未实现", "Not Implemented"),
+            ["sync.connectPackageToViewStructure"] = ("连接有效文档包后显示设计文档结构。", "Connect a valid document package to view its design-document structure."),
+            ["sync.noDesignDocuments"] = ("没有找到设计 Markdown。", "No design Markdown files were found."),
+            ["sync.documentLimit"] = ("仅显示前 {0} 个文件；共发现 {1} 个 Markdown。", "Showing the first {0} files; {1} Markdown files were found."),
+            ["sync.documentStructureError"] = ("设计文档结构读取失败：{0}", "Failed to read the design-document structure: {0}"),
+            ["sync.open"] = ("打开", "Open"),
+            ["sync.configurePackageFirst"] = ("请先选择有效文档包，再设置设计文档目录。", "Select a valid document package before setting the design-document directory."),
+            ["sync.configured"] = ("已配置：{0}", "Configured: {0}"),
+            ["sync.configuredMultiple"] = ("已配置 {0} 个设计文档路径。", "Configured {0} design-document paths."),
+            ["sync.configuredWithMissing"] = ("有效路径 {0} 个，失效路径 {1} 个。", "{0} valid paths; {1} missing paths."),
+            ["sync.savedMissing"] = ("已保存但路径不存在：{0}", "Saved path does not exist: {0}"),
+            ["sync.duplicatePath"] = ("该设计文档路径已经存在。", "This design-document path already exists."),
+            ["sync.invalidSources"] = ("设计文档来源缺少唯一有效 ID、路径，或包含重复 ID。", "Design sources contain a missing/invalid ID or path, or a duplicate ID."),
+            ["sync.configError"] = ("配置文件错误：{0}", "Configuration error: {0}"),
+            ["sync.notSaved"] = ("路径不存在，未保存", "Path does not exist; not saved"),
+            ["sync.ledgerError"] = ("变更账本错误：{0}", "Change-ledger error: {0}"),
+            ["sync.choosePackage"] = ("选择文档工作流包", "Select Document Workflow Package"),
+            ["sync.chooseDocuments"] = ("选择设计文档目录", "Select Design Document Directory"),
+            ["cmd.importAll"] = ("设计导入", "Design Import"),
+            ["cmd.importAllDesc"] = ("导入所有已配置路径下的正式设计；路径不区分类型，语义过滤在扫描后执行。", "Import formal designs from every configured path; paths are type-neutral and semantic filtering runs after scanning."),
+            ["cmd.importScope"] = ("设计导入：<范围>", "Design Import: <scope>"),
+            ["cmd.importScopeDesc"] = ("只导入指定系统或主题，例如“设计导入：角色成长”。", "Import only the specified system or topic."),
+            ["cmd.rules"] = ("--规则", "--rules"),
+            ["cmd.rulesDesc"] = ("只生成玩法、流程、数值约束等游戏规则 Requirement。", "Generate only gameplay, flow, and numeric-rule requirements."),
+            ["cmd.content"] = ("--内容", "--content"),
+            ["cmd.contentDesc"] = ("只生成角色、关卡、物品、事件等内容设计 Requirement。", "Generate only character, level, item, event, and other content requirements."),
+            ["cmd.art"] = ("--美术", "--art"),
+            ["cmd.artDesc"] = ("只生成表现、视觉与资源要求；三个参数可组合，结果取并集。", "Generate presentation, visual, and asset requirements; filters can be combined."),
+            ["cmd.revise"] = ("修改<id>: <修改内容>", "Revise <id>: <changes>"),
+            ["cmd.reviseDesc"] = ("修改指定导入报告中的 Draft Change；可要求重新拆分、降耦或按新版设计文档重做。", "Revise a Draft Change from an import report; it can be split, decoupled, or regenerated from updated design documents."),
+            ["cmd.apply"] = ("apply <change-id>", "apply <change-id>"),
+            ["cmd.applyDesc"] = ("按指定正式 Change 的 Tasks 实现代码；目标是 Change ID，不是 Spec ID。", "Implement the tasks of a formal Change; the target is a Change ID, not a Spec ID."),
+            ["cmd.syncSpecs"] = ("sync specs <change-id>", "sync specs <change-id>"),
+            ["cmd.syncSpecsDesc"] = ("用基线、当前正式 Spec 与 Delta 做三方判断；保留不重叠内容，仅在确认覆盖或语义冲突时阻止。", "Compare baseline, current formal specs, and deltas; preserve non-overlapping content and block only confirmed replacement or semantic conflicts."),
+            ["cmd.archive"] = ("archive <change-id>", "archive <change-id>"),
+            ["cmd.archiveDesc"] = ("Tasks 全完成且 Spec 已同步后，将完整 Change 移入日期历史目录；不会自动 sync。", "After all tasks and spec sync are complete, move the full change into the dated history directory without running sync."),
+            ["change.empty"] = ("当前没有未归档 change。", "There are no active changes."),
+            ["change.missingDependencies"] = ("缺失依赖", "Missing Dependencies"),
+            ["change.noTasks"] = ("无任务", "No tasks"),
+            ["change.deleteTitle"] = ("删除 Change", "Delete Change"),
+            ["change.deleteConfirm"] = ("确定永久删除 Change“{0}”及其全部文件吗？", "Permanently delete change “{0}” and all of its files?"),
+            ["change.archive"] = ("归档", "Archive"),
+            ["change.archiveTitle"] = ("归档 Change", "Archive Change"),
+            ["change.archiveConfirm"] = ("将 Change“{0}”移动到 archive？归档后仍可手动查看全部设计与审计文件。", "Move change “{0}” into archive? Its design and audit files remain available for manual review."),
+            ["change.archiveReady"] = ("Tasks 已完成且 Spec 已同步，可以归档。", "Tasks are complete and specs are synced; ready to archive."),
+            ["change.archiveTasksPending"] = ("还有 {0} 个 Task 未完成。", "{0} tasks are still incomplete."),
+            ["change.archiveSyncPending"] = ("Delta Spec 尚未完成同步。", "Delta specs have not been synced."),
+            ["change.archiveUnavailable"] = ("当前 Change 不可归档。", "This change cannot be archived."),
+            ["change.archiveExists"] = ("归档目标已存在：{0}", "Archive target already exists: {0}"),
+            ["change.archiveComplete"] = ("Change 已归档。", "Change archived."),
+            ["change.copyId"] = ("复制 ID", "Copy ID"),
+            ["change.notes"] = ("备注", "Notes"),
+            ["change.notesHint"] = ("实现时必须遵守的补充说明；apply change 会在编码前读取。", "Additional implementation constraints; apply change reads them before coding."),
+            ["change.notesSaved"] = ("Change 备注已保存。", "Change notes saved."),
+            ["change.paired"] = ("配对", "Paired"),
+            ["queue.markDone"] = ("标记已维护", "Mark Maintained"),
+            ["queue.markProgress"] = ("标记进行中", "Mark In Progress"),
+            ["queue.restore"] = ("恢复待处理", "Restore Pending")
+            , ["gap.resolved"] = ("已解决", "Resolved")
+            , ["gap.accepted"] = ("已确认暂缓", "Deferred by approval")
+            , ["gap.open"] = ("待补齐", "Open")
+            , ["gap.confirm"] = ("待确认", "Needs confirmation")
+            , ["gap.impact"] = ("影响", "Impact")
+            , ["gap.ambiguity"] = ("需求含义需要确认", "Requirement meaning needs clarification")
+            , ["gap.missingDependency"] = ("缺少依赖", "Missing dependency")
+            , ["gap.unknown"] = ("存在待处理的设计缺失", "A design gap needs attention")
+            , ["gap.acceptedBy"] = ("接受人", "Accepted by")
+            , ["gap.time"] = ("时间", "Time")
+            , ["gap.hardHint"] = ("该缺失属于硬前置：已允许发布，但仍阻塞实现，直到设计被标记为 resolved。", "This is a hard prerequisite: publication is allowed, but implementation remains blocked until the gap is resolved.")
+            , ["gap.acceptTitle"] = ("接受缺失说明", "Gap Acceptance")
+            , ["gap.rationale"] = ("暂缓原因", "Deferral rationale")
+            , ["gap.boundary"] = ("交付边界", "Delivery boundary")
+            , ["gap.implementation"] = ("实现影响", "Implementation impact")
+            , ["gap.recordHard"] = ("记录已知缺失（仍阻塞实现）", "Record Known Gap (Still Blocking)")
+            , ["gap.acceptDeferred"] = ("接受为可延期缺失", "Accept as Deferred Gap")
+            , ["spec.missingRoot"] = ("未找到 OpenSpec 目录：{0}", "OpenSpec directory not found: {0}")
+            , ["spec.unreadable"] = ("无法读取 Spec 内容。", "Unable to read spec content.")
+        };
+
+        internal static void SetLanguage(string language) => _language = language == "en-US" ? "en-US" : "zh-CN";
+
+        internal static string Get(string id)
+        {
+            if (!Values.TryGetValue(id, out var value))
+                return id;
+            return _language == "en-US" ? value.En : value.Zh;
+        }
+
+        internal static string Format(string id, params object[] args) => string.Format(Get(id), args);
+    }
+}
+#endif

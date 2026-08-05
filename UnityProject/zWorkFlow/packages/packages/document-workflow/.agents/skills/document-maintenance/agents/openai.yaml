@@ -1,0 +1,4 @@
+interface:
+  display_name: "Document Workflow"
+  short_description: "独立维护设计文档、知识库与实现后变更账本"
+  default_prompt: "Use $document-maintenance to maintain this project documentation package."

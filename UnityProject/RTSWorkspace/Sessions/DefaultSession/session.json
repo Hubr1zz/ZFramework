@@ -1,0 +1,16 @@
+{
+    "schemaVersion": 1,
+    "id": "DefaultSession",
+    "displayName": "DefaultSession",
+    "entryScriptId": "framework.session-entry",
+    "launchProfile": 0,
+    "startupScene": "",
+    "activationProcedure": "Procedure.ProcedureStartGame",
+    "activationScene": "",
+    "startupTimeoutSeconds": 300,
+    "createdUtc": "2026-08-03T16:33:37.5973828Z",
+    "baseRevision": "",
+    "baseModules": [],
+    "sessionDependencies": [],
+    "referenceAssemblies": []
+}

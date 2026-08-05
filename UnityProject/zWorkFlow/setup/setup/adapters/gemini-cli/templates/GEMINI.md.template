@@ -1,0 +1,7 @@
+# GEMINI.md
+
+请先读取并遵守项目根目录的 `AGENTS.md`，再按其中入口读取 `zWorkFlow/AGENT_WORKFLOW_README.md` 与项目共享 `.agents/`。
+
+- 完整 Skills 位于 `.agents/skills/`，不要在 `.gemini/skills/` 复制第二套正文。
+- Agent 角色的共享说明位于 `.agents/agent-roles/`；只有 Gemini CLI 确实需要原生 Agent 配置时才创建薄 wrapper。
+- OpenSpec、项目规则、团队成员规范与其他工具共享同一份项目数据；不维护通用决策/踩坑记忆池。

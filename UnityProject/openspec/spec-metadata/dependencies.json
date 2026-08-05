@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {
+      "id": "tengine-startup-lifecycle",
+      "label": "TEngine 启动生命周期",
+      "category": "system",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tengine-startup-lifecycle/spec.md"
+    }
+  ],
+  "edges": []
+}

@@ -1,0 +1,602 @@
+#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
+using UnityEditor;
+using UnityEngine;
+
+namespace AgentWorkflow.Editor
+{
+    public sealed partial class AgentWorkbenchWindow : EditorWindow
+    {
+        private enum ToolTab
+        {
+            RefactorQueue,
+            OpenSpec,
+            EngineeringCapabilities,
+            DesignSyncSettings,
+            ImportReports,
+            Configuration,
+            Introduction,
+            DependencyGraph
+        }
+
+        private enum QueueStatusTab
+        {
+            Pending,
+            InProgress,
+            Maintained
+        }
+
+        private enum OpenSpecSection
+        {
+            Specs,
+            Changes
+        }
+
+        private enum SpecCategoryTab
+        {
+            All,
+            System,
+            Feature,
+            GameRule
+        }
+
+        [Serializable]
+        private sealed class EngineeringCapabilityCatalog
+        {
+            public int schemaVersion = 1;
+            public string updatedAt;
+            public EngineeringCapabilityEntry[] entries;
+        }
+
+        [Serializable]
+        private sealed class EngineeringCapabilityEntry
+        {
+            public string id;
+            public string displayName;
+            public string displayNameEn;
+            public string kind;
+            public string description;
+            public string descriptionEn;
+            public string version;
+            public string source;
+            public string usagePolicy;
+            public string usageNotes;
+            public string usageNotesEn;
+            public string decisionBasis;
+            public bool locked;
+            public string[] capabilities;
+            public string[] capabilitiesEn;
+            public string[] constraints;
+            public string[] constraintsEn;
+            public string[] evidence;
+            public string[] dependencies;
+        }
+
+        private sealed class QueueItem
+        {
+            public int StartLine;
+            public int EndLine;
+            public string Priority;
+            public string Title;
+            public string File;
+            public string Type;
+            public string Description;
+            public string Source;
+            public string Status;
+            public string Maintainer;
+            public string MaintainedAt;
+            public string MaintenanceNote;
+        }
+
+        private sealed class SpecFile
+        {
+            public SpecFile(
+                string title,
+                string path,
+                string capability = null,
+                string category = null,
+                IReadOnlyCollection<CodeEvidence> evidence = null,
+                IReadOnlyCollection<string> sourceReferences = null,
+                string content = null,
+                EditorGuidance editorGuidance = null,
+                string pairedFeatureCapability = null,
+                string pairedRuleCapability = null,
+                IReadOnlyCollection<string> implementationOutline = null,
+                string canonicalTitle = null)
+            {
+                Title = title;
+                CanonicalTitle = canonicalTitle ?? title;
+                Path = path;
+                Capability = capability ?? string.Empty;
+                Category = NormalizeCategory(category);
+                Evidence = evidence?.ToArray() ?? Array.Empty<CodeEvidence>();
+                SourceReferences = sourceReferences?.ToArray() ?? Array.Empty<string>();
+                Content = content ?? string.Empty;
+                EditorGuidance = editorGuidance;
+                PairedFeatureCapability = pairedFeatureCapability ?? string.Empty;
+                PairedRuleCapability = pairedRuleCapability ?? string.Empty;
+                ImplementationOutline = implementationOutline?.Where(item => !string.IsNullOrWhiteSpace(item)).ToArray()
+                    ?? Array.Empty<string>();
+            }
+
+            public string Title { get; }
+            public string CanonicalTitle { get; }
+            public string Path { get; }
+            public string Capability { get; }
+            public string Category { get; }
+            public IReadOnlyCollection<CodeEvidence> Evidence { get; }
+            public IReadOnlyCollection<string> SourceReferences { get; }
+            public string Content { get; }
+            public EditorGuidance EditorGuidance { get; }
+            public string PairedFeatureCapability { get; }
+            public string PairedRuleCapability { get; }
+            public IReadOnlyCollection<string> ImplementationOutline { get; }
+        }
+
+        private sealed class ChangeEntry
+        {
+            public string Name;
+            public string Title;
+            public string Path;
+            public string Capability;
+            public List<string> Capabilities = new();
+            public string Category;
+            public List<string> Categories = new();
+            public List<SpecFile> Specs = new();
+            public string Readiness;
+            public string CodeReadiness;
+            public string ApprovalStatus;
+            public string SourceKind;
+            public string ImplementationNotes;
+            public string SpecSyncStatus;
+            public SyncValidation SyncValidation;
+            public List<SyncTarget> SyncTargets = new();
+            public Dictionary<string, List<string>> ImplementationOutlines =
+                new(StringComparer.OrdinalIgnoreCase);
+            public ImportSpecVerification Verification;
+            public List<CodeEvidence> Evidence = new();
+            public string ProposalContent;
+            public string DesignContent;
+            public string TasksContent;
+            public List<ChangeTask> Tasks = new();
+            public List<ReviewIssue> ReviewIssues = new();
+            public List<SpecGap> Gaps = new();
+            public List<DependencyEdge> Dependencies = new();
+            public List<CapabilityEditorGuidance> EditorGuidance = new();
+        }
+
+        private sealed class ChangeTask
+        {
+            public bool Completed;
+            public string Text;
+        }
+
+        [Serializable]
+        private sealed class SpecGapList
+        {
+            public SpecGap[] items;
+        }
+
+        [Serializable]
+        private sealed class SpecGap
+        {
+            public string id;
+            public string capability;
+            public string dependencyId;
+            public string missingNodeId;
+            public string expectedCategory;
+            public string requirement;
+            public string type;
+            public string severity;
+            public string status;
+            public bool blocksImplementation;
+            public string[] blockedScenarios;
+            public string summary;
+            public string impact;
+            public string recommendation;
+            public string[] sourceReferences;
+            public string userRationale;
+            public string deliveryBoundary;
+            public string implementationImpact;
+            public string acceptedBy;
+            public string acceptedAt;
+            public string resolutionNote;
+        }
+
+        [Serializable]
+        private sealed class ReviewIssue
+        {
+            public string id;
+            public string type;
+            public string severity;
+            public string status;
+            public bool blocksApproval;
+            public string summary;
+            public string details;
+            public string sourceId;
+            public string acceptedBy;
+            public string acceptedAt;
+            public string acceptanceNote;
+
+            [NonSerialized] public string displaySummary;
+            [NonSerialized] public string displayDetails;
+        }
+
+        [Serializable]
+        private sealed class DependencyGraph
+        {
+            public int schemaVersion = 2;
+            public DependencyNode[] nodes;
+            public DependencyEdge[] edges;
+        }
+
+        [Serializable]
+        private sealed class DependencyNode
+        {
+            public string id;
+            public string label;
+            public string category;
+            public string readiness;
+            public string specPath;
+        }
+
+        [Serializable]
+        private sealed class DependencyEdge
+        {
+            public string id;
+            public string from;
+            public string to;
+            public string type;
+            public string status;
+            public string reason;
+            public string gapId;
+            public bool blocksImplementation;
+        }
+
+        [Serializable]
+        private sealed class DesignImportRun
+        {
+            public string runId;
+            public string status;
+            public string source;
+            public DesignSourceEntry[] sourceRoots;
+            public string scope;
+            public string[] typeFilters;
+            public string createdAt;
+            public string publicationStatus;
+            public DesignImportDocumentCounts documentCounts;
+            public DesignImportDuplicatePrecheck duplicatePrecheck;
+            public DesignImportAuditItem[] uncertaintyCandidates;
+            public DesignImportLinkAmbiguity[] ambiguousLinks;
+            public DesignImportTypeFilterAudit typeFilterAudit;
+
+            [NonSerialized] public string DirectoryPath;
+            [NonSerialized] public int GapCount;
+            [NonSerialized] public int BlockingGapCount;
+            [NonSerialized] public SpecGap[] Gaps;
+            [NonSerialized] public List<DependencyEdge> Dependencies;
+            [NonSerialized] public List<DependencyNode> Nodes;
+            [NonSerialized] public List<DesignImportSpec> Specs;
+            [NonSerialized] public List<DraftSpecGroup> SpecGroups;
+        }
+
+        [Serializable]
+        private sealed class DesignImportDocumentCounts
+        {
+            public int requirements;
+            public int context;
+        }
+
+        [Serializable]
+        private sealed class DesignImportDuplicatePrecheck
+        {
+            public int exactMatchCount;
+            public int candidateCount;
+        }
+
+        [Serializable]
+        private sealed class DesignImportAuditItem
+        {
+            public string source;
+            public string text;
+        }
+
+        [Serializable]
+        private sealed class DesignImportLinkAmbiguity
+        {
+            public string source;
+            public string target;
+            public string[] matches;
+        }
+
+        [Serializable]
+        private sealed class DesignImportTypeFilterAudit
+        {
+            public string[] selectedTypes;
+            public string[] omittedTypes;
+            public DesignImportAuditItem[] preservedConstraints;
+            public DesignImportAuditItem[] mixedDescriptions;
+        }
+
+        private sealed class DesignImportSpec
+        {
+            public string VersionId;
+            public string ChangeId;
+            public string Capability;
+            public string Title;
+            public string CanonicalTitle;
+            public string Category;
+            public string SpecPath;
+            public string ReviewPath;
+            public string SpecContent;
+            public string DraftChangePath;
+            public string Readiness;
+            public string VerificationStatus;
+            public string VerificationSummary;
+            public List<CodeEvidence> VerificationEvidence = new();
+            public List<string> VerificationDifferences = new();
+            public string VerifiedAt;
+            public List<string> SourceReferences = new();
+            public List<SpecGap> Gaps = new();
+            public List<DependencyEdge> Dependencies = new();
+            public List<ReviewIssue> ReviewIssues = new();
+            public EditorGuidance EditorGuidance;
+            public string PairedFeatureCapability;
+            public string PairedRuleCapability;
+            public string ProposalContent;
+            public string DesignContent;
+            public string TasksContent;
+            public string ImplementationNotes;
+            public List<ChangeTask> Tasks = new();
+        }
+
+        [Serializable]
+        private sealed class DraftStoreIndex
+        {
+            public int schemaVersion = 2;
+            public List<DraftSpecGroup> groups = new();
+        }
+
+        [Serializable]
+        private sealed class DraftSpecGroup
+        {
+            public string capability;
+            public string title;
+            public string status;
+            public string selectedVersionId;
+            public List<DraftSpecVersion> versions = new();
+
+            public string Title => Or(title, capability);
+            public List<DraftSpecVersion> Versions => versions ??= new List<DraftSpecVersion>();
+        }
+
+        [Serializable]
+        private sealed class DraftSpecVersion
+        {
+            public string id;
+            public string[] runIds;
+            public string contentHash;
+            public string changeId;
+            public string specPath;
+            public string reviewPath;
+            public string draftChangePath;
+            public string createdAt;
+
+            [NonSerialized] public DesignImportSpec Spec;
+        }
+
+        [Serializable]
+        private sealed class DraftSpecReferenceList
+        {
+            public DraftSpecReference[] items;
+        }
+
+        [Serializable]
+        private sealed class DraftSpecReference
+        {
+            public string capability;
+            public string changeId;
+            public string status;
+        }
+
+        [Serializable]
+        private sealed class ImportSpecReview
+        {
+            public int schemaVersion = 5;
+            public string capability;
+            public string title;
+            public string category;
+            public string readiness;
+            public ImportSpecVerification verification;
+            public string[] gapIds;
+            public string[] dependencyIds;
+            public string[] sourceReferences;
+            public ReviewIssue[] reviewIssues;
+            public EditorGuidance editorGuidance;
+            public string pairedFeatureCapability;
+            public string pairedRuleCapability;
+            public string[] implementationOutline;
+        }
+
+        [Serializable]
+        private sealed class EditorGuidance
+        {
+            public string summary;
+            public string[] inspectorReferences;
+            public string[] tunableParameters;
+            public string[] sceneSetup;
+            public string[] usage;
+        }
+
+        private sealed class CapabilityEditorGuidance
+        {
+            public string Capability;
+            public string Title;
+            public string Category;
+            public EditorGuidance Guidance;
+        }
+
+        [Serializable]
+        private sealed class ChangeReview
+        {
+            public int schemaVersion = 5;
+            public string changeId;
+            public string title;
+            public string category;
+            public string sourceKind;
+            public string sourceRunId;
+            public string readiness;
+            public string codeReadiness;
+            public string approvalStatus;
+            public string approvedBy;
+            public string approvedAt;
+            public string implementationNotes;
+            public ImportSpecVerification verification;
+            public ReviewIssue[] reviewIssues;
+            public string[] gapIds;
+            public string[] dependencyIds;
+            public string[] capabilities;
+            public string specSyncStatus;
+            public SyncTarget[] syncTargets;
+            public SyncValidation syncValidation;
+            public string createdAt;
+        }
+
+        [Serializable]
+        private sealed class SyncTarget
+        {
+            public string capability;
+            public string title;
+            public string category;
+            public string deltaSpecPath;
+            public string targetSpecPath;
+            public bool targetExisted;
+            public string baseFileHash;
+            public string baseSnapshotPath;
+            public string syncedFileHash;
+        }
+
+        [Serializable]
+        private sealed class SyncValidation
+        {
+            public string status;
+            public string summary;
+            public SyncConflict[] changes;
+            public SyncConflict[] conflicts;
+            public string validatedAt;
+        }
+
+        [Serializable]
+        private sealed class SyncConflict
+        {
+            public string type;
+            public string capability;
+            public string message;
+            public string assessment;
+            public string baseFileHash;
+            public string currentFileHash;
+            public string[] overlappingRequirements;
+        }
+
+        [Serializable]
+        private sealed class ChangeSources
+        {
+            public string sourceRunId;
+            public string source;
+            public DesignSourceEntry[] sourceRoots;
+            public string[] sourceReferences;
+        }
+
+        [Serializable]
+        private sealed class ImportSpecVerification
+        {
+            public string status;
+            public string summary;
+            public CodeEvidence[] codeEvidence;
+            public string[] evidence;
+            public string[] differences;
+            public string verifiedAt;
+        }
+
+        [Serializable]
+        private sealed class CodeEvidence
+        {
+            public string guid;
+            public string displayPath;
+            public string fileHash;
+            public int line;
+            public string feature;
+            public string status;
+            public string checkedAt;
+
+            [NonSerialized] public string currentFileHash;
+            [NonSerialized] public string effectiveStatus;
+        }
+
+        [Serializable]
+        private sealed class DesignSourceConfiguration
+        {
+            public int schemaVersion = 2;
+            public string source;
+            public DesignSourceEntry[] sources;
+            public string configuredBy;
+            public string configuredAt;
+        }
+
+        [Serializable]
+        private sealed class DesignSourceEntry
+        {
+            public string id;
+            public string path;
+        }
+
+        [Serializable]
+        private sealed class DocumentImplementationLedger
+        {
+            public int schemaVersion = 1;
+            public string updatedAt;
+            public DocumentImplementationEntry[] entries;
+        }
+
+        [Serializable]
+        private sealed class DocumentImplementationEntry
+        {
+            public string documentPath;
+            public string implementationId;
+            public string implementationLabel;
+            public string implementationStatus;
+            public int implementationProgress;
+            public string implementedAt;
+            public string implementedRevision;
+            public string implementedFingerprint;
+            public string previousImplementedFingerprint;
+            public string currentRevision;
+            public string currentFingerprint;
+            public bool changedAfterImplementation;
+            public string changedAt;
+            public string changeSummary;
+            [NonSerialized] public bool detectedByFingerprint;
+            [NonSerialized] public bool manualChangeDetected;
+        }
+
+        private sealed class DesignDocumentTreeItem
+        {
+            public bool isDirectory;
+            public int depth;
+            public string displayName;
+            public string relativePath;
+            public string absolutePath;
+            public string implementationStatus;
+            public int implementationProgress;
+            public bool changedAfterImplementation;
+            public string changeSummary;
+        }
+    }
+}
+#endif

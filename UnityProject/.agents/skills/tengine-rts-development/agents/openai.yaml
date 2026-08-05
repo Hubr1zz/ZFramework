@@ -1,0 +1,4 @@
+interface:
+  display_name: "TEngine RTS Development"
+  short_description: "Design RTS gameplay for clean live and formalized code"
+  default_prompt: "Use $tengine-rts-development to design or modify this RTS feature with pure Data, thin Adaptors, engine Views, stable asset keys, and incremental formalization."
