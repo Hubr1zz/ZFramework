@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunter-attack-resolution-implementation",
+  "title": "猎人攻击结算代码实现",
+  "category": "feature",
+  "readiness": "ready",
+  "verification": {
+    "status": "partial",
+    "summary": "现有代码部分覆盖猎人攻击结算，仍有 2 项实现差异。",
+    "codeEvidence": [
+      {
+        "guid": "4becba54d2c7c92478a6ca6ea7fcdfd9",
+        "displayPath": "Assets/Scripts/Adapters/Unity/Combat/CombatManager.cs",
+        "fileHash": "d71936eecbbea8b2d011249906702aba89d056c326a0aac3cc10a10ccffef96c",
+        "line": 19,
+        "feature": "构建并运行猎人与 Boss 的异步攻击管线"
+      },
+      {
+        "guid": "fad93a6f5153c934a86e71d3784f2def",
+        "displayPath": "Assets/Scripts/Adapters/Unity/Combat/LegacyShowdown/CharacterAttackSteps.cs",
+        "fileHash": "2feea27d7e8991cfe17742116ec4a250d3d63ab2a5fdf05bd573937f7678f1bf",
+        "line": 22,
+        "feature": "抽取部位、逐张选择并按攻击力阈值结算部位伤害"
+      }
+    ],
+    "evidence": [],
+    "differences": [
+      "当前实现按速度加权抽取部位并以攻击力阈值直接判定，没有构建成功/失败临时结果牌堆。",
+      "当前流程逐张部位独立判定，未让玩家把已抽取的命中结果分配到展示部位。"
+    ],
+    "verifiedAt": "2026-07-24T18:48:56+08:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [
+    "hunter-attack-resolution-implementation--requires--hunter-action-cards-implementation",
+    "hunter-attack-resolution-implementation--requires--boss-hit-locations-implementation",
+    "hunter-attack-resolution-implementation--requires--battlefield-interactions-implementation"
+  ],
+  "sourceReferences": [
+    "primary::决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md:32",
+    "primary::决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md:60",
+    "primary::通用/猎人 Hunter.md:96",
+    "primary::通用/物品 Items.md:23"
+  ],
+  "pairedRuleCapability": "hunter-attack-resolution-rules",
+  "reviewIssues": [
+    {
+      "id": "ISSUE-HUNTER-ATTACK-RESOLUTION-001",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": false,
+      "summary": "当前实现按速度加权抽取部位并以攻击力阈值直接判定，没有构建成功/失败临时结果牌堆。",
+      "sourceId": "DELTA-HUNTER-ATTACK-RESOLUTION-001"
+    },
+    {
+      "id": "ISSUE-HUNTER-ATTACK-RESOLUTION-002",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": false,
+      "summary": "当前流程逐张部位独立判定，未让玩家把已抽取的命中结果分配到展示部位。",
+      "sourceId": "DELTA-HUNTER-ATTACK-RESOLUTION-002"
+    }
+  ]
+}

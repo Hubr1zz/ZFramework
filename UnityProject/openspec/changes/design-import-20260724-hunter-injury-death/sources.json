@@ -1,0 +1,21 @@
+[
+  {
+    "sourceId": "primary",
+    "relativePath": "决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md",
+    "role": "requirement",
+    "sha256": "e20d321ac3f3088ce514cc75e9039940680bf3a138d16a573ff9eb1d75e52824"
+  },
+  {
+    "sourceId": "primary",
+    "relativePath": "决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md",
+    "role": "requirement",
+    "sha256": "84824fcfdf4f98ce7542dfbf8c4446f1bb1c6f5062be4b7dfd61fe7d088bd8b5"
+  },
+  {
+    "sourceId": "primary",
+    "relativePath": "通用/猎人 Hunter.md",
+    "role": "context",
+    "sha256": "230b4d68df4dbe72781f59bd306103a987e261529b4bd9a67b8a0aa476025c59"
+  }
+]
+

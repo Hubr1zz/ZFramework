@@ -6,6 +6,6 @@
 2. 将项目现有文档规则融合进 `.agents/skills/document-maintenance/SKILL.md`，不覆盖已有规则。
 3. 创建 Claude wrapper；Codex 直接读取 `.agents/skills/`。
 4. 保留已有文档、历史和个人规范。
-5. 幂等创建 `.design-workflow/implementation-ledger.json`；已有账本保持不变。旧 `.agent-bridge/project-sync.json` 不再使用，不读取其中项目路径，也不据此触发项目工作流。
+5. 不创建实现账本，也不读取项目路径；实现进度、实现基线与实现后变更账本由项目包在 `openspec/implementation-ledger.json` 维护。遗留的 `.design-workflow/implementation-ledger.json` 不再是桥接条件或权威来源。
 
-该包不要求项目代码、OpenSpec、Unity 或 Python，可以独立维护任何 Markdown/Obsidian 文档库，并可独立登记设计实现基线与实现后变更。
+该包不要求项目代码、OpenSpec、Unity 或 Python，可以独立维护任何 Markdown/Obsidian 文档库。它不登记工程实现基线，也不承担工程实现后的变更审计。

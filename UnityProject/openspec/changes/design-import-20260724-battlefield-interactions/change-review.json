@@ -1,0 +1,121 @@
+﻿{
+    "schemaVersion": 5,
+    "changeId": "design-import-20260724-battlefield-interactions",
+    "title": "战场交互",
+    "category": "paired",
+    "sourceKind": "design-import",
+    "sourceRunId": "20260724-184813-d613f34c6c",
+    "readiness": "ready",
+    "codeReadiness": "ready",
+    "approvalStatus": "implementation-change",
+    "approvedBy": "Hubr1zz",
+    "approvedAt": "2026-07-25T15:58:28.9465229+08:00",
+    "implementationNotes": "可以先不要具体实现碰撞伤害公式，留出接口就行；击退、攻击、移动等交互要注意留出动画回调空间（单位先播放动画，再结算后续效果）",
+    "verification": {
+        "status": "verified",
+        "summary": "已实现多实体占位、可破坏状态、击退规划与延迟提交、地形修正查询，并通过 GameCore 编译和 4 项规则测试。",
+        "codeEvidence": [
+            {
+                "guid": "7a14c0de202607140000000000000015",
+                "displayPath": "Assets/Scripts/GameCore/Board/BoardState.cs",
+                "fileHash": "bac57ff70f07b7d910c8d94b45f8357edf7729e2a30d2e636e15fddd983ce3cc",
+                "line": 17,
+                "feature": "管理多实体占位、移动阻塞、穿越边界与棋盘实体伤害"
+            },
+            {
+                "guid": "d55383f49c894c7c8b1d9b9cf3649080",
+                "displayPath": "Assets/Scripts/GameCore/Board/KnockbackService.cs",
+                "fileHash": "802bdb47f6c72722da0fa107f757eadd7919fad8f7f594a3e3d511b30d405a28",
+                "line": 110,
+                "feature": "规划击退路径和碰撞结果，并在表现结束后提交位置与策略伤害"
+            },
+            {
+                "guid": "fcf8e960ddb84a08b858b3af99d2ee67",
+                "displayPath": "Assets/Scripts/GameCore/Board/BattlefieldTerrain.cs",
+                "fileHash": "ac42f52c9bb5b3ee94eeb42984a8859b34015bc6b9e807c5f01acc55e78416a8",
+                "line": 31,
+                "feature": "查询草丛闪避修正与石块提供的临时投石行动"
+            },
+            {
+                "guid": "2a691b9f162b4da2a61c1c10d5e9740e",
+                "displayPath": "Assets/Tests/EditMode/BattlefieldInteractionTests.cs",
+                "fileHash": "49eb51e0659fcb5778c45a3c647276ed3ff36f6da1cb05a3d3e16f92e9657d08",
+                "line": 7,
+                "feature": "验证占位、破坏、击退提交顺序与地形能力"
+            }
+        ],
+        "evidence": [],
+        "differences": [],
+        "verifiedAt": "2026-07-25T16:10:30+08:00"
+    },
+    "reviewIssues": [
+        {
+            "id": "ISSUE-BATTLEFIELD-INTERACTIONS-001",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "resolved",
+            "blocksApproval": false,
+            "summary": "BoardState 只维护单实体占位与直接移动，未表达可重叠、可穿越和可破坏属性。",
+            "details": "",
+            "sourceId": "DELTA-BATTLEFIELD-INTERACTIONS-001",
+            "acceptedBy": "",
+            "acceptedAt": "",
+            "acceptanceNote": ""
+        },
+        {
+            "id": "ISSUE-BATTLEFIELD-INTERACTIONS-002",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "resolved",
+            "blocksApproval": false,
+            "summary": "尚无击退碰撞伤害、草丛闪避与石块临时行动规则。",
+            "details": "",
+            "sourceId": "DELTA-BATTLEFIELD-INTERACTIONS-002",
+            "acceptedBy": "",
+            "acceptedAt": "",
+            "acceptanceNote": ""
+        }
+    ],
+    "gapIds": [],
+    "dependencyIds": [
+        "battlefield-interactions-rules--requires--battlefield-interactions-implementation",
+        "battlefield-interactions-implementation--requires--showdown-phase-orchestration"
+    ],
+    "capabilities": [
+        "battlefield-interactions-rules",
+        "battlefield-interactions-implementation"
+    ],
+    "specSyncStatus": "pending",
+    "syncTargets": [
+        {
+            "capability": "battlefield-interactions-implementation",
+            "title": "战场交互代码实现",
+            "category": "feature",
+            "deltaSpecPath": "openspec/drafts/changes/design-import-20260724-battlefield-interactions/specs/battlefield-interactions-implementation/spec.md",
+            "targetSpecPath": "openspec/specs/battlefield-interactions-implementation/spec.md",
+            "targetExisted": false,
+            "baseFileHash": "",
+            "baseSnapshotPath": "",
+            "syncedFileHash": ""
+        },
+        {
+            "capability": "battlefield-interactions-rules",
+            "title": "战场交互规则",
+            "category": "game-rule",
+            "deltaSpecPath": "openspec/drafts/changes/design-import-20260724-battlefield-interactions/specs/battlefield-interactions-rules/spec.md",
+            "targetSpecPath": "openspec/specs/battlefield-interactions-rules/spec.md",
+            "targetExisted": false,
+            "baseFileHash": "",
+            "baseSnapshotPath": "",
+            "syncedFileHash": ""
+        }
+    ],
+    "syncValidation": {
+        "status": "baseline-captured",
+        "summary": "已记录正式 Spec 基线；sync 前将进行并发修改校验。",
+        "changes": [],
+        "conflicts": [],
+        "validatedAt": "2026-07-25T01:00:17+08:00"
+    },
+    "createdAt": "2026-07-24T18:48:56+08:00"
+}

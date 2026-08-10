@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 5,
+  "changeId": "design-import-20260724-combat-turn-timeline",
+  "title": "战斗回合与时点",
+  "category": "paired",
+  "sourceKind": "design-import",
+  "sourceRunId": "20260724-184813-d613f34c6c",
+  "readiness": "ready",
+  "codeReadiness": "ready",
+  "approvalStatus": "implementation-change",
+  "approvedBy": "Hubr1zz",
+  "approvedAt": "2026-07-24T21:00:02.3634923+08:00",
+  "implementationNotes": "",
+  "verification": {
+    "status": "verified",
+    "summary": "已实现显式 Exhausted/Overtime、意志援助与 Boss 异步完成门禁，并通过编译和领域断言。",
+    "codeEvidence": [
+      {
+        "guid": "7a14c0de202607140000000000000011",
+        "displayPath": "Assets/Scripts/GameCore/Combat/TimelineService.cs",
+        "fileHash": "c931d17a4653176559a51a21ae45c8591ad028c97638332dc7ae0f54f7ccaeb6",
+        "line": 7,
+        "feature": "显式行动状态、跨回合结转与意志援助规则"
+      },
+      {
+        "guid": "7a14c0de202607140000000000000012",
+        "displayPath": "Assets/Scripts/GameCore/Combat/CombatTurnFlow.cs",
+        "fileHash": "a44d67efb9869537b87d25e1d1804c3a9d0439ea8fc0e06197644d18b4fd205c",
+        "line": 31,
+        "feature": "Boss 回合完成信号门禁"
+      },
+      {
+        "guid": "e9bfd872943d47a3a3f0475ba5458ce7",
+        "displayPath": "Assets/Tests/EditMode/CombatTurnTimelineTests.cs",
+        "fileHash": "d49501dc436813b929859124d847ba1eaeb6e6b261be457a76866954bc495a47",
+        "line": 7,
+        "feature": "回合、时点、援助与完成门禁 EditMode 单元测试"
+      }
+    ],
+    "evidence": [],
+    "differences": [],
+    "verifiedAt": "2026-07-24T21:13:53+08:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-COMBAT-TURN-TIMELINE-001",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "resolved",
+      "blocksApproval": false,
+      "summary": "现有时点服务支持上限、完成状态与负结转，但没有显式超时状态和消耗意志援助。",
+      "details": "",
+      "sourceId": "DELTA-COMBAT-TURN-TIMELINE-001",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    },
+    {
+      "id": "ISSUE-COMBAT-TURN-TIMELINE-002",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "resolved",
+      "blocksApproval": false,
+      "summary": "Boss 行动的异步完成尚未成为回合切换前置条件。",
+      "details": "",
+      "sourceId": "DELTA-COMBAT-TURN-TIMELINE-002",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "combat-turn-timeline-rules--requires--combat-turn-timeline-implementation",
+    "combat-turn-timeline-implementation--requires--showdown-phase-orchestration"
+  ],
+  "capabilities": [
+    "combat-turn-timeline-rules",
+    "combat-turn-timeline-implementation"
+  ],
+  "createdAt": "2026-07-24T18:48:56+08:00",
+  "syncTargets": [
+    {
+      "capability": "combat-turn-timeline-implementation",
+      "title": "战斗回合与时点代码实现",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/design-import-20260724-combat-turn-timeline/specs/combat-turn-timeline-implementation/spec.md",
+      "targetSpecPath": "openspec/specs/combat-turn-timeline-implementation/spec.md",
+      "targetExisted": false,
+      "baseFileHash": ""
+    },
+    {
+      "capability": "combat-turn-timeline-rules",
+      "title": "战斗回合与时点规则",
+      "category": "game-rule",
+      "deltaSpecPath": "openspec/changes/design-import-20260724-combat-turn-timeline/specs/combat-turn-timeline-rules/spec.md",
+      "targetSpecPath": "openspec/specs/combat-turn-timeline-rules/spec.md",
+      "targetExisted": false,
+      "baseFileHash": ""
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与 Change 基线一致，可以 sync。",
+    "conflicts": [],
+    "validatedAt": "2026-07-25T01:01:55+08:00"
+  }
+}

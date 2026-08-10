@@ -1,0 +1,45 @@
+{
+  "nodes": [
+    {
+      "id": "combat-turn-timeline-rules",
+      "label": "战斗回合与时点规则",
+      "category": "game-rule",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/combat-turn-timeline-rules/spec.md"
+    },
+    {
+      "id": "combat-turn-timeline-implementation",
+      "label": "战斗回合与时点代码实现",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/combat-turn-timeline-implementation/spec.md"
+    },
+    {
+      "id": "showdown-phase-orchestration",
+      "label": "决战阶段编排",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/showdown-phase-orchestration/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "combat-turn-timeline-rules--requires--combat-turn-timeline-implementation",
+      "from": "combat-turn-timeline-rules",
+      "to": "combat-turn-timeline-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "combat-turn-timeline-implementation--requires--showdown-phase-orchestration",
+      "from": "combat-turn-timeline-implementation",
+      "to": "showdown-phase-orchestration",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 决战阶段编排 提供的稳定契约",
+      "blocksImplementation": false
+    }
+  ]
+}

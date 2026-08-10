@@ -1,0 +1,96 @@
+﻿{
+    "schemaVersion": 5,
+    "changeId": "design-import-20260724-boss-action-deck-targeting",
+    "title": "Boss 行动牌堆与目标选择",
+    "category": "paired",
+    "sourceKind": "design-import",
+    "sourceRunId": "20260724-184813-d613f34c6c",
+    "readiness": "ready",
+    "codeReadiness": "partial",
+    "approvalStatus": "implementation-change",
+    "approvedBy": "Hubr1zz",
+    "approvedAt": "2026-07-27T17:53:21.1403213+08:00",
+    "implementationNotes": "",
+    "verification": {
+        "status": "partial",
+        "summary": "现有代码部分覆盖Boss 行动牌堆与目标选择，仍有 2 项实现差异。",
+        "codeEvidence": [],
+        "evidence": [],
+        "differences": [
+            "BossController 当前从 alwaysAvailable 池按权重随机抽取，而不是翻开行动牌堆顶。",
+            "目标选择仅覆盖部分格子/单位和随机角色，缺少方向范围、最近、伤势最重和固定编号随机策略。"
+        ],
+        "verifiedAt": "2026-07-24T18:48:56+08:00"
+    },
+    "reviewIssues": [
+        {
+            "id": "ISSUE-BOSS-ACTION-DECK-TARGETING-001",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "open",
+            "blocksApproval": false,
+            "summary": "BossController 当前从 alwaysAvailable 池按权重随机抽取，而不是翻开行动牌堆顶。",
+            "details": "",
+            "sourceId": "DELTA-BOSS-ACTION-DECK-TARGETING-001",
+            "acceptedBy": "",
+            "acceptedAt": "",
+            "acceptanceNote": "用户在工作台确认接受此非阻塞项"
+        },
+        {
+            "id": "ISSUE-BOSS-ACTION-DECK-TARGETING-002",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "open",
+            "blocksApproval": false,
+            "summary": "目标选择仅覆盖部分格子/单位和随机角色，缺少方向范围、最近、伤势最重和固定编号随机策略。",
+            "details": "",
+            "sourceId": "DELTA-BOSS-ACTION-DECK-TARGETING-002",
+            "acceptedBy": "",
+            "acceptedAt": "",
+            "acceptanceNote": "用户在工作台确认接受此非阻塞项"
+        }
+    ],
+    "gapIds": [],
+    "dependencyIds": [
+        "boss-action-deck-targeting-rules--requires--boss-action-deck-targeting-implementation",
+        "boss-action-deck-targeting-implementation--requires--combat-turn-timeline-implementation",
+        "boss-action-deck-targeting-implementation--requires--battlefield-interactions-implementation"
+    ],
+    "capabilities": [
+        "boss-action-deck-targeting-rules",
+        "boss-action-deck-targeting-implementation"
+    ],
+    "specSyncStatus": "pending",
+    "syncTargets": [
+        {
+            "capability": "boss-action-deck-targeting-implementation",
+            "title": "Boss 行动牌堆与目标选择代码实现",
+            "category": "feature",
+            "deltaSpecPath": "openspec/drafts/changes/design-import-20260724-boss-action-deck-targeting/specs/boss-action-deck-targeting-implementation/spec.md",
+            "targetSpecPath": "openspec/specs/boss-action-deck-targeting-implementation/spec.md",
+            "targetExisted": false,
+            "baseFileHash": "",
+            "baseSnapshotPath": "",
+            "syncedFileHash": ""
+        },
+        {
+            "capability": "boss-action-deck-targeting-rules",
+            "title": "Boss 行动牌堆与目标选择规则",
+            "category": "game-rule",
+            "deltaSpecPath": "openspec/drafts/changes/design-import-20260724-boss-action-deck-targeting/specs/boss-action-deck-targeting-rules/spec.md",
+            "targetSpecPath": "openspec/specs/boss-action-deck-targeting-rules/spec.md",
+            "targetExisted": false,
+            "baseFileHash": "",
+            "baseSnapshotPath": "",
+            "syncedFileHash": ""
+        }
+    ],
+    "syncValidation": {
+        "status": "baseline-captured",
+        "summary": "已记录正式 Spec 基线；sync 前将进行并发修改校验。",
+        "changes": [],
+        "conflicts": [],
+        "validatedAt": "2026-07-25T01:00:17+08:00"
+    },
+    "createdAt": "2026-07-24T18:48:56+08:00"
+}

@@ -1,0 +1,26 @@
+{
+    "name": "GameLogic",
+    "rootNamespace": "GameLogic",
+    "references": [
+        "TEngine.Runtime",
+        "UniTask",
+        "Unity.TextMeshPro",
+        "Unity.ugui",
+        "HuntingInDarkness.GameCore"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "",
+            "define": "ENABLE_URP"
+        }
+    ],
+    "noEngineReferences": false
+}

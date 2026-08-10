@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "packageVersion": "2026.08.04.4",
+  "managedSkills": [],
+  "unityWorkbench": {
+    "root": "Assets/Editor/zWorkFlow",
+    "files": [
+      {
+        "path": "Assets/Editor/zWorkFlow/AgentWorkbenchSupport.cs",
+        "sha256": "e5d7523d16cb7adb204cb66c6162f0c453a7fbbf12b54b349f460e3854d35487"
+      },
+      {
+        "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.Changes.cs",
+        "sha256": "4cbc5d2377ba0dd203a3c6590ebf0711adc2691788b7584428cad63ac30aec5f"
+      },
+      {
+        "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.cs",
+        "sha256": "0050ea3fa618ef42c7085427ae30e7afee6543a7ddc8a6a71508e3f67bd58ac6"
+      },
+      {
+        "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.Data.cs",
+        "sha256": "1e8a5dba5fee42520b91a15d7625bba15ffa16b5b2667e556c3a24349c76e3ff"
+      },
+      {
+        "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.EditorGuidance.cs",
+        "sha256": "dcaf527617f1429af96c123aa014c578fa7e4d73f683ad97a3861db4734e0553"
+      },
+      {
+        "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.Engineering.cs",
+        "sha256": "a5bbc1a9138e1c5fc75932cea2978040aeb24f254bd9cd13ec13ade8338ce17c"
+      },
+      {
+        "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.ImportReports.cs",
+        "sha256": "e1e60d770728b9965c0e4f1aab6ca7622453fed4aa158e47028853cefd40856b"
+      },
+      {
+        "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.Models.cs",
+        "sha256": "06466662141f4730e5108699bdffeb9f86e263270c0abf3cfc43508b7ac16fb8"
+      },
+      {
+        "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.Translations.cs",
+        "sha256": "3019a81f9e125304c1ba11b57ce4cd77eda2734fe0cf8dede8548049875a8bfa"
+      }
+    ]
+  }
+}

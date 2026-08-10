@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "packageVersion": "2026.08.04.2",
+  "managedSkills": [
+    { "path": ".agents/skills/architecture-review", "sha256": "f6cd1b0a0817cc57219c64e5d5625257fcf676af6eea7ce34c8f82137ef8e833" },
+    { "path": ".agents/skills/codebase-query", "sha256": "60419b34351767d4fd9b7b0a8acce82a6f1981c9a26ce4a4451d9b382321cf7a" },
+    { "path": ".agents/skills/inspect-implemented-design-changes", "sha256": "8ad265d248bf082b7c8544d6d523ca45a0c89d929cf0cce945ecfae101faaf41" },
+    { "path": ".agents/skills/openspec-apply-change", "sha256": "00a3cbf684afaca3c8b8e3ae74dc71788493e0551fa96b023616bfe204f2cf9e" },
+    { "path": ".agents/skills/openspec-archive-change", "sha256": "aad1a4ae511f2a83a9a3b3bcc8cc7b84706e217ef92b4cb4c98ce38087795302" },
+    { "path": ".agents/skills/openspec-derive-design-specs", "sha256": "f7058b3364a34d03575173c915849345780a4bf52d7b409807bc42f6809b938e" },
+    { "path": ".agents/skills/openspec-explore", "sha256": "2aa07a87e896b6f331db13e9d777eafe1843969aa7a75e4e649e9ce548a518a0" },
+    { "path": ".agents/skills/openspec-intake-gate", "sha256": "39882b53082959792f8469ea1b2897d3f963ea158fb401cff00621440ea3de9e" },
+    { "path": ".agents/skills/openspec-propose", "sha256": "77a0ed874f31826f8107db559338837634eff1724f57ab7e713bd4163c0f8a7f" },
+    { "path": ".agents/skills/openspec-sync-specs", "sha256": "f990a072e68d43297c708041720e1209ebc2b94e7658d73f2221d47dd62d32a1" },
+    { "path": ".agents/skills/openspec-translate", "sha256": "3887698b03f141e246011176fd2166a311dfe3d5ede3194390eae66068291014" },
+    { "path": ".agents/skills/openspec-update-change", "sha256": "276e523e2dbc62193e7a571b707de46313aadfcc40ee27432e8dc152a866eaee" },
+    { "path": ".agents/skills/project-doc-sync", "sha256": "69791f53adcbc539926ed245d64a9574fa173edf706bf221e27fda5123867431" },
+    { "path": ".agents/skills/team-member-preferences", "sha256": "9914eae4183a799e54c32d2cbf64b270bdee1b044cb7e59af4c721d7925cdc42" },
+    { "path": ".agents/skills/workflow-refactor", "sha256": "e068b790e5f03f3e133c2b24b47193fe4bc3fb6f244da736cdaab353a921423a" },
+    { "path": ".agents/skills/workflow-reflection", "sha256": "d7948d5187b1a545a21ba9f024687a2a68d93cf0cf6d755e9b8a480f070bb920" }
+  ],
+  "unityWorkbench": {
+    "root": "Assets/Scripts/Editor",
+    "files": [
+      { "path": "AgentWorkbenchSupport.cs", "sha256": "a27e7f61d2f41404d8d6dd0c82e47bd23fdcf1c9aa56974dbee250ef9ddd41e7" },
+      { "path": "AgentWorkbenchWindow.Changes.cs", "sha256": "4cbc5d2377ba0dd203a3c6590ebf0711adc2691788b7584428cad63ac30aec5f" },
+      { "path": "AgentWorkbenchWindow.cs", "sha256": "de3a5c8882028e768117c0aced6b096126debb87320029ba4b42f398f9e823c8" },
+      { "path": "AgentWorkbenchWindow.Data.cs", "sha256": "1e8a5dba5fee42520b91a15d7625bba15ffa16b5b2667e556c3a24349c76e3ff" },
+      { "path": "AgentWorkbenchWindow.EditorGuidance.cs", "sha256": "dcaf527617f1429af96c123aa014c578fa7e4d73f683ad97a3861db4734e0553" },
+      { "path": "AgentWorkbenchWindow.Engineering.cs", "sha256": "a5bbc1a9138e1c5fc75932cea2978040aeb24f254bd9cd13ec13ade8338ce17c" },
+      { "path": "AgentWorkbenchWindow.ImportReports.cs", "sha256": "e1e60d770728b9965c0e4f1aab6ca7622453fed4aa158e47028853cefd40856b" },
+      { "path": "AgentWorkbenchWindow.Models.cs", "sha256": "5796827b8ac5ca53a7d1122b2521125a7bbd4333c3162f8d6aae8813798b838c" },
+      { "path": "AgentWorkbenchWindow.Translations.cs", "sha256": "3019a81f9e125304c1ba11b57ce4cd77eda2734fe0cf8dede8548049875a8bfa" }
+    ]
+  }
+}

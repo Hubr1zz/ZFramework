@@ -1,0 +1,101 @@
+﻿{
+    "schemaVersion": 5,
+    "capability": "boss-action-deck-targeting-implementation",
+    "title": "Boss 行动牌堆与目标选择代码实现",
+    "category": "feature",
+    "readiness": "ready",
+    "verification": {
+        "status": "partial",
+        "summary": "现有代码部分覆盖Boss 行动牌堆与目标选择，仍有 2 项实现差异。",
+        "codeEvidence": [
+            {
+                "guid": "f401dcdf9fc5de947916835a9b901910",
+                "displayPath": "Assets/Scripts/Adapters/Unity/Combat/BossController.cs",
+                "fileHash": "c319e0ac4a8501ed6f3e751b163d6fffb3cb61f640d0143f16aa2a31296cafac",
+                "line": 23,
+                "feature": "抽取并执行 Boss 行动卡、维护部位状态与累计战利品",
+                "status": "",
+                "checkedAt": ""
+            },
+            {
+                "guid": "093eeacd7a180c246974745e9997e573",
+                "displayPath": "Assets/Scripts/SO/Boss/ActionCard/BossActionCardData.cs",
+                "fileHash": "c48b106bc1fe48e952b9f08a56a5f439c4df33a4da9096e65e5ad07e71d94096",
+                "line": 9,
+                "feature": "集中配置 Boss 行动、时点、效果与抽取权重",
+                "status": "",
+                "checkedAt": ""
+            },
+            {
+                "guid": "61150e6f9720b564b89d557579867b44",
+                "displayPath": "Assets/Scripts/Adapters/Unity/Combat/LegacyShowdown/TargetSelectors.cs",
+                "fileHash": "cc0e3caea39ee018ba67f462a96f595b2a9f2215bc78bff9b6b117d0585e7c53",
+                "line": 11,
+                "feature": "提供格子与敌方单位选择以及特殊战斗覆盖",
+                "status": "",
+                "checkedAt": ""
+            }
+        ],
+        "evidence": [],
+        "differences": [
+            "BossController 当前从 alwaysAvailable 池按权重随机抽取，而不是翻开行动牌堆顶。",
+            "目标选择仅覆盖部分格子/单位和随机角色，缺少方向范围、最近、伤势最重和固定编号随机策略。"
+        ],
+        "verifiedAt": "2026-07-24T18:48:56+08:00"
+    },
+    "gapIds": [],
+    "dependencyIds": [
+        "boss-action-deck-targeting-implementation--requires--combat-turn-timeline-implementation",
+        "boss-action-deck-targeting-implementation--requires--battlefield-interactions-implementation"
+    ],
+    "sourceReferences": [
+        "primary::决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md:6",
+        "primary::决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md:17",
+        "primary::决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md:34",
+        "primary::决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md:72"
+    ],
+    "reviewIssues": [
+        {
+            "id": "ISSUE-BOSS-ACTION-DECK-TARGETING-001",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "open",
+            "blocksApproval": false,
+            "summary": "BossController 当前从 alwaysAvailable 池按权重随机抽取，而不是翻开行动牌堆顶。",
+            "details": "",
+            "sourceId": "DELTA-BOSS-ACTION-DECK-TARGETING-001",
+            "acceptedBy": "",
+            "acceptedAt": "",
+            "acceptanceNote": "用户在工作台确认接受此非阻塞项"
+        },
+        {
+            "id": "ISSUE-BOSS-ACTION-DECK-TARGETING-002",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "open",
+            "blocksApproval": false,
+            "summary": "目标选择仅覆盖部分格子/单位和随机角色，缺少方向范围、最近、伤势最重和固定编号随机策略。",
+            "details": "",
+            "sourceId": "DELTA-BOSS-ACTION-DECK-TARGETING-002",
+            "acceptedBy": "",
+            "acceptedAt": "",
+            "acceptanceNote": "用户在工作台确认接受此非阻塞项"
+        }
+    ],
+    "editorGuidance": {
+        "summary": "Boss 行动内容继续由集中 SO 配置，牌堆顺序与目标状态属于运行时。",
+        "inspectorReferences": [
+            "在 Boss 配置中引用完整的 BossActionCardData 集合。"
+        ],
+        "tunableParameters": [
+            "配置行动类型、时点、攻击数据、目标策略、效果与牌堆内容。"
+        ],
+        "sceneSetup": [],
+        "usage": [
+            "由现有 BossController 在战斗开始时创建行动牌堆与目标策略。"
+        ]
+    },
+    "pairedFeatureCapability": "",
+    "pairedRuleCapability": "boss-action-deck-targeting-rules",
+    "implementationOutline": []
+}

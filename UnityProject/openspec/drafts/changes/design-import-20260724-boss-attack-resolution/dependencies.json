@@ -1,0 +1,62 @@
+{
+  "nodes": [
+    {
+      "id": "boss-attack-resolution-rules",
+      "label": "Boss 攻击结算规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-attack-resolution/specs/boss-attack-resolution-rules/spec.md"
+    },
+    {
+      "id": "boss-attack-resolution-implementation",
+      "label": "Boss 攻击结算代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-attack-resolution/specs/boss-attack-resolution-implementation/spec.md"
+    },
+    {
+      "id": "boss-action-deck-targeting-implementation",
+      "label": "Boss 行动牌堆与目标选择代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-action-deck-targeting/specs/boss-action-deck-targeting-implementation/spec.md"
+    },
+    {
+      "id": "hunter-injury-death-implementation",
+      "label": "猎人伤势与死亡代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-hunter-injury-death/specs/hunter-injury-death-implementation/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "boss-attack-resolution-rules--requires--boss-attack-resolution-implementation",
+      "from": "boss-attack-resolution-rules",
+      "to": "boss-attack-resolution-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-attack-resolution-implementation--requires--boss-action-deck-targeting-implementation",
+      "from": "boss-attack-resolution-implementation",
+      "to": "boss-action-deck-targeting-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 Boss 行动牌堆与目标选择代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-attack-resolution-implementation--requires--hunter-injury-death-implementation",
+      "from": "boss-attack-resolution-implementation",
+      "to": "hunter-injury-death-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 猎人伤势与死亡代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    }
+  ]
+}
+

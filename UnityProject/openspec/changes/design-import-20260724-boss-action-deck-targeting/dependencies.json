@@ -1,0 +1,62 @@
+{
+  "nodes": [
+    {
+      "id": "boss-action-deck-targeting-rules",
+      "label": "Boss 行动牌堆与目标选择规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-action-deck-targeting/specs/boss-action-deck-targeting-rules/spec.md"
+    },
+    {
+      "id": "boss-action-deck-targeting-implementation",
+      "label": "Boss 行动牌堆与目标选择代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-action-deck-targeting/specs/boss-action-deck-targeting-implementation/spec.md"
+    },
+    {
+      "id": "combat-turn-timeline-implementation",
+      "label": "战斗回合与时点代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-combat-turn-timeline/specs/combat-turn-timeline-implementation/spec.md"
+    },
+    {
+      "id": "battlefield-interactions-implementation",
+      "label": "战场交互代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-battlefield-interactions/specs/battlefield-interactions-implementation/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "boss-action-deck-targeting-rules--requires--boss-action-deck-targeting-implementation",
+      "from": "boss-action-deck-targeting-rules",
+      "to": "boss-action-deck-targeting-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-action-deck-targeting-implementation--requires--combat-turn-timeline-implementation",
+      "from": "boss-action-deck-targeting-implementation",
+      "to": "combat-turn-timeline-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 战斗回合与时点代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-action-deck-targeting-implementation--requires--battlefield-interactions-implementation",
+      "from": "boss-action-deck-targeting-implementation",
+      "to": "battlefield-interactions-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 战场交互代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    }
+  ]
+}
+

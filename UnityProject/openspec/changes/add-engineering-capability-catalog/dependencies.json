@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {
+      "id": "engineering-capability-catalog",
+      "label": "工程能力目录",
+      "category": "system",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/add-engineering-capability-catalog/specs/engineering-capability-catalog/spec.md"
+    }
+  ],
+  "edges": []
+}

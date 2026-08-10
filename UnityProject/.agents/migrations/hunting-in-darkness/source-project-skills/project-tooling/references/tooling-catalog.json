@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-07-28T23:07:06+08:00",
+  "entries": [
+    {
+      "id": "odin-inspector-serializer",
+      "displayName": "Odin Inspector and Serializer",
+      "kind": "plugin",
+      "description": "Unity Inspector 扩展与可选的 Sirenix 序列化能力。",
+      "version": "",
+      "source": "Assets/Plugins/Sirenix/Odin Inspector",
+      "usagePolicy": "preferred",
+      "decisionBasis": "Unity-facing 的可配置类优先使用 Odin Inspector 改善编辑体验；仅在 Unity 原生序列化无法满足需求时使用 Odin Serializer。GameCore/noEngineReferences 程序集不得依赖 Sirenix，修改已有序列化结构前必须检查 Prefab、ScriptableObject 与存档兼容性。",
+      "locked": false,
+      "capabilities": ["inspector", "serialization", "editor-tooling", "configuration"],
+      "constraints": [
+        "不得把 Sirenix 依赖引入纯 C# GameCore/noEngineReferences 程序集。",
+        "Odin Inspector 显示能力与 Odin Serializer 存储格式必须分开判断。"
+      ],
+      "evidence": [
+        "Assets/Plugins/Sirenix/Odin Inspector",
+        "Assets/InteractionSystem/Runtime/InteractableBehaviourBase.cs",
+        "Assets/Scripts/Editor/ActionCardEditorWindow.cs"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "dotween",
+      "displayName": "DOTween",
+      "kind": "plugin",
+      "description": "Unity 补间与序列动画插件。",
+      "version": "",
+      "source": "Assets/Plugins/Demigiant/DOTween",
+      "usagePolicy": "allowed",
+      "decisionBasis": "",
+      "locked": false,
+      "capabilities": ["tween", "animation", "sequence"],
+      "constraints": ["具体玩法结算不得依赖动画完成回调作为唯一权威状态。"],
+      "evidence": [
+        "Assets/Plugins/Demigiant/DOTween",
+        "Assets/Resources/DOTweenSettings.asset"
+      ],
+      "dependencies": []
+    },
+    {
+      "id": "game-manager-orchestration",
+      "displayName": "GameManager Orchestration",
+      "kind": "system",
+      "description": "当前游戏的阶段组合根与子系统持有者，认识项目阶段和具体游戏上下文。",
+      "version": "",
+      "source": "Assets/Scripts/Core/GameManager.cs",
+      "usagePolicy": "project-owned",
+      "decisionBasis": "",
+      "locked": false,
+      "capabilities": ["composition-root", "phase-orchestration", "game-context"],
+      "constraints": ["属于项目 System，不得误标为可跨游戏直接复用的 Architecture。"],
+      "evidence": [
+        "Assets/Scripts/Core/GameManager.cs",
+        "Assets/Scripts/Core/PhaseManager.cs"
+      ],
+      "dependencies": []
+    }
+  ]
+}

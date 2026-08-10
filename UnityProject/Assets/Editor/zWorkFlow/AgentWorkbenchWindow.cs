@@ -352,8 +352,8 @@ namespace AgentWorkflow.Editor
                 case ToolTab.DesignDocumentTree:
                     DrawDesignDocumentTreeTab();
                     break;
-                case ToolTab.DesignSyncSettings:
-                    DrawDesignSyncSettings();
+                case ToolTab.CommandList:
+                    DrawCommandList();
                     break;
                 case ToolTab.ImportReports:
                     DrawImportReportsTab();
@@ -413,12 +413,12 @@ namespace AgentWorkflow.Editor
                     OpenPath(_projectRoot);
 
                 if (GUILayout.Button(
-                        L("toolbar.designSync"),
+                        L("toolbar.commandList"),
                         EditorStyles.toolbarButton,
-                        GUILayout.Width(238)))
+                        GUILayout.Width(115)))
                 {
                     if (TryLeaveRawEditor())
-                        _tab = ToolTab.DesignSyncSettings;
+                        _tab = ToolTab.CommandList;
                 }
 
                 if (GUILayout.Button(L("toolbar.config"), EditorStyles.toolbarButton, GUILayout.Width(101)))
@@ -2653,41 +2653,17 @@ namespace AgentWorkflow.Editor
             return ColorUtility.TryParseHtmlString(value, out var color) ? color : Color.white;
         }
 
-        private void DrawDesignSyncSettings()
+        private void DrawCommandList()
         {
-            EditorGUILayout.LabelField(L("sync.title"), EditorStyles.boldLabel);
-            DrawDesignPathSettings();
-            EditorGUILayout.Space(6);
             DrawDesignImportHint();
         }
 
         private void DrawDesignDocumentTreeTab()
         {
             EditorGUILayout.LabelField(L("toolbar.designDocumentTree"), EditorStyles.boldLabel);
-            using (new EditorGUILayout.HorizontalScope("box"))
-            {
-                EditorGUILayout.LabelField(
-                    $"{L("sync.bridgeStatus")} · {LocalizeStatus(_documentChangeStatus)}",
-                    EditorStyles.boldLabel);
-                GUILayout.FlexibleSpace();
-                using (new EditorGUI.DisabledScope(
-                           !_designDocumentSources.Any(source => source != null &&
-                               !string.IsNullOrWhiteSpace(source.path) && Directory.Exists(source.path))))
-                {
-                    if (GUILayout.Button(L("sync.refreshDocumentStatus"), GUILayout.Width(120)))
-                        ReloadDocumentImplementationChanges();
-                }
-                using (new EditorGUI.DisabledScope(!File.Exists(ProjectImplementationLedgerPath())))
-                {
-                    if (GUILayout.Button(L("sync.ledger"), GUILayout.Width(78)))
-                        OpenPath(ProjectImplementationLedgerPath());
-                }
-                if (GUILayout.Button(L("sync.title"), GUILayout.Width(92)))
-                {
-                    if (TryLeaveRawEditor())
-                        _tab = ToolTab.DesignSyncSettings;
-                }
-            }
+            DrawDesignPathSettings();
+            EditorGUILayout.Space(6);
+            DrawDocumentBridgeSettings();
 
             if (!_documentBridgeConnected)
             {
@@ -2765,23 +2741,21 @@ namespace AgentWorkflow.Editor
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField(
+                    GUILayout.Label(
                         $"{L("sync.bridgeStatus")} · {LocalizeStatus(_documentChangeStatus)}",
-                        EditorStyles.boldLabel);
+                        EditorStyles.wordWrappedLabel,
+                        GUILayout.ExpandWidth(true));
                     GUILayout.FlexibleSpace();
 
                     GUI.enabled = _designDocumentSources.Any(source => source != null &&
                         !string.IsNullOrWhiteSpace(source.path) && Directory.Exists(source.path));
                     if (GUILayout.Button(L("sync.checkNow"), GUILayout.Width(78)))
                         ReloadDocumentImplementationChanges();
-                    GUI.enabled = File.Exists(ProjectImplementationLedgerPath());
-                    if (GUILayout.Button(L("sync.ledger"), GUILayout.Width(78)))
-                        OpenPath(ProjectImplementationLedgerPath());
                     GUI.enabled = true;
                 }
 
                 if (_changedImplementedDocuments.Count == 0)
-                    EditorGUILayout.LabelField(L("sync.noImplementedChanges"), EditorStyles.miniLabel);
+                    EditorGUILayout.HelpBox(L("sync.noImplementedChanges"), MessageType.None);
 
                 EditorGUILayout.LabelField(
                     L("sync.bridgeHint"),
@@ -2798,11 +2772,6 @@ namespace AgentWorkflow.Editor
                     EditorGUILayout.LabelField(
                         AgentWorkbenchText.Format("sync.documentStructure", _designDocumentTreeItems.Count(item => !item.isDirectory)),
                         EditorStyles.boldLabel);
-                    GUILayout.FlexibleSpace();
-                    EditorGUILayout.LabelField(L("sync.progress"), EditorStyles.miniLabel, GUILayout.Width(125));
-                    EditorGUILayout.LabelField(L("sync.changedAfterImplementation"), EditorStyles.miniLabel, GUILayout.Width(92));
-                    EditorGUILayout.LabelField(L("sync.changeSummary"), EditorStyles.miniLabel, GUILayout.Width(230));
-                    GUILayout.Space(62);
                 }
 
                 if (!string.IsNullOrWhiteSpace(_documentStructureError))
@@ -2918,7 +2887,10 @@ namespace AgentWorkflow.Editor
                 DrawInstruction(L("cmd.rules"), L("cmd.rulesDesc"));
                 DrawInstruction(L("cmd.content"), L("cmd.contentDesc"));
                 DrawInstruction(L("cmd.art"), L("cmd.artDesc"));
+                DrawInstruction(L("cmd.checkDocumentFreshness"), L("cmd.checkDocumentFreshnessDesc"));
                 DrawInstruction(L("cmd.revise"), L("cmd.reviseDesc"));
+                DrawInstruction(L("cmd.translateSpecs"), L("cmd.translateSpecsDesc"));
+                DrawInstruction(L("cmd.syncSpecTranslations"), L("cmd.syncSpecTranslationsDesc"));
                 DrawInstruction(L("cmd.apply"), L("cmd.applyDesc"));
                 DrawInstruction(L("cmd.syncSpecs"), L("cmd.syncSpecsDesc"));
                 DrawInstruction(L("cmd.archive"), L("cmd.archiveDesc"));

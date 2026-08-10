@@ -1,4 +1,15 @@
 {
   "schemaVersion": 2,
-  "imports": []
+  "imports": [],
+  "architectureBaselines": [
+    {
+      "id": "hunting-in-darkness-migration-2026-08-06",
+      "generatedAt": "2026-08-06T00:00:00+08:00",
+      "sources": [
+        "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+        "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PhaseManager.cs",
+        ".agents/skills/project-hunting-in-darkness/references/ARCHITECTURE.md"
+      ]
+    }
+  ]
 }

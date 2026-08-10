@@ -1,0 +1,61 @@
+{
+  "nodes": [
+    {
+      "id": "hunter-action-cards-rules",
+      "label": "猎人行动卡规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-hunter-action-cards/specs/hunter-action-cards-rules/spec.md"
+    },
+    {
+      "id": "hunter-action-cards-implementation",
+      "label": "猎人行动卡代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-hunter-action-cards/specs/hunter-action-cards-implementation/spec.md"
+    },
+    {
+      "id": "combat-turn-timeline-implementation",
+      "label": "战斗回合与时点代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-combat-turn-timeline/specs/combat-turn-timeline-implementation/spec.md"
+    },
+    {
+      "id": "battlefield-interactions-implementation",
+      "label": "战场交互代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-battlefield-interactions/specs/battlefield-interactions-implementation/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "hunter-action-cards-rules--requires--hunter-action-cards-implementation",
+      "from": "hunter-action-cards-rules",
+      "to": "hunter-action-cards-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-action-cards-implementation--requires--combat-turn-timeline-implementation",
+      "from": "hunter-action-cards-implementation",
+      "to": "combat-turn-timeline-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 战斗回合与时点代码实现 提供时点提交、现有意志资源和回合边界契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-action-cards-implementation--requires--battlefield-interactions-implementation",
+      "from": "hunter-action-cards-implementation",
+      "to": "battlefield-interactions-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 战场交互代码实现 提供移动、目标选择和棋盘操作契约",
+      "blocksImplementation": false
+    }
+  ]
+}

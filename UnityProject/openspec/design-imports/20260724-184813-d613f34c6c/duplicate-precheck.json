@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 3,
+  "checkedAt": "2026-07-24T18:48:13+08:00",
+  "exactMatches": [],
+  "candidates": [],
+  "artifacts": [
+    {
+      "kind": "formal-spec",
+      "capability": "game-manager-orchestration",
+      "contentHash": "f89c8e93a8a8109fff517ff920c49727395f025250c96d5019e863d7b2aa19c7",
+      "specPath": "openspec/specs/game-manager-orchestration/spec.md",
+      "changeId": ""
+    },
+    {
+      "kind": "formal-spec",
+      "capability": "hunt-phase-orchestration",
+      "contentHash": "aea0c4b662637193d95bb4d531b132cc10c53f81149fdb9bf61cd3f94ed01c1b",
+      "specPath": "openspec/specs/hunt-phase-orchestration/spec.md",
+      "changeId": ""
+    },
+    {
+      "kind": "formal-spec",
+      "capability": "settlement-phase-orchestration",
+      "contentHash": "a34f166d91b88930357de8f8543be6f962f5dbedc733add1d33cbcec855d1424",
+      "specPath": "openspec/specs/settlement-phase-orchestration/spec.md",
+      "changeId": ""
+    },
+    {
+      "kind": "formal-spec",
+      "capability": "showdown-phase-orchestration",
+      "contentHash": "d502b2e127bb7dc52100dd776537970cfeed1501f1ad3a5011e86d7523d4f3fe",
+      "specPath": "openspec/specs/showdown-phase-orchestration/spec.md",
+      "changeId": ""
+    }
+  ],
+  "dedupOrder": [
+    "formal-spec",
+    "formal-change",
+    "draft-change"
+  ]
+}
+

@@ -22,11 +22,11 @@
 - Gemini CLI 通过 `GEMINI.md` 薄入口进入；Kimi Code CLI、Cursor、GitHub Copilot、Windsurf 优先直接读取 `AGENTS.md` 与 `.agents/skills/`。
 - 团队可同时使用不同工具；不得在共享配置中保存唯一 active tool，成员当前工具与版本只保存在 `.agent-memory/zworkflow/local/`。
 - 任务可能修改项目文件且已安装 `project-refactor-queue` 时，只读取其 `references/PROTECTED_FILES.md`；普通任务不要加载 `REFACTOR_QUEUE.md`。
-- 任务开始时使用 `team-member-preferences` 解析当前成员昵称；只读取 `.agent-memory/team/MAINTAINERS.md` 和当前成员对应的 `.agent-memory/team/members/<nickname>.md`，不要读取全员规范。
+- 任务开始时使用 `team-member-preferences` 解析当前成员昵称；只读取 `.agent-memory/zworkflow/team/MAINTAINERS.md` 和当前成员对应的 `.agent-memory/zworkflow/team/members/<nickname>.md`，不要读取全员规范。
 - 项目读取先走 setup 生成或复用的 `project-context`；其中存在 `references/PROJECT-INDEX.md` 时先读索引。任务命中序列化、动画、资源、启动、依赖注入、异步或编辑器扩展时再读取 `project-tooling` 中的相关条目。若拆分会让事实检索、Spec 设计或代码核验重复读取同一来源/脚本，合并为单一负责人；只有上下文独立时才使用专门 Agent。
 - 涉及 C# 项目结构、类型/方法定位、候选调用者或改动影响时，若 `codebase-query` 已安装且 PowerShell 7 可用，必须先执行其索引命令收敛候选，再读取命中源码核验。只有工具不可用、执行失败或查询超出契约时才回退 `rg`/原生检索，并说明回退原因。
 - `openspec-derive-design-specs` 只能在用户显式要求生成或发布时触发；默认读取 `openspec/design-source.json` 中的全部等价来源路径，可重复的显式 `source` 仅临时覆盖本次扫描。
-- 统一用户入口为 `设计导入`、`设计导入：<范围>` 和 `修改<id>: <修改内容>`；导入可追加 `--规则`、`--内容`、`--美术` 且多个参数取并集。Codex 必须路由到共享 skill，不向用户暴露工具专属语法。
+- 统一用户入口为 `设计导入`、`设计导入：<范围>`、`修改<id>: <修改内容>` 和 `检查文档及时性`；导入可追加 `--规则`、`--内容`、`--美术` 且多个参数取并集。`检查文档及时性` 路由到 `inspect-implemented-design-changes`，只重算实现后设计变更状态和摘要，不自动设计导入或创建 Proposal。Codex 必须路由到共享 skill，不向用户暴露工具专属语法。
 - `翻译现有Spec`、`翻译现有Spec：中文|英文 [范围]` 与 `同步Spec翻译：中文|英文 [范围]` 路由到 `openspec-translate`。原 OpenSpec 路径是唯一权威内容，`openspec/translations/` 只供显示。
 - 用户以非权威语言要求修改已有 Spec/Change 时，先改权威文件并在同一任务增量同步该语言受影响块；直接编辑权威文件或执行生命周期命令不会后台自动翻译，Workbench 通过 hash 要求显式同步。
 

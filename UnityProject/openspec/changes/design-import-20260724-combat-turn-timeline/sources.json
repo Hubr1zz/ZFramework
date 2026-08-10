@@ -1,0 +1,33 @@
+[
+  {
+    "sourceId": "primary",
+    "relativePath": "决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md",
+    "role": "requirement",
+    "sha256": "e20d321ac3f3088ce514cc75e9039940680bf3a138d16a573ff9eb1d75e52824"
+  },
+  {
+    "sourceId": "primary",
+    "relativePath": "决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md",
+    "role": "requirement",
+    "sha256": "84824fcfdf4f98ce7542dfbf8c4446f1bb1c6f5062be4b7dfd61fe7d088bd8b5"
+  },
+  {
+    "sourceId": "primary",
+    "relativePath": "决战阶段 Showdown Phase/战斗系统 Combat System/猎人行动卡 Action cards.md",
+    "role": "requirement",
+    "sha256": "faa209d9396f01a578622b7e7c28b06da7a3a25c89568fffeb77b4f4037d95da"
+  },
+  {
+    "sourceId": "primary",
+    "relativePath": "通用/猎人 Hunter.md",
+    "role": "context",
+    "sha256": "230b4d68df4dbe72781f59bd306103a987e261529b4bd9a67b8a0aa476025c59"
+  },
+  {
+    "sourceId": "primary",
+    "relativePath": "通用/物品 Items.md",
+    "role": "context",
+    "sha256": "5382556844f9c449d208dbd562ed739fcdb2b4369a99a2266336ee7c81c18f0e"
+  }
+]
+

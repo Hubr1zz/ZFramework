@@ -1,0 +1,95 @@
+﻿{
+    "schemaVersion": 5,
+    "changeId": "design-import-20260724-boss-hit-locations",
+    "title": "Boss 部位卡",
+    "category": "paired",
+    "sourceKind": "design-import",
+    "sourceRunId": "20260724-184813-d613f34c6c",
+    "readiness": "ready",
+    "codeReadiness": "partial",
+    "approvalStatus": "implementation-change",
+    "approvedBy": "Hubr1zz",
+    "approvedAt": "2026-07-25T19:35:03.6647350+08:00",
+    "implementationNotes": "",
+    "verification": {
+        "status": "partial",
+        "summary": "现有代码部分覆盖Boss 部位卡，仍有 2 项实现差异。",
+        "codeEvidence": [],
+        "evidence": [],
+        "differences": [
+            "部位生命、翻面和摧毁已有运行时状态，但效果条件只有成功、失败和始终触发。",
+            "缺少暴击、摧毁等条件及多个条件同时满足时的显式覆盖优先级。"
+        ],
+        "verifiedAt": "2026-07-24T18:48:56+08:00"
+    },
+    "reviewIssues": [
+        {
+            "id": "ISSUE-BOSS-HIT-LOCATIONS-001",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "open",
+            "blocksApproval": false,
+            "summary": "部位生命、翻面和摧毁已有运行时状态，但效果条件只有成功、失败和始终触发。",
+            "details": "",
+            "sourceId": "DELTA-BOSS-HIT-LOCATIONS-001",
+            "acceptedBy": "",
+            "acceptedAt": "",
+            "acceptanceNote": ""
+        },
+        {
+            "id": "ISSUE-BOSS-HIT-LOCATIONS-002",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "open",
+            "blocksApproval": false,
+            "summary": "缺少暴击、摧毁等条件及多个条件同时满足时的显式覆盖优先级。",
+            "details": "",
+            "sourceId": "DELTA-BOSS-HIT-LOCATIONS-002",
+            "acceptedBy": "",
+            "acceptedAt": "",
+            "acceptanceNote": ""
+        }
+    ],
+    "gapIds": [],
+    "dependencyIds": [
+        "boss-hit-locations-rules--requires--boss-hit-locations-implementation",
+        "boss-hit-locations-implementation--requires--showdown-phase-orchestration"
+    ],
+    "capabilities": [
+        "boss-hit-locations-rules",
+        "boss-hit-locations-implementation"
+    ],
+    "specSyncStatus": "pending",
+    "syncTargets": [
+        {
+            "capability": "boss-hit-locations-implementation",
+            "title": "Boss 部位卡代码实现",
+            "category": "feature",
+            "deltaSpecPath": "openspec/drafts/changes/design-import-20260724-boss-hit-locations/specs/boss-hit-locations-implementation/spec.md",
+            "targetSpecPath": "openspec/specs/boss-hit-locations-implementation/spec.md",
+            "targetExisted": false,
+            "baseFileHash": "",
+            "baseSnapshotPath": "",
+            "syncedFileHash": ""
+        },
+        {
+            "capability": "boss-hit-locations-rules",
+            "title": "Boss 部位卡规则",
+            "category": "game-rule",
+            "deltaSpecPath": "openspec/drafts/changes/design-import-20260724-boss-hit-locations/specs/boss-hit-locations-rules/spec.md",
+            "targetSpecPath": "openspec/specs/boss-hit-locations-rules/spec.md",
+            "targetExisted": false,
+            "baseFileHash": "",
+            "baseSnapshotPath": "",
+            "syncedFileHash": ""
+        }
+    ],
+    "syncValidation": {
+        "status": "baseline-captured",
+        "summary": "已记录正式 Spec 基线；sync 前将进行并发修改校验。",
+        "changes": [],
+        "conflicts": [],
+        "validatedAt": "2026-07-25T01:00:17+08:00"
+    },
+    "createdAt": "2026-07-24T18:48:56+08:00"
+}

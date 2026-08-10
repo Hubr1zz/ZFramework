@@ -1,7 +1,0 @@
-interface:
-  display_name: "Design Docs to OpenSpec"
-  short_description: "从设计文档生成模块化规则、Feature 与必要架构 Draft"
-  default_prompt: "Use $openspec-derive-design-specs to decompose large gameplay scopes into cohesive modules, then derive one paired rule and implementation Feature Draft Change per module, adding architecture drafts only when shared contracts require them."
-
-policy:
-  allow_implicit_invocation: false

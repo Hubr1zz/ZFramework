@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 3,
+  "capability": "showdown-phase-orchestration",
+  "title": "决战阶段编排",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "GameManager 激活 BossFight 根节点、启动回合状态机，并处理 BossDefeated 事件返回营地。",
+    "evidence": [],
+    "differences": [],
+    "verifiedAt": "2026-07-22T00:00:00+08:00",
+    "codeEvidence": [
+      {
+        "guid": "551fe81197a6ca545a686a0c536f2646",
+        "displayPath": "Assets/Scripts/Core/GameManager.cs",
+        "line": 798
+      },
+      {
+        "guid": "4becba54d2c7c92478a6ca6ea7fcdfd9",
+        "displayPath": "Assets/Scripts/Adapters/Unity/Combat/CombatManager.cs",
+        "line": 19
+      }
+    ]
+  },
+  "implementationOutline": [
+    "GameManager 进入 BossFight 时启用决战根节点、装配 CombatManager 与回合状态机并启动玩家回合。",
+    "CombatManager 承接攻击管线与表现；BossDefeated 事件返回 GameManager，由组合根完成战利品交接并切回营地。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "showdown-phase-orchestration--requires--game-manager-orchestration"
+  ],
+  "sourceReferences": [
+    "Assets/Scripts/Core/GameManager.cs:798",
+    "Assets/Scripts/Adapters/Unity/Combat/CombatManager.cs:19"
+  ]
+}

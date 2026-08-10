@@ -1,6 +1,5 @@
-# ZEngine / TEngine
-
-> 当前维护分支为 `ZEngine`：它以 TEngine 为底座，并整合 zWorkFlow、普通 Player 程序集工作流以及 `com.tengine.rts` RTS/Roslyn 工具链。
+# ZEngine
+它以 TEngine 为底座，并整合 zWorkFlow、普通 Player 程序集工作流以及 `com.tengine.rts` RTS/Roslyn 工具链。
 
 <div align="center">
 

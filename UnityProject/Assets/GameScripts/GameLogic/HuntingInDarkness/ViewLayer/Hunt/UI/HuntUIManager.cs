@@ -1,0 +1,175 @@
+using System.Collections.Generic;
+using Core;
+using HuntingInDarkness.Data;
+using HuntingInDarkness.Hunt;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace UI.Hunt
+{
+    /// <summary>
+    /// 狩猎阶段 UI 总协调器（MonoBehaviour）。
+    /// 显示猎人状态面板、资源采集弹窗、开发者模式按钮。
+    /// </summary>
+    public class HuntUIManager : MonoBehaviour
+    {
+        private HuntManager _huntMgr;
+
+        // 子面板
+        private HunterStatusOverlay  _statusOverlay;
+        private ResourceHarvestPopup _harvestPopup;
+        private EventPopupHunt       _eventPopupHunt;
+
+        // 顶部信息栏
+        private Text _infoLabel;
+
+        // ─── 初始化 ──────────────────────────────────────────────
+
+        public void Init(HuntManager huntMgr)
+        {
+            _huntMgr = huntMgr;
+            huntMgr.OnResourcePointClicked = ShowHarvestPopup;
+
+            BuildUI();
+            Refresh();
+
+            // 订阅事件
+            EventBus.Subscribe<GameEventTriggeredEvent>(OnGameEvent);
+        }
+
+        private void BuildUI()
+        {
+            FullStretch(gameObject);
+
+            // 顶部信息栏
+            var topGo = NewPanel("TopBar", new Vector2(0, 0.92f), new Vector2(1, 1));
+            topGo.GetComponent<Image>().color = new Color(0.08f, 0.1f, 0.14f, 0.9f);
+            _infoLabel = MakeText(topGo, "Info", "狩猎阶段", 15, TextAnchor.MiddleCenter);
+
+            // 猎人状态叠加（左下角）
+            var statusGo = NewPanel("HunterStatus", new Vector2(0, 0), new Vector2(0.28f, 0.35f));
+            statusGo.GetComponent<Image>().color = new Color(0.08f, 0.1f, 0.14f, 0.85f);
+            _statusOverlay = statusGo.AddComponent<HunterStatusOverlay>();
+
+            // 资源采集弹窗（居中，初始隐藏）
+            var harvestGo = NewPanel("HarvestPopup", new Vector2(0.25f, 0.2f), new Vector2(0.75f, 0.8f));
+            harvestGo.SetActive(false);
+            _harvestPopup = harvestGo.AddComponent<ResourceHarvestPopup>();
+            _harvestPopup.OnClose = () => harvestGo.SetActive(false);
+
+            // 狩猎事件弹窗（复用简化版，居中）
+            var evtGo = NewPanel("EventPopup", new Vector2(0.15f, 0.1f), new Vector2(0.85f, 0.9f));
+            evtGo.SetActive(false);
+            _eventPopupHunt = evtGo.AddComponent<EventPopupHunt>();
+            _eventPopupHunt.OnClose = () => evtGo.SetActive(false);
+
+            // 底部操作栏
+            var botGo = NewPanel("BottomBar", new Vector2(0, 0), new Vector2(1, 0.08f));
+            botGo.GetComponent<Image>().color = new Color(0.08f, 0.1f, 0.14f, 0.9f);
+            BuildBottomButtons(botGo.transform);
+        }
+
+        private void BuildBottomButtons(Transform parent)
+        {
+            var buttons = new (string label, System.Action action)[]
+            {
+                ("撤退（回营地）", OnClickRetreat),
+                ("直接进Boss战 [Dev]", OnClickDevBoss),
+            };
+
+            float w = 1f / buttons.Length;
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                var (lbl, act) = buttons[i];
+                var bGo = NewPanel($"Btn_{i}", parent,
+                    new Vector2(i * w + 0.01f, 0.1f), new Vector2((i + 1) * w - 0.01f, 0.9f));
+                bGo.GetComponent<Image>().color = i == 1
+                    ? new Color(0.3f, 0.15f, 0.15f, 1f)    // dev button 红色
+                    : new Color(0.2f, 0.22f, 0.28f, 1f);
+                var btn = bGo.AddComponent<Button>();
+                var a = act;
+                btn.onClick.AddListener(() => a());
+                MakeText(bGo, "L", lbl, 12, TextAnchor.MiddleCenter);
+            }
+        }
+
+        // ─── 刷新 ────────────────────────────────────────────────
+
+        public void Refresh()
+        {
+            if (_huntMgr == null) return;
+            _infoLabel.text = $"狩猎阶段  — 小队位置 {_huntMgr.SquadPosition}";
+            _statusOverlay?.Init(_huntMgr.ActiveHunters);
+        }
+
+        private void ShowHarvestPopup(ResourcePointInstance point, HunterInstance hunter)
+        {
+            _harvestPopup.gameObject.SetActive(true);
+            _harvestPopup.Show(point, hunter, _huntMgr);
+        }
+
+        private void OnGameEvent(GameEventTriggeredEvent e)
+        {
+            if (e.EventId.StartsWith("tile_reveal:"))
+                Refresh();
+        }
+
+        // ─── 按钮逻辑 ────────────────────────────────────────────
+
+        private void OnClickRetreat()
+        {
+            Debug.Log("[HuntUI] 玩家撤退 → 狩猎完成");
+            _huntMgr?.CompleteHunt(false, null);
+            // GameManager 监听 OnHuntCompleted 回调来切换阶段
+        }
+
+        private void OnClickDevBoss()
+        {
+            Debug.Log("[HuntUI][Dev] 直接进入Boss战");
+            _huntMgr?.OnBossEncounterTriggered?.Invoke();
+        }
+
+        // ─── uGUI 工厂 ────────────────────────────────────────────
+
+        private GameObject NewPanel(string name, Vector2 aMin, Vector2 aMax)
+            => NewPanel(name, transform, aMin, aMax);
+
+        private static GameObject NewPanel(string name, Transform parent,
+            Vector2 aMin, Vector2 aMax)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = aMin; rt.anchorMax = aMax;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            go.AddComponent<Image>().color = new Color(0.1f, 0.1f, 0.15f, 0.8f);
+            return go;
+        }
+
+        internal static Text MakeText(GameObject parent, string name, string text,
+            int fontSize, TextAnchor anchor)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent.transform, false);
+            FullStretch(go);
+            var t = go.AddComponent<Text>();
+            t.text = text; t.fontSize = fontSize; t.alignment = anchor;
+            t.color = Color.white;
+            t.font  = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            t.horizontalOverflow = HorizontalWrapMode.Wrap;
+            return t;
+        }
+
+        internal static void FullStretch(GameObject go)
+        {
+            var rt = go.GetComponent<RectTransform>() ?? go.AddComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+        }
+
+        private void OnDestroy()
+        {
+            EventBus.Unsubscribe<GameEventTriggeredEvent>(OnGameEvent);
+        }
+    }
+}

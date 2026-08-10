@@ -4,14 +4,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-#if UNITY_2021_2_OR_NEWER && !UNITY_6000_0_OR_NEWER
+#if UNITY_6000_3_OR_NEWER
+using UnityEditor.Toolbars;
+#elif UNITY_2021_2_OR_NEWER
 using System.Reflection;
 #endif
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
-#if UNITY_2021_2_OR_NEWER && !UNITY_6000_0_OR_NEWER
+#if UNITY_2021_2_OR_NEWER && !UNITY_6000_3_OR_NEWER
 using UnityEngine.UIElements;
 #endif
 
@@ -24,7 +26,6 @@ namespace AgentWorkflow.Editor
     public sealed partial class AgentWorkbenchWindow : EditorWindow
     {
         private const string MaintainerPrefKey = "AgentWorkflow.Workbench.Maintainer";
-        private const string DocumentWorkflowRootPrefKey = "AgentWorkflow.Workbench.DocumentRoot";
         private const float MainEntryButtonHeight = 40f;
         private const float TabButtonHeight = 32f;
         private static readonly Regex FieldRegex = new(@"^- \*\*(?<name>[^*]+)\*\*: ?(?<value>.*)$");
@@ -111,14 +112,12 @@ namespace AgentWorkflow.Editor
         private readonly List<DocumentImplementationEntry> _changedImplementedDocuments = new();
         private readonly List<DesignDocumentTreeItem> _designDocumentTreeItems = new();
         private string _designSourceStatus = "sync.notConfigured";
-        private string _documentWorkflowRoot;
         private string _documentChangeStatus = "sync.packageNotSelected";
-        private string _documentPackageSelectionStatus = string.Empty;
-        private bool _documentPackageSelectionError;
         private string _documentStructureError = string.Empty;
         private bool _documentBridgeConnected;
         private DocumentImplementationLedger _documentImplementationLedger;
         private Vector2 _designDocumentTreeScroll;
+        private readonly HashSet<string> _expandedDesignDocumentNodes = new(StringComparer.OrdinalIgnoreCase);
         private string _maintainer;
         private string _maintenanceNote = "-";
         private string _gapRationale = string.Empty;
@@ -197,7 +196,6 @@ namespace AgentWorkflow.Editor
                 "project-tooling",
                 "references",
                 "tooling-catalog.json");
-            _documentWorkflowRoot = EditorPrefs.GetString(DocumentWorkflowRootPrefKey, string.Empty);
             LoadDesignSourceConfiguration();
             Reload();
         }
@@ -351,8 +349,11 @@ namespace AgentWorkflow.Editor
                 case ToolTab.EngineeringCapabilities:
                     DrawEngineeringCapabilities();
                     break;
-                case ToolTab.DesignSyncSettings:
-                    DrawDesignSyncSettings();
+                case ToolTab.DesignDocumentTree:
+                    DrawDesignDocumentTreeTab();
+                    break;
+                case ToolTab.CommandList:
+                    DrawCommandList();
                     break;
                 case ToolTab.ImportReports:
                     DrawImportReportsTab();
@@ -396,26 +397,28 @@ namespace AgentWorkflow.Editor
                         _tab = ToolTab.EngineeringCapabilities;
                 }
 
-                GUILayout.FlexibleSpace();
-                var projectLabelWidth = Mathf.Clamp(position.width - 1066f, 0f, 300f);
-                if (projectLabelWidth > 54f)
-                {
-                    if (GUILayout.Button(
-                            new GUIContent(
-                                $"Root: {_projectRoot}",
-                                $"{L("toolbar.openRoot")}\n{_projectRoot}"),
-                            EditorStyles.toolbarButton,
-                            GUILayout.Width(projectLabelWidth)))
-                        OpenPath(_projectRoot);
-                }
-
-                if (GUILayout.Button(
-                        L("toolbar.designSync"),
-                        EditorStyles.toolbarButton,
-                        GUILayout.Width(238)))
+                if (GUILayout.Button(L("toolbar.designDocumentTree"), EditorStyles.toolbarButton, GUILayout.Width(115)))
                 {
                     if (TryLeaveRawEditor())
-                        _tab = ToolTab.DesignSyncSettings;
+                        _tab = ToolTab.DesignDocumentTree;
+                }
+
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button(
+                        new GUIContent(
+                            L("toolbar.projectRoot"),
+                            $"{L("toolbar.openRoot")}\n{_projectRoot}"),
+                        EditorStyles.toolbarButton,
+                        GUILayout.Width(88)))
+                    OpenPath(_projectRoot);
+
+                if (GUILayout.Button(
+                        L("toolbar.commandList"),
+                        EditorStyles.toolbarButton,
+                        GUILayout.Width(115)))
+                {
+                    if (TryLeaveRawEditor())
+                        _tab = ToolTab.CommandList;
                 }
 
                 if (GUILayout.Button(L("toolbar.config"), EditorStyles.toolbarButton, GUILayout.Width(101)))
@@ -2650,14 +2653,25 @@ namespace AgentWorkflow.Editor
             return ColorUtility.TryParseHtmlString(value, out var color) ? color : Color.white;
         }
 
-        private void DrawDesignSyncSettings()
+        private void DrawCommandList()
         {
-            EditorGUILayout.LabelField(L("sync.title"), EditorStyles.boldLabel);
+            DrawDesignImportHint();
+        }
+
+        private void DrawDesignDocumentTreeTab()
+        {
+            EditorGUILayout.LabelField(L("toolbar.designDocumentTree"), EditorStyles.boldLabel);
             DrawDesignPathSettings();
             EditorGUILayout.Space(6);
             DrawDocumentBridgeSettings();
-            EditorGUILayout.Space(6);
-            DrawDesignImportHint();
+
+            if (!_documentBridgeConnected)
+            {
+                EditorGUILayout.HelpBox(L("sync.connectPackageToViewStructure"), MessageType.Info);
+                return;
+            }
+
+            DrawDesignDocumentStructure();
         }
 
         private void DrawDesignPathSettings()
@@ -2665,32 +2679,6 @@ namespace AgentWorkflow.Editor
             using (new EditorGUILayout.VerticalScope("box"))
             {
                 EditorGUILayout.LabelField(L("sync.sources"), EditorStyles.boldLabel);
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    GUILayout.Label(L("sync.package"), GUILayout.Width(78));
-                    EditorGUILayout.SelectableLabel(
-                        Or(_documentWorkflowRoot, "未选择"),
-                        EditorStyles.textField,
-                        GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                    if (GUILayout.Button(L("sync.select"), GUILayout.Width(52)))
-                    {
-                        var selected = EditorUtility.OpenFolderPanel(
-                            L("sync.choosePackage"),
-                            _documentWorkflowRoot,
-                            string.Empty);
-                        if (!string.IsNullOrWhiteSpace(selected))
-                            TrySetDocumentWorkflowRoot(selected);
-                    }
-                }
-
-                if (!string.IsNullOrWhiteSpace(_documentPackageSelectionStatus))
-                {
-                    EditorGUILayout.HelpBox(
-                        _documentPackageSelectionStatus,
-                        _documentPackageSelectionError ? MessageType.Warning : MessageType.Info);
-                }
-
-                var documentPackageConfigured = _documentBridgeConnected;
                 var removeIndex = -1;
                 for (var index = 0; index < _designDocumentSources.Count; index++)
                 {
@@ -2702,12 +2690,11 @@ namespace AgentWorkflow.Editor
                             Or(source.path, "未选择"),
                             EditorStyles.textField,
                             GUILayout.Height(EditorGUIUtility.singleLineHeight));
-                        GUI.enabled = documentPackageConfigured;
                         if (GUILayout.Button(L("sync.select"), GUILayout.Width(52)))
                         {
                             var selected = EditorUtility.OpenFolderPanel(
                                 L("sync.chooseDocuments"),
-                                Or(source.path, _documentWorkflowRoot),
+                                Or(source.path, _projectRoot),
                                 string.Empty);
                             if (!string.IsNullOrWhiteSpace(selected))
                             {
@@ -2735,20 +2722,15 @@ namespace AgentWorkflow.Editor
                     SaveDesignSourceConfiguration();
                 }
 
-                GUI.enabled = documentPackageConfigured;
                 if (GUILayout.Button(L("sync.addDocuments"), GUILayout.Height(24)))
                 {
                     var selected = EditorUtility.OpenFolderPanel(
                         L("sync.chooseDocuments"),
-                        _documentWorkflowRoot,
+                        _projectRoot,
                         string.Empty);
                     if (!string.IsNullOrWhiteSpace(selected))
                         AddDesignDocumentSource(selected);
                 }
-                GUI.enabled = true;
-
-                if (!documentPackageConfigured)
-                    EditorGUILayout.LabelField(L("sync.configurePackageFirst"), EditorStyles.miniLabel);
                 EditorGUILayout.LabelField(LocalizeStatus(_designSourceStatus), EditorStyles.miniLabel);
             }
         }
@@ -2759,30 +2741,26 @@ namespace AgentWorkflow.Editor
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField(
+                    GUILayout.Label(
                         $"{L("sync.bridgeStatus")} · {LocalizeStatus(_documentChangeStatus)}",
-                        EditorStyles.boldLabel);
+                        EditorStyles.wordWrappedLabel,
+                        GUILayout.ExpandWidth(true));
                     GUILayout.FlexibleSpace();
 
-                    GUI.enabled = !string.IsNullOrWhiteSpace(_documentWorkflowRoot) &&
-                                  Directory.Exists(_documentWorkflowRoot);
+                    GUI.enabled = _designDocumentSources.Any(source => source != null &&
+                        !string.IsNullOrWhiteSpace(source.path) && Directory.Exists(source.path));
                     if (GUILayout.Button(L("sync.checkNow"), GUILayout.Width(78)))
                         ReloadDocumentImplementationChanges();
-                    GUI.enabled = File.Exists(DocumentImplementationLedgerPath());
-                    if (GUILayout.Button(L("sync.ledger"), GUILayout.Width(78)))
-                        OpenPath(DocumentImplementationLedgerPath());
                     GUI.enabled = true;
                 }
 
                 if (_changedImplementedDocuments.Count == 0)
-                    EditorGUILayout.LabelField(L("sync.noImplementedChanges"), EditorStyles.miniLabel);
+                    EditorGUILayout.HelpBox(L("sync.noImplementedChanges"), MessageType.None);
 
                 EditorGUILayout.LabelField(
                     L("sync.bridgeHint"),
                     EditorStyles.miniLabel);
             }
-
-            DrawDesignDocumentStructure();
         }
 
         private void DrawDesignDocumentStructure()
@@ -2794,11 +2772,6 @@ namespace AgentWorkflow.Editor
                     EditorGUILayout.LabelField(
                         AgentWorkbenchText.Format("sync.documentStructure", _designDocumentTreeItems.Count(item => !item.isDirectory)),
                         EditorStyles.boldLabel);
-                    GUILayout.FlexibleSpace();
-                    EditorGUILayout.LabelField(L("sync.progress"), EditorStyles.miniLabel, GUILayout.Width(125));
-                    EditorGUILayout.LabelField(L("sync.changedAfterImplementation"), EditorStyles.miniLabel, GUILayout.Width(92));
-                    EditorGUILayout.LabelField(L("sync.changeSummary"), EditorStyles.miniLabel, GUILayout.Width(230));
-                    GUILayout.Space(62);
                 }
 
                 if (!string.IsNullOrWhiteSpace(_documentStructureError))
@@ -2820,14 +2793,33 @@ namespace AgentWorkflow.Editor
                     _designDocumentTreeScroll,
                     GUILayout.MinHeight(150),
                     GUILayout.MaxHeight(420));
+                var visibleDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var item in _designDocumentTreeItems)
                 {
+                    var visible = string.IsNullOrWhiteSpace(item.parentKey) ||
+                                  (_expandedDesignDocumentNodes.Contains(item.parentKey) &&
+                                   visibleDirectories.Contains(item.parentKey));
+                    if (!visible)
+                        continue;
                     using (new EditorGUILayout.HorizontalScope(item.isDirectory ? EditorStyles.helpBox : GUIStyle.none))
                     {
                         GUILayout.Space(Mathf.Min(160, item.depth * 16));
                         if (item.isDirectory)
                         {
-                            EditorGUILayout.LabelField($"▾ {item.displayName}", EditorStyles.boldLabel);
+                            visibleDirectories.Add(item.treeKey);
+                            var expanded = _expandedDesignDocumentNodes.Contains(item.treeKey);
+                            var nextExpanded = EditorGUILayout.Foldout(
+                                expanded,
+                                new GUIContent(item.displayName, Or(item.absolutePath, item.relativePath)),
+                                true,
+                                EditorStyles.foldoutHeader);
+                            if (nextExpanded != expanded)
+                            {
+                                if (nextExpanded)
+                                    _expandedDesignDocumentNodes.Add(item.treeKey);
+                                else
+                                    _expandedDesignDocumentNodes.Remove(item.treeKey);
+                            }
                             continue;
                         }
 
@@ -2895,7 +2887,10 @@ namespace AgentWorkflow.Editor
                 DrawInstruction(L("cmd.rules"), L("cmd.rulesDesc"));
                 DrawInstruction(L("cmd.content"), L("cmd.contentDesc"));
                 DrawInstruction(L("cmd.art"), L("cmd.artDesc"));
+                DrawInstruction(L("cmd.checkDocumentFreshness"), L("cmd.checkDocumentFreshnessDesc"));
                 DrawInstruction(L("cmd.revise"), L("cmd.reviseDesc"));
+                DrawInstruction(L("cmd.translateSpecs"), L("cmd.translateSpecsDesc"));
+                DrawInstruction(L("cmd.syncSpecTranslations"), L("cmd.syncSpecTranslationsDesc"));
                 DrawInstruction(L("cmd.apply"), L("cmd.applyDesc"));
                 DrawInstruction(L("cmd.syncSpecs"), L("cmd.syncSpecsDesc"));
                 DrawInstruction(L("cmd.archive"), L("cmd.archiveDesc"));
@@ -2919,10 +2914,22 @@ namespace AgentWorkflow.Editor
 
     }
 
-#if UNITY_2021_2_OR_NEWER && !UNITY_6000_0_OR_NEWER
-    // Unity 2021.2-2023.x does not expose a public API for arbitrary main-toolbar buttons.
-    // Unity 6 changed the internal toolbar implementation, so the reflection bridge is
-    // deliberately excluded there; the public Tools menu remains the stable entry point.
+#if UNITY_6000_3_OR_NEWER
+    internal static class AgentWorkbenchMainToolbar
+    {
+        private const string ElementPath = "Agent Workflow/Workbench";
+
+        [MainToolbarElement(ElementPath, defaultDockPosition = MainToolbarDockPosition.Middle, defaultDockIndex = 10)]
+        private static MainToolbarElement Create()
+        {
+            var icon = EditorGUIUtility.IconContent("UnityEditor.ConsoleWindow").image as Texture2D;
+            return new MainToolbarButton(new MainToolbarContent("Agent", icon, AgentWorkbenchText.Get("window.open")),
+                AgentWorkbenchWindow.Open);
+        }
+    }
+#elif UNITY_2021_2_OR_NEWER
+    // Unity 2021.2-6.2 does not expose the public MainToolbarElement API used by newer
+    // Unity 6 releases, so use the reflection bridge as a compatibility fallback.
     [InitializeOnLoad]
     internal static class AgentWorkbenchMainToolbar
     {

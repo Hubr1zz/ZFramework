@@ -9,7 +9,7 @@
 - **Luban**：Excel/JSON/YAML → C# 代码 + 二进制数据
 - **生成格式**：`cs-bin`（C#）+ `bin`（二进制）
 - **数据位置**：`Assets/AssetRaw/Configs/bytes/`（YooAsset 管理）
-- **代码位置**：`GameScripts/HotFix/GameProto/GameConfig/`（普通 Player 程序集）
+- **代码位置**：`GameScripts/GameProto/GameConfig/`（普通 Player 程序集）
 
 ---
 

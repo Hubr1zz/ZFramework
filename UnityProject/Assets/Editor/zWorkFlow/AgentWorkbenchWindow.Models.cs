@@ -19,7 +19,7 @@ namespace AgentWorkflow.Editor
             OpenSpec,
             EngineeringCapabilities,
             DesignDocumentTree,
-            DesignSyncSettings,
+            CommandList,
             ImportReports,
             Configuration,
             Introduction,

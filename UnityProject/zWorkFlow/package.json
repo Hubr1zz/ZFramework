@@ -1,6 +1,6 @@
 {
   "name": "@hubr1zz/zworkflow",
-  "version": "0.1.0",
+  "version": "0.2.4",
   "description": "Cross-platform bootstrap CLI for zWorkFlow",
   "license": "Apache-2.0",
   "type": "module",

@@ -1,0 +1,46 @@
+{
+  "nodes": [
+    {
+      "id": "boss-hit-locations-rules",
+      "label": "Boss 部位卡规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-hit-locations/specs/boss-hit-locations-rules/spec.md"
+    },
+    {
+      "id": "boss-hit-locations-implementation",
+      "label": "Boss 部位卡代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-hit-locations/specs/boss-hit-locations-implementation/spec.md"
+    },
+    {
+      "id": "showdown-phase-orchestration",
+      "label": "决战阶段编排",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/showdown-phase-orchestration/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "boss-hit-locations-rules--requires--boss-hit-locations-implementation",
+      "from": "boss-hit-locations-rules",
+      "to": "boss-hit-locations-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-hit-locations-implementation--requires--showdown-phase-orchestration",
+      "from": "boss-hit-locations-implementation",
+      "to": "showdown-phase-orchestration",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 决战阶段编排 提供的稳定契约",
+      "blocksImplementation": false
+    }
+  ]
+}
+

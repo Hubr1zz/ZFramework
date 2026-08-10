@@ -77,7 +77,7 @@
       "capabilitiesEn": ["Module registration and resolution", "Ordered module lifecycles", "Unified update and shutdown"],
       "constraints": ["业务层优先通过 GameModule 缓存入口访问；组合根与启动注册代码可以直接使用 ModuleSystem"],
       "constraintsEn": ["Game code should use cached GameModule access; composition roots and startup registration may use ModuleSystem directly"],
-      "evidence": ["Assets/TEngine/Runtime/Core/ModuleSystem.cs", "Assets/GameScripts/HotFix/GameLogic/GameModule.cs"],
+      "evidence": ["Assets/TEngine/Runtime/Core/ModuleSystem.cs", "Assets/GameScripts/GameLogic/GameModule.cs"],
       "dependencies": []
     },
     {
@@ -172,7 +172,7 @@
       "description": "纯 C# UIWindow/UIWidget 生命周期、层级、资源与事件协作框架。",
       "descriptionEn": "Pure C# framework coordinating UIWindow/UIWidget lifecycles, layers, assets, and events.",
       "version": "",
-      "source": "Assets/GameScripts/HotFix/GameLogic/Module/UIModule",
+      "source": "Assets/GameScripts/GameLogic/Module/UIModule",
       "usagePolicy": "required",
       "usageNotes": "完整界面继承 UIWindow，可复用局部继承 UIWidget，并统一通过 GameModule.UI 打开、关闭和查询。异步加载的取消与资源释放必须绑定窗口生命周期，界面事件使用 AddUIEvent；不要在业务代码中直接 Instantiate 窗口或长期持有已关闭界面引用。",
       "usageNotesEn": "Derive full screens from UIWindow and reusable regions from UIWidget, then open, close, and query them through GameModule.UI. Tie asynchronous cancellation and resource release to the window lifecycle and register UI events through AddUIEvent; do not instantiate windows directly in game code or retain references after closure.",
@@ -182,7 +182,7 @@
       "capabilitiesEn": ["UIWindow/UIWidget lifecycles", "UI layers and full-screen window management", "Asynchronous window loading", "UI code generation conventions"],
       "constraints": ["通过 GameModule.UI 访问", "窗口资源和事件必须随生命周期释放"],
       "constraintsEn": ["Access through GameModule.UI", "Window assets and events must be released with the lifecycle"],
-      "evidence": ["Assets/GameScripts/HotFix/GameLogic/Module/UIModule/UIModule.cs", ".agents/skills/tengine-dev/references/ui-lifecycle.md", ".agents/skills/tengine-dev/references/ui-patterns.md"],
+      "evidence": ["Assets/GameScripts/GameLogic/Module/UIModule/UIModule.cs", ".agents/skills/tengine-dev/references/ui-lifecycle.md", ".agents/skills/tengine-dev/references/ui-patterns.md"],
       "dependencies": ["tengine-resource-module", "tengine-game-event", "unitask"]
     },
     {
@@ -193,7 +193,7 @@
       "description": "Luban 生成配置的同步、异步与懒加载接入边界。当前检出仅保留 LubanLib，ConfigSystem 生成代码尚未落盘。",
       "descriptionEn": "Integration boundary for synchronous, asynchronous, and lazy loading of Luban-generated configuration. This checkout contains LubanLib only; generated ConfigSystem code is absent.",
       "version": "",
-      "source": "Assets/GameScripts/HotFix/GameProto",
+      "source": "Assets/GameScripts/GameProto",
       "usagePolicy": "required",
       "usageNotes": "仅在 ConfigSystem 与 GameConfig 生成输出存在后使用该能力，并把生成入口作为配置查询的唯一边界。启动必需表可异步预加载，非关键表按需懒加载；二进制配置通过 ResourceModule 和明确的 packageName 读取。不得手改生成代码，输出缺失时应重新生成而不是另建并行解析器。",
       "usageNotesEn": "Use this capability only after the generated ConfigSystem and GameConfig output exists, and treat the generated entry point as the sole configuration-query boundary. Asynchronously preload startup-critical tables and lazily load optional ones; read binary data through ResourceModule with an explicit packageName. Never hand-edit generated code, and regenerate missing output instead of building a parallel parser.",
@@ -203,7 +203,7 @@
       "capabilitiesEn": ["Luban schema and code generation", "Binary configuration loading", "Lazy and asynchronous loading"],
       "constraints": ["当前代码核验状态为 partial：使用前必须先生成或恢复 ConfigSystem 与 GameConfig 输出", "生成代码属于普通 Player 程序集"],
       "constraintsEn": ["Verified as partial: generate or restore ConfigSystem and GameConfig output before use", "Generated code belongs to ordinary Player assemblies"],
-      "evidence": ["Assets/GameScripts/HotFix/GameProto/LubanLib", ".agents/skills/luban-dev/SKILL.md", ".agents/skills/tengine-dev/references/luban-config.md"],
+      "evidence": ["Assets/GameScripts/GameProto/LubanLib", ".agents/skills/luban-dev/SKILL.md", ".agents/skills/tengine-dev/references/luban-config.md"],
       "dependencies": ["tengine-resource-module", "yooasset"]
     },
     {
@@ -262,8 +262,46 @@
       "capabilitiesEn": ["Startup UI feedback", "Project update policy", "Content-package initialization", "GameApp handoff"],
       "constraints": ["项目 UI 文案、包名称和首个业务界面只属于该项目接入，不得写入通用启动生命周期契约", "GameApp.Entrance 只在 ProcedureStartGame 进入后调用"],
       "constraintsEn": ["Project UI text, package names, and the first game screen belong to this integration and must not enter the reusable lifecycle contract", "GameApp.Entrance is invoked only after entering ProcedureStartGame"],
-      "evidence": ["Assets/GameScripts/Procedure/ProcedureInitResources.cs", "Assets/GameScripts/Procedure/ProcedureInitContentPackages.cs", "Assets/GameScripts/Procedure/ProcedureStartGame.cs", "Assets/GameScripts/HotFix/GameLogic/GameApp.cs"],
+      "evidence": ["Assets/GameScripts/Procedure/ProcedureInitResources.cs", "Assets/GameScripts/Procedure/ProcedureInitContentPackages.cs", "Assets/GameScripts/Procedure/ProcedureStartGame.cs", "Assets/GameScripts/GameLogic/GameApp.cs"],
       "dependencies": ["tengine-startup-lifecycle", "tengine-ui-module", "tengine-game-event"]
+    },
+    {
+      "id": "hunting-in-darkness-gamecore",
+      "displayName": "Hunting in Darkness GameCore",
+      "displayNameEn": "Hunting in Darkness GameCore",
+      "kind": "system",
+      "description": "战斗、棋盘、卡牌、猎人、营地与狩猎的纯 C# 规则和权威运行时状态。",
+      "descriptionEn": "Pure C# rules and authoritative runtime state for combat, board, cards, hunters, settlement, and hunt gameplay.",
+      "version": "",
+      "source": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore",
+      "usagePolicy": "project-owned",
+      "decisionBasis": "",
+      "locked": false,
+      "capabilities": ["纯 C# 玩法规则", "确定性战斗与棋盘结算", "可注入随机源"],
+      "capabilitiesEn": ["Pure C# gameplay rules", "Deterministic combat and board resolution", "Injectable randomness"],
+      "constraints": ["asmdef 必须保持 noEngineReferences", "不得引用 TEngine、Unity、SO、UniTask 或 GameEvent"],
+      "constraintsEn": ["The asmdef must keep noEngineReferences", "Must not reference TEngine, Unity, ScriptableObjects, UniTask, or GameEvent"],
+      "evidence": ["Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/HuntingInDarkness.GameCore.asmdef", ".agents/skills/project-gamecore/references/GAMECORE.md"],
+      "dependencies": []
+    },
+    {
+      "id": "hunting-in-darkness-tengine-integration",
+      "displayName": "Hunting in Darkness TEngine 接入",
+      "displayNameEn": "Hunting in Darkness TEngine Integration",
+      "kind": "system",
+      "description": "把玩法组合根、Unity Adapters、事件和异步存档接到 TEngine 启动与模块能力。",
+      "descriptionEn": "Connects the gameplay composition root, Unity adapters, events, and asynchronous persistence to TEngine startup and modules.",
+      "version": "",
+      "source": "Assets/GameScripts/GameLogic/HuntingInDarkness",
+      "usagePolicy": "project-owned",
+      "decisionBasis": "",
+      "locked": false,
+      "capabilities": ["GameApp 业务交接", "GameEvent 兼容派发", "UniTask 生命周期取消", "SO 与 Unity 坐标映射"],
+      "capabilitiesEn": ["GameApp handoff", "GameEvent compatibility dispatch", "UniTask lifecycle cancellation", "ScriptableObject and Unity-coordinate mapping"],
+      "constraints": ["旧 EventBus 只允许委托给 GameEvent，不得恢复独立监听表", "完整窗口使用 UIModule；场景 HUD 与世界空间 View 可保留 MonoBehaviour"],
+      "constraintsEn": ["The legacy EventBus may only delegate to GameEvent and must not regain an independent listener store", "Full windows use UIModule; scene HUD and world-space views may remain MonoBehaviours"],
+      "evidence": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/EventBus.cs", "Assets/GameScripts/GameLogic/GameApp.cs", "Assets/GameScripts/Procedure/ProcedureStartGame.cs", "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/SaveLoadSystem.cs"],
+      "dependencies": ["hunting-in-darkness-gamecore", "tengine-startup-lifecycle", "tengine-game-event", "unitask"]
     }
   ]
 }

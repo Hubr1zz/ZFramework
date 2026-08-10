@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 3,
+  "capability": "settlement-phase-orchestration",
+  "title": "营地阶段编排",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "营地阶段由 GameManager 激活根节点、调用 SettlementManager.OnEnter 并在进入后保存。",
+    "evidence": [],
+    "differences": [],
+    "verifiedAt": "2026-07-22T00:00:00+08:00",
+    "codeEvidence": [
+      {
+        "guid": "551fe81197a6ca545a686a0c536f2646",
+        "displayPath": "Assets/Scripts/Core/GameManager.cs",
+        "line": 798
+      },
+      {
+        "guid": "1575b817a3362e94fbebfde4875d6115",
+        "displayPath": "Assets/Scripts/Adapters/Unity/Settlement/Legacy/SettlementManager.cs",
+        "line": 59
+      }
+    ]
+  },
+  "implementationOutline": [
+    "GameManager 进入 Settlement 时启用营地根节点，把待结算狩猎记录交给 SettlementManager.OnEnter。",
+    "SettlementManager 完成进入结算后刷新营地表现，GameManager 再通过持久化适配器保存结果。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "settlement-phase-orchestration--requires--game-manager-orchestration"
+  ],
+  "sourceReferences": [
+    "Assets/Scripts/Core/GameManager.cs:798",
+    "Assets/Scripts/Adapters/Unity/Settlement/Legacy/SettlementManager.cs:59"
+  ]
+}

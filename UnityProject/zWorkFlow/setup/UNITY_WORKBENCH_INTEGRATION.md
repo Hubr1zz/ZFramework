@@ -41,7 +41,7 @@
 - 关系图谱按钮右侧提供“工程能力”入口，读取 `.agents/skills/project-tooling/references/tooling-catalog.json`。页面不绘制能力依赖图；使用左侧 Plugin、Architecture、System 类型标签和条目列表筛选，右侧显示所选条目详情，与 OpenSpec 主从布局保持一致。所有条目允许按当前语言编辑并保存 `usageNotes` / `usageNotesEn` 自由文本；`usagePolicy` 仍是只读机器门禁。Plugin 另允许编辑 `decisionBasis`；Architecture 显示 required/locked 门禁且不允许直接编辑。
 - 工程能力目录的名称、描述、能力和约束随工作台语言切换中英文；稳定 ID、路径、版本、依赖和证据保持语言无关。
 - Markdown 轻量渲染器为一级标题、副标题（其余标题级别）和正文使用三组不同颜色，并同时适配编辑器深色与浅色主题。
-- 顶部 Root 工作路径显示为可点击按钮，点击后在系统资源管理器中打开项目根目录；右侧状态灯只表示是否成功定位文档包关键文件并建立桥接。设计文档设置允许选择任意候选目录，只有找到 `.design-workflow/implementation-ledger.json` 才保存文档包根路径，否则显示未找到且不覆盖旧绑定。
+- 顶部使用紧凑的“项目根目录”按钮打开项目根目录，不直接显示机器完整路径。工程能力按钮旁边提供独立的“设计文档树”入口与“指令列表”入口；右侧状态灯只表示至少一个设计文档路径有效。设计文档树顶部只维护来源路径，不再维护单独文档根目录；每个来源成为树的顶层节点，检查时重扫新增/删除 Markdown 并保留用户折叠状态。
 - 顶部工具栏按钮保持 Unity 默认高度；“增量维护 / OpenSpec / 导入报告”三大主入口统一为 40px，各功能内部页签统一为 32px。主入口与页签使用统一横向 Toggle 组，不使用会派生首/中/尾内部样式的 `GUILayout.Toolbar`；每个按钮共享相同 GUIStyle、显式高度和等分宽度。
 - 增量维护卡片字段使用左右两列；导入报告的批次元数据与单条提案审计也使用双列布局。Draft Change 的审核问题与 Dependencies 使用固定宽度的 66%/34% 双栏，展开内容不得把相邻区块挤出窗口。
 - 每条正式 Spec 的递归依赖树、readiness、Verification、缺失依赖和来源。
@@ -63,9 +63,9 @@
 - Git 同步的 `openspec/localization.json` 保存以后生成权威文件的默认语言：`source` 跟随设计文档，或明确选择 `zh-CN` / `en-US`；`specTitles` 以 capability ID 为键保存可选 `zhCN` / `enUS` 条目显示名。已有 Spec 的原路径与语言不因配置变化而迁移。
 - `openspec/translations/<language>/` 与 `manifest.json` 是团队共享的只读显示副本和块级 hash 索引。工作台始终让 Agent/生命周期操作读取原权威路径；当前界面语言的翻译缺失或 source/translation hash 失效时不渲染正文，只显示同步提示和复制命令按钮。非权威 Markdown 不允许在工作台直接编辑。
 - 工作台主题由自身配置中的浅色/深色模式控制，不读取 Unity 编辑器主题；工作台正文、背景、面板、标题与 Markdown 正文颜色读取所选工作台主题对应配置，警告与提示文字使用工作台正文颜色；深色主题的控件 tint 必须让按钮和输入框线框清晰区别于面板背景。
-- 配置有效设计来源时，玩法规则 Spec 可按 `sourceReferences` 反向打开对应设计 Markdown；配置允许指定 Obsidian、VS Code 等默认 Markdown 应用，留空则使用系统默认。实现后变更检查只读设计包 `.design-workflow/implementation-ledger.json`，并将设计 Markdown 重建为简化目录树：每个文件显示实现状态/百分比、实现后是否修改和摘要；没有新摘要的外部指纹变化显示“手动修改”。不得把项目路径写入设计包或自动调用设计导入。
-- 指令面板列出 `apply <change-id>`、`sync specs <change-id>` 与 `archive <change-id>`；Change 详情提供复制 ID，并在 Tasks 全完成且 `specSyncStatus=synced` 时启用“归档”按钮。按钮只以纯 C# 移动完整 Change 目录到带日期的 archive，不触发 sync；Delete 才是永久移除。OpenSpec 生命周期命令始终定位 Change，不使用 Spec ID。
-- 安装时确保 `.gitignore` 排除 `.DS_Store`、Python 缓存、`openspec/workbench-config.json`、`openspec/design-source.json`、`.agent-memory/team/MAINTAINERS.md` 与 `.agent-memory/team/members/`；它们是系统垃圾、生成缓存、个人偏好或机器相关路径。
+- 配置有效设计来源时，玩法规则 Spec 可按 `sourceReferences` 反向打开对应设计 Markdown；配置允许指定 Obsidian、VS Code 等默认 Markdown 应用，留空则使用系统默认。独立设计文档树的“刷新文档状态”读取项目 `openspec/implementation-ledger.json` 并重算当前指纹，再将设计 Markdown 重建为简化目录树：每个文件显示实现状态/百分比、实现后是否修改和摘要；没有新摘要的外部指纹变化显示“手动修改”。不得把项目路径或工程状态写入设计包，或自动调用设计导入。
+- 指令列表列出设计导入与筛选、`检查文档及时性`、修改导入、Spec 翻译/同步、`apply <change-id>`、`sync specs <change-id>` 与 `archive <change-id>`；Change 详情提供复制 ID，并在 Tasks 全完成且 `specSyncStatus=synced` 时启用“归档”按钮。检查文档及时性只刷新实现后设计变更状态和摘要，不触发设计导入。归档按钮只以纯 C# 移动完整 Change 目录到带日期的 archive，不触发 sync；Delete 才是永久移除。OpenSpec 生命周期命令始终定位 Change，不使用 Spec ID。
+- 安装时确保 `.gitignore` 排除 `.DS_Store`、Python 缓存、`openspec/workbench-config.json`、`openspec/design-source.json`、`.agent-memory/zworkflow/team/MAINTAINERS.md` 与 `.agent-memory/zworkflow/team/members/`；它们是系统垃圾、生成缓存、个人偏好或机器相关路径。
 
 这些能力只描述新建独立窗口的契约，不构成修改已有界面的授权。
 

@@ -90,8 +90,7 @@ namespace AgentWorkflow.Editor
                 JsonUtility.ToJson(configuration, true) + Environment.NewLine,
                 Encoding.UTF8);
             UpdateDesignSourceStatus();
-            if (_documentBridgeConnected)
-                BuildDesignDocumentTree();
+            ReloadDocumentImplementationChanges();
         }
 
         private void AddDesignDocumentSource(string path)
@@ -130,27 +129,24 @@ namespace AgentWorkflow.Editor
         {
             _documentImplementationLedger = null;
             _changedImplementedDocuments.Clear();
-            _designDocumentTreeItems.Clear();
             _documentStructureError = string.Empty;
             _documentBridgeConnected = false;
-            if (string.IsNullOrWhiteSpace(_documentWorkflowRoot))
+            if (!_designDocumentSources.Any(source =>
+                    source != null && !string.IsNullOrWhiteSpace(source.path) && Directory.Exists(source.path)))
             {
-                _documentChangeStatus = "sync.packageNotSelected";
+                _designDocumentTreeItems.Clear();
+                _expandedDesignDocumentNodes.Clear();
+                _documentChangeStatus = "sync.notConfigured";
                 return;
             }
 
-            if (!Directory.Exists(_documentWorkflowRoot))
+            if (!EnsureProjectImplementationLedger())
             {
-                _documentChangeStatus = "sync.pathMissing";
+                _designDocumentTreeItems.Clear();
                 return;
             }
 
-            var ledgerPath = DocumentImplementationLedgerPath();
-            if (!File.Exists(ledgerPath))
-            {
-                _documentChangeStatus = "sync.ledgerMissing";
-                return;
-            }
+            var ledgerPath = ProjectImplementationLedgerPath();
 
             try
             {
@@ -194,112 +190,49 @@ namespace AgentWorkflow.Editor
             }
             catch (Exception exception)
             {
+                _designDocumentTreeItems.Clear();
                 _documentChangeStatus = AgentWorkbenchText.Format("sync.ledgerError", exception.Message);
             }
         }
 
-        private bool TrySetDocumentWorkflowRoot(string selectedPath)
-        {
-            if (!TryFindDocumentPackageRoot(selectedPath, out var packageRoot))
-            {
-                _documentPackageSelectionError = true;
-                _documentPackageSelectionStatus = AgentWorkbenchText.Format(
-                    "sync.packageKeyNotFound",
-                    ".design-workflow/implementation-ledger.json");
-                return false;
-            }
-
-            _documentWorkflowRoot = packageRoot;
-            EditorPrefs.SetString(DocumentWorkflowRootPrefKey, packageRoot);
-            _documentPackageSelectionError = false;
-            _documentPackageSelectionStatus = AgentWorkbenchText.Format("sync.packageFound", packageRoot);
-            ReloadDocumentImplementationChanges();
-            return true;
-        }
-
-        private static bool TryFindDocumentPackageRoot(string selectedPath, out string packageRoot)
-        {
-            packageRoot = null;
-            if (string.IsNullOrWhiteSpace(selectedPath))
-                return false;
-
-            var selectedDirectory = File.Exists(selectedPath)
-                ? Path.GetDirectoryName(Path.GetFullPath(selectedPath))
-                : Path.GetFullPath(selectedPath);
-            if (string.IsNullOrWhiteSpace(selectedDirectory) || !Directory.Exists(selectedDirectory))
-                return false;
-
-            for (var current = new DirectoryInfo(selectedDirectory); current != null; current = current.Parent)
-            {
-                if (!File.Exists(Path.Combine(current.FullName, ".design-workflow", "implementation-ledger.json")))
-                    continue;
-                packageRoot = current.FullName;
-                return true;
-            }
-
-            var pending = new Queue<(string path, int depth)>();
-            pending.Enqueue((selectedDirectory, 0));
-            var visited = 0;
-            while (pending.Count > 0 && visited < 1024)
-            {
-                var candidate = pending.Dequeue();
-                visited++;
-                if (File.Exists(Path.Combine(candidate.path, ".design-workflow", "implementation-ledger.json")))
-                {
-                    packageRoot = candidate.path;
-                    return true;
-                }
-
-                if (candidate.depth >= 4)
-                    continue;
-                try
-                {
-                    foreach (var child in Directory.EnumerateDirectories(candidate.path))
-                    {
-                        var name = Path.GetFileName(child);
-                        if (string.Equals(name, ".git", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(name, "Library", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(name, "Temp", StringComparison.OrdinalIgnoreCase))
-                            continue;
-                        pending.Enqueue((child, candidate.depth + 1));
-                    }
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    // Continue checking other reachable directories.
-                }
-                catch (IOException)
-                {
-                    // Continue checking other reachable directories.
-                }
-            }
-
-            return false;
-        }
-
         private void BuildDesignDocumentTree()
         {
+            var previousDirectoryKeys = new HashSet<string>(
+                _designDocumentTreeItems
+                    .Where(item => item.isDirectory && !string.IsNullOrWhiteSpace(item.treeKey))
+                    .Select(item => item.treeKey),
+                StringComparer.OrdinalIgnoreCase);
             _designDocumentTreeItems.Clear();
-            if (!_documentBridgeConnected || string.IsNullOrWhiteSpace(_documentWorkflowRoot))
+            if (!_documentBridgeConnected)
                 return;
 
             try
             {
-                var root = Path.GetFullPath(_documentWorkflowRoot);
-                var markdownFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                var sourceRoots = _designDocumentSources
-                    .Where(source => source != null && !string.IsNullOrWhiteSpace(source.path) &&
-                                     Directory.Exists(source.path) && IsPathInsideRoot(source.path, root))
-                    .Select(source => Path.GetFullPath(source.path))
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                var validSources = _designDocumentSources
+                    .Where(source => source != null && !string.IsNullOrWhiteSpace(source.id) &&
+                                     !string.IsNullOrWhiteSpace(source.path) && Directory.Exists(source.path))
+                    .GroupBy(source => Path.GetFullPath(source.path), StringComparer.OrdinalIgnoreCase)
+                    .Select(group => group.First())
                     .ToList();
-                if (sourceRoots.Count == 0)
-                    sourceRoots.Add(root);
-
-                foreach (var sourceRoot in sourceRoots)
+                var documentFiles = new List<DesignDocumentFileCandidate>();
+                foreach (var source in validSources)
                 {
+                    var sourceRoot = Path.GetFullPath(source.path);
                     foreach (var file in EnumerateDesignMarkdownFiles(sourceRoot))
-                        markdownFiles.Add(Path.GetFullPath(file));
+                    {
+                        var absolutePath = Path.GetFullPath(file);
+                        var relativePath = DocumentRelativePath(absolutePath, sourceRoot);
+                        if (string.Equals(relativePath, "AGENTS.md", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(relativePath, "SETUP.md", StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        documentFiles.Add(new DesignDocumentFileCandidate
+                        {
+                            source = source,
+                            sourceRoot = sourceRoot,
+                            absolutePath = absolutePath,
+                            relativePath = relativePath
+                        });
+                    }
                 }
 
                 if (_documentImplementationLedger?.entries != null)
@@ -307,80 +240,115 @@ namespace AgentWorkflow.Editor
                     foreach (var entry in _documentImplementationLedger.entries.Where(entry => entry != null))
                     {
                         var path = ResolveImplementationDocumentPath(entry);
-                        if (!string.IsNullOrWhiteSpace(path))
-                            markdownFiles.Add(path);
-                    }
-                }
-
-                var relativeFiles = markdownFiles
-                    .Select(path => new
-                    {
-                        absolutePath = path,
-                        relativePath = Path.GetRelativePath(root, path).Replace('\\', '/')
-                    })
-                    .Where(item => !item.relativePath.StartsWith("../", StringComparison.Ordinal) &&
-                                   !string.Equals(item.relativePath, "..", StringComparison.Ordinal) &&
-                                   !string.Equals(item.relativePath, "AGENTS.md", StringComparison.OrdinalIgnoreCase) &&
-                                   !string.Equals(item.relativePath, "SETUP.md", StringComparison.OrdinalIgnoreCase))
-                    .OrderBy(item => item.relativePath, StringComparer.OrdinalIgnoreCase)
-                    .Take(500)
-                    .ToList();
-
-                var emittedDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var file in relativeFiles)
-                {
-                    var segments = file.relativePath.Split('/');
-                    var directoryPath = string.Empty;
-                    for (var index = 0; index < segments.Length - 1; index++)
-                    {
-                        directoryPath = string.IsNullOrEmpty(directoryPath)
-                            ? segments[index]
-                            : directoryPath + "/" + segments[index];
-                        if (!emittedDirectories.Add(directoryPath))
+                        if (string.IsNullOrWhiteSpace(path) || documentFiles.Any(file =>
+                                string.Equals(file.absolutePath, path, StringComparison.OrdinalIgnoreCase)))
                             continue;
-                        _designDocumentTreeItems.Add(new DesignDocumentTreeItem
+                        var source = ResolveImplementationSource(entry, path, validSources);
+                        if (source == null)
+                            continue;
+                        var sourceRoot = Path.GetFullPath(source.path);
+                        documentFiles.Add(new DesignDocumentFileCandidate
                         {
-                            isDirectory = true,
-                            depth = index,
-                            displayName = segments[index],
-                            relativePath = directoryPath
+                            source = source,
+                            sourceRoot = sourceRoot,
+                            absolutePath = path,
+                            relativePath = DocumentRelativePath(path, sourceRoot)
                         });
                     }
-
-                    var matchingEntries = (_documentImplementationLedger?.entries ?? Array.Empty<DocumentImplementationEntry>())
-                        .Where(entry => entry != null && string.Equals(
-                            NormalizeDocumentRelativePath(entry.documentPath),
-                            file.relativePath,
-                            StringComparison.OrdinalIgnoreCase))
-                        .ToList();
-                    var progress = matchingEntries.Count == 0
-                        ? 0
-                        : matchingEntries.Max(ResolveImplementationProgress);
-                    var changed = matchingEntries.Any(entry =>
-                        entry.changedAfterImplementation || entry.detectedByFingerprint);
-                    var summaries = matchingEntries
-                        .Where(entry => entry.changedAfterImplementation || entry.detectedByFingerprint)
-                        .Select(entry => entry.manualChangeDetected || string.IsNullOrWhiteSpace(entry.changeSummary)
-                            ? L("sync.manualChange")
-                            : entry.changeSummary.Trim())
-                        .Distinct(StringComparer.Ordinal)
-                        .ToArray();
-
-                    _designDocumentTreeItems.Add(new DesignDocumentTreeItem
-                    {
-                        depth = Math.Max(0, segments.Length - 1),
-                        displayName = Path.GetFileNameWithoutExtension(file.absolutePath),
-                        relativePath = file.relativePath,
-                        absolutePath = file.absolutePath,
-                        implementationProgress = progress,
-                        implementationStatus = ResolveImplementationStatus(matchingEntries, progress),
-                        changedAfterImplementation = changed,
-                        changeSummary = string.Join("；", summaries)
-                    });
                 }
 
-                if (markdownFiles.Count > 500)
-                    _documentStructureError = AgentWorkbenchText.Format("sync.documentLimit", 500, markdownFiles.Count);
+                var relativePathCounts = documentFiles
+                    .GroupBy(file => file.relativePath, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(group => group.Key, group => group.Count(), StringComparer.OrdinalIgnoreCase);
+                var visibleFiles = documentFiles
+                    .OrderBy(file => validSources.IndexOf(file.source))
+                    .ThenBy(file => file.relativePath, StringComparer.OrdinalIgnoreCase)
+                    .Take(500)
+                    .ToList();
+                var treeKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var source in validSources)
+                {
+                    var sourceRoot = Path.GetFullPath(source.path);
+                    var sourceKey = $"source:{source.id}";
+                    treeKeys.Add(sourceKey);
+                    if (!previousDirectoryKeys.Contains(sourceKey))
+                        _expandedDesignDocumentNodes.Add(sourceKey);
+                    _designDocumentTreeItems.Add(new DesignDocumentTreeItem
+                    {
+                        isDirectory = true,
+                        depth = 0,
+                        treeKey = sourceKey,
+                        sourceId = source.id,
+                        displayName = Or(Path.GetFileName(sourceRoot.TrimEnd(
+                            Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)), source.id),
+                        absolutePath = sourceRoot
+                    });
+
+                    var emittedDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var file in visibleFiles.Where(file => string.Equals(
+                                 file.source.id, source.id, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var segments = file.relativePath.Split('/');
+                        var directoryPath = string.Empty;
+                        var parentKey = sourceKey;
+                        for (var index = 0; index < segments.Length - 1; index++)
+                        {
+                            directoryPath = string.IsNullOrEmpty(directoryPath)
+                                ? segments[index]
+                                : directoryPath + "/" + segments[index];
+                            var directoryKey = $"{sourceKey}:{directoryPath}";
+                            treeKeys.Add(directoryKey);
+                            if (emittedDirectories.Add(directoryPath))
+                            {
+                                _designDocumentTreeItems.Add(new DesignDocumentTreeItem
+                                {
+                                    isDirectory = true,
+                                    depth = index + 1,
+                                    treeKey = directoryKey,
+                                    parentKey = parentKey,
+                                    sourceId = source.id,
+                                    displayName = segments[index],
+                                    relativePath = directoryPath,
+                                    absolutePath = Path.Combine(sourceRoot,
+                                        directoryPath.Replace('/', Path.DirectorySeparatorChar))
+                                });
+                            }
+                            parentKey = directoryKey;
+                        }
+
+                        var matchingEntries = (_documentImplementationLedger?.entries ?? Array.Empty<DocumentImplementationEntry>())
+                            .Where(entry => EntryMatchesSource(entry, source.id, file.relativePath, relativePathCounts))
+                            .ToList();
+                        var progress = matchingEntries.Count == 0 ? 0 : matchingEntries.Max(ResolveImplementationProgress);
+                        var changed = matchingEntries.Any(entry => entry.changedAfterImplementation || entry.detectedByFingerprint);
+                        var summaries = matchingEntries
+                            .Where(entry => entry.changedAfterImplementation || entry.detectedByFingerprint)
+                            .Select(entry => entry.manualChangeDetected || string.IsNullOrWhiteSpace(entry.changeSummary)
+                                ? L("sync.manualChange") : entry.changeSummary.Trim())
+                            .Distinct(StringComparer.Ordinal).ToArray();
+                        var fileKey = $"{sourceKey}:{file.relativePath}";
+                        treeKeys.Add(fileKey);
+                        _designDocumentTreeItems.Add(new DesignDocumentTreeItem
+                        {
+                            depth = segments.Length,
+                            treeKey = fileKey,
+                            parentKey = parentKey,
+                            sourceId = source.id,
+                            displayName = Path.GetFileNameWithoutExtension(file.absolutePath),
+                            relativePath = file.relativePath,
+                            absolutePath = file.absolutePath,
+                            implementationProgress = progress,
+                            implementationStatus = ResolveImplementationStatus(matchingEntries, progress),
+                            changedAfterImplementation = changed,
+                            changeSummary = string.Join("；", summaries)
+                        });
+                    }
+                }
+
+                _expandedDesignDocumentNodes.RemoveWhere(key => !treeKeys.Contains(key));
+                if (documentFiles.Count > 500)
+                    _documentStructureError = AgentWorkbenchText.Format("sync.documentLimit", 500, documentFiles.Count);
             }
             catch (Exception exception)
             {
@@ -425,19 +393,28 @@ namespace AgentWorkflow.Editor
             }
         }
 
-        private static bool IsPathInsideRoot(string path, string root)
+        private static string DocumentRelativePath(string path, string documentRoot)
         {
-            var fullPath = Path.GetFullPath(path)
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            var fullRoot = Path.GetFullPath(root)
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            return string.Equals(fullPath, fullRoot, StringComparison.OrdinalIgnoreCase) ||
-                   fullPath.StartsWith(fullRoot + Path.DirectorySeparatorChar,
-                       StringComparison.OrdinalIgnoreCase);
+            return Path.GetRelativePath(documentRoot, path).Replace('\\', '/');
         }
 
         private static string NormalizeDocumentRelativePath(string path) =>
             (path ?? string.Empty).Replace('\\', '/').TrimStart('/');
+
+        private static bool EntryMatchesSource(
+            DocumentImplementationEntry entry,
+            string sourceId,
+            string relativePath,
+            IReadOnlyDictionary<string, int> relativePathCounts)
+        {
+            if (entry == null || !string.Equals(
+                    NormalizeDocumentRelativePath(entry.documentPath), relativePath,
+                    StringComparison.OrdinalIgnoreCase))
+                return false;
+            if (!string.IsNullOrWhiteSpace(entry.sourceId))
+                return string.Equals(entry.sourceId, sourceId, StringComparison.OrdinalIgnoreCase);
+            return relativePathCounts.TryGetValue(relativePath, out var count) && count == 1;
+        }
 
         private static int ResolveImplementationProgress(DocumentImplementationEntry entry)
         {
@@ -465,27 +442,84 @@ namespace AgentWorkflow.Editor
             return progress > 0 ? "in-progress" : "not-implemented";
         }
 
-        private string DocumentImplementationLedgerPath()
+        private string ProjectImplementationLedgerPath()
         {
-            return string.IsNullOrWhiteSpace(_documentWorkflowRoot)
-                ? string.Empty
-                : Path.Combine(_documentWorkflowRoot, ".design-workflow", "implementation-ledger.json");
+            return Path.Combine(_openSpecPath, "implementation-ledger.json");
+        }
+
+        private bool EnsureProjectImplementationLedger()
+        {
+            var ledgerPath = ProjectImplementationLedgerPath();
+            if (File.Exists(ledgerPath))
+                return true;
+
+            try
+            {
+                Directory.CreateDirectory(_openSpecPath);
+                var ledger = new DocumentImplementationLedger
+                {
+                    schemaVersion = 2,
+                    updatedAt = DateTime.Now.ToString("o"),
+                    entries = Array.Empty<DocumentImplementationEntry>()
+                };
+                File.WriteAllText(
+                    ledgerPath,
+                    JsonUtility.ToJson(ledger, true) + Environment.NewLine,
+                    new UTF8Encoding(false));
+                return true;
+            }
+            catch (Exception exception)
+            {
+                _documentChangeStatus = AgentWorkbenchText.Format("sync.ledgerError", exception.Message);
+                return false;
+            }
         }
 
         private string ResolveImplementationDocumentPath(DocumentImplementationEntry entry)
         {
-            if (entry == null || string.IsNullOrWhiteSpace(entry.documentPath) ||
-                string.IsNullOrWhiteSpace(_documentWorkflowRoot))
+            if (entry == null || string.IsNullOrWhiteSpace(entry.documentPath))
                 return null;
 
-            var root = Path.GetFullPath(_documentWorkflowRoot)
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             var relativePath = entry.documentPath
                 .Replace('/', Path.DirectorySeparatorChar)
                 .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            var candidate = Path.GetFullPath(Path.Combine(root, relativePath));
-            var rootPrefix = root + Path.DirectorySeparatorChar;
-            return candidate.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase) ? candidate : null;
+            var candidates = _designDocumentSources
+                .Where(source => source != null && !string.IsNullOrWhiteSpace(source.id) &&
+                                 !string.IsNullOrWhiteSpace(source.path) && Directory.Exists(source.path) &&
+                                 (string.IsNullOrWhiteSpace(entry.sourceId) || string.Equals(
+                                     entry.sourceId, source.id, StringComparison.OrdinalIgnoreCase)))
+                .Select(source =>
+                {
+                    var sourceRoot = Path.GetFullPath(source.path)
+                        .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    var candidate = Path.GetFullPath(Path.Combine(sourceRoot, relativePath));
+                    var sourcePrefix = sourceRoot + Path.DirectorySeparatorChar;
+                    return candidate.StartsWith(sourcePrefix, StringComparison.OrdinalIgnoreCase) && File.Exists(candidate)
+                        ? candidate : null;
+                })
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(2).ToList();
+            return candidates.Count == 1 ? candidates[0] : null;
+        }
+
+        private static DesignSourceEntry ResolveImplementationSource(
+            DocumentImplementationEntry entry,
+            string documentPath,
+            IReadOnlyCollection<DesignSourceEntry> sources)
+        {
+            var candidates = sources.Where(source =>
+            {
+                if (!string.IsNullOrWhiteSpace(entry.sourceId) && !string.Equals(
+                        entry.sourceId, source.id, StringComparison.OrdinalIgnoreCase))
+                    return false;
+                var sourceRoot = Path.GetFullPath(source.path)
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                var fullPath = Path.GetFullPath(documentPath);
+                return fullPath.StartsWith(sourceRoot + Path.DirectorySeparatorChar,
+                    StringComparison.OrdinalIgnoreCase);
+            }).Take(2).ToList();
+            return candidates.Count == 1 ? candidates[0] : null;
         }
 
         private void ReloadQueue()
@@ -1651,7 +1685,7 @@ namespace AgentWorkflow.Editor
         private static string ResolveDefaultMaintainer(string projectRoot)
         {
             var userName = Environment.UserName;
-            var maintainersPath = Path.Combine(projectRoot, ".agent-memory", "team", "MAINTAINERS.md");
+            var maintainersPath = Path.Combine(projectRoot, ".agent-memory", "zworkflow", "team", "MAINTAINERS.md");
             if (File.Exists(maintainersPath) && TryResolveMaintainerFromTable(maintainersPath, userName, out var maintainer))
                 return maintainer;
 

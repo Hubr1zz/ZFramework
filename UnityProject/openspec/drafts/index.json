@@ -1,4 +1,85 @@
-{
-  "schemaVersion": 1,
-  "groups": []
+﻿{
+    "schemaVersion": 2,
+    "groups": [
+        {
+            "capability": "boss-attack-resolution-implementation",
+            "title": "Boss 攻击结算代码实现",
+            "status": "ready",
+            "selectedVersionId": "20260724-184813-d613f34c6c",
+            "versions": [
+                {
+                    "id": "20260724-184813-d613f34c6c",
+                    "runIds": [
+                        "20260724-184813-d613f34c6c"
+                    ],
+                    "contentHash": "bef57afbf3135a18ae476e696dfaee765f1d68467838f4a736a29dccab5b6709",
+                    "changeId": "design-import-20260724-boss-attack-resolution",
+                    "specPath": "openspec/drafts/changes/design-import-20260724-boss-attack-resolution/specs/boss-attack-resolution-implementation/spec.md",
+                    "reviewPath": "openspec/drafts/changes/design-import-20260724-boss-attack-resolution/specs/boss-attack-resolution-implementation/spec-review.json",
+                    "draftChangePath": "openspec/drafts/changes/design-import-20260724-boss-attack-resolution",
+                    "createdAt": "2026-07-24T18:48:56+08:00"
+                }
+            ]
+        },
+        {
+            "capability": "boss-attack-resolution-rules",
+            "title": "Boss 攻击结算规则",
+            "status": "ready",
+            "selectedVersionId": "20260724-184813-d613f34c6c",
+            "versions": [
+                {
+                    "id": "20260724-184813-d613f34c6c",
+                    "runIds": [
+                        "20260724-184813-d613f34c6c"
+                    ],
+                    "contentHash": "7595031c6a849167bab3c43eb1cfa5d30010bef2699fc8c7294071584e7db6bc",
+                    "changeId": "design-import-20260724-boss-attack-resolution",
+                    "specPath": "openspec/drafts/changes/design-import-20260724-boss-attack-resolution/specs/boss-attack-resolution-rules/spec.md",
+                    "reviewPath": "openspec/drafts/changes/design-import-20260724-boss-attack-resolution/specs/boss-attack-resolution-rules/spec-review.json",
+                    "draftChangePath": "openspec/drafts/changes/design-import-20260724-boss-attack-resolution",
+                    "createdAt": "2026-07-24T18:48:56+08:00"
+                }
+            ]
+        },
+        {
+            "capability": "hunter-attack-resolution-implementation",
+            "title": "猎人攻击结算代码实现",
+            "status": "ready",
+            "selectedVersionId": "20260724-184813-d613f34c6c",
+            "versions": [
+                {
+                    "id": "20260724-184813-d613f34c6c",
+                    "runIds": [
+                        "20260724-184813-d613f34c6c"
+                    ],
+                    "contentHash": "b2dcea7980ac490c290727105ac9d49c9002cbc0026ae2fb30d67a4355e31956",
+                    "changeId": "design-import-20260724-hunter-attack-resolution",
+                    "specPath": "openspec/drafts/changes/design-import-20260724-hunter-attack-resolution/specs/hunter-attack-resolution-implementation/spec.md",
+                    "reviewPath": "openspec/drafts/changes/design-import-20260724-hunter-attack-resolution/specs/hunter-attack-resolution-implementation/spec-review.json",
+                    "draftChangePath": "openspec/drafts/changes/design-import-20260724-hunter-attack-resolution",
+                    "createdAt": "2026-07-24T18:48:56+08:00"
+                }
+            ]
+        },
+        {
+            "capability": "hunter-attack-resolution-rules",
+            "title": "猎人攻击结算规则",
+            "status": "ready",
+            "selectedVersionId": "20260724-184813-d613f34c6c",
+            "versions": [
+                {
+                    "id": "20260724-184813-d613f34c6c",
+                    "runIds": [
+                        "20260724-184813-d613f34c6c"
+                    ],
+                    "contentHash": "dbc557b820f753b2b675d40a809e5c8fe5f689c4b2fab866999e690844ab866d",
+                    "changeId": "design-import-20260724-hunter-attack-resolution",
+                    "specPath": "openspec/drafts/changes/design-import-20260724-hunter-attack-resolution/specs/hunter-attack-resolution-rules/spec.md",
+                    "reviewPath": "openspec/drafts/changes/design-import-20260724-hunter-attack-resolution/specs/hunter-attack-resolution-rules/spec-review.json",
+                    "draftChangePath": "openspec/drafts/changes/design-import-20260724-hunter-attack-resolution",
+                    "createdAt": "2026-07-24T18:48:56+08:00"
+                }
+            ]
+        }
+    ]
 }

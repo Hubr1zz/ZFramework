@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 5,
+  "capability": "engineering-capability-catalog",
+  "title": "工程能力目录",
+  "category": "system",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "工程能力目录、Agent 门禁、增量发现规则、System 兼容和 Workbench 页面已经实现。",
+    "codeEvidence": [
+      {
+        "guid": "2cf1d3a813e84e9da2d8541d86c51496",
+        "displayPath": "Assets/Scripts/Editor/AgentWorkbenchWindow.cs",
+        "fileHash": "8ad8fffd57137aeebe285ad1f7cc76a2d1e45064f16854b87a7c169c6e6b4242",
+        "line": 356,
+        "feature": "绘制工作台顶部工具栏与关系图谱入口",
+        "status": "verified",
+        "checkedAt": "2026-07-28T23:29:03+08:00"
+      },
+      {
+        "guid": "8cf494364e5b4c79a8572a7da4e8f2bd",
+        "displayPath": "Assets/Scripts/Editor/AgentWorkbenchWindow.Engineering.cs",
+        "fileHash": "0f7b42a303a76ff5d8a6b19f58dea038e511f29898b633b82aef8edd78a17440",
+        "line": 64,
+        "feature": "加载、可视化并安全保存工程能力目录",
+        "status": "verified",
+        "checkedAt": "2026-07-28T23:29:03+08:00"
+      }
+    ],
+    "evidence": [],
+    "differences": [],
+    "verifiedAt": "2026-07-28T23:29:03+08:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["conversation::2026-07-28"],
+  "implementationOutline": [
+    "project-tooling Skill 按任务能力筛选 tooling-catalog.json 条目；Plugin 应用判断依据，Architecture 执行 required/locked 确认门禁。",
+    "AgentWorkbenchWindow.Engineering 加载目录并按 Plugin、Architecture、System 排列节点，只替换目标 Plugin 的 decisionBasis 字段后重新加载。",
+    "Workbench 分类读取层把 legacy architecture 归一化为 system；提案、apply、sync 与设计导入规则的新工件只写 system。"
+  ],
+  "reviewIssues": []
+}

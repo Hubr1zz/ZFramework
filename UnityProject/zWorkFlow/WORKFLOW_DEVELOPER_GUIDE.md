@@ -170,7 +170,7 @@ Workbench 展示业务内容，但不逐个展示机器文件。所有持久化�
 - 被接受的硬依赖仍阻塞实现，只有补齐依赖并设为 resolved 才解除。
 - Gap 只表示缺失依赖节点或契约；代码差异和设计冲突不能伪装成 Gap。
 - `tasks.md` 只包含实现差异，不承载设计澄清或等待依赖。
-- 外部设计来源与实现后变更账本只读；设计包独立维护 `.design-workflow/implementation-ledger.json`。项目 bridge 只有定位到该关键文件才保存本机路径并建立连接，随后扫描 Markdown 重建简化目录树，显示实现状态/百分比、实现后变更和摘要；未被账本解释的指纹变化显示“手动修改”。它不向设计包注入项目路径，也不自动创建 proposal。
+- 外部设计来源只读；项目包独立维护 `openspec/implementation-ledger.json`。项目 bridge 以 `openspec/design-source.json` 中全部来源为唯一文档输入，每个来源按稳定 `sourceId` 建立独立顶层节点；刷新时递归重扫 Markdown、同步新增/删除文件并重算指纹。账本以 `(sourceId, documentPath, implementationId)` 定位实现，新文档默认 0%，未被账本解释的指纹变化显示“手动修改”。它不向设计包注入项目路径或工程状态，也不自动创建 proposal。
 - 修改 `.agents/` 后同步 `zWorkFlow/.agents/` 权威分发副本；修改 Workbench 后同步 `zWorkFlow/setup/assets/*.template`；修改普通用户行为后只更新 `zWorkFlow/` 顶层三份人类文档，并重建干净移植包与 ZIP。人类文档不再维护 setup 模板或项目根副本，工具专属目录仍保持薄壳。
 - 新持久化产物必须先声明角色、消费者和可见性。
 

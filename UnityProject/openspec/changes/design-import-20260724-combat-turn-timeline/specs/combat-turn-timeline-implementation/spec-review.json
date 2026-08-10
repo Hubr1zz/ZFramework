@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 5,
+  "capability": "combat-turn-timeline-implementation",
+  "title": "战斗回合与时点代码实现",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "纯 C# 时点规则、援助命令与 Boss 异步完成门禁已实现并验证。",
+    "codeEvidence": [
+      {
+        "guid": "7a14c0de202607140000000000000011",
+        "displayPath": "Assets/Scripts/GameCore/Combat/TimelineService.cs",
+        "fileHash": "c931d17a4653176559a51a21ae45c8591ad028c97638332dc7ae0f54f7ccaeb6",
+        "line": 7,
+        "feature": "管理个人时点、显式行动状态、跨回合溢出与意志援助"
+      },
+      {
+        "guid": "4ddb38897ee95f240a1043f2108e64ad",
+        "displayPath": "Assets/Scripts/Adapters/Unity/Combat/TurnStateMachine.cs",
+        "fileHash": "006690992c975d833c5e2b816d0e4d2b2b5d4042ef985405869f083dd7c8bc15",
+        "line": 172,
+        "feature": "等待 Boss 异步行动完成后推进回合"
+      },
+      {
+        "guid": "093eeacd7a180c246974745e9997e573",
+        "displayPath": "Assets/Scripts/SO/Boss/ActionCard/BossActionCardData.cs",
+        "fileHash": "c48b106bc1fe48e952b9f08a56a5f439c4df33a4da9096e65e5ad07e71d94096",
+        "line": 9,
+        "feature": "集中配置 Boss 行动、时点、效果与抽取权重"
+      }
+    ],
+    "evidence": [],
+    "differences": [],
+    "verifiedAt": "2026-07-24T21:13:53+08:00"
+  },
+  "implementationOutline": [
+    "TimelineService 根据个人时点与当轮上限计算 Ready、Exhausted 或 Overtime；跨回合时把超出值结转为下一轮债务。",
+    "TryAssistOvertimeCharacter 校验援助者、目标和意志后扣除 1 意志，并给目标增加 1 时点以重新计算行动资格。",
+    "BossController 顺序等待行动卡效果；TurnStateMachine 收到完成信号后才抽取下一批行动卡并返回玩家回合。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "combat-turn-timeline-implementation--requires--showdown-phase-orchestration"
+  ],
+  "sourceReferences": [
+    "primary::决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md:9",
+    "primary::决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md:16",
+    "primary::决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md:17"
+  ],
+  "pairedRuleCapability": "combat-turn-timeline-rules",
+  "reviewIssues": [
+    {
+      "id": "ISSUE-COMBAT-TURN-TIMELINE-001",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "resolved",
+      "blocksApproval": false,
+      "summary": "现有时点服务支持上限、完成状态与负结转，但没有显式超时状态和消耗意志援助。",
+      "sourceId": "DELTA-COMBAT-TURN-TIMELINE-001"
+    },
+    {
+      "id": "ISSUE-COMBAT-TURN-TIMELINE-002",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "resolved",
+      "blocksApproval": false,
+      "summary": "Boss 行动的异步完成尚未成为回合切换前置条件。",
+      "sourceId": "DELTA-COMBAT-TURN-TIMELINE-002"
+    }
+  ]
+}

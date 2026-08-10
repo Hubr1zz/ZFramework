@@ -18,7 +18,8 @@ namespace AgentWorkflow.Editor
             RefactorQueue,
             OpenSpec,
             EngineeringCapabilities,
-            DesignSyncSettings,
+            DesignDocumentTree,
+            CommandList,
             ImportReports,
             Configuration,
             Introduction,
@@ -559,7 +560,7 @@ namespace AgentWorkflow.Editor
         [Serializable]
         private sealed class DocumentImplementationLedger
         {
-            public int schemaVersion = 1;
+            public int schemaVersion = 2;
             public string updatedAt;
             public DocumentImplementationEntry[] entries;
         }
@@ -567,6 +568,7 @@ namespace AgentWorkflow.Editor
         [Serializable]
         private sealed class DocumentImplementationEntry
         {
+            public string sourceId;
             public string documentPath;
             public string implementationId;
             public string implementationLabel;
@@ -589,6 +591,9 @@ namespace AgentWorkflow.Editor
         {
             public bool isDirectory;
             public int depth;
+            public string treeKey;
+            public string parentKey;
+            public string sourceId;
             public string displayName;
             public string relativePath;
             public string absolutePath;
@@ -596,6 +601,14 @@ namespace AgentWorkflow.Editor
             public int implementationProgress;
             public bool changedAfterImplementation;
             public string changeSummary;
+        }
+
+        private sealed class DesignDocumentFileCandidate
+        {
+            public DesignSourceEntry source;
+            public string sourceRoot;
+            public string absolutePath;
+            public string relativePath;
         }
     }
 }

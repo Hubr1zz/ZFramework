@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 5,
+  "capability": "battlefield-interactions-implementation",
+  "title": "战场交互代码实现",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "纯 C# 棋盘实体、击退规划/提交和地形能力查询已实现并验证。",
+    "codeEvidence": [
+      {
+        "guid": "7a14c0de202607140000000000000015",
+        "displayPath": "Assets/Scripts/GameCore/Board/BoardState.cs",
+        "fileHash": "bac57ff70f07b7d910c8d94b45f8357edf7729e2a30d2e636e15fddd983ce3cc",
+        "line": 17,
+        "feature": "管理多实体占位、移动阻塞、穿越边界与棋盘实体伤害"
+      },
+      {
+        "guid": "d55383f49c894c7c8b1d9b9cf3649080",
+        "displayPath": "Assets/Scripts/GameCore/Board/KnockbackService.cs",
+        "fileHash": "802bdb47f6c72722da0fa107f757eadd7919fad8f7f594a3e3d511b30d405a28",
+        "line": 110,
+        "feature": "规划击退路径和碰撞结果，并在表现结束后提交位置与策略伤害"
+      },
+      {
+        "guid": "fcf8e960ddb84a08b858b3af99d2ee67",
+        "displayPath": "Assets/Scripts/GameCore/Board/BattlefieldTerrain.cs",
+        "fileHash": "ac42f52c9bb5b3ee94eeb42984a8859b34015bc6b9e807c5f01acc55e78416a8",
+        "line": 31,
+        "feature": "查询草丛闪避修正与石块提供的临时投石行动"
+      },
+      {
+        "guid": "2a691b9f162b4da2a61c1c10d5e9740e",
+        "displayPath": "Assets/Tests/EditMode/BattlefieldInteractionTests.cs",
+        "fileHash": "49eb51e0659fcb5778c45a3c647276ed3ff36f6da1cb05a3d3e16f92e9657d08",
+        "line": 7,
+        "feature": "验证占位、破坏、击退提交顺序与地形能力"
+      }
+    ],
+    "evidence": [],
+    "differences": [],
+    "verifiedAt": "2026-07-25T16:10:30+08:00"
+  },
+  "implementationOutline": [
+    "BoardState 用实体定义和运行时状态维护同格多实体；移动预检根据重叠/穿越属性返回阻塞者，可破坏实体归零后不再阻挡。",
+    "KnockbackService 先根据方向、距离和占位生成路径与碰撞计划，Adapter 播放路径动画后再调用 TryCommit 提交位置和双方伤害。",
+    "IImpactDamagePolicy 只定义碰撞上下文到伤害结果的接口，当前 Change 不写死公式；BattlefieldTerrainQuery 从单位所在格汇总闪避修正和临时行动。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "battlefield-interactions-implementation--requires--showdown-phase-orchestration"
+  ],
+  "sourceReferences": [
+    "primary::决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md:78"
+  ],
+  "pairedRuleCapability": "battlefield-interactions-rules",
+  "reviewIssues": [
+    {
+      "id": "ISSUE-BATTLEFIELD-INTERACTIONS-001",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "resolved",
+      "blocksApproval": false,
+      "summary": "BoardState 只维护单实体占位与直接移动，未表达可重叠、可穿越和可破坏属性。",
+      "sourceId": "DELTA-BATTLEFIELD-INTERACTIONS-001"
+    },
+    {
+      "id": "ISSUE-BATTLEFIELD-INTERACTIONS-002",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "resolved",
+      "blocksApproval": false,
+      "summary": "尚无击退碰撞伤害、草丛闪避与石块临时行动规则。",
+      "sourceId": "DELTA-BATTLEFIELD-INTERACTIONS-002"
+    }
+  ]
+}

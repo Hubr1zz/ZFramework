@@ -1,0 +1,121 @@
+﻿{
+    "schemaVersion": 5,
+    "changeId": "design-import-20260724-hunter-injury-death",
+    "title": "猎人伤势与死亡",
+    "category": "paired",
+    "sourceKind": "design-import",
+    "sourceRunId": "20260724-184813-d613f34c6c",
+    "readiness": "ready",
+    "codeReadiness": "ready",
+    "approvalStatus": "implementation-change",
+    "approvedBy": "Hubr1zz",
+    "approvedAt": "2026-07-25T19:34:36.1025123+08:00",
+    "implementationNotes": "",
+    "verification": {
+        "status": "verified",
+        "summary": "已实现猎人四部位伤势、护甲优先结算、递增风险死亡牌堆及永久损伤扩展口，并通过 Unity 脚本编译、解决方案注入编译和 3 项领域测试。",
+        "codeEvidence": [
+            {
+                "guid": "2574463e3d83428b9384afdb9b7dc2a7",
+                "displayPath": "Assets/Scripts/GameCore/Hunters/HunterInjuryState.cs",
+                "fileHash": "5c01f5c2695decc49cd3cf86c61e3e47426e0f02ec6b389a80af5dc39513947b",
+                "line": 162,
+                "feature": "维护四部位生命与护甲，并按护甲、生命、致命伤顺序结算"
+            },
+            {
+                "guid": "50c3f62015744f1cb4e278ec418b8d1c",
+                "displayPath": "Assets/Scripts/GameCore/Hunters/DeathDeck.cs",
+                "fileHash": "3e8d7da451ce4426c50fd4f72591ecce2fb69219c7108b5a63f20a87a7c16b27",
+                "line": 30,
+                "feature": "实现保留抽中卡牌且生还后追加死亡牌的持久牌堆"
+            },
+            {
+                "guid": "d052b2e6cd557344a995929fa966f840",
+                "displayPath": "Assets/Scripts/Adapters/Unity/Combat/LegacyShowdown/BossAttackSteps.cs",
+                "fileHash": "82ef078fc564d0b40d13962b347cc1df3ac303d528595f8f8df64d01fc15527e",
+                "line": 53,
+                "feature": "把 Boss 命中映射为部位伤害、死亡与永久损伤事件"
+            },
+            {
+                "guid": "c300aacc1c784089830f1c9c761adbb9",
+                "displayPath": "Assets/Tests/EditMode/HunterInjuryDeathTests.cs",
+                "fileHash": "a3600f8d1eab1d6cdbbc6a4655e52dc284530b38368b7d627fc331eed6d0831c",
+                "line": 8,
+                "feature": "验证伤害顺序、部位独立性和死亡牌概率状态变化"
+            }
+        ],
+        "evidence": [],
+        "differences": [],
+        "verifiedAt": "2026-07-25T19:48:35+08:00"
+    },
+    "reviewIssues": [
+        {
+            "id": "ISSUE-HUNTER-INJURY-DEATH-001",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "resolved",
+            "blocksApproval": false,
+            "summary": "现有角色伤势只有聚合临时/永久伤口与固定死亡阈值。",
+            "details": "",
+            "sourceId": "DELTA-HUNTER-INJURY-DEATH-001",
+            "acceptedBy": "",
+            "acceptedAt": "",
+            "acceptanceNote": ""
+        },
+        {
+            "id": "ISSUE-HUNTER-INJURY-DEATH-002",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "resolved",
+            "blocksApproval": false,
+            "summary": "缺少分部位生命、护甲、致命伤、死亡牌堆和生还后追加死亡牌规则。",
+            "details": "",
+            "sourceId": "DELTA-HUNTER-INJURY-DEATH-002",
+            "acceptedBy": "",
+            "acceptedAt": "",
+            "acceptanceNote": ""
+        }
+    ],
+    "gapIds": [],
+    "dependencyIds": [
+        "hunter-injury-death-rules--requires--hunter-injury-death-implementation",
+        "hunter-injury-death-implementation--requires--showdown-phase-orchestration"
+    ],
+    "capabilities": [
+        "hunter-injury-death-rules",
+        "hunter-injury-death-implementation"
+    ],
+    "specSyncStatus": "pending",
+    "syncTargets": [
+        {
+            "capability": "hunter-injury-death-implementation",
+            "title": "猎人伤势与死亡代码实现",
+            "category": "feature",
+            "deltaSpecPath": "openspec/drafts/changes/design-import-20260724-hunter-injury-death/specs/hunter-injury-death-implementation/spec.md",
+            "targetSpecPath": "openspec/specs/hunter-injury-death-implementation/spec.md",
+            "targetExisted": false,
+            "baseFileHash": "",
+            "baseSnapshotPath": "",
+            "syncedFileHash": ""
+        },
+        {
+            "capability": "hunter-injury-death-rules",
+            "title": "猎人伤势与死亡规则",
+            "category": "game-rule",
+            "deltaSpecPath": "openspec/drafts/changes/design-import-20260724-hunter-injury-death/specs/hunter-injury-death-rules/spec.md",
+            "targetSpecPath": "openspec/specs/hunter-injury-death-rules/spec.md",
+            "targetExisted": false,
+            "baseFileHash": "",
+            "baseSnapshotPath": "",
+            "syncedFileHash": ""
+        }
+    ],
+    "syncValidation": {
+        "status": "baseline-captured",
+        "summary": "已记录正式 Spec 基线；sync 前将进行并发修改校验。",
+        "changes": [],
+        "conflicts": [],
+        "validatedAt": "2026-07-25T01:00:17+08:00"
+    },
+    "createdAt": "2026-07-24T18:48:56+08:00"
+}

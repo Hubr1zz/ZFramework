@@ -1,0 +1,24 @@
+﻿{
+    "items": [
+        {
+            "capability": "boss-attack-resolution-implementation",
+            "changeId": "design-import-20260724-boss-attack-resolution",
+            "status": "ready"
+        },
+        {
+            "capability": "boss-attack-resolution-rules",
+            "changeId": "design-import-20260724-boss-attack-resolution",
+            "status": "ready"
+        },
+        {
+            "capability": "hunter-attack-resolution-implementation",
+            "changeId": "design-import-20260724-hunter-attack-resolution",
+            "status": "ready"
+        },
+        {
+            "capability": "hunter-attack-resolution-rules",
+            "changeId": "design-import-20260724-hunter-attack-resolution",
+            "status": "ready"
+        }
+    ]
+}

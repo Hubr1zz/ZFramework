@@ -7,7 +7,76 @@
       "category": "system",
       "readiness": "implemented",
       "specPath": "openspec/specs/tengine-startup-lifecycle/spec.md"
+    },
+    {
+      "id": "game-manager-orchestration",
+      "label": "GameManager管理器",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/game-manager-orchestration/spec.md"
+    },
+    {
+      "id": "settlement-phase-orchestration",
+      "label": "营地阶段编排",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/settlement-phase-orchestration/spec.md"
+    },
+    {
+      "id": "hunt-phase-orchestration",
+      "label": "狩猎阶段编排",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-phase-orchestration/spec.md"
+    },
+    {
+      "id": "showdown-phase-orchestration",
+      "label": "决战阶段编排",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/showdown-phase-orchestration/spec.md"
     }
   ],
-  "edges": []
+  "edges": [
+    {
+      "id": "game-manager-orchestration--requires--tengine-startup-lifecycle",
+      "from": "game-manager-orchestration",
+      "to": "tengine-startup-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "ProcedureStartGame 通过 GameApp.Entrance 交接到 Hunting in Darkness 组合根",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-phase-orchestration--requires--game-manager-orchestration",
+      "from": "settlement-phase-orchestration",
+      "to": "game-manager-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地阶段由 GameManager 激活、进入并完成持久化交接",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-phase-orchestration--requires--game-manager-orchestration",
+      "from": "hunt-phase-orchestration",
+      "to": "game-manager-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "狩猎阶段通过 GameManager 接入全局阶段循环",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "showdown-phase-orchestration--requires--game-manager-orchestration",
+      "from": "showdown-phase-orchestration",
+      "to": "game-manager-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "决战阶段由 GameManager 激活并向营地阶段交接",
+      "gapId": "",
+      "blocksImplementation": false
+    }
+  ]
 }

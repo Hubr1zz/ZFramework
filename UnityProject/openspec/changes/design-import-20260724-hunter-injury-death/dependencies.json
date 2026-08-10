@@ -1,0 +1,46 @@
+{
+  "nodes": [
+    {
+      "id": "hunter-injury-death-rules",
+      "label": "猎人伤势与死亡规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-hunter-injury-death/specs/hunter-injury-death-rules/spec.md"
+    },
+    {
+      "id": "hunter-injury-death-implementation",
+      "label": "猎人伤势与死亡代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-hunter-injury-death/specs/hunter-injury-death-implementation/spec.md"
+    },
+    {
+      "id": "showdown-phase-orchestration",
+      "label": "决战阶段编排",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/showdown-phase-orchestration/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "hunter-injury-death-rules--requires--hunter-injury-death-implementation",
+      "from": "hunter-injury-death-rules",
+      "to": "hunter-injury-death-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-injury-death-implementation--requires--showdown-phase-orchestration",
+      "from": "hunter-injury-death-implementation",
+      "to": "showdown-phase-orchestration",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 决战阶段编排 提供的稳定契约",
+      "blocksImplementation": false
+    }
+  ]
+}
+

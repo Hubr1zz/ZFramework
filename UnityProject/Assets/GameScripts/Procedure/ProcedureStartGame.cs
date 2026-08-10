@@ -19,6 +19,7 @@ namespace Procedure
         {
             await UniTask.Yield();
             LauncherMgr.HideAllUI();
+            GameApp.Entrance();
         }
     }
 }

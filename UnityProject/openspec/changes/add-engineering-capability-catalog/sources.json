@@ -1,0 +1,10 @@
+{
+  "sourceRunId": "",
+  "source": "用户于 2026-07-28 确认上一轮工程能力目录方案并补充 Plugin 判断依据、Architecture 强制锁定和 Workbench 入口要求。",
+  "sourceRoots": [],
+  "sourceReferences": [
+    "conversation::2026-07-28",
+    "zWorkFlow/setup/SETUP_NEW_PROJECT.md",
+    "Assets/Scripts/Editor/AgentWorkbenchWindow.cs"
+  ]
+}

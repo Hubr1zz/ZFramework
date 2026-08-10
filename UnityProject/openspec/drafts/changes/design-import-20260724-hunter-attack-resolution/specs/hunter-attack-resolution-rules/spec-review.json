@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunter-attack-resolution-rules",
+  "title": "猎人攻击结算规则",
+  "category": "game-rule",
+  "readiness": "ready",
+  "verification": {
+    "status": "not-applicable",
+    "summary": "实现核验由配对 Feature 承载。",
+    "codeEvidence": [],
+    "evidence": [],
+    "differences": [],
+    "verifiedAt": "2026-07-24T18:48:56+08:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": [
+    "primary::决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md:32",
+    "primary::决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md:60",
+    "primary::通用/猎人 Hunter.md:96",
+    "primary::通用/物品 Items.md:23"
+  ],
+  "pairedFeatureCapability": "hunter-attack-resolution-implementation",
+  "reviewIssues": []
+}
+

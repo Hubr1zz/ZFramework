@@ -31,7 +31,7 @@
 | 工程能力模块拆分 | `project-tooling/` | README/Wiki 核心模块经目录、接口、asmdef 或配置证据核验后分别建条目；总框架/启动 System 不得吞并 Resource、Event、Config、UI、Procedure 等稳定模块 |
 | Architecture 工具类使用策略 | `project-tooling/` | 具有公共消费入口的 Architecture 首次建档时基于代码、接口与调用点自动生成一次中英文使用策略；重复 setup 不覆盖已有正文 |
 | 无 Python 环境降级 | Agent 原生步骤 | Python helper 始终可选，不得阻塞导入、校验或发布 |
-| 文档工作流与项目桥接 | `packages/document-workflow/`、`packages/document-project-bridge/` | 仅显式安装；关键文件验证后才建立本机桥接，项目端重建设计 Markdown 结构并显示进度、实现后变更与摘要，不自动触发设计导入或 proposal |
+| 文档工作流与项目桥接 | `packages/document-workflow/`、`packages/document-project-bridge/` | 仅显式安装；至少一个设计文档路径有效时建立本机桥接，各来源独立重建可折叠 Markdown 结构，刷新时发现新增/删除文件、显示进度与实现后变更，不自动触发设计导入或 proposal |
 
 ## Unity 工作台能力
 
@@ -66,7 +66,7 @@
 - Draft Change 在导入时立即生成完整工件并记录正式目标 hash 与存在时的 Change 内快照；所有类别审批后都只整体转移到正式 Change。apply 不触碰正式 Spec。显式 sync 比较 base/current/Delta：非重叠 Requirement 可保留式合并，目标删除、重叠或旧基线无快照进入审查，只有确认覆盖/语义混杂才阻止。普通 EventBus 等工具不建节点，只有项目公共契约变化或至少两个 capability 依赖稳定语义时才生成 System 节点；真 Architecture 进入工程能力目录。
 - 正式 Change 的归档按钮只在 Tasks 全完成且 Spec 已同步时启用；纯代码移动到日期 archive，不自动 sync，且与永久 Delete 明确区分。
 - 导入批次只在仍引用至少一个现存 Draft Change 时保留；批准、删除或外部移动最后一个 Draft 后自动删除该导入记录，并清除中央 Draft 索引中的悬空批次引用。
-- 设计文档设置可添加、替换和移除多个等价路径，并显示指令列表；选择文档包候选目录时必须定位 `.design-workflow/implementation-ledger.json`，找到后才保存根路径。工具栏状态灯只表示桥接有效；设置页按 Markdown 目录显示每个文件的实现进度、实现后变更与摘要，外部未登记修改显示“手动修改”。
+- “设计文档树”顶部可添加、替换和移除多个等价路径；选择任意含 Markdown 的目录时保存根路径，并由项目在 `openspec/implementation-ledger.json` 维护账本。工具栏状态灯只表示桥接有效；树按 Markdown 目录显示每个文件的实现进度、实现后变更与摘要，外部未登记修改显示“手动修改”。独立“指令列表”覆盖设计导入与筛选、检查文档及时性、修改导入、Spec 翻译/同步、apply、sync 和归档。
 - 中英文、独立浅色/深色主题切换、深色控件线框增强、工作台正文/背景/面板颜色、警告与提示文字跟随正文、Markdown H1-H6/正文颜色、Markdown 默认应用、窗口位置与偏好尺寸自动恢复，以及本地配置隔离；不得读取 Unity 主题。
 - 生成权威语言由 Git 同步的 `openspec/localization.json` 配置，默认跟随设计文档并支持中英文；同一文件还按 capability ID 保存可分别重命名的 `zhCN` / `enUS` Spec 条目显示名。翻译副本位于 `openspec/translations/<language>/`，只有文件/块 hash 与权威内容同步时才显示。缺失或失效时只显示翻译指令，非权威 Markdown 在工作台只读。
 - 配置了有效设计来源时，玩法规则 Spec 可按 `<source-id>::<relative-path>:<line>` 来源引用反向打开设计 Markdown；旧单路径引用继续兼容，不依赖 bridge 开关。

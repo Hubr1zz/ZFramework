@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 5,
+  "runId": "20260724-184813-d613f34c6c",
+  "status": "ready-for-review",
+  "generationState": "generated",
+  "sourceRoots": [
+    {
+      "id": "primary",
+      "path": "C:\\Users\\leonz\\Desktop\\GameDesignVault\\设计文档"
+    }
+  ],
+  "scope": "战斗系统",
+  "typeFilters": [],
+  "projectRoot": "D:\\UnityProjects\\My project",
+  "createdAt": "2026-07-24T18:48:13+08:00",
+  "publishedAt": "",
+  "publicationStatus": "draft",
+  "duplicatePrecheck": {
+    "exactMatchCount": 0,
+    "candidateCount": 0
+  },
+  "documentCounts": {
+    "requirements": 4,
+    "context": 3
+  },
+  "uncertaintyCandidates": [
+    {
+      "source": "primary::决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md:8",
+      "text": "- 基础行动：可能不止一张。"
+    },
+    {
+      "source": "primary::决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md:30",
+      "text": "每次抽取前都要重置牌堆。UI表现建议为快速抽牌、重洗、再抽，直到完成该攻击的次数。"
+    },
+    {
+      "source": "primary::决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md:36",
+      "text": "怪物行动的目标选择建议拆成四大类："
+    },
+    {
+      "source": "primary::决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md:72",
+      "text": "- 通过致命伤后的生还判定时，可能获得[[术语词典/永久损伤|永久损伤]]。"
+    },
+    {
+      "source": "primary::决战阶段 Showdown Phase/战斗系统 Combat System/猎人行动卡 Action cards.md:34",
+      "text": "| 转向（待定） | / | 1 | 转向90° | 常驻：翻转任意卡时恢复 | 获得1时点 |"
+    },
+    {
+      "source": "primary::决战阶段 Showdown Phase/战斗系统 Combat System/猎人行动卡 Action cards.md:59",
+      "text": "| 硬撑 | 暂未细化 |"
+    },
+    {
+      "source": "primary::通用/物品 Items.md:28",
+      "text": "- 范围：定义可攻击的目标区域，建议以格子图示表达。"
+    }
+  ],
+  "ambiguousLinks": [],
+  "typeFilterAudit": {
+    "selectedTypes": [
+      "规则",
+      "内容",
+      "美术"
+    ],
+    "omittedTypes": [],
+    "preservedConstraints": [],
+    "mixedDescriptions": []
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 5,
+  "capability": "boss-hit-locations-implementation",
+  "title": "Boss 部位卡代码实现",
+  "category": "feature",
+  "readiness": "ready",
+  "verification": {
+    "status": "partial",
+    "summary": "现有代码部分覆盖Boss 部位卡，仍有 2 项实现差异。",
+    "codeEvidence": [
+      {
+        "guid": "7a14c0de20260714000000000000000f",
+        "displayPath": "Assets/Scripts/GameCore/Combat/CombatModels.cs",
+        "fileHash": "aef2a08f3001ae4057b8c891b18d5ff1cd28811fcea7c78f08f134a2ed990d04",
+        "line": 13,
+        "feature": "定义战斗属性、部位生命与攻击结果领域状态"
+      },
+      {
+        "guid": "fad93a6f5153c934a86e71d3784f2def",
+        "displayPath": "Assets/Scripts/Adapters/Unity/Combat/LegacyShowdown/CharacterAttackSteps.cs",
+        "fileHash": "2feea27d7e8991cfe17742116ec4a250d3d63ab2a5fdf05bd573937f7678f1bf",
+        "line": 22,
+        "feature": "抽取部位、逐张选择并按攻击力阈值结算部位伤害"
+      },
+      {
+        "guid": "3b4f6c0b5a72e0447973ee5ec2246d4a",
+        "displayPath": "Assets/Scripts/SO/Boss/HitLocation/HitLocation.cs",
+        "fileHash": "8fc4d657a5bdacf5e4d967ff3bfa57d67661cb1b2830d2fe5b7029540383706e",
+        "line": 10,
+        "feature": "集中配置 Boss 部位韧性、生命、效果与掉落"
+      },
+      {
+        "guid": "f401dcdf9fc5de947916835a9b901910",
+        "displayPath": "Assets/Scripts/Adapters/Unity/Combat/BossController.cs",
+        "fileHash": "c319e0ac4a8501ed6f3e751b163d6fffb3cb61f640d0143f16aa2a31296cafac",
+        "line": 23,
+        "feature": "抽取并执行 Boss 行动卡、维护部位状态与累计战利品"
+      }
+    ],
+    "evidence": [],
+    "differences": [
+      "部位生命、翻面和摧毁已有运行时状态，但效果条件只有成功、失败和始终触发。",
+      "缺少暴击、摧毁等条件及多个条件同时满足时的显式覆盖优先级。"
+    ],
+    "verifiedAt": "2026-07-24T18:48:56+08:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [
+    "boss-hit-locations-implementation--requires--showdown-phase-orchestration"
+  ],
+  "sourceReferences": [
+    "primary::决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md:50",
+    "primary::决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md:60",
+    "primary::决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md:34"
+  ],
+  "pairedRuleCapability": "boss-hit-locations-rules",
+  "reviewIssues": [
+    {
+      "id": "ISSUE-BOSS-HIT-LOCATIONS-001",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": false,
+      "summary": "部位生命、翻面和摧毁已有运行时状态，但效果条件只有成功、失败和始终触发。",
+      "sourceId": "DELTA-BOSS-HIT-LOCATIONS-001"
+    },
+    {
+      "id": "ISSUE-BOSS-HIT-LOCATIONS-002",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": false,
+      "summary": "缺少暴击、摧毁等条件及多个条件同时满足时的显式覆盖优先级。",
+      "sourceId": "DELTA-BOSS-HIT-LOCATIONS-002"
+    }
+  ],
+  "editorGuidance": {
+    "summary": "部位参数继续集中在 Boss 部位卡 SO，由 BossController 映射为运行时状态。",
+    "inspectorReferences": [
+      "在 Boss 配置中确认 HitLocationCardData 卡池引用完整。"
+    ],
+    "tunableParameters": [
+      "配置部位生命、抽取权重、条件优先级、效果和掉落。"
+    ],
+    "sceneSetup": [],
+    "usage": [
+      "Boss 战开始时由现有 BossController 创建部位运行时状态。"
+    ]
+  }
+}
+

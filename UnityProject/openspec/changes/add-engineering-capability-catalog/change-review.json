@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 5,
+  "changeId": "add-engineering-capability-catalog",
+  "title": "工程能力目录",
+  "category": "system",
+  "sourceKind": "user-request",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "implementation-change",
+  "approvedBy": "user",
+  "approvedAt": "2026-07-28T23:07:06+08:00",
+  "implementationNotes": "Plugin 判断依据由用户直接维护；为空时 Agent 根据项目风格判断。Architecture 固定 required/locked，Agent 修改前必须取得用户确认。工作台入口位于关系图谱按钮右侧。",
+  "verification": {
+    "status": "implemented",
+    "summary": "工程能力目录、System 兼容分类、Agent 门禁、Workbench 页面和 setup 分发均已实现。",
+    "codeEvidence": [
+      {
+        "guid": "2cf1d3a813e84e9da2d8541d86c51496",
+        "displayPath": "Assets/Scripts/Editor/AgentWorkbenchWindow.cs",
+        "fileHash": "8ad8fffd57137aeebe285ad1f7cc76a2d1e45064f16854b87a7c169c6e6b4242",
+        "line": 356,
+        "feature": "绘制工作台顶部工具栏与关系图谱入口",
+        "status": "verified",
+        "checkedAt": "2026-07-28T23:29:03+08:00"
+      },
+      {
+        "guid": "8cf494364e5b4c79a8572a7da4e8f2bd",
+        "displayPath": "Assets/Scripts/Editor/AgentWorkbenchWindow.Engineering.cs",
+        "fileHash": "0f7b42a303a76ff5d8a6b19f58dea038e511f29898b633b82aef8edd78a17440",
+        "line": 64,
+        "feature": "加载、可视化并安全保存工程能力目录",
+        "status": "verified",
+        "checkedAt": "2026-07-28T23:29:03+08:00"
+      }
+    ],
+    "evidence": [
+      "setup Phase 1 目前只描述通用依赖发现，没有工程能力权威目录消费者。",
+      "当前项目存在 Odin 与 DOTween 代码证据，但没有持久化使用策略。"
+    ],
+    "differences": [],
+    "verifiedAt": "2026-07-28T23:29:03+08:00"
+  },
+  "reviewIssues": [],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": ["engineering-capability-catalog"],
+  "syncTargets": [
+    {
+      "capability": "engineering-capability-catalog",
+      "title": "工程能力目录",
+      "category": "system",
+      "deltaSpecPath": "openspec/changes/add-engineering-capability-catalog/specs/engineering-capability-catalog/spec.md",
+      "targetSpecPath": "openspec/specs/engineering-capability-catalog/spec.md",
+      "targetExisted": false,
+      "baseFileHash": "",
+      "baseSnapshotPath": ""
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "正式目标尚不存在。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-07-28T23:07:06+08:00"
+  },
+  "createdAt": "2026-07-28T23:07:06+08:00"
+}

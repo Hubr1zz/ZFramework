@@ -14,7 +14,24 @@ REPO = PROJECT.parent
 ASSETS = PROJECT / "Assets"
 OUTPUT = PROJECT / "repowiki" / "zh" / "content"
 STALE_META = PROJECT / "repowiki" / "zh" / "meta"
-CODE_MAP = PROJECT / ".claude" / "skills" / "tengine-dev" / "references" / "code-map.md"
+CODE_MAP = PROJECT / ".agents" / "skills" / "tengine-dev" / "references" / "code-map.md"
+
+
+def first_existing(*paths: Path) -> Path:
+    for path in paths:
+        if path.exists():
+            return path
+    return paths[0]
+
+
+GAME_LOGIC = first_existing(
+    ASSETS / "GameScripts/GameLogic",
+    ASSETS / "GameScripts/HotFix/GameLogic",
+)
+GAME_PROTO = first_existing(
+    ASSETS / "GameScripts/GameProto",
+    ASSETS / "GameScripts/HotFix/GameProto",
+)
 
 
 def read(path: Path) -> str:
@@ -40,13 +57,17 @@ def collect() -> dict:
             match = re.search(r"^guid:\s*(\w+)", read(meta), re.MULTILINE)
             if match:
                 guid_to_name[match.group(1)] = json.loads(read(path))["name"]
+    known_asmdefs = set(guid_to_name.values())
     for path in sorted(ASSETS.rglob("*.asmdef")):
         data = json.loads(read(path))
         internal = []
         for reference in data.get("references", []):
-            guid = reference.removeprefix("GUID:")
-            if guid in guid_to_name:
-                internal.append(guid_to_name[guid])
+            if reference.startswith("GUID:"):
+                guid = reference.removeprefix("GUID:")
+                if guid in guid_to_name:
+                    internal.append(guid_to_name[guid])
+            elif reference in known_asmdefs:
+                internal.append(reference)
         asmdefs.append({"name": data["name"], "path": rel(path.parent), "refs": internal})
 
     setting = read(ASSETS / "TEngine/Settings/ProcedureSetting.asset")
@@ -58,7 +79,7 @@ def collect() -> dict:
         found = re.findall(r"ChangeState<(Procedure\w+)>", read(source)) if source.exists() else []
         transitions[name] = list(dict.fromkeys(found))
 
-    game_module = read(ASSETS / "GameScripts/HotFix/GameLogic/GameModule.cs")
+    game_module = read(GAME_LOGIC / "GameModule.cs")
     modules = re.findall(r"public static ([\w<>]+) (\w+)\s*(?:\{|=>)", game_module)
 
     implementations = []
@@ -261,19 +282,19 @@ DLC/Mod 推荐边界：
 
 业务代码通过 `GameModule.Resource` 加载，并使用 `packageName` 明确内容来源。手动加载的 Asset 必须对应 `UnloadAsset`；实例化 GameObject 使用 `LoadGameObjectAsync`。
 """)
-    write("UI系统/UI与事件.md", """
+    write("UI系统/UI与事件.md", f"""
 # UI 与事件
 
-UI 业务位于 `Assets/GameScripts/HotFix/GameLogic/UI/`，框架实现位于 `Module/UIModule/`。窗口继承 `UIWindow`，复用子区域继承 `UIWidget`，通过 `GameModule.UI` 打开和关闭。
+UI 业务位于 `{rel(GAME_LOGIC / 'UI')}/`，框架实现位于 `Module/UIModule/`。窗口继承 `UIWindow`，复用子区域继承 `UIWidget`，通过 `GameModule.UI` 打开和关闭。
 
 模块间广播使用静态 `GameEvent`；窗口内部需要随生命周期自动清理的监听使用 `AddUIEvent`。`GameApp.Entrance()` 必须在首次接口事件之前调用 `GameEventHelper.Init()`。
 
 UI 中的异步资源加载必须考虑窗口关闭后的取消与释放，避免回调持有已销毁对象。
 """)
-    write("配置系统/Luban配置.md", """
+    write("配置系统/Luban配置.md", f"""
 # Luban 配置
 
-配置工程位于仓库根目录 `Configs/GameConfig/`。生成代码输出到 `UnityProject/Assets/GameScripts/HotFix/GameProto/GameConfig/`，属于普通 `GameProto` Player 程序集；二进制数据输出到 `Assets/AssetRaw/Configs/bytes/` 并由 YooAsset 管理。
+配置工程位于仓库根目录 `Configs/GameConfig/`。生成代码输出到 `UnityProject/{rel(GAME_PROTO / 'GameConfig')}/`，属于普通 `GameProto` Player 程序集；二进制数据输出到 `Assets/AssetRaw/Configs/bytes/` 并由 YooAsset 管理。
 
 业务层通过 `ConfigSystem.Instance.Tables` 访问配置。不要手工修改 Luban 生成代码；结构和数据改动后运行仓库提供的生成脚本，并同时提交生成代码与二进制数据。
 """)
@@ -296,8 +317,8 @@ C# 变化必须重新发布 Player；默认资源可通过默认 Package 更新�
 - 编辑器工具：`Assets/TEngine/Editor/`
 - 启动入口：`Assets/GameScripts/GameEntry.cs`
 - 启动状态机：`Assets/GameScripts/Procedure/`
-- 游戏业务：`Assets/GameScripts/HotFix/GameLogic/`
-- 配置协议：`Assets/GameScripts/HotFix/GameProto/`
+- 游戏业务：`{rel(GAME_LOGIC)}/`
+- 配置协议：`{rel(GAME_PROTO)}/`
 - 可打包资源：`Assets/AssetRaw/`
 - YooAsset 收集配置：`Assets/TEngine/Settings/`
 - AI 开发规范：`.agents/skills/tengine-dev/`

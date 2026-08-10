@@ -12,7 +12,7 @@ npx --yes github:Hubr1zz/zWorkFlow setup
 npx --yes github:Hubr1zz/zWorkFlow setup /path/to/project
 ```
 
-该命令要求 Node.js `>=20.19.0`，会验证 OpenSpec `>=1.6.0 <2.0.0`，缺失或过旧时自动安装兼容的 1.x，然后把干净分发内容复制到 `<项目>/zWorkFlow/`。已有 `zWorkFlow/` 时停止，不覆盖或合并。
+该命令要求 Node.js `>=20.19.0`，会验证 OpenSpec `>=1.6.0 <2.0.0`，缺失或过旧时自动安装兼容的 1.x，然后把干净分发内容安装到 `<项目>/zWorkFlow/`。已有 zWorkFlow 时比较 `PACKAGE_MANIFEST.json.packageVersion`：仅在来源更新时按 [UPGRADE_EXISTING_INSTALLATION.md](UPGRADE_EXISTING_INSTALLATION.md) 替换 managed 程序内容，保留项目数据；同版、新版目标或无法确认版本时不覆盖。
 
 CLI 负责可确定复现的下载、依赖验证与文件落位；它不会猜测项目架构、覆盖已有 Agent 配置或冒充 AI 完成冲突判断。下载完成后，按终端提示让项目 Agent 读取 `zWorkFlow/setup/SETUP_NEW_PROJECT.md`，完成项目事实发现、已有工作流共存分析和 Unity 工作台条件安装。
 

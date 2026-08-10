@@ -1,0 +1,316 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {
+      "id": "combat-turn-timeline-rules",
+      "label": "战斗回合与时点规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-combat-turn-timeline/specs/combat-turn-timeline-rules/spec.md"
+    },
+    {
+      "id": "combat-turn-timeline-implementation",
+      "label": "战斗回合与时点代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-combat-turn-timeline/specs/combat-turn-timeline-implementation/spec.md"
+    },
+    {
+      "id": "battlefield-interactions-rules",
+      "label": "战场交互规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-battlefield-interactions/specs/battlefield-interactions-rules/spec.md"
+    },
+    {
+      "id": "battlefield-interactions-implementation",
+      "label": "战场交互代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-battlefield-interactions/specs/battlefield-interactions-implementation/spec.md"
+    },
+    {
+      "id": "hunter-action-cards-rules",
+      "label": "猎人行动卡规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-hunter-action-cards/specs/hunter-action-cards-rules/spec.md"
+    },
+    {
+      "id": "hunter-action-cards-implementation",
+      "label": "猎人行动卡代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-hunter-action-cards/specs/hunter-action-cards-implementation/spec.md"
+    },
+    {
+      "id": "boss-hit-locations-rules",
+      "label": "Boss 部位卡规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-hit-locations/specs/boss-hit-locations-rules/spec.md"
+    },
+    {
+      "id": "boss-hit-locations-implementation",
+      "label": "Boss 部位卡代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-hit-locations/specs/boss-hit-locations-implementation/spec.md"
+    },
+    {
+      "id": "hunter-attack-resolution-rules",
+      "label": "猎人攻击结算规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-hunter-attack-resolution/specs/hunter-attack-resolution-rules/spec.md"
+    },
+    {
+      "id": "hunter-attack-resolution-implementation",
+      "label": "猎人攻击结算代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-hunter-attack-resolution/specs/hunter-attack-resolution-implementation/spec.md"
+    },
+    {
+      "id": "hunter-injury-death-rules",
+      "label": "猎人伤势与死亡规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-hunter-injury-death/specs/hunter-injury-death-rules/spec.md"
+    },
+    {
+      "id": "hunter-injury-death-implementation",
+      "label": "猎人伤势与死亡代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-hunter-injury-death/specs/hunter-injury-death-implementation/spec.md"
+    },
+    {
+      "id": "boss-action-deck-targeting-rules",
+      "label": "Boss 行动牌堆与目标选择规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-action-deck-targeting/specs/boss-action-deck-targeting-rules/spec.md"
+    },
+    {
+      "id": "boss-action-deck-targeting-implementation",
+      "label": "Boss 行动牌堆与目标选择代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-action-deck-targeting/specs/boss-action-deck-targeting-implementation/spec.md"
+    },
+    {
+      "id": "boss-attack-resolution-rules",
+      "label": "Boss 攻击结算规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-attack-resolution/specs/boss-attack-resolution-rules/spec.md"
+    },
+    {
+      "id": "boss-attack-resolution-implementation",
+      "label": "Boss 攻击结算代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-boss-attack-resolution/specs/boss-attack-resolution-implementation/spec.md"
+    },
+    {
+      "id": "showdown-phase-orchestration",
+      "label": "决战阶段编排",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/showdown-phase-orchestration/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "combat-turn-timeline-rules--requires--combat-turn-timeline-implementation",
+      "from": "combat-turn-timeline-rules",
+      "to": "combat-turn-timeline-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "combat-turn-timeline-implementation--requires--showdown-phase-orchestration",
+      "from": "combat-turn-timeline-implementation",
+      "to": "showdown-phase-orchestration",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 决战阶段编排 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "battlefield-interactions-rules--requires--battlefield-interactions-implementation",
+      "from": "battlefield-interactions-rules",
+      "to": "battlefield-interactions-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "battlefield-interactions-implementation--requires--showdown-phase-orchestration",
+      "from": "battlefield-interactions-implementation",
+      "to": "showdown-phase-orchestration",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 决战阶段编排 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-action-cards-rules--requires--hunter-action-cards-implementation",
+      "from": "hunter-action-cards-rules",
+      "to": "hunter-action-cards-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-action-cards-implementation--requires--combat-turn-timeline-implementation",
+      "from": "hunter-action-cards-implementation",
+      "to": "combat-turn-timeline-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 战斗回合与时点代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-action-cards-implementation--requires--battlefield-interactions-implementation",
+      "from": "hunter-action-cards-implementation",
+      "to": "battlefield-interactions-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 战场交互代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-hit-locations-rules--requires--boss-hit-locations-implementation",
+      "from": "boss-hit-locations-rules",
+      "to": "boss-hit-locations-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-hit-locations-implementation--requires--showdown-phase-orchestration",
+      "from": "boss-hit-locations-implementation",
+      "to": "showdown-phase-orchestration",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 决战阶段编排 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-attack-resolution-rules--requires--hunter-attack-resolution-implementation",
+      "from": "hunter-attack-resolution-rules",
+      "to": "hunter-attack-resolution-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-attack-resolution-implementation--requires--hunter-action-cards-implementation",
+      "from": "hunter-attack-resolution-implementation",
+      "to": "hunter-action-cards-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 猎人行动卡代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-attack-resolution-implementation--requires--boss-hit-locations-implementation",
+      "from": "hunter-attack-resolution-implementation",
+      "to": "boss-hit-locations-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 Boss 部位卡代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-attack-resolution-implementation--requires--battlefield-interactions-implementation",
+      "from": "hunter-attack-resolution-implementation",
+      "to": "battlefield-interactions-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 战场交互代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-injury-death-rules--requires--hunter-injury-death-implementation",
+      "from": "hunter-injury-death-rules",
+      "to": "hunter-injury-death-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunter-injury-death-implementation--requires--showdown-phase-orchestration",
+      "from": "hunter-injury-death-implementation",
+      "to": "showdown-phase-orchestration",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 决战阶段编排 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-action-deck-targeting-rules--requires--boss-action-deck-targeting-implementation",
+      "from": "boss-action-deck-targeting-rules",
+      "to": "boss-action-deck-targeting-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-action-deck-targeting-implementation--requires--combat-turn-timeline-implementation",
+      "from": "boss-action-deck-targeting-implementation",
+      "to": "combat-turn-timeline-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 战斗回合与时点代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-action-deck-targeting-implementation--requires--battlefield-interactions-implementation",
+      "from": "boss-action-deck-targeting-implementation",
+      "to": "battlefield-interactions-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 战场交互代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-attack-resolution-rules--requires--boss-attack-resolution-implementation",
+      "from": "boss-attack-resolution-rules",
+      "to": "boss-attack-resolution-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-attack-resolution-implementation--requires--boss-action-deck-targeting-implementation",
+      "from": "boss-attack-resolution-implementation",
+      "to": "boss-action-deck-targeting-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 Boss 行动牌堆与目标选择代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    },
+    {
+      "id": "boss-attack-resolution-implementation--requires--hunter-injury-death-implementation",
+      "from": "boss-attack-resolution-implementation",
+      "to": "hunter-injury-death-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 猎人伤势与死亡代码实现 提供的稳定契约",
+      "blocksImplementation": false
+    }
+  ]
+}
+

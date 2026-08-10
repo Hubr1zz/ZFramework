@@ -1,0 +1,46 @@
+{
+  "nodes": [
+    {
+      "id": "battlefield-interactions-rules",
+      "label": "战场交互规则",
+      "category": "game-rule",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-battlefield-interactions/specs/battlefield-interactions-rules/spec.md"
+    },
+    {
+      "id": "battlefield-interactions-implementation",
+      "label": "战场交互代码实现",
+      "category": "feature",
+      "readiness": "ready",
+      "specPath": "openspec/drafts/changes/design-import-20260724-battlefield-interactions/specs/battlefield-interactions-implementation/spec.md"
+    },
+    {
+      "id": "showdown-phase-orchestration",
+      "label": "决战阶段编排",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/showdown-phase-orchestration/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "battlefield-interactions-rules--requires--battlefield-interactions-implementation",
+      "from": "battlefield-interactions-rules",
+      "to": "battlefield-interactions-implementation",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "玩法规则与该模块实现位于同一配对 Change",
+      "blocksImplementation": false
+    },
+    {
+      "id": "battlefield-interactions-implementation--requires--showdown-phase-orchestration",
+      "from": "battlefield-interactions-implementation",
+      "to": "showdown-phase-orchestration",
+      "type": "requires",
+      "status": "resolved",
+      "reason": "依赖 决战阶段编排 提供的稳定契约",
+      "blocksImplementation": false
+    }
+  ]
+}
+

@@ -1,0 +1,175 @@
+﻿{
+    "schemaVersion": 5,
+    "capability": "hunter-action-cards-implementation",
+    "title": "猎人行动卡代码实现",
+    "category": "feature",
+    "readiness": "implemented",
+    "verification": {
+        "status": "verified",
+        "summary": "已实现解耦费用事务、可等待且支持动态追加的 Action Queue、基础卡配置复用和意志行动生命周期，并通过 19 项 EditMode 测试。",
+        "codeEvidence": [
+            {
+                "guid": "36504e5d88e2c75489a14e6ea015c937",
+                "displayPath": "Assets/Scripts/Adapters/Unity/Combat/CardSystem.cs",
+                "fileHash": "27be44e0cf37c2f9f9029c46b98a9d15fc3911bd5e6de2fcc25103d0d0bc2cfe",
+                "line": 25,
+                "feature": "通过 Action Queue 顺序执行出牌、恢复、爆发、事件与翻面",
+                "status": "verified",
+                "checkedAt": "2026-07-27T22:46:37.0747954+08:00"
+            },
+            {
+                "guid": "b6d7e9bdc68236b47bb1b1d4b2302ccd",
+                "displayPath": "Assets/Scripts/Adapters/Unity/Combat/CharacterActionCardInstance.cs",
+                "fileHash": "93966a1a017c56434421d8fc1eb067eba45be4bc7fb4f353e5261cfe4491146e",
+                "line": 17,
+                "feature": "保存普通/意志行动卡共用的运行时定义、卡面和每回合可用状态",
+                "status": "verified",
+                "checkedAt": "2026-07-27T22:46:37.0747954+08:00"
+            },
+            {
+                "guid": "27382589b6f6fc24e83ffdf54bc755f0",
+                "displayPath": "Assets/Scripts/SO/Character/ActionCard SO/CharacterActionCardData.cs",
+                "fileHash": "2c40e191c82268b4206d490cefa470a821c672999d9ee9636b99a19c7edf02c6",
+                "line": 12,
+                "feature": "集中配置并映射时点、战斗灵感、意志和翻转其他卡牌费用",
+                "status": "verified",
+                "checkedAt": "2026-07-27T22:46:37.0747954+08:00"
+            },
+            {
+                "guid": "706529a4548a4f6fbcc0f235f25771a4",
+                "displayPath": "Assets/Scripts/GameCore/Cards/ActionCardCosts.cs",
+                "fileHash": "4aa607a6f223a1bb844d59d0676ae052d08e55f91825cf1114aebb2838dfac13",
+                "line": 88,
+                "feature": "定义行动卡费用、准备结果、原子事务和战斗灵感资源池",
+                "status": "verified",
+                "checkedAt": "2026-07-27T22:46:37.0747954+08:00"
+            },
+            {
+                "guid": "7d2241e192094bf3a946d98126f57f5a",
+                "displayPath": "Assets/Scripts/GameCore/Cards/ActionQueue.cs",
+                "fileHash": "b557d8e381933e91d77a7ac61b4715fe6c80fdf9e73cad6e5c9ea3c1d177f807",
+                "line": 31,
+                "feature": "保存支持动态追加、暂停、恢复、取消和失败短路的确定性队列状态",
+                "status": "verified",
+                "checkedAt": "2026-07-27T22:46:37.0747954+08:00"
+            },
+            {
+                "guid": "6059d1a2c0354759929b89674927a3fc",
+                "displayPath": "Assets/Scripts/Adapters/Unity/Combat/ActionCardResolution.cs",
+                "fileHash": "97eec98b6bcfa1c5f0a7fa9acb219f984ae8e5580b9297fb36d7056a66485889",
+                "line": 33,
+                "feature": "等待 UniTask 行动并把费用原子提交到时点、意志、战斗灵感和卡牌状态",
+                "status": "verified",
+                "checkedAt": "2026-07-27T22:46:37.0747954+08:00"
+            },
+            {
+                "guid": "dcdeef3add66431da0b56ac6d77f1833",
+                "displayPath": "Assets/Tests/EditMode/ActionCardRuntimeTests.cs",
+                "fileHash": "94a478248c3404499a1171cf88509e72e0c87f1dbc566e9bae1048a58f840793",
+                "line": 8,
+                "feature": "验证费用原子性、动态队列顺序、取消、意志行动重置和资源不回填",
+                "status": "verified",
+                "checkedAt": "2026-07-27T22:46:37.0747954+08:00"
+            },
+            {
+                "guid": "f2051ccd4d914affa90c1e221be7fdd4",
+                "displayPath": "Assets/Tests/Integration/ActionCardAdapterIntegrationTests.cs",
+                "fileHash": "78d6466b3f41915cdb412f360392e6e9d4ca620c8a31d524cbcf63bb41c1e1d3",
+                "line": 13,
+                "feature": "验证 SO 映射、Adapter 异步等待顺序和取消后的下游短路",
+                "status": "verified",
+                "checkedAt": "2026-07-27T22:46:37.0747954+08:00"
+            }
+        ],
+        "evidence": [],
+        "differences": [
+            "转向基础卡与硬撑意志行动的具体效果按已接受审核项延期，当前仅保留数据占位。"
+        ],
+        "verifiedAt": "2026-07-27T22:46:37.0747954+08:00"
+    },
+    "gapIds": [],
+    "dependencyIds": [
+        "hunter-action-cards-implementation--requires--combat-turn-timeline-implementation",
+        "hunter-action-cards-implementation--requires--battlefield-interactions-implementation"
+    ],
+    "sourceReferences": [
+        "primary::决战阶段 Showdown Phase/战斗系统 Combat System/猎人行动卡 Action cards.md:1",
+        "primary::决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md:74",
+        "primary::通用/猎人 Hunter.md:53"
+    ],
+    "reviewIssues": [
+        {
+            "id": "ISSUE-HUNTER-ACTION-CARDS-001",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "resolved",
+            "blocksApproval": false,
+            "summary": "时点、战斗灵感、意志与特殊费用尚未形成解耦且可原子提交的领域契约。",
+            "details": "需要引入可组合费用定义、准备与原子提交协议；玩家取消特殊费用选择或目标失效时不得执行效果或留下部分支付。",
+            "sourceId": "DELTA-HUNTER-ACTION-CARDS-001",
+            "acceptedBy": "Hubr1zz",
+            "acceptedAt": "2026-07-27T22:26:18.0619774+08:00",
+            "acceptanceNote": "已确认费用解耦与原子提交方案，并要求执行本 Change"
+        },
+        {
+            "id": "ISSUE-HUNTER-ACTION-CARDS-002",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "accepted",
+            "blocksApproval": false,
+            "summary": "转向基础卡与硬撑意志行动的具体卡牌效果仍待细化，不应猜测行为。",
+            "details": "基础行动卡的普通卡身份和意志行动的通用费用/重置契约已经澄清；本项仅保留具体卡牌效果的延期。",
+            "sourceId": "DELTA-HUNTER-ACTION-CARDS-002",
+            "acceptedBy": "Hubr1zz",
+            "acceptedAt": "2026-07-27T21:49:41.7284047+08:00",
+            "acceptanceNote": "转向先不管，后续按需扩展重构"
+        },
+        {
+            "id": "ISSUE-HUNTER-ACTION-CARDS-003",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "resolved",
+            "blocksApproval": false,
+            "summary": "当前同步循环与 fire-and-forget 效果无法保证需要玩家输入的动态结算顺序。",
+            "details": "需要在行动卡 Feature 内引入可暂停、恢复、取消、失败短路并支持队首/队尾动态追加的 Action Queue，以及负责异步输入和表现的 Adapter 执行器。",
+            "sourceId": "DELTA-HUNTER-ACTION-CARDS-003",
+            "acceptedBy": "Hubr1zz",
+            "acceptedAt": "2026-07-27T22:26:18.0619774+08:00",
+            "acceptanceNote": "已确认 Action Queue 方案，并要求执行本 Change"
+        },
+        {
+            "id": "ISSUE-HUNTER-ACTION-CARDS-004",
+            "type": "implementation-delta",
+            "severity": "warning",
+            "status": "resolved",
+            "blocksApproval": false,
+            "summary": "意志行动尚未复用普通行动卡管线和每回合可用状态重置契约。",
+            "details": "startingCards 已能配置普通初始行动卡；仍需将意志行动接入相同费用与队列管线，消费现有意志资源，并只重置每回合可用状态而不自动恢复意志。",
+            "sourceId": "DELTA-HUNTER-ACTION-CARDS-004",
+            "acceptedBy": "Hubr1zz",
+            "acceptedAt": "2026-07-27T22:26:18.0619774+08:00",
+            "acceptanceNote": "已确认意志行动复用普通行动卡管线，并要求执行本 Change"
+        }
+    ],
+    "editorGuidance": {
+        "summary": "行动卡继续使用集中 SO 配置，由现有战斗组合根映射为普通运行时定义、独立费用定义和队列步骤。",
+        "inspectorReferences": [
+            "在猎人 startingCards 中引用基础行动卡；意志行动也引用普通行动卡配置，并额外配置意志费用与每回合可用策略。"
+        ],
+        "tunableParameters": [
+            "在 CharacterActionCardData 中配置费用列表、双面效果、恢复条件和爆发奖励；费用列表首批支持时点、战斗灵感、意志和特殊费用。"
+        ],
+        "sceneSetup": [],
+        "usage": [
+            "由现有组合根注册行动卡模块和异步队列执行器，无需让 GameCore 引用 Unity 或 UniTask。"
+        ]
+    },
+    "pairedFeatureCapability": "",
+    "pairedRuleCapability": "hunter-action-cards-rules",
+    "implementationOutline": [
+        "CharacterActionCardData 将 SerializeReference 费用列表映射为 ActionCardDefinition；旧资产在列表为空时继续把 timePointCost 映射成时点费用。",
+        "CardEffectResolver 为准备费用、原子提交、每个可等待效果以及事件/翻面建立 ActionQueue；ActionQueueRunner 逐项等待 UniTask，取消或失败会清空下游步骤。",
+        "ActionCardCostService 先等待特殊卡牌选择，再整体复核意志、战斗灵感和翻转目标；ActionCardCostTransaction 只在整体可支付时提交全部费用。",
+        "BattleGenerator 仍从 startingCards 创建普通实例；意志费用自动禁用爆发并启用每回合可用状态，玩家回合边界只重置卡牌状态而不回填意志。"
+    ]
+}

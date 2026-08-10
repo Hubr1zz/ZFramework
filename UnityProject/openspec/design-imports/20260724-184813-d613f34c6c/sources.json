@@ -1,0 +1,139 @@
+[
+  {
+    "sourceId": "primary",
+    "path": "C:\\Users\\leonz\\Desktop\\GameDesignVault\\设计文档\\决战阶段 Showdown Phase\\战斗系统 Combat System\\怪物 Monster.md",
+    "relativePath": "决战阶段 Showdown Phase/战斗系统 Combat System/怪物 Monster.md",
+    "role": "requirement",
+    "sha256": "84824fcfdf4f98ce7542dfbf8c4446f1bb1c6f5062be4b7dfd61fe7d088bd8b5",
+    "headings": [
+      "怪物 Monster",
+      "Boss构成",
+      "怪物回合与行动执行",
+      "执行行动",
+      "攻击结算",
+      "目标选择",
+      "被攻击时的交互",
+      "受到攻击",
+      "受到伤害",
+      "[[术语词典/打击部位|部位卡]]",
+      "怪物行动卡",
+      "攻击型",
+      "非攻击型"
+    ]
+  },
+  {
+    "sourceId": "primary",
+    "path": "C:\\Users\\leonz\\Desktop\\GameDesignVault\\设计文档\\决战阶段 Showdown Phase\\战斗系统 Combat System\\战斗系统 Combat system.md",
+    "relativePath": "决战阶段 Showdown Phase/战斗系统 Combat System/战斗系统 Combat system.md",
+    "role": "requirement",
+    "sha256": "e20d321ac3f3088ce514cc75e9039940680bf3a138d16a573ff9eb1d75e52824",
+    "headings": [
+      "相关文档",
+      "回合流程",
+      "核心结算",
+      "[[术语词典/时点|时点]]",
+      "耗尽与[[术语词典/超时|超时]]",
+      "猎人攻击怪物",
+      "怪物攻击猎人",
+      "玩家行动",
+      "操控猎人攻击",
+      "猎人受到伤害",
+      "使用行动卡",
+      "场地规则",
+      "单位与边界",
+      "地形"
+    ]
+  },
+  {
+    "sourceId": "primary",
+    "path": "C:\\Users\\leonz\\Desktop\\GameDesignVault\\设计文档\\决战阶段 Showdown Phase\\战斗系统 Combat System\\猎人行动卡 Action cards.md",
+    "relativePath": "决战阶段 Showdown Phase/战斗系统 Combat System/猎人行动卡 Action cards.md",
+    "role": "requirement",
+    "sha256": "faa209d9396f01a578622b7e7c28b06da7a3a25c89568fffeb77b4f4037d95da",
+    "headings": [
+      "行动卡的系统定位",
+      "行动卡结构",
+      "状态切换",
+      "基础行动卡",
+      "额外行动卡来源",
+      "意志行动",
+      "[[术语词典/灵感爆发|爆发]]"
+    ]
+  },
+  {
+    "sourceId": "primary",
+    "path": "C:\\Users\\leonz\\Desktop\\GameDesignVault\\设计文档\\通用\\物品 Items.md",
+    "relativePath": "通用/物品 Items.md",
+    "role": "requirement",
+    "sha256": "5382556844f9c449d208dbd562ed739fcdb2b4369a99a2266336ee7c81c18f0e",
+    "headings": [
+      "物品在系统中的角色",
+      "分类",
+      "资源",
+      "装备",
+      "武器",
+      "防具",
+      "与营地系统的关系",
+      "与[[设计文档/营地阶段 Settlement Phase/Invention发明|发明]]的关系",
+      "与[[工坊Workshop|工坊]]的关系",
+      "与[[升级配方]]的关系",
+      "设计约束"
+    ]
+  },
+  {
+    "sourceId": "primary",
+    "path": "C:\\Users\\leonz\\Desktop\\GameDesignVault\\设计文档\\营地阶段 Settlement Phase\\Invention发明.md",
+    "relativePath": "营地阶段 Settlement Phase/Invention发明.md",
+    "role": "context",
+    "sha256": "e23c8d2d1a0d4fc56bad3695e3d89b70e1b52172ac25976b4834b02dec079d51",
+    "headings": [
+      "系统定位",
+      "发明的作用",
+      "与工坊的分工"
+    ]
+  },
+  {
+    "sourceId": "primary",
+    "path": "C:\\Users\\leonz\\Desktop\\GameDesignVault\\设计文档\\营地阶段 Settlement Phase\\工坊Workshop.md",
+    "relativePath": "营地阶段 Settlement Phase/工坊Workshop.md",
+    "role": "context",
+    "sha256": "58abb2b9b899e73e99f56f8e91cdd6b2570a70a37881cb5c2d786f7c2a17d0d1",
+    "headings": [
+      "系统定位",
+      "与发明的分工",
+      "设计约束"
+    ]
+  },
+  {
+    "sourceId": "primary",
+    "path": "C:\\Users\\leonz\\Desktop\\GameDesignVault\\设计文档\\通用\\猎人 Hunter.md",
+    "relativePath": "通用/猎人 Hunter.md",
+    "role": "context",
+    "sha256": "230b4d68df4dbe72781f59bd306103a987e261529b4bd9a67b8a0aa476025c59",
+    "headings": [
+      "猎人 Hunter",
+      "角色框架",
+      "核心资源",
+      "战斗属性",
+      "成长属性",
+      "生存属性",
+      "能力来源",
+      "[[战斗回响]]",
+      "[[特性]]",
+      "[[血脉]]",
+      "[[症状]]与[[内化]]",
+      "战斗接口",
+      "行动卡",
+      "状态栏",
+      "战斗Buff",
+      "收集物",
+      "死亡与退场",
+      "死亡判定",
+      "装备与携带",
+      "武器",
+      "防具",
+      "装备升级",
+      "[[传承]]"
+    ]
+  }
+]

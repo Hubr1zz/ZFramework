@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 5,
+  "changeId": "design-import-20260724-hunter-attack-resolution",
+  "title": "猎人攻击结算",
+  "category": "paired",
+  "sourceKind": "design-import",
+  "sourceRunId": "20260724-184813-d613f34c6c",
+  "readiness": "ready",
+  "codeReadiness": "partial",
+  "approvalStatus": "draft",
+  "verification": {
+    "status": "partial",
+    "summary": "现有代码部分覆盖猎人攻击结算，仍有 2 项实现差异。",
+    "codeEvidence": [],
+    "evidence": [],
+    "differences": [
+      "当前实现按速度加权抽取部位并以攻击力阈值直接判定，没有构建成功/失败临时结果牌堆。",
+      "当前流程逐张部位独立判定，未让玩家把已抽取的命中结果分配到展示部位。"
+    ],
+    "verifiedAt": "2026-07-24T18:48:56+08:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-HUNTER-ATTACK-RESOLUTION-001",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": false,
+      "summary": "当前实现按速度加权抽取部位并以攻击力阈值直接判定，没有构建成功/失败临时结果牌堆。",
+      "sourceId": "DELTA-HUNTER-ATTACK-RESOLUTION-001"
+    },
+    {
+      "id": "ISSUE-HUNTER-ATTACK-RESOLUTION-002",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": false,
+      "summary": "当前流程逐张部位独立判定，未让玩家把已抽取的命中结果分配到展示部位。",
+      "sourceId": "DELTA-HUNTER-ATTACK-RESOLUTION-002"
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "hunter-attack-resolution-rules--requires--hunter-attack-resolution-implementation",
+    "hunter-attack-resolution-implementation--requires--hunter-action-cards-implementation",
+    "hunter-attack-resolution-implementation--requires--boss-hit-locations-implementation",
+    "hunter-attack-resolution-implementation--requires--battlefield-interactions-implementation"
+  ],
+  "capabilities": [
+    "hunter-attack-resolution-rules",
+    "hunter-attack-resolution-implementation"
+  ],
+  "createdAt": "2026-07-24T18:48:56+08:00",
+  "syncTargets": [
+    {
+      "capability": "hunter-attack-resolution-implementation",
+      "title": "猎人攻击结算代码实现",
+      "category": "feature",
+      "deltaSpecPath": "openspec/drafts/changes/design-import-20260724-hunter-attack-resolution/specs/hunter-attack-resolution-implementation/spec.md",
+      "targetSpecPath": "openspec/specs/hunter-attack-resolution-implementation/spec.md",
+      "targetExisted": false,
+      "baseFileHash": ""
+    },
+    {
+      "capability": "hunter-attack-resolution-rules",
+      "title": "猎人攻击结算规则",
+      "category": "game-rule",
+      "deltaSpecPath": "openspec/drafts/changes/design-import-20260724-hunter-attack-resolution/specs/hunter-attack-resolution-rules/spec.md",
+      "targetSpecPath": "openspec/specs/hunter-attack-resolution-rules/spec.md",
+      "targetExisted": false,
+      "baseFileHash": ""
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "已记录正式 Spec 基线；sync 前将进行并发修改校验。",
+    "conflicts": [],
+    "validatedAt": "2026-07-25T01:00:17+08:00"
+  }
+}
