@@ -105,6 +105,7 @@ namespace CameraFollowTool
             // Hover effect via callback — use class to track state
             btn.RegisterCallback<MouseEnterEvent>(_ =>
             {
+                if (!btn.enabledInHierarchy) return;
                 btn.AddToClassList("cam-follow--hover");
                 if (!btn.ClassListContains("cam-follow--active"))
                     btn.style.backgroundColor = HoverBg + normalBg * 0.5f;
@@ -117,10 +118,10 @@ namespace CameraFollowTool
             });
 
             // Icon
-            var content = EditorGUIUtility.IconContent(iconName);
-            if (content != null && content.image != null)
+            var icon = EditorGUIUtility.FindTexture(iconName);
+            if (icon != null)
             {
-                var img = new Image { image = content.image };
+                var img = new Image { image = icon };
                 img.style.width = 14;
                 img.style.height = 14;
                 img.style.alignSelf = Align.Center;
@@ -163,7 +164,15 @@ namespace CameraFollowTool
 
         public static void SetInteractive(Button btn, bool interactive)
         {
+            if (btn.enabledSelf == interactive) return;
+
             btn.SetEnabled(interactive);
+            btn.style.opacity = interactive ? 1f : 0.4f;
+            if (!interactive)
+            {
+                btn.RemoveFromClassList("cam-follow--hover");
+                SetActive(btn, false);
+            }
         }
     }
 
@@ -270,7 +279,7 @@ namespace CameraFollowTool
         {
             var c = SplitButtonHelper.CreateContainer();
             Add(c);
-            _clear = SplitButtonHelper.CreateHalf("Clear target", "d_winbtn_win_close", true);
+            _clear = SplitButtonHelper.CreateHalf("Clear target", "TreeEditor.Trash", true);
             _restore = SplitButtonHelper.CreateHalf("Restore camera", "d_Refresh", false);
             _clear.clicked += () =>
             {
@@ -289,8 +298,10 @@ namespace CameraFollowTool
 
         void Sync()
         {
-            SplitButtonHelper.SetActive(_clear, CameraFollowState.HasTargets);
-            SplitButtonHelper.SetActive(_restore, CameraFollowState.HasSavedCamera);
+            bool hasTarget = CameraFollowState.HasTargets;
+            SplitButtonHelper.SetInteractive(_clear, hasTarget);
+            SplitButtonHelper.SetInteractive(
+                _restore, hasTarget && CameraFollowState.HasSavedCamera);
         }
     }
 
@@ -361,13 +372,15 @@ namespace CameraFollowTool
 
         public static void RestoreCamera()
         {
-            ClearTargets();
-            if (!HasSavedCamera) return;
             var sv = SceneView.lastActiveSceneView;
-            if (sv == null) return;
-            sv.pivot = _savedPivot;
-            sv.rotation = _savedRotation;
-            sv.size = _savedSize;
+            if (HasSavedCamera && sv != null)
+            {
+                sv.pivot = _savedPivot;
+                sv.rotation = _savedRotation;
+                sv.size = _savedSize;
+            }
+
+            ClearTargetState();
             HasSavedCamera = false;
         }
 
@@ -385,6 +398,14 @@ namespace CameraFollowTool
 
         public static void ClearTargets()
         {
+            // Clearing a target is also the end of the camera-follow session.
+            // Restore before discarding the snapshot so both toolbar actions
+            // return the Scene view to the camera state captured on activation.
+            RestoreCamera();
+        }
+
+        private static void ClearTargetState()
+        {
             LookAtEnabled = false;
             FollowEnabled = false;
             TargetObjects = null;
@@ -392,7 +413,6 @@ namespace CameraFollowTool
             _orbitCaptured = false;
             _lockedCaptured = false;
             _hasPrevCenter = false;
-            HasSavedCamera = false;
         }
 
         public static void ResetCapture()

@@ -1,4 +1,5 @@
 using Cards3D;
+using HuntingInDarkness.Testing;
 using TMPro;
 using UI;
 using UnityEngine;
@@ -16,7 +17,7 @@ namespace CardTest3D
     ///   - 右键翻转卡牌（翻转动画 0.3 s）
     ///   - 鼠标悬停时卡牌轻微抬起高亮
     /// </summary>
-    public class CardTableTestSetup : MonoBehaviour
+    public class CardTableTestSetup : StandaloneGameTestEntry
     {
         private void Start()
         {
@@ -62,11 +63,6 @@ namespace CardTest3D
 
         private static void SpawnCards(GameObject table)
         {
-            const float startX  = -1.43f;
-            const float spacing = 0.95f;
-            const float cardY   = 0.013f;
-            const float cardZ   = 0.8f;
-
             (string name, string desc, int qty)[] items =
             {
                 ("木材", "用于建造\n基础结构。", 3),

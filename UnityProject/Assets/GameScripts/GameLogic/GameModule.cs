@@ -11,7 +11,14 @@ public class GameModule
     /// </summary>
     public static RootModule Base
     {
-        get => _base ??= Object.FindObjectOfType<RootModule>();
+        get
+        {
+#if UNITY_2023_1_OR_NEWER
+            return _base ??= Object.FindAnyObjectByType<RootModule>();
+#else
+            return _base ??= Object.FindObjectOfType<RootModule>();
+#endif
+        }
         private set => _base = value;
     }
 

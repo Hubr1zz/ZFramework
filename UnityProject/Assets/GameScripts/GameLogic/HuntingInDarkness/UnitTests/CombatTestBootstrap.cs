@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using System.Reflection;
 using Config;
 using Core;
 using GameplayBase;
 using GameplayBase.Board;
 using GameplayBase.CombatSystem;
 using GameplayBase.Config;
+using HuntingInDarkness.Testing;
 using Sirenix.OdinInspector;
 using SO.Combat;
 using TMPro;
@@ -18,8 +18,7 @@ namespace UnitTests
     ///
     /// 设计目标：在不改动正式流程的前提下，让 Combat 场景一启动就直接进入一场 Boss 决战。
     /// 做法：用本组件 Inspector 上的「场地规则 + 猎人小队 + Boss」组装一个 <see cref="BattleSetup"/>，
-    /// 通过 GameManager 公共 API <see cref="GameManager.InjectBattleSetup"/> 注入，
-    /// 再强制其以 BossFight 阶段启动。
+    /// 通过 GameManager 公共测试配置 API 注入，并强制其以 BossFight 阶段启动。
     ///
     /// 用法：
     ///   1. 在 Combat 场景放一个空 GameObject，挂上本脚本；
@@ -31,7 +30,7 @@ namespace UnitTests
     /// 注意：场景中不要再额外放一个手动配置的 GameManager，避免单例冲突。
     /// </summary>
     [DisallowMultipleComponent]
-    public class CombatTestBootstrap : MonoBehaviour
+    public class CombatTestBootstrap : StandaloneGameTestEntry
     {
         [Header("场地规则（CombatFieldRulesSO）")][InlineEditor]
         [SerializeField] private CombatFieldRulesSO fieldRules;
@@ -89,16 +88,8 @@ namespace UnitTests
             gmGo.SetActive(false);
             var gm = gmGo.AddComponent<GameManager>();
 
-            // 2) 注入本场战斗装配（公共 API）。
-            gm.InjectBattleSetup(setup);
-
-            // 3) 仅 dev 起始阶段开关与棋盘格距走反射（私有 SerializeField）。
-            SetField(gm, "devMode", true);
-            SetField(gm, "devStartPhase", GamePhase.BossFight);
-            SetField(gm, "cellSize", cellSize);
-            if (entityCreator != null) SetField(gm, "entityCreator", entityCreator);
-            if (chineseFontAsset != null)    SetField(gm, "chineseFontAsset", chineseFontAsset);
-            if (chineseCharacterSet != null) SetField(gm, "chineseCharacterSet", chineseCharacterSet);
+            // 2) 通过显式测试配置 API 注入装配与启动参数。
+            gm.ConfigureForStandaloneTest(setup, GamePhase.BossFight, cellSize, entityCreator, chineseFontAsset, chineseCharacterSet);
 
             // 4) 可选战斗事件日志。
             if (logCombatEvents)
@@ -145,20 +136,5 @@ namespace UnitTests
 
         private void OnHitLocationDestroyed(HitLocationDestroyedEvent e) =>
             Debug.Log($"[CombatTest] Boss 部位被摧毁：{e.PartName}");
-
-        // ─── 反射工具 ─────────────────────────────────────────────────
-
-        private static void SetField(object target, string name, object value)
-        {
-            var f = target.GetType().GetField(name,
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (f == null)
-            {
-                Debug.LogError($"[CombatTestBootstrap] 反射未找到字段 '{name}'，" +
-                               "GameManager 字段结构可能已变更，请同步更新本引导器。");
-                return;
-            }
-            f.SetValue(target, value);
-        }
     }
 }

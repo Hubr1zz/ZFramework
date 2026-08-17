@@ -7,8 +7,8 @@ namespace TEngine.Localization
 	[CustomEditor(typeof(SetLanguage))]
 	public class SetLanguageInspector : UnityEditor.Editor
 	{
-		public SetLanguage setLan;
-		public SerializedProperty mProp_Language;
+		[NonSerialized] public SetLanguage setLan;
+		[NonSerialized] public SerializedProperty mProp_Language;
 
 		public void OnEnable()
 		{

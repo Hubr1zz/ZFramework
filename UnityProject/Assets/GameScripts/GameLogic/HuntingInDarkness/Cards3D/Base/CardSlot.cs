@@ -490,6 +490,7 @@ namespace Cards3D
                 StackDirection.Down  => new Vector3(0f, 0f, -offset),
                 //StackDirection.Up    => new Vector3(0f, 0f, offset),
                 StackDirection.StackUp => new Vector3(0f, offset, 0f),
+                _ => new Vector3(0f, offset, 0f),
             };
         }
 
@@ -505,6 +506,7 @@ namespace Cards3D
                 StackDirection.Down  => Quaternion.Euler(-index * angleStep, 0f, 0f),
                 //StackDirection.Up    => Quaternion.Euler(index * angleStep, 0f, 0f),
                 StackDirection.StackUp => Quaternion.identity,
+                _ => Quaternion.identity,
             };
         }
 
@@ -655,8 +657,13 @@ namespace Cards3D
             float rotationRange = StackRandomRotation;
             if (rotationRange <= 0f) return 0f;
 
-            _ghostRotationRandom ??= new System.Random(
-                unchecked(GetInstanceID() * 397 ^ System.Environment.TickCount));
+            int entityHash;
+#if UNITY_6000_5_OR_NEWER
+            entityHash = GetEntityId().GetHashCode();
+#else
+            entityHash = GetInstanceID();
+#endif
+            _ghostRotationRandom ??= new System.Random(unchecked(entityHash * 397 ^ System.Environment.TickCount));
             return ((float)_ghostRotationRandom.NextDouble() - 0.5f) * rotationRange;
         }
 

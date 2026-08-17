@@ -1,14 +1,14 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-set REPO_URL=https://github.com/Hubr1zz/TEngine.git
-set REPO_REF=ZEngine
-set TEMP_DIR=%TEMP%\ZEngine_tmp_%RANDOM%
+set REPO_URL=https://github.com/Hubr1zz/ZFramework.git
+set REPO_REF=Project
+set TEMP_DIR=%TEMP%\ZFramework_tmp_%RANDOM%
 :: 脚本所在目录即工程根目录
 set PROJECT_DIR=%~dp0
 
 echo ========================================
-echo  ZEngine Core Updater
+echo  ZFramework Core Updater
 echo ========================================
 echo.
 echo Source : %REPO_URL%
@@ -42,7 +42,7 @@ if not exist "%PROJECT_DIR%UnityProject\Assets\TEngine\" (
 :: 当前版本的 RTS/Roslyn 包必须存在
 if not exist "%PROJECT_DIR%UnityProject\Packages\com.tengine.rts\" (
     echo [ERROR] 'UnityProject\Packages\com.tengine.rts' not found.
-    echo         This updater targets the ZEngine branch.
+    echo         This updater targets the ZFramework Project branch.
     goto :fail
 )
 
@@ -56,11 +56,11 @@ if errorlevel 1 (
 echo [OK] Project layout verified.
 echo.
 
-:: ZEngine 当前分支必须先发布到远端；禁止静默使用旧 main
+:: ZFramework Project 分支必须先发布到远端；禁止静默使用旧 main
 git ls-remote --exit-code --heads "%REPO_URL%" "%REPO_REF%" >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Remote branch '%REPO_REF%' was not found at %REPO_URL%.
-    echo         Publish the current ZEngine branch before using this updater.
+    echo         Publish the current ZFramework Project branch before using this updater.
     goto :fail
 )
 

@@ -1,5 +1,5 @@
-# ZEngine
-它以 TEngine 为底座，并整合 zWorkFlow、普通 Player 程序集工作流以及 `com.tengine.rts` RTS/Roslyn 工具链。
+# ZFramework
+ZFramework 是基于 TEngine 扩展的 Unity 游戏框架；`Project` 分支同时承载框架代码与《Hunting in Darkness》游戏内容，并整合 zWorkFlow、普通 Player 程序集工作流以及 `com.tengine.rts` RTS/Roslyn 工具链。
 
 <div align="center">
 
@@ -7,11 +7,11 @@
 
 **Unity 框架解决方案**
 
-[![Unity Version](https://img.shields.io/badge/Unity-2022.3.53f1%2B-blue.svg?style=flat-square)](https://unity3d.com/)
-[![License](https://img.shields.io/github/license/Hubr1zz/TEngine?style=flat-square)](LICENSE)
-[![Last Commit](https://img.shields.io/github/last-commit/Hubr1zz/TEngine?style=flat-square)](https://github.com/Hubr1zz/TEngine)
-[![Issues](https://img.shields.io/github/issues/Hubr1zz/TEngine?style=flat-square)](https://github.com/Hubr1zz/TEngine/issues)
-[![Top Language](https://img.shields.io/github/languages/top/Hubr1zz/TEngine?style=flat-square)](https://github.com/Hubr1zz/TEngine)
+[![Unity Version](https://img.shields.io/badge/Unity-6000.5.8f1-blue.svg?style=flat-square)](https://unity.com/)
+[![License](https://img.shields.io/github/license/Hubr1zz/ZFramework?style=flat-square)](LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/Hubr1zz/ZFramework?style=flat-square)](https://github.com/Hubr1zz/ZFramework)
+[![Issues](https://img.shields.io/github/issues/Hubr1zz/ZFramework?style=flat-square)](https://github.com/Hubr1zz/ZFramework/issues)
+[![Top Language](https://img.shields.io/github/languages/top/Hubr1zz/ZFramework?style=flat-square)](https://github.com/Hubr1zz/ZFramework)
 [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Alex-Rachel/TEngine)
 
 </div>
@@ -54,8 +54,8 @@
 
 ### 环境要求
 
-- **Unity 版本**: 2022.3.53f1（推荐）
-- **支持版本**: Unity 2022.3 LTS
+- **Unity 版本**: 6000.5.8f1（工程锁定版本）
+- **支持版本**: Unity 6000.5
 - **开发环境**: .NET 4.x
 - **支持平台**: Windows、OSX、Android、iOS、WebGL
 
@@ -63,13 +63,13 @@
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/Hubr1zz/TEngine.git
-   cd TEngine
-   git checkout ZEngine
+   git clone https://github.com/Hubr1zz/ZFramework.git
+   cd ZFramework
+   git checkout Project
    ```
 
 2. **打开项目**
-   - 使用 Unity 2022.3.53f1 打开 `UnityProject`
+   - 使用 Unity 6000.5.8f1 打开 `UnityProject`
 
 3. **编辑器模式运行**
    - 选择顶部栏目 `EditorMode` 编辑器下的模拟模式
@@ -87,7 +87,7 @@
 
 ## 🤖 AI 开发工作流
 
-ZEngine 深度集成了 zWorkFlow、OpenSpec、Agent Workbench 和共享 `.agents` 能力目录。TEngine 模块开发规范仍由 `tengine-dev` skill 提供，RTS 相关开发由 `tengine-rts-development` 提供。
+ZFramework 深度集成了 zWorkFlow、OpenSpec、Agent Workbench 和共享 `.agents` 能力目录。TEngine 模块开发规范仍由 `tengine-dev` skill 提供，RTS 相关开发由 `tengine-rts-development` 提供。
 
 ---
 
@@ -271,7 +271,7 @@ sequenceDiagram
 └─────────────────────────────────────────────────────────┘
 ```
 
-详细规范请参考：[AGENTS.md](UnityProject/AGENTS.md) | [ZEngine 移植说明](ZENGINE-PORTABLE.md) | [AI 开发工作流指南](Books/AI-Development-Workflow.md)
+详细规范请参考：[AGENTS.md](UnityProject/AGENTS.md) | [框架概览](Books/2-框架概览.md) | [AI 开发工作流指南](Books/AI-Development-Workflow.md)
 
 ---
 
@@ -381,8 +381,8 @@ Assets/
 
 ### Unity 版本
 
-- **推荐版本**: Unity 2022.3.53f1
-- **支持版本**: Unity 2022.3 LTS
+- **工程版本**: Unity 6000.5.8f1
+- **支持版本**: Unity 6000.5
 
 ### 平台支持
 

@@ -7,7 +7,7 @@ namespace TEngine.RTS
     {
         private sealed class Entry
         {
-            public int InstanceId;
+            public ulong InstanceId;
             public string ScriptId;
             public string InitialConfig;
             public IScriptLog HostLog;
@@ -77,14 +77,14 @@ namespace TEngine.RTS
             }
         }
 
-        private readonly Dictionary<int, Entry> _entries = new Dictionary<int, Entry>();
+        private readonly Dictionary<ulong, Entry> _entries = new Dictionary<ulong, Entry>();
         private readonly List<Entry> _tickSnapshot = new List<Entry>();
         private IScriptProvider _provider;
 
         public string ActiveGeneration => _provider?.GenerationName ?? string.Empty;
         public int ActiveInstanceCount => _entries.Count;
 
-        public bool Attach(int instanceId, string scriptId, string initialConfig, IScriptLog hostLog,
+        public bool Attach(ulong instanceId, string scriptId, string initialConfig, IScriptLog hostLog,
             IWorldObject worldObject, out string error)
         {
             error = string.Empty;
@@ -126,7 +126,7 @@ namespace TEngine.RTS
             }
         }
 
-        public void Detach(int instanceId)
+        public void Detach(ulong instanceId)
         {
             if (!_entries.TryGetValue(instanceId, out Entry entry)) return;
             _entries.Remove(instanceId);
@@ -157,7 +157,7 @@ namespace TEngine.RTS
             ScriptStateMigrationPolicy statePolicy = ScriptStateMigrationPolicy.PreserveWhenCompatible)
         {
             if (provider == null) return ScriptSwapResult.Failure("Provider cannot be null.");
-            var staged = new Dictionary<int, Entry>(_entries.Count);
+            var staged = new Dictionary<ulong, Entry>(_entries.Count);
             try
             {
                 foreach (Entry oldEntry in _entries.Values)
@@ -197,9 +197,9 @@ namespace TEngine.RTS
                 return ScriptSwapResult.Failure(exception.ToString());
             }
 
-            Dictionary<int, Entry> previous = new Dictionary<int, Entry>(_entries);
+            Dictionary<ulong, Entry> previous = new Dictionary<ulong, Entry>(_entries);
             _entries.Clear();
-            foreach (KeyValuePair<int, Entry> pair in staged) _entries.Add(pair.Key, pair.Value);
+            foreach (KeyValuePair<ulong, Entry> pair in staged) _entries.Add(pair.Key, pair.Value);
             _provider = provider;
             foreach (Entry entry in previous.Values) SafeDispose(entry);
             return ScriptSwapResult.Success(staged.Count);

@@ -29,7 +29,11 @@ namespace UnityEditor.Build.Pipeline.Tasks
             buildTasks.Add(new CalculateAssetDependencyData());
             buildTasks.Add(new StripUnusedSpriteSources());
             if (string.IsNullOrEmpty(builtInShaderBundleName) == false)
+#if UNITY_6000_5_OR_NEWER
+                buildTasks.Add(new CreateBuiltInBundle(builtInShaderBundleName));
+#else
                 buildTasks.Add(new CreateBuiltInShadersBundle(builtInShaderBundleName));
+#endif
             if (string.IsNullOrEmpty(monoScriptsBundleName) == false)
                 buildTasks.Add(new CreateMonoScriptBundle(monoScriptsBundleName));
             buildTasks.Add(new PostDependencyCallback());

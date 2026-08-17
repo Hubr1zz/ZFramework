@@ -18,6 +18,8 @@ MonoBehaviour:
   faceUpDescription: 
   faceDownDescription: 
   timePointCost: 0
+  costs: []
+  oncePerTurn: 0
   faceUpEffects: []
   faceDownEffects: []
   flipConditions: []

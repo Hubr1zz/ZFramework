@@ -278,7 +278,13 @@ namespace TEngine.RTS.Editor
                 }
             }
 
+#if UNITY_6000_5_OR_NEWER
+            RtsWorldHost worldHost = UnityEngine.Object.FindObjectsByType<RtsWorldHost>(FindObjectsInactive.Include)
+#elif UNITY_2023_1_OR_NEWER
+            RtsWorldHost worldHost = UnityEngine.Object.FindObjectsByType<RtsWorldHost>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+#else
             RtsWorldHost worldHost = UnityEngine.Object.FindObjectsOfType<RtsWorldHost>(true)
+#endif
                 .FirstOrDefault(host => host.gameObject.scene == scene);
             if (requireWorldHost && worldHost == null)
                 throw new InvalidOperationException("Sandbox Session requires the stable RtsWorldHost in RTSTest.");

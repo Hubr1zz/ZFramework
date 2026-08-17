@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -112,7 +113,8 @@ namespace TEngine.Localization
 
 		static void EnablePluginsOnPlatform( BuildTargetGroup Platform )
 		{
-			string Settings = PlayerSettings.GetScriptingDefineSymbolsForGroup(Platform );
+			NamedBuildTarget namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(Platform);
+			string Settings = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
 			
 			bool HasChanged = false;
 			List<string> symbols = new List<string>( Settings.Split(';'));
@@ -133,7 +135,7 @@ namespace TEngine.Localization
 						if (i>0) Settings += ";";
 						Settings += symbols[i];
 					}
-					PlayerSettings.SetScriptingDefineSymbolsForGroup(Platform, Settings );
+					PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, Settings);
 				}
 				catch (Exception)
 				{

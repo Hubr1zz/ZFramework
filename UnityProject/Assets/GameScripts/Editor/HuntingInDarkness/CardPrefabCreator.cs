@@ -95,7 +95,11 @@ public static class CardPrefabCreator
         tmp.alignment             = TextAlignmentOptions.Center;
         tmp.color                 = new Color(0.08f, 0.08f, 0.08f);
         tmp.rectTransform.sizeDelta = rectSize;
+#if UNITY_6000_0_OR_NEWER
+        tmp.textWrappingMode      = TMPro.TextWrappingModes.Normal;
+#else
         tmp.enableWordWrapping    = true;
+#endif
         tmp.overflowMode          = TextOverflowModes.Ellipsis;
         return tmp;
     }

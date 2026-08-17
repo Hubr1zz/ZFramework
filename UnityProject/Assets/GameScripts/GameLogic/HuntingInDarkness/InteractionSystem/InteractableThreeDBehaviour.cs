@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -8,10 +9,12 @@ namespace InteractionSystem.Runtime
     /// Base class for 3D interactable behaviours.
     /// Extends InteractableBehaviourBase with InputSettings for polling-based input.
     /// </summary>
+    [Serializable]
     public abstract class InteractableThreeDBehaviour : InteractableBehaviourBase
     {
         [HideReferenceObjectPicker]
         [InlineProperty]
+        [Serializable]
         public sealed class InputSetting
         {
             public enum TriggerType

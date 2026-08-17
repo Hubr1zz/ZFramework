@@ -16,7 +16,6 @@ namespace UI
     {
         [Header("布局")]
         [SerializeField] private float cardSpacing = 0.90f;
-        [SerializeField] private float cardTiltZ   = 0f;
 
         private int _characterId;
         private IGameContext _gameContext;

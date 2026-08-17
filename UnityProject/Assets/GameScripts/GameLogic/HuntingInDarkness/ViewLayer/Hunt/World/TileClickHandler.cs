@@ -7,7 +7,7 @@ namespace HuntingInDarkness.Hunt
     public class TileClickHandler : MonoBehaviour
     {
         public Vector2Int        Coord;
-        public HuntManager       HuntMgr;
+        [System.NonSerialized] public HuntManager HuntMgr;
         public HuntMapVisualizer Visualizer;
 
         private void OnMouseDown()

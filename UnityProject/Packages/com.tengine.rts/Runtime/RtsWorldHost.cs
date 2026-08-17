@@ -315,7 +315,13 @@ namespace TEngine.RTS
 
         private void SuppressPersistentOverlays()
         {
+#if UNITY_6000_5_OR_NEWER
+            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include);
+#elif UNITY_2023_1_OR_NEWER
+            Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#else
             Canvas[] canvases = FindObjectsOfType<Canvas>(true);
+#endif
             for (int i = 0; i < canvases.Length; i++)
             {
                 Canvas canvas = canvases[i];
@@ -323,7 +329,13 @@ namespace TEngine.RTS
                 canvas.enabled = false;
                 _suppressedCanvases.Add(canvas);
             }
+#if UNITY_6000_5_OR_NEWER
+            global::TEngine.Debugger[] debuggers = FindObjectsByType<global::TEngine.Debugger>(FindObjectsInactive.Include);
+#elif UNITY_2023_1_OR_NEWER
+            global::TEngine.Debugger[] debuggers = FindObjectsByType<global::TEngine.Debugger>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#else
             global::TEngine.Debugger[] debuggers = FindObjectsOfType<global::TEngine.Debugger>(true);
+#endif
             for (int i = 0; i < debuggers.Length; i++)
             {
                 if (!debuggers[i].enabled) continue;

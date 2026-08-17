@@ -327,7 +327,7 @@ namespace TEngine
             public static T FindObjectOfType<T>() where T : UnityEngine.Object
             {
 #if UNITY_6000_0_OR_NEWER
-                return UnityEngine.Object.FindFirstObjectByType<T>();
+                return UnityEngine.Object.FindAnyObjectByType<T>();
 #else
                 return UnityEngine.Object.FindObjectOfType<T>();
 

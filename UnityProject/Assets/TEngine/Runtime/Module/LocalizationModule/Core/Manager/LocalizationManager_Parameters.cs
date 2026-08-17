@@ -25,9 +25,16 @@ namespace TEngine.Localization
 
         public static void AutoLoadGlobalParamManagers()
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            foreach (var manager in Object.FindObjectsOfType<LocalizationParamsManager>())
-#pragma warning restore CS0618 // Type or member is obsolete
+#if UNITY_6000_5_OR_NEWER
+            var managers = Object.FindObjectsByType<LocalizationParamsManager>();
+#elif UNITY_2023_1_OR_NEWER
+            var managers = Object.FindObjectsByType<LocalizationParamsManager>(FindObjectsSortMode.None);
+#else
+#pragma warning disable CS0618
+            var managers = Object.FindObjectsOfType<LocalizationParamsManager>();
+#pragma warning restore CS0618
+#endif
+            foreach (var manager in managers)
             {
                 if (manager._IsGlobalManager && !ParamManagers.Contains(manager))
                 {

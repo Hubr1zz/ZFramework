@@ -1,3 +1,5 @@
+using System;
+
 namespace InteractionSystem.Runtime
 {
     /// <summary>
@@ -5,6 +7,7 @@ namespace InteractionSystem.Runtime
     /// Extends InteractableBehaviourBase — no InputSettings, input is driven by
     /// Unity's EventSystem callbacks on InteractableUIElement instead.
     /// </summary>
+    [Serializable]
     public abstract class InteractableUIBehaviour : InteractableBehaviourBase
     {
         // No additional members — all shared logic lives in InteractableBehaviourBase.

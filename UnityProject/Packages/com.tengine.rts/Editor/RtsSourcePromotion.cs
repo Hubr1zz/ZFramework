@@ -710,11 +710,12 @@ namespace TEngine.RTS.Editor
             if (!Enum.TryParse(targetName, true, out BuildTarget target))
                 throw new ArgumentException("Unknown build target: " + targetName);
             BuildTargetGroup group = BuildPipeline.GetBuildTargetGroup(target);
-            ScriptingImplementation previousBackend = PlayerSettings.GetScriptingBackend(group);
+            NamedBuildTarget namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(group);
+            ScriptingImplementation previousBackend = PlayerSettings.GetScriptingBackend(namedBuildTarget);
             bool forceIl2Cpp = args.Any(x => x.Equals("-rtsForceIl2Cpp", StringComparison.OrdinalIgnoreCase));
             try
             {
-                if (forceIl2Cpp) PlayerSettings.SetScriptingBackend(group, ScriptingImplementation.IL2CPP);
+                if (forceIl2Cpp) PlayerSettings.SetScriptingBackend(namedBuildTarget, ScriptingImplementation.IL2CPP);
                 string[] scenes = EditorBuildSettings.scenes.Where(scene => scene.enabled).Select(scene => scene.path).ToArray();
                 if (scenes.Length == 0) throw new InvalidOperationException("No enabled Player scenes were found.");
                 string outputParent = Path.GetDirectoryName(output);
@@ -735,7 +736,7 @@ namespace TEngine.RTS.Editor
             }
             finally
             {
-                if (forceIl2Cpp) PlayerSettings.SetScriptingBackend(group, previousBackend);
+                if (forceIl2Cpp) PlayerSettings.SetScriptingBackend(namedBuildTarget, previousBackend);
             }
         }
 

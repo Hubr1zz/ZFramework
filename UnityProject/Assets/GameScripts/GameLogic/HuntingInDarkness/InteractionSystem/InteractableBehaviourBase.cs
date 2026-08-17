@@ -1,3 +1,4 @@
+using System;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
@@ -9,6 +10,7 @@ namespace InteractionSystem.Runtime
     /// and UI (InteractableUIBehaviour). Contains everything except input polling,
     /// which only makes sense for 3D.
     /// </summary>
+    [Serializable]
     public abstract class InteractableBehaviourBase : IInteractable
     {
         // ─── Enable Settings ──────────────────────────────────────────────────────

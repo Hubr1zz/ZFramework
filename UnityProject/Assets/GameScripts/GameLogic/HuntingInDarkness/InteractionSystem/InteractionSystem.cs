@@ -61,7 +61,7 @@ namespace InteractionSystem.Runtime
 
             public bool Equals(MethodPair other) => targetType == other.targetType && method == other.method;
             public override bool Equals(object obj) => obj is MethodPair o && Equals(o);
-            //public override int  GetHashCode() => HashCode.Combine(targetType, method);
+            public override int GetHashCode() => HashCode.Combine(targetType, method);
             public MethodPair(Type t, MethodInfo m) 
             { 
                 targetType   = t; 
@@ -94,7 +94,11 @@ namespace InteractionSystem.Runtime
             get
             {
                 if (_instance == null)
+#if UNITY_2023_1_OR_NEWER
+                    _instance = FindAnyObjectByType<InteractionSystem>();
+#else
                     _instance = FindObjectOfType<InteractionSystem>();
+#endif
                 return _instance;
             }
         }
@@ -622,7 +626,7 @@ namespace InteractionSystem.Runtime
 
         public void OnUIPointerUp(InteractableUIElement element)
         {
-            if (CurrentClickedObject != element) return;
+            if (CurrentClickedObject as UnityEngine.Object != element) return;
             foreach (var clickable in element.clickableBehaviours)
             {
                 if (clickable is not InteractableBehaviourBase b || !IsBehaviourEnabledBase(b)) continue;
@@ -648,7 +652,7 @@ namespace InteractionSystem.Runtime
 
         public void OnUIDrag(InteractableUIElement element)
         {
-            if (CurrentDraggedObject != element) return;
+            if (CurrentDraggedObject as UnityEngine.Object != element) return;
             foreach (var draggableBase in element.draggableBehaviours)
             {
                 if (draggableBase is not InteractableBehaviourBase b || !IsBehaviourEnabledBase(b) || !b.EnableDragLocal) continue;
@@ -660,7 +664,7 @@ namespace InteractionSystem.Runtime
 
         public void OnUIEndDrag(InteractableUIElement element)
         {
-            if (CurrentDraggedObject != element) return;
+            if (CurrentDraggedObject as UnityEngine.Object != element) return;
             foreach (var draggableBase in element.draggableBehaviours)
             {
                 if (draggableBase is not InteractableBehaviourBase b || !IsBehaviourEnabledBase(b) || !b.EnableDragLocal) continue;

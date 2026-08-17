@@ -1,7 +1,10 @@
 #if UNITY_6000_3_OR_NEWER
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.Toolbars;
@@ -13,10 +16,90 @@ public class MainToolbarInitializeOnLoad
 {
     static MainToolbarInitializeOnLoad()
     {
+        MainToolbarVisibilityMigration.Init();
         MainToolbarSceneLauncherButton.Init();
         MainToolbarDropdownSceneSelector.Init();
         MainToolbarDropdownPlayMode.Init();
     }
+}
+
+internal static class MainToolbarVisibilityMigration
+{
+    private const string MigrationKeyPrefix = "ZFramework.MainToolbarVisibilityMigration.v1.";
+    private const string AgentWorkbenchElementPath = "Agent Workflow/Workbench";
+    private static readonly string[] TEngineElementPaths =
+    {
+        "TEngine/Scene Launcher Button",
+        "TEngine/Scene Switcher",
+        "TEngine/Play Mode"
+    };
+
+    private static bool initialized;
+
+    public static void Init()
+    {
+        if (initialized)
+            return;
+
+        initialized = true;
+        if (EditorPrefs.GetBool(GetMigrationKey(), false))
+            return;
+
+        EditorApplication.update += ShowToolbarElements;
+    }
+
+    private static void ShowToolbarElements()
+    {
+        Type windowType = typeof(Editor).Assembly.GetType("UnityEditor.MainToolbarWindow");
+        if (windowType == null)
+            return;
+
+        UnityEngine.Object[] windows = Resources.FindObjectsOfTypeAll(windowType);
+        if (windows.Length == 0)
+            return;
+
+        PropertyInfo canvasProperty = windowType.GetProperty("overlayCanvas", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        object canvas = canvasProperty?.GetValue(windows[0]);
+        if (canvas == null)
+            return;
+
+        PropertyInfo overlaysProperty = canvas.GetType().GetProperty("overlays", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        if (!(overlaysProperty?.GetValue(canvas) is IEnumerable overlays))
+            return;
+
+        var remainingPaths = new HashSet<string>(TEngineElementPaths, StringComparer.Ordinal);
+        if (typeof(MainToolbarInitializeOnLoad).Assembly.GetType("AgentWorkflow.Editor.AgentWorkbenchMainToolbar") != null)
+            remainingPaths.Add(AgentWorkbenchElementPath);
+
+        var refreshedPaths = new List<string>(remainingPaths.Count);
+        foreach (object overlay in overlays)
+        {
+            if (overlay == null)
+                continue;
+
+            Type overlayType = overlay.GetType();
+            PropertyInfo idProperty = overlayType.GetProperty("id", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            string id = idProperty?.GetValue(overlay) as string;
+            if (string.IsNullOrEmpty(id) || !remainingPaths.Remove(id))
+                continue;
+
+            refreshedPaths.Add(id);
+            PropertyInfo displayedProperty = overlayType.GetProperty("displayed", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (displayedProperty?.CanWrite == true)
+                displayedProperty.SetValue(overlay, true);
+        }
+
+        if (remainingPaths.Count != 0)
+            return;
+
+        foreach (string elementPath in refreshedPaths)
+            MainToolbar.Refresh(elementPath);
+
+        EditorPrefs.SetBool(GetMigrationKey(), true);
+        EditorApplication.update -= ShowToolbarElements;
+    }
+
+    private static string GetMigrationKey() => MigrationKeyPrefix + Hash128.Compute(Application.dataPath);
 }
 
 public class MainToolbarSceneLauncherButton

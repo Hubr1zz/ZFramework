@@ -173,7 +173,7 @@ namespace Core
             EnsureRootObjects();
 
             // 阶段管理器
-            _phaseManager = new PhaseManager();
+            _phaseManager = new PhaseManager(GameModule.Fsm);
             _phaseManager.OnPhaseTransition = ApplyPhaseRoots;
 
             // 全局事件订阅
@@ -216,12 +216,10 @@ namespace Core
             // 广播棋盘大小给相机（此时相机已订阅）
             EventBus.Publish(new BoardReadyEvent { MapRadius = _mapRadius, CellSize = cellSize });
 
-            // 设置初始阶段
+            // 设置初始阶段。PhaseManager 使用独立命名的 ZFramework FSM。
             var startPhase = devMode ? devStartPhase : GamePhase.Settlement;
-            ApplyPhaseRoots(GamePhase.Settlement, startPhase);
-
-            // 初始化各阶段子系统
             _settlementManager = CreateSettlementManager();
+            _phaseManager.Start(startPhase);
 
             if (startPhase == GamePhase.Settlement)
             {
@@ -229,9 +227,9 @@ namespace Core
                 _settlementManager.OnEnter();
                 EnsureSettlementUI();
             }
-            else
+            else if (startPhase == GamePhase.Hunt)
             {
-                _phaseManager.TransitionTo(startPhase);
+                EnterHuntPhase();
             }
 
             // 仅在 BossFight 阶段才启动回合状态机
@@ -303,7 +301,11 @@ namespace Core
         {
             if (uiNode != null) return;
             // 查找场景中名为 nodeName 的 Canvas 子节点
+#if UNITY_2023_1_OR_NEWER
+            var canvas = FindAnyObjectByType<UnityEngine.Canvas>();
+#else
             var canvas = FindObjectOfType<UnityEngine.Canvas>();
+#endif
             if (canvas != null)
             {
                 var t = canvas.transform.Find(nodeName);
@@ -330,6 +332,23 @@ namespace Core
         /// 必须在 GameManager 构建战斗（Awake.BuildBattle）之前调用才生效。
         /// </summary>
         public void InjectBattleSetup(BattleSetup setup) => _pendingSetup = setup;
+
+        /// <summary>
+        /// 独立测试场景的显式配置入口。必须在 inactive GameObject 激活、触发 Awake 之前调用。
+        /// </summary>
+        public void ConfigureForStandaloneTest(BattleSetup setup, GamePhase startPhase, float testCellSize, UI.EntityCreator testEntityCreator = null, TMP_FontAsset testChineseFontAsset = null, TextAsset testChineseCharacterSet = null)
+        {
+            if (gameObject.activeInHierarchy)
+                throw new System.InvalidOperationException("Standalone test configuration must be applied before GameManager is activated.");
+
+            _pendingSetup = setup;
+            devMode = true;
+            devStartPhase = startPhase;
+            cellSize = Mathf.Max(0.01f, testCellSize);
+            entityCreator = testEntityCreator;
+            chineseFontAsset = testChineseFontAsset;
+            chineseCharacterSet = testChineseCharacterSet;
+        }
 
         /// <summary>解析本场战斗装配：优先用注入的载荷，否则用序列化配置自行组装。</summary>
         private BattleSetup ResolveSetup()
@@ -828,6 +847,8 @@ namespace Core
         /// </summary>
         public void TransitionToPhase(GamePhase newPhase)
         {
+            if (_phaseManager == null || newPhase == _phaseManager.CurrentPhase) return;
+
             // 离开当前阶段的清理
             switch (_phaseManager.CurrentPhase)
             {
@@ -836,7 +857,7 @@ namespace Core
                     break;
             }
 
-            _phaseManager.TransitionTo(newPhase);
+            if (!_phaseManager.TransitionTo(newPhase)) return;
 
             // 进入新阶段的初始化
             switch (newPhase)
@@ -894,6 +915,7 @@ namespace Core
 
         private void OnDestroy()
         {
+            _phaseManager?.Shutdown();
             EventBus.Unsubscribe<BossDefeatedEvent>(OnBossDefeated);
             EventBus.Unsubscribe<GameOverEvent>(OnGameOver);
             EventBus.Unsubscribe<HunterRosterChangedEvent>(OnHunterRosterChanged);

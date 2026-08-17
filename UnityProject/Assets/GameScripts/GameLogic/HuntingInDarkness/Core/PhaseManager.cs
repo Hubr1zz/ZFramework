@@ -1,56 +1,141 @@
+using System;
 using GameplayBase;
-using UnityEngine;
+using TEngine;
 
 namespace Core
 {
     /// <summary>
-    /// 游戏大阶段状态机（纯 C#）。
-    /// 职责：管理 Settlement / Hunt / BossFight 三个阶段的切换，
-    /// 通过 EventBus 广播 GamePhaseChangedEvent，并回调 GameManager
-    /// 以 Enable/Disable 对应的根 GameObject。
-    ///
-    /// 合法转换路径：
-    ///   Settlement → Hunt → BossFight → Settlement（循环）
-    ///   开发者模式可任意跳转。
+    /// 基于 ZFramework FsmModule 的游戏大阶段状态机。
+    /// 启动 Procedure 与游戏阶段使用不同的 FSM 实例，彼此独立。
     /// </summary>
-    public class PhaseManager
+    public sealed class PhaseManager
     {
+        public const string FsmName = "HuntingInDarkness.GamePhase";
+
+        private readonly IFsmModule fsmModule;
+        private IFsm<PhaseManager> fsm;
+        private bool started;
+        private bool publishInitialTransition;
+
         public GamePhase CurrentPhase { get; private set; } = GamePhase.Settlement;
+        public Action<GamePhase, GamePhase> OnPhaseTransition;
 
-        /// <summary>阶段切换时由 GameManager 注入；参数为（旧阶段, 新阶段）</summary>
-        public System.Action<GamePhase, GamePhase> OnPhaseTransition;
-
-        // ─── 切换 ───────────────────────────────────────────────────
-
-        /// <summary>切换到指定阶段（允许开发者任意跳转）</summary>
-        public void TransitionTo(GamePhase newPhase)
+        public PhaseManager(IFsmModule fsmModule)
         {
+            this.fsmModule = fsmModule ?? throw new ArgumentNullException(nameof(fsmModule));
+        }
+
+        public void Start(GamePhase initialPhase)
+        {
+            if (started) return;
+
+            if (fsmModule.HasFsm<PhaseManager>(FsmName))
+                fsmModule.DestroyFsm<PhaseManager>(FsmName);
+
+            publishInitialTransition = initialPhase != CurrentPhase;
+
+            try
+            {
+                fsm = fsmModule.CreateFsm(FsmName, this, new SettlementState(), new HuntState(), new BossFightState());
+                fsm.Start(GetStateType(initialPhase));
+                started = true;
+            }
+            catch
+            {
+                if (fsm != null && !fsm.IsDestroyed)
+                    fsmModule.DestroyFsm(fsm);
+
+                fsm = null;
+                throw;
+            }
+        }
+
+        public bool TransitionTo(GamePhase newPhase)
+        {
+            if (!started)
+                throw new InvalidOperationException("Game phase FSM has not been started.");
+
             if (newPhase == CurrentPhase)
             {
-                Debug.LogWarning($"[PhaseManager] 已处于 {newPhase} 阶段，忽略重复跳转");
-                return;
+                Log.Warning("[PhaseManager] Already in phase '{0}', transition ignored.", newPhase);
+                return false;
             }
 
-            var prev = CurrentPhase;
-            CurrentPhase = newPhase;
+            GamePhaseState currentState = fsm.CurrentState as GamePhaseState;
+            if (currentState == null)
+                throw new InvalidOperationException("Game phase FSM has no active state.");
 
-            Debug.Log($"[PhaseManager] {prev} → {newPhase}");
+            currentState.ChangeTo(fsm, GetStateType(newPhase));
+            return true;
+        }
 
-            // 通知 GameManager 做 Enable/Disable
-            OnPhaseTransition?.Invoke(prev, newPhase);
+        public void Shutdown()
+        {
+            if (fsm != null && !fsm.IsDestroyed)
+                fsmModule.DestroyFsm(fsm);
 
-            // 广播事件（供 UI、系统监听）
+            fsm = null;
+            started = false;
+            publishInitialTransition = false;
+            CurrentPhase = GamePhase.Settlement;
+        }
+
+        private void EnterPhase(GamePhase phase)
+        {
+            GamePhase previous = CurrentPhase;
+            bool isInitial = !started;
+            CurrentPhase = phase;
+            Log.Info("[PhaseManager] {0} -> {1}", previous, phase);
+            OnPhaseTransition?.Invoke(previous, phase);
+
+            if (isInitial && !publishInitialTransition) return;
+
             EventBus.Publish(new GamePhaseChangedEvent
             {
-                PreviousPhase = prev,
-                NewPhase      = newPhase
+                PreviousPhase = previous,
+                NewPhase = phase
             });
         }
 
-        // ─── 便捷方法 ────────────────────────────────────────────────
+        private static Type GetStateType(GamePhase phase)
+        {
+            return phase switch
+            {
+                GamePhase.Settlement => typeof(SettlementState),
+                GamePhase.Hunt => typeof(HuntState),
+                GamePhase.BossFight => typeof(BossFightState),
+                _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, null)
+            };
+        }
 
-        public void ToSettlement() => TransitionTo(GamePhase.Settlement);
-        public void ToHunt()       => TransitionTo(GamePhase.Hunt);
-        public void ToBossFight()  => TransitionTo(GamePhase.BossFight);
+        private abstract class GamePhaseState : FsmState<PhaseManager>
+        {
+            protected abstract GamePhase Phase { get; }
+
+            protected override void OnEnter(IFsm<PhaseManager> owner)
+            {
+                owner.Owner.EnterPhase(Phase);
+            }
+
+            internal void ChangeTo(IFsm<PhaseManager> owner, Type stateType)
+            {
+                ChangeState(owner, stateType);
+            }
+        }
+
+        private sealed class SettlementState : GamePhaseState
+        {
+            protected override GamePhase Phase => GamePhase.Settlement;
+        }
+
+        private sealed class HuntState : GamePhaseState
+        {
+            protected override GamePhase Phase => GamePhase.Hunt;
+        }
+
+        private sealed class BossFightState : GamePhaseState
+        {
+            protected override GamePhase Phase => GamePhase.BossFight;
+        }
     }
 }

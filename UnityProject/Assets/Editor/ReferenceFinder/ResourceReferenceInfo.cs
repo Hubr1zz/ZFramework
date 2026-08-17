@@ -31,7 +31,7 @@ namespace TEngine.Editor
         private bool _isDepend;
         private GUIStyle _toolbarButtonGUIStyle;
         private GUIStyle _toolbarGUIStyle;
-        public AssetTreeView mAssetTreeView;
+        [System.NonSerialized] public AssetTreeView mAssetTreeView;
 
         private void OnEnable() => _isDepend = PlayerPrefs.GetInt(IS_DEPEND_PREF_KEY, 0) == 1;
 

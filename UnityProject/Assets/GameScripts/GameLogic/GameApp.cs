@@ -1,5 +1,6 @@
 using Core;
 using GameLogic;
+using HuntingInDarkness.Testing;
 using TEngine;
 using UnityEngine;
 
@@ -26,8 +27,23 @@ public partial class GameApp
     
     private static bool StartGameLogic()
     {
+#if UNITY_2023_1_OR_NEWER
+        var manager = Object.FindAnyObjectByType<GameManager>();
+#else
         var manager = Object.FindObjectOfType<GameManager>();
+#endif
         if (manager != null) return true;
+
+#if UNITY_2023_1_OR_NEWER
+        var standaloneTest = Object.FindAnyObjectByType<StandaloneGameTestEntry>();
+#else
+        var standaloneTest = Object.FindObjectOfType<StandaloneGameTestEntry>();
+#endif
+        if (standaloneTest != null)
+        {
+            Log.Info("Standalone game test flow detected: {0}", standaloneTest.GetType().Name);
+            return true;
+        }
 
         Log.Error("Hunting in Darkness startup aborted: no configured GameManager exists in the active scene. " +
                   "Add the migrated GameManager to the bootstrap scene and assign its content ScriptableObjects.");

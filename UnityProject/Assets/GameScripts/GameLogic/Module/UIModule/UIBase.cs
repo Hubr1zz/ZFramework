@@ -15,7 +15,7 @@ namespace GameLogic
         /// 依赖注入回调。外部可设置为接收一个 UIBase 实例的委托，
         /// 在 UI 初始化或创建时由框架调用以注入所需的服务/依赖。
         /// </summary>
-        public static Action<UIBase>? Injector;
+        public static Action<UIBase> Injector;
 
         /// <summary>
         /// UI类型。

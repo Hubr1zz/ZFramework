@@ -78,7 +78,7 @@ internal static class Program
     private sealed class TestWorldObject : IWorldObject
     {
         public int Value { get; set; }
-        public int InstanceId => 1;
+        public ulong InstanceId => 1;
         public string Name => "test";
         public bool TryGetCapability<T>(out T capability) where T : class
         { capability = this as T; return capability != null; }

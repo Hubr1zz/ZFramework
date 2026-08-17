@@ -6,7 +6,17 @@ namespace TEngine.RTS
     {
         private readonly ScriptAnchor _anchor;
         public UnityWorldObject(ScriptAnchor anchor) { _anchor = anchor; }
-        public int InstanceId => _anchor.GetInstanceID();
+        public ulong InstanceId
+        {
+            get
+            {
+#if UNITY_6000_5_OR_NEWER
+                return UnityEngine.EntityId.ToULong(_anchor.GetEntityId());
+#else
+                return unchecked((uint)_anchor.GetInstanceID());
+#endif
+            }
+        }
         public string Name => _anchor.name;
 
         public float PositionX { get => _anchor.transform.position.x; set => SetPosition(value, PositionY, PositionZ); }

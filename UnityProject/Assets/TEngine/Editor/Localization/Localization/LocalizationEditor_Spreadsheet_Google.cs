@@ -14,7 +14,7 @@ namespace TEngine.Localization
 
 		public static Dictionary<string, string> mGoogleSpreadsheets = new Dictionary<string, string>(StringComparer.Ordinal);
 
-		public UnityWebRequest mConnection_WWW;
+		[NonSerialized] public UnityWebRequest mConnection_WWW;
 
         delegate void fnConnectionCallback(string Result, string Error);
         event fnConnectionCallback mConnection_Callback;

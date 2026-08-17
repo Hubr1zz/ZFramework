@@ -4,6 +4,7 @@ using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
 using GameplayBase.CombatSystem;
+using HuntingInDarkness.Testing;
 using SO.Boss.ActionCard;
 using SO.Boss.HitLocation;
 using TMPro;
@@ -25,7 +26,7 @@ namespace CardTest3D
     ///   右下  — Boss 部位卡抽牌堆 → 自动扩展部位区（抽出后翻正面动画）
     ///   中央  — 出牌区（点击行动卡模拟打出）
     /// </summary>
-    public class CombatTestSetup : MonoBehaviour
+    public class CombatTestSetup : StandaloneGameTestEntry
     {
         // ─── Inspector 配置 ────────────────────────────────────────────────
 

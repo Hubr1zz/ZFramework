@@ -41,7 +41,11 @@ namespace GameplayBase.CombatSystem
             if (_initialized) return;
             _initialized = true;
 
+#if UNITY_2023_1_OR_NEWER
+            _canvas = UnityEngine.Object.FindAnyObjectByType<Canvas>();
+#else
             _canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+#endif
             if (_canvas == null)
             {
                 var canvasGo = new GameObject("CombatInputCanvas");

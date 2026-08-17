@@ -7,11 +7,20 @@ namespace TEngine.RTS
 {
     internal sealed class ScriptRuntimeModule : Module, IUpdateModule, IScriptRuntimeModule
     {
-        private readonly Dictionary<int, ScriptAnchor> _anchors = new Dictionary<int, ScriptAnchor>();
-        private readonly Dictionary<int, UnityWorldObject> _worldObjects = new Dictionary<int, UnityWorldObject>();
+        private readonly Dictionary<ulong, ScriptAnchor> _anchors = new Dictionary<ulong, ScriptAnchor>();
+        private readonly Dictionary<ulong, UnityWorldObject> _worldObjects = new Dictionary<ulong, UnityWorldObject>();
         private readonly UnityScriptContext _context = new UnityScriptContext();
         private ScriptRuntimeKernel _kernel;
         private long _frameIndex;
+
+        private static ulong GetObjectId(UnityEngine.Object target)
+        {
+#if UNITY_6000_5_OR_NEWER
+            return UnityEngine.EntityId.ToULong(target.GetEntityId());
+#else
+            return unchecked((uint)target.GetInstanceID());
+#endif
+        }
         private bool _isRestartingScene;
 
         public override int Priority => -10;
@@ -34,7 +43,7 @@ namespace TEngine.RTS
         public void Attach(ScriptAnchor anchor)
         {
             if (anchor == null || string.IsNullOrWhiteSpace(anchor.ScriptId)) return;
-            int instanceId = anchor.GetInstanceID();
+            ulong instanceId = GetObjectId(anchor);
             _anchors[instanceId] = anchor;
             if (!_worldObjects.TryGetValue(instanceId, out UnityWorldObject worldObject))
             {
@@ -50,7 +59,7 @@ namespace TEngine.RTS
         public void Detach(ScriptAnchor anchor)
         {
             if (anchor == null) return;
-            int instanceId = anchor.GetInstanceID();
+            ulong instanceId = GetObjectId(anchor);
             _kernel.Detach(instanceId);
             _anchors.Remove(instanceId);
             _worldObjects.Remove(instanceId);
@@ -61,7 +70,7 @@ namespace TEngine.RTS
         {
             ScriptSwapResult result = _kernel.ReplaceProvider(provider, statePolicy);
             if (!result.Succeeded) return result;
-            foreach (KeyValuePair<int, ScriptAnchor> pair in _anchors)
+            foreach (KeyValuePair<ulong, ScriptAnchor> pair in _anchors)
             {
                 if (_worldObjects.TryGetValue(pair.Key, out UnityWorldObject worldObject) &&
                     !_kernel.Attach(pair.Key, pair.Value.ScriptId, pair.Value.InitialConfig, _context, worldObject, out string error))

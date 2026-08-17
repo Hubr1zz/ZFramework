@@ -36,7 +36,11 @@ namespace UI
             get
             {
                 if (_instance == null)
+#if UNITY_2023_1_OR_NEWER
+                    _instance = FindAnyObjectByType<EntityCreator>(FindObjectsInactive.Include);
+#else
                     _instance = FindObjectOfType<EntityCreator>(includeInactive: true);
+#endif
                 return _instance;
             }
             private set => _instance = value;
