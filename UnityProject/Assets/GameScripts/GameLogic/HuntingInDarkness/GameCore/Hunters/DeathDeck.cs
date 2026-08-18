@@ -53,7 +53,23 @@ namespace HuntingInDarkness.GameCore.Hunters
             if (random == null)
                 throw new ArgumentNullException(nameof(random));
 
-            int index = random.Next(0, _cards.Count);
+            return ResolveCardAt(random.Next(0, _cards.Count));
+        }
+
+        public DeathDeckDrawOrder PrepareDraw(IRandomSource random) => DeathDeckDrawOrder.Create(this, _cards.Count, random);
+
+        public DeathDrawResult Draw(DeathDeckDrawOrder drawOrder, int facedownPosition)
+        {
+            if (drawOrder == null)
+                throw new ArgumentNullException(nameof(drawOrder));
+            if (!drawOrder.IsFor(this) || drawOrder.Count != _cards.Count)
+                throw new InvalidOperationException("The death deck changed after it was shuffled.");
+            return ResolveCardAt(drawOrder.ResolveCardIndex(facedownPosition));
+        }
+
+        private DeathDrawResult ResolveCardAt(int index)
+        {
+            index = Math.Max(0, Math.Min(index, _cards.Count - 1));
             DeathCardType card = _cards[index];
             bool addedDeathCard = card == DeathCardType.Survive;
             if (addedDeathCard)

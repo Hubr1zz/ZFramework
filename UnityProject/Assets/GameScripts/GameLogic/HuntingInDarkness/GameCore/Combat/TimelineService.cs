@@ -155,10 +155,23 @@ namespace HuntingInDarkness.GameCore.Combat
             if (helper.Willpower < 1)
                 return AssistanceResult.Rejected(AssistanceFailure.InsufficientWillpower);
 
+            if (!TryRelieveOvertimeCharacter(targetId, out TimePointChange change))
+                return AssistanceResult.Rejected(AssistanceFailure.TargetNotOvertime);
+
             helper.Willpower--;
-            TimePointChange change = SetTimePoints(target, target.CurrentTimePoints + 1);
-            RefreshStatus(target);
             return AssistanceResult.Accepted(change);
+        }
+
+        public bool TryRelieveOvertimeCharacter(int targetId, out TimePointChange change)
+        {
+            change = default;
+            TimelineState target = Get(targetId);
+            if (target == null || target.IsBoss || target.Status != TimelineActionStatus.Overtime)
+                return false;
+
+            change = SetTimePoints(target, target.CurrentTimePoints + 1);
+            RefreshStatus(target);
+            return true;
         }
 
         public bool CanSpendWillpower(int characterId, int amount)

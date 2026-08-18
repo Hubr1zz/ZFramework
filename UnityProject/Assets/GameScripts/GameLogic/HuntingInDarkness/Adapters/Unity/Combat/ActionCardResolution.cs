@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using GameplayBase.CombatSystem;
 using HuntingInDarkness.GameCore.Cards;
+using HuntingInDarkness.Combat;
 
 namespace Core
 {
@@ -97,8 +98,16 @@ namespace Core
                 return null;
 
             var prepared = new List<PreparedActionCardCost>(card.Costs.Count);
+            var selectedInspirationIds = new HashSet<int>();
             foreach (ActionCardCostDefinition definition in card.Costs)
             {
+                if (definition.Kind == ActionCardCostKind.CombatInspiration && definition.InspirationRequirement != InspirationRequirement.Any)
+                {
+                    if (!await PrepareInspirationCost(card.OwnerCharacterId, definition, prepared, selectedInspirationIds)) return null;
+                    continue;
+                }
+                if (definition.Kind == ActionCardCostKind.CombatInspiration)
+                    continue;
                 if (definition.Kind != ActionCardCostKind.FlipOtherCard)
                 {
                     prepared.Add(new PreparedActionCardCost(definition));
@@ -129,14 +138,33 @@ namespace Core
                 prepared.Add(new PreparedActionCardCost(definition, selected));
             }
 
+            foreach (ActionCardCostDefinition definition in card.Costs)
+                if (definition.Kind == ActionCardCostKind.CombatInspiration && definition.InspirationRequirement == InspirationRequirement.Any)
+                    if (!await PrepareInspirationCost(card.OwnerCharacterId, definition, prepared, selectedInspirationIds)) return null;
+
+            return new ActionCardCostTransaction(prepared);
+        }
+
+        public async UniTask<ActionCardCostTransaction> PrepareInspirationCostsAsync(int ownerId, IReadOnlyList<ActionCardCostDefinition> costs)
+        {
+            if (!_resources.CanPayCosts(ownerId, costs)) return null;
+
+            var prepared = new List<PreparedActionCardCost>(costs.Count);
+            var selectedTokenIds = new HashSet<int>();
+            foreach (ActionCardCostDefinition cost in costs)
+                if (cost.Kind == ActionCardCostKind.CombatInspiration && cost.InspirationRequirement != InspirationRequirement.Any)
+                    if (!await PrepareInspirationCost(ownerId, cost, prepared, selectedTokenIds)) return null;
+            foreach (ActionCardCostDefinition cost in costs)
+                if (cost.Kind == ActionCardCostKind.CombatInspiration && cost.InspirationRequirement == InspirationRequirement.Any)
+                    if (!await PrepareInspirationCost(ownerId, cost, prepared, selectedTokenIds)) return null;
             return new ActionCardCostTransaction(prepared);
         }
 
         public bool CanPay(int ownerId, IReadOnlyList<PreparedActionCardCost> costs)
         {
-            int inspiration = 0;
             int willpower = 0;
             var selectedCardIds = new HashSet<int>();
+            var selectedInspirationIds = new HashSet<int>();
 
             foreach (PreparedActionCardCost prepared in costs)
             {
@@ -146,7 +174,10 @@ namespace Core
                     case ActionCardCostKind.TimePoint:
                         break;
                     case ActionCardCostKind.CombatInspiration:
-                        inspiration += definition.Amount;
+                        if (!_resources.CanSpendCombatInspiration(ownerId, prepared.SelectedResourceIds, definition.InspirationRequirement, definition.Amount)) return false;
+                        foreach (int tokenId in prepared.SelectedResourceIds)
+                            if (!selectedInspirationIds.Add(tokenId))
+                                return false;
                         break;
                     case ActionCardCostKind.Willpower:
                         willpower += definition.Amount;
@@ -170,16 +201,15 @@ namespace Core
             TimelineManager timeline = _getTimeline();
             return timeline != null &&
                    timeline.Contains(ownerId) &&
-                   _resources.CanSpendCombatInspiration(ownerId, inspiration) &&
                    timeline.CanSpendWillpower(ownerId, willpower);
         }
 
         public void Commit(int ownerId, IReadOnlyList<PreparedActionCardCost> costs)
         {
             int timePoints = 0;
-            int inspiration = 0;
             int willpower = 0;
             var cardsToFlip = new List<int>();
+            var inspirationTokenIds = new List<int>();
 
             foreach (PreparedActionCardCost prepared in costs)
             {
@@ -189,7 +219,7 @@ namespace Core
                         timePoints += prepared.Definition.Amount;
                         break;
                     case ActionCardCostKind.CombatInspiration:
-                        inspiration += prepared.Definition.Amount;
+                        inspirationTokenIds.AddRange(prepared.SelectedResourceIds);
                         break;
                     case ActionCardCostKind.Willpower:
                         willpower += prepared.Definition.Amount;
@@ -201,8 +231,12 @@ namespace Core
             }
 
             TimelineManager timeline = _getTimeline();
-            if (inspiration > 0)
-                _resources.TrySpendCombatInspiration(ownerId, inspiration);
+            if (inspirationTokenIds.Count > 0)
+            {
+                int oldCount = _resources.GetCombatInspiration(ownerId);
+                _resources.TrySpendCombatInspiration(ownerId, inspirationTokenIds);
+                PublishInspirationChange(ownerId, oldCount);
+            }
             if (willpower > 0)
                 timeline.TrySpendWillpower(ownerId, willpower);
             if (timePoints > 0)
@@ -211,31 +245,95 @@ namespace Core
                 _flipEvaluator.FlipAsCost(cardId);
         }
 
-        public int AddCombatInspiration(int ownerId, int amount) =>
-            _resources.AddCombatInspiration(ownerId, amount);
+        public int AddCombatInspiration(int ownerId, int amount)
+        {
+            int oldCount = _resources.GetCombatInspiration(ownerId);
+            int newCount = _resources.AddCombatInspiration(ownerId, amount);
+            PublishInspirationChange(ownerId, oldCount);
+            return newCount;
+        }
+
+        public async UniTask<InspirationGain> AddCombatInspirationAsync(int ownerId, CombatInspirationColor color)
+        {
+            int oldCount = _resources.GetCombatInspiration(ownerId);
+            InspirationGain gain = _resources.TryAddCombatInspiration(ownerId, color);
+            if (gain.Result == InspirationGainResult.RequiresReplacement)
+            {
+                if (_getInput() is not IPlayerOptionInputProvider optionInput)
+                    return new InspirationGain(InspirationGainResult.Discarded, default);
+
+                var options = new List<PlayerChoiceOption>();
+                IReadOnlyList<CombatInspirationToken> tokens = _resources.GetTokens(ownerId);
+                for (int index = 0; index < tokens.Count; index++)
+                {
+                    CombatInspirationToken token = tokens[index];
+                    options.Add(new PlayerChoiceOption(token.Id, $"替换 {CombatInspirationPresentation.GetName(token.Color)}"));
+                }
+                int selectedTokenId = await optionInput.RequestSelectOption($"思维区已满：如何处理新获得的{CombatInspirationPresentation.GetName(color)}灵感？", options, cancelOptionId: -1, cancelLabel: "丢弃新灵感");
+                if (selectedTokenId < 0)
+                    return new InspirationGain(InspirationGainResult.Discarded, default);
+                gain = _resources.TryAddCombatInspiration(ownerId, color, selectedTokenId);
+            }
+
+            if (gain.Result == InspirationGainResult.Added || gain.Result == InspirationGainResult.Replaced)
+                PublishInspirationChange(ownerId, oldCount);
+            return gain;
+        }
 
         public int GetCombatInspiration(int ownerId) =>
             _resources.GetCombatInspiration(ownerId);
+
+        public int GetCombatInspirationCapacity(int ownerId) => _resources.GetCapacity(ownerId);
+
+        public IReadOnlyList<CombatInspirationToken> GetCombatInspirationTokens(int ownerId) => _resources.GetTokens(ownerId);
 
         private bool CanPayResourceCosts(
             int ownerId,
             IReadOnlyList<ActionCardCostDefinition> costs)
         {
-            int inspiration = 0;
             int willpower = 0;
             foreach (ActionCardCostDefinition cost in costs)
             {
-                if (cost.Kind == ActionCardCostKind.CombatInspiration)
-                    inspiration += cost.Amount;
-                else if (cost.Kind == ActionCardCostKind.Willpower)
+                if (cost.Kind == ActionCardCostKind.Willpower)
                     willpower += cost.Amount;
             }
 
             TimelineManager timeline = _getTimeline();
             return timeline != null &&
                    timeline.Contains(ownerId) &&
-                   _resources.CanSpendCombatInspiration(ownerId, inspiration) &&
+                   _resources.CanPayCosts(ownerId, costs) &&
                    timeline.CanSpendWillpower(ownerId, willpower);
+        }
+
+        private async UniTask<bool> PrepareInspirationCost(int ownerId, ActionCardCostDefinition definition, List<PreparedActionCardCost> prepared, HashSet<int> selectedTokenIds)
+        {
+            var selected = new List<int>(definition.Amount);
+            for (int index = 0; index < definition.Amount; index++)
+            {
+                List<CombatInspirationToken> candidates = _resources.GetSpendableTokens(ownerId, definition.InspirationRequirement, selectedTokenIds);
+                if (candidates.Count == 0) return false;
+
+                int selectedTokenId = candidates[0].Id;
+                if (candidates.Count > 1 && _getInput() is IPlayerOptionInputProvider optionInput)
+                {
+                    var options = new List<PlayerChoiceOption>(candidates.Count);
+                    foreach (CombatInspirationToken candidate in candidates)
+                        options.Add(new PlayerChoiceOption(candidate.Id, CombatInspirationPresentation.GetName(candidate.Color)));
+                    selectedTokenId = await optionInput.RequestSelectOption("选择要支付的战斗灵感", options);
+                }
+                if (!candidates.Exists(candidate => candidate.Id == selectedTokenId)) return false;
+
+                selected.Add(selectedTokenId);
+                selectedTokenIds.Add(selectedTokenId);
+            }
+            prepared.Add(new PreparedActionCardCost(definition, selected));
+            return true;
+        }
+
+        private void PublishInspirationChange(int ownerId, int oldCount)
+        {
+            int newCount = _resources.GetCombatInspiration(ownerId);
+            EventBus.Publish(new CombatInspirationChangedEvent { CharacterId = ownerId, OldCount = oldCount, NewCount = newCount });
         }
     }
 }

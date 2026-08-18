@@ -53,6 +53,9 @@ namespace HuntingInDarkness.Hunt
         /// <summary>需要显示资源采集 UI 时</summary>
         public System.Action<ResourcePointInstance, HunterInstance> OnResourcePointClicked;
 
+        /// <summary>资源点采集状态改变后</summary>
+        public System.Action<ResourcePointInstance> OnResourcePointHarvested;
+
         /// <summary>触发 Boss 战（切 BossFight 阶段）</summary>
         public System.Action OnBossEncounterTriggered;
 
@@ -68,16 +71,18 @@ namespace HuntingInDarkness.Hunt
             MapGen       = new HexMapGenerator(_rng, mapRadius: 3);
             Resources    = new ResourceSystem(_rng);
             HuntEvents   = new HuntEventSystem(_eventSystem, _rng);
+            PlayableHuntContentRuntime.ApplyTo(this);
         }
 
         // ─── 生命周期 ────────────────────────────────────────────
 
         /// <summary>进入狩猎阶段（由 GameManager 调用）</summary>
-        public void OnEnter(List<HunterInstance> hunters)
+        public void OnEnter(List<HunterInstance> hunters, int currentYear = 1)
         {
             ActiveHunters  = hunters ?? new List<HunterInstance>();
             SelectedHunter = ActiveHunters.Count > 0 ? ActiveHunters[0] : null;
             _navigation.Reset();
+            HuntEvents.ResetSession(currentYear);
 
             Map = MapGen.GenerateMap(TilePool, StartingTileConfig);
 
@@ -106,6 +111,7 @@ namespace HuntingInDarkness.Hunt
         /// </summary>
         public void OnTileClicked(Vector2Int coord)
         {
+            if (PlayableHuntInputGuard.IsBlocked) return;
             if (!Map.TryGetValue(coord, out var tile)) return;
 
             if (tile.State == TileState.Interactable)
@@ -163,6 +169,7 @@ namespace HuntingInDarkness.Hunt
         /// <summary>玩家点击地块上的资源点</summary>
         public void OnResourcePointSelected(Vector2Int tileCoord, int pointIndex)
         {
+            if (PlayableHuntInputGuard.IsBlocked) return;
             if (!Map.TryGetValue(tileCoord, out var tile)) return;
             if (pointIndex < 0 || pointIndex >= tile.ResourcePoints.Count) return;
 
@@ -175,7 +182,19 @@ namespace HuntingInDarkness.Hunt
         /// <summary>执行采集（由 UI 确认后调用）</summary>
         public List<ItemInstance> ExecuteHarvest(ResourcePointInstance point)
         {
-            return Resources.Harvest(point, SelectedHunter);
+            var obtained = Resources.Harvest(point, SelectedHunter);
+            OnResourcePointHarvested?.Invoke(point);
+            return obtained;
+        }
+
+        public PlayableHarvestTransaction PrepareHarvest(ResourcePointInstance point) => Resources.PrepareHarvest(point, SelectedHunter);
+
+        public IReadOnlyList<ItemInstance> CompleteHarvest(PlayableHarvestTransaction transaction)
+        {
+            IReadOnlyList<ItemInstance> obtained = Resources.CommitHarvest(transaction);
+            if (transaction?.Point != null)
+                OnResourcePointHarvested?.Invoke(transaction.Point);
+            return obtained;
         }
 
         // ─── 狩猎结束 ─────────────────────────────────────────────

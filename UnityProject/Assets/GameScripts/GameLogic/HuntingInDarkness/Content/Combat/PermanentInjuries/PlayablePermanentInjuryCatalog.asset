@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03b92c745263e2c49b2caa8bc8561239, type: 3}
+  m_Name: PlayablePermanentInjuryCatalog
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Combat.PlayablePermanentInjuryCatalog
+  injuries:
+  - injuryId: injury_blind_eye
+    displayName: "\u4E00\u773C\u5931\u660E\uFF08\u6280\u5DE7 -1\uFF09"
+    bodyPart: 0
+    drawWeight: 1
+    strengthModifier: 0
+    accuracyModifier: -1
+    evasionModifier: 0
+    movementModifier: 0
+  - injuryId: injury_broken_ribs
+    displayName: "\u65AD\u88C2\u808B\u9AA8\uFF08\u529B\u91CF -1\uFF09"
+    bodyPart: 1
+    drawWeight: 1
+    strengthModifier: -1
+    accuracyModifier: 0
+    evasionModifier: 0
+    movementModifier: 0
+  - injuryId: injury_maimed_arm
+    displayName: "\u6B8B\u635F\u624B\u81C2\uFF08\u529B\u91CF -1\uFF09"
+    bodyPart: 2
+    drawWeight: 1
+    strengthModifier: -1
+    accuracyModifier: 0
+    evasionModifier: 0
+    movementModifier: 0
+  - injuryId: injury_limp
+    displayName: "\u8DDB\u884C\uFF08\u79FB\u52A8 -1\uFF09"
+    bodyPart: 3
+    drawWeight: 1
+    strengthModifier: 0
+    accuracyModifier: 0
+    evasionModifier: 0
+    movementModifier: -1

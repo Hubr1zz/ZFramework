@@ -1,0 +1,77 @@
+using System.Collections.Generic;
+using HuntingInDarkness.Data;
+using UnityEngine;
+
+namespace HuntingInDarkness.Settlement
+{
+    public static class PlayableSettlementContentExtensions
+    {
+        private const string ResourcePath = "HuntingInDarkness/SettlementExtensions";
+
+        public static void Extend(IReadOnlyList<ItemData> baseItems, IReadOnlyList<CraftRecipe> baseRecipes, out List<ItemData> allItems, out List<CraftRecipe> allRecipes)
+        {
+            allItems = CopyItems(baseItems);
+            allRecipes = CopyRecipes(baseRecipes);
+            PlayableSettlementContentExtension[] extensions = Resources.LoadAll<PlayableSettlementContentExtension>(ResourcePath);
+            System.Array.Sort(extensions, (left, right) => string.CompareOrdinal(left.name, right.name));
+
+            foreach (PlayableSettlementContentExtension extension in extensions)
+            {
+                if (extension == null) continue;
+                AppendItems(allItems, extension.Items);
+                AppendRecipes(allRecipes, extension.Recipes);
+            }
+            AppendRecipeItems(allItems, allRecipes);
+        }
+
+        private static List<ItemData> CopyItems(IReadOnlyList<ItemData> source)
+        {
+            var result = new List<ItemData>();
+            AppendItems(result, source);
+            return result;
+        }
+
+        private static List<CraftRecipe> CopyRecipes(IReadOnlyList<CraftRecipe> source)
+        {
+            var result = new List<CraftRecipe>();
+            AppendRecipes(result, source);
+            return result;
+        }
+
+        private static void AppendItems(List<ItemData> target, IReadOnlyList<ItemData> source)
+        {
+            if (source == null) return;
+            foreach (ItemData item in source)
+            {
+                if (item == null || string.IsNullOrWhiteSpace(item.itemName)) continue;
+                if (target.Exists(existing => existing != null && existing.itemName == item.itemName)) continue;
+                target.Add(item);
+            }
+        }
+
+        private static void AppendRecipes(List<CraftRecipe> target, IReadOnlyList<CraftRecipe> source)
+        {
+            if (source == null) return;
+            foreach (CraftRecipe recipe in source)
+            {
+                if (recipe == null || string.IsNullOrWhiteSpace(recipe.recipeName)) continue;
+                if (target.Exists(existing => existing != null && existing.recipeName == recipe.recipeName)) continue;
+                target.Add(recipe);
+            }
+        }
+
+        private static void AppendRecipeItems(List<ItemData> target, IReadOnlyList<CraftRecipe> recipes)
+        {
+            if (recipes == null) return;
+            foreach (CraftRecipe recipe in recipes)
+            {
+                if (recipe?.outputItem != null)
+                    AppendItems(target, new[] { recipe.outputItem });
+                if (recipe?.ingredients == null) continue;
+                foreach (RecipeIngredient ingredient in recipe.ingredients)
+                    if (ingredient?.item != null)
+                        AppendItems(target, new[] { ingredient.item });
+            }
+        }
+    }
+}

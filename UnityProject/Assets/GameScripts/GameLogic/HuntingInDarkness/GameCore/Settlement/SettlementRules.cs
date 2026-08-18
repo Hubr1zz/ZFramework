@@ -38,6 +38,7 @@ namespace HuntingInDarkness.GameCore.Settlement
             Func<TEntry> createEntry)
             where TEntry : ResourceAmount
         {
+            if (amount <= 0) return amount == 0;
             if (Get((IReadOnlyList<TEntry>)resources, name) < amount)
                 return false;
             Add(resources, name, -amount, createEntry);
@@ -102,10 +103,16 @@ namespace HuntingInDarkness.GameCore.Settlement
             }
             foreach (ResourceCost cost in definition.Costs)
             {
-                int have = getResource(cost.ResourceId);
-                if (have < cost.Amount)
+                if (string.IsNullOrEmpty(cost.ResourceId) || cost.Amount <= 0)
                 {
-                    reason = $"资源不足：{cost.ResourceId} 需要 {cost.Amount}，当前 {have}";
+                    reason = "发明成本配置无效";
+                    return false;
+                }
+                int have = getResource(cost.ResourceId);
+                int required = definition.Costs.Where(candidate => candidate.ResourceId == cost.ResourceId).Sum(candidate => candidate.Amount);
+                if (have < required)
+                {
+                    reason = $"资源不足：{cost.ResourceId} 需要 {required}，当前 {have}";
                     return false;
                 }
             }
@@ -149,12 +156,23 @@ namespace HuntingInDarkness.GameCore.Settlement
                 reason = "产出物品未配置";
                 return false;
             }
+            if (recipe.OutputCount <= 0)
+            {
+                reason = "产出数量必须大于0";
+                return false;
+            }
             foreach (ResourceCost ingredient in recipe.Ingredients)
             {
-                int have = getResource(ingredient.ResourceId);
-                if (have < ingredient.Amount)
+                if (string.IsNullOrEmpty(ingredient.ResourceId) || ingredient.Amount <= 0)
                 {
-                    reason = $"资源不足：{ingredient.ResourceId} 需要 {ingredient.Amount}，当前 {have}";
+                    reason = "配方材料配置无效";
+                    return false;
+                }
+                int have = getResource(ingredient.ResourceId);
+                int required = recipe.Ingredients.Where(candidate => candidate.ResourceId == ingredient.ResourceId).Sum(candidate => candidate.Amount);
+                if (have < required)
+                {
+                    reason = $"资源不足：{ingredient.ResourceId} 需要 {required}，当前 {have}";
                     return false;
                 }
             }
@@ -215,6 +233,8 @@ namespace HuntingInDarkness.GameCore.Settlement
         RemoveWillpower,
         AddLuck,
         AddInsanity,
+        AddCourage,
+        AddUnderstanding,
         AddTrait,
         AddAilment,
         UnlockInvention,
@@ -292,6 +312,12 @@ namespace HuntingInDarkness.GameCore.Settlement
                 case SettlementEffectKind.AddInsanity:
                     ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Insanity += value);
                     return new SettlementEffectOutcome(true);
+                case SettlementEffectKind.AddCourage:
+                    ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Courage = Math.Max(0, Math.Min(HunterAdvancementRules.MaximumGrowthAttribute, hunter.Courage + value)));
+                    return new SettlementEffectOutcome(true);
+                case SettlementEffectKind.AddUnderstanding:
+                    ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Understanding = Math.Max(0, Math.Min(HunterAdvancementRules.MaximumGrowthAttribute, hunter.Understanding + value)));
+                    return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.AddTrait:
                     if (directTarget != null && !directTarget.Traits.Contains(targetName))
                         directTarget.Traits.Add(targetName);
@@ -341,7 +367,26 @@ namespace HuntingInDarkness.GameCore.Settlement
 
     public static class SettlementTimelineRules
     {
+        public readonly struct HuntProgress
+        {
+            public int HuntsCompletedThisYear { get; }
+            public bool ShouldAdvanceYear { get; }
+
+            public HuntProgress(int huntsCompletedThisYear, bool shouldAdvanceYear)
+            {
+                HuntsCompletedThisYear = huntsCompletedThisYear;
+                ShouldAdvanceYear = shouldAdvanceYear;
+            }
+        }
+
         public static int AdvanceYear(int currentYear) => currentYear + 1;
+
+        public static HuntProgress CompleteHunt(int huntsCompletedThisYear, int huntsPerYear)
+        {
+            int requiredHunts = System.Math.Max(1, huntsPerYear);
+            int completedHunts = System.Math.Max(0, huntsCompletedThisYear) + 1;
+            return completedHunts >= requiredHunts ? new HuntProgress(0, true) : new HuntProgress(completedHunts, false);
+        }
 
         public static bool IsAvailableForYear(int year, int minimumYear, int maximumYear) =>
             year >= minimumYear && (maximumYear <= 0 || year <= maximumYear);

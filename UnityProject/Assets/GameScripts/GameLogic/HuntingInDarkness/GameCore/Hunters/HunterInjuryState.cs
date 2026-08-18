@@ -111,11 +111,36 @@ namespace HuntingInDarkness.GameCore.Hunters
     {
         public string Id { get; }
         public string DisplayName { get; }
+        public PermanentInjuryStatModifiers StatModifiers { get; }
 
         public PermanentInjury(string id, string displayName)
+            : this(id, displayName, PermanentInjuryStatModifiers.None)
+        {
+        }
+
+        public PermanentInjury(string id, string displayName, PermanentInjuryStatModifiers statModifiers)
         {
             Id = id ?? string.Empty;
             DisplayName = displayName ?? string.Empty;
+            StatModifiers = statModifiers;
+        }
+    }
+
+    public readonly struct PermanentInjuryStatModifiers
+    {
+        public static PermanentInjuryStatModifiers None => default;
+
+        public int Strength { get; }
+        public int Accuracy { get; }
+        public int Evasion { get; }
+        public int Movement { get; }
+
+        public PermanentInjuryStatModifiers(int strength, int accuracy, int evasion, int movement)
+        {
+            Strength = strength;
+            Accuracy = accuracy;
+            Evasion = evasion;
+            Movement = movement;
         }
     }
 
@@ -184,12 +209,30 @@ namespace HuntingInDarkness.GameCore.Hunters
 
         public HunterBodyPartState GetPart(HunterBodyPart part) => _parts[part];
 
+        public bool AddPermanentInjury(PermanentInjury injury)
+        {
+            if (injury == null || string.IsNullOrWhiteSpace(injury.Id) || _permanentInjuries.Exists(current => current.Id == injury.Id))
+                return false;
+            _permanentInjuries.Add(injury);
+            return true;
+        }
+
+        public bool WillTriggerFatalInjury(HunterBodyPart bodyPart, int incomingDamage, IArmorMitigationRule armorRule = null)
+        {
+            HunterBodyPartState part = GetPart(bodyPart);
+            IArmorMitigationRule mitigation = armorRule ?? FlatArmorMitigationRule.Instance;
+            int effectiveDamage = Math.Max(0, mitigation.GetDamageAfterArmor(Math.Max(0, incomingDamage), part.Armor));
+            return !IsDead && part.CurrentHealth == 0 && effectiveDamage > 0;
+        }
+
         public HunterDamageResult ApplyDamage(
             HunterBodyPart bodyPart,
             int incomingDamage,
             IRandomSource random,
             IArmorMitigationRule armorRule = null,
-            IPermanentInjuryResolver permanentInjuryResolver = null)
+            IPermanentInjuryResolver permanentInjuryResolver = null,
+            DeathDeckDrawOrder deathDrawOrder = null,
+            int deathCardPosition = 0)
         {
             if (random == null)
                 throw new ArgumentNullException(nameof(random));
@@ -211,7 +254,7 @@ namespace HuntingInDarkness.GameCore.Hunters
                     bodyPart, safeIncomingDamage, armorPrevented, healthLost, part, false, null, null);
             }
 
-            DeathDrawResult deathDraw = DeathDeck.Draw(random);
+            DeathDrawResult deathDraw = deathDrawOrder != null ? DeathDeck.Draw(deathDrawOrder, deathCardPosition) : DeathDeck.Draw(random);
             PermanentInjury injury = null;
             if (!deathDraw.Survived)
             {
@@ -219,9 +262,9 @@ namespace HuntingInDarkness.GameCore.Hunters
             }
             else if (permanentInjuryResolver != null)
             {
-                injury = permanentInjuryResolver.Resolve(bodyPart, random);
-                if (injury != null)
-                    _permanentInjuries.Add(injury);
+                PermanentInjury resolved = permanentInjuryResolver.Resolve(bodyPart, random);
+                if (AddPermanentInjury(resolved))
+                    injury = resolved;
             }
 
             return CreateResult(

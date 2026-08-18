@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a80fcbf973970024caa923d311d2e527, type: 3}
+  m_Name: BasicArmor
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Settlement.PlayableSettlementContentExtension
+  items:
+  - {fileID: 11400000, guid: ad4e9c1d66557fa4cb81662832fb8f29, type: 2}
+  recipes:
+  - recipeName: "\u7F1D\u5236\u97E7\u819C\u80F8\u7532"
+    ingredients:
+    - item: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
+      count: 1
+    - item: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
+      count: 1
+    outputItem: {fileID: 11400000, guid: ad4e9c1d66557fa4cb81662832fb8f29, type: 2}
+    outputCount: 1
+    requiredInvention: {fileID: 11400000, guid: bbdb198c4c6e406479b4717a7d1d8aa2, type: 2}
+    unlockedByMaterial: 0
+    requiredWorkshopId: armor_workshop

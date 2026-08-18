@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "main_giant_face",
+      "eventName": "巨大的脸",
+      "eventType": "Choice",
+      "displayText": "你们在无火的黑暗中走了很久。这里没有血迹，也没有白骨，只有一张仰卧在空地上的巨大石脸。它闭着眼，却像是在等待一句话。",
+      "hiddenText": "石脸没有回答，但你确信它听见了。这里将成为你们第一次愿意回来的地方。",
+      "options": [
+        {
+          "optionText": "站到它面前，高声询问它的名字",
+          "checkType": "Courage",
+          "checkTarget": 6,
+          "successText": "你的声音没有被黑暗吞没。石脸依旧沉默，但你不再回避自己的恐惧。胆识 +1。",
+          "successEffects": [
+            { "effectType": "AddCourage", "targetName": "selected", "value": 1, "description": "胆识 +1" },
+            { "effectType": "ScheduleEvent", "targetName": "main_face_echo", "value": 2, "description": "两年后，石脸将再次产生变化" }
+          ],
+          "failText": "话语出口时变成了颤抖。石脸没有嘲笑你，沉默反而让这次失败显得可以承受。",
+          "failEffects": [
+            { "effectType": "ScheduleEvent", "targetName": "main_face_echo", "value": 2, "description": "两年后，石脸将再次产生变化" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "谨慎靠近，观察它表面的痕迹",
+          "checkType": "Understanding",
+          "checkTarget": 6,
+          "successText": "你在裂隙中辨认出被反复触摸的痕迹。曾有人也在这里停留。知识 +1。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" },
+            { "effectType": "ScheduleEvent", "targetName": "main_face_echo", "value": 2, "description": "两年后，石脸将再次产生变化" }
+          ],
+          "failText": "裂纹彼此纠缠，没有组成你能理解的符号。至少你记住了它们的形状。",
+          "failEffects": [
+            { "effectType": "ScheduleEvent", "targetName": "main_face_echo", "value": 2, "description": "两年后，石脸将再次产生变化" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "让守望者沿着石脸的视线寻找它注视的方向",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "守望者没有从石脸本身寻找答案，而是顺着那副沉默面孔朝向的黑暗观察。远处并无火光，但你记住了一条安全的归途。知识 +1。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" },
+            { "effectType": "ScheduleEvent", "targetName": "main_face_echo", "value": 2, "description": "两年后，石脸将再次产生变化" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasTrait", "key": "守望者", "value": 0, "inverted": false }
+          ]
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 1,
+      "drawWeight": 1,
+      "category": "MainStory"
+    },
+    {
+      "id": "main_face_echo",
+      "eventName": "石脸的回声",
+      "eventType": "Narrative",
+      "displayText": "两年过去，那张巨大的石脸第一次睁开了眼。它没有看向任何人，只凝视营火之外更深的黑暗。随后，一块温热的碎石从眼角脱落，像一句尚未说完的话。",
+      "hiddenText": "你们收起石片。石脸重新闭眼，但营地里再没有人认为它只是一块普通的岩石。",
+      "options": [],
+      "immediateEffects": [
+        { "effectType": "AddResource", "targetName": "碎石", "value": 2, "description": "碎石 +2" }
+      ],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Scheduled"
+    }
+  ]
+}

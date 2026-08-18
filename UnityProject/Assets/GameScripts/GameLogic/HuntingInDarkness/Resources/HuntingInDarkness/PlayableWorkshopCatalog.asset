@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fe2a038f26904a43830decc79c61546, type: 3}
+  m_Name: PlayableWorkshopCatalog
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Settlement.PlayableWorkshopCatalog
+  workshops:
+  - workshopId: armor_workshop
+    displayName: "\u62A4\u7532\u5DE5\u574A"
+    description: "\u7528\u56FA\u5B9A\u652F\u67B6\u3001\u78E8\u77F3\u4E0E\u7F1D\u5408\u5DE5\u5177\u52A0\u5DE5\u602A\u7269\u7EC4\u7EC7\uFF0C\u5236\u4F5C\u80FD\u8986\u76D6\u8EAB\u4F53\u90E8\u4F4D\u7684\u62A4\u7532\u3002"
+    requiredInvention: {fileID: 11400000, guid: bbdb198c4c6e406479b4717a7d1d8aa2, type: 2}
+    costs:
+    - item: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
+      amount: 1
+    - item: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
+      amount: 1

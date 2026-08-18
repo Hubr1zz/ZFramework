@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Config;
 using GameplayBase.Config;
 using SO.Combat;
+using SO.Boss.ActionCard;
 
 namespace GameplayBase.CombatSystem
 {
@@ -14,6 +15,7 @@ namespace GameplayBase.CombatSystem
     {
         public CombatFieldRulesSO       FieldRules;
         public List<CharacterConfigSO>  HunterSquad = new();
+        public List<CharacterActionCardData> SharedHunterCards = new();
         public BossConfigSO             Boss;
     }
 }

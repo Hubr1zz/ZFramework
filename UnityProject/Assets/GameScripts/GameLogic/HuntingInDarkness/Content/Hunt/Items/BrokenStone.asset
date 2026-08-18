@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48324497afd44fb4eaff36be8ad626c2, type: 3}
+  m_Name: BrokenStone
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.ItemData
+  itemName: "\u788E\u77F3"
+  itemType: 0
+  description: "\u65AD\u88C2\u96D5\u50CF\u4E0E\u8352\u539F\u4E0A\u6700\u5E38\u89C1\u7684\u77F3\u6599\uFF0C\u53EF\u7528\u4E8E\u8425\u5730\u57FA\u5EFA\u3002"
+  tags: 01000000
+  weaponStats:
+    speed: 1
+    power: 1
+    accuracy: 0
+    range: 1
+    specialRule:
+  armorStats:
+    armorHead: 0
+    armorBody: 0
+    armorArms: 0
+    armorLegs: 0
+  stackLimit: 99

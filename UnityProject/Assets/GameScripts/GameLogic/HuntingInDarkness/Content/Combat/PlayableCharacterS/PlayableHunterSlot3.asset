@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb3ff080427dd8246926d374be24e778, type: 3}
+  m_Name: PlayableHunterSlot3
+  m_EditorClassIdentifier: GameLogic::GameplayBase.Config.CharacterConfigSO
+  characterName: "\u51FA\u6218\u730E\u4EBA\u69FD\u4F4D 3"
+  startingCards:
+  - {fileID: 11400000, guid: b61bf39b4dd717c4cb28581fc9e881a9, type: 2}
+  - {fileID: 11400000, guid: bf1660e9edb47234d8aaa429be15d980, type: 2}
+  combatStats:
+    Strength: 1
+    Speed: 1
+    Evasion: 0
+    PermanentWounds: 0
+    TemporaryWounds: 0
+  startingWeapon: {fileID: 11400000, guid: 550c6e6e390753f45a5f978c3d947067, type: 2}
+  startingWillpower: 2
+  startingCombatInspiration: 0

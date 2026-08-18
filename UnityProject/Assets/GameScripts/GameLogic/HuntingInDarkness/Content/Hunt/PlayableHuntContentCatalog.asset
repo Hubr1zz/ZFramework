@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bb049696c876dd4e924fe3b28dfb4bb, type: 3}
+  m_Name: PlayableHuntContentCatalog
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Hunt.PlayableHuntContentCatalog
+  startingTile: {fileID: 11400000, guid: 6013809ac57d4f44fa923e6a84f761b5, type: 2}
+  tilePool:
+  - {fileID: 11400000, guid: 3c9c7ad63c5145f42bcb764a87d0f908, type: 2}
+  - {fileID: 11400000, guid: 3b4f4c30524ac7e49bad8e75e6464058, type: 2}
+  - {fileID: 11400000, guid: d10b94c768943144aa9e3bd93bdd5eab, type: 2}
+  - {fileID: 11400000, guid: 7fbc75f252af6694ea5e7a9465553adc, type: 2}
+  eventPool: []

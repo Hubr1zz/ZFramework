@@ -75,14 +75,14 @@ namespace HuntingInDarkness.Settlement
 
             if (desc.Contains("+1 力量"))
             {
-                foreach (var h in _settlement.GetAliveHunters())
+                foreach (var h in _settlement.GetAvailableHunters())
                     h.Stats.strength++;
                 Debug.Log("[InventionSystem] 全员力量+1");
             }
 
             if (desc.Contains("意志点上限"))
             {
-                foreach (var h in _settlement.GetAliveHunters())
+                foreach (var h in _settlement.GetAvailableHunters())
                     h.WillpowerMax++;
                 Debug.Log("[InventionSystem] 全员意志点上限+1");
             }

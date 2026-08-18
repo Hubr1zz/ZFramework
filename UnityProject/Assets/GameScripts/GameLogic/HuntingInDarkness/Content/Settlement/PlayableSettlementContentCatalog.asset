@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89da669e4924d43409fe89475adc272b, type: 3}
+  m_Name: PlayableSettlementContentCatalog
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Settlement.PlayableSettlementContentCatalog
+  huntsPerYear: 2
+  startingHunters:
+  - {fileID: 11400000, guid: b3a9e5377fb8e154d8b81f41dafa08cc, type: 2}
+  - {fileID: 11400000, guid: 3a1d1dbb74a2b504dace801c04d51657, type: 2}
+  - {fileID: 11400000, guid: f55568ba5d1ee4940822f5aa52aa54a2, type: 2}
+  startingResources:
+  - item: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
+    amount: 2
+  - item: {fileID: 11400000, guid: 278e3384600c4ac45b1d8077908ce503, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
+    amount: 1
+  randomEvents:
+  - {fileID: 11400000, guid: 6464f94e35720a0449dbde57e6b8caab, type: 2}
+  - {fileID: 11400000, guid: 9b217aea163c37a4dafe3de18a5db71a, type: 2}
+  - {fileID: 11400000, guid: 3d41d18b144b92f4a9790632396e6e65, type: 2}
+  - {fileID: 11400000, guid: 9e9a380f22ab2704fbde1aa8ac3b96d7, type: 2}
+  - {fileID: 11400000, guid: e1746c0691e955f4f8cf6639728a2f0c, type: 2}
+  mainStoryEvents: []
+  inventions:
+  - {fileID: 11400000, guid: bbdb198c4c6e406479b4717a7d1d8aa2, type: 2}
+  - {fileID: 11400000, guid: f8ab2e4560ff3934b9f563f6bed6f005, type: 2}
+  - {fileID: 11400000, guid: 82d3979997c86da4288a14a92f7b2b7e, type: 2}
+  recipes:
+  - recipeName: "\u6253\u78E8\u77F3\u5668"
+    ingredients:
+    - item: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
+      count: 1
+    outputItem: {fileID: 11400000, guid: 71c869daeab8fed47ae26709dcd5771b, type: 2}
+    outputCount: 1
+    requiredInvention: {fileID: 11400000, guid: bbdb198c4c6e406479b4717a7d1d8aa2, type: 2}
+    unlockedByMaterial: 0
+    requiredWorkshopId:
+  - recipeName: "\u7C97\u5236\u77F3\u5203"
+    ingredients:
+    - item: {fileID: 11400000, guid: 71c869daeab8fed47ae26709dcd5771b, type: 2}
+      count: 1
+    - item: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
+      count: 1
+    outputItem: {fileID: 11400000, guid: b26cb8ff8d6efed4287e910f67040590, type: 2}
+    outputCount: 1
+    requiredInvention: {fileID: 11400000, guid: bbdb198c4c6e406479b4717a7d1d8aa2, type: 2}
+    unlockedByMaterial: 0
+    requiredWorkshopId:
+  - recipeName: "\u7B4B\u8171\u6295\u77F3\u7D22"
+    ingredients:
+    - item: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
+      count: 1
+    - item: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
+      count: 1
+    outputItem: {fileID: 11400000, guid: 63376393abac94c4a9b4ea48abad2cbb, type: 2}
+    outputCount: 1
+    requiredInvention: {fileID: 11400000, guid: bbdb198c4c6e406479b4717a7d1d8aa2, type: 2}
+    unlockedByMaterial: 0
+    requiredWorkshopId:
+  recruitmentTemplates:
+  - {fileID: 11400000, guid: b3a9e5377fb8e154d8b81f41dafa08cc, type: 2}
+  - {fileID: 11400000, guid: 3a1d1dbb74a2b504dace801c04d51657, type: 2}
+  - {fileID: 11400000, guid: f55568ba5d1ee4940822f5aa52aa54a2, type: 2}
+  recruitmentCostItem: {fileID: 11400000, guid: 278e3384600c4ac45b1d8077908ce503, type: 2}
+  recruitmentCost: 1
+  maximumLivingHunters: 6
+  recoveryCostItem: {fileID: 11400000, guid: 278e3384600c4ac45b1d8077908ce503, type: 2}
+  recoveryCost: 1
+  recoveryAmount: 1
+  deathInspirationGrowth: 1
+  deathInspirationMinimumAge: 2

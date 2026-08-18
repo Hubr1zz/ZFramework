@@ -16,6 +16,7 @@ namespace HuntingInDarkness.Hunt
     public class ResourceSystem
     {
         private readonly IRandomSource _rng;
+        private readonly HashSet<ResourcePointInstance> pendingHarvests = new();
 
         public ResourceSystem(IRandomSource rng)
         {
@@ -77,26 +78,53 @@ namespace HuntingInDarkness.Hunt
             HunterInstance hunter,
             float hitChance = 0.6f)
         {
-            if (point == null || point.IsExhausted) return new List<ItemInstance>();
+            PlayableHarvestTransaction transaction = PrepareHarvest(point, hunter, hitChance);
+            if (transaction == null) return new List<ItemInstance>();
+            while (transaction.CanReveal)
+                transaction.RevealNext();
+            IReadOnlyList<ItemInstance> result = transaction.Commit();
+            var obtained = new List<ItemInstance>(result);
 
-            var obtained = new List<ItemInstance>();
-            int obtainedCount = HuntResourceRules.ResolveHarvest(point.DrawCount, hitChance, _rng);
-            for (int i = 0; i < obtainedCount; i++)
-            {
-                if (point.Resource == null) break;
-                var item = new ItemInstance(point.Resource);
-                obtained.Add(item);
-                hunter?.Collectibles.Add(item);
-            }
-
-            point.IsExhausted = true;
-
-            if (obtained.Count > 0)
-                Debug.Log($"[ResourceSystem] {hunter?.Name ?? "?"} 采集 {point.ResourceName} ×{obtained.Count}");
-            else
-                Debug.Log($"[ResourceSystem] {hunter?.Name ?? "?"} 采集 {point.ResourceName} — 空");
-
+            LogHarvest(point.ResourceName, hunter?.Name, obtained.Count);
             return obtained;
+        }
+
+        public PlayableHarvestTransaction PrepareHarvest(ResourcePointInstance point, HunterInstance hunter, float hitChance = 0.6f)
+        {
+            if (point == null || point.IsExhausted || point.Resource == null) return null;
+            if (!pendingHarvests.Add(point)) return null;
+
+            try
+            {
+                HarvestDrawPlan plan = HuntResourceRules.CreateHarvestPlan(point.DrawCount, hitChance, _rng);
+                return new PlayableHarvestTransaction(this, point, hunter, plan, () => pendingHarvests.Remove(point));
+            }
+            catch
+            {
+                pendingHarvests.Remove(point);
+                throw;
+            }
+        }
+
+        public IReadOnlyList<ItemInstance> CommitHarvest(PlayableHarvestTransaction transaction)
+        {
+            if (transaction == null) return System.Array.Empty<ItemInstance>();
+            if (!transaction.IsOwnedBy(this))
+                throw new System.InvalidOperationException("The harvest transaction belongs to another resource system.");
+            IReadOnlyList<ItemInstance> obtained = transaction.Commit();
+            LogHarvest(transaction.ResourceName, transaction.HunterName, obtained.Count);
+            return obtained;
+        }
+
+        private static void LogHarvest(string resourceName, string hunterName, int obtainedCount)
+        {
+            resourceName = string.IsNullOrWhiteSpace(resourceName) ? "资源" : resourceName;
+            hunterName = string.IsNullOrWhiteSpace(hunterName) ? "?" : hunterName;
+
+            if (obtainedCount > 0)
+                Debug.Log($"[ResourceSystem] {hunterName} 采集 {resourceName} ×{obtainedCount}");
+            else
+                Debug.Log($"[ResourceSystem] {hunterName} 采集 {resourceName} — 空");
         }
 
         /// <summary>

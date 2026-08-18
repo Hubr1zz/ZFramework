@@ -50,13 +50,13 @@ namespace GameplayBase.CombatSystem
     }
 
     // ═══════════════════════════════════════════
-    // 步骤2：力量尝试（玩家逐张选择判定）
+    // 步骤2：攻击结果牌堆（玩家逐张选择判定）
     // ═══════════════════════════════════════════
 
     /// <summary>
-    /// 力量尝试阶段：
+    /// 攻击结果牌堆阶段：
     ///   1. 玩家从翻开的卡中点击选择一张
-    ///   2. 掷骰，攻击力 >= 韧性视为成功，攻击力 >= 2×韧性视为暴击
+    ///   2. 力量生成成功牌，武器威力抵消韧性生成的失败牌，随机抽取一张
     ///   3. 成功：部位 -1 HP；HP归零则永久摧毁（保持正面）
     ///   4. 触发受击部位卡效果（使用 HitLocationContext）
     ///   5. 重复直到所有翻开的卡全部结算
@@ -65,10 +65,12 @@ namespace GameplayBase.CombatSystem
     public class ResolveHitLocationsStep : IAttackStep
     {
         private readonly IHitLocationEffectResolver _effectResolver;
+        private readonly IRandomSource random;
 
-        public ResolveHitLocationsStep(IHitLocationEffectResolver effectResolver)
+        public ResolveHitLocationsStep(IHitLocationEffectResolver effectResolver, IRandomSource random)
         {
             _effectResolver = effectResolver;
+            this.random = random ?? throw new System.ArgumentNullException(nameof(random));
         }
 
         public async UniTask Execute(AttackContext context, IPlayerInputProvider input)
@@ -78,38 +80,44 @@ namespace GameplayBase.CombatSystem
             var remaining = new List<HitLocationRuntimeState>(
                 context.RevealedHitLocations ?? new List<HitLocationRuntimeState>());
             int total = remaining.Count;
+            int strength = context.AttackerStats?.Strength ?? 0;
+            int weaponPower = context.Weapon?.strengthBonus ?? 0;
+            int toughness = context.DefenderToughness;
+            AttackResultDeckComposition deck = AttackResultDeckRules.Build(strength, weaponPower, toughness);
+            List<AttackResultCard> results = AttackResultDeckRules.DrawBatch(deck, total, random);
 
             while (remaining.Count > 0)
             {
                 int current = total - remaining.Count + 1;
+                AttackResultCard resultCard = results[current - 1];
+                if (input is IAttackResultBatchInputProvider batchInput)
+                {
+                    float successRate = 100f * deck.SuccessCards / deck.TotalCards;
+                    await batchInput.RequestRevealAttackResult(
+                        $"<b>攻击结果牌堆</b> [{current}/{total}]\n" +
+                        $"Boss韧性 {toughness} - 武器威力 {weaponPower}\n" +
+                        $"成功牌 {deck.SuccessCards} / 失败牌 {deck.FailureCards}  成功率 {successRate:0.#}%");
+                }
+
                 var selected = await input.RequestSelectRevealedCard(
-                    $"力量尝试 [{current}/{total}] — 选择要攻击的部位", remaining);
+                    $"分配{(resultCard == AttackResultCard.Success ? "成功" : "失败")}结果 [{current}/{total}] — 选择部位", remaining);
 
                 context.CurrentHitLocation = selected.Data;
-
-                // ─── 掷骰判定 ───
-                string rollPrompt =
-                    $"{selected.Data.locationName}" +
-                    $"（韧性 {selected.Data.toughness}  HP {selected.CurrentHp}/{selected.Data.maxHp}）\n" +
-                    $"攻击力: {context.TotalAttackPower}\n点击掷骰";
-
-                context.RollResult = await input.RequestRoll(rollPrompt, 100);
-
-                AttackCheck check = CombatRules.ResolveHitLocationAttack(
-                    context.TotalAttackPower,
-                    selected.DomainState.Definition.Toughness);
-                context.HitResult = check.Outcome == AttackOutcome.Success
-                    ? HitResult.Success
-                    : HitResult.Failure;
-                context.IsCriticalHit = check.IsCritical;
+                context.RollResult = current - 1;
+                context.HitResult = resultCard == AttackResultCard.Success ? HitResult.Success : HitResult.Failure;
+                AttackCheck legacyCheck = CombatRules.ResolveHitLocationAttack(context.TotalAttackPower, selected.DomainState.Definition.Toughness);
+                context.IsCriticalHit = context.HitResult == HitResult.Success && legacyCheck.IsCritical;
 
                 Debug.Log($"[Combat] {selected.Data.locationName}: " +
-                          $"攻击力 {context.TotalAttackPower} vs 韧性 {selected.Data.toughness} " +
-                          $"→ {context.HitResult}{(context.IsCriticalHit ? " ★暴击" : "")}");
+                          $"分配结果牌 {resultCard}（Boss韧性 {toughness}，成功 {deck.SuccessCards} / 失败 {deck.FailureCards}）" +
+                          $" → {context.HitResult}{(context.IsCriticalHit ? " ★暴击" : "")}");
 
                 // ─── HP 扣减 ───
                 if (context.HitResult == HitResult.Success)
                 {
+                    EventBus.Publish(new EffectiveWeaponDamageEvent { CharacterId = context.AttackerId, WeaponName = context.Weapon?.weaponName });
+                    if (context.GameContext?.Boss is GameplayBase.IBossVitalityState vitality)
+                        vitality.ApplyBossDamage(1);
                     if (selected.ApplyDamage(1))
                     {
                         EventBus.Publish(new HitLocationDestroyedEvent
@@ -135,6 +143,8 @@ namespace GameplayBase.CombatSystem
                         : $"命中 {selected.Data.locationName}！（剩余 HP: {selected.CurrentHp}）" +
                           (context.IsCriticalHit ? " ★暴击" : ""))
                     : $"未能击穿 {selected.Data.locationName}";
+                if (context.GameContext?.Boss is GameplayBase.IBossVitalityState bossVitality)
+                    resultMsg += $"\nBoss生命 {bossVitality.CurrentHealth}/{bossVitality.MaxHealth}";
 
                 await input.ShowResult(resultMsg);
 
@@ -254,6 +264,7 @@ namespace GameplayBase.CombatSystem
 
             foreach (var entry in hitLocationState.Data.effects)
             {
+                if (entry?.effectData == null) continue;
                 // 外层触发时机检查
                 bool shouldTrigger = entry.triggerCondition switch
                 {

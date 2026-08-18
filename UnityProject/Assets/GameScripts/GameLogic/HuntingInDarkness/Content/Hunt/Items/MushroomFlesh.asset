@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48324497afd44fb4eaff36be8ad626c2, type: 3}
+  m_Name: MushroomFlesh
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.ItemData
+  itemName: "\u8611\u83C7\u8089"
+  itemType: 0
+  description: "\u6F6E\u6E7F\u800C\u6709\u97E7\u6027\u3002\u81F3\u5C11\u5B83\u4E0D\u4F1A\u7ACB\u523B\u6740\u6B7B\u4F60\u3002"
+  tags: 04000000
+  weaponStats:
+    speed: 1
+    power: 1
+    accuracy: 0
+    range: 1
+    specialRule:
+  armorStats:
+    armorHead: 0
+    armorBody: 0
+    armorArms: 0
+    armorLegs: 0
+  stackLimit: 99

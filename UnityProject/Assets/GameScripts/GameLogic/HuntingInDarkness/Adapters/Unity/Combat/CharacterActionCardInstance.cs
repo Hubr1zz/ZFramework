@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using GameplayBase;
 using GameplayBase.Card.BossActionCard;
 using GameplayBase.Card.CharacterActionCard;
@@ -45,7 +46,7 @@ namespace Core
         public string CardName => Template.cardName;
         public bool CanPlay => _domainState.CanPlay;
         public bool CanFlip => false;    // 由外部 Evaluator 判定
-        public bool CanRestore => false; // 由外部 Evaluator 判定
+        public bool CanRestore => CurrentFace == CardFace.FaceDown && RestoreConditions.Any(condition => condition.Timing == FlipTriggerTiming.OnPayCost);
         public bool CanDiscard => _domainState.CanDiscard;
         public string FaceUpDescription => Template.faceUpDescription;
         public string FaceDownDescription => Template.faceDownDescription;
@@ -62,10 +63,34 @@ namespace Core
             }
         }
         public bool IsWillAction => Definition.IsWillAction;
+        public string CostDescription => string.Join(" ", Costs.Select(DescribeCost));
         public bool IsAvailableThisTurn => _domainState.IsAvailableThisTurn;
 
         /// <summary>弃置奖励配置（可能为 null）</summary>
         public BurstRewardData BurstReward => Template.burstReward;
+
+        private static string DescribeCost(ActionCardCostDefinition cost)
+        {
+            return cost.Kind switch
+            {
+                ActionCardCostKind.TimePoint => $"时:{cost.Amount}",
+                ActionCardCostKind.CombatInspiration => $"{DescribeInspiration(cost.InspirationRequirement)}:{cost.Amount}",
+                ActionCardCostKind.Willpower => $"意:{cost.Amount}",
+                ActionCardCostKind.FlipOtherCard => $"翻:{cost.Amount}",
+                _ => string.Empty
+            };
+        }
+
+        private static string DescribeInspiration(InspirationRequirement requirement)
+        {
+            return requirement switch
+            {
+                InspirationRequirement.Red => "红",
+                InspirationRequirement.Blue => "蓝",
+                InspirationRequirement.Yellow => "黄",
+                _ => "灵"
+            };
+        }
 
         // ─── 构造 ───
 

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48324497afd44fb4eaff36be8ad626c2, type: 3}
+  m_Name: ToughMembraneCuirass
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.ItemData
+  itemName: "\u97E7\u819C\u80F8\u7532"
+  itemType: 2
+  description: "\u5C06\u67D4\u97E7\u5668\u5B98\u7684\u5916\u819C\u53CD\u590D\u62C9\u4F38\u3001\u667E\u5E72\u5E76\u7F1D\u5728\u77F3\u7247\u95F4\uFF0C\u5F62\u6210\u8D34\u8EAB\u7684\u7B2C\u4E00\u5C42\u8EAF\u5E72\u9632\u62A4\u3002"
+  tags: 0200000007000000
+  weaponStats:
+    speed: 1
+    power: 1
+    accuracy: 0
+    range: 1
+    specialRule:
+  armorStats:
+    armorHead: 0
+    armorBody: 1
+    armorArms: 0
+    armorLegs: 0
+  stackLimit: 1

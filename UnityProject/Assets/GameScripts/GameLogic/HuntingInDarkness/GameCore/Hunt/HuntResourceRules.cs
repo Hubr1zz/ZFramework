@@ -35,11 +35,19 @@ namespace HuntingInDarkness.GameCore.Hunt
         }
 
         public static int ResolveHarvest(int drawCount, double hitChance, IRandomSource random)
+            => CreateHarvestPlan(drawCount, hitChance, random).HitCount;
+
+        public static HarvestDrawPlan CreateHarvestPlan(int drawCount, double hitChance, IRandomSource random)
         {
-            int obtained = 0;
-            for (int i = 0; i < drawCount; i++)
-                if (random.NextDouble() < hitChance) obtained++;
-            return obtained;
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
+            int safeDrawCount = Math.Max(0, Math.Min(drawCount, HarvestDrawPlan.MaximumCardCount));
+            double safeHitChance = Math.Max(0d, Math.Min(hitChance, 1d));
+            var cards = new List<HarvestCardResult>(safeDrawCount);
+            for (int i = 0; i < safeDrawCount; i++)
+                cards.Add(new HarvestCardResult(i, random.NextDouble() < safeHitChance));
+            return new HarvestDrawPlan(cards.AsReadOnly());
         }
     }
 

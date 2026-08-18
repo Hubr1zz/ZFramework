@@ -118,8 +118,11 @@ namespace SO.Boss.ActionCard
     [System.Serializable]
     public sealed class CombatInspirationActionCardCostData : ActionCardCostData
     {
+        [Tooltip("任意表示可支付任一颜色；也可要求红、蓝或黄色灵感")]
+        public InspirationRequirement requiredColor = InspirationRequirement.Any;
+
         public override ActionCardCostDefinition CreateRuntime() =>
-            new ActionCardCostDefinition(ActionCardCostKind.CombatInspiration, amount);
+            new ActionCardCostDefinition(ActionCardCostKind.CombatInspiration, amount, inspirationRequirement: requiredColor);
     }
 
     [System.Serializable]

@@ -84,7 +84,9 @@ namespace HuntingInDarkness.Data
     {
         MainStory,  // 主线强制触发
         Random,     // 随机抽取
-        PlayerAdded // 玩家行为/发明触发
+        PlayerAdded, // 玩家行为/发明触发
+        RosterChanged, // 猎人退休等名册历史变化
+        Scheduled // 由事件结果动态加入的未来事件
     }
 
     /// <summary>
@@ -112,6 +114,9 @@ namespace HuntingInDarkness.Data
     {
         [Header("时间线")]
         public int CurrentYear = 1;
+        public int HuntsCompletedThisYear;
+        public int HuntsPerYear = 2;
+        public int LastRecruitmentYear;
 
         [Header("猎人名单（按 InstanceId 索引）")]
         public List<HunterInstance> Hunters = new();
@@ -119,8 +124,14 @@ namespace HuntingInDarkness.Data
         [Header("资源存储（资源名 → 数量）")]
         public List<ResourceEntry> Resources = new();
 
+        [Header("装备仓库（物品名 → 数量）")]
+        public List<ResourceEntry> EquipmentStorage = new();
+
         [Header("发明解锁状态（发明名 → 是否解锁）")]
         public List<StringBoolEntry> UnlockedInventions = new();
+
+        [Header("已建工坊（稳定工坊 ID → 是否建成）")]
+        public List<StringBoolEntry> BuiltWorkshops = new();
 
         [Header("Timeline")]
         public List<AnnalEntry> Timeline = new();
@@ -160,10 +171,28 @@ namespace HuntingInDarkness.Data
             e.Value = true;
         }
 
+        public bool IsWorkshopBuilt(string workshopId)
+        {
+            return BuiltWorkshops != null && BuiltWorkshops.Exists(entry => entry.Key == workshopId && entry.Value);
+        }
+
+        public void BuildWorkshop(string workshopId)
+        {
+            BuiltWorkshops ??= new List<StringBoolEntry>();
+            StringBoolEntry entry = BuiltWorkshops.Find(candidate => candidate.Key == workshopId);
+            if (entry == null)
+            {
+                entry = new StringBoolEntry { Key = workshopId };
+                BuiltWorkshops.Add(entry);
+            }
+            entry.Value = true;
+        }
+
         // ─── 猎人操作 ─────────────────────────────────────────────
 
         public HunterInstance GetHunter(int id) => Hunters.Find(h => h.InstanceId == id);
         public List<HunterInstance> GetAliveHunters() => Hunters.FindAll(h => h.IsAlive);
+        public List<HunterInstance> GetAvailableHunters() => Hunters.FindAll(h => h.IsAvailable);
     }
 
     // ─── 序列化辅助（JsonUtility 不支持 Dictionary） ────────────

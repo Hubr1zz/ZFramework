@@ -44,7 +44,7 @@ namespace HuntingInDarkness.Settlement
             Data  = new SettlementInstance();
 
             Timeline   = new TimelineSystem(Data, _rng);
-            Events     = new EventSystem(Data, _rng);
+            Events     = new EventSystem(Data, _rng, Timeline);
             Inventions = new InventionSystem(Data);
             Workshop   = new WorkshopSystem(Data, Inventions);
             HunterMgmt = new HunterManagementSystem(Data, _rng);
@@ -111,6 +111,7 @@ namespace HuntingInDarkness.Settlement
         /// </summary>
         public void EnsureStartingConditions()
         {
+            if (PlayableSettlementContentRuntime.TryApplyTo(this)) return;
             if (Data.Hunters.Count > 0) return;
 
             HunterMgmt.AddStartingHunter("战士·陈");
@@ -135,11 +136,12 @@ namespace HuntingInDarkness.Settlement
             if (data == null) return;
             Data       = data;
             Timeline   = new TimelineSystem(Data, _rng);
-            Events     = new EventSystem(Data, _rng);
+            Events     = new EventSystem(Data, _rng, Timeline);
             Inventions = new InventionSystem(Data);
             Workshop   = new WorkshopSystem(Data, Inventions);
             HunterMgmt = new HunterManagementSystem(Data, _rng);
             Events.OnEventTriggered = (evt, hunter) => OnEventTriggered?.Invoke(evt, hunter);
+            PlayableSettlementContentRuntime.TryApplyTo(this);
         }
 
         // ─── 开发者工具 ──────────────────────────────────────────

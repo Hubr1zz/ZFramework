@@ -4,6 +4,8 @@ using Cysharp.Threading.Tasks;
 using GameplayBase;
 using GameplayBase.Board;
 using GameplayBase.CombatSystem;
+using HuntingInDarkness.Combat;
+using HuntingInDarkness.GameCore.Combat;
 using SO.Character;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,10 +16,11 @@ namespace GameplayBase.CombatSystem
     /// IPlayerInputProvider 的 UGUI 实现。
     /// 纯 C# 类，由 GameManager 构造并注入 BoardManager / HexBoardVisualizer 引用。
     /// </summary>
-    public class UIPlayerInputProvider : IPlayerInputProvider
+    public class UIPlayerInputProvider : IPlayerInputProvider, IPlayerOptionInputProvider, IAttackResultDeckInputProvider, IAttackResultBatchInputProvider, IBossHitDeckInputProvider, IDeathDeckInputProvider
     {
         private readonly BoardManager _boardManager;
         private readonly HexBoardVisualizer _boardVisualizer;
+        private readonly System.Func<int, string> resolveTargetName;
 
         // ─── 懒初始化 UI 元素 ───
         private Canvas _canvas;
@@ -26,10 +29,11 @@ namespace GameplayBase.CombatSystem
         private Transform _buttonContainer;
         private bool _initialized;
 
-        public UIPlayerInputProvider(BoardManager boardManager, HexBoardVisualizer boardVisualizer)
+        public UIPlayerInputProvider(BoardManager boardManager, HexBoardVisualizer boardVisualizer, System.Func<int, string> resolveTargetName = null)
         {
             _boardManager    = boardManager;
             _boardVisualizer = boardVisualizer;
+            this.resolveTargetName = resolveTargetName;
         }
 
         // ═══════════════════════════════════════════
@@ -60,8 +64,8 @@ namespace GameplayBase.CombatSystem
             _panelRoot = new GameObject("CombatInputPanel", typeof(RectTransform));
             _panelRoot.transform.SetParent(_canvas.transform, false);
             var panelRt = _panelRoot.GetComponent<RectTransform>();
-            panelRt.anchorMin = new Vector2(0.25f, 0.3f);
-            panelRt.anchorMax = new Vector2(0.75f, 0.7f);
+            panelRt.anchorMin = new Vector2(0.25f, 0.2f);
+            panelRt.anchorMax = new Vector2(0.75f, 0.8f);
             panelRt.offsetMin = Vector2.zero;
             panelRt.offsetMax = Vector2.zero;
 
@@ -71,13 +75,16 @@ namespace GameplayBase.CombatSystem
             var textGo = new GameObject("Prompt", typeof(RectTransform));
             textGo.transform.SetParent(_panelRoot.transform, false);
             var textRt = textGo.GetComponent<RectTransform>();
-            textRt.anchorMin = new Vector2(0, 0.35f);
+            textRt.anchorMin = new Vector2(0, 0.5f);
             textRt.anchorMax = new Vector2(1, 1);
             textRt.offsetMin = new Vector2(15, 0);
             textRt.offsetMax = new Vector2(-15, -10);
             _promptText = textGo.AddComponent<Text>();
             _promptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             _promptText.fontSize = 16;
+            _promptText.resizeTextForBestFit = true;
+            _promptText.resizeTextMinSize = 12;
+            _promptText.resizeTextMaxSize = 16;
             _promptText.color = Color.white;
             _promptText.alignment = TextAnchor.MiddleCenter;
             _promptText.supportRichText = true;
@@ -87,7 +94,7 @@ namespace GameplayBase.CombatSystem
             containerGo.transform.SetParent(_panelRoot.transform, false);
             var containerRt = containerGo.GetComponent<RectTransform>();
             containerRt.anchorMin = new Vector2(0.1f, 0.05f);
-            containerRt.anchorMax = new Vector2(0.9f, 0.33f);
+            containerRt.anchorMax = new Vector2(0.9f, 0.48f);
             containerRt.offsetMin = Vector2.zero;
             containerRt.offsetMax = Vector2.zero;
             _buttonContainer = containerGo.transform;
@@ -108,7 +115,7 @@ namespace GameplayBase.CombatSystem
             {
                 new("掷骰！", () =>
                 {
-                    int result = Random.Range(0, maxExclusive);
+                    int result = UnityEngine.Random.Range(0, maxExclusive);
                     tcs.TrySetResult(result);
                 })
             });
@@ -116,6 +123,70 @@ namespace GameplayBase.CombatSystem
             int roll = await tcs.Task;
             HidePanel();
             return roll;
+        }
+
+        public async UniTask<int> RequestDrawAttackResult(string prompt, AttackResultDeckComposition composition)
+        {
+            EnsureInitialized();
+            var tcs = new UniTaskCompletionSource<int>();
+
+            ShowPanel(prompt, new ButtonConfig[]
+            {
+                new("抽取结果牌", () => tcs.TrySetResult(UnityEngine.Random.Range(0, composition.TotalCards)))
+            });
+
+            int drawIndex = await tcs.Task;
+            HidePanel();
+            return drawIndex;
+        }
+
+        public async UniTask RequestRevealAttackResult(string prompt)
+        {
+            EnsureInitialized();
+            var tcs = new UniTaskCompletionSource();
+
+            ShowPanel(prompt, new ButtonConfig[]
+            {
+                new("抽取下一张", () => tcs.TrySetResult())
+            });
+
+            await tcs.Task;
+            HidePanel();
+        }
+
+        public async UniTask<int> RequestDrawBossHitResult(string prompt, BossHitDeckComposition composition)
+        {
+            EnsureInitialized();
+            var tcs = new UniTaskCompletionSource<int>();
+
+            ShowPanel(prompt, new ButtonConfig[]
+            {
+                new("抽取命中牌", () => tcs.TrySetResult(UnityEngine.Random.Range(0, composition.TotalCards)))
+            });
+
+            int drawIndex = await tcs.Task;
+            HidePanel();
+            return drawIndex;
+        }
+
+        public async UniTask<int> RequestDrawDeathCard(string prompt, DeathDeckComposition composition)
+        {
+            EnsureInitialized();
+            if (composition.TotalCards <= 0)
+                return 0;
+
+            var tcs = new UniTaskCompletionSource<int>();
+            var buttons = new ButtonConfig[composition.TotalCards];
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                int facedownPosition = i;
+                buttons[i] = new ButtonConfig($"◆\n背面牌 {i + 1}", () => tcs.TrySetResult(facedownPosition));
+            }
+
+            ShowCardGrid($"{prompt}\n\n<color=#aaaaaa>已知构成：存活 {composition.SurvivalCards} / 死亡 {composition.DeathCards}</color>", buttons);
+            int selectedPosition = await tcs.Task;
+            HidePanel();
+            return selectedPosition;
         }
 
         public async UniTask ShowResult(string message)
@@ -132,9 +203,26 @@ namespace GameplayBase.CombatSystem
             HidePanel();
         }
 
-        public UniTask<int> RequestSelectTarget(string prompt, List<int> validTargetIds)
+        public async UniTask<int> RequestSelectTarget(string prompt, List<int> validTargetIds)
         {
-            return new UniTask<int>();
+            EnsureInitialized();
+            if (validTargetIds == null || validTargetIds.Count == 0)
+                return -1;
+
+            var tcs = new UniTaskCompletionSource<int>();
+            var buttons = new ButtonConfig[validTargetIds.Count + 1];
+            for (int i = 0; i < validTargetIds.Count; i++)
+            {
+                int targetId = validTargetIds[i];
+                string targetName = resolveTargetName?.Invoke(targetId);
+                buttons[i] = new ButtonConfig(string.IsNullOrWhiteSpace(targetName) ? $"猎人 #{targetId}" : targetName, () => tcs.TrySetResult(targetId));
+            }
+            buttons[buttons.Length - 1] = new ButtonConfig("取消", () => tcs.TrySetResult(-1));
+
+            ShowCardGrid(prompt, buttons, 2);
+            int result = await tcs.Task;
+            HidePanel();
+            return result;
         }
 
         /// <summary>
@@ -210,6 +298,27 @@ namespace GameplayBase.CombatSystem
             return result;
         }
 
+        public async UniTask<int> RequestSelectOption(string prompt, List<PlayerChoiceOption> options, int cancelOptionId = -1, string cancelLabel = "取消")
+        {
+            EnsureInitialized();
+            if (options == null || options.Count == 0)
+                return cancelOptionId;
+
+            var tcs = new UniTaskCompletionSource<int>();
+            var buttons = new ButtonConfig[options.Count + 1];
+            for (int i = 0; i < options.Count; i++)
+            {
+                PlayerChoiceOption option = options[i];
+                buttons[i] = new ButtonConfig(option.Label, () => tcs.TrySetResult(option.Id));
+            }
+            buttons[buttons.Length - 1] = new ButtonConfig(cancelLabel, () => tcs.TrySetResult(cancelOptionId));
+
+            ShowPanel(prompt, buttons);
+            int result = await tcs.Task;
+            HidePanel();
+            return result;
+        }
+
         public async UniTask PlayShuffleAndReveal(
             List<HitLocationRuntimeState> allCards,
             List<HitLocationRuntimeState> toReveal)
@@ -237,7 +346,7 @@ namespace GameplayBase.CombatSystem
             {
                 var card = revealedCards[i];
                 buttons[i] = new ButtonConfig(
-                    $"{card.Data.locationName}\n韧性:{card.Data.toughness}  HP:{card.CurrentHp}",
+                    $"{card.Data.locationName}\nHP:{card.CurrentHp}/{card.Data.maxHp}",
                     () => tcs.TrySetResult(card));
             }
 
@@ -258,8 +367,13 @@ namespace GameplayBase.CombatSystem
             {
                 var weapon = candidates[i];
                 string label = $"{weapon.weaponName}";
-                if (weapon.strengthBonus != 0) label += $"\n力量+{weapon.strengthBonus}";
-                if (weapon.speedBonus != 0) label += $"  速度+{weapon.speedBonus}";
+                if (PlayableHunterCombatAdapter.TryGetWeaponProfile(weapon, out var profile))
+                    label += $"\n威力 {weapon.strengthBonus}  尝试 {profile.Speed}\n射程 {profile.Range}  精准 {profile.Accuracy:+#;-#;0}";
+                else
+                {
+                    if (weapon.strengthBonus != 0) label += $"\n力量+{weapon.strengthBonus}";
+                    if (weapon.speedBonus != 0) label += $"  速度+{weapon.speedBonus}";
+                }
                 buttons[i] = new ButtonConfig(label, () => tcs.TrySetResult(weapon));
             }
 
@@ -348,6 +462,28 @@ namespace GameplayBase.CombatSystem
             _panelRoot.SetActive(true);
         }
 
+        private void ShowCardGrid(string prompt, ButtonConfig[] buttons, int maxColumns = 4)
+        {
+            for (int i = _buttonContainer.childCount - 1; i >= 0; i--)
+                UnityEngine.Object.Destroy(_buttonContainer.GetChild(i).gameObject);
+
+            _promptText.text = prompt;
+            int columns = Mathf.Min(Mathf.Max(1, maxColumns), buttons.Length);
+            int rows = Mathf.CeilToInt((float)buttons.Length / columns);
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                int column = i % columns;
+                int row = i / columns;
+                float minX = (float)column / columns;
+                float maxX = (float)(column + 1) / columns;
+                float minY = 1f - (float)(row + 1) / rows;
+                float maxY = 1f - (float)row / rows;
+                CreateButton(buttons[i].Label, buttons[i].OnClick, new Vector2(minX, minY), new Vector2(maxX, maxY));
+            }
+
+            _panelRoot.SetActive(true);
+        }
+
         private void HidePanel()
         {
             _panelRoot.SetActive(false);
@@ -383,6 +519,9 @@ namespace GameplayBase.CombatSystem
             var text = textGo.AddComponent<Text>();
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.fontSize = 16;
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = 9;
+            text.resizeTextMaxSize = 16;
             text.color = Color.white;
             text.alignment = TextAnchor.MiddleCenter;
             text.text = label;

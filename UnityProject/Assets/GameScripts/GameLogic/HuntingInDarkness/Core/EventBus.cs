@@ -15,19 +15,37 @@ namespace Core
     /// </summary>
     public static class EventBus
     {
-        private static readonly List<Action> CleanupActions = new();
+        private static readonly List<Subscription> subscriptions = new();
+
+        private sealed class Subscription
+        {
+            public Delegate Handler { get; }
+            public Action Cleanup { get; }
+
+            public Subscription(Delegate handler, Action cleanup)
+            {
+                Handler = handler;
+                Cleanup = cleanup;
+            }
+        }
 
         public static void Subscribe<T>(Action<T> handler) where T : struct
         {
             if (handler == null) return;
             if (GameEvent.AddEventListener(EventRoute<T>.Name, handler))
-                CleanupActions.Add(() => GameEvent.RemoveEventListener(EventRoute<T>.Name, handler));
+                subscriptions.Add(new Subscription(handler, () => GameEvent.RemoveEventListener(EventRoute<T>.Name, handler)));
         }
 
         public static void Unsubscribe<T>(Action<T> handler) where T : struct
         {
-            if (handler != null)
-                GameEvent.RemoveEventListener(EventRoute<T>.Name, handler);
+            if (handler == null) return;
+
+            int index = subscriptions.FindLastIndex(subscription => subscription.Handler.Equals(handler));
+            if (index < 0) return;
+
+            var cleanup = subscriptions[index].Cleanup;
+            subscriptions.RemoveAt(index);
+            cleanup();
         }
 
         public static void Publish<T>(T evt) where T : struct
@@ -38,9 +56,10 @@ namespace Core
         /// <summary>测试/场景切换时清理</summary>
         public static void Clear()
         {
-            for (int i = CleanupActions.Count - 1; i >= 0; i--)
-                CleanupActions[i]();
-            CleanupActions.Clear();
+            var cleanupActions = subscriptions.ConvertAll(subscription => subscription.Cleanup);
+            subscriptions.Clear();
+            for (int i = cleanupActions.Count - 1; i >= 0; i--)
+                cleanupActions[i]();
         }
 
         private static class EventRoute<T> where T : struct

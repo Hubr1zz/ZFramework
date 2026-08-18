@@ -16,6 +16,8 @@ namespace HuntingInDarkness.Hunt
     {
         private readonly EventSystem      _eventSystem;   // 复用营地事件系统
         private readonly IRandomSource    _rng;
+        private readonly HashSet<Vector2Int> checkedMoveTiles = new();
+        private int currentYear = 1;
 
         /// <summary>所有狩猎阶段事件池</summary>
         public List<EventData> HuntEventPool { get; set; } = new();
@@ -26,6 +28,12 @@ namespace HuntingInDarkness.Hunt
             _rng         = rng;
         }
 
+        public void ResetSession(int year = 1)
+        {
+            checkedMoveTiles.Clear();
+            currentYear = Mathf.Max(1, year);
+        }
+
         // ─── 地块翻开事件 ─────────────────────────────────────────
 
         /// <summary>
@@ -34,6 +42,8 @@ namespace HuntingInDarkness.Hunt
         /// </summary>
         public void OnTileRevealed(HexTileInstance tile, HunterInstance selectedHunter)
         {
+            if (tile == null || tile.HasBossEncounter) return;
+
             // 地块规则事件（必触发）
             if (tile.Config?.tileRevealEvent != null)
             {
@@ -41,9 +51,6 @@ namespace HuntingInDarkness.Hunt
                 _eventSystem.TriggerEvent(tile.Config.tileRevealEvent, selectedHunter);
                 return;
             }
-
-            // Boss遭遇不走事件系统（由 HuntManager 直接切Boss战）
-            if (tile.HasBossEncounter) return;
 
             // 随机狩猎事件（30%）
             if (HuntEventRules.ShouldTrigger(0.30, _rng))
@@ -60,7 +67,7 @@ namespace HuntingInDarkness.Hunt
         /// <summary>猎人移动到已翻开地块时的事件检查</summary>
         public void OnSquadMoved(HexTileInstance tile, HunterInstance selectedHunter)
         {
-            if (tile.State != TileState.Revealed) return;
+            if (tile == null || tile.State != TileState.Revealed) return;
 
             // Boss遭遇：移动到Boss地块时触发（由 HuntManager 处理）
             if (tile.HasBossEncounter)
@@ -68,6 +75,7 @@ namespace HuntingInDarkness.Hunt
                 Debug.Log($"[HuntEvent] 移动到Boss遭遇地块 {tile.AxialCoord}");
                 return;
             }
+            if (!checkedMoveTiles.Add(tile.AxialCoord)) return;
 
             // 小概率触发随机事件（15%）
             if (HuntEventRules.ShouldTrigger(0.15, _rng))
@@ -83,11 +91,13 @@ namespace HuntingInDarkness.Hunt
         private EventData PickRandomHuntEvent()
         {
             var pool = HuntEventPool.FindAll(e =>
-                e != null && e.category == EventCategory.Hunt);
-            if (pool.Count == 0) pool = HuntEventPool;
+                IsAvailable(e) && e.category == EventCategory.Hunt);
+            if (pool.Count == 0) pool = HuntEventPool.FindAll(IsAvailable);
             if (pool.Count == 0) return null;
 
             return HuntEventRules.PickWeighted(pool, item => item.drawWeight, _rng);
         }
+
+        private bool IsAvailable(EventData gameEvent) => gameEvent != null && gameEvent.minYear <= currentYear && (gameEvent.maxYear <= 0 || currentYear <= gameEvent.maxYear);
     }
 }

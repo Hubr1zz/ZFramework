@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 621b36a41721b0b4fab1ff6cad49a154, type: 3}
+  m_Name: PlayableWeaponMasteryCatalog
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Combat.PlayableWeaponMasteryCatalog
+  families:
+  - id: mastery_unarmed
+    displayName: "\u62F3\u6597"
+    weaponNames:
+    - Fist
+    milestones:
+    - id: mastery_unarmed_2
+      displayName: "\u62F3\u6597\u5B66\u5F92"
+      threshold: 2
+      grantedTrait: "\u62F3\u6597\u5B66\u5F92"
+    - id: mastery_unarmed_5
+      displayName: "\u62F3\u6597\u8001\u624B"
+      threshold: 5
+      grantedTrait: "\u62F3\u6597\u8001\u624B"
+    - id: mastery_unarmed_8
+      displayName: "\u62F3\u6597\u5927\u5E08"
+      threshold: 8
+      grantedTrait: "\u62F3\u6597\u5927\u5E08"
+  - id: mastery_blade
+    displayName: "\u5203\u5668"
+    weaponNames:
+    - "\u7C97\u5236\u77F3\u5203"
+    milestones:
+    - id: mastery_blade_2
+      displayName: "\u5203\u5668\u5B66\u5F92"
+      threshold: 2
+      grantedTrait: "\u5203\u5668\u5B66\u5F92"
+    - id: mastery_blade_5
+      displayName: "\u5203\u5668\u8001\u624B"
+      threshold: 5
+      grantedTrait: "\u5203\u5668\u8001\u624B"
+    - id: mastery_blade_8
+      displayName: "\u5203\u5668\u5927\u5E08"
+      threshold: 8
+      grantedTrait: "\u5203\u5668\u5927\u5E08"
+  - id: mastery_sling
+    displayName: "\u6295\u77F3\u7D22"
+    weaponNames:
+    - "\u7B4B\u8171\u6295\u77F3\u7D22"
+    milestones:
+    - id: mastery_sling_2
+      displayName: "\u6295\u77F3\u5B66\u5F92"
+      threshold: 2
+      grantedTrait: "\u6295\u77F3\u5B66\u5F92"
+    - id: mastery_sling_5
+      displayName: "\u6295\u77F3\u8001\u624B"
+      threshold: 5
+      grantedTrait: "\u6295\u77F3\u8001\u624B"
+    - id: mastery_sling_8
+      displayName: "\u6295\u77F3\u5927\u5E08"
+      threshold: 8
+      grantedTrait: "\u6295\u77F3\u5927\u5E08"
+  trainingInventionName: "\u6B66\u5668\u8BAD\u7EC3"
+  trainingCostItem: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
+  trainingCost: 1
+  trainingExperience: 1

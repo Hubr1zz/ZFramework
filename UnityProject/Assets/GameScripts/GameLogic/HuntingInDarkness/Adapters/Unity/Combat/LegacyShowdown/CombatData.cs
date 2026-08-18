@@ -56,15 +56,21 @@ namespace GameplayBase.CombatSystem
             int damage,
             IRandomSource random,
             IArmorMitigationRule armorRule = null,
-            IPermanentInjuryResolver permanentInjuryResolver = null)
+            IPermanentInjuryResolver permanentInjuryResolver = null,
+            DeathDeckDrawOrder deathDrawOrder = null,
+            int deathCardPosition = 0)
         {
             return InjuryState.ApplyDamage(
                 bodyPart,
                 damage,
                 random,
                 armorRule,
-                permanentInjuryResolver);
+                permanentInjuryResolver,
+                deathDrawOrder,
+                deathCardPosition);
         }
+
+        public bool WillTriggerFatalInjury(HunterBodyPart bodyPart, int damage, IArmorMitigationRule armorRule = null) => InjuryState.WillTriggerFatalInjury(bodyPart, damage, armorRule);
 
         public CharacterCombatStats CreateRuntimeCopy()
         {
@@ -170,6 +176,7 @@ namespace GameplayBase.CombatSystem
         public int       RollResult;
         public HitResult HitResult;
         public bool      IsCriticalHit;   // 攻击力超出韧性一定倍数时由步骤写入
+        public int       DefenderToughness;
 
         // ─── 目标选择 ───
         public ITargetSelector EffectiveTargetSelector; // null = 默认受击部位流程

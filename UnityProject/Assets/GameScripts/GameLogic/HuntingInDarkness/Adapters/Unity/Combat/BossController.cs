@@ -33,6 +33,7 @@ namespace Core
 
         private readonly Dictionary<int, BossActionCardData> _cardRegistry = new();
         private int _nextCardId = 10000;
+        private bool disposed;
 
         public BossActionCardData[] LastRevealedCards { get; private set; } = System.Array.Empty<BossActionCardData>();
 
@@ -63,15 +64,15 @@ namespace Core
             EventBus.Subscribe<HitLocationFlippedFaceUpEvent>(OnHitLocationFlippedFaceUp);
             EventBus.Subscribe<HitLocationDestroyedEvent>(OnHitLocationDestroyed);
             EventBus.Subscribe<ResourceDroppedEvent>(OnResourceDropped);
-            EventBus.Subscribe<BossDefeatedEvent>(OnBossDefeated);
         }
 
         public void Dispose()
         {
+            if (disposed) return;
+            disposed = true;
             EventBus.Unsubscribe<HitLocationFlippedFaceUpEvent>(OnHitLocationFlippedFaceUp);
             EventBus.Unsubscribe<HitLocationDestroyedEvent>(OnHitLocationDestroyed);
             EventBus.Unsubscribe<ResourceDroppedEvent>(OnResourceDropped);
-            EventBus.Unsubscribe<BossDefeatedEvent>(OnBossDefeated);
         }
 
         public List<HitLocationRuntimeState> GetHitLocationRuntimeStates()
@@ -85,6 +86,7 @@ namespace Core
         {
             foreach (var cardId in _bossData.PendingActionCardIds)
             {
+                if (disposed) return;
                 if (!_cardRegistry.TryGetValue(cardId, out var cardData)) continue;
 
                 var context = new ActionCardContext
@@ -97,9 +99,11 @@ namespace Core
 
                 foreach (var effectData in cardData.effects)
                 {
+                    if (disposed) return;
                     var effect = effectData.CreateRuntime();
                     if (effect.CanExecute(context))
                         await effect.ExecuteAsync(context);
+                    if (disposed) return;
                 }
 
                 EventBus.Publish(new BossActionExecutedEvent { ActionCardId = cardId });
@@ -160,6 +164,8 @@ namespace Core
             return result;
         }
 
+        public void AccumulateDefeatLoot() => AccumulateLoot(_killLoot);
+
         private void AccumulateLoot(List<LootEntry> entries)
         {
             foreach (var entry in entries)
@@ -195,6 +201,5 @@ namespace Core
                       $"  来源: {evt.SourceHitLocationName}");
         }
 
-        private void OnBossDefeated(BossDefeatedEvent _) => AccumulateLoot(_killLoot);
     }
 }

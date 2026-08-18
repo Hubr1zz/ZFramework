@@ -207,6 +207,7 @@ namespace Core
                 // 1. 等待攻击管线与表现全部完成。
                 if (Machine.RequestBossExecuteActions != null)
                     await Machine.RequestBossExecuteActions();
+                if (Machine.IsSessionActive != null && !Machine.IsSessionActive()) return;
 
                 Machine.SignalBossActionsCompleted();
 
@@ -278,12 +279,13 @@ namespace Core
 
         public System.Func<int, bool> CanCharacterAct;          // TimelineManager.CanCharacterAct
         public System.Func<bool> ShouldTransitionToBoss;         // TimelineManager.ShouldTransitionToBoss
-        public System.Func<int, int, UniTask<bool>> RequestPlayCard; // CardEffectResolver.TryPlayCardAsync
+        public System.Func<int, int, UniTask<bool>> RequestPlayCard; // Combat ActionEnvironment Root
         public System.Func<int, UniTask<bool>> RequestRestoreCard; // FlipConditionEvaluator.TryRestoreAsync
         public System.Func<int, UniTask<DiscardResult>> RequestDiscardCard; // FlipConditionEvaluator.TryDiscardForRewardAsync
         public System.Action RequestOverflowProcessing;           // TimelineManager.ProcessOverflow
         public System.Func<UniTask> RequestBossExecuteActions;    // BossController.ExecutePendingAsync
         public System.Action RequestBossDrawActions;              // BossController.DrawNext
+        public System.Func<bool> IsSessionActive;
 
         public TurnStateMachine(IGameContext gameContext)
         {
@@ -320,6 +322,12 @@ namespace Core
         }
 
         public TurnState CurrentState => _currentState;
+        public TurnPhase CurrentPhase => _turnFlow.CurrentPhase switch
+        {
+            CombatTurnPhase.PlayerTurn => TurnPhase.PlayerTurn,
+            CombatTurnPhase.BossTurn => TurnPhase.BossTurn,
+            _ => TurnPhase.Transition
+        };
 
         public void SignalBossActionsCompleted() =>
             _turnFlow.SignalBossActionsCompleted();

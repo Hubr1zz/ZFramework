@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27382589b6f6fc24e83ffdf54bc755f0, type: 3}
+  m_Name: PlayableAdvance
+  m_EditorClassIdentifier: GameLogic::SO.Boss.ActionCard.CharacterActionCardData
+  cardName: "\u8C28\u614E\u63A8\u8FDB"
+  cardId: playable.advance
+  cardImage: {fileID: 0}
+  faceUpDescription: "\u652F\u4ED8\u4EFB\u610F\u7075\u611F\uFF0C\u79FB\u52A8\u81F3\u4E24\u683C\u5185\u4E00\u4E2A\u672A\u88AB\u5360\u636E\u7684\u5730\u5757\u3002"
+  faceDownDescription: "\u672C\u56DE\u5408\u5DF2\u79FB\u52A8\u3002\u730E\u4EBA\u56DE\u5408\u7ED3\u675F\u65F6\u81EA\u52A8\u6062\u590D\u3002"
+  timePointCost: 0
+  costs:
+  - rid: 4366595399496761410
+  - rid: 4366595399496761411
+  oncePerTurn: 0
+  faceUpEffects:
+  - rid: 4366595399496761403
+  faceDownEffects: []
+  flipConditions:
+  - rid: 4366595399496761418
+  restoreConditions:
+  - rid: 4366595399496761419
+  burstReward:
+    enabled: 1
+    currencyReward: 0
+    timePointReward: 0
+    rewardDescription: "\u83B7\u5F971\u84DD\u8272\u7075\u611F"
+    bonusEffects:
+    - rid: 4366595399496761420
+  tags:
+  - Move
+  - Basic
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 4366595399496761403
+      type: {class: PlayableMoveEffectData, ns: HuntingInDarkness.Combat, asm: GameLogic}
+      data:
+        targeting:
+          rid: -2
+        moveRange: 2
+    - rid: 4366595399496761410
+      type: {class: TimePointActionCardCostData, ns: SO.Boss.ActionCard, asm: GameLogic}
+      data:
+        amount: 2
+    - rid: 4366595399496761411
+      type: {class: CombatInspirationActionCardCostData, ns: SO.Boss.ActionCard, asm: GameLogic}
+      data:
+        amount: 1
+        requiredColor: 0
+    - rid: 4366595399496761418
+      type: {class: FlipOnPlayConditionData, ns: GameplayBase.CombatSystem.Cards.FlipConditions, asm: GameLogic}
+      data:
+    - rid: 4366595399496761419
+      type: {class: RestoreOnTurnEndData, ns: GameplayBase.CombatSystem.Cards.FlipConditions, asm: GameLogic}
+      data:
+    - rid: 4366595399496761420
+      type: {class: GainCombatInspirationEffectData, ns: HuntingInDarkness.Combat, asm: GameLogic}
+      data:
+        targeting:
+          rid: -2
+        color: 1

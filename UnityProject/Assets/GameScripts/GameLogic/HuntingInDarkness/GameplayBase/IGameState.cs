@@ -40,6 +40,7 @@ namespace GameplayBase
         string    FaceUpDescription  { get; }
         string    FaceDownDescription{ get; }
         int       TimePointCost     { get; }
+        string    CostDescription   { get; }
         bool      IsAvailableThisTurn { get; }
         bool      IsWillAction      { get; }
     }

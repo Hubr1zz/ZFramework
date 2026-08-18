@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using HuntingInDarkness.Combat;
 using SO.Character;
 
 namespace GameplayBase.CombatSystem
@@ -9,6 +10,8 @@ namespace GameplayBase.CombatSystem
     /// </summary>
     public class CharacterRuntimeData : ICharacterState
     {
+        private readonly List<WeaponData> availableWeapons = new();
+
         public int Id { get; set; }
         public string Name { get; set; }
         public int CurrentTimePoints { get; set; }
@@ -21,6 +24,7 @@ namespace GameplayBase.CombatSystem
 
         // ─── 装备 ───
         public WeaponData EquippedWeapon { get; set; }
+        public bool IsCombatActive { get; private set; } = true;
 
         /// <summary>
         /// 返回角色当前持有的所有武器列表，供 IWeaponResolver 筛选。
@@ -28,10 +32,24 @@ namespace GameplayBase.CombatSystem
         /// </summary>
         public List<WeaponData> GetAvailableWeapons()
         {
-            var list = new List<WeaponData>();
-            if (EquippedWeapon != null) list.Add(EquippedWeapon);
-            return list;
+            if (availableWeapons.Count > 0) return new List<WeaponData>(availableWeapons);
+
+            var fallback = new List<WeaponData>();
+            if (EquippedWeapon != null)
+                fallback.Add(EquippedWeapon);
+            return fallback;
         }
+
+        public void SetAvailableWeapons(IReadOnlyList<WeaponData> weapons)
+        {
+            availableWeapons.Clear();
+            if (weapons == null) return;
+            foreach (WeaponData weapon in weapons)
+                if (weapon != null)
+                    availableWeapons.Add(weapon);
+        }
+
+        public void SetCombatActive(bool isActive) => IsCombatActive = isActive;
 
         // ─── 关联的 Character 实体 ───
         public Character CharacterEntity { get; set; }

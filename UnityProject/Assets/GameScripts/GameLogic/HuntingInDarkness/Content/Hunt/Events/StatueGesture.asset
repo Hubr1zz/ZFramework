@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2471a7f4f41d4e74f85c7f31dc58d1a5, type: 3}
+  m_Name: StatueGesture
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.EventData
+  eventName: "\u77F3\u50CF\u7684\u6307\u5411"
+  eventType: 1
+  displayText: "\u4E00\u5C0A\u65AD\u81C2\u77F3\u50CF\u7684\u624B\u6307\u671D\u5411\u5730\u4E0B\u3002\u98CE\u6BCF\u6B21\u505C\u4E0B\uFF0C\u90A3\u6839\u624B\u6307\u90FD\u4F1A\u6BD4\u4E4B\u524D\u66F4\u4F4E\u4E00\u70B9\u3002"
+  hiddenText:
+  options:
+  - optionText: "\u6316\u5F00\u5B83\u6307\u5411\u7684\u77F3\u5C42"
+    checkType: 5
+    checkTarget: 7
+    successText: "\u4F60\u8FA8\u8BA4\u51FA\u677E\u52A8\u7684\u627F\u91CD\u70B9\uFF0C\u53D6\u51FA\u4E00\u5757\u5B8C\u6574\u77F3\u6599\u3002\u83B7\u5F97\u788E\u77F3
+      \xD71\u3002"
+    successEffects:
+    - effectType: 0
+      targetName: "\u788E\u77F3"
+      value: 1
+      description: "\u788E\u77F3 +1"
+    successChain: []
+    failText: "\u77F3\u50CF\u5728\u80CC\u540E\u6362\u4E86\u59FF\u52BF\u3002\u547D\u8FD0
+      +1\u3002"
+    failEffects:
+    - effectType: 4
+      targetName: selected
+      value: 1
+      description: "\u547D\u8FD0 +1"
+    failChain: []
+    alwaysAvailable: 1
+  - optionText: "\u8BB0\u4F4F\u65B9\u5411\uFF0C\u7ED5\u5F00\u8FD9\u91CC"
+    checkType: 0
+    checkTarget: 0
+    successText: "\u6CA1\u6709\u4EBA\u56DE\u5934\u786E\u8BA4\u77F3\u50CF\u662F\u5426\u4ECD\u5728\u6307\u5411\u539F\u5904\u3002"
+    successEffects: []
+    successChain: []
+    failText:
+    failEffects: []
+    failChain: []
+    alwaysAvailable: 1
+  immediateEffects: []
+  combatTargetBossName:
+  chainedEvents: []
+  minYear: 1
+  maxYear: 0
+  drawWeight: 4
+  category: 2

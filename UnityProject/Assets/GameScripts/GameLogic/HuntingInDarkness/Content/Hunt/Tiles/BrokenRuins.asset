@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d25335dd52dca34c810d641f9fe498b, type: 3}
+  m_Name: BrokenRuins
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.HexTileData
+  tileName: "\u7834\u788E\u5E9F\u589F"
+  tileType: 2
+  description: "\u5012\u584C\u7684\u5899\u4F53\u4E0B\u57CB\u7740\u4E0D\u5C5E\u4E8E\u8FD9\u4E2A\u65F6\u4EE3\u7684\u7ED3\u6784\uFF0C\u6DF1\u5904\u7559\u6709\u5DE8\u7269\u7ECF\u8FC7\u7684\u75D5\u8FF9\u3002"
+  tileRevealEvent: {fileID: 0}
+  tileRule: "\u53EF\u80FD\u53D1\u73B0\u7A00\u6709\u5668\u5B98\uFF0C\u4E5F\u66F4\u5BB9\u6613\u906D\u9047\u602A\u7269\u3002"
+  spawnWeight: 2
+  spawnInGroup: 0
+  groupSize: 1
+  mustBeAdjacent: 1
+  resourcePoints:
+  - resource: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
+    spawnWeight: 2
+    drawCount: 2
+    maxPerTile: 1
+  - resource: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
+    spawnWeight: 3
+    drawCount: 2
+    maxPerTile: 1
+  maxResourcePoints: 2
+  bossEncounterWeight: 3

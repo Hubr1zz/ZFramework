@@ -4,6 +4,8 @@ using Cards3D;
 using Core;
 using GameplayBase;
 using GameplayBase.Board;
+using HuntingInDarkness.Combat;
+using HuntingInDarkness.ViewLayer.Combat;
 using TMPro;
 using UnityEngine;
 
@@ -53,6 +55,7 @@ namespace UI
         private Collider _activeDetailTrigger;
 
         private readonly Dictionary<int, CharacterActionCard> _cardViews = new();
+        private readonly Dictionary<int, PlayableInspirationCardView> inspirationViews = new();
 
         private void Update()
         {
@@ -105,8 +108,11 @@ namespace UI
             EventBus.Subscribe<CardFlippedEvent>(OnCardFlipped);
             EventBus.Subscribe<CardRestoredEvent>(OnCardRestored);
             EventBus.Subscribe<CardDiscardedEvent>(OnCardDiscarded);
+            EventBus.Subscribe<CombatInspirationChangedEvent>(OnCombatInspirationChanged);
 
+            EnsureMindGrid();
             FillActionCards();
+            FillMindCards();
             SetDetailChildColliders(headPanelTrigger, false);
             SetDetailChildColliders(infoPanelTrigger, false);
             RefreshTimePoint();
@@ -223,6 +229,8 @@ namespace UI
                 view.ForceCategory(CardCategory.HunterAction);
                 view.EnableDrag = false;             // 战斗面板内卡牌不可拖拽
                 view.OnClicked += OnCardViewClicked;
+                var interaction = view.gameObject.AddComponent<PlayableActionCardInteraction>();
+                interaction.BindSecondaryClick(() => OnCardSecondaryClicked(state.InstanceId));
 
                 actionGrid.TryPlaceCard(view);
                 _cardViews[state.InstanceId] = view;
@@ -236,6 +244,15 @@ namespace UI
             if (state == null) return;
             if (state.CurrentFace == CardFace.FaceUp)
                 OnCardPlayRequested?.Invoke(state.InstanceId);
+            else if (state.CanRestore && _ctx is IPlayableActionCardCommandSink commands)
+                commands.OnRestoreCard(state.InstanceId);
+        }
+
+        private void OnCardSecondaryClicked(int cardInstanceId)
+        {
+            ICharacterActionCardInstanceState state = _ctx?.GetCard(cardInstanceId);
+            if (state?.CanDiscard == true && _ctx is IPlayableActionCardCommandSink commands)
+                commands.OnDiscardCard(cardInstanceId);
         }
 
         private void RefreshAllCardVisuals()
@@ -245,6 +262,35 @@ namespace UI
                 var state = _ctx.GetCard(kv.Key);
                 if (state != null) kv.Value.Refresh(state);
             }
+        }
+
+        private void FillMindCards()
+        {
+            foreach (PlayableInspirationCardView view in inspirationViews.Values)
+                if (view != null)
+                    Destroy(view.gameObject);
+            inspirationViews.Clear();
+
+            if (mindGrid == null || _ctx is not ICombatInspirationReadModel inspiration) return;
+            int capacity = Mathf.Max(1, inspiration.GetCombatInspirationCapacity(_entityId));
+            mindGrid.Columns = capacity;
+            mindGrid.Rows = 1;
+            mindGrid.Build();
+
+            foreach (var token in inspiration.GetCombatInspirationTokens(_entityId))
+            {
+                PlayableInspirationCardView view = PlayableInspirationCardView.Create(token, mindGrid.transform);
+                view.EnableDrag = false;
+                if (mindGrid.TryPlaceCard(view)) inspirationViews[token.Id] = view;
+                else Destroy(view.gameObject);
+            }
+        }
+
+        private void EnsureMindGrid()
+        {
+            if (mindGrid != null || panelRoot == null) return;
+            mindGrid = SlotGrid.Create(panelRoot.transform, new Vector3(0f, 0f, 0.92f), 4, 1, 0.42f, 0.59f, 0.06f, false, CardCategory.Any);
+            mindGrid.name = "Combat Inspiration Grid";
         }
 
         private void RefreshCard(int cardInstanceId)
@@ -307,6 +353,11 @@ namespace UI
             if (evt.OwnerCharacterId == _entityId) RefreshCard(evt.CardInstanceId);
         }
 
+        private void OnCombatInspirationChanged(CombatInspirationChangedEvent evt)
+        {
+            if (evt.CharacterId == _entityId) FillMindCards();
+        }
+
         private void OnDestroy()
         {
             EventBus.Unsubscribe<TimePointChangedEvent>(OnTimePointChanged);
@@ -314,6 +365,7 @@ namespace UI
             EventBus.Unsubscribe<CardFlippedEvent>(OnCardFlipped);
             EventBus.Unsubscribe<CardRestoredEvent>(OnCardRestored);
             EventBus.Unsubscribe<CardDiscardedEvent>(OnCardDiscarded);
+            EventBus.Unsubscribe<CombatInspirationChangedEvent>(OnCombatInspirationChanged);
         }
     }
 }

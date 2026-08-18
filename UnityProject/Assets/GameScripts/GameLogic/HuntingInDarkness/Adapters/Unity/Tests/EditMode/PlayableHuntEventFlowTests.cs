@@ -1,0 +1,190 @@
+using System.Collections.Generic;
+using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Foundation;
+using HuntingInDarkness.Hunt;
+using HuntingInDarkness.Settlement;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+
+namespace HuntingInDarkness.Adapter.Tests
+{
+    public sealed class PlayableHuntEventFlowTests
+    {
+        private const string OutskirtsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/StoneForestOutskirts.asset";
+        private const string MarshPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/SunkenFungalMarsh.asset";
+
+        [Test]
+        public void RouteContent_ProvidesReusableHuntChoiceEvents()
+        {
+            PlayableHuntContentCatalog outskirts = AssetDatabase.LoadAssetAtPath<PlayableHuntContentCatalog>(OutskirtsPath);
+            PlayableHuntContentCatalog marsh = AssetDatabase.LoadAssetAtPath<PlayableHuntContentCatalog>(MarshPath);
+
+            Assert.That(outskirts, Is.Not.Null);
+            Assert.That(marsh, Is.Not.Null);
+            AssertHuntEventPool(outskirts.EventPool);
+            AssertHuntEventPool(marsh.EventPool);
+        }
+
+        [Test]
+        public void RevealNonBoss_WithGuaranteedRoll_PresentsConfiguredEvent()
+        {
+            EventData gameEvent = CreateEvent("GuaranteedHuntEvent");
+            var eventSystem = new EventSystem(new SettlementInstance(), new FirstRandom());
+            var huntEvents = new HuntEventSystem(eventSystem, new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
+            EventData presented = null;
+            eventSystem.OnEventTriggered = (triggered, _) => presented = triggered;
+
+            try
+            {
+                huntEvents.OnTileRevealed(new HexTileInstance { State = TileState.Revealed }, null);
+
+                Assert.That(presented, Is.SameAs(gameEvent));
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void RevealBoss_SkipsTileAndRandomEvents()
+        {
+            EventData gameEvent = CreateEvent("ForbiddenBossEvent");
+            HexTileData config = ScriptableObject.CreateInstance<HexTileData>();
+            config.tileRevealEvent = gameEvent;
+            var eventSystem = new EventSystem(new SettlementInstance(), new FirstRandom());
+            var huntEvents = new HuntEventSystem(eventSystem, new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
+            int presentedCount = 0;
+            eventSystem.OnEventTriggered = (_, _) => presentedCount++;
+
+            try
+            {
+                huntEvents.OnTileRevealed(new HexTileInstance { State = TileState.Revealed, HasBossEncounter = true, Config = config }, null);
+
+                Assert.That(presentedCount, Is.Zero);
+            }
+            finally
+            {
+                Object.DestroyImmediate(config);
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void MoveEvent_ChecksEachTileOncePerSession()
+        {
+            EventData gameEvent = CreateEvent("OncePerTileEvent");
+            var eventSystem = new EventSystem(new SettlementInstance(), new FirstRandom());
+            var huntEvents = new HuntEventSystem(eventSystem, new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
+            var tile = new HexTileInstance { State = TileState.Revealed, AxialCoord = new Vector2Int(1, 0) };
+            int presentedCount = 0;
+            eventSystem.OnEventTriggered = (_, _) => presentedCount++;
+
+            try
+            {
+                huntEvents.OnSquadMoved(tile, null);
+                huntEvents.OnSquadMoved(tile, null);
+                Assert.That(presentedCount, Is.EqualTo(1));
+
+                huntEvents.ResetSession();
+                huntEvents.OnSquadMoved(tile, null);
+                Assert.That(presentedCount, Is.EqualTo(2));
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void EventPool_RespectsConfiguredYearRange()
+        {
+            EventData gameEvent = CreateEvent("FutureHuntEvent");
+            gameEvent.minYear = 2;
+            gameEvent.maxYear = 3;
+            var eventSystem = new EventSystem(new SettlementInstance(), new FirstRandom());
+            var huntEvents = new HuntEventSystem(eventSystem, new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
+            var tile = new HexTileInstance { State = TileState.Revealed };
+            int presentedCount = 0;
+            eventSystem.OnEventTriggered = (_, _) => presentedCount++;
+
+            try
+            {
+                huntEvents.ResetSession(1);
+                huntEvents.OnTileRevealed(tile, null);
+                Assert.That(presentedCount, Is.Zero);
+
+                huntEvents.ResetSession(2);
+                huntEvents.OnTileRevealed(tile, null);
+                Assert.That(presentedCount, Is.EqualTo(1));
+
+                huntEvents.ResetSession(4);
+                huntEvents.OnTileRevealed(tile, null);
+                Assert.That(presentedCount, Is.EqualTo(1));
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void InputGuard_NestedOwnersReleaseIndependently()
+        {
+            const int firstOwner = 73101;
+            const int secondOwner = 73102;
+            PlayableHuntInputGuard.Release(firstOwner);
+            PlayableHuntInputGuard.Release(secondOwner);
+
+            try
+            {
+                PlayableHuntInputGuard.Acquire(firstOwner);
+                PlayableHuntInputGuard.Acquire(firstOwner);
+                PlayableHuntInputGuard.Acquire(secondOwner);
+                Assert.That(PlayableHuntInputGuard.IsBlocked, Is.True);
+
+                PlayableHuntInputGuard.Release(firstOwner);
+                Assert.That(PlayableHuntInputGuard.IsBlocked, Is.True);
+
+                PlayableHuntInputGuard.Release(secondOwner);
+                Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
+            }
+            finally
+            {
+                PlayableHuntInputGuard.Release(firstOwner);
+                PlayableHuntInputGuard.Release(secondOwner);
+            }
+        }
+
+        private static void AssertHuntEventPool(IReadOnlyList<EventData> events)
+        {
+            Assert.That(events, Has.Count.GreaterThanOrEqualTo(3));
+            foreach (EventData gameEvent in events)
+            {
+                Assert.That(gameEvent, Is.Not.Null);
+                Assert.That(gameEvent.category, Is.EqualTo(EventCategory.Hunt));
+                Assert.That(gameEvent.eventType, Is.EqualTo(GameEventType.Choice));
+                Assert.That(gameEvent.options, Has.Count.GreaterThanOrEqualTo(2));
+                Assert.That(gameEvent.options.TrueForAll(option => option != null && !string.IsNullOrWhiteSpace(option.optionText)), Is.True);
+            }
+            Assert.That(new List<EventData>(events).Exists(gameEvent => gameEvent.options.Exists(option => option.checkType != CheckType.None && option.successEffects.Count + option.failEffects.Count > 0)), Is.True);
+        }
+
+        private static EventData CreateEvent(string name)
+        {
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = name;
+            gameEvent.eventName = name;
+            gameEvent.category = EventCategory.Hunt;
+            gameEvent.drawWeight = 1;
+            return gameEvent;
+        }
+
+        private sealed class FirstRandom : IRandomSource
+        {
+            public int Next(int minInclusive, int maxExclusive) => minInclusive;
+            public double NextDouble() => 0d;
+        }
+    }
+}

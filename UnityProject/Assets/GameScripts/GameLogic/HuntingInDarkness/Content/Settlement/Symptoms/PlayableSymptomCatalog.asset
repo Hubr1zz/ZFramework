@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2900dccaaf29dd347b24322fd53507de, type: 3}
+  m_Name: PlayableSymptomCatalog
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Settlement.PlayableSymptomCatalog
+  symptoms:
+  - id: symptom_cowardice
+    displayName: "\u80C6\u602F"
+    description: "\u9762\u5BF9\u5DE8\u5927\u5A01\u80C1\u65F6\u672C\u80FD\u9000\u7F29\u3002\u529B\u91CF
+      -1\uFF1B\u5B8C\u6210\u5185\u5316\u540E\u95EA\u907F +1\u3002"
+    strengthModifier: -1
+    accuracyModifier: 0
+    evasionModifier: 0
+    movementModifier: 0
+    internalizedStrength: 0
+    internalizedAccuracy: 0
+    internalizedEvasion: 1
+    internalizedMovement: 0
+    internalizationThreshold: 2
+    reflectionWillpowerCost: 1
+    overcomeCourageRequirement: 2
+    overcomeGrowthCost: 1

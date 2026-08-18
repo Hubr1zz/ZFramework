@@ -91,7 +91,7 @@ namespace Cards3D
                 _detailText.color = new Color(0.15f, 0.15f, 0.15f);
                 _hpText.color     = new Color(0.08f, 0.08f, 0.08f);
                 _nameText.text   = _state.Data.locationName;
-                _detailText.text = $"韧性: {_state.Data.toughness}\n{_state.Data.description}";
+                _detailText.text = _state.Data.description;
                 _hpText.text     = $"HP {_state.CurrentHp}/{_state.Data.maxHp}";
             }
             else

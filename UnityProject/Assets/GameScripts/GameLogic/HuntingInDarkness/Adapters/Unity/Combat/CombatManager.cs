@@ -6,6 +6,7 @@ using GameplayBase;
 using GameplayBase.CombatSystem;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Hunters;
+using HuntingInDarkness.Combat;
 using SO.Character;
 
 namespace CardTactics.CombatSystem
@@ -27,6 +28,8 @@ namespace CardTactics.CombatSystem
         private readonly IRandomSource _random;
         private readonly IArmorMitigationRule _armorRule;
         private readonly IPermanentInjuryResolver _permanentInjuryResolver;
+        private readonly ISurvivalEventResolver _survivalEventResolver;
+        private readonly int bossToughness;
         private readonly List<ITargetSelectorOverride> _targetSelectorOverrides = new();
 
         public IPlayerInputProvider InputProvider => _inputProvider;
@@ -54,7 +57,9 @@ namespace CardTactics.CombatSystem
             List<HitLocationRuntimeState> bossHitLocationStates,
             IRandomSource random = null,
             IArmorMitigationRule armorRule = null,
-            IPermanentInjuryResolver permanentInjuryResolver = null)
+            IPermanentInjuryResolver permanentInjuryResolver = null,
+            ISurvivalEventResolver survivalEventResolver = null,
+            int bossToughness = 1)
         {
             _gameContext            = gameContext;
             _boardQuery             = boardQuery;
@@ -64,6 +69,8 @@ namespace CardTactics.CombatSystem
             _random                 = random ?? new SystemRandomSource();
             _armorRule              = armorRule;
             _permanentInjuryResolver = permanentInjuryResolver;
+            _survivalEventResolver = survivalEventResolver;
+            this.bossToughness = Mathf.Max(0, bossToughness);
         }
 
         public void SetHitLocationPool(List<HitLocationRuntimeState> states)
@@ -85,6 +92,7 @@ namespace CardTactics.CombatSystem
                 AttackerIsBoss        = false,
                 AttackerStats         = stats,
                 Weapon                = weapon,
+                DefenderToughness     = bossToughness,
                 AllHitLocationStates  = _bossHitLocationStates,
                 GameContext           = _gameContext,
                 BoardQuery            = _boardQuery
@@ -123,7 +131,8 @@ namespace CardTactics.CombatSystem
             return new AttackPipeline(new IAttackStep[]
             {
                 new DrawHitLocationStep(_random),
-                new ResolveHitLocationsStep(_hitLocationResolver),
+                new ResolveHitLocationsStep(_hitLocationResolver, _random),
+                new PlayableBossDefeatStep(),
             });
         }
 
@@ -135,7 +144,9 @@ namespace CardTactics.CombatSystem
             int targetCharacterId,
             CharacterCombatStats defenderStats,
             int woundCount = 1,
-            HunterBodyPart targetBodyPart = HunterBodyPart.Torso)
+            HunterBodyPart targetBodyPart = HunterBodyPart.Torso,
+            int accuracy = 1,
+            int attackCount = 1)
         {
             var context = new AttackContext
             {
@@ -147,7 +158,7 @@ namespace CardTactics.CombatSystem
                 BoardQuery     = _boardQuery
             };
 
-            var pipeline = BuildBossAttackPipeline(woundCount, targetBodyPart);
+            var pipeline = BuildBossAttackPipeline(woundCount, targetBodyPart, accuracy, attackCount);
             OnBossAttackPipelineBuilt?.Invoke(pipeline, context);
 
             var result = await pipeline.Run(context, _inputProvider);
@@ -168,18 +179,24 @@ namespace CardTactics.CombatSystem
 
         private AttackPipeline BuildBossAttackPipeline(
             int woundCount,
-            HunterBodyPart targetBodyPart)
+            HunterBodyPart targetBodyPart,
+            int accuracy,
+            int attackCount)
         {
-            return new AttackPipeline(new IAttackStep[]
+            int safeAttackCount = Mathf.Max(1, attackCount);
+            var steps = new List<IAttackStep>();
+            for (int index = 0; index < safeAttackCount; index++)
             {
-                new BossAttackDodgeStep(),
-                new BossAttackWoundStep(
+                steps.Add(new BossAttackDodgeStep(accuracy, index + 1, safeAttackCount));
+                steps.Add(new BossAttackWoundStep(
                     woundCount,
                     targetBodyPart,
                     _random,
                     _armorRule,
-                    _permanentInjuryResolver),
-            });
+                    _permanentInjuryResolver,
+                    _survivalEventResolver));
+            }
+            return new AttackPipeline(steps);
         }
     }
 }

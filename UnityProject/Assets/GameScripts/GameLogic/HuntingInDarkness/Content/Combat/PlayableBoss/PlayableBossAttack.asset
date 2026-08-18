@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 093eeacd7a180c246974745e9997e573, type: 3}
+  m_Name: PlayableBossAttack
+  m_EditorClassIdentifier: GameLogic::SO.Boss.ActionCard.BossActionCardData
+  actionName: "\u9ED1\u6697\u6495\u54AC"
+  description: "\u7531\u73A9\u5BB6\u4E3A\u602A\u7269\u9009\u62E9\u4E00\u540D\u5B58\u6D3B\u730E\u4EBA\uFF1B\u602A\u7269\u4EE5\u7CBE\u51C6 2 \u6251\u54AC\uFF0C\u547D\u4E2D\u540E\u9020\u6210
+    1 \u70B9\u8EAF\u5E72\u4F24\u5BB3\u3002"
+  timePointCost: 2
+  effects:
+  - rid: 4366595399496761402
+  drawWeight: 1
+  alwaysAvailable: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 4366595399496761402
+      type: {class: PlayableBossAttackEffectData, ns: HuntingInDarkness.Combat, asm: GameLogic}
+      data:
+        actionName: "\u9ED1\u6697\u6495\u54AC"
+        woundCount: 1
+        accuracy: 2
+        attackCount: 1
+        targetPolicy: 0

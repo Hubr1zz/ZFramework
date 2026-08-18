@@ -9,7 +9,7 @@ namespace GameplayBase.Board
     /// <summary>
     /// 棋盘上的实体可视化：胶囊体占位 + 头顶 TP 标签 + 点击回调。
     /// </summary>
-    public class EntityVisualizer
+    public class EntityVisualizer : IDisposable
     {
         private readonly BoardManager _boardManager;
         private readonly Transform _parent;
@@ -54,6 +54,14 @@ namespace GameplayBase.Board
             _bossColor        = bossColor      ?? new Color(0.85f, 0.15f, 0.15f, 1f);
 
             EventBus.Subscribe<TimePointChangedEvent>(OnTimePointChanged);
+        }
+
+        public void Dispose()
+        {
+            EventBus.Unsubscribe<TimePointChangedEvent>(OnTimePointChanged);
+            OnEntityClicked = null;
+            GetCurrentTP = null;
+            GetTPLimit = null;
         }
 
         public void SpawnEntity(int entityId, Vector2Int tile, bool isBoss)

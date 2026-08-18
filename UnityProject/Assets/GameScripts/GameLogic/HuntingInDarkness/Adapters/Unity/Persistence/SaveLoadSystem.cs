@@ -15,6 +15,9 @@ namespace Core
     public static class SaveLoadSystem
     {
         private const string SaveFileName = "settlement_save.json";
+        private static readonly object SaveGate = new();
+        private static int nextSaveVersion;
+        private static int lastWrittenSaveVersion;
 
         private static string SavePath =>
             System.IO.Path.Combine(Application.persistentDataPath, SaveFileName);
@@ -28,11 +31,21 @@ namespace Core
             if (data == null) return;
             try
             {
+                string savePath = SavePath;
                 string json = JsonUtility.ToJson(data, prettyPrint: true);
+                int saveVersion = Interlocked.Increment(ref nextSaveVersion);
                 await UniTask.RunOnThreadPool(
-                    () => System.IO.File.WriteAllText(SavePath, json),
+                    () =>
+                    {
+                        lock (SaveGate)
+                        {
+                            if (saveVersion < lastWrittenSaveVersion) return;
+                            System.IO.File.WriteAllText(savePath, json);
+                            lastWrittenSaveVersion = saveVersion;
+                        }
+                    },
                     cancellationToken: cancellationToken);
-                Debug.Log($"[SaveLoad] 存档成功 → {SavePath}");
+                Debug.Log($"[SaveLoad] 存档成功 → {savePath}");
             }
             catch (System.OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -51,10 +64,14 @@ namespace Core
         {
             try
             {
+                string savePath = SavePath;
                 string json = await UniTask.RunOnThreadPool(() =>
                     {
-                        if (!System.IO.File.Exists(SavePath)) return null;
-                        return System.IO.File.ReadAllText(SavePath);
+                        lock (SaveGate)
+                        {
+                            if (!System.IO.File.Exists(savePath)) return null;
+                            return System.IO.File.ReadAllText(savePath);
+                        }
                     },
                     cancellationToken: cancellationToken);
                 if (json == null)
@@ -64,7 +81,7 @@ namespace Core
                 }
                 await UniTask.SwitchToMainThread(cancellationToken);
                 var data = JsonUtility.FromJson<SettlementInstance>(json);
-                Debug.Log($"[SaveLoad] 读档成功 ← {SavePath}（年份 {data?.CurrentYear}）");
+                Debug.Log($"[SaveLoad] 读档成功 ← {savePath}（年份 {data?.CurrentYear}）");
                 return data;
             }
             catch (System.OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -80,18 +97,29 @@ namespace Core
 
         // ─── 工具 ─────────────────────────────────────────────────
 
-        public static UniTask<bool> HasSaveFileAsync(CancellationToken cancellationToken = default) =>
-            UniTask.RunOnThreadPool(
-                () => System.IO.File.Exists(SavePath),
-                cancellationToken: cancellationToken);
+        public static UniTask<bool> HasSaveFileAsync(CancellationToken cancellationToken = default)
+        {
+            string savePath = SavePath;
+            return UniTask.RunOnThreadPool(() =>
+            {
+                lock (SaveGate)
+                    return System.IO.File.Exists(savePath);
+            }, cancellationToken: cancellationToken);
+        }
 
         public static async UniTask DeleteSaveAsync(CancellationToken cancellationToken = default)
         {
+            string savePath = SavePath;
+            int deleteVersion = Interlocked.Increment(ref nextSaveVersion);
             bool deleted = await UniTask.RunOnThreadPool(() =>
             {
-                if (!System.IO.File.Exists(SavePath)) return false;
-                System.IO.File.Delete(SavePath);
-                return true;
+                lock (SaveGate)
+                {
+                    lastWrittenSaveVersion = System.Math.Max(lastWrittenSaveVersion, deleteVersion);
+                    if (!System.IO.File.Exists(savePath)) return false;
+                    System.IO.File.Delete(savePath);
+                    return true;
+                }
             }, cancellationToken: cancellationToken);
 
             if (deleted)

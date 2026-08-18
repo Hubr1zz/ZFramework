@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48324497afd44fb4eaff36be8ad626c2, type: 3}
+  m_Name: StoneKnife
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.ItemData
+  itemName: "\u7C97\u5236\u77F3\u5203"
+  itemType: 1
+  description: "\u4EE5\u77F3\u8D28\u5DE5\u5177\u91CD\u65B0\u6253\u78E8\u5203\u53E3\uFF0C\u518D\u7528\u67D4\u97E7\u7EC4\u7EC7\u7F20\u7D27\u63E1\u67C4\u3002\u5B83\u7B80\u964B\uFF0C\u4F46\u7EC8\u4E8E\u6BD4\u62F3\u5934\u53EF\u9760\u3002"
+  tags: 010000000700000008000000
+  weaponStats:
+    speed: 1
+    power: 2
+    accuracy: 0
+    range: 1
+    specialRule: "\u8FDB\u5165\u51B3\u6218\u65F6\u7531 Combat Adapter \u6295\u5F71\u4E3A\u4E3B\u6B66\u5668\uFF1A\u901F\u5EA6\u51B3\u5B9A\u547D\u4E2D\u5C1D\u8BD5\uFF0C\u5A01\u529B\u62B5\u6D88\u602A\u7269\u97E7\u6027\u3002"
+  armorStats:
+    armorHead: 0
+    armorBody: 0
+    armorArms: 0
+    armorLegs: 0
+  stackLimit: 1

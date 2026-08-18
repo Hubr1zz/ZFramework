@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2471a7f4f41d4e74f85c7f31dc58d1a5, type: 3}
+  m_Name: CorpseGlow
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.EventData
+  eventName: "\u9057\u9AB8\u4E0A\u7684\u5FAE\u5149"
+  eventType: 1
+  displayText: "\u4E00\u5177\u8737\u7F29\u7684\u9057\u9AB8\u80F8\u53E3\u900F\u51FA\u5FAE\u5F31\u767D\u5149\u3002\u5B83\u6CA1\u6709\u8150\u70C2\uFF0C\u5468\u56F4\u4E5F\u6CA1\u6709\u4EFB\u4F55\u8DB3\u8FF9\u3002"
+  hiddenText:
+  options:
+  - optionText: "\u53D6\u4E0B\u53D1\u5149\u7684\u7EC4\u7EC7"
+    checkType: 0
+    checkTarget: 0
+    successText: "\u7EC4\u7EC7\u79BB\u5F00\u9057\u9AB8\u540E\u4ECD\u5728\u640F\u52A8\u3002\u83B7\u5F97\u67D4\u8F6F\u5668\u5B98
+      \xD71\uFF0C\u538B\u6291 +1\u3002"
+    successEffects:
+    - effectType: 0
+      targetName: "\u67D4\u8F6F\u5668\u5B98"
+      value: 1
+      description: "\u67D4\u8F6F\u5668\u5B98 +1"
+    - effectType: 5
+      targetName: selected
+      value: 1
+      description: "\u538B\u6291 +1"
+    successChain: []
+    failText:
+    failEffects: []
+    failChain: []
+    alwaysAvailable: 1
+  - optionText: "\u7528\u788E\u77F3\u906E\u4F4F\u5149\uFF0C\u7EE7\u7EED\u524D\u8FDB"
+    checkType: 0
+    checkTarget: 0
+    successText: "\u6700\u540E\u4E00\u7EBF\u767D\u5149\u4ECE\u77F3\u7F1D\u91CC\u8FFD\u7740\u4F60\u4EEC\u770B\u4E86\u5F88\u4E45\u3002"
+    successEffects: []
+    successChain: []
+    failText:
+    failEffects: []
+    failChain: []
+    alwaysAvailable: 1
+  immediateEffects: []
+  combatTargetBossName:
+  chainedEvents: []
+  minYear: 1
+  maxYear: 0
+  drawWeight: 2
+  category: 2

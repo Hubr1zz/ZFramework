@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2471a7f4f41d4e74f85c7f31dc58d1a5, type: 3}
+  m_Name: SilentOffering
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.EventData
+  eventName: "\u65E0\u58F0\u4F9B\u7269"
+  eventType: 1
+  displayText: "\u5DE1\u591C\u8005\u5728\u8425\u5730\u8FB9\u7F18\u53D1\u73B0\u4E00\u53EA\u88AB\u9ED1\u7EF3\u7F20\u4F4F\u7684\u6728\u5323\u3002\u5323\u5185\u4E00\u4FA7\u4ECD\u5728\u640F\u52A8\uFF0C\u53E6\u4E00\u4FA7\u5DF2\u7ECF\u77F3\u5316\u3002"
+  hiddenText: "\u4F60\u7684\u9009\u62E9\u4F1A\u6539\u53D8\u8425\u5730\u63A5\u4E0B\u6765\u80FD\u591F\u4F7F\u7528\u7684\u7269\u8D44\u3002"
+  options:
+  - optionText: "\u5272\u4E0B\u4ECD\u5728\u640F\u52A8\u7684\u90E8\u5206"
+    checkType: 0
+    checkTarget: 0
+    successText: "\u8425\u5730\u6536\u4E0B\u4E86\u67D4\u8F6F\u5668\u5B98 \xD71\u3002"
+    successEffects:
+    - effectType: 0
+      targetName: "\u67D4\u8F6F\u5668\u5B98"
+      value: 1
+      description: "\u8425\u5730\u6536\u4E0B\u4E86\u67D4\u8F6F\u5668\u5B98 \xD71\u3002"
+    successChain: []
+    failText: "\u5931\u8D25\u4E86"
+    failEffects: []
+    failChain: []
+    alwaysAvailable: 1
+  - optionText: "\u6572\u788E\u5DF2\u7ECF\u77F3\u5316\u7684\u5916\u58F3"
+    checkType: 0
+    checkTarget: 0
+    successText: "\u8425\u5730\u6536\u4E0B\u4E86\u788E\u77F3 \xD72\u3002"
+    successEffects:
+    - effectType: 0
+      targetName: "\u788E\u77F3"
+      value: 2
+      description: "\u8425\u5730\u6536\u4E0B\u4E86\u788E\u77F3 \xD72\u3002"
+    successChain: []
+    failText: "\u5931\u8D25\u4E86"
+    failEffects: []
+    failChain: []
+    alwaysAvailable: 1
+  immediateEffects: []
+  combatTargetBossName:
+  chainedEvents: []
+  minYear: 3
+  maxYear: 0
+  drawWeight: 1
+  category: 1

@@ -51,7 +51,7 @@ namespace UI.Hunt
                     ? new Color(0.15f, 0.2f, 0.18f, 0.9f)
                     : new Color(0.2f, 0.1f, 0.1f, 0.9f);
 
-                int collectibles = h.Collectibles.Count;
+                int collectibles = h.Collectibles?.Count ?? 0;
                 HuntUIManager.MakeText(go, "T",
                     $"{h.Name}  HP{h.HP.body}/{h.MaxHP.body}  采{collectibles}",
                     10, TextAnchor.MiddleLeft).GetComponent<RectTransform>()

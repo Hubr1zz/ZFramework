@@ -82,6 +82,7 @@ namespace HuntingInDarkness.Data
         [Header("解锁条件")]
         public InventionData requiredInvention; // 可为空（基础配方无需发明）
         public bool unlockedByMaterial = false; // 收集到指定素材时解锁
+        public string requiredWorkshopId;
     }
 
     [System.Serializable]

@@ -1,6 +1,7 @@
 using Core;
 using GameLogic;
 using HuntingInDarkness.Testing;
+using HuntingInDarkness.Bootstrap;
 using TEngine;
 using UnityEngine;
 
@@ -45,8 +46,9 @@ public partial class GameApp
             return true;
         }
 
-        Log.Error("Hunting in Darkness startup aborted: no configured GameManager exists in the active scene. " +
-                  "Add the migrated GameManager to the bootstrap scene and assign its content ScriptableObjects.");
+        if (PlayableGameBootstrap.EnsureInstalled()) return true;
+
+        Log.Error("Hunting in Darkness startup aborted: the active scene is not the configured playable entry scene or its bootstrap settings are missing.");
         return false;
     }
     

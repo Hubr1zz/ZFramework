@@ -8,6 +8,7 @@ using GameplayBase.Card.CharacterActionCard;
 using GameplayBase.CombatSystem;
 using GameplayBase.CombatSystem.Cards.FlipConditions;
 using HuntingInDarkness.GameCore.Cards;
+using HuntingInDarkness.Combat;
 using SO.Boss.ActionCard;
 using UI;
 using UnityEngine;
@@ -81,26 +82,24 @@ namespace Core
                         : ActionQueueActionResult.Completed;
                 }));
 
+            PlayableActionPreparation.EnqueuePreparation(queue, effects, effectContext);
+
             queue.EnqueueBack(new DelegateActionQueueAction(
                 "commit-costs",
-                _ => UniTask.FromResult(
-                    transaction != null &&
-                    transaction.TryCommit(characterActionCard.OwnerCharacterId, _costService)
-                        ? ActionQueueActionResult.Completed
-                        : ActionQueueActionResult.Failed)));
+                _ =>
+                {
+                    if (transaction != null && transaction.TryCommit(characterActionCard.OwnerCharacterId, _costService))
+                        return UniTask.FromResult(ActionQueueActionResult.Completed);
+                    PlayableActionPreparation.Reset(effects);
+                    return UniTask.FromResult(ActionQueueActionResult.Failed);
+                }));
 
             foreach (var effect in effects)
             {
                 CharacterActionCardEffect queuedEffect = effect;
                 queue.EnqueueBack(new DelegateActionQueueAction(
                     $"effect:{queuedEffect?.Description ?? "missing"}",
-                    async _ =>
-                    {
-                        if (queuedEffect == null || !queuedEffect.CanExecute(effectContext))
-                            return ActionQueueActionResult.Completed;
-                        await queuedEffect.ExecuteAsync(effectContext);
-                        return ActionQueueActionResult.Completed;
-                    }));
+                    _ => PlayableActionPreparation.ExecuteAsync(queuedEffect, effectContext)));
             }
 
             queue.EnqueueBack(new DelegateActionQueueAction(
@@ -127,7 +126,7 @@ namespace Core
         /// <summary>验证卡牌能否打出</summary>
         private bool ValidatePlay(CharacterActionCardInstance characterActionCard)
         {
-            if (characterActionCard == null || !characterActionCard.IsAvailableThisTurn)
+            if (characterActionCard == null || !characterActionCard.CanPlay)
                 return false;
             // 耗尽状态/时点由 TurnStateMachine.RequestPlayCard 校验。
             // 这里做目标/范围有效性校验：若某效果配置了 targeting 但当前没有任何合法目标格
@@ -159,7 +158,7 @@ namespace Core
     /// 集中评估所有卡牌的翻面和恢复条件。
     /// 监听事件，在合适时机触发条件检查。
     /// </summary>
-    public class FlipConditionEvaluator
+    public class FlipConditionEvaluator : IDisposable
     {
         private readonly IGameContext _gameContext;
         private readonly ActionQueueRunner _queueRunner = new();
@@ -178,6 +177,15 @@ namespace Core
             EventBus.Subscribe<CardRestoredEvent>(OnCardRestored);
             // 订阅弃置事件 → 检查 OnOtherCardDiscarded 联动
             EventBus.Subscribe<CardDiscardedEvent>(OnCardDiscarded);
+        }
+
+        public void Dispose()
+        {
+            EventBus.Unsubscribe<TurnEndEvent>(OnTurnEnd);
+            EventBus.Unsubscribe<CardFlippedEvent>(OnCardFlipped);
+            EventBus.Unsubscribe<CardRestoredEvent>(OnCardRestored);
+            EventBus.Unsubscribe<CardDiscardedEvent>(OnCardDiscarded);
+            _allCards.Clear();
         }
 
         public void RegisterCard(CharacterActionCardInstance characterActionCard)
@@ -244,7 +252,9 @@ namespace Core
             if (card.CurrentFace != CardFace.FaceDown) return false;
 
             var context = BuildContext(card, triggerSource: null);
-            foreach (var condition in card.RestoreConditions)
+            List<IFlipCondition> manualConditions = card.RestoreConditions.FindAll(condition => condition.Timing == FlipTriggerTiming.OnPayCost);
+            if (manualConditions.Count == 0) return false;
+            foreach (IFlipCondition condition in manualConditions)
             {
                 if (!condition.Evaluate(context))
                     return false;
@@ -255,7 +265,7 @@ namespace Core
                 "consume-restore-costs",
                 _ =>
                 {
-                    foreach (var condition in card.RestoreConditions)
+                    foreach (IFlipCondition condition in manualConditions)
                         condition.Consume(context);
                     return UniTask.FromResult(ActionQueueActionResult.Completed);
                 }));
@@ -273,12 +283,28 @@ namespace Core
         /// <summary>卡牌打出后，检查是否有翻面触发</summary>
         public void EvaluateAfterCardPlayed(int playedCardId, int ownerCharacterId)
         {
-            if (!_allCards.TryGetValue(playedCardId, out var playedCard)) return;
+            if (TryApplyAfterCardPlayed(playedCardId, ownerCharacterId, out CardFlippedEvent evt))
+                EventBus.Publish(evt);
+        }
 
-            // 检查打出的卡自身是否满足翻面条件
-            if (playedCard.CurrentFace != CardFace.FaceUp) return;
-            if (CheckFlipConditions(playedCard, FlipTriggerTiming.OnPlay, triggerSource: playedCardId))
-                DoFlip(playedCard);
+        /// <summary>提交卡牌状态但不发布事实，供 Action Outbox 保持事件提交顺序。</summary>
+        public bool TryApplyAfterCardPlayed(int playedCardId, int ownerCharacterId, out CardFlippedEvent evt)
+        {
+            evt = default;
+            if (!_allCards.TryGetValue(playedCardId, out CharacterActionCardInstance playedCard)) return false;
+            if (playedCard.OwnerCharacterId != ownerCharacterId || playedCard.CurrentFace != CardFace.FaceUp) return false;
+            if (!CheckFlipConditions(playedCard, FlipTriggerTiming.OnPlay, triggerSource: playedCardId)) return false;
+
+            CardFace oldFace = playedCard.CurrentFace;
+            playedCard.SetFace(CardFace.FaceDown);
+            evt = new CardFlippedEvent
+            {
+                CardInstanceId = playedCard.InstanceId,
+                OwnerCharacterId = playedCard.OwnerCharacterId,
+                OldFace = oldFace,
+                NewFace = CardFace.FaceDown
+            };
+            return true;
         }
 
         /// <summary>

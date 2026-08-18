@@ -1,0 +1,69 @@
+using System.Collections.Generic;
+using HuntingInDarkness.Data;
+using HuntingInDarkness.Settlement;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+
+namespace HuntingInDarkness.Adapter.Tests
+{
+    public sealed class PlayableSettlementEventContentTests
+    {
+        private const string CatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/PlayableSettlementContentCatalog.asset";
+
+        [Test]
+        public void Timeline_WithAlternatives_DoesNotRepeatMostRecentRandomEvent()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 4 };
+            settlement.Timeline.Add(new AnnalEntry { Year = 4, EventId = "First", EntryType = TimelineEntryType.Random });
+            EventData first = CreateEvent("First");
+            EventData second = CreateEvent("Second");
+            var timeline = new TimelineSystem(settlement, new FirstRandom()) { RandomEventPool = new List<EventData> { first, second } };
+
+            try
+            {
+                List<EventData> events = timeline.GetEventsForYear(5);
+
+                Assert.That(events, Has.Count.EqualTo(1));
+                Assert.That(events[0].name, Is.EqualTo("Second"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(first);
+                Object.DestroyImmediate(second);
+            }
+        }
+
+        [Test]
+        public void ContentCatalog_ProvidesSustainableChoiceEventPool()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<PlayableSettlementContentCatalog>(CatalogPath);
+            var manager = new SettlementManager(1);
+
+            Assert.That(catalog, Is.Not.Null);
+            Assert.That(catalog.ApplyTo(manager), Is.True);
+            Assert.That(manager.Timeline.RandomEventPool, Has.Count.GreaterThanOrEqualTo(5));
+            Assert.That(manager.Timeline.RandomEventPool.FindAll(gameEvent => gameEvent != null && gameEvent.eventType == GameEventType.Choice && gameEvent.maxYear <= 0), Has.Count.GreaterThanOrEqualTo(3));
+            Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.options.Exists(option => option != null && option.checkType != CheckType.None && option.successEffects.Count > 0 && option.failEffects.Count > 0)), Is.True);
+            foreach (EventData gameEvent in manager.Timeline.RandomEventPool)
+                Assert.That(gameEvent.options == null || gameEvent.options.TrueForAll(option => option != null && !string.IsNullOrWhiteSpace(option.optionText)), Is.True);
+        }
+
+        private static EventData CreateEvent(string name)
+        {
+            var gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = name;
+            gameEvent.minYear = 1;
+            gameEvent.maxYear = 99;
+            gameEvent.drawWeight = 1;
+            gameEvent.category = EventCategory.Random;
+            return gameEvent;
+        }
+
+        private sealed class FirstRandom : HuntingInDarkness.GameCore.Foundation.IRandomSource
+        {
+            public int Next(int minInclusive, int maxExclusive) => minInclusive;
+            public double NextDouble() => 0d;
+        }
+    }
+}

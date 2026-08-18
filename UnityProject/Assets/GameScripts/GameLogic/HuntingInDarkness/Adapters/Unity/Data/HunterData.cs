@@ -58,6 +58,8 @@ namespace HuntingInDarkness.Data
         [System.NonSerialized]
         public List<ItemInstance> Equipment = new(); // 运行时用，存档用 EquipmentIds
 
+        public List<string> EquippedItemNames = new(); // 内容资产名，用于读档后恢复 ItemData 引用
+
         // ─── 战斗状态 ───
 
         [System.NonSerialized]

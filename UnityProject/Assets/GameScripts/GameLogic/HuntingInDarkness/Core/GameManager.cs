@@ -12,7 +12,10 @@ using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.GameCore.Combat;
 using HuntingInDarkness.GameCore.Cards;
+using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
+using HuntingInDarkness.Combat;
+using HuntingInDarkness.ActionFlow.Settlement;
 using SO.Boss.ActionCard;
 using SO.Boss.HitLocation;
 using SO.Combat;
@@ -32,7 +35,7 @@ namespace Core
     /// 管理三个游戏大阶段（Settlement / Hunt / BossFight）的根物体开关，
     /// 以及 Boss决战子系统的初始化与运行。
     /// </summary>
-    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider
+    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider
     {
         // ─── 单例 ─────────────────────────────────────────────────────
         public static GameManager Instance { get; private set; }
@@ -115,42 +118,16 @@ namespace Core
         private GameOverScreen       _gameOverScreen;
         /// <summary>狩猎结算记录，由 HuntManager 回调注入，供 TransitionToPhase(Settlement) 消费</summary>
         private HuntRecord           _pendingHuntRecord;
-        private BoardManager       _boardManager;
-        private HexBoardVisualizer _hexBoardVisualizer;
-        private EntityVisualizer   _entityVisualizer;
-        private CardDisplayManager _cardDisplayManager;
-
-        private TurnStateMachine     _turnStateMachine;
-        private TimelineManager      _timelineManager;
-        private CardEffectResolver   _cardEffectResolver;
-        private FlipConditionEvaluator _flipConditionEvaluator;
-        private ActionCardCostService _actionCardCostService;
-        private readonly ActionCardResourcePool _actionCardResources = new();
-        private BossController       _bossController;
-        private CombatManager        _combatManager;
-
-        private IBoardQuery   _boardQuery;
-        private IBoardCommand _boardCommand;
+        private PlayableCombatSession _combatSession;
+        private PlayableSettlementActionSession settlementActionSession;
 
         // ─── 运行时数据 ───────────────────────────────────────────────
 
-        private readonly List<CharacterRuntimeData>              _characters  = new();
-        private readonly Dictionary<int, CharacterRuntimeData>   _characterById = new();
-        /// <summary>角色视图实体（Prefab/程序化），entityId → CharacterEntity</summary>
-        private readonly Dictionary<int, UI.CharacterEntity>     _characterEntities = new();
-        private BossRuntimeData _bossData;
         /// <summary>本场战斗的装配载荷（狩猎阶段注入；未注入时由序列化配置组装）</summary>
         private BattleSetup _pendingSetup;
-        /// <summary>本场战斗实际使用的 Boss 配置（来自 BattleSetup）</summary>
-        private BossConfigSO _activeBossConfig;
-        /// <summary>本场棋盘半径，Start 里广播给相机</summary>
-        private int _mapRadius = 3;
-        private readonly Dictionary<int, CharacterActionCardInstance> _allCards = new();
-        private int       _turnNumber    = 0;
-        private TurnPhase _currentPhase  = TurnPhase.PlayerTurn;
 
         // ─── ICombatProvider ───
-        public CombatManager CombatManager => _combatManager;
+        public CombatManager CombatManager => _combatSession?.CombatManager;
 
         // ═══════════════════════════════════════════
         // 初始化
@@ -182,40 +159,14 @@ namespace Core
             EventBus.Subscribe<HunterRosterChangedEvent>(OnHunterRosterChanged);
             EventBus.Subscribe<CardHoverPreviewEvent>(OnCardHoverPreview);
             EventBus.Subscribe<CardHoverPreviewEndEvent>(OnCardHoverPreviewEnd);
+            EventBus.Subscribe<SettlementTransactionCommittedEvent>(OnSettlementTransactionCommitted);
 
-            // Boss决战子系统（始终初始化，切到BossFight阶段时才激活根物体）
-            // 棋盘 / 猎人 / Boss / 组件 由 BattleGenerator 装配，GameManager 接管可视化。
-            BuildBattle();
-            InitializeCardSystems();
-            InitializeTurnSystem();
-            InitializeEntityCallbacks();
-            InitializeCombatSystem();
+            (GetComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableWeaponMasteryToast>() ?? gameObject.AddComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableWeaponMasteryToast>()).Initialize(this);
+            (GetComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableHunterLossToast>() ?? gameObject.AddComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableHunterLossToast>()).Initialize(this);
         }
 
         private void Start()
         {
-            // 首次 Boss 抽牌（确定第一回合上限）
-            int firstLimit = _bossController.DrawAndRevealNextActions();
-            _timelineManager.SetRoundLimit(firstLimit);
-            _turnNumber = 1;
-
-            // CardDisplayManager 在 Boss 首次抽牌后构造，可通过 BossRevealedCards 同步初始状态
-            var uiRoot = new GameObject("CardUI");
-            // 挂到 BossFightRoot 下（若已配置），否则挂到 GameManager
-            uiRoot.transform.SetParent(bossFightRoot != null ? bossFightRoot.transform : transform);
-            _cardDisplayManager = new CardDisplayManager(
-                this, uiRoot.transform,
-                tableHeightOffset, tableScale, bossTablePosition,
-                _characterEntities);
-
-            _entityVisualizer.RefreshAllTPLabels();
-            // 角色 TP 标签初次刷新（此时回合系统/上限已就绪）
-            foreach (var entity in _characterEntities.Values)
-                entity.RefreshTimePoint();
-
-            // 广播棋盘大小给相机（此时相机已订阅）
-            EventBus.Publish(new BoardReadyEvent { MapRadius = _mapRadius, CellSize = cellSize });
-
             // 设置初始阶段。PhaseManager 使用独立命名的 ZFramework FSM。
             var startPhase = devMode ? devStartPhase : GamePhase.Settlement;
             _settlementManager = CreateSettlementManager();
@@ -225,6 +176,7 @@ namespace Core
             {
                 _settlementManager.EnsureStartingConditions();
                 _settlementManager.OnEnter();
+                StartSettlementActionSession();
                 EnsureSettlementUI();
             }
             else if (startPhase == GamePhase.Hunt)
@@ -232,9 +184,8 @@ namespace Core
                 EnterHuntPhase();
             }
 
-            // 仅在 BossFight 阶段才启动回合状态机
             if (startPhase == GamePhase.BossFight)
-                _turnStateMachine.Start();
+                EnterBossFightPhase();
 
             // 开发者面板（挂在 Shared UI 节点上，F1 切换显隐）
             EnsureDevPanel();
@@ -245,7 +196,7 @@ namespace Core
 
         private void Update()
         {
-            _turnStateMachine.Update();
+            _combatSession?.Update();
             HandleBackgroundClick();
         }
 
@@ -328,8 +279,7 @@ namespace Core
         // ─── 各子系统初始化 ──────────────────────────────────────────
 
         /// <summary>
-        /// 由狩猎阶段在进入 Boss 决战前注入本场战斗的装配载荷。
-        /// 必须在 GameManager 构建战斗（Awake.BuildBattle）之前调用才生效。
+        /// 由狩猎阶段在进入 Boss 决战前注入下一场战斗的装配载荷。
         /// </summary>
         public void InjectBattleSetup(BattleSetup setup) => _pendingSetup = setup;
 
@@ -363,72 +313,55 @@ namespace Core
             };
         }
 
-        /// <summary>
-        /// 调用 BattleGenerator 装配棋盘 / 猎人 / Boss / 组件（纯数据），
-        /// 再由 GameManager 建立可视化并 spawn 实体。
-        /// </summary>
-        private void BuildBattle()
+        private bool StartCombatSession()
         {
-            var setup = ResolveSetup();
-            _activeBossConfig = setup.Boss;
+            if (_combatSession != null) return true;
 
-            var result = BattleGenerator.Generate(setup, cellSize, arenaRadius);
-
-            _boardManager = result.board;
-            _boardQuery   = _boardManager;
-            _boardCommand = _boardManager;
-
-            // 动态生成的3D内容挂在 BossFightRoot 下（若已配置）
-            var parent = bossFightRoot != null ? bossFightRoot.transform : transform;
-
-            var boardRoot = new GameObject("Board");
-            boardRoot.transform.SetParent(parent);
-            _hexBoardVisualizer = new HexBoardVisualizer(
-                _boardManager, boardRoot.transform,
-                tileHeight, tileScale,
-                tileIdleColor, tileHighlight, tileOccupied);
-
-            var entitiesRoot = new GameObject("Entities");
-            entitiesRoot.transform.SetParent(parent);
-            _entityVisualizer = new EntityVisualizer(
-                _boardManager, entitiesRoot.transform,
-                characterHeight, characterRadius,
-                bossHeight, bossRadius,
-                characterColor, bossColor);
-
-            // 猎人 —— 走 EntityCreator（Prefab/程序化回退），由 CharacterEntity 自管视图
-            EnsureEntityCreator();
-            foreach (var character in result.characters)
+            try
             {
-                _characters.Add(character);
-                _characterById[character.Id] = character;
-
-                var entity = UI.EntityCreator.CreateCharacterEntity(
-                    character.Id, GetEntityWorldPosition(character.Id), this,
-                    id => _timelineManager?.GetTimePoints(id) ?? 0,
-                    id => _timelineManager?.GetLimit(id) ?? 0,
-                    OnSelectCharacter,
-                    cardId => OnPlayCard(cardId, -1),
-                    entitiesRoot.transform);
-                _characterEntities[character.Id] = entity;
+                Transform parent = bossFightRoot != null ? bossFightRoot.transform : transform;
+                EnsureEntityCreator();
+                var configuration = new PlayableCombatSessionConfiguration
+                {
+                    Setup = ResolveSetup(),
+                    Parent = parent,
+                    ArenaRadius = arenaRadius,
+                    CellSize = cellSize,
+                    TileHeight = tileHeight,
+                    TileScale = tileScale,
+                    TileIdleColor = tileIdleColor,
+                    TileHighlightColor = tileHighlight,
+                    TileOccupiedColor = tileOccupied,
+                    CharacterHeight = characterHeight,
+                    CharacterRadius = characterRadius,
+                    BossHeight = bossHeight,
+                    BossRadius = bossRadius,
+                    CharacterColor = characterColor,
+                    BossColor = bossColor,
+                    TableHeightOffset = tableHeightOffset,
+                    TableScale = tableScale,
+                    BossTablePosition = bossTablePosition,
+                    GetSettlementEvents = () => _settlementManager?.Events
+                };
+                _combatSession = new PlayableCombatSession(configuration);
+                _combatSession.PublishReady();
+                Debug.Log("[GameManager] CombatSession 已创建。");
+                return true;
             }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception, this);
+                DisposeCombatSession();
+                return false;
+            }
+        }
 
-            // 行动卡实例
-            foreach (var kv in result.allCards)
-                _allCards[kv.Key] = kv.Value;
-
-            // Boss
-            _bossData = result.boss;
-            _entityVisualizer.SpawnEntity(
-                _bossData.Id, _boardQuery.GetEntityPosition(_bossData.Id), true);
-
-            // 组件（障碍物 / 可互动物体）—— 已占棋盘格，可视化暂留占位
-            foreach (var comp in result.components)
-                Debug.Log($"[GameManager] 组件生成：{comp.Template.Key} @ {comp.Tile}");
-            // TODO: 组件可视化（根据 CombatComponentSO.prefab / icon 生成 3D 表现）
-
-            // 记录棋盘半径，Start 里再广播给相机（确保相机已订阅，避免 Awake 期错过）
-            _mapRadius = setup.FieldRules != null ? Mathf.Max(1, setup.FieldRules.mapRadius) : arenaRadius;
+        private void DisposeCombatSession()
+        {
+            PlayableCombatSession session = _combatSession;
+            _combatSession = null;
+            session?.Dispose();
+            Debug.Log("[GameManager] CombatSession 已释放。");
         }
 
         /// <summary>确保存在一个 EntityCreator 实例（静态工厂 EntityCreator.Instance 才能用 Prefab）。
@@ -440,232 +373,37 @@ namespace Core
                 entityCreator = GetComponent<UI.EntityCreator>() ?? gameObject.AddComponent<UI.EntityCreator>();
         }
 
-        private void InitializeCardSystems()
-        {
-            _flipConditionEvaluator = new FlipConditionEvaluator(this);
-            foreach (var card in _allCards.Values)
-                _flipConditionEvaluator.RegisterCard(card);
-            _actionCardCostService = new ActionCardCostService(
-                () => _timelineManager,
-                () => _combatManager?.InputProvider,
-                _flipConditionEvaluator,
-                _actionCardResources);
-            _cardEffectResolver = new CardEffectResolver(
-                _flipConditionEvaluator,
-                this,
-                _boardQuery,
-                _boardCommand,
-                _actionCardCostService);
-        }
-
-        private void InitializeTurnSystem()
-        {
-            _timelineManager = new TimelineManager();
-            foreach (var c in _characters)
-            {
-                _timelineManager.RegisterCharacter(c.Id, c.Willpower);
-                _actionCardResources.Register(c.Id, c.CombatInspiration);
-            }
-            _timelineManager.RegisterBoss(_bossData.Id);
-
-            _bossController = new BossController(
-                _bossData,
-                _activeBossConfig?.bossCardPool        ?? new List<BossActionCardData>(),
-                _activeBossConfig?.bossHitLocationPool ?? new List<HitLocationCardData>(),
-                this, _boardQuery,
-                _activeBossConfig?.killLoot            ?? new List<LootEntry>());
-
-            _turnStateMachine = new TurnStateMachine(this);
-
-            _turnStateMachine.CanCharacterAct = (charId) =>
-                _timelineManager.CanCharacterAct(charId, this);
-
-            _turnStateMachine.ShouldTransitionToBoss = () =>
-                _timelineManager.ShouldTransitionToBoss(this);
-
-            _turnStateMachine.RequestPlayCard = async (cardId, targetId) =>
-            {
-                if (!_allCards.TryGetValue(cardId, out var card)) return false;
-
-                int ownerId = card.OwnerCharacterId;
-                if (_timelineManager.IsCharacterDone(ownerId)) return false;
-
-                bool success = await _cardEffectResolver.TryPlayCardAsync(card, targetId);
-                SyncCharacterTimelineState(ownerId);
-                return success;
-            };
-
-            _turnStateMachine.RequestRestoreCard = cardId =>
-                _flipConditionEvaluator.TryRestoreAsync(cardId);
-
-            _turnStateMachine.RequestDiscardCard = async cardId =>
-            {
-                var result = await _flipConditionEvaluator.TryDiscardForRewardAsync(cardId);
-                if (result.Success && result.TimePointReward != 0)
-                    _timelineManager.AccumulateTimePoints(
-                        result.OwnerCharacterId, -result.TimePointReward);
-                if (result.Success)
-                    SyncCharacterTimelineState(result.OwnerCharacterId);
-                return result;
-            };
-
-            _turnStateMachine.RequestOverflowProcessing = () =>
-            {
-                _timelineManager.ProcessOverflowForNewPlayerTurn();
-                _flipConditionEvaluator.ResetPerTurnAvailability();
-                foreach (var character in _characters)
-                    SyncCharacterTimelineState(character.Id);
-            };
-
-            _turnStateMachine.RequestBossExecuteActions = () =>
-                _bossController.ExecutePendingActionsAsync();
-
-            _turnStateMachine.RequestBossDrawActions = () =>
-            {
-                int newLimit = _bossController.DrawAndRevealNextActions();
-                _timelineManager.SetRoundLimit(newLimit);
-            };
-        }
-
-        private void InitializeEntityCallbacks()
-        {
-            _entityVisualizer.OnEntityClicked = OnSelectCharacter;
-            _entityVisualizer.GetCurrentTP    = (id) => _timelineManager.GetTimePoints(id);
-            _entityVisualizer.GetTPLimit      = (id) => _timelineManager.GetLimit(id);
-        }
-
-        private void InitializeCombatSystem()
-        {
-            var inputProvider = new UIPlayerInputProvider(_boardManager, _hexBoardVisualizer);
-
-            _combatManager = new CombatManager(
-                this, _boardQuery, inputProvider,
-                _bossController.GetHitLocationRuntimeStates());
-
-            Debug.Log("[GameManager] CombatSystem 初始化完成");
-        }
 
         // ═══════════════════════════════════════════
         // IGameContext 实现
         // ═══════════════════════════════════════════
 
-        public TurnPhase CurrentPhase    => _currentPhase;
-        public int CurrentTurnNumber     => _turnNumber;
-        public IReadOnlyList<ICharacterState> PlayerCharacters => _characters;
-        public IBossState Boss            => _bossData;
-
-        public IReadOnlyList<HitLocationRuntimeState> BossHitLocationStates
-            => _bossController?.GetHitLocationRuntimeStates()
-               ?? new List<HitLocationRuntimeState>();
-
-        public IReadOnlyList<BossActionCardData> BossRevealedCards
-            => _bossController?.LastRevealedCards
-               ?? System.Array.Empty<BossActionCardData>();
-
-        public Character GetCharacter(int characterId)
-        {
-            if (_characterById.TryGetValue(characterId, out var data))
-                return data.CharacterEntity;
-            return null;
-        }
-
-        public CharacterRuntimeData GetCharacterData(int characterId)
-        {
-            _characterById.TryGetValue(characterId, out var data);
-            return data;
-        }
-
-        public IReadOnlyList<ICharacterActionCardInstanceState> GetCardsOf(int characterId)
-        {
-            if (_characterById.TryGetValue(characterId, out var character))
-                return character.Hand;
-            return new List<ICharacterActionCardInstanceState>();
-        }
-
-        public ICharacterActionCardInstanceState GetCard(int cardInstanceId)
-        {
-            return _allCards.TryGetValue(cardInstanceId, out var card) ? card : null;
-        }
-
-        public Vector3 GetEntityWorldPosition(int entityId)
-        {
-            var tile = _boardQuery.GetEntityPosition(entityId);
-            return _boardManager.TileToWorld(tile);
-        }
+        public TurnPhase CurrentPhase => _combatSession?.CurrentPhase ?? TurnPhase.PlayerTurn;
+        public int CurrentTurnNumber => _combatSession?.CurrentTurnNumber ?? 0;
+        public IReadOnlyList<ICharacterState> PlayerCharacters => _combatSession?.PlayerCharacters ?? System.Array.Empty<ICharacterState>();
+        public IBossState Boss => _combatSession?.Boss;
+        public IReadOnlyList<HitLocationRuntimeState> BossHitLocationStates => _combatSession?.BossHitLocationStates ?? System.Array.Empty<HitLocationRuntimeState>();
+        public IReadOnlyList<BossActionCardData> BossRevealedCards => _combatSession?.BossRevealedCards ?? System.Array.Empty<BossActionCardData>();
+        public Character GetCharacter(int characterId) => _combatSession?.GetCharacter(characterId);
+        public CharacterRuntimeData GetCharacterData(int characterId) => _combatSession?.GetCharacterData(characterId);
+        public IReadOnlyList<ICharacterActionCardInstanceState> GetCardsOf(int characterId) => _combatSession?.GetCardsOf(characterId) ?? System.Array.Empty<ICharacterActionCardInstanceState>();
+        public ICharacterActionCardInstanceState GetCard(int cardInstanceId) => _combatSession?.GetCard(cardInstanceId);
+        public Vector3 GetEntityWorldPosition(int entityId) => _combatSession?.GetEntityWorldPosition(entityId) ?? Vector3.zero;
 
         // ═══════════════════════════════════════════
         // UI 输入接口
         // ═══════════════════════════════════════════
 
-        public void OnSelectCharacter(int characterId)
-        {
-            var playerState = _turnStateMachine.GetState<PlayerTurnState>();
-            playerState?.SelectCharacter(characterId);
-        }
-
-        public void OnPlayCard(int cardInstanceId, int targetEntityId)
-        {
-            var playerState = _turnStateMachine.GetState<PlayerTurnState>();
-            playerState?.PlayCardAsync(cardInstanceId, targetEntityId).Forget();
-        }
-
-        public void OnRestoreCard(int cardInstanceId)
-        {
-            var playerState = _turnStateMachine.GetState<PlayerTurnState>();
-            playerState?.RestoreCardAsync(cardInstanceId).Forget();
-        }
-
-        public void OnDiscardCard(int cardInstanceId)
-        {
-            var playerState = _turnStateMachine.GetState<PlayerTurnState>();
-            playerState?.DiscardCardAsync(cardInstanceId).Forget();
-        }
-
-        public void OnEndTurn()
-        {
-            var playerState = _turnStateMachine.GetState<PlayerTurnState>();
-            playerState?.EndTurnManually();
-        }
-
-        public bool OnAssistOvertimeCharacter(int helperId, int targetId)
-        {
-            AssistanceResult result = _timelineManager.TryAssistOvertimeCharacter(helperId, targetId);
-            if (!result.Success)
-                return false;
-
-            SyncCharacterTimelineState(helperId);
-            SyncCharacterTimelineState(targetId);
-            return true;
-        }
-
-        public int AddCombatInspiration(int characterId, int amount)
-        {
-            int value = _actionCardCostService.AddCombatInspiration(characterId, amount);
-            SyncCharacterTimelineState(characterId);
-            return value;
-        }
-
-        // ═══════════════════════════════════════════
-        // 内部工具
-        // ═══════════════════════════════════════════
-
-        private void SyncCharacterTimelineState(int characterId)
-        {
-            CharacterRuntimeData data = GetCharacterData(characterId);
-            if (data == null)
-                return;
-
-            data.CurrentTimePoints = _timelineManager.GetTimePoints(characterId);
-            data.Willpower = _timelineManager.GetWillpower(characterId);
-            data.CombatInspiration = _actionCardCostService.GetCombatInspiration(characterId);
-            data.ActionState = _timelineManager.GetStatus(characterId) switch
-            {
-                TimelineActionStatus.Exhausted => CharacterActionState.Exhausted,
-                TimelineActionStatus.Overtime => CharacterActionState.Overtime,
-                TimelineActionStatus.Done => CharacterActionState.Done,
-                _ => CharacterActionState.Idle
-            };
-        }
+        public void OnSelectCharacter(int characterId) => _combatSession?.OnSelectCharacter(characterId);
+        public void OnPlayCard(int cardInstanceId, int targetEntityId) => _combatSession?.OnPlayCard(cardInstanceId, targetEntityId);
+        public void OnRestoreCard(int cardInstanceId) => _combatSession?.OnRestoreCard(cardInstanceId);
+        public void OnDiscardCard(int cardInstanceId) => _combatSession?.OnDiscardCard(cardInstanceId);
+        public void OnEndTurn() => _combatSession?.OnEndTurn();
+        public bool OnAssistOvertimeCharacter(int helperId, int targetId) => _combatSession != null && _combatSession.TryAssistOvertimeCharacter(helperId, targetId);
+        public int AddCombatInspiration(int characterId, int amount) => _combatSession?.AddCombatInspiration(characterId, amount) ?? 0;
+        public UniTask<InspirationGain> AddCombatInspirationAsync(int characterId, CombatInspirationColor color) => _combatSession != null ? _combatSession.AddCombatInspirationAsync(characterId, color) : UniTask.FromResult(new InspirationGain(InspirationGainResult.Rejected, default));
+        public IReadOnlyList<CombatInspirationToken> GetCombatInspirationTokens(int characterId) => _combatSession?.GetCombatInspirationTokens(characterId) ?? System.Array.Empty<CombatInspirationToken>();
+        public int GetCombatInspirationCapacity(int characterId) => _combatSession?.GetCombatInspirationCapacity(characterId) ?? 0;
 
         // ═══════════════════════════════════════════
         // Boss 战利品结算
@@ -678,9 +416,9 @@ namespace Core
         /// </summary>
         private void ApplyBossFightLoot()
         {
-            if (_settlementManager == null) return;
+            if (_settlementManager == null || _combatSession == null) return;
 
-            var loot = _bossController.GetAndClearLoot();
+            var loot = _combatSession.GetAndClearLoot();
             if (loot.Count == 0) return;
 
             foreach (var (resource, amount) in loot)
@@ -709,9 +447,24 @@ namespace Core
         private SettlementManager CreateSettlementManager()
         {
             var mgr = new SettlementManager();
+            mgr.OnEventTriggered = (gameEvent, hunter) => SettlementEventPresented?.Invoke(gameEvent, hunter);
             // 当营地系统要求出发狩猎时，切换到 Hunt 阶段
             mgr.OnDepartForHunt = (hunterIds) => TransitionToPhase(GamePhase.Hunt);
             return mgr;
+        }
+
+        private void StartSettlementActionSession()
+        {
+            DisposeSettlementActionSession();
+            if (_settlementManager?.Data == null) return;
+            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog));
+        }
+
+        private void DisposeSettlementActionSession()
+        {
+            PlayableSettlementActionSession session = settlementActionSession;
+            settlementActionSession = null;
+            session?.Dispose();
         }
 
         // ═══════════════════════════════════════════
@@ -727,11 +480,12 @@ namespace Core
                 foreach (var id in hunterIds)
                 {
                     var h = _settlementManager.Data.GetHunter(id);
-                    if (h != null) hunters.Add(h);
+                    if (h?.IsAvailable == true)
+                        hunters.Add(h);
                 }
-            // 若没有出发猎人（开发者跳转），用所有存活猎人
+            // 若没有出发猎人（开发者跳转），用所有可出战猎人
             if (hunters.Count == 0 && _settlementManager != null)
-                hunters = _settlementManager.Data.GetAliveHunters();
+                hunters = _settlementManager.Data.GetAvailableHunters();
 
             // 创建/重用 HuntManager
             if (_huntMgr == null)
@@ -750,13 +504,17 @@ namespace Core
                 };
                 _huntMgr.OnHuntCompleted = (record) =>
                 {
+                    if (_settlementManager?.HunterMgmt == null)
+                        throw new System.InvalidOperationException("营地猎人管理器未初始化，无法提交狩猎成长。");
+                    PlayableHunterAdvancementAdapter.ApplyAfterHunt(_huntMgr.ActiveHunters, _settlementManager.HunterMgmt);
                     // 将记录交给 TransitionToPhase(Settlement) 消费，避免双重调用 OnEnter
                     _pendingHuntRecord = record;
                     TransitionToPhase(GamePhase.Settlement);
                 };
             }
 
-            _huntMgr.OnEnter(hunters);
+            PlayableHuntDestinationRuntime.ApplyTo(_huntMgr);
+            _huntMgr.OnEnter(hunters, _settlementManager?.Data.CurrentYear ?? 1);
 
             // 3D 地图可视化
             if (_huntVisualizer == null && huntRoot != null)
@@ -780,7 +538,7 @@ namespace Core
             }
             var uiParent = uiHunt != null ? uiHunt : huntRoot;
             if (uiParent == null) return;
-            var uiGo = new GameObject("HuntUIManager");
+            var uiGo = new GameObject("HuntUIManager", typeof(RectTransform));
             uiGo.transform.SetParent(uiParent.transform, false);
             _huntUI = uiGo.AddComponent<HuntUIManager>();
             _huntUI.Init(_huntMgr);
@@ -799,7 +557,7 @@ namespace Core
                 }
                 else
                 {
-                    Debug.LogError("[GameManager] 未配置 SettlementUIManager（请在场景中预先搭好营地 HUD 并拖到 GameManager 的引用槽）。");
+                    Debug.LogWarning("[GameManager] 未配置 SettlementUIManager，将保留 3D 营地桌面与外部流程控件。");
                 }
             }
 
@@ -840,6 +598,65 @@ namespace Core
 
         /// <summary>获取当前游戏大阶段</summary>
         public GamePhase CurrentGamePhase => _phaseManager?.CurrentPhase ?? GamePhase.Settlement;
+        public SettlementInstance SettlementData => _settlementManager?.Data;
+        public IReadOnlyList<HunterInstance> ActiveHuntHunters => _huntMgr != null ? _huntMgr.ActiveHunters : System.Array.Empty<HunterInstance>();
+        public InventionSystem SettlementInventions => _settlementManager?.Inventions;
+        public WorkshopSystem SettlementWorkshop => _settlementManager?.Workshop;
+        public HunterManagementSystem SettlementHunters => _settlementManager?.HunterMgmt;
+        public event System.Action<EventData, HunterInstance> SettlementEventPresented;
+        public event System.Action<bool> SettlementProgressLoadCompleted;
+
+        public bool TryDepartForHunt(List<int> hunterIds) => _settlementManager != null && _settlementManager.TryDepart(hunterIds);
+
+        public void ResolveSettlementNarrative(EventData gameEvent) => _settlementManager?.Events.ResolveNarrative(gameEvent);
+
+        public EventResolutionResult ResolveSettlementChoice(EventData gameEvent, int optionIndex, HunterInstance hunter = null) => _settlementManager != null ? _settlementManager.Events.ResolveChoice(gameEvent, optionIndex, hunter) : default;
+
+        public PlayableEventChoiceTransaction PrepareSettlementChoice(EventData gameEvent, int optionIndex, HunterInstance hunter = null) => _settlementManager?.Events.PrepareChoice(gameEvent, optionIndex, hunter);
+
+        public void SaveSettlementProgress() => DevSave();
+
+        public bool CanTrainWeapon(int hunterId, string masteryId, out string reason)
+        {
+            if (settlementActionSession != null && settlementActionSession.IsActive)
+                return settlementActionSession.CanTrainWeapon(hunterId, masteryId, out reason);
+            reason = "仅可在营地阶段训练";
+            return false;
+        }
+
+        public UniTask<WeaponTrainingCommandResult> TrainWeaponAsync(int hunterId, string masteryId)
+        {
+            if (settlementActionSession == null || !settlementActionSession.IsActive)
+                return UniTask.FromResult(WeaponTrainingCommandResult.Failed("仅可在营地阶段训练"));
+            return settlementActionSession.TrainWeaponAsync(hunterId, masteryId);
+        }
+
+        public bool TrySpendHunterGrowth(int hunterId, HunterGrowthChoice choice)
+        {
+            if (!PlayableHunterAdvancementAdapter.TrySpendGrowth(_settlementManager?.Data.GetHunter(hunterId), choice)) return false;
+            SaveSettlementProgress();
+            return true;
+        }
+
+        public bool OnRelieveOvertimeCharacter(int targetId)
+        {
+            return _combatSession != null && _combatSession.TryRelieveOvertimeCharacter(targetId);
+        }
+
+        public TimelineActionStatus GetTimelineStatus(int characterId) => _combatSession?.GetTimelineStatus(characterId) ?? TimelineActionStatus.Done;
+
+        public void LoadSettlementProgress() => DevLoad();
+
+        public void RetreatFromHunt()
+        {
+            if (CurrentGamePhase != GamePhase.Hunt) return;
+            if (_huntMgr == null || _settlementManager?.Data == null)
+            {
+                TransitionToPhase(GamePhase.Settlement);
+                return;
+            }
+            _huntMgr.CompleteHunt(false, _settlementManager.Data);
+        }
 
         /// <summary>
         /// 切换游戏大阶段。GameManager 负责 Enable/Disable 对应根物体，
@@ -848,16 +665,20 @@ namespace Core
         public void TransitionToPhase(GamePhase newPhase)
         {
             if (_phaseManager == null || newPhase == _phaseManager.CurrentPhase) return;
+            GamePhase previousPhase = _phaseManager.CurrentPhase;
 
             // 离开当前阶段的清理
             switch (_phaseManager.CurrentPhase)
             {
                 case GamePhase.BossFight:
                     ApplyBossFightLoot();
+                    DisposeCombatSession();
                     break;
             }
 
             if (!_phaseManager.TransitionTo(newPhase)) return;
+            if (previousPhase == GamePhase.Settlement)
+                DisposeSettlementActionSession();
 
             // 进入新阶段的初始化
             switch (newPhase)
@@ -869,6 +690,7 @@ namespace Core
                     var record = _pendingHuntRecord;
                     _pendingHuntRecord = null;
                     _settlementManager.OnEnter(record);
+                    StartSettlementActionSession();
                     EnsureSettlementUI();
                     // 持久化：进入营地时自动存档
                     if (_settlementManager?.Data != null)
@@ -883,11 +705,22 @@ namespace Core
                     break;
 
                 case GamePhase.BossFight:
-                    // Boss决战：启动回合状态机（若尚未启动）
                     Debug.Log("[GameManager] 进入Boss决战阶段");
-                    _turnStateMachine.Start();
+                    EnterBossFightPhase();
                     break;
             }
+        }
+
+        private void EnterBossFightPhase()
+        {
+            if (!StartCombatSession())
+            {
+                if (CurrentGamePhase == GamePhase.BossFight)
+                    TransitionToPhase(GamePhase.Settlement);
+                return;
+            }
+
+            _combatSession.Start(_huntMgr?.ActiveHunters, _settlementManager?.HunterMgmt, QueueDefeatedHuntCompletion);
         }
 
         /// <summary>
@@ -921,9 +754,11 @@ namespace Core
             EventBus.Unsubscribe<HunterRosterChangedEvent>(OnHunterRosterChanged);
             EventBus.Unsubscribe<CardHoverPreviewEvent>(OnCardHoverPreview);
             EventBus.Unsubscribe<CardHoverPreviewEndEvent>(OnCardHoverPreviewEnd);
-            _cardDisplayManager?.Dispose();
-            _bossController?.Dispose();
-            EventBus.Clear();
+            EventBus.Unsubscribe<SettlementTransactionCommittedEvent>(OnSettlementTransactionCommitted);
+            DisposeSettlementActionSession();
+            DisposeCombatSession();
+            if (Instance == this)
+                Instance = null;
         }
 
         // ═══════════════════════════════════════════
@@ -933,7 +768,10 @@ namespace Core
         /// <summary>Boss被击败 → 结算狩猎 → 返回营地</summary>
         private void OnBossDefeated(BossDefeatedEvent _)
         {
+            if (CurrentGamePhase != GamePhase.BossFight || _combatSession == null) return;
             Debug.Log("[GameManager] 收到 BossDefeatedEvent → 狩猎结算 → 营地");
+            _combatSession.AccumulateDefeatLoot();
+            _combatSession.SettleWeaponMastery();
             if (_huntMgr != null && _settlementManager != null)
                 _huntMgr.CompleteHunt(bossDefeated: true, settlement: _settlementManager.Data);
             else
@@ -947,28 +785,24 @@ namespace Core
             _gameOverScreen?.Show(evt.Reason);
         }
 
+        private void OnSettlementTransactionCommitted(SettlementTransactionCommittedEvent evt)
+        {
+            if (CurrentGamePhase != GamePhase.Settlement || settlementActionSession == null) return;
+            SaveSettlementProgress();
+            _settlementUIManager?.Refresh();
+            _settlementTable3D?.Refresh();
+        }
+
         /// <summary>悬浮行动卡 → 高亮其目标/范围格</summary>
         private void OnCardHoverPreview(CardHoverPreviewEvent evt)
         {
-            if (_hexBoardVisualizer == null) return;
-            if (!_allCards.TryGetValue(evt.CardInstanceId, out var card)) return;
-
-            var effects = card.CurrentFace == CardFace.FaceUp
-                ? card.FaceUpEffects
-                : card.FaceDownEffects;
-
-            var tiles = new List<Vector2Int>();
-            foreach (var effect in effects)
-                if (effect?.Targeting != null)
-                    tiles.AddRange(effect.Targeting.GetValidTiles(_boardQuery, card.OwnerCharacterId));
-
-            if (tiles.Count > 0) _hexBoardVisualizer.Highlight(tiles);
+            _combatSession?.HighlightCardPreview(evt.CardInstanceId);
         }
 
         /// <summary>移开行动卡 → 清除范围高亮</summary>
         private void OnCardHoverPreviewEnd(CardHoverPreviewEndEvent _)
         {
-            _hexBoardVisualizer?.ClearHighlights();
+            _combatSession?.ClearCardPreview();
         }
 
         /// <summary>猎人名册变化时检查胜负条件</summary>
@@ -1009,8 +843,11 @@ namespace Core
                 // 删除存档后重置到营地开头
                 SaveLoadSystem.DeleteSaveAsync(this.GetCancellationTokenOnDestroy()).Forget();
                 // 重置 SettlementManager，重新初始化
+                DisposeSettlementActionSession();
                 _settlementManager = CreateSettlementManager();
                 _settlementManager.EnsureStartingConditions();
+                _settlementManager.OnEnter();
+                StartSettlementActionSession();
                 _gameOverScreen.gameObject.SetActive(false);
                 TransitionToPhase(GamePhase.Settlement);
             };
@@ -1057,6 +894,7 @@ namespace Core
                 Debug.LogWarning("[GameManager] DevAdvanceYear: SettlementManager 尚未初始化");
                 return;
             }
+            _settlementManager.Data.HuntsCompletedThisYear = 0;
             _settlementManager.Data.CurrentYear++;
             EventBus.Publish(new YearAdvancedEvent { NewYear = _settlementManager.Data.CurrentYear });
             Debug.Log($"[GameManager][Dev] 年份推进至 {_settlementManager.Data.CurrentYear}");
@@ -1089,10 +927,13 @@ namespace Core
             if (data == null)
             {
                 Debug.LogWarning("[GameManager] DevLoad: 无存档文件");
+                SettlementProgressLoadCompleted?.Invoke(false);
                 return;
             }
             _settlementManager ??= CreateSettlementManager();
             _settlementManager.InjectData(data);
+            if (CurrentGamePhase == GamePhase.Settlement)
+                StartSettlementActionSession();
 
             // 场景常驻 HUD（SettlementUIManager）不销毁，重新填充数据即可；
             // SettlementTable3D 是运行时创建，销毁后由 EnsureSettlementUI 重建。
@@ -1104,6 +945,24 @@ namespace Core
             EnsureSettlementUI();
             _settlementUIManager?.Refresh();
             Debug.Log($"[GameManager] DevLoad 完成，年份 {data.CurrentYear}");
+            SettlementProgressLoadCompleted?.Invoke(true);
+        }
+
+        private void CompleteDefeatedHunt()
+        {
+            if (CurrentGamePhase != GamePhase.BossFight) return;
+            if (_huntMgr != null && _settlementManager?.Data != null)
+                _huntMgr.CompleteHunt(bossDefeated: false, settlement: _settlementManager.Data);
+            else
+                TransitionToPhase(GamePhase.Settlement);
+        }
+
+        private void QueueDefeatedHuntCompletion() => CompleteDefeatedHuntAfterActionAsync().Forget();
+
+        private async UniTaskVoid CompleteDefeatedHuntAfterActionAsync()
+        {
+            await UniTask.NextFrame();
+            CompleteDefeatedHunt();
         }
     }
 }

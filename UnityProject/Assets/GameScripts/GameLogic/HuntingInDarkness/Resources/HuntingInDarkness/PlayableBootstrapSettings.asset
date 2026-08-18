@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1259656823047d48b1efe4b31dfd810, type: 3}
+  m_Name: PlayableBootstrapSettings
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Bootstrap.PlayableBootstrapSettings
+  entrySceneName: main
+  initialPhase: 0
+  showStartMenu: 1
+  showFlowGuide: 1
+  showSettlementHud: 1
+  settlementHudWidth: 420
+  showOpeningNarrative: 1
+  hideFrameworkDebugger: 1
+  openingNarrative: "\u4F60\u4E0E\u540C\u4F34\u4ECE\u65E0\u706B\u7684\u9ED1\u6697\u4E2D\u9192\u6765\u3002\n\u8FDC\u5904\u7684\u568E\u53EB\u58F0\u63D0\u9192\u7740\u4F60\u4EEC\uFF1A\u5982\u679C\u4E0D\u5B66\u4F1A\u72E9\u730E\uFF0C\u4ECA\u591C\u5C31\u4F1A\u6210\u4E3A\u730E\u7269\u3002"
+  gameTitle: "\u9ED1\u6697\u72E9\u730E"
+  titleTagline: "\u65E0\u706B\u4E4B\u5730\u6CA1\u6709\u82F1\u96C4\u3002\n\u53EA\u6709\u5C1A\u672A\u88AB\u9ED1\u6697\u541E\u6CA1\u7684\u4EBA\u3002"
+  bossCameraPosition: {x: 0, y: 8, z: -11}
+  bossCameraEulerAngles: {x: 32, y: 0, z: 0}
+  keyLightColor: {r: 1, g: 0.88, b: 0.72, a: 1}
+  keyLightIntensity: 1.25
+  fieldRules: {fileID: 0}
+  hunterSquad:
+  - {fileID: 11400000, guid: 5cc179a3fc5a72a41b2511fead2a9978, type: 2}
+  - {fileID: 11400000, guid: 37b60a8bb1936bc4f95447443c6550f1, type: 2}
+  - {fileID: 11400000, guid: 5c680ebdd664dd04bb04c44876557ef9, type: 2}
+  - {fileID: 11400000, guid: 2a8683b4a15ced5419ac2907488acab9, type: 2}
+  sharedHunterCards:
+  - {fileID: 11400000, guid: ae69877306ed57e44a68bb29c3a64cc2, type: 2}
+  - {fileID: 11400000, guid: 33f68fc54e2849e44ac8b43c5d77aaa5, type: 2}
+  boss: {fileID: 11400000, guid: 92395c87edb70c944a4d8705fea4fffc, type: 2}
+  cellSize: 1.2
+  huntContent: {fileID: 11400000, guid: 2314ca48b045a2b4c995c2283d7ca108, type: 2}
+  huntDestinations: {fileID: 11400000, guid: 9cde4642e9a49844fb711f6a7c990ae7, type: 2}
+  settlementContent: {fileID: 11400000, guid: d83222627b2bf78418ae1a72a4489485, type: 2}
+  combatEquipment: {fileID: 11400000, guid: 691e29270485bb1408f1ec7b625089a5, type: 2}
+  survivalEvents: {fileID: 11400000, guid: 13fc75c68456a7d4fae80f31274af677, type: 2}
+  permanentInjuries: {fileID: 11400000, guid: 1d485a10e89a91247a0243d19166f1d2, type: 2}
+  symptoms: {fileID: 11400000, guid: 910280386493a6e41b3739f37c29e998, type: 2}
+  growthMilestones: {fileID: 11400000, guid: 27c859a1b7db5f5438086399e85e275f, type: 2}
+  weaponMastery: {fileID: 11400000, guid: 9b283cab0dd1f694a8be9940b9503141, type: 2}

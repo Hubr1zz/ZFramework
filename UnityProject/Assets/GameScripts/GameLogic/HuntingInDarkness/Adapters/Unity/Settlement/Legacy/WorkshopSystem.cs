@@ -39,6 +39,7 @@ namespace HuntingInDarkness.Settlement
 
         public bool IsRecipeUnlocked(CraftRecipe recipe)
         {
+            if (recipe == null || !string.IsNullOrEmpty(recipe.requiredWorkshopId) && !_settlement.IsWorkshopBuilt(recipe.requiredWorkshopId)) return false;
             return WorkshopRules.IsUnlocked(
                 ToDefinition(recipe),
                 _settlement.IsInventionUnlocked,
@@ -47,6 +48,11 @@ namespace HuntingInDarkness.Settlement
 
         public bool CanCraft(CraftRecipe recipe, out string reason)
         {
+            if (recipe != null && !string.IsNullOrEmpty(recipe.requiredWorkshopId) && !_settlement.IsWorkshopBuilt(recipe.requiredWorkshopId))
+            {
+                reason = $"需要先建造工坊：{recipe.requiredWorkshopId}";
+                return false;
+            }
             return WorkshopRules.CanCraft(
                 ToDefinition(recipe),
                 _settlement.IsInventionUnlocked,
@@ -77,6 +83,8 @@ namespace HuntingInDarkness.Settlement
             // 资源型产出直接存入仓库
             if (recipe.outputItem.itemType == ItemType.Resource)
                 _settlement.AddResource(recipe.outputItem.itemName, recipe.outputCount);
+            else
+                _settlement.AddStoredEquipment(recipe.outputItem.itemName, recipe.outputCount);
 
             Debug.Log($"[Workshop] 制造完成：{recipe.outputItem.itemName} ×{recipe.outputCount}");
             return output;

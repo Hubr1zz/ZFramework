@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2471a7f4f41d4e74f85c7f31dc58d1a5, type: 3}
+  m_Name: FungalWhisper
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.EventData
+  eventName: "\u5B62\u5B50\u96FE\u4E2D\u7684\u811A\u6B65"
+  eventType: 1
+  displayText: "\u5BC6\u96C6\u83CC\u76D6\u5728\u8EAB\u540E\u4F9D\u6B21\u51F9\u9677\uFF0C\u50CF\u6709\u4E00\u652F\u770B\u4E0D\u89C1\u7684\u961F\u4F0D\u6B63\u8E29\u7740\u4F60\u4EEC\u7684\u811A\u5370\u3002\u5B62\u5B50\u96FE\u8D8A\u6765\u8D8A\u6D53\u3002"
+  hiddenText:
+  options:
+  - optionText: "\u5C4F\u4F4F\u547C\u5438\uFF0C\u5FEB\u901F\u7A7F\u8FC7"
+    checkType: 4
+    checkTarget: 7
+    successText: "\u4F60\u4EEC\u8D76\u5728\u96FE\u5899\u5408\u62E2\u524D\u51B2\u4E86\u51FA\u53BB\u3002"
+    successEffects: []
+    successChain: []
+    failText: "\u96FE\u4E2D\u7684\u811A\u6B65\u8FFD\u4E86\u5F88\u4E45\u3002\u538B\u6291
+      +1\u3002"
+    failEffects:
+    - effectType: 5
+      targetName: selected
+      value: 1
+      description: "\u538B\u6291 +1"
+    failChain: []
+    alwaysAvailable: 1
+  - optionText: "\u505C\u4E0B\u8FA8\u8BA4\u83CC\u4E1D\u7684\u751F\u957F\u65B9\u5411"
+    checkType: 5
+    checkTarget: 7
+    successText: "\u4F60\u627E\u5230\u4E86\u4ECD\u53EF\u98DF\u7528\u7684\u83CC\u8089\u3002\u83B7\u5F97\u8611\u83C7\u8089
+      \xD71\u3002"
+    successEffects:
+    - effectType: 0
+      targetName: "\u8611\u83C7\u8089"
+      value: 1
+      description: "\u8611\u83C7\u8089 +1"
+    successChain: []
+    failText: "\u4F60\u5728\u9519\u8BEF\u7684\u65B9\u5411\u8017\u5C3D\u4E86\u8010\u5FC3\u3002\u610F\u5FD7
+      -1\u3002"
+    failEffects:
+    - effectType: 3
+      targetName: selected
+      value: 1
+      description: "\u610F\u5FD7 -1"
+    failChain: []
+    alwaysAvailable: 1
+  immediateEffects: []
+  combatTargetBossName:
+  chainedEvents: []
+  minYear: 1
+  maxYear: 0
+  drawWeight: 4
+  category: 2

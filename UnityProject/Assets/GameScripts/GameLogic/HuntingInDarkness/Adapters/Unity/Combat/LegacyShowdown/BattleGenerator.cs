@@ -92,6 +92,13 @@ namespace GameplayBase.CombatSystem
                     character.AddCard(cardInstance);
                     result.allCards[cardInstance.InstanceId] = cardInstance;
                 }
+                foreach (var cardData in setup.SharedHunterCards ?? new List<SO.Boss.ActionCard.CharacterActionCardData>())
+                {
+                    if (cardData == null || config.startingCards.Contains(cardData)) continue;
+                    var cardInstance = new CharacterActionCardInstance(cardData, character.Id);
+                    character.AddCard(cardInstance);
+                    result.allCards[cardInstance.InstanceId] = cardInstance;
+                }
 
                 // 出生位置来自场地规则；不足则自动找空格
                 Vector2Int tile;
@@ -129,7 +136,8 @@ namespace GameplayBase.CombatSystem
             result.boss = new BossRuntimeData
             {
                 Id   = BossEntityId,
-                Name = setup.Boss != null ? setup.Boss.bossName : "Boss"
+                Name = setup.Boss != null ? setup.Boss.bossName : "Boss",
+                MaxHealth = setup.Boss != null ? setup.Boss.maxHealth : 1
             };
 
             var slot = rules != null ? rules.bossSpawnSlot : default;

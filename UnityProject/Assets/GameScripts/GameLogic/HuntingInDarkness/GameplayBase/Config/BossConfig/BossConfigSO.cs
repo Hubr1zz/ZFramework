@@ -11,6 +11,8 @@ namespace Config
     public class BossConfigSO : ScriptableObject
     {
         public string bossName = "Boss";
+        [Min(0)] public int baseToughness = 2;
+        [Min(1)] public int maxHealth = 6;
         public List<BossActionCardData> bossCardPool = new();
         public List<HitLocationCardData> bossHitLocationPool = new();
         // 出生位置已迁移至 CombatFieldRulesSO.bossSpawnSlot（按战斗场地决定）

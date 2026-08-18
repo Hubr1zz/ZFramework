@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2471a7f4f41d4e74f85c7f31dc58d1a5, type: 3}
+  m_Name: BogUndertow
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.EventData
+  eventName: "\u6C34\u4E0B\u7684\u7275\u5F15"
+  eventType: 1
+  displayText: "\u6D51\u6C34\u7A81\u7136\u7F20\u4F4F\u9886\u961F\u7684\u5C0F\u817F\u3002\u90A3\u4E0D\u662F\u6C34\u8349\uFF0C\u800C\u662F\u4E00\u622A\u4ECD\u5728\u7F13\u6162\u6536\u7F29\u7684\u900F\u660E\u7EC4\u7EC7\u3002"
+  hiddenText:
+  options:
+  - optionText: "\u6293\u4F4F\u5B83\u5E76\u5411\u5CB8\u4E0A\u62D6"
+    checkType: 3
+    checkTarget: 7
+    successText: "\u7EC4\u7EC7\u88AB\u626F\u65AD\uFF0C\u4ECD\u6709\u4E00\u90E8\u5206\u53EF\u4EE5\u5E26\u8D70\u3002\u83B7\u5F97\u67D4\u8F6F\u5668\u5B98
+      \xD71\u3002"
+    successEffects:
+    - effectType: 0
+      targetName: "\u67D4\u8F6F\u5668\u5B98"
+      value: 1
+      description: "\u67D4\u8F6F\u5668\u5B98 +1"
+    successChain: []
+    failText: "\u6C34\u4E0B\u7684\u529B\u91CF\u53CD\u800C\u5C06\u4F60\u62D6\u5012\u3002\u538B\u6291
+      +1\u3002"
+    failEffects:
+    - effectType: 5
+      targetName: selected
+      value: 1
+      description: "\u538B\u6291 +1"
+    failChain: []
+    alwaysAvailable: 1
+  - optionText: "\u7ACB\u523B\u540E\u9000\uFF0C\u4E0D\u4E0E\u5B83\u89D2\u529B"
+    checkType: 0
+    checkTarget: 0
+    successText: "\u4F60\u4EEC\u7ED5\u5F00\u4E86\u90A3\u7247\u4ECD\u5728\u547C\u5438\u7684\u6C34\u9762\u3002"
+    successEffects: []
+    successChain: []
+    failText:
+    failEffects: []
+    failChain: []
+    alwaysAvailable: 1
+  immediateEffects: []
+  combatTargetBossName:
+  chainedEvents: []
+  minYear: 1
+  maxYear: 0
+  drawWeight: 3
+  category: 2

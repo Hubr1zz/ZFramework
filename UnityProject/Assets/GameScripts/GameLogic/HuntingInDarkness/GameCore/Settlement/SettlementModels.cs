@@ -4,6 +4,12 @@ using HuntingInDarkness.GameCore.Foundation;
 
 namespace HuntingInDarkness.GameCore.Settlement
 {
+    public enum HunterAvailabilityState
+    {
+        Active,
+        Retired
+    }
+
     [Serializable]
     public class ResourceAmount
     {
@@ -45,11 +51,21 @@ namespace HuntingInDarkness.GameCore.Settlement
     }
 
     [Serializable]
+    public class WeaponMasteryState
+    {
+        public string MasteryId;
+        public string DisplayName;
+        public int Experience;
+        public List<string> ClaimedMilestoneIds = new List<string>();
+    }
+
+    [Serializable]
     public class HunterState
     {
         public int InstanceId;
         public string Name;
         public bool IsAlive = true;
+        public HunterAvailabilityState Availability = HunterAvailabilityState.Active;
         public int Age = 1;
         public int Willpower = 2;
         public int WillpowerMax = 2;
@@ -58,19 +74,26 @@ namespace HuntingInDarkness.GameCore.Settlement
         public HunterStats Stats = new HunterStats();
         public HunterHitPoints HP = new HunterHitPoints();
         public HunterHitPoints MaxHP = new HunterHitPoints();
+        /// <summary>旧版全局熟练度兼容镜像。新逻辑以 WeaponMasteries 为准。</summary>
         public int WeaponProficiency;
+        public List<WeaponMasteryState> WeaponMasteries = new List<WeaponMasteryState>();
         public int Courage;
         public int Understanding;
+        public int UnspentGrowth;
         public List<int> EquipmentIds = new List<int>();
         public List<int> CollectibleIds = new List<int>();
         public List<string> Traits = new List<string>();
         public List<string> Ailments = new List<string>();
         public List<string> TempConditions = new List<string>();
         public List<string> PermConditions = new List<string>();
+        public List<string> PermanentInjuryIds = new List<string>();
+        public List<HunterSymptomState> SymptomStates = new List<HunterSymptomState>();
+        public List<string> ClaimedGrowthMilestoneIds = new List<string>();
         public int SurvivalCards = 1;
         public int DeathCards;
 
         public bool IsDead => !IsAlive || HP.head <= 0 || HP.body <= 0;
+        public bool IsAvailable => IsAlive && Availability == HunterAvailabilityState.Active;
 
         public bool RollDeath(IRandomSource random)
         {

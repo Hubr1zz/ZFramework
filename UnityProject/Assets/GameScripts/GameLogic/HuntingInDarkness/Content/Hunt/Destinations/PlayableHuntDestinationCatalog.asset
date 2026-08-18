@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a11294226d6e3e34b9783cda133d88f2, type: 3}
+  m_Name: PlayableHuntDestinationCatalog
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Hunt.PlayableHuntDestinationCatalog
+  destinations:
+  - destinationId: stone-forest-outskirts
+    displayName: "\u77F3\u68EE\u6797\u5916\u7F18"
+    description: "\u98CE\u5316\u96D5\u50CF\u4E0E\u65AD\u5899\u6784\u6210\u4E86\u76F8\u5BF9\u6E05\u6670\u7684\u8DEF\u6807\u3002\u8FD9\u91CC\u9002\u5408\u5BFB\u627E\u5EFA\u6750\uFF0C\u4F46\u65E0\u5149\u517D\u7559\u4E0B\u7684\u75D5\u8FF9\u4E5F\u6700\u5BC6\u96C6\u3002"
+    resourceHint: "\u788E\u77F3\u3001\u67D4\u8F6F\u5668\u5B98"
+    dangerHint: "\u7A33\u5B9A \xB7 \u5E9F\u589F\u4E2D\u66F4\u5BB9\u6613\u63A5\u8FD1\u5DE8\u517D"
+    minimumYear: 1
+    huntContent: {fileID: 11400000, guid: 843cf265f798c1442a744800555aa7fe, type: 2}
+  - destinationId: sunken-fungal-marsh
+    displayName: "\u6C89\u9677\u83CC\u6CBC"
+    description: "\u83CC\u76D6\u8986\u76D6\u7740\u79EF\u6C34\u4E0E\u65E7\u9AA8\uFF0C\u98DF\u6750\u66F4\u5E38\u89C1\uFF0C\u89C6\u91CE\u5374\u88AB\u5B62\u5B50\u96FE\u5207\u788E\u3002\u6BCF\u4E00\u6B65\u90FD\u53EF\u80FD\u8E29\u9192\u6C34\u4E0B\u7684\u4E1C\u897F\u3002"
+    resourceHint: "\u8611\u83C7\u8089\u3001\u67D4\u8F6F\u5668\u5B98"
+    dangerHint: "\u591A\u53D8 \xB7 \u6CBC\u6CFD\u4E0E\u5E9F\u589F\u4EA4\u9519"
+    minimumYear: 1
+    huntContent: {fileID: 11400000, guid: 64ed7f93fcb01e245867739b63393422, type: 2}

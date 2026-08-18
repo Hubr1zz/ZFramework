@@ -6,7 +6,10 @@
         "UniTask",
         "Unity.TextMeshPro",
         "Unity.ugui",
-        "HuntingInDarkness.GameCore"
+        "HuntingInDarkness.GameCore",
+        "ActionQueue.Runtime",
+        "BuffSystem.ActionQueueAdapter",
+        "PresentationSystem.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

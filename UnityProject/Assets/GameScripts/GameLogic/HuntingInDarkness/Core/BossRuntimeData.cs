@@ -1,14 +1,19 @@
 using System.Collections.Generic;
 using GameplayBase;
+using HuntingInDarkness.GameCore.Combat;
 
 namespace Core
 {
     /// <summary>Boss 运行时状态数据。</summary>
-    public class BossRuntimeData : IBossState
+    public class BossRuntimeData : IBossState, IBossVitalityState
     {
         public int    Id   { get; set; }
         public string Name { get; set; }
         public int    CurrentTimePoints { get; set; }
+        private BossVitalityState vitality = new(1);
+        public int MaxHealth { get => vitality.MaxHealth; set => vitality = new BossVitalityState(value); }
+        public int CurrentHealth => vitality.CurrentHealth;
+        public bool IsDefeated => vitality.IsDefeated;
 
         private readonly List<int> _pendingActionCardIds = new();
         public IReadOnlyList<int> PendingActionCardIds => _pendingActionCardIds;
@@ -34,5 +39,8 @@ namespace Core
             _pendingActionCardIds.AddRange(_revealedNextCardIds);
             _revealedNextCardIds.Clear();
         }
+
+        public int ApplyBossDamage(int damage) => vitality.ApplyDamage(damage).AppliedDamage;
+        public bool TryClaimDefeat() => vitality.TryClaimDefeat();
     }
 }

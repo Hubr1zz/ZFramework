@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using GameplayBase.Card.BossActionCard;
 using GameplayBase.Card.CharacterActionCard;
 using GameplayBase.CombatSystem;
+using HuntingInDarkness.Combat;
 using SO.Character;
 using UnityEngine;
 
@@ -75,7 +76,7 @@ namespace GameplayBase.Card.Effect
 
         public CharacterAttackEffect(IWeaponResolver weaponResolver = null)
         {
-            _weaponResolver = weaponResolver ?? new EquippedWeaponResolver();
+            _weaponResolver = weaponResolver ?? new PlayableLoadoutWeaponResolver();
         }
 
         protected override async UniTask ExecuteAttackAsync(
@@ -112,9 +113,9 @@ namespace GameplayBase.Card.Effect
 
         private static CharacterCombatStats GetCharacterStats(ActionCardContext context)
         {
-            if (context.GameContext is GameManager gm)
-                return gm.GetCharacterData(context.SourceCharacterId)?.CombatStats;
-            Debug.LogWarning("[CharacterAttackEffect] GameContext 不是 GameManager，无法获取 CombatStats");
+            if (context.GameContext is ICombatRuntimeDataProvider provider)
+                return provider.GetCharacterData(context.SourceCharacterId)?.CombatStats;
+            Debug.LogWarning("[CharacterAttackEffect] GameContext 未提供角色战斗数据");
             return null;
         }
     }
@@ -130,14 +131,18 @@ namespace GameplayBase.Card.Effect
     public class BossAttackEffect : BossActionCardEffect
     {
         private readonly int _woundCount;
+        private readonly int _accuracy;
+        private readonly int _attackCount;
         private readonly int _targetCharacterId; // -1 = 随机选存活角色
 
         public override string Description => "Boss攻击";
 
-        public BossAttackEffect(int woundCount, int targetCharacterId = -1)
+        public BossAttackEffect(int woundCount, int targetCharacterId = -1, int accuracy = 1, int attackCount = 1)
         {
             _woundCount          = woundCount;
             _targetCharacterId   = targetCharacterId;
+            _accuracy            = accuracy;
+            _attackCount         = attackCount;
         }
 
         public override bool CanExecute(ActionCardContext context) => true;
@@ -160,8 +165,8 @@ namespace GameplayBase.Card.Effect
             if (targetId < 0) return;
 
             CharacterCombatStats defenderStats = null;
-            if (context.GameContext is GameManager gameManager)
-                defenderStats = gameManager.GetCharacterData(targetId)?.CombatStats;
+            if (context.GameContext is ICombatRuntimeDataProvider provider)
+                defenderStats = provider.GetCharacterData(targetId)?.CombatStats;
 
             if (defenderStats == null)
             {
@@ -169,7 +174,7 @@ namespace GameplayBase.Card.Effect
                 return;
             }
 
-            await combatManager.BossAttackCharacter(targetId, defenderStats, _woundCount);
+            await combatManager.BossAttackCharacter(targetId, defenderStats, _woundCount, accuracy: _accuracy, attackCount: _attackCount);
         }
 
         private int ResolveTarget(ActionCardContext context)
@@ -182,8 +187,8 @@ namespace GameplayBase.Card.Effect
             foreach (var c in characters)
             {
                 bool isDead = false;
-                if (context.GameContext is GameManager gm)
-                    isDead = gm.GetCharacterData(c.Id)?.CombatStats?.IsDead ?? false;
+                if (context.GameContext is ICombatRuntimeDataProvider provider)
+                    isDead = provider.GetCharacterData(c.Id)?.CombatStats?.IsDead ?? false;
                 if (!isDead) alive.Add(c);
             }
 

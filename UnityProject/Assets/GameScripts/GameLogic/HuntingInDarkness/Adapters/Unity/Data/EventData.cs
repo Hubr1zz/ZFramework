@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 
 namespace HuntingInDarkness.Data
@@ -70,10 +71,22 @@ namespace HuntingInDarkness.Data
         MainStory, // 主线强制事件（特定年份触发）
         Random,    // 随机抽取事件
         Hunt,      // 狩猎阶段专属
-        Settlement // 营地阶段专属
+        Settlement, // 营地阶段专属
+        Scheduled // 只允许通过 Timeline 延时调度
     }
 
     // ─── 事件选项 ────────────────────────────────────────────────
+
+    [System.Serializable]
+    public class EventOptionCondition
+    {
+        public EventOptionConditionKind conditionKind;
+        public string key = "";
+        public int value;
+        public bool inverted;
+
+        public EventOptionConditionDefinition ToDomain() => new EventOptionConditionDefinition(conditionKind, key, value, inverted);
+    }
 
     [System.Serializable]
     public class EventOption
@@ -97,6 +110,7 @@ namespace HuntingInDarkness.Data
 
         [Header("可用条件（满足才显示此选项）")]
         public bool alwaysAvailable = true;
+        public List<EventOptionCondition> conditions = new();
     }
 
     // ─── 事件效果 ────────────────────────────────────────────────
@@ -118,11 +132,14 @@ namespace HuntingInDarkness.Data
         RemoveWillpower,    // 减少意志点
         AddLuck,            // 增加命运值
         AddInsanity,        // 增加压抑值
+        AddCourage,         // 增加胆识
+        AddUnderstanding,   // 增加知识
         AddTrait,           // 添加特性：targetName=特性名
         AddAilment,         // 添加症状
         KillHunter,         // 猎人死亡判定
         UnlockInvention,    // 解锁发明：targetName=发明名
         TriggerCombat,      // 触发战斗
-        AdvanceYear         // 推进年份
+        AdvanceYear,        // 推进年份
+        ScheduleEvent       // 安排未来事件：targetName=稳定事件ID, value=延迟年数
     }
 }

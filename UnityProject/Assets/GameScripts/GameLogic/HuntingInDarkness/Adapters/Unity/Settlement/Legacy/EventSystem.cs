@@ -12,10 +12,11 @@ namespace HuntingInDarkness.Settlement
     /// 职责：事件触发流程（显示文本 → 选项 → 判定 → 效果 → 子事件链），
     /// 骰子投掷，意志点重投机制。
     /// </summary>
-    public class EventSystem
+    public partial class EventSystem
     {
         private readonly SettlementInstance _settlement;
         private readonly IRandomSource      _rng;
+        private readonly IDelayedEventScheduler delayedEventScheduler;
 
         /// <summary>当事件需要展示 UI 时，调用此回调（SettlementUIManager 注入）</summary>
         public System.Action<EventData, HunterInstance> OnEventTriggered;
@@ -27,10 +28,11 @@ namespace HuntingInDarkness.Settlement
         private readonly Queue<EventData> _pendingChain = new();
         private HunterInstance            _selectedHunter;
 
-        public EventSystem(SettlementInstance settlement, IRandomSource rng)
+        public EventSystem(SettlementInstance settlement, IRandomSource rng, IDelayedEventScheduler delayedEventScheduler = null)
         {
             _settlement = settlement;
             _rng        = rng;
+            this.delayedEventScheduler = delayedEventScheduler;
         }
 
         // ─── 触发事件 ────────────────────────────────────────────
@@ -77,6 +79,7 @@ namespace HuntingInDarkness.Settlement
         {
             foreach (var effect in evt.immediateEffects)
                 ApplyEffect(effect, _selectedHunter);
+            MarkEventCompleted(evt);
             EnqueueChain(evt.chainedEvents);
             ProcessNextInChain();
         }
@@ -91,11 +94,15 @@ namespace HuntingInDarkness.Settlement
         public EventResolutionResult ResolveChoice(EventData evt, int optionIndex,
             HunterInstance actor = null)
         {
-            if (optionIndex < 0 || optionIndex >= evt.options.Count)
+            if (evt?.options == null || optionIndex < 0 || optionIndex >= evt.options.Count)
                 return new EventResolutionResult { Success = false, ResultText = "无效选项" };
 
             var option = evt.options[optionIndex];
             actor ??= _selectedHunter;
+            if (option.checkType != CheckType.None && actor == null)
+                return new EventResolutionResult { Success = false, ResultText = "该选项需要一名猎人执行。" };
+            if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, out string unavailableReason))
+                return new EventResolutionResult { Success = false, ResultText = unavailableReason };
 
             bool success = true;
             int  rollValue = 0;
@@ -110,8 +117,10 @@ namespace HuntingInDarkness.Settlement
 
             // 执行效果
             var effects = success ? option.successEffects : option.failEffects;
-            foreach (var effect in effects)
-                ApplyEffect(effect, actor);
+            if (effects != null)
+                foreach (var effect in effects)
+                    ApplyEffect(effect, actor);
+            MarkEventCompleted(evt);
 
             // 追加子事件链
             EnqueueChain(success ? option.successChain : option.failChain);
@@ -155,18 +164,34 @@ namespace HuntingInDarkness.Settlement
         public void ApplyEffect(EventEffect effect, HunterInstance target)
         {
             if (effect == null) return;
+            if (effect.effectType == EventEffectType.ScheduleEvent)
+            {
+                if (delayedEventScheduler == null)
+                {
+                    Debug.LogWarning($"[EventSystem] 无法安排延时事件 {effect.targetName}：Timeline 未注入");
+                    return;
+                }
+                if (!delayedEventScheduler.TryScheduleEventAfterYears(effect.targetName, effect.value, out string reason))
+                    Debug.LogWarning($"[EventSystem] 无法安排延时事件 {effect.targetName}：{reason}");
+                return;
+            }
 
             SettlementEffectOutcome outcome = SettlementEffectRules.Apply(
                 ToCoreEffectKind(effect.effectType),
                 effect.targetName,
                 effect.value,
-                _selectedHunter,
+                _selectedHunter ?? target,
                 target,
-                _settlement.GetAliveHunters(),
+                _settlement.GetAvailableHunters(),
                 _settlement.GetResource,
                 _settlement.AddResource,
                 _settlement.SpendResource,
                 _settlement.UnlockInvention);
+
+            if (outcome.Handled && effect.effectType == EventEffectType.AddAilment)
+                PlayableSymptomRuntime.SynchronizeHunter(_selectedHunter ?? target);
+            if (outcome.Handled && (effect.effectType == EventEffectType.AddCourage || effect.effectType == EventEffectType.AddUnderstanding))
+                PlayableGrowthMilestoneRuntime.Synchronize(_settlement);
 
             if (outcome.ResourceChanged)
             {
@@ -195,6 +220,14 @@ namespace HuntingInDarkness.Settlement
                 if (e != null) _pendingChain.Enqueue(e);
         }
 
+        private void MarkEventCompleted(EventData gameEvent)
+        {
+            if (gameEvent == null) return;
+            var entry = _settlement.Timeline.FindLast(item => item.EventId == gameEvent.name && !item.IsCompleted);
+            if (entry != null)
+                entry.IsCompleted = true;
+        }
+
         private static SettlementEffectKind ToCoreEffectKind(EventEffectType effectType)
         {
             return effectType switch
@@ -205,6 +238,8 @@ namespace HuntingInDarkness.Settlement
                 EventEffectType.RemoveWillpower => SettlementEffectKind.RemoveWillpower,
                 EventEffectType.AddLuck => SettlementEffectKind.AddLuck,
                 EventEffectType.AddInsanity => SettlementEffectKind.AddInsanity,
+                EventEffectType.AddCourage => SettlementEffectKind.AddCourage,
+                EventEffectType.AddUnderstanding => SettlementEffectKind.AddUnderstanding,
                 EventEffectType.AddTrait => SettlementEffectKind.AddTrait,
                 EventEffectType.AddAilment => SettlementEffectKind.AddAilment,
                 EventEffectType.UnlockInvention => SettlementEffectKind.UnlockInvention,

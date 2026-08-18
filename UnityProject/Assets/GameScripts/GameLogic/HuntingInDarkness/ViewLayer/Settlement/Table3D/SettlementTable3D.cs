@@ -66,7 +66,7 @@ namespace UI
 
         private void FillAllZones()
         {
-            _hunterZone.Fill(_mgr.Data.GetAliveHunters());
+            _hunterZone.Fill(_mgr.Data.GetAvailableHunters());
             _resourceZone.Fill(_mgr.Data.Resources);
             _workshopZone.Fill();
             _inventionZone.Fill(_mgr.Inventions.AllInventions);
@@ -93,7 +93,7 @@ namespace UI
             const float gap   = 0.10f;
             const float interGap = 0.80f;
 
-            int hunCount = _mgr.Data.GetAliveHunters().Count;
+            int hunCount = _mgr.Data.GetAvailableHunters().Count;
             int resCount = _mgr.Data.Resources.Count;
             int invCount = _mgr.Inventions.AllInventions.Count;
             int wsCount  = 0; // 暂无建筑/工坊数据，预留空区
@@ -206,7 +206,7 @@ namespace UI
         }
 
         private void OnRosterChanged(HunterRosterChangedEvent _)
-            => _hunterZone.Fill(_mgr.Data.GetAliveHunters());
+            => _hunterZone.Fill(_mgr.Data.GetAvailableHunters());
 
         private void OnYearAdvanced(YearAdvancedEvent _)
         {

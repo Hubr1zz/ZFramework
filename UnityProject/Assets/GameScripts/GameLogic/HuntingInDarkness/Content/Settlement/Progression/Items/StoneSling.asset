@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48324497afd44fb4eaff36be8ad626c2, type: 3}
+  m_Name: StoneSling
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.ItemData
+  itemName: "\u7B4B\u8171\u6295\u77F3\u7D22"
+  itemType: 1
+  description: "\u4EE5\u67D4\u97E7\u5668\u5B98\u7F16\u6210\u7D22\u5E26\uFF0C\u629B\u5C04\u788E\u77F3\u3002\u5A01\u529B\u8F83\u4F4E\uFF0C\u4F46\u80FD\u5728\u66F4\u8FDC\u5904\u5FEB\u901F\u8BD5\u63A2\u602A\u7269\u3002"
+  tags: 01000000030000000700000008000000
+  weaponStats:
+    speed: 2
+    power: 1
+    accuracy: 1
+    range: 3
+    specialRule: "\u8FDC\u7A0B\uFF1A\u53EF\u5728\u4E09\u683C\u5185\u653B\u51FB\uFF1B\u7CBE\u51C6\u503C\u4FDD\u7559\u7ED9\u6B63\u5F0F\u547D\u4E2D\u724C\u6C60\u7ED3\u7B97\u3002"
+  armorStats:
+    armorHead: 0
+    armorBody: 0
+    armorArms: 0
+    armorLegs: 0
+  stackLimit: 1

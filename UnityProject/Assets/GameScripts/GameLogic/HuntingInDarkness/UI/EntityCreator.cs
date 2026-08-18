@@ -82,11 +82,11 @@ namespace UI
             Action<int> onClicked, Action<int> onPlayCard, Transform parent)
         {
             var prefab = Instance != null ? Instance._characterEntityPrefab : null;
-            if (prefab == null) Debug.LogError("CharacterEntity Prefab is null");
+            if (prefab == null) Debug.LogWarning("CharacterEntity Prefab is null; using the playable fallback view.");
 
             CharacterEntity entity = prefab != null
                 ? Instantiate(prefab, parent)
-                : new();
+                : PlayableCharacterEntityFactory.Create(parent);
 
             entity.transform.position = worldPos;
             entity.OnClicked          = onClicked;

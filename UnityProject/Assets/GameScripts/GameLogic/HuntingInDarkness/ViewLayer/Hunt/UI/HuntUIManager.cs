@@ -14,6 +14,7 @@ namespace UI.Hunt
     public class HuntUIManager : MonoBehaviour
     {
         private HuntManager _huntMgr;
+        private bool _initialized;
 
         // 子面板
         private HunterStatusOverlay  _statusOverlay;
@@ -30,11 +31,18 @@ namespace UI.Hunt
             _huntMgr = huntMgr;
             huntMgr.OnResourcePointClicked = ShowHarvestPopup;
 
+            if (_initialized)
+            {
+                Refresh();
+                return;
+            }
+
             BuildUI();
             Refresh();
 
             // 订阅事件
             EventBus.Subscribe<GameEventTriggeredEvent>(OnGameEvent);
+            _initialized = true;
         }
 
         private void BuildUI()
@@ -67,6 +75,7 @@ namespace UI.Hunt
             var botGo = NewPanel("BottomBar", new Vector2(0, 0), new Vector2(1, 0.08f));
             botGo.GetComponent<Image>().color = new Color(0.08f, 0.1f, 0.14f, 0.9f);
             BuildBottomButtons(botGo.transform);
+            topGo.transform.SetAsLastSibling();
         }
 
         private void BuildBottomButtons(Transform parent)
@@ -74,7 +83,6 @@ namespace UI.Hunt
             var buttons = new (string label, System.Action action)[]
             {
                 ("撤退（回营地）", OnClickRetreat),
-                ("直接进Boss战 [Dev]", OnClickDevBoss),
             };
 
             float w = 1f / buttons.Length;
@@ -98,7 +106,7 @@ namespace UI.Hunt
         public void Refresh()
         {
             if (_huntMgr == null) return;
-            _infoLabel.text = $"狩猎阶段  — 小队位置 {_huntMgr.SquadPosition}";
+            _infoLabel.text = $"{PlayableHuntDestinationRuntime.ActiveDisplayName}  — 小队位置 {_huntMgr.SquadPosition}";
             _statusOverlay?.Init(_huntMgr.ActiveHunters);
         }
 
@@ -118,8 +126,9 @@ namespace UI.Hunt
 
         private void OnClickRetreat()
         {
+            if (PlayableHuntInputGuard.IsBlocked) return;
             Debug.Log("[HuntUI] 玩家撤退 → 狩猎完成");
-            _huntMgr?.CompleteHunt(false, null);
+            GameManager.Instance?.RetreatFromHunt();
             // GameManager 监听 OnHuntCompleted 回调来切换阶段
         }
 
@@ -137,9 +146,9 @@ namespace UI.Hunt
         private static GameObject NewPanel(string name, Transform parent,
             Vector2 aMin, Vector2 aMax)
         {
-            var go = new GameObject(name);
+            var go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            var rt = go.AddComponent<RectTransform>();
+            var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = aMin; rt.anchorMax = aMax;
             rt.offsetMin = rt.offsetMax = Vector2.zero;
             go.AddComponent<Image>().color = new Color(0.1f, 0.1f, 0.15f, 0.8f);
@@ -149,7 +158,7 @@ namespace UI.Hunt
         internal static Text MakeText(GameObject parent, string name, string text,
             int fontSize, TextAnchor anchor)
         {
-            var go = new GameObject(name);
+            var go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent.transform, false);
             FullStretch(go);
             var t = go.AddComponent<Text>();

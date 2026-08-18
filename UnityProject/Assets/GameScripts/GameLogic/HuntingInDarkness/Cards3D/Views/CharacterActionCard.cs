@@ -83,8 +83,7 @@ namespace Cards3D
                 _descText.color = new Color(0.15f, 0.15f, 0.15f);
 
                 _nameText.text = _state.CardName;
-                _costText.text = _state.TimePointCost > 0
-                    ? $"时:{_state.TimePointCost}" : "";
+                _costText.text = _state.CostDescription;
                 _descText.text = _state.FaceUpDescription;
                 _hintText.text = _state.CanDiscard ? "右键·弃置" : "";
             }

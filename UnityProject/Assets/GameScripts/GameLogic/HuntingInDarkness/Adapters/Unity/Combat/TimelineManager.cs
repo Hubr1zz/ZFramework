@@ -95,6 +95,15 @@ namespace Core
             return result;
         }
 
+        public bool TryRelieveOvertimeCharacter(int targetId)
+        {
+            if (!_timeline.TryRelieveOvertimeCharacter(targetId, out TimePointChange change))
+                return false;
+
+            Publish(change);
+            return true;
+        }
+
         public void ProcessOverflowForNewPlayerTurn()
         {
             foreach (TimePointChange change in _timeline.ProcessOverflowForNewPlayerTurn())

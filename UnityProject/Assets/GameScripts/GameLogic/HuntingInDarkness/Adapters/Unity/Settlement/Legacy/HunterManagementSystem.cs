@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
+using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 
 namespace HuntingInDarkness.Settlement
@@ -14,8 +15,8 @@ namespace HuntingInDarkness.Settlement
     {
         private readonly SettlementInstance _settlement;
         private readonly IRandomSource      _rng;
-
-        private static int _nextHunterId = 100;
+        private int deathInspirationGrowth = 1;
+        private int deathInspirationMinimumAge = 2;
 
         public HunterManagementSystem(SettlementInstance settlement, IRandomSource rng)
         {
@@ -23,12 +24,18 @@ namespace HuntingInDarkness.Settlement
             _rng        = rng;
         }
 
+        public void ConfigureDeathInspiration(int growthPerHunter, int minimumDeceasedAge)
+        {
+            deathInspirationGrowth = Mathf.Max(0, growthPerHunter);
+            deathInspirationMinimumAge = Mathf.Max(1, minimumDeceasedAge);
+        }
+
         // ─── 招募 ─────────────────────────────────────────────────
 
         /// <summary>从模板招募新猎人（加入营地名单）</summary>
         public HunterInstance Recruit(HunterData template, string customName = null)
         {
-            var hunter = new HunterInstance(template, _nextHunterId++);
+            var hunter = new HunterInstance(template, HunterIdentityRules.NextAvailableId(_settlement.Hunters));
             if (!string.IsNullOrEmpty(customName)) hunter.Name = customName;
             _settlement.Hunters.Add(hunter);
             Debug.Log($"[HunterMgmt] 招募猎人：{hunter.Name}（ID={hunter.InstanceId}）");
@@ -39,40 +46,50 @@ namespace HuntingInDarkness.Settlement
         /// <summary>开局添加初始猎人（不触发招募事件）</summary>
         public void AddStartingHunter(string name, HunterData template = null)
         {
-            var hunter = new HunterInstance(template, _nextHunterId++);
+            var hunter = new HunterInstance(template, HunterIdentityRules.NextAvailableId(_settlement.Hunters));
             hunter.Name = name;
             _settlement.Hunters.Add(hunter);
         }
 
         // ─── 装备管理 ─────────────────────────────────────────────
 
-        /// <summary>给猎人装备物品（从资源存储消耗）</summary>
+        /// <summary>给猎人装备物品（从装备仓库消耗）</summary>
         public bool EquipItem(HunterInstance hunter, ItemData item)
         {
             if (hunter == null || item == null) return false;
-            if (hunter.Equipment.Count >= 9) { Debug.Log("[HunterMgmt] 装备栏已满"); return false; }
             if (item.itemType == ItemType.Resource) return false;
+            hunter.Equipment ??= new List<ItemInstance>();
+            hunter.EquippedItemNames ??= new List<string>();
+            if (!PlayableEquipmentRules.CanEquip(hunter, item, out string reason))
+            {
+                Debug.Log($"[HunterMgmt] 无法装备：{reason}");
+                return false;
+            }
 
             // 从仓库消耗1件
-            if (_settlement.GetResource(item.itemName) <= 0) return false;
-            _settlement.SpendResource(item.itemName, 1);
+            if (!_settlement.SpendStoredEquipment(item.itemName, 1)) return false;
 
             hunter.Equipment.Add(new ItemInstance(item));
+            hunter.EquippedItemNames.Add(item.itemName);
             Debug.Log($"[HunterMgmt] {hunter.Name} 装备：{item.itemName}");
             return true;
         }
 
-        /// <summary>卸下装备（物品返回资源存储）</summary>
+        /// <summary>卸下装备（物品返回装备仓库）</summary>
         public bool UnequipItem(HunterInstance hunter, int slotIndex)
         {
-            if (hunter == null || slotIndex < 0 || slotIndex >= hunter.Equipment.Count)
-                return false;
+            if (hunter?.Equipment == null || slotIndex < 0 || slotIndex >= hunter.Equipment.Count) return false;
 
             var item = hunter.Equipment[slotIndex];
+            if (item?.Data == null) return false;
+            hunter.EquippedItemNames ??= new List<string>();
             hunter.Equipment.RemoveAt(slotIndex);
+            int savedIndex = hunter.EquippedItemNames.IndexOf(item.Data.itemName);
+            if (savedIndex >= 0)
+                hunter.EquippedItemNames.RemoveAt(savedIndex);
 
             // 返还到仓库
-            _settlement.AddResource(item.Data.itemName, 1);
+            _settlement.AddStoredEquipment(item.Data.itemName, 1);
             Debug.Log($"[HunterMgmt] {hunter.Name} 卸下：{item.Data.itemName}");
             return true;
         }
@@ -93,9 +110,8 @@ namespace HuntingInDarkness.Settlement
                 if (h == null || !h.IsAlive) continue;
                 if (h.RollDeath(_rng))
                 {
-                    dead.Add(h);
-                    Debug.Log($"[HunterMgmt] {h.Name} 在死亡判定中阵亡");
-                    EventBus.Publish(new HunterRosterChangedEvent());
+                    if (CommitDeath(h))
+                        dead.Add(h);
                 }
             }
             return dead;
@@ -104,15 +120,87 @@ namespace HuntingInDarkness.Settlement
         /// <summary>直接杀死猎人（来自事件/伤害）</summary>
         public void KillHunter(HunterInstance hunter)
         {
-            if (hunter == null) return;
+            if (hunter == null || !hunter.IsAlive)
+                return;
             hunter.IsAlive = false;
-            Debug.Log($"[HunterMgmt] {hunter.Name} 死亡");
+            CommitDeath(hunter);
+        }
+
+        /// <summary>提交规则层已经判定的退休，归还装备并保留猎人历史。</summary>
+        public void CompleteRetirement(HunterInstance hunter)
+        {
+            if (hunter == null || !hunter.IsAlive || hunter.Availability != HunterAvailabilityState.Retired)
+                return;
+
+            _settlement.Timeline ??= new List<AnnalEntry>();
+            string eventId = $"retirement:{hunter.InstanceId}:{_settlement.CurrentYear}";
+            if (_settlement.Timeline.Exists(entry => entry.EventId == eventId))
+                return;
+
+            ReturnEquipmentToStorage(hunter);
+            _settlement.Timeline.Add(new AnnalEntry
+            {
+                Year = _settlement.CurrentYear,
+                EventId = eventId,
+                EventName = $"{hunter.Name} 退休",
+                IsCompleted = true,
+                EntryType = TimelineEntryType.RosterChanged
+            });
             EventBus.Publish(new HunterRosterChangedEvent());
         }
 
         // ─── 统计 ─────────────────────────────────────────────────
 
         public int AliveCount  => _settlement.GetAliveHunters().Count;
+        public int AvailableCount => _settlement.GetAvailableHunters().Count;
         public bool AllDead    => AliveCount == 0;
+
+        private void ReturnEquipmentToStorage(HunterInstance hunter)
+        {
+            if (hunter == null) return;
+            hunter.EquippedItemNames ??= new List<string>();
+            foreach (string itemName in hunter.EquippedItemNames)
+                if (!string.IsNullOrEmpty(itemName))
+                    _settlement.AddStoredEquipment(itemName, 1);
+            hunter.Equipment?.Clear();
+            hunter.EquippedItemNames.Clear();
+        }
+
+        private bool CommitDeath(HunterInstance hunter)
+        {
+            if (hunter == null || hunter.IsAlive)
+                return false;
+
+            _settlement.Timeline ??= new List<AnnalEntry>();
+            string eventId = $"death:{hunter.InstanceId}";
+            if (_settlement.Timeline.Exists(entry => entry.EventId == eventId))
+                return false;
+
+            ReturnEquipmentToStorage(hunter);
+            _settlement.Timeline.Add(new AnnalEntry
+            {
+                Year = _settlement.CurrentYear,
+                EventId = eventId,
+                EventName = $"{hunter.Name} 死亡",
+                IsCompleted = true,
+                EntryType = TimelineEntryType.RosterChanged
+            });
+
+            var roster = new List<HunterState>(_settlement.Hunters.Count);
+            foreach (HunterInstance candidate in _settlement.Hunters)
+                roster.Add(candidate);
+            HunterLossInspirationPlan inspiration = HunterLossInspirationRules.CreatePlan(hunter, roster, deathInspirationGrowth, deathInspirationMinimumAge);
+            foreach (int hunterId in inspiration.HunterIds)
+            {
+                HunterInstance survivor = _settlement.GetHunter(hunterId);
+                if (survivor != null)
+                    survivor.UnspentGrowth += inspiration.GrowthPerHunter;
+            }
+
+            Debug.Log($"[HunterMgmt] {hunter.Name} 死亡；{inspiration.HunterIds.Count} 名猎人各获得 {inspiration.GrowthPerHunter} 点激励成长");
+            EventBus.Publish(new HunterDiedEvent(hunter.InstanceId, hunter.Name, _settlement.CurrentYear, inspiration.GrowthPerHunter, inspiration.HunterIds.Count));
+            EventBus.Publish(new HunterRosterChangedEvent());
+            return true;
+        }
     }
 }

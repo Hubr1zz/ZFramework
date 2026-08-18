@@ -33,7 +33,7 @@ namespace HuntingInDarkness.GameCore.Cards
 
         public bool CanDiscard =>
             Face == ActionCardFace.FaceUp && IsDiscardable && IsAvailableThisTurn;
-        public bool CanPlay => IsAvailableThisTurn;
+        public bool CanPlay => Face == ActionCardFace.FaceUp && IsAvailableThisTurn;
         public void Flip() => Face = ActionCardFace.FaceDown;
         public void Restore() => Face = ActionCardFace.FaceUp;
         public void SetFace(ActionCardFace face) => Face = face;

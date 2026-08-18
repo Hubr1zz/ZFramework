@@ -45,9 +45,11 @@ namespace HuntingInDarkness.Hunt
 
         public void Init(HuntManager huntMgr)
         {
+            ClearVisuals();
             _huntMgr = huntMgr;
             huntMgr.OnTileStateChanged  = OnTileStateChanged;
             huntMgr.OnSquadMoved        = OnSquadMoved;
+            huntMgr.OnResourcePointHarvested = OnResourcePointHarvested;
 
             BuildAllTiles();
             PlaceSquadToken(huntMgr.SquadPosition);
@@ -62,11 +64,10 @@ namespace HuntingInDarkness.Hunt
         private void CreateTileObject(Vector2Int coord, HexTileInstance tile)
         {
             var worldPos = _huntMgr.TileToWorld(coord);
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            var go = PlayableHexTileFactory.Create(_huntMgr.CellSize * 0.92f);
             go.name = $"Tile_{coord.x}_{coord.y}";
             go.transform.SetParent(transform);
             go.transform.position  = worldPos;
-            go.transform.localScale = new Vector3(_huntMgr.CellSize * 0.88f, 0.06f, _huntMgr.CellSize * 0.88f);
 
             var rend = go.GetComponent<Renderer>();
             rend.material = new Material(Shader.Find("Standard"));
@@ -97,6 +98,7 @@ namespace HuntingInDarkness.Hunt
                 c = GetRevealedColor(tile);
 
             rend.material.color = c;
+            _tileObjects[coord].GetComponent<PlayableHexTileView>()?.Present(tile, state);
 
             // 浮动标记（已翻开且有 Boss 遭遇）
             if (state == TileState.Revealed && tile.HasBossEncounter)
@@ -136,6 +138,16 @@ namespace HuntingInDarkness.Hunt
             PlaceSquadToken(newPos);
         }
 
+        private void OnResourcePointHarvested(ResourcePointInstance point)
+        {
+            foreach (var pair in _huntMgr.Map)
+            {
+                if (!pair.Value.ResourcePoints.Contains(point)) continue;
+                UpdateResourceMarkers(pair.Key, pair.Value);
+                return;
+            }
+        }
+
         // ─── 小队 Token ───────────────────────────────────────────
 
         private void PlaceSquadToken(Vector2Int coord)
@@ -173,12 +185,12 @@ namespace HuntingInDarkness.Hunt
             var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             marker.name = "ResourceMarker";
             marker.transform.SetParent(parent.transform);
-            marker.transform.localPosition = new Vector3(0.3f, 3f, 0.3f);
-            marker.transform.localScale    = Vector3.one * 0.5f;
+            marker.transform.localPosition = new Vector3(0.5f, 0.28f, 0.35f);
+            marker.transform.localScale    = Vector3.one * 0.35f;
             marker.GetComponent<Renderer>().material = new Material(Shader.Find("Standard"));
             marker.GetComponent<Renderer>().material.color = new Color(1f, 0.9f, 0.2f);
-            // 禁用碰撞体（由地块本身处理点击）
-            Destroy(marker.GetComponent<Collider>());
+            var clickHandler = marker.AddComponent<ResourceMarkerClickHandler>();
+            clickHandler.Initialize(_huntMgr, coord);
 
             _resourceMarkers[coord] = marker;
         }
@@ -189,8 +201,8 @@ namespace HuntingInDarkness.Hunt
             var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             marker.name = "BossMarker";
             marker.transform.SetParent(parent.transform);
-            marker.transform.localPosition = new Vector3(0f, 3f, 0f);
-            marker.transform.localScale    = Vector3.one * 0.7f;
+            marker.transform.localPosition = new Vector3(0f, 0.32f, 0f);
+            marker.transform.localScale    = Vector3.one * 0.48f;
             marker.GetComponent<Renderer>().material = new Material(Shader.Find("Standard"));
             marker.GetComponent<Renderer>().material.color = BossMarkerColor;
             Destroy(marker.GetComponent<Collider>());
@@ -200,9 +212,23 @@ namespace HuntingInDarkness.Hunt
 
         private void OnDestroy()
         {
+            ClearVisuals();
+        }
+
+        private void ClearVisuals()
+        {
+            if (_huntMgr != null && _huntMgr.OnTileStateChanged == OnTileStateChanged)
+                _huntMgr.OnTileStateChanged = null;
+            if (_huntMgr != null && _huntMgr.OnSquadMoved == OnSquadMoved)
+                _huntMgr.OnSquadMoved = null;
+            if (_huntMgr != null && _huntMgr.OnResourcePointHarvested == OnResourcePointHarvested)
+                _huntMgr.OnResourcePointHarvested = null;
             foreach (var go in _tileObjects.Values) if (go != null) Destroy(go);
-            foreach (var go in _resourceMarkers.Values) if (go != null) Destroy(go);
             if (_squadToken != null) Destroy(_squadToken);
+            _tileObjects.Clear();
+            _tileRenderers.Clear();
+            _resourceMarkers.Clear();
+            _squadToken = null;
         }
     }
 }
