@@ -334,7 +334,7 @@ namespace HuntingInDarkness.Combat
             foreach (CharacterActionCardInstance card in allCards.Values)
                 flipConditionEvaluator.RegisterCard(card);
             actionCardCostService = new ActionCardCostService(() => timelineManager, () => combatManager?.InputProvider, flipConditionEvaluator, actionCardResources);
-            combatActionSession = new PlayableCombatActionSession(this, boardQuery, boardCommand, actionCardCostService, flipConditionEvaluator, characterId => IsActive && timelineManager != null && timelineManager.CanCharacterAct(characterId, this), (characterId, reward) => timelineManager?.AccumulateTimePoints(characterId, -reward));
+            combatActionSession = new PlayableCombatActionSession(this, boardQuery, boardCommand, actionCardCostService, flipConditionEvaluator, characterId => IsActive && timelineManager != null && timelineManager.CanCharacterAct(characterId, this), (characterId, reward) => timelineManager?.AccumulateTimePoints(characterId, -reward), ProcessOverflow);
             scope.RegisterCleanup(combatActionSession.Dispose);
         }
 
@@ -357,9 +357,9 @@ namespace HuntingInDarkness.Combat
                 CanCharacterAct = characterId => IsActive && timelineManager.CanCharacterAct(characterId, this),
                 ShouldTransitionToBoss = () => IsActive && timelineManager.ShouldTransitionToBoss(this),
                 RequestPlayCard = TryPlayCardAsync,
+                RequestPlayerTurnStart = BeginPlayerTurnAsync,
                 RequestRestoreCard = TryRestoreCardAsync,
                 RequestDiscardCard = TryDiscardCardAsync,
-                RequestOverflowProcessing = ProcessOverflow,
                 RequestBossExecuteActions = ExecuteBossActionsAsync,
                 RequestBossDrawActions = DrawBossActions,
                 IsSessionActive = () => IsActive
@@ -414,6 +414,8 @@ namespace HuntingInDarkness.Combat
                 await combatManager.InputProvider.ShowResult(result.Reason);
             return result.Success;
         }
+
+        private UniTask<bool> BeginPlayerTurnAsync() => combatActionSession.BeginPlayerTurnAsync(new List<CharacterActionCardInstance>(allCards.Values));
 
         private async UniTask<bool> TryRestoreCardAsync(int cardId)
         {

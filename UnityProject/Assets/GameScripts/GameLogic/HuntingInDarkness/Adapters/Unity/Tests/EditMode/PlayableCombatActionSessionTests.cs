@@ -312,6 +312,121 @@ namespace HuntingInDarkness.Adapter.Tests
             UnityEngine.Object.DestroyImmediate(template);
         }
 
+        [Test]
+        public async Task BeginPlayerTurnAsync_AppliesCardTransitionsInStableIdOrder()
+        {
+            CharacterActionCardData firstTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData secondTemplate = CreateTemplate(oncePerTurn: false);
+            var first = new CharacterActionCardInstance(firstTemplate, 7);
+            var second = new CharacterActionCardInstance(secondTemplate, 7);
+            first.RestoreConditions.Add(new RestoreOnTurnEndCondition());
+            first.SetFace(CardFace.FaceDown);
+            second.FlipConditions.Add(new TrackingTurnEndCondition());
+            var received = new List<string>();
+            Action<CardRestoredEvent> restored = evt => received.Add($"restore:{evt.CardInstanceId}");
+            Action<CardFlippedEvent> flipped = evt => received.Add($"flip:{evt.CardInstanceId}");
+            EventBus.Subscribe(restored);
+            EventBus.Subscribe(flipped);
+            try
+            {
+                using TestRig rig = CreateRig(first);
+                rig.FlipEvaluator.RegisterCard(second);
+
+                bool success = await rig.Session.BeginPlayerTurnAsync(new[] { second, first });
+
+                Assert.That(success, Is.True);
+                Assert.That(first.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+                Assert.That(second.CurrentFace, Is.EqualTo(CardFace.FaceDown));
+                Assert.That(received, Is.EqualTo(new[] { $"restore:{first.InstanceId}", $"flip:{second.InstanceId}" }));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(restored);
+                EventBus.Unsubscribe(flipped);
+                UnityEngine.Object.DestroyImmediate(firstTemplate);
+                UnityEngine.Object.DestroyImmediate(secondTemplate);
+            }
+        }
+
+        [Test]
+        public async Task TurnStartCardReactor_PreventsOnlyMatchingAutomaticTransition()
+        {
+            CharacterActionCardData firstTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData secondTemplate = CreateTemplate(oncePerTurn: false);
+            var first = new CharacterActionCardInstance(firstTemplate, 7);
+            var second = new CharacterActionCardInstance(secondTemplate, 7);
+            first.RestoreConditions.Add(new RestoreOnTurnEndCondition());
+            second.RestoreConditions.Add(new RestoreOnTurnEndCondition());
+            first.SetFace(CardFace.FaceDown);
+            second.SetFace(CardFace.FaceDown);
+            using TestRig rig = CreateRig(first);
+            rig.FlipEvaluator.RegisterCard(second);
+            rig.Session.Reactors.RegisterGlobal(new PreventTurnStartCardReactor(first.InstanceId));
+
+            bool success = await rig.Session.BeginPlayerTurnAsync(new[] { first, second });
+
+            Assert.That(success, Is.True);
+            Assert.That(first.CurrentFace, Is.EqualTo(CardFace.FaceDown));
+            Assert.That(second.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+            UnityEngine.Object.DestroyImmediate(firstTemplate);
+            UnityEngine.Object.DestroyImmediate(secondTemplate);
+        }
+
+        [Test]
+        public void TurnEndEvent_IsCommittedFactAndDoesNotMutateCards()
+        {
+            CharacterActionCardData template = CreateTemplate(oncePerTurn: false);
+            var card = new CharacterActionCardInstance(template, 7);
+            card.RestoreConditions.Add(new RestoreOnTurnEndCondition());
+            card.SetFace(CardFace.FaceDown);
+            using TestRig rig = CreateRig(card);
+
+            EventBus.Publish(new TurnEndEvent { EndingPhase = TurnPhase.PlayerTurn, TurnNumber = 1 });
+            EventBus.Publish(new TurnEndEvent { EndingPhase = TurnPhase.BossTurn, TurnNumber = 1 });
+
+            Assert.That(card.CurrentFace, Is.EqualTo(CardFace.FaceDown));
+            UnityEngine.Object.DestroyImmediate(template);
+        }
+
+        [Test]
+        public async Task BeginPlayerTurnAsync_ConsumesTurnConditionOnlyOnce()
+        {
+            CharacterActionCardData template = CreateTemplate(oncePerTurn: false);
+            var card = new CharacterActionCardInstance(template, 7);
+            var condition = new TrackingTurnEndCondition();
+            card.RestoreConditions.Add(condition);
+            card.SetFace(CardFace.FaceDown);
+            using TestRig rig = CreateRig(card);
+
+            Assert.That(await rig.Session.BeginPlayerTurnAsync(new[] { card }), Is.True);
+            Assert.That(await rig.Session.BeginPlayerTurnAsync(new[] { card }), Is.True);
+
+            Assert.That(condition.EvaluationCount, Is.EqualTo(1));
+            Assert.That(condition.ConsumeCount, Is.EqualTo(1));
+            UnityEngine.Object.DestroyImmediate(template);
+        }
+
+        [Test]
+        public async Task BeginPlayerTurnAsync_ResetsTimelineBeforeEvaluatingCards()
+        {
+            CharacterActionCardData template = CreateTemplate(oncePerTurn: false);
+            var card = new CharacterActionCardInstance(template, 7);
+            bool resetCompleted = false;
+            card.RestoreConditions.Add(new TrackingTurnEndCondition(() => resetCompleted));
+            card.SetFace(CardFace.FaceDown);
+            using TestRig rig = CreateRig(card, resetPlayerTurn: () => resetCompleted = true);
+            var reactor = new PreventResetReactor();
+            rig.Session.Reactors.RegisterGlobal(reactor);
+
+            bool success = await rig.Session.BeginPlayerTurnAsync(new[] { card });
+
+            Assert.That(success, Is.True);
+            Assert.That(resetCompleted, Is.True);
+            Assert.That(card.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+            Assert.That(reactor.InvocationCount, Is.Zero);
+            UnityEngine.Object.DestroyImmediate(template);
+        }
+
         private static CharacterActionCardData CreateTemplate(bool oncePerTurn, int timePointCost = 0)
         {
             CharacterActionCardData template = ScriptableObject.CreateInstance<CharacterActionCardData>();
@@ -322,7 +437,7 @@ namespace HuntingInDarkness.Adapter.Tests
             return template;
         }
 
-        private static TestRig CreateRig(CharacterActionCardInstance card, int initialInspiration = 0)
+        private static TestRig CreateRig(CharacterActionCardInstance card, int initialInspiration = 0, Action resetPlayerTurn = null)
         {
             var context = new TestGameContext(card.OwnerCharacterId);
             var timeline = new TimelineManager();
@@ -332,7 +447,7 @@ namespace HuntingInDarkness.Adapter.Tests
             var flipEvaluator = new FlipConditionEvaluator(context);
             flipEvaluator.RegisterCard(card);
             var costService = new ActionCardCostService(() => timeline, () => null, flipEvaluator, resources);
-            var session = new PlayableCombatActionSession(context, null, null, costService, flipEvaluator, _ => true, (characterId, reward) => timeline.AccumulateTimePoints(characterId, -reward));
+            var session = new PlayableCombatActionSession(context, null, null, costService, flipEvaluator, _ => true, (characterId, reward) => timeline.AccumulateTimePoints(characterId, -reward), resetPlayerTurn ?? (() => { }));
             return new TestRig(session, flipEvaluator, timeline, resources);
         }
 
@@ -351,6 +466,7 @@ namespace HuntingInDarkness.Adapter.Tests
             public PlayableCombatActionSession Session { get; }
             public TimelineManager Timeline { get; }
             public ActionCardResourcePool Resources { get; }
+            public FlipConditionEvaluator FlipEvaluator => flipEvaluator;
 
             public void Dispose()
             {
@@ -484,6 +600,53 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
             protected override void React(FailingBurstEffectAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试跳过爆发效果");
+        }
+
+        private sealed class TrackingTurnEndCondition : IFlipCondition
+        {
+            private readonly Func<bool> canEvaluate;
+
+            public TrackingTurnEndCondition(Func<bool> canEvaluate = null) => this.canEvaluate = canEvaluate;
+
+            public FlipTriggerTiming Timing => FlipTriggerTiming.OnTurnEnd;
+            public string Description => "测试回合条件";
+            public int EvaluationCount { get; private set; }
+            public int ConsumeCount { get; private set; }
+
+            public bool Evaluate(FlipConditionContext context)
+            {
+                EvaluationCount++;
+                return canEvaluate?.Invoke() ?? true;
+            }
+
+            public void Consume(FlipConditionContext context) => ConsumeCount++;
+        }
+
+        private sealed class PreventTurnStartCardReactor : GameActionReactor<ResolveCardTurnStartAction>
+        {
+            private readonly int cardInstanceId;
+
+            public PreventTurnStartCardReactor(int cardInstanceId) => this.cardInstanceId = cardInstanceId;
+
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+
+            protected override void React(ResolveCardTurnStartAction action, ReactionContext context, ReactionResponse response)
+            {
+                if (action.CardInstanceId == cardInstanceId)
+                    response.Prevent("测试阻止自动恢复");
+            }
+        }
+
+        private sealed class PreventResetReactor : GameActionReactor<ResetPlayerTurnStateAction>
+        {
+            public int InvocationCount { get; private set; }
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+
+            protected override void React(ResetPlayerTurnStateAction action, ReactionContext context, ReactionResponse response)
+            {
+                InvocationCount++;
+                response.Prevent("测试不应阻止核心轮次重置");
+            }
         }
     }
 }

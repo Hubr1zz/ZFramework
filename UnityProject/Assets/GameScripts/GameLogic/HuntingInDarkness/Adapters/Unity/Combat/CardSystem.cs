@@ -169,8 +169,6 @@ namespace Core
         {
             _gameContext = gameContext;
 
-            // 订阅回合结束事件 → 检查 OnTurnEnd 类条件
-            EventBus.Subscribe<TurnEndEvent>(OnTurnEnd);
             // 订阅翻面事件 → 检查 OnOtherCardFlipped 联动
             EventBus.Subscribe<CardFlippedEvent>(OnCardFlipped);
             // 订阅恢复事件 → 检查 OnOtherCardRestored 联动
@@ -181,7 +179,6 @@ namespace Core
 
         public void Dispose()
         {
-            EventBus.Unsubscribe<TurnEndEvent>(OnTurnEnd);
             EventBus.Unsubscribe<CardFlippedEvent>(OnCardFlipped);
             EventBus.Unsubscribe<CardRestoredEvent>(OnCardRestored);
             EventBus.Unsubscribe<CardDiscardedEvent>(OnCardDiscarded);
@@ -300,6 +297,38 @@ namespace Core
             return true;
         }
 
+        public bool TryApplyTurnStartTransition(CharacterActionCardInstance card, out CardFlippedEvent? flippedEvent, out CardRestoredEvent? restoredEvent)
+        {
+            flippedEvent = null;
+            restoredEvent = null;
+            if (card == null) return false;
+            var context = BuildContext(card, triggerSource: null);
+            if (card.CurrentFace == CardFace.FaceUp)
+            {
+                List<IFlipCondition> conditions = card.FlipConditions.FindAll(condition => condition.Timing == FlipTriggerTiming.OnTurnEnd);
+                if (conditions.Count == 0 || conditions.Exists(condition => !condition.Evaluate(context))) return false;
+                foreach (IFlipCondition condition in conditions)
+                    condition.Consume(context);
+                card.SetFace(CardFace.FaceDown);
+                flippedEvent = new CardFlippedEvent
+                {
+                    CardInstanceId = card.InstanceId,
+                    OwnerCharacterId = card.OwnerCharacterId,
+                    OldFace = CardFace.FaceUp,
+                    NewFace = CardFace.FaceDown
+                };
+                return true;
+            }
+
+            List<IFlipCondition> restoreConditions = card.RestoreConditions.FindAll(condition => condition.Timing == FlipTriggerTiming.OnTurnEnd);
+            if (restoreConditions.Count == 0 || restoreConditions.Exists(condition => !condition.Evaluate(context))) return false;
+            foreach (IFlipCondition condition in restoreConditions)
+                condition.Consume(context);
+            card.SetFace(CardFace.FaceUp);
+            restoredEvent = new CardRestoredEvent { CardInstanceId = card.InstanceId, OwnerCharacterId = card.OwnerCharacterId };
+            return true;
+        }
+
         /// <summary>卡牌打出后，检查是否有翻面触发</summary>
         public void EvaluateAfterCardPlayed(int playedCardId, int ownerCharacterId)
         {
@@ -404,24 +433,6 @@ namespace Core
         }
 
         // ─── 事件回调 ───
-
-        private void OnTurnEnd(TurnEndEvent evt)
-        {
-            // 遍历所有卡牌，检查 OnTurnEnd 条件
-            foreach (var card in _allCards.Values)
-            {
-                if (card.CurrentFace == CardFace.FaceUp)
-                {
-                    if (CheckFlipConditions(card, FlipTriggerTiming.OnTurnEnd, triggerSource: null))
-                        DoFlip(card);
-                }
-                else
-                {
-                    if (CheckRestoreConditions(card, FlipTriggerTiming.OnTurnEnd, triggerSource: null))
-                        DoRestore(card);
-                }
-            }
-        }
 
         private void OnCardFlipped(CardFlippedEvent evt)
         {

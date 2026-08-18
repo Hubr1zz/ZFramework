@@ -41,19 +41,37 @@ namespace Core
         public override void Enter()
         {
             _selectedCharacterId = null;
+            _isResolvingAction = true;
+            InitializePlayerTurnAsync().Forget();
+        }
 
-            // 通知 TimelineManager 处理上回合溢出
-            Machine.RequestOverflowProcessing();
-
-            // 更新所有角色可选状态
-            RefreshSelectableCharacters();
-
-            EventBus.Publish(new TurnPhaseChangedEvent
+        private async UniTaskVoid InitializePlayerTurnAsync()
+        {
+            bool initialized = false;
+            try
             {
-                PreviousPhase = TurnPhase.BossTurn,
-                NewPhase = TurnPhase.PlayerTurn,
-                TurnNumber = GameContext.CurrentTurnNumber
-            });
+                if (Machine.RequestPlayerTurnStart != null && !await Machine.RequestPlayerTurnStart())
+                {
+                    UnityEngine.Debug.LogError("[TurnStateMachine] 玩家轮初始化失败，已保持输入锁定。");
+                    return;
+                }
+                if (Machine.IsSessionActive != null && !Machine.IsSessionActive()) return;
+
+                RefreshSelectableCharacters();
+
+                EventBus.Publish(new TurnPhaseChangedEvent
+                {
+                    PreviousPhase = TurnPhase.BossTurn,
+                    NewPhase = TurnPhase.PlayerTurn,
+                    TurnNumber = GameContext.CurrentTurnNumber
+                });
+                initialized = true;
+            }
+            finally
+            {
+                if (initialized || Machine.IsSessionActive?.Invoke() == false)
+                    _isResolvingAction = false;
+            }
         }
 
         public override void Update()
@@ -64,7 +82,7 @@ namespace Core
 
         public override void Exit()
         {
-            // 发布回合结束事件 → 触发 OnTurnEnd 类翻面条件
+            // 仅发布已结束事实；自动卡面变化在下一玩家轮开始 Root 中提交。
             EventBus.Publish(new TurnEndEvent
             {
                 EndingPhase = TurnPhase.PlayerTurn,
@@ -77,6 +95,7 @@ namespace Core
         /// <summary>玩家选择一个角色</summary>
         public void SelectCharacter(int characterId)
         {
+            if (_isResolvingAction) return;
             if (!Machine.CanCharacterAct(characterId))
             {
                 // TODO: 发布事件通知 UI 高亮显示「角色已耗尽」状态（如闪红）。
@@ -115,6 +134,7 @@ namespace Core
         /// <summary>玩家主动结束回合</summary>
         public void EndTurnManually()
         {
+            if (_isResolvingAction) return;
             Machine.TransitionTo<TransitionState>();
         }
 
@@ -280,9 +300,9 @@ namespace Core
         public System.Func<int, bool> CanCharacterAct;          // TimelineManager.CanCharacterAct
         public System.Func<bool> ShouldTransitionToBoss;         // TimelineManager.ShouldTransitionToBoss
         public System.Func<int, int, UniTask<bool>> RequestPlayCard; // Combat ActionEnvironment Root
+        public System.Func<UniTask<bool>> RequestPlayerTurnStart;   // Combat ActionEnvironment Root
         public System.Func<int, UniTask<bool>> RequestRestoreCard; // Combat ActionEnvironment Root
         public System.Func<int, UniTask<DiscardResult>> RequestDiscardCard; // Combat ActionEnvironment Root
-        public System.Action RequestOverflowProcessing;           // TimelineManager.ProcessOverflow
         public System.Func<UniTask> RequestBossExecuteActions;    // BossController.ExecutePendingAsync
         public System.Action RequestBossDrawActions;              // BossController.DrawNext
         public System.Func<bool> IsSessionActive;

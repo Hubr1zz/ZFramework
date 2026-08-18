@@ -401,3 +401,8 @@
 214. 爆发配置中的 `CurrencyReward` 目前仍只有事实字段，没有对应的战斗货币权威存储；现有正式基础卡使用时点或灵感奖励，因此当前可玩流程不丢失已配置内容。正式出现货币型爆发卡前必须先明确资源归属与持久化边界，再由独立奖励 Action 提交，不能只让 UI 根据事件自行加值。
 215. Unity MCP 全量 EditMode 回归为 249/249；正式 ZFramework Play Mode 探针确认 BossFight Combat Action Session 有效、16 张运行时卡牌中 8 张可爆发，恢复与爆发 Root 接口已进入正式会话，控制台 0 error。探针未执行真实卡牌命令，玩家存档哈希保持不变。
 216. `ActionCardCostService` 提交灵感/时点等费用时仍直接发布 EventBus，而不是把费用事实交给 Root Outbox；当前灵感变化订阅者只有表现层，恢复提交顺序可验证，但未来若规则监听器在同步事件中修改卡牌会切开重验与恢复提交。费用网关后续应返回不可变 `CostCommitResult`，由 Root 统一写入检查点，EventBus 不应插入权威修改。
+217. 对抗审查确认旧 `FlipConditionEvaluator` 同时响应玩家与 Boss 的 `TurnEndEvent`，使同一 `OnTurnEnd` 条件每轮最多评估两次；移动卡也在 Boss 行动前过早恢复，与设计文档“角色回合开始时恢复”不一致。现已移除 TurnEnd 权威监听，两个 TurnEnd 事件只保留为提交后的观察事实。
+218. 新增 `BeginPlayerTurnAction`：不可阻止的首个 Child 统一处理时间线溢出、每回合可用性和角色快照同步，随后按卡牌稳定实例 ID 展开 `ResolveCardTurnStartAction`。每张卡的自动翻面/恢复都可单独被 Reactor 覆盖，成功变化立即发布 Outbox 检查点，单卡被阻止不会中断其他卡或破坏核心轮次重置。
+219. `PlayerTurnState` 进入时会锁定选择、出牌、恢复、爆发和手动结束，等待玩家轮开始 Root 完成后才发布 `TurnPhaseChangedEvent` 并解锁输入。阶段会话在等待期间释放时不会继续发布新玩家轮通知；正式 Play Mode 已验证初始化结束后锁正确释放。
+220. `OnOtherCardFlipped / OnOtherCardRestored / OnOtherCardDiscarded` 三类跨卡联动仍由 EventBus 监听器同步修改状态，检查点发布可能继续产生 Root 外二次变化。这是当前战斗卡牌因果树的主要剩余缺口，后续应把联动条件解析成来源 Action 的后代节点，并对循环预算和稳定顺序补测试。
+221. Unity MCP 全量 EditMode 回归为 254/254；正式 ZFramework Play Mode 探针确认进入 BossFight 后处于 PlayerTurn、初始化锁已释放、Combat Action Session 有效且 4 名猎人可用，控制台 0 error。探针未执行玩家命令或写入战斗结果，玩家存档哈希保持不变。

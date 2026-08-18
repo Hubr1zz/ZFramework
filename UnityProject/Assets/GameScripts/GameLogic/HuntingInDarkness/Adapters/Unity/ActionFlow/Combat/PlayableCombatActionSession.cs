@@ -20,9 +20,10 @@ namespace HuntingInDarkness.ActionFlow.Combat
         private readonly FlipConditionEvaluator flipEvaluator;
         private readonly Func<int, bool> canOwnerAct;
         private readonly Action<int, int> applyTimePointReward;
+        private readonly Action resetPlayerTurn;
         private readonly ActionEnvironment environment;
 
-        public PlayableCombatActionSession(IGameContext gameContext, IBoardQuery boardQuery, IBoardCommand boardCommand, ActionCardCostService costService, FlipConditionEvaluator flipEvaluator, Func<int, bool> canOwnerAct, Action<int, int> applyTimePointReward)
+        public PlayableCombatActionSession(IGameContext gameContext, IBoardQuery boardQuery, IBoardCommand boardCommand, ActionCardCostService costService, FlipConditionEvaluator flipEvaluator, Func<int, bool> canOwnerAct, Action<int, int> applyTimePointReward, Action resetPlayerTurn)
         {
             this.gameContext = gameContext ?? throw new ArgumentNullException(nameof(gameContext));
             this.boardQuery = boardQuery;
@@ -31,6 +32,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
             this.flipEvaluator = flipEvaluator ?? throw new ArgumentNullException(nameof(flipEvaluator));
             this.canOwnerAct = canOwnerAct ?? throw new ArgumentNullException(nameof(canOwnerAct));
             this.applyTimePointReward = applyTimePointReward ?? throw new ArgumentNullException(nameof(applyTimePointReward));
+            this.resetPlayerTurn = resetPlayerTurn ?? throw new ArgumentNullException(nameof(resetPlayerTurn));
             environment = new ActionEnvironment(new ActionEnvironmentConfiguration
             {
                 Name = "Combat",
@@ -102,6 +104,18 @@ namespace HuntingInDarkness.ActionFlow.Combat
             {
                 action.ResetPreparation();
             }
+        }
+
+        public async UniTask<bool> BeginPlayerTurnAsync(IReadOnlyList<CharacterActionCardInstance> cards)
+        {
+            if (!IsActive) return false;
+            var orderedCards = cards == null ? new List<CharacterActionCardInstance>() : new List<CharacterActionCardInstance>(cards);
+            orderedCards.Sort((left, right) => (left?.InstanceId ?? int.MaxValue).CompareTo(right?.InstanceId ?? int.MaxValue));
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle combat = environment.EntityHandles.GetOrCreate("combat", "active", "战斗");
+            var action = new BeginPlayerTurnAction(orderedCards, flipEvaluator, outbox, combat, ResolveEntity, resetPlayerTurn);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            return outcome.IsSuccess;
         }
 
         public void Dispose() => environment.Dispose();
