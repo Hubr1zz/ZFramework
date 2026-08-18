@@ -390,3 +390,8 @@
 203. `UIPlayerInputProvider.PlayShuffleAndReveal` 仍同时承担表现等待、部位状态翻面和 EventBus 发布，说明当前 EventBus 混合了即时表现信号与提交后领域事实。后续应拆为纯 Presentation 请求和权威 Reveal Action；在该边界完成前，不应把洗牌/翻牌事件错误纳入会在 Root 末尾才提交的统一 Outbox。
 204. 攻击伤害、部位翻回和 Boss 胜利属于已写入且无法通用回滚的增量状态，现会通过 `ActionEventOutbox.PublishCheckpoint` 立即发布对应事实；后续卡牌使用事实仍保留到 Root 成功提交。环境在结果确认期间释放时，已发生伤害不会丢失事件，未发生的 AttackCompleted/CardPlayed 也不会误发。
 205. Unity MCP 全量 EditMode 回归为 238/238；正式 ZFramework Play Mode 入口可进入 BossFight，单场 Combat Session、Reactor Registry 与 4 名猎人数据有效，控制台 0 error。验证只做运行态数据探针，没有实际消费卡牌或写入战斗结果，玩家存档哈希保持不变。
+206. Boss 回合生产入口已由 `BossController` 的直接异步循环切换到单场 `PlayableCombatActionSession`：待执行回合、每张行动卡和每个效果构成三级 Composite 因果树，行动完成事实按卡片检查点发布，并继续复用本场稳定 Boss、猎人和 Combat Reactor 实体句柄。
+207. 定向 Boss 攻击已拆为目标选择、逐次命中、致命伤准备、伤口提交、结果表现、存活事件和攻击完成 Child Action。命中或伤口可被精确 Reactor 覆盖；死亡会停止同一多段攻击的剩余次数；已发生的受伤/死亡事实立即发布检查点，阶段取消不会丢失既成状态，也不会误发尚未完成的攻击事实。
+208. 对抗检查发现 `PlayableDirectedBossAttackEffect` 只认识旧具体 `GameManager`，在当前 `PlayableCombatSession` 组合根下无法取得猎人战斗数据，正式 Boss 攻击会静默跳过。现已改用 `ICombatRuntimeDataProvider` 窄接口，并让旧兼容执行路径同样贯穿生命周期取消令牌。
+209. 尚未实现 `IPlayableQueuedBossActionEffect` 的非攻击 Boss 效果会作为单个兼容 Child Action 执行，已有 Reactor 可以整体阻止，但其内部步骤仍不能被细粒度覆盖；后续读表内容扩展时应按效果族提供专用 Action 工厂，不应把规则重新塞回 `BossController` 或增加新的独立 Runner。
+210. Unity MCP 全量 EditMode 回归为 242/242；正式 ZFramework Play Mode 数据探针确认可进入 BossFight，Combat Session、ActionEnvironment、Reactor Registry、4 名猎人与 Boss 均有效，控制台 0 error。探针未执行真实行动或结算伤害，玩家存档哈希保持不变。

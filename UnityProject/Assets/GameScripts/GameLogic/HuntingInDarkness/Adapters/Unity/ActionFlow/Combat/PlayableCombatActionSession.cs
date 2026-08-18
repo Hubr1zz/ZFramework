@@ -63,6 +63,17 @@ namespace HuntingInDarkness.ActionFlow.Combat
             }
         }
 
+        public async UniTask<BossTurnCommandResult> ExecuteBossTurnAsync(IReadOnlyList<BossActionRequest> requests)
+        {
+            if (!IsActive) return new BossTurnCommandResult(false, "战斗会话已经结束", 0);
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle boss = environment.EntityHandles.GetOrCreate("boss", gameContext.Boss.Id.ToString(), gameContext.Boss.Name);
+            ReactorEntityHandle combat = environment.EntityHandles.GetOrCreate("combat", "active", "战斗");
+            var action = new ExecuteBossTurnAction(requests, gameContext, boardQuery, outbox, boss, combat, ResolveEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            return new BossTurnCommandResult(outcome.IsSuccess, outcome.Reason, action.ExecutedCardCount);
+        }
+
         public void Dispose() => environment.Dispose();
 
         private ReactorEntityHandle ResolveTarget(CharacterActionCardInstance card, int targetEntityId)
@@ -74,6 +85,8 @@ namespace HuntingInDarkness.ActionFlow.Combat
                     return environment.EntityHandles.GetOrCreate("boss", gameContext.Boss.Id.ToString(), gameContext.Boss.Name);
             return environment.EntityHandles.GetOrCreate("combat", "active", "战斗");
         }
+
+        private ReactorEntityHandle ResolveEntity(int entityId) => environment.EntityHandles.GetOrCreate("combatant", entityId.ToString(), GetEntityName(entityId));
 
         private string GetEntityName(int entityId)
         {

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using CardGame.ActionQueue;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
 using GameplayBase.Card.BossActionCard;
@@ -8,11 +10,13 @@ using GameplayBase.CombatSystem;
 using HuntingInDarkness.GameCore.Combat;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Hunters;
+using HuntingInDarkness.ActionFlow;
+using HuntingInDarkness.ActionFlow.Combat;
 
 namespace HuntingInDarkness.Combat
 {
     /// <summary>执行带目标指引的 Playable Boss 攻击；旧 BossAttackEffect 保持兼容。</summary>
-    public sealed class PlayableDirectedBossAttackEffect : BossActionCardEffect
+    public sealed class PlayableDirectedBossAttackEffect : BossActionCardEffect, IPlayableQueuedBossActionEffect, IPlayableCancellableBossActionEffect
     {
         private readonly string actionName;
         private readonly int woundCount;
@@ -35,14 +39,21 @@ namespace HuntingInDarkness.Combat
 
         public override bool CanExecute(ActionCardContext context) => context?.GameContext != null;
 
-        public override async UniTask ExecuteAsync(ActionCardContext context)
+        public GameAction CreateAction(ActionCardContext context, ActionEventOutbox eventOutbox, IReactorEntity boss, IReactorEntity combat, Func<int, IReactorEntity> resolveTarget)
+        {
+            return new DirectedBossAttackAction(context, actionName, woundCount, accuracy, attackCount, targetPolicy, random, eventOutbox, boss, combat, resolveTarget);
+        }
+
+        public override UniTask ExecuteAsync(ActionCardContext context) => ExecuteAsync(context, CancellationToken.None);
+
+        public async UniTask ExecuteAsync(ActionCardContext context, CancellationToken cancellationToken)
         {
             if (context.GameContext is not ICombatProvider combatProvider || combatProvider.CombatManager == null)
                 return;
 
             List<BossTargetCandidate> candidates = BuildCandidates(context);
             var resolver = new PlayableBossTargetResolver(random);
-            int targetId = await resolver.ResolveAsync(actionName, targetPolicy, candidates, combatProvider.CombatManager.InputProvider);
+            int targetId = await resolver.ResolveAsync(actionName, targetPolicy, candidates, combatProvider.CombatManager.InputProvider, cancellationToken);
             if (targetId < 0)
                 return;
 
@@ -51,7 +62,7 @@ namespace HuntingInDarkness.Combat
                 return;
 
             context.TargetEntityId = targetId;
-            await combatProvider.CombatManager.BossAttackCharacter(targetId, defenderStats, woundCount, accuracy: accuracy, attackCount: attackCount);
+            await combatProvider.CombatManager.BossAttackCharacter(targetId, defenderStats, woundCount, accuracy: accuracy, attackCount: attackCount, cancellationToken: cancellationToken);
         }
 
         private List<BossTargetCandidate> BuildCandidates(ActionCardContext context)
@@ -105,8 +116,8 @@ namespace HuntingInDarkness.Combat
 
         private static CharacterCombatStats GetCombatStats(IGameContext gameContext, int characterId)
         {
-            if (gameContext is Core.GameManager manager)
-                return manager.GetCharacterData(characterId)?.CombatStats;
+            if (gameContext is ICombatRuntimeDataProvider provider)
+                return provider.GetCharacterData(characterId)?.CombatStats;
             return null;
         }
     }

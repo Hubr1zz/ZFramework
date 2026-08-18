@@ -362,10 +362,18 @@ namespace HuntingInDarkness.Combat
                 RequestRestoreCard = TryRestoreCardAsync,
                 RequestDiscardCard = TryDiscardCardAsync,
                 RequestOverflowProcessing = ProcessOverflow,
-                RequestBossExecuteActions = () => IsActive ? bossController.ExecutePendingActionsAsync() : UniTask.CompletedTask,
+                RequestBossExecuteActions = ExecuteBossActionsAsync,
                 RequestBossDrawActions = DrawBossActions,
                 IsSessionActive = () => IsActive
             };
+        }
+
+        private async UniTask ExecuteBossActionsAsync()
+        {
+            if (!IsActive || bossController == null || combatActionSession == null) return;
+            BossTurnCommandResult result = await combatActionSession.ExecuteBossTurnAsync(bossController.GetPendingActionRequests());
+            if (!result.Success && IsActive)
+                Debug.LogWarning($"[PlayableCombatSession] Boss 行动中止：{result.Reason}");
         }
 
         private void InitializeEntityCallbacks()

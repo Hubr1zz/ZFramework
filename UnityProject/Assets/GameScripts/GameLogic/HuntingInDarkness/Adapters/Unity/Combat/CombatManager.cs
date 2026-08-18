@@ -166,22 +166,15 @@ namespace CardTactics.CombatSystem
             int woundCount = 1,
             HunterBodyPart targetBodyPart = HunterBodyPart.Torso,
             int accuracy = 1,
-            int attackCount = 1)
+            int attackCount = 1,
+            CancellationToken cancellationToken = default)
         {
-            var context = new AttackContext
-            {
-                AttackerId     = _gameContext.Boss.Id,
-                DefenderId     = targetCharacterId,
-                AttackerIsBoss = true,
-                DefenderStats  = defenderStats,
-                GameContext    = _gameContext,
-                BoardQuery     = _boardQuery
-            };
+            AttackContext context = CreateBossAttackContext(targetCharacterId, defenderStats);
 
             var pipeline = BuildBossAttackPipeline(woundCount, targetBodyPart, accuracy, attackCount);
             OnBossAttackPipelineBuilt?.Invoke(pipeline, context);
 
-            var result = await pipeline.Run(context, _inputProvider);
+            var result = await pipeline.Run(context, _inputProvider, cancellationToken);
 
             Debug.Log($"[CombatManager] Boss攻击角色#{targetCharacterId}完成. Completed={result.Completed}");
 
@@ -195,6 +188,25 @@ namespace CardTactics.CombatSystem
             });
 
             return result;
+        }
+
+        public GameAction CreateBossAttackAction(int targetCharacterId, CharacterCombatStats defenderStats, int woundCount, HunterBodyPart targetBodyPart, int accuracy, int attackCount, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+        {
+            AttackContext context = CreateBossAttackContext(targetCharacterId, defenderStats);
+            return new BossAttackFlowAction(context, _inputProvider, woundCount, targetBodyPart, accuracy, attackCount, _random, _armorRule, _permanentInjuryResolver, _survivalEventResolver, eventOutbox, source, target);
+        }
+
+        private AttackContext CreateBossAttackContext(int targetCharacterId, CharacterCombatStats defenderStats)
+        {
+            return new AttackContext
+            {
+                AttackerId = _gameContext.Boss.Id,
+                DefenderId = targetCharacterId,
+                AttackerIsBoss = true,
+                DefenderStats = defenderStats,
+                GameContext = _gameContext,
+                BoardQuery = _boardQuery
+            };
         }
 
         private AttackPipeline BuildBossAttackPipeline(

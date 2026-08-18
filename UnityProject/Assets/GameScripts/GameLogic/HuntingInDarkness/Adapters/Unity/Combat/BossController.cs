@@ -4,6 +4,7 @@ using GameplayBase;
 using GameplayBase.CombatSystem;
 using HuntingInDarkness.GameCore.Combat;
 using HuntingInDarkness.GameCore.Foundation;
+using HuntingInDarkness.ActionFlow.Combat;
 using SO.Boss.ActionCard;
 using SO.Boss.HitLocation;
 using UnityEngine;
@@ -77,6 +78,16 @@ namespace Core
 
         public List<HitLocationRuntimeState> GetHitLocationRuntimeStates()
             => _hitLocationRuntimeStates;
+
+        public List<BossActionRequest> GetPendingActionRequests()
+        {
+            var requests = new List<BossActionRequest>();
+            if (disposed) return requests;
+            foreach (int cardId in _bossData.PendingActionCardIds)
+                if (_cardRegistry.TryGetValue(cardId, out BossActionCardData card) && card != null)
+                    requests.Add(new BossActionRequest(cardId, card));
+            return requests;
+        }
 
         // ═══════════════════════════════════════════
         // 执行行动卡

@@ -122,11 +122,11 @@ Buff Gate 还需特别约束：Gate 虽按 Runner 注册，但不会自动按实
 
 迁移一条完整武器攻击：准备输入、费用、命中牌、伤害、部位效果、死亡/胜利与表现等待。随后迁移 Boss 行动。不得只把伤害步骤塞入新队列而保留旧队列控制外层。
 
-状态：玩家行动卡和默认玩家攻击 Root 已完成。`PlayableCombatActionSession` 随单场 `PlayableCombatSession` 创建和释放，拥有独立 Runner、Reactor、Gate 与实体句柄；正式 `TryPlayCardAsync` 已不再调用旧 `CardEffectResolver`。`PlayCharacterCardAction` 是 Composite Root，统一重验回合/卡牌资格、准备费用与异步效果、扣费前构造所有效果 Action，并在效果子树结束后提交卡牌状态。Outbox 按顺序发布 CardPlayed、CardFlipped 与 CombatActionCommitted。
+状态：玩家行动卡、默认玩家攻击和 Boss 行动 Root 已完成。`PlayableCombatActionSession` 随单场 `PlayableCombatSession` 创建和释放，拥有独立 Runner、Reactor、Gate 与实体句柄；正式玩家出牌与 Boss 回合均进入这一环境。`PlayCharacterCardAction` 是玩家 Composite Root，统一重验回合/卡牌资格、准备费用与异步效果、扣费前构造所有效果 Action，并在效果子树结束后提交卡牌状态。Outbox 按顺序发布 CardPlayed、CardFlipped 与 CombatActionCommitted。
 
-默认玩家攻击由 `CharacterAttackFlowAction` 展开：受击部位抽取、结果牌准备、每次部位选择、伤害、部位效果、展示清理、Boss 胜利声明和攻击完成事实都是独立 Child Action。Before Reactor 可以精确阻止一次伤害并将其转换为失败结果，或覆盖某个部位效果/胜负声明。格子覆盖攻击暂时保留为单个 Legacy Pipeline Child，避免破坏尚未使用的 TargetSelector 扩展；Boss 行动也仍使用旧 Pipeline，二者是阶段 2 剩余迁移项。
+默认玩家攻击由 `CharacterAttackFlowAction` 展开：受击部位抽取、结果牌准备、每次部位选择、伤害、部位效果、展示清理、Boss 胜利声明和攻击完成事实都是独立 Child Action。Boss 侧由“回合 → 行动卡 → 效果”三级 Composite 展开；定向攻击继续拆为目标选择、每次命中、死亡判定准备、伤口提交、表现、存活事件和攻击完成。Before Reactor 可以覆盖单次命中、伤口或效果，猎人死亡会截断同一攻击的剩余次数。格子覆盖的玩家攻击暂时保留为单个 Legacy Pipeline Child，避免破坏尚未使用的 TargetSelector 扩展，是阶段 2 的剩余兼容项。
 
-费用仍在交互式攻击效果之前提交；Composite 不自动回滚已支付费用或已结算的前序命中。当前已通过“扣费前构造全部效果 Action、扣费后效果阻止只跳过、最终卡牌提交不可阻止”消除普通 Reactor 造成的部分提交；每次不可回滚的伤害、部位翻回和 Boss 胜利也会立即发布 Outbox 检查点，后续取消只丢弃未发生事实。迁移 Boss Root 时应复用同一检查点/补偿协议，区分玩家主动取消、阶段强制退出和系统异常。
+费用仍在交互式攻击效果之前提交；Composite 不自动回滚已支付费用或已结算的前序命中。当前已通过“扣费前构造全部效果 Action、扣费后效果阻止只跳过、最终卡牌提交不可阻止”消除普通 Reactor 造成的部分提交；玩家伤害、部位翻回、Boss 胜利、猎人伤口/死亡和每张 Boss 卡完成都会立即发布 Outbox 检查点，后续取消只丢弃未发生事实。尚未实现专用队列接口的非攻击 Boss 效果仍以兼容原子 Child 执行；内容量增长前应逐类迁成专用 Action，避免内部多次写状态却只有一个 Reactor 边界。
 
 ### 阶段 3：狩猎与剩余营地流程
 

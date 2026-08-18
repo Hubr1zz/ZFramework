@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using GameplayBase.CombatSystem;
 using HuntingInDarkness.GameCore.Combat;
@@ -16,7 +17,7 @@ namespace HuntingInDarkness.Combat
             this.random = random ?? throw new System.ArgumentNullException(nameof(random));
         }
 
-        public async UniTask<int> ResolveAsync(string actionName, BossTargetPolicy policy, IReadOnlyList<BossTargetCandidate> candidates, IPlayerInputProvider input)
+        public async UniTask<int> ResolveAsync(string actionName, BossTargetPolicy policy, IReadOnlyList<BossTargetCandidate> candidates, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             List<int> priorityTargets = BossTargetRules.GetPriorityTargets(candidates, policy, random);
             if (priorityTargets.Count == 0)
@@ -26,11 +27,11 @@ namespace HuntingInDarkness.Combat
 
             if (input != null)
             {
-                int selected = await input.RequestSelectTarget(BuildPrompt(actionName, policy), priorityTargets);
+                int selected = await input.RequestSelectTarget(BuildPrompt(actionName, policy), priorityTargets, cancellationToken);
                 if (priorityTargets.Contains(selected))
                     return selected;
 
-                await input.ShowResult("没有指定目标，怪物将从合法目标中随机锁定一名猎人。");
+                await input.ShowResult("没有指定目标，怪物将从合法目标中随机锁定一名猎人。", cancellationToken);
             }
 
             return BossTargetRules.SelectFallback(priorityTargets, random);
