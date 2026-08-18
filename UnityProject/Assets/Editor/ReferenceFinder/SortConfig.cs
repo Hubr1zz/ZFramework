@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace TEngine.Editor
+namespace ZFramework.Editor
 {
     internal sealed class SortConfig
     {

@@ -2,7 +2,7 @@
   "name": "ZFramework.ECS",
   "rootNamespace": "ZFramework.ECS",
   "references": [
-    "TEngine.Runtime"
+    "ZFramework.Runtime"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

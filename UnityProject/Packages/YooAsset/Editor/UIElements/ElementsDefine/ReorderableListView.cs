@@ -10,12 +10,17 @@ using UnityEngine.UIElements;
 
 namespace YooAsset.Editor
 {
-    public class ReorderableListView : VisualElement
+#if UNITY_6000_0_OR_NEWER
+    [UxmlElement]
+#endif
+    public partial class ReorderableListView : VisualElement
     {
+#if !UNITY_6000_0_OR_NEWER
         public new class UxmlFactory : UxmlFactory<ReorderableListView, UxmlTraits>
         {
         }
-        
+#endif
+
         /// <summary>
         /// 制作元素委托
         /// </summary>

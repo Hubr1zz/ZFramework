@@ -38,7 +38,7 @@ python scripts/bake_html_to_json.py input.html -o output.json -w 1920 -H 1080
 也可以打开 Unity 项目内的浏览器转换页：
 
 ```text
-Assets/TEngine/Extension/HtmlToUGUI/HtmlToJson/HTML 转 JSON 坐标烘焙器.html
+Assets/ZFramework/Extension/HtmlToUGUI/HtmlToJson/HTML 转 JSON 坐标烘焙器.html
 ```
 
 JSON v2 会保留 v1 字段，并额外输出：

@@ -97,8 +97,8 @@ package/
 #YooAssets
 package/
 yoo/
-[Aa]ssets/TEngine/AssetSetting/Resources/BuiltinFileManifest.asset
-[Aa]ssets/TEngine/AssetSetting/Resources/BuiltinFileManifest.asset.meta
+[Aa]ssets/ZFramework/AssetSetting/Resources/BuiltinFileManifest.asset
+[Aa]ssets/ZFramework/AssetSetting/Resources/BuiltinFileManifest.asset.meta
 
 # The repository-level .gitignore ignores every directory named openspec.
 # Re-include this Unity project's shared OpenSpec state; local-only files stay ignored below.

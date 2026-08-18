@@ -9,7 +9,7 @@ internal static class Program
         AbilityTagsHaveStackSemantics();
         ProjectedTagsBlockConflictingRequests();
         RemovedDefinitionsStillCleanUpActiveTags();
-        ModuleNamingMatchesTEngineConvention();
+        ModuleNamingMatchesZFrameworkConvention();
         ResetIsRejectedDuringSystemUpdate();
         ResetInvalidatesEntities();
         Console.WriteLine("ZFramework.ECS smoke tests passed.");
@@ -108,12 +108,12 @@ internal static class Program
         module.Shutdown();
     }
 
-    private static void ModuleNamingMatchesTEngineConvention()
+    private static void ModuleNamingMatchesZFrameworkConvention()
     {
         string assemblyName = typeof(IEcsModule).Assembly.GetName().Name;
         string implementationName = $"{typeof(IEcsModule).Namespace}.EcsModule, {assemblyName}";
         Check(Type.GetType(implementationName) == typeof(EcsModule),
-            "IEcsModule must resolve to EcsModule through the TEngine naming convention.");
+            "IEcsModule must resolve to EcsModule through the ZFramework naming convention.");
     }
 
     private static void ResetIsRejectedDuringSystemUpdate()

@@ -6,27 +6,27 @@
     {"path": "AGENTS.md", "size": 1405, "sha256": "31078728fceff8048aadd54d807833067a2311c2ff8e04ae34507c0506333be6"},
     {"path": "CLAUDE.md", "size": 633, "sha256": "52aed490f52f881ba0a7b7daed2daf887084b96a7ec8651d7d5835a5b7076092"},
     {"path": ".claude/CLAUDE.md", "size": 302, "sha256": "2ad98a22bfec4669425baa5b9242231302e9a6eeeb898116db8b2e2a094c229d"},
-    {"path": ".claude/skills/tengine-dev/SKILL.md", "size": 316, "sha256": "c28e664f801ab99d8c7ee0a406311ac7a8c5d17ab7ad974e6896eb6a9863b5b0"},
-    {"path": ".agents/skills/tengine-dev/SKILL.md", "size": 2897, "sha256": "4a3c26fdf67cbea176f549548b9ef9dd5c1bcdb50b38c119ab6488ae3d0a29a0"},
-    {"path": ".agents/skills/tengine-dev/references/CODE-WORKFLOW.md", "size": 3359, "sha256": "a3ee68e06035f6681166ca10c08f5fd9e63dc1dc87af6f025c6b40d46c0013a6"},
+    {"path": ".claude/skills/zframework-dev/SKILL.md", "size": 316, "sha256": "c28e664f801ab99d8c7ee0a406311ac7a8c5d17ab7ad974e6896eb6a9863b5b0"},
+    {"path": ".agents/skills/zframework-dev/SKILL.md", "size": 2897, "sha256": "4a3c26fdf67cbea176f549548b9ef9dd5c1bcdb50b38c119ab6488ae3d0a29a0"},
+    {"path": ".agents/skills/zframework-dev/references/CODE-WORKFLOW.md", "size": 3359, "sha256": "a3ee68e06035f6681166ca10c08f5fd9e63dc1dc87af6f025c6b40d46c0013a6"},
     {"path": ".agents/skills/project-tooling/references/tooling-catalog.json", "size": 9774, "sha256": "ccada481ae50f118a75f1096b358338f93dcc4e0a7c7dddf5f2a66b8fbbad8c0"}
   ],
   "capabilities": [
     {
-      "id": "tengine-project-guidance",
-      "existingSources": ["原 CLAUDE.md", "原 .claude/skills/tengine-dev/", "原 .codex/skills/tengine-dev/"],
-      "zworkflowCapability": "project-context + tengine-dev",
+      "id": "zframework-project-guidance",
+      "existingSources": ["原 CLAUDE.md", "原 .claude/skills/zframework-dev/", "原 .codex/skills/zframework-dev/"],
+      "zworkflowCapability": "project-context + zframework-dev",
       "relation": "integrated",
-      "zworkflowAction": "已把项目代码分级、编码红线和新版 TEngine references 迁入共享 .agents；根/Claude 入口已薄化，Codex 完整副本已移出可发现路径。",
+      "zworkflowAction": "已把项目代码分级、编码红线和新版 ZFramework references 迁入共享 .agents；根/Claude 入口已薄化，Codex 完整副本已移出可发现路径。",
       "conflicts": [],
-      "requiredReads": [".agents/skills/project-context/references/PROJECT-INDEX.md", ".agents/skills/tengine-dev/references/CODE-WORKFLOW.md"]
+      "requiredReads": [".agents/skills/project-context/references/PROJECT-INDEX.md", ".agents/skills/zframework-dev/references/CODE-WORKFLOW.md"]
     },
     {
       "id": "project-specific-skills",
       "existingSources": ["原 .claude/skills/", "原 .codex/skills/"],
       "zworkflowCapability": ".agents/skills/",
       "relation": "integrated",
-      "zworkflowAction": "caveman、grill-*、html-to-ugui、improve-codebase-architecture、luban-dev、tengine-dev 已迁入共享源；Claude 保留 wrapper。",
+      "zworkflowAction": "caveman、grill-*、html-to-ugui、improve-codebase-architecture、luban-dev、zframework-dev 已迁入共享源；Claude 保留 wrapper。",
       "conflicts": [],
       "requiredReads": [".agents/skills/<capability>/SKILL.md"]
     },
@@ -50,7 +50,7 @@
     },
     {
       "id": "engineering-capability-catalog",
-      "existingSources": ["README 核心模块", "TEngine Runtime 模块目录", "GameLogic 模块"],
+      "existingSources": ["README 核心模块", "ZFramework Runtime 模块目录", "GameLogic 模块"],
       "zworkflowCapability": "project-tooling",
       "relation": "zworkflow-only",
       "zworkflowAction": "按稳定边界拆出 ModuleSystem、Resource、GameEvent、MemoryPool、ObjectPool、UI、Config、Procedure，并保留启动 System。",
@@ -60,7 +60,7 @@
   ],
   "conflicts": [],
   "migrations": {
-    "sharedSkills": ["caveman", "grill-me", "grill-with-docs", "html-to-ugui", "improve-codebase-architecture", "luban-dev", "tengine-dev", "wiki-sync"],
+    "sharedSkills": ["caveman", "grill-me", "grill-with-docs", "html-to-ugui", "improve-codebase-architecture", "luban-dev", "zframework-dev", "wiki-sync"],
     "claudeMode": "thin-wrapper",
     "codexSkillCopies": "removed-from-discovery",
     "recoverableBackup": ".agent-memory/zworkflow/local/migration-backup/2026-07-29-claude-ingest/"

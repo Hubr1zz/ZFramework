@@ -13,7 +13,7 @@ description: 统一踩坑沉淀、用户偏好沉淀和工作流自优化。用�
 
 ## 记录位置
 
-- `.agent-memory/team/members/<nickname>.md`：只适用于当前成员的偏好；按 `team-member-preferences` 处理
+- `.agent-memory/zworkflow/team/members/<nickname>.md`：只适用于当前成员的偏好；按 `team-member-preferences` 处理
 - `.agents/skills/` 或对应项目 reference：会影响未来同类执行的规则、已核验事实与排障约束
 - OpenSpec / ADR：承重架构或功能决策
 - Git、issue 或任务记录：一次性实现选择、普通修复过程和可由代码历史推导的事实

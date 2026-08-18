@@ -1,19 +1,19 @@
-# ZEngine / TEngine
+# ZEngine / ZFramework
 
-> 当前维护分支为 `ZEngine`：它以 TEngine 为底座，并整合 zWorkFlow、普通 Player 程序集工作流以及 `com.tengine.rts` RTS/Roslyn 工具链。
+> 当前维护分支为 `ZEngine`：它以 ZFramework 为底座，并整合 zWorkFlow、普通 Player 程序集工作流以及 `com.zframework.rts` RTS/Roslyn 工具链。
 
 <div align="center">
 
-![TEngine Logo](Books/src/TEngine.png)
+![ZFramework Logo](Books/src/ZFramework.png)
 
 **Unity 框架解决方案**
 
 [![Unity Version](https://img.shields.io/badge/Unity-2022.3.53f1%2B-blue.svg?style=flat-square)](https://unity3d.com/)
-[![License](https://img.shields.io/github/license/Hubr1zz/TEngine?style=flat-square)](LICENSE)
-[![Last Commit](https://img.shields.io/github/last-commit/Hubr1zz/TEngine?style=flat-square)](https://github.com/Hubr1zz/TEngine)
-[![Issues](https://img.shields.io/github/issues/Hubr1zz/TEngine?style=flat-square)](https://github.com/Hubr1zz/TEngine/issues)
-[![Top Language](https://img.shields.io/github/languages/top/Hubr1zz/TEngine?style=flat-square)](https://github.com/Hubr1zz/TEngine)
-[![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Alex-Rachel/TEngine)
+[![License](https://img.shields.io/github/license/Hubr1zz/ZFramework?style=flat-square)](LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/Hubr1zz/ZFramework?style=flat-square)](https://github.com/Hubr1zz/ZFramework)
+[![Issues](https://img.shields.io/github/issues/Hubr1zz/ZFramework?style=flat-square)](https://github.com/Hubr1zz/ZFramework/issues)
+[![Top Language](https://img.shields.io/github/languages/top/Hubr1zz/ZFramework?style=flat-square)](https://github.com/Hubr1zz/ZFramework)
+[![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Alex-Rachel/ZFramework)
 
 </div>
 
@@ -21,7 +21,9 @@
 
 ## 📖 简介
 
-**TEngine** 是一个简单（新手友好、开箱即用）且强大的 Unity 框架全平台解决方案。对于需要一套上手快、文档清晰、高性能且可拓展性极强的商业级解决方案的开发者或团队来说，TEngine 是一个很好的选择。
+**ZFramework** 是基于开源 Unity 框架 **[TEngine](https://github.com/Alex-Rachel/TEngine)** 扩展的个人架构，并在其基础上持续演进模块边界、工程工作流与项目级工具。它是一套简单（新手友好、开箱即用）且强大的 Unity 框架全平台解决方案。
+
+ZFramework 的品牌、命名空间与程序集名称用于标识本项目的扩展版本；TEngine 的原始版权与 MIT 许可证继续保留，详见 [第三方声明](THIRD_PARTY_NOTICES.md) 与 [`Assets/ZFramework/LICENSE`](UnityProject/Assets/ZFramework/LICENSE)。
 
 ### ✨ 核心特性
 
@@ -64,8 +66,8 @@
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/Hubr1zz/TEngine.git
-   cd TEngine
+   git clone https://github.com/Hubr1zz/ZFramework.git
+   cd ZFramework
    git checkout ZEngine
    ```
 
@@ -77,7 +79,7 @@
    - 点击 `Launcher` 开始运行
 
 4. **打包运行**
-   - 运行菜单 `TEngine/Build/打包工具窗口` 构建 YooAsset 资源包
+   - 运行菜单 `ZFramework/Build/打包工具窗口` 构建 YooAsset 资源包
    - 单机发行使用 `OfflinePlayMode` 并将默认资源包复制到 StreamingAssets
    - DLC/Mod 可在后续通过独立 YooAsset Package 接入
    - 打开 Build Settings，点击 Build And Run
@@ -88,7 +90,7 @@
 
 ## 🤖 AI 开发工作流
 
-ZEngine 深度集成了 zWorkFlow、OpenSpec、Agent Workbench 和共享 `.agents` 能力目录。TEngine 模块开发规范仍由 `tengine-dev` skill 提供，RTS 相关开发由 `tengine-rts-development` 提供。
+ZEngine 深度集成了 zWorkFlow、OpenSpec、Agent Workbench 和共享 `.agents` 能力目录。ZFramework 模块开发规范仍由 `zframework-dev` skill 提供，RTS 相关开发由 `zframework-rts-development` 提供。
 
 ---
 
@@ -96,8 +98,8 @@ ZEngine 深度集成了 zWorkFlow、OpenSpec、Agent Workbench 和共享 `.agent
 
 | 工具 | 用途 |
 |------|------|
-| **tengine-dev** | TEngine 开发规范，从 `UnityProject/.agents/skills/tengine-dev/references/` 提供模块指引 |
-| **tengine-rts-development** | RTS/Roslyn 工作流与设计约束 |
+| **zframework-dev** | ZFramework 开发规范，从 `UnityProject/.agents/skills/zframework-dev/references/` 提供模块指引 |
+| **zframework-rts-development** | RTS/Roslyn 工作流与设计约束 |
 | **zWorkFlow** | OpenSpec、Workbench 和多 Agent 工具适配工作流 |
 | **Unity-MCP** | Unity Editor 自动化操作（场景、资源、脚本） |
 | **openspec** | 规范驱动的变更管理 |
@@ -112,9 +114,9 @@ flowchart TD
     A([用户发起任务]) --> B{判断任务等级}
 
     B -->|L1 简单\ntypo/注释/日志| C[直接编写代码]
-    B -->|L2 调用\n单一 API 修改| D[触发 tengine-dev skill\n只查该主题]
-    B -->|L3 功能\n新功能/跨文件| E[触发 tengine-dev skill\n全量相关主题]
-    B -->|L4 架构\n系统设计/重构| F[触发 tengine-dev skill\n并行多主题]
+    B -->|L2 调用\n单一 API 修改| D[触发 zframework-dev skill\n只查该主题]
+    B -->|L3 功能\n新功能/跨文件| E[触发 zframework-dev skill\n全量相关主题]
+    B -->|L4 架构\n系统设计/重构| F[触发 zframework-dev skill\n并行多主题]
 
     D --> G{会话缓存命中?}
     E --> G
@@ -137,13 +139,13 @@ flowchart TD
 
 ### 时序图一：规范获取流程
 
-> **核心优势**：tengine-dev skill 直接从精炼的 `references/` 文档提取规范，无多余上下文噪声。
+> **核心优势**：zframework-dev skill 直接从精炼的 `references/` 文档提取规范，无多余上下文噪声。
 
 ```mermaid
 sequenceDiagram
     participant U as 用户
     participant M as 主 Agent (Claude)
-    participant S as tengine-dev (skill)
+    participant S as zframework-dev (skill)
     participant R as references/
 
     U->>M: 请实现背包 UI
@@ -171,7 +173,7 @@ sequenceDiagram
 sequenceDiagram
     participant U as 用户
     participant M as 主 Agent
-    participant S as tengine-dev skill
+    participant S as zframework-dev skill
     participant C as 会话缓存
 
     U->>M: 任务①: 实现登录界面 UI
@@ -205,9 +207,9 @@ sequenceDiagram
 sequenceDiagram
     participant U as 用户
     participant M as 主 Agent
-    participant S1 as tengine-dev #1
-    participant S2 as tengine-dev #2
-    participant S3 as tengine-dev #3
+    participant S1 as zframework-dev #1
+    participant S2 as zframework-dev #2
+    participant S3 as zframework-dev #3
 
     U->>M: 设计战斗系统架构<br/>涉及: UI + 事件 + FSM + 资源
 
@@ -236,7 +238,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant M as 主 Agent
-    participant S as tengine-dev skill
+    participant S as zframework-dev skill
     participant Code as 项目代码
     participant Mem as .claude/memory/
 
@@ -261,11 +263,11 @@ sequenceDiagram
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                   TEngine AI 工作流                      │
+│                   ZFramework AI 工作流                      │
 ├─────────────────────────────────────────────────────────┤
 │  Step 0  判断任务等级 L1/L2/L3/L4                        │
 │  Step 1  L1 直接编码                                     │
-│         L2-L4 触发 tengine-dev skill 获取规范            │
+│         L2-L4 触发 zframework-dev skill 获取规范            │
 │         （会话内缓存命中则直接复用，无需重复触发）        │
 │  Step 2  基于规范输出代码/方案                            │
 │  Step 3  若规范与代码冲突，标注冲突，记录到 .claude/memory/│
@@ -282,11 +284,11 @@ sequenceDiagram
 
 | 文档 | 描述 |
 |------|------|
-| [📖 介绍](Books/0-介绍.md) | TEngine 框架介绍与核心特性 |
+| [📖 介绍](Books/0-介绍.md) | ZFramework 框架介绍与核心特性 |
 | [🏗️ 框架概览](Books/2-框架概览.md) | 框架架构与设计理念 |
 | [🚀 快速开始](Books/1-快速开始.md) | 5 分钟快速上手教程 |
 | [🌍 全平台运行](Books/99-各平台运行RunAble.md) | 各平台运行截图展示 |
-| [🤖 AI 开发工作流](Books/AI-Development-Workflow.md) | openspec + tengine-dev AI 开发指南 |
+| [🤖 AI 开发工作流](Books/AI-Development-Workflow.md) | openspec + zframework-dev AI 开发指南 |
 
 ### 核心模块文档
 
@@ -364,9 +366,9 @@ Assets/
 │   └── Scenes/           # 场景资源
 ├── Editor/               # 编辑器脚本目录
 ├── Scenes/               # 主场景目录
-├── TEngine/              # 框架核心目录
-│   ├── Editor/           # TEngine 编辑器核心代码
-│   ├── Runtime/          # TEngine 运行时核心代码
+├── ZFramework/              # 框架核心目录
+│   ├── Editor/           # ZFramework 编辑器核心代码
+│   ├── Runtime/          # ZFramework 运行时核心代码
 │   └── AssetSetting/     # YooAsset 资源设置
 └── GameScripts/          # 程序集目录
     ├── Main/             # 主程序程序集（启动器与流程）
@@ -403,7 +405,7 @@ Assets/
 
 ## 🌐 服务器支持
 
-TEngine 本身为**纯净的客户端框架**，不强绑定任何服务器。但针对个人开发以及中小型公司开发双端，我们推荐使用 **C# 服务器**。
+ZFramework 本身为**纯净的客户端框架**，不强绑定任何服务器。但针对个人开发以及中小型公司开发双端，我们推荐使用 **C# 服务器**。
 
 ### 为什么选择 .NET Core？
 
@@ -429,13 +431,13 @@ TEngine 本身为**纯净的客户端框架**，不强绑定任何服务器。�
 | **Fantasy** | 源于 ETServer 但极为简洁，更好上手的商业级服务器框架 | [GitHub](https://github.com/qq362946/Fantasy) |
 | **GameNetty** | 源于 ETServer，首次拆分最新的 ET8.1 的前后端解决方案 | [GitHub](https://github.com/ALEXTANGXIAO/GameNetty) |
 | **JEngine** | 使 Unity 开发的游戏支持热更新的解决方案 | [GitHub](https://github.com/JasonXuDeveloper/JEngine) |
-| **DGame** | 根据TEngine框架，结合工作经验，修改和增加一些实用性拓展修改的框架 | [GitHub](https://github.com/AmaniDawn/DGame) |
+| **DGame** | 根据ZFramework框架，结合工作经验，修改和增加一些实用性拓展修改的框架 | [GitHub](https://github.com/AmaniDawn/DGame) |
 | **AlicizaXTemplate** | AlicizaX 是一套面向 Unity 项目的框架模板 | [GitHub](https://github.com/AlicizaX/AlicizaXTemplate) |
 
 
 ### 社区 Demo
 
-- **[TowerDefense-TEngine-Demo](https://github.com/daydayasobi/TowerDefense-TEngine-Demo)** - 群友大佬的塔防 Demo
+- **[TowerDefense-ZFramework-Demo](https://github.com/daydayasobi/TowerDefense-ZFramework-Demo)** - 群友大佬的塔防 Demo
 
 ---
 
@@ -449,7 +451,7 @@ git checkout demo
 
 ---
 
-## 💡 为什么要使用 TEngine？
+## 💡 为什么要使用 ZFramework？
 
 ### 1. 开箱即用
 - ✅ 5 分钟即可上手整套开发流程
@@ -473,17 +475,17 @@ git checkout demo
 - ✅ 商业化的资源管理
 
 ### 5. 全平台验证
-- ✅ 已有项目使用 TEngine 上架 **Steam**
-- ✅ 已有项目使用 TEngine 上架 **微信小游戏**
-- ✅ 已有项目使用 TEngine 上架 **App Store**
+- ✅ 已有项目使用 ZFramework 上架 **Steam**
+- ✅ 已有项目使用 ZFramework 上架 **微信小游戏**
+- ✅ 已有项目使用 ZFramework 上架 **App Store**
 
 ---
 
 ## 🤝 贡献与支持
 
-## 🙏 感谢所有为 TEngine 做出贡献的开发者
+## 🙏 感谢所有为 ZFramework 做出贡献的开发者
 
-[![Contributors](https://contrib.rocks/image?repo=Alex-Rachel/TEngine)](https://github.com/Alex-Rachel/TEngine/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=Alex-Rachel/ZFramework)](https://github.com/Alex-Rachel/ZFramework/graphs/contributors)
 
 ### 贡献
 
@@ -491,18 +493,18 @@ git checkout demo
 
 ### 支持项目
 
-如果 TEngine 对您有帮助，欢迎支持项目发展：
+如果 ZFramework 对您有帮助，欢迎支持项目发展：
 
 [☕ 请我喝杯奶茶](Books/Donate.md)
 
-您的赞助会让我们做得更快更好！如果觉得 TEngine 对您有帮助，不妨请我可爱的女儿买杯奶茶吧~ 🥤
+您的赞助会让我们做得更快更好！如果觉得 ZFramework 对您有帮助，不妨请我可爱的女儿买杯奶茶吧~ 🥤
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by TEngine Team**
+**Made with ❤️ by ZFramework Team**
 
-[⭐ Star](https://github.com/Hubr1zz/TEngine) | [🐛 Issues](https://github.com/Hubr1zz/TEngine/issues) | [📖 Wiki](https://deepwiki.com/Alex-Rachel/TEngine)
+[⭐ Star](https://github.com/Hubr1zz/ZFramework) | [🐛 Issues](https://github.com/Hubr1zz/ZFramework/issues) | [📖 Wiki](https://deepwiki.com/Alex-Rachel/ZFramework)
 
 </div>

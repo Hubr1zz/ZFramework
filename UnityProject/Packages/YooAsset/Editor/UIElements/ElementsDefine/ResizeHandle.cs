@@ -7,11 +7,16 @@ using UnityEngine.UIElements;
 
 namespace YooAsset.Editor
 {
-    public class ResizeHandle : VisualElement
+#if UNITY_6000_0_OR_NEWER
+    [UxmlElement]
+#endif
+    public partial class ResizeHandle : VisualElement
     {
+#if !UNITY_6000_0_OR_NEWER
         public new class UxmlFactory : UxmlFactory<ResizeHandle, UxmlTraits>
         {
         }
+#endif
 
         private bool _isResizing = false;
         private float _initialWidth;

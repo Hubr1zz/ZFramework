@@ -1,7 +1,10 @@
 #if UNITY_6000_3_OR_NEWER
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.Toolbars;
@@ -13,20 +16,124 @@ public class MainToolbarInitializeOnLoad
 {
     static MainToolbarInitializeOnLoad()
     {
+        MainToolbarVisibilityMigration.Init();
         MainToolbarSceneLauncherButton.Init();
         MainToolbarDropdownSceneSelector.Init();
         MainToolbarDropdownPlayMode.Init();
     }
 }
 
+internal static class MainToolbarVisibilityMigration
+{
+    private const string MigrationKeyPrefix = "ZFramework.MainToolbarVisibilityMigration.v3.";
+    private const string AgentWorkbenchElementPath = "Agent Workflow/Workbench";
+    private static readonly string[] ZFrameworkElementPaths =
+    {
+        "ZFramework/Scene Launcher Button",
+        "ZFramework/Scene Switcher",
+        "ZFramework/Play Mode"
+    };
+
+    private static bool initialized;
+
+    public static void Init()
+    {
+        if (initialized)
+            return;
+
+        initialized = true;
+        if (EditorPrefs.GetBool(GetMigrationKey(), false))
+            return;
+
+        EditorApplication.update += ShowToolbarElements;
+    }
+
+    private static void ShowToolbarElements()
+    {
+        Type windowType = typeof(Editor).Assembly.GetType("UnityEditor.MainToolbarWindow");
+        if (windowType == null)
+            return;
+
+        UnityEngine.Object[] windows = Resources.FindObjectsOfTypeAll(windowType);
+        if (windows.Length == 0)
+            return;
+
+        PropertyInfo canvasProperty = windowType.GetProperty("overlayCanvas", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        object canvas = canvasProperty?.GetValue(windows[0]);
+        if (canvas == null)
+            return;
+
+        PropertyInfo overlaysProperty = canvas.GetType().GetProperty("overlays", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        if (!(overlaysProperty?.GetValue(canvas) is IEnumerable overlays))
+            return;
+
+        var remainingPaths = new HashSet<string>(ZFrameworkElementPaths, StringComparer.Ordinal);
+        if (typeof(MainToolbarInitializeOnLoad).Assembly.GetType("AgentWorkflow.Editor.AgentWorkbenchMainToolbar") != null)
+            remainingPaths.Add(AgentWorkbenchElementPath);
+
+        foreach (object overlay in overlays)
+        {
+            if (overlay == null)
+                continue;
+
+            Type overlayType = overlay.GetType();
+            PropertyInfo idProperty = overlayType.GetProperty("id", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            string id = idProperty?.GetValue(overlay) as string;
+            if (string.IsNullOrEmpty(id) || !remainingPaths.Remove(id))
+                continue;
+
+            PropertyInfo displayedProperty = overlayType.GetProperty("displayed", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (displayedProperty?.CanWrite == true)
+                displayedProperty.SetValue(overlay, true);
+        }
+
+        if (remainingPaths.Count != 0)
+            return;
+
+        if (!TryPersistToolbarState(windowType, windows[0]))
+        {
+            EditorApplication.update -= ShowToolbarElements;
+            return;
+        }
+
+        EditorPrefs.SetBool(GetMigrationKey(), true);
+        EditorApplication.update -= ShowToolbarElements;
+    }
+
+    private static bool TryPersistToolbarState(Type windowType, UnityEngine.Object window)
+    {
+        try
+        {
+            MethodInfo updateStateMethod = windowType.GetMethod("UpdateLatestSaveState", BindingFlags.Instance | BindingFlags.NonPublic);
+            Type canvasesDataType = typeof(Editor).Assembly.GetType("UnityEditor.Overlays.OverlayCanvasesData");
+            PropertyInfo instanceProperty = canvasesDataType?.BaseType?.GetProperty("instance", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            MethodInfo saveMethod = canvasesDataType?.GetMethod("Save", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly, null, Type.EmptyTypes, null);
+            object canvasesData = instanceProperty?.GetValue(null);
+            if (updateStateMethod == null || saveMethod == null || canvasesData == null)
+                return false;
+
+            updateStateMethod.Invoke(window, null);
+            saveMethod.Invoke(canvasesData, null);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"Failed to persist ZFramework toolbar visibility: {exception.Message}");
+            return false;
+        }
+    }
+
+    private static string GetMigrationKey() => MigrationKeyPrefix + Hash128.Compute(Application.dataPath);
+}
+
 public class MainToolbarSceneLauncherButton
 {
-    private const string PreviousSceneKey = "TEngine_PreviousScenePath"; // 用于存储之前场景路径的键
-    private const string IsLauncherBtn = "TEngine_IsLauncher"; // 用于存储之前是否按下launcher
+    private const string PreviousSceneKey = "ZFramework_PreviousScenePath"; // 用于存储之前场景路径的键
+    private const string IsLauncherBtn = "ZFramework_IsLauncher"; // 用于存储之前是否按下launcher
 
         private static readonly string SceneMain = "SampleScene";
 
-    [MainToolbarElement("TEngine/Scene Launcher Button", defaultDockIndex = -10, defaultDockPosition = MainToolbarDockPosition.Middle)]
+    [MainToolbarElement("ZFramework/Scene Launcher Button", defaultDockIndex = -10, defaultDockPosition = MainToolbarDockPosition.Middle)]
     private static MainToolbarElement ProjectSettingsButton()
     {
         var onIcon = EditorGUIUtility.IconContent("PlayButton").image as Texture2D;
@@ -51,7 +158,7 @@ public class MainToolbarSceneLauncherButton
     private static void OnPlayModeStateChanged(PlayModeStateChange state)
     {
         ProjectSettingsButton();
-        MainToolbar.Refresh("TEngine/Scene Launcher Button");
+        MainToolbar.Refresh("ZFramework/Scene Launcher Button");
         if (state == PlayModeStateChange.EnteredEditMode)
         {
             // 从 EditorPrefs 读取之前的场景路径 并恢复之前的场景
@@ -151,7 +258,7 @@ public class MainToolbarSceneLauncherButton
 
 public class MainToolbarDropdownSceneSelector
 {
-    const string kElementPath = "TEngine/Scene Switcher";
+    const string kElementPath = "ZFramework/Scene Switcher";
 
     private static List<(string sceneName, string scenePath)> m_initScenes;
     private static List<(string sceneName, string scenePath)> m_defaultScenes;
@@ -175,7 +282,10 @@ public class MainToolbarDropdownSceneSelector
 
         var icon = EditorGUIUtility.IconContent("UnityLogo").image as Texture2D;
         var content = new MainToolbarContent(activeSceneName, icon, "Select active scene");
-        return new MainToolbarDropdown(content, ShowDropdownMenu);
+        return new MainToolbarDropdown(content, ShowDropdownMenu)
+        {
+            displayed = true
+        };
     }
 
     public static void Init()
@@ -317,7 +427,7 @@ public class MainToolbarDropdownSceneSelector
 
 public class MainToolbarDropdownPlayMode
 {
-    const string kElementPath = "TEngine/Play Mode";
+    const string kElementPath = "ZFramework/Play Mode";
 
     private static readonly string[] _resourceModeNames =
     {
@@ -335,12 +445,13 @@ public class MainToolbarDropdownPlayMode
     [MainToolbarElement(kElementPath, defaultDockPosition = MainToolbarDockPosition.Middle, defaultDockIndex = 51)]
     public static MainToolbarElement CreateExampleDropdown()
     {
+        _resourceModeIndex = Mathf.Clamp(EditorPrefs.GetInt("EditorPlayMode"), 0, _resourceModeNames.Length - 1);
         var content = new MainToolbarContent(_resourceModeNames[ResourceModeIndex]);
         m_btn = new MainToolbarDropdown(content, ShowDropdownMenu)
         {
+            displayed = true,
             enabled = !EditorApplication.isPlaying
         };
-        _resourceModeIndex = EditorPrefs.GetInt("EditorPlayMode");
         return m_btn;
     }
 

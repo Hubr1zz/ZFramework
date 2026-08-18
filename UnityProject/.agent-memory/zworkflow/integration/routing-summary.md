@@ -6,7 +6,7 @@
 
 - 项目入口：AGENTS.md。
 - 项目速查：.agents/skills/project-context/references/PROJECT-INDEX.md。
-- TEngine 代码任务：.agents/skills/tengine-dev/references/CODE-WORKFLOW.md。
+- ZFramework 代码任务：.agents/skills/zframework-dev/references/CODE-WORKFLOW.md。
 - 工程模块：.agents/skills/project-tooling/references/tooling-catalog.json。
 - 所有完整 Skills 与角色：.agents/skills/、.agents/agent-roles/。
 
@@ -19,13 +19,13 @@
 
 ## 代码修改强制流程
 
-生成实现、修复、重构或修改项目 C# 时，先读取 CODE-WORKFLOW.md，判断 L1-L4，再按主题读取 tengine-dev references。涉及工程模块时同时读取 tooling catalog；参考与代码冲突时以源码为准。
+生成实现、修复、重构或修改项目 C# 时，先读取 CODE-WORKFLOW.md，判断 L1-L4，再按主题读取 zframework-dev references。涉及工程模块时同时读取 tooling catalog；参考与代码冲突时以源码为准。
 
 ## 工程能力拆分
 
 - Plugin：UniTask、YooAsset、MCP for Unity。
-- Architecture：ModuleSystem、ResourceModule、GameEvent、MemoryPool、ObjectPoolModule、UIModule、ConfigSystem、ProcedureModule、TEngine 启动生命周期。
-- System：TEngine 项目启动接入（Launcher UI、更新/内容包流程与 GameApp 交接）。
+- Architecture：ModuleSystem、ResourceModule、GameEvent、MemoryPool、ObjectPoolModule、UIModule、ConfigSystem、ProcedureModule、ZFramework 启动生命周期。
+- System：ZFramework 项目启动接入（Launcher UI、更新/内容包流程与 GameApp 交接）。
 - ConfigSystem 当前为 partial：文档和 LubanLib 存在，但生成的 ConfigSystem/GameConfig 代码未落盘。
 
 ## 冲突

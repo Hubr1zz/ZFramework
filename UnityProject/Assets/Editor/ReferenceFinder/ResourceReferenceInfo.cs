@@ -9,7 +9,7 @@ using UnityEngine;
 using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 #endif
 
-namespace TEngine.Editor
+namespace ZFramework.Editor
 {
     internal sealed class ResourceReferenceInfo : EditorWindow
     {
@@ -31,7 +31,7 @@ namespace TEngine.Editor
         private bool _isDepend;
         private GUIStyle _toolbarButtonGUIStyle;
         private GUIStyle _toolbarGUIStyle;
-        public AssetTreeView mAssetTreeView;
+        [System.NonSerialized] public AssetTreeView mAssetTreeView;
 
         private void OnEnable() => _isDepend = PlayerPrefs.GetInt(IS_DEPEND_PREF_KEY, 0) == 1;
 
@@ -44,7 +44,7 @@ namespace TEngine.Editor
             mAssetTreeView?.OnGUI(new Rect(0, _toolbarGUIStyle.fixedHeight, position.width, position.height - _toolbarGUIStyle.fixedHeight));
         }
 
-        [MenuItem("TEngine/查找资产引用 _F10", false, 100)]
+        [MenuItem("ZFramework/查找资产引用 _F10", false, 100)]
         public static void FindRef()
         {
             InitDataIfNeeded();

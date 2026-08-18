@@ -1,8 +1,40 @@
 {
-  "schemaVersion": 1,
-  "packageVersion": "2026.07.29",
+  "schemaVersion": 3,
+  "packageVersion": "2026.08.04.4",
   "packageKind": "generic-zworkflow-bootstrap",
   "setupEntry": "setup/SETUP_NEW_PROJECT.md",
+  "upgradePolicy": {
+    "managedTopLevel": [
+      ".agents", ".claude", ".codex", "assets", "bin", "packages", "setup", "test",
+      ".gitattributes", "AGENT_WORKFLOW_README.md", "AGENTS.md", "LICENSE", "package.json",
+      "PROJECT_WORKFLOW_PACKAGE.md", "README.md", "START_HERE.md", "THIRD_PARTY_NOTICES.md",
+      "WORKFLOW_DEVELOPER_GUIDE.md", "WORKFLOW_OVERVIEW.md", "WORKFLOW_QUICKSTART.md"
+    ],
+    "preserveTopLevel": [
+      ".agent-memory", ".agent-bridge", ".design-workflow", "openspec",
+      "zWorkFlow Pack", "zWorkFlow Pack.zip"
+    ]
+  },
+  "projectInstall": {
+    "statePath": ".agent-memory/zworkflow/install-state.json",
+    "memoryNamespace": ".agent-memory/zworkflow",
+    "discoverableAgentRoot": ".agents",
+    "unityWorkbench": {
+      "sourceRoot": "setup/assets",
+      "destinationCandidates": ["Assets/Scripts/Editor", "Assets/Editor/zWorkFlow"],
+      "files": [
+        "AgentWorkbenchSupport.cs",
+        "AgentWorkbenchWindow.Changes.cs",
+        "AgentWorkbenchWindow.cs",
+        "AgentWorkbenchWindow.Data.cs",
+        "AgentWorkbenchWindow.EditorGuidance.cs",
+        "AgentWorkbenchWindow.Engineering.cs",
+        "AgentWorkbenchWindow.ImportReports.cs",
+        "AgentWorkbenchWindow.Models.cs",
+        "AgentWorkbenchWindow.Translations.cs"
+      ]
+    }
+  },
   "runtimeRequirements": {
     "openSpecCli": {
       "requiredForWorkbench": true,
@@ -29,6 +61,7 @@
     "assets/zworkflow-lifecycle.png",
     ".agents/README.md",
     "setup/SETUP_NEW_PROJECT.md",
+    "setup/UPGRADE_EXISTING_INSTALLATION.md",
     "setup/CLI_BOOTSTRAP.md",
     "setup/FEATURE_COVERAGE.md",
     "setup/PROJECT_CONTENT_TEMPLATE.md",
@@ -36,6 +69,8 @@
     "setup/adapters/registry.json",
     "setup/adapters/registry.schema.json",
     "setup/templates/.agent-memory/zworkflow/local/tool-selection.json",
+    "setup/templates/.agent-memory/zworkflow/team/MAINTAINERS.md",
+    "setup/templates/.agent-memory/zworkflow/team/members/_TEMPLATE.md",
     "setup/templates/AGENTS.md.template",
     "setup/assets/AgentWorkbenchWindow.cs.template",
     "setup/assets/AgentWorkbenchWindow.ImportReports.cs.template",

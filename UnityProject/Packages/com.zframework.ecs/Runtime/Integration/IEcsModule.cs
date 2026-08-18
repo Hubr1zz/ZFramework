@@ -1,7 +1,7 @@
 namespace ZFramework.ECS
 {
     /// <summary>
-    /// Public integration boundary. Requesting this interface through TEngine.ModuleSystem
+    /// Public integration boundary. Requesting this interface through ZFramework.ModuleSystem
     /// installs the ECS extension lazily; removing the package removes the feature entirely.
     /// </summary>
     public interface IEcsModule

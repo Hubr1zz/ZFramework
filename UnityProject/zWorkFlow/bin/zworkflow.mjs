@@ -19,6 +19,8 @@ const EXCLUDED_TOP_LEVEL = new Set([
   "zWorkFlow Pack",
   "zWorkFlow Pack.zip",
 ]);
+const MANAGED_TOP_LEVEL = new Set(manifest.upgradePolicy?.managedTopLevel ?? []);
+const PRESERVED_TOP_LEVEL = new Set(manifest.upgradePolicy?.preserveTopLevel ?? []);
 
 export function parseVersion(text) {
   const match = String(text ?? "").match(/v?(\d+)\.(\d+)\.(\d+)/);
@@ -36,6 +38,23 @@ export function isCompatibleOpenSpec(version) {
   return Boolean(version)
     && compareVersion(version, MIN_OPENSPEC) >= 0
     && compareVersion(version, MAX_OPENSPEC) < 0;
+}
+
+export function comparePackageVersions(left, right) {
+  const parsePackageVersion = (value) => /^\d+(?:\.\d+)+$/.test(String(value ?? ""))
+    ? String(value).split(".").map(Number)
+    : null;
+  const leftVersion = parsePackageVersion(left);
+  const rightVersion = parsePackageVersion(right);
+  if (!leftVersion || !rightVersion) {
+    throw new Error(`无法比较 zWorkFlow 版本：${left} / ${right}`);
+  }
+  const length = Math.max(leftVersion.length, rightVersion.length);
+  for (let index = 0; index < length; index += 1) {
+    const difference = (leftVersion[index] ?? 0) - (rightVersion[index] ?? 0);
+    if (difference !== 0) return difference;
+  }
+  return 0;
 }
 
 function run(command, args, options = {}) {
@@ -89,6 +108,83 @@ export function copyPortablePackage(sourceRoot, destinationRoot) {
   }
 }
 
+function readPackageVersion(root) {
+  const path = resolve(root, "setup/PACKAGE_MANIFEST.json");
+  if (!existsSync(path)) throw new Error(`目标缺少版本清单：${path}`);
+  return JSON.parse(readFileSync(path, "utf8")).packageVersion;
+}
+
+function copyPackageEntries(sourceRoot, destinationRoot) {
+  mkdirSync(destinationRoot, { recursive: false });
+  for (const entry of readdirSync(sourceRoot, { withFileTypes: true })) {
+    if (EXCLUDED_TOP_LEVEL.has(entry.name)) continue;
+    cpSync(resolve(sourceRoot, entry.name), resolve(destinationRoot, entry.name), {
+      recursive: true,
+      force: true,
+    });
+  }
+}
+
+function tryRemoveTemporaryTree(path) {
+  try {
+    rmSync(path, { recursive: true, force: true });
+    return null;
+  } catch (error) {
+    return `${path}: ${error.message}`;
+  }
+}
+
+export function installOrUpgradePortablePackage(sourceRoot, destinationRoot) {
+  if (!existsSync(destinationRoot)) {
+    copyPortablePackage(sourceRoot, destinationRoot);
+    return { action: "installed", fromVersion: null, toVersion: readPackageVersion(sourceRoot) };
+  }
+
+  const sourceVersion = readPackageVersion(sourceRoot);
+  const targetVersion = readPackageVersion(destinationRoot);
+  if (comparePackageVersions(sourceVersion, targetVersion) <= 0) {
+    return { action: "up-to-date", fromVersion: targetVersion, toVersion: sourceVersion };
+  }
+
+  const parent = dirname(destinationRoot);
+  const suffix = `${process.pid}-${Date.now()}`;
+  const stagingRoot = resolve(parent, `.${basename(destinationRoot)}.upgrade-${suffix}`);
+  const backupRoot = resolve(parent, `.${basename(destinationRoot)}.backup-${suffix}`);
+  const switchedEntries = [];
+  try {
+    copyPackageEntries(sourceRoot, stagingRoot);
+    mkdirSync(backupRoot, { recursive: false });
+    for (const name of MANAGED_TOP_LEVEL) {
+      if (PRESERVED_TOP_LEVEL.has(name)) continue;
+      const currentPath = resolve(destinationRoot, name);
+      const nextPath = resolve(stagingRoot, name);
+      const backupPath = resolve(backupRoot, name);
+      const state = { name, hadCurrent: existsSync(currentPath), placedNext: false };
+      if (!state.hadCurrent && !existsSync(nextPath)) continue;
+      switchedEntries.push(state);
+      if (state.hadCurrent) renameSync(currentPath, backupPath);
+      if (existsSync(nextPath)) {
+        renameSync(nextPath, currentPath);
+        state.placedNext = true;
+      }
+    }
+  } catch (error) {
+    for (const state of switchedEntries.reverse()) {
+      const currentPath = resolve(destinationRoot, state.name);
+      const backupPath = resolve(backupRoot, state.name);
+      if (state.placedNext) rmSync(currentPath, { recursive: true, force: true });
+      if (state.hadCurrent && existsSync(backupPath)) renameSync(backupPath, currentPath);
+    }
+    tryRemoveTemporaryTree(stagingRoot);
+    tryRemoveTemporaryTree(backupRoot);
+    throw error;
+  }
+  const cleanupPending = [stagingRoot, backupRoot]
+    .map(tryRemoveTemporaryTree)
+    .filter(Boolean);
+  return { action: "upgraded", fromVersion: targetVersion, toVersion: sourceVersion, cleanupPending };
+}
+
 function ensureRuntime() {
   const nodeVersion = parseVersion(process.version);
   if (!nodeVersion || compareVersion(nodeVersion, MIN_NODE) < 0) {
@@ -125,7 +221,7 @@ function help() {
 直接从 GitHub 使用：
   npx --yes github:Hubr1zz/zWorkFlow setup
 
-setup 会安装到 <项目目录>/zWorkFlow，不覆盖已有目录。随后仍需让 Agent
+setup 会安装或升级 <项目目录>/zWorkFlow；升级只替换清单声明的程序内容并保留数据。随后仍需让 Agent
 读取 zWorkFlow/setup/SETUP_NEW_PROJECT.md，完成项目事实分析与安全适配。
 `);
 }
@@ -159,8 +255,12 @@ function main(argv) {
   }
 
   const runtime = ensureRuntime();
-  copyPortablePackage(packageRoot, destination);
-  process.stdout.write(`\nzWorkFlow 已下载到：${destination}\n`);
+  const packageResult = installOrUpgradePortablePackage(packageRoot, destination);
+  process.stdout.write(`\nzWorkFlow ${packageResult.action}：${destination}\n`);
+  process.stdout.write(`版本：${packageResult.fromVersion ?? "未安装"} -> ${packageResult.toVersion}\n`);
+  if (packageResult.cleanupPending?.length) {
+    process.stdout.write(`升级已完成，但以下临时目录需手动清理：\n${packageResult.cleanupPending.join("\n")}\n`);
+  }
   process.stdout.write(`Node.js：${runtime.node}\nOpenSpec：${runtime.openspec}\n`);
   process.stdout.write("下一步：让当前项目中的 Agent 读取 zWorkFlow/setup/SETUP_NEW_PROJECT.md 并执行完整 setup。\n");
 }

@@ -1,11 +1,11 @@
 ---
 name: luban-dev
-description: Luban 游戏配置全栈工具，支持枚举/Bean/数据表的增删改查、代码生成、TEngine 集成。触发场景：(1) 编辑游戏配置数据（配置表/数据表/道具表/技能表/奖励表/活动表），(2) 新增/修改/删除配置表结构，(3) 定义枚举/Bean/字段，(4) 导表/生成配置代码，(5) 编写 luban.conf 或 Schema 定义，(6) Luban 类型系统/校验器问题。即使用户未明确说"Luban"，只要是编辑游戏配置数据，也应使用此技能。
+description: Luban 游戏配置全栈工具，支持枚举/Bean/数据表的增删改查、代码生成、ZFramework 集成。触发场景：(1) 编辑游戏配置数据（配置表/数据表/道具表/技能表/奖励表/活动表），(2) 新增/修改/删除配置表结构，(3) 定义枚举/Bean/字段，(4) 导表/生成配置代码，(5) 编写 luban.conf 或 Schema 定义，(6) Luban 类型系统/校验器问题。即使用户未明确说"Luban"，只要是编辑游戏配置数据，也应使用此技能。
 ---
 
 # Luban 数据配置工具
 
-## TEngine 项目核心约定
+## ZFramework 项目核心约定
 
 - **生成格式**：`cs-bin`（C# 代码）+ `bin`（二进制数据）
 - **命名空间**：`GameConfig`（非默认 `cfg`）
@@ -110,7 +110,7 @@ python scripts/luban_helper.py --data-dir Configs/GameConfig/Datas <command>
 
 | 场景 | 文档 | 内容 |
 |------|------|------|
-| TEngine 集成 / ConfigSystem / 生成脚本 / 兼容性 | [tengine-integration.md](references/tengine-integration.md) | 项目结构、加载器、导出脚本、Excel规范 |
+| ZFramework 集成 / ConfigSystem / 生成脚本 / 兼容性 | [zframework-integration.md](references/zframework-integration.md) | 项目结构、加载器、导出脚本、Excel规范 |
 | 操作工具命令详解 / Excel结构 / 数据填写格式 | [operating-guide.md](references/operating-guide.md) | luban_helper.py 完整命令参考 |
 | 类型系统和语法 | [type-system.md](references/type-system.md) | 基础/容器/自定义/可空类型、Mapper、constalias |
 | Schema 定义（XML/Excel）/ 多态规范 | [schema.md](references/schema.md) | enum/bean/table 定义、字段属性、多态bean、flags约束 |
@@ -121,7 +121,7 @@ python scripts/luban_helper.py --data-dir Configs/GameConfig/Datas <command>
 | JSON/XML/YAML/Lua 数据源 | [data-sources.md](references/data-sources.md) | 非Excel数据源格式、多态鉴别符 |
 | 运行时加载 / 类型映射 / 本地化工作流 | [runtime.md](references/runtime.md) | Unity加载、代码风格、本地化完整流程 |
 
-示例：`examples/tengine-project/`（TEngine 完整示例）、`examples/item-system/`（CSV+XML）、`examples/skill-system/`（JSON+多态）
+示例：`examples/zframework-project/`（ZFramework 完整示例）、`examples/item-system/`（CSV+XML）、`examples/skill-system/`（JSON+多态）
 
 脚本：`scripts/luban_helper.py`（操作工具）、`scripts/requirements.txt`（依赖）
 

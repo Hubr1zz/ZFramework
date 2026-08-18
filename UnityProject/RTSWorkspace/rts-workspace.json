@@ -1,6 +1,6 @@
 {
     "schemaVersion": 1,
-    "generatedUtc": "2026-08-04T16:08:01.5913784Z",
+    "generatedUtc": "2026-08-18T04:10:07.7282356Z",
     "activeCompileUnit": "Default",
     "activeSession": "DefaultSession",
     "sessionDescriptor": "RTSWorkspace/Sessions/DefaultSession/session.json",
@@ -14,10 +14,10 @@
     ],
     "sessionDependencies": [],
     "sourceRoots": [
-        "D:\\UnityProjects\\ZFramework\\UnityProject\\RTSWorkspace/Sessions\\DefaultSession\\Sources"
+        "D:\\UnityProjects\\ZFramework-worktrees\\ZFramework\\UnityProject\\RTSWorkspace/Sessions\\DefaultSession\\Sources"
     ],
     "referenceAssemblies": [
-        "D:\\UnityProjects\\ZFramework\\UnityProject\\Library\\ScriptAssemblies\\TEngine.RTS.Contracts.dll"
+        "D:\\UnityProjects\\ZFramework-worktrees\\ZFramework\\UnityProject\\Library\\ScriptAssemblies\\ZFramework.RTS.Contracts.dll"
     ],
     "baseModules": [],
     "capabilities": [
@@ -38,7 +38,7 @@
         "validate-production"
     ],
     "tests": [
-        "dotnet run --project Packages/com.tengine.rts/Tools~/KernelSmokeTests",
-        "dotnet build Packages/com.tengine.rts/Tools~/ProductionCompileSmoke"
+        "dotnet run --project Packages/com.zframework.rts/Tools~/KernelSmokeTests",
+        "dotnet build Packages/com.zframework.rts/Tools~/ProductionCompileSmoke"
     ]
 }

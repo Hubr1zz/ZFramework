@@ -65,7 +65,7 @@ namespace MCPForUnity.Runtime.Helpers
             }
             return _instanceIdToObject?.Invoke(null, new object[] { instanceId }) as Object;
 #elif UNITY_6000_3_OR_NEWER
-            return EditorUtility.EntityIdToObject(instanceId);
+            return EditorUtility.EntityIdToObject(EntityId.FromULong(unchecked((uint)instanceId)));
 #else
             return EditorUtility.InstanceIDToObject(instanceId);
 #endif

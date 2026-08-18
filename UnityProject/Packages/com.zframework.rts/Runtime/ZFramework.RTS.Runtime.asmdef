@@ -1,0 +1,14 @@
+{
+  "name": "ZFramework.RTS.Runtime",
+  "rootNamespace": "ZFramework.RTS",
+  "references": ["ZFramework.RTS.Contracts", "ZFramework.Runtime", "UniTask"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": ["UNITY_EDITOR"],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

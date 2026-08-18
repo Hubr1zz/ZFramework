@@ -5,6 +5,7 @@
 ## 适用场景
 
 - 用户把 `zWorkFlow/` 作为独立来源目录放入项目并要求 setup。
+- 用户把新版 `zWorkFlow Pack/` 放在已有 zWorkFlow 内并要求 setup/升级。
 - 用户要求检测项目中的架构资料或 Agent 工作流。
 - zWorkFlow 与架构资料、Agent 工作流以任意先后顺序导入后，用户要求重新检测。
 
@@ -12,9 +13,9 @@
 
 ## Phase 0：校验分发包与目标边界
 
-1. 把包含本文件的 `zWorkFlow/` 识别为只读安装源，把它的父目录识别为目标项目根；不得把安装源自身当作目标项目。
+1. 把包含本文件的目录识别为只读安装源。若目录名为 `zWorkFlow Pack` 且父目录已有 `setup/PACKAGE_MANIFEST.json`，先读取 [UPGRADE_EXISTING_INSTALLATION.md](UPGRADE_EXISTING_INSTALLATION.md)，比较 `packageVersion` 并完成或跳过版本化升级，再以父目录的父目录作为目标项目根；其他情况把来源目录的父目录识别为目标项目根。不得把安装源自身当作目标项目。
 2. 读取 `setup/PACKAGE_MANIFEST.json`，确认其中列出的必需文件、通用 skills、角色、setup 文档和工作台模板全部存在。清单缺失、JSON 无法解析或来源包含清单声明的禁入内容时停止 setup。
-3. 建立目标项目只读基线。目标中已经存在的入口、skills、commands、agent 配置、自动化、工作流数据与 OpenSpec 数据先保持只读；只有 Phase 2 的内容保全迁移完成全部校验后，才允许把已迁入的工具专属正文替换为薄入口。冲突目标一律不得覆盖。
+3. 建立目标项目只读基线。目标中已经存在的入口、skills、commands、agent 配置、自动化、工作流数据与 OpenSpec 数据先保持只读；只有版本升级清单声明的 managed 程序内容，或 Phase 2 内容保全迁移完成全部校验后的工具专属正文，才允许替换。冲突目标和保留数据一律不得覆盖。
 4. 分发包只提供通用工作流，不携带任何预生成的 `project-context`、`project-architecture`、`project-domain-*`、成员资料、设计源机器路径、正式 Spec、Change、archive 或导入历史。
 
 ## Phase 0.25：验证 OpenSpec CLI
@@ -36,7 +37,7 @@ Node 与安装命令以 OpenSpec 官方安装说明为准：[OpenSpec Installati
 
 1. 只在项目根缺少 `AGENTS.md` 时，从 `setup/templates/AGENTS.md.template` 安装薄入口；完整通用规则继续保存在安装源 `zWorkFlow/AGENT_WORKFLOW_README.md` 与 `zWorkFlow/AGENTS.md`，不得复制到项目根。已有同名入口保持只读。
 2. 将清单中的通用 `.agents/skills/<skill>/` 和 `.agents/agent-roles/` 安装到项目根对应路径。不得安装分发包清单之外的项目内容 skill。
-3. 安装 `.agent-memory/README.md`、`setup/templates/.agent-memory/team/MAINTAINERS.md` 与 `team/members/_TEMPLATE.md`；不复制安装源中的具体成员文件。成员映射在 setup 能确认昵称且目标路径未占用时才按 `team-member-preferences` 创建。
+3. 安装 `.agent-memory/README.md`、`setup/templates/.agent-memory/zworkflow/team/MAINTAINERS.md` 与 `zworkflow/team/members/_TEMPLATE.md`；旧版 `.agent-memory/team/` 存在时先逐文件迁移到该命名空间并核对哈希，再移除旧路径。不复制安装源中的具体成员文件。成员映射在 setup 能确认昵称且目标路径未占用时才按 `team-member-preferences` 创建。
 4. 从 `setup/templates/openspec/` 幂等创建缺失的空 Draft Change 索引、`openspec/drafts/changes/` 和 Spec metadata；不得创建正式 Spec、Change、archive、导入历史或已废止的 `openspec/drafts/specs/`。
 5. 幂等创建 `openspec/localization.json` 与空的 `openspec/translations/manifest.json`。能读取设计来源时，把 `generationLanguage` 初始化为设计文档主语言；尚未配置来源时保留 `source`。`specTitles` 初始化为空数组，后续以 capability ID 保存中英文条目显示名。翻译目录和 manifest 必须参与 Git，同 setup 不携带任何项目翻译正文。
 5. 通用核心是本次 setup 的默认安装项，不需要第二次确认；可选文档包与项目桥接仍必须显式选择。
@@ -136,6 +137,7 @@ setup 开始时先建立只读基线，列出已有入口、skills、commands、
 - 已有等价重构队列、文档同步或成员偏好流程时标记复用，不创建重复能力。
 - 没有等价能力时，从 [PROJECT_CONTENT_TEMPLATE.md](PROJECT_CONTENT_TEMPLATE.md) 创建最小 `project-context`、`project-architecture` 与命中的 `project-domain-*`；通用核心已经提供空的 `project-refactor-queue` 与可配置的 `project-doc-sync`。只写 Phase 1 已确认事实，不复制安装源所在项目的内容。
 - 通用 `project-tooling` 安装后，把 Phase 1 已确认的 Plugin/System 候选写入其 `references/tooling-catalog.json`。Plugin 的 `decisionBasis` 保持空白，除非用户本次明确给出依据；Architecture 只有经用户确认才能创建，且必须 `usagePolicy=required`、`locked=true`。
+- 若目标项目有明确代码分层，在目录顶层声明项目自定义 `layers`，并用条目 `layerIds` 标记一个能力横跨的零到多个实现层。`kind` 仍只表示 Plugin/Architecture/System 的归属与复用边界，不把 Data/Adapter/View 或 MVC 等项目分层编码成 System 子类型；没有分层约束的项目省略这些可选字段。
 - 写入目录前先按稳定模块边界拆分：一个条目必须拥有可单独路由的职责、证据、约束和依赖；禁止用“整个引擎/整个框架”条目代替 README 与代码已明确区分的核心模块。生命周期、启动编排或状态管线在剥离玩法/UI/内容数据后仍可独立复用时归为 Architecture；具体项目接入另归 System。文档存在但实现缺失的条目只能以明确 partial 约束写入，不得宣称已实现。
 - 为工作台目录条目生成语义对齐的中英文字段：`displayName`/`displayNameEn`、`description`/`descriptionEn`、`capabilities`/`capabilitiesEn`、`constraints`/`constraintsEn`。稳定 ID、路径、依赖与版本不翻译；缺少英文内容不得声称工程能力页已完整支持英文。
 - Architecture 首次建档或从其他类型重分类时，若 Phase 1 证明它是具有直接消费入口的工具类 Architecture，则同次自动生成非空且语义对齐的 `usageNotes` / `usageNotesEn`。策略必须覆盖适用与非适用场景、业务层首选入口、必要的所有权/生命周期规则和应避免的平行实现或误用；只使用代码、接口、调用点与文档已确认的事实。纯边界、阶段顺序或概念模型不强制生成。
@@ -147,9 +149,9 @@ setup 开始时先建立只读基线，列出已有入口、skills、commands、
 
 ## Phase 5：安装平台能力并按需补充可选能力
 
-- 只有 Phase 0.25 已将 OpenSpec CLI 标记为 `available` 或 `installed-and-verified`，且检测到 Unity 项目、没有同类工作台、全部目标脚本路径未占用时，本次 setup 请求才视为同意安装 [UNITY_WORKBENCH_INTEGRATION.md](UNITY_WORKBENCH_INTEGRATION.md) 中的完整模板集。优先复用项目已有的 Editor tooling 根；无法唯一判断时使用 Unity 通用目录 `Assets/Editor/zWorkFlow/`，不要求 `Assets/Scripts`。模板必须成套放在同一 Editor assembly 目录；发生任一冲突时整套跳过并报告，不做部分覆盖。CLI 未通过验证时记录 `blocked-openspec-cli`，不得安装部分工作台模板。
+- 只有 Phase 0.25 已将 OpenSpec CLI 标记为 `available` 或 `installed-and-verified` 且检测到 Unity 项目时，才处理 [UNITY_WORKBENCH_INTEGRATION.md](UNITY_WORKBENCH_INTEGRATION.md) 中的完整模板集。首次安装要求没有同类工作台且全部目标路径未占用；升级时读取 `PACKAGE_MANIFEST.json.projectInstall` 与 `.agent-memory/zworkflow/install-state.json`，只有目标文件仍匹配上次安装 hash，或用户明确要求本次用移植包更新全部 zWorkFlow 内容时，才成套替换已有 Workbench。检测到未登记的项目自定义修改时整套停止并报告冲突，不做部分覆盖。优先复用已登记的 Editor tooling 根；首次无法唯一判断时使用 `Assets/Editor/zWorkFlow/`，不要求 `Assets/Scripts`。CLI 未通过验证时记录 `blocked-openspec-cli`，不得安装部分工作台模板。
 - 非 Unity 项目不安装工作台源码，但保留 OpenSpec、设计导入、路由、关系数据和命令工作流。
-- 已有同类工作台时只记录能力映射，不修改其界面或数据格式。
+- 已有但无法证明由 zWorkFlow 管理的同类工作台只记录能力映射；已由安装清单管理的 Workbench 按版本和 hash 安全升级。
 
 只补用户当前目标需要且不存在等价能力的部分：
 
@@ -158,7 +160,7 @@ setup 开始时先建立只读基线，列出已有入口、skills、commands、
 - Spec 分类和依赖 metadata 的缺失空结构。
 - 成员映射或维护队列的空模板。
 - 文档包、中间桥接层及额外运行时均为显式可选项。
-- 安装 `document-project-bridge` 时只把 `inspect-implemented-design-changes` 安装到项目侧。Workbench 允许选择任意候选目录，但只有定位到设计包自有的 `.design-workflow/implementation-ledger.json` 才保存文档包根路径并点亮桥接灯；随后只读扫描设计 Markdown，重建显示实现进度、实现后变更与摘要的简化结构。不得向设计包 JSON 注入 `projectRoot`，不得因文档变化自动调用设计导入或创建 proposal。
+- 安装 `document-project-bridge` 时只把 `inspect-implemented-design-changes` 安装到项目侧。Workbench 允许选择任意候选目录，只要可扫描到 Markdown 就保存文档根路径并点亮桥接灯；项目在 `openspec/implementation-ledger.json` 幂等创建账本，随后只读扫描设计 Markdown，重建显示实现进度、实现后变更与摘要的简化结构。不得向设计包注入 `projectRoot` 或工程状态，不得因文档变化自动调用设计导入或创建 proposal。
 - 发现旧 `.agent-bridge/project-sync.json` 时把它报告为 deprecated，不读取其中项目路径、不继续执行 `document-change-to-openspec`，也不为了迁移而改写外部设计包；由设计包 setup 幂等创建新账本。
 
 除 OpenSpec CLI 官方要求的 Node.js 外，Python 或其他额外运行时不得成为前置条件。已有有效配置保持不变；缺失配置只在当前能力确实需要时创建。

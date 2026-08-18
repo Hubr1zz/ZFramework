@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using ProcedureOwner = TEngine.IFsm<TEngine.IProcedureModule>;
+using ProcedureOwner = ZFramework.IFsm<ZFramework.IProcedureModule>;
 
 namespace Procedure
 {

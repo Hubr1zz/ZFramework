@@ -1,15 +1,15 @@
 # ZFramework ECS
 
 An optional, ability-driven ECS extension for ZFramework. The package is isolated from
-`Assets/TEngine` and contains no project-specific rules, entities, tags, or content.
+`Assets/ZFramework` and contains no project-specific rules, entities, tags, or content.
 
 ## Integration
 
-The extension uses the public TEngine module contract and requires no changes to the
+The extension uses the public ZFramework module contract and requires no changes to the
 outer framework:
 
 ```csharp
-using TEngine;
+using ZFramework;
 using ZFramework.ECS;
 
 IEcsModule ecs = ModuleSystem.GetModule<IEcsModule>();

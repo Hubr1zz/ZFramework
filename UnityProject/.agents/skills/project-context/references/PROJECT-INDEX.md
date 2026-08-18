@@ -2,8 +2,8 @@
 
 | 任务 / 领域 | 首选来源 | 何时读取 |
 | --- | --- | --- |
-| 代码实现或修改 | `../../tengine-dev/references/CODE-WORKFLOW.md` | 所有会修改项目 C# 的任务 |
-| TEngine API | `../../tengine-dev/SKILL.md` | UI、资源、事件、模块、启动与排障 |
+| 代码实现或修改 | `../../zframework-dev/references/CODE-WORKFLOW.md` | 所有会修改项目 C# 的任务 |
+| ZFramework API | `../../zframework-dev/SKILL.md` | UI、资源、事件、模块、启动与排障 |
 | Luban 配置 | `../../luban-dev/SKILL.md` | 修改表结构、数据或生成流程 |
 | 工程模块图 | `../../project-tooling/references/tooling-catalog.json` | 资源、启动、异步、编辑器扩展或模块依赖 |
 | 项目 Wiki | `../../../../repowiki/zh/content/index.md` | 需要系统说明或文档同步时 |

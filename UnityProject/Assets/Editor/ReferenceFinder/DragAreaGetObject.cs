@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace TEngine.Editor
+namespace ZFramework.Editor
 {
     internal sealed class DragAreaGetObject
     {
