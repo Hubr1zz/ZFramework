@@ -51,9 +51,16 @@ namespace HuntingInDarkness.ActionFlow.Combat
             ReactorEntityHandle source = environment.EntityHandles.GetOrCreate("hunter", card.OwnerCharacterId.ToString(), GetEntityName(card.OwnerCharacterId));
             ReactorEntityHandle target = ResolveTarget(card, targetEntityId);
             var action = new PlayCharacterCardAction(card, targetEntityId, gameContext, boardQuery, boardCommand, costService, flipEvaluator, outbox, canOwnerAct, source, target);
-            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
-            if (outcome.IsSuccess) return action.Result;
-            return string.IsNullOrWhiteSpace(action.Result.Reason) ? CombatCardCommandResult.Failed(outcome.Reason, card.InstanceId) : action.Result;
+            try
+            {
+                ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+                if (outcome.IsSuccess) return action.Result;
+                return string.IsNullOrWhiteSpace(action.Result.Reason) ? CombatCardCommandResult.Failed(outcome.Reason, card.InstanceId) : action.Result;
+            }
+            finally
+            {
+                PlayableActionPreparation.Reset(card.CurrentFace == CardFace.FaceUp ? card.FaceUpEffects : card.FaceDownEffects);
+            }
         }
 
         public void Dispose() => environment.Dispose();

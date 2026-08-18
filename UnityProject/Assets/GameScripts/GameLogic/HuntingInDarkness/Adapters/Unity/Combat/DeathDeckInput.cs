@@ -1,3 +1,4 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 
 namespace GameplayBase.CombatSystem
@@ -17,6 +18,6 @@ namespace GameplayBase.CombatSystem
 
     public interface IDeathDeckInputProvider
     {
-        UniTask<int> RequestDrawDeathCard(string prompt, DeathDeckComposition composition);
+        UniTask<int> RequestDrawDeathCard(string prompt, DeathDeckComposition composition, CancellationToken cancellationToken = default);
     }
 }

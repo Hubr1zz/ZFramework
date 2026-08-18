@@ -75,6 +75,29 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task ExecuteAsync_FailureKeepsPublishedCheckpointButDiscardsLaterFacts()
+        {
+            var received = new List<int>();
+            System.Action<TestCommittedEvent> handler = evt => received.Add(evt.Value);
+            EventBus.Subscribe(handler);
+            try
+            {
+                using var environment = CreateEnvironment(ActionEnvironmentKind.Combat);
+                var outbox = new ActionEventOutbox();
+
+                ActionOutcome outcome = await environment.ExecuteAsync(new CheckpointThenFailAction(outbox), outbox);
+
+                Assert.That(outcome.Status, Is.EqualTo(ActionStatus.Failed));
+                Assert.That(outbox.State, Is.EqualTo(ActionEventOutboxState.Discarded));
+                Assert.That(received, Is.EqualTo(new[] { 1 }));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
         public async Task Dispose_CancelsActiveRootAndDiscardsFacts()
         {
             int receivedCount = 0;
@@ -182,6 +205,24 @@ namespace HuntingInDarkness.Adapter.Tests
                 await cancelled.Task;
                 cancellationToken.ThrowIfCancellationRequested();
                 return ActionOutcome.Success();
+            }
+        }
+
+        private sealed class CheckpointThenFailAction : CommandAction
+        {
+            private readonly ActionEventOutbox outbox;
+
+            public CheckpointThenFailAction(ActionEventOutbox outbox)
+            {
+                this.outbox = outbox;
+            }
+
+            protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
+            {
+                outbox.Stage(new TestCommittedEvent(1));
+                outbox.PublishCheckpoint();
+                outbox.Stage(new TestCommittedEvent(2));
+                return UniTask.FromResult(ActionOutcome.Failure("test"));
             }
         }
 

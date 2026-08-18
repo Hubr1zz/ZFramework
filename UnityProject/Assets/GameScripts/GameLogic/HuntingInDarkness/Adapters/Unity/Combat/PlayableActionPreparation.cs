@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using System.Threading;
+using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
 using GameplayBase.Card.CharacterActionCard;
+using HuntingInDarkness.ActionFlow;
 using HuntingInDarkness.GameCore.Cards;
 
 namespace HuntingInDarkness.Combat
@@ -11,9 +14,20 @@ namespace HuntingInDarkness.Combat
     public interface IPlayablePreparedActionEffect
     {
         bool IsPrepared { get; }
-        UniTask<bool> PrepareAsync(ActionCardContext context);
-        UniTask ExecutePreparedAsync(ActionCardContext context);
+        UniTask<bool> PrepareAsync(ActionCardContext context, CancellationToken cancellationToken = default);
+        UniTask ExecutePreparedAsync(ActionCardContext context, CancellationToken cancellationToken = default);
         void ResetPreparation();
+    }
+
+    /// <summary>把准备完成的卡牌效果展开为当前 Root 的因果 Child Action。</summary>
+    public interface IPlayableQueuedActionEffect
+    {
+        GameAction CreateAction(ActionCardContext context, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target);
+    }
+
+    public interface IPlayableCancellableActionEffect
+    {
+        UniTask ExecuteAsync(ActionCardContext context, CancellationToken cancellationToken);
     }
 
     public static class PlayableActionPreparation

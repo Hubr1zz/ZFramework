@@ -1,3 +1,4 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using GameplayBase.CombatSystem;
 using HuntingInDarkness.GameCore.Cards;
@@ -14,7 +15,7 @@ namespace HuntingInDarkness.Combat
     /// <summary>行动卡效果所需的本场战斗命令，避免依赖组合根或具体 GameManager。</summary>
     public interface ICombatActionCommands : ICombatInspirationReadModel
     {
-        UniTask<InspirationGain> AddCombatInspirationAsync(int characterId, CombatInspirationColor color);
+        UniTask<InspirationGain> AddCombatInspirationAsync(int characterId, CombatInspirationColor color, CancellationToken cancellationToken = default);
         TimelineActionStatus GetTimelineStatus(int characterId);
         bool TryRelieveOvertimeCharacter(int targetId);
     }

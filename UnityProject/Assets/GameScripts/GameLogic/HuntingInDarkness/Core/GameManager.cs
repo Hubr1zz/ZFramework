@@ -401,7 +401,7 @@ namespace Core
         public void OnEndTurn() => _combatSession?.OnEndTurn();
         public bool OnAssistOvertimeCharacter(int helperId, int targetId) => _combatSession != null && _combatSession.TryAssistOvertimeCharacter(helperId, targetId);
         public int AddCombatInspiration(int characterId, int amount) => _combatSession?.AddCombatInspiration(characterId, amount) ?? 0;
-        public UniTask<InspirationGain> AddCombatInspirationAsync(int characterId, CombatInspirationColor color) => _combatSession != null ? _combatSession.AddCombatInspirationAsync(characterId, color) : UniTask.FromResult(new InspirationGain(InspirationGainResult.Rejected, default));
+        public UniTask<InspirationGain> AddCombatInspirationAsync(int characterId, CombatInspirationColor color, System.Threading.CancellationToken cancellationToken = default) => _combatSession != null ? _combatSession.AddCombatInspirationAsync(characterId, color, cancellationToken) : UniTask.FromResult(new InspirationGain(InspirationGainResult.Rejected, default));
         public IReadOnlyList<CombatInspirationToken> GetCombatInspirationTokens(int characterId) => _combatSession?.GetCombatInspirationTokens(characterId) ?? System.Array.Empty<CombatInspirationToken>();
         public int GetCombatInspirationCapacity(int characterId) => _combatSession?.GetCombatInspirationCapacity(characterId) ?? 0;
 

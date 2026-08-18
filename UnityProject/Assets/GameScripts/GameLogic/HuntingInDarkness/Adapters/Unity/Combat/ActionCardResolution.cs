@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using GameplayBase.CombatSystem;
 using HuntingInDarkness.GameCore.Cards;
@@ -91,8 +92,7 @@ namespace Core
             _resources = resources ?? throw new ArgumentNullException(nameof(resources));
         }
 
-        public async UniTask<ActionCardCostTransaction> PrepareAsync(
-            CharacterActionCardInstance card)
+        public async UniTask<ActionCardCostTransaction> PrepareAsync(CharacterActionCardInstance card, CancellationToken cancellationToken = default)
         {
             if (card == null || !CanPayResourceCosts(card.OwnerCharacterId, card.Costs))
                 return null;
@@ -103,7 +103,7 @@ namespace Core
             {
                 if (definition.Kind == ActionCardCostKind.CombatInspiration && definition.InspirationRequirement != InspirationRequirement.Any)
                 {
-                    if (!await PrepareInspirationCost(card.OwnerCharacterId, definition, prepared, selectedInspirationIds)) return null;
+                    if (!await PrepareInspirationCost(card.OwnerCharacterId, definition, prepared, selectedInspirationIds, cancellationToken)) return null;
                     continue;
                 }
                 if (definition.Kind == ActionCardCostKind.CombatInspiration)
@@ -128,9 +128,7 @@ namespace Core
                     IPlayerInputProvider input = _getInput();
                     if (input == null)
                         return null;
-                    int selectedId = await input.RequestSelectCard(
-                        "选择要翻转的其他行动卡作为费用",
-                        candidates);
+                    int selectedId = await input.RequestSelectCard("选择要翻转的其他行动卡作为费用", candidates, cancellationToken);
                     if (!candidates.Contains(selectedId))
                         return null;
                     selected.Add(selectedId);
@@ -140,12 +138,12 @@ namespace Core
 
             foreach (ActionCardCostDefinition definition in card.Costs)
                 if (definition.Kind == ActionCardCostKind.CombatInspiration && definition.InspirationRequirement == InspirationRequirement.Any)
-                    if (!await PrepareInspirationCost(card.OwnerCharacterId, definition, prepared, selectedInspirationIds)) return null;
+                    if (!await PrepareInspirationCost(card.OwnerCharacterId, definition, prepared, selectedInspirationIds, cancellationToken)) return null;
 
             return new ActionCardCostTransaction(prepared);
         }
 
-        public async UniTask<ActionCardCostTransaction> PrepareInspirationCostsAsync(int ownerId, IReadOnlyList<ActionCardCostDefinition> costs)
+        public async UniTask<ActionCardCostTransaction> PrepareInspirationCostsAsync(int ownerId, IReadOnlyList<ActionCardCostDefinition> costs, CancellationToken cancellationToken = default)
         {
             if (!_resources.CanPayCosts(ownerId, costs)) return null;
 
@@ -153,10 +151,10 @@ namespace Core
             var selectedTokenIds = new HashSet<int>();
             foreach (ActionCardCostDefinition cost in costs)
                 if (cost.Kind == ActionCardCostKind.CombatInspiration && cost.InspirationRequirement != InspirationRequirement.Any)
-                    if (!await PrepareInspirationCost(ownerId, cost, prepared, selectedTokenIds)) return null;
+                    if (!await PrepareInspirationCost(ownerId, cost, prepared, selectedTokenIds, cancellationToken)) return null;
             foreach (ActionCardCostDefinition cost in costs)
                 if (cost.Kind == ActionCardCostKind.CombatInspiration && cost.InspirationRequirement == InspirationRequirement.Any)
-                    if (!await PrepareInspirationCost(ownerId, cost, prepared, selectedTokenIds)) return null;
+                    if (!await PrepareInspirationCost(ownerId, cost, prepared, selectedTokenIds, cancellationToken)) return null;
             return new ActionCardCostTransaction(prepared);
         }
 
@@ -253,7 +251,7 @@ namespace Core
             return newCount;
         }
 
-        public async UniTask<InspirationGain> AddCombatInspirationAsync(int ownerId, CombatInspirationColor color)
+        public async UniTask<InspirationGain> AddCombatInspirationAsync(int ownerId, CombatInspirationColor color, CancellationToken cancellationToken = default)
         {
             int oldCount = _resources.GetCombatInspiration(ownerId);
             InspirationGain gain = _resources.TryAddCombatInspiration(ownerId, color);
@@ -269,7 +267,7 @@ namespace Core
                     CombatInspirationToken token = tokens[index];
                     options.Add(new PlayerChoiceOption(token.Id, $"替换 {CombatInspirationPresentation.GetName(token.Color)}"));
                 }
-                int selectedTokenId = await optionInput.RequestSelectOption($"思维区已满：如何处理新获得的{CombatInspirationPresentation.GetName(color)}灵感？", options, cancelOptionId: -1, cancelLabel: "丢弃新灵感");
+                int selectedTokenId = await optionInput.RequestSelectOption($"思维区已满：如何处理新获得的{CombatInspirationPresentation.GetName(color)}灵感？", options, cancelOptionId: -1, cancelLabel: "丢弃新灵感", cancellationToken: cancellationToken);
                 if (selectedTokenId < 0)
                     return new InspirationGain(InspirationGainResult.Discarded, default);
                 gain = _resources.TryAddCombatInspiration(ownerId, color, selectedTokenId);
@@ -305,7 +303,7 @@ namespace Core
                    timeline.CanSpendWillpower(ownerId, willpower);
         }
 
-        private async UniTask<bool> PrepareInspirationCost(int ownerId, ActionCardCostDefinition definition, List<PreparedActionCardCost> prepared, HashSet<int> selectedTokenIds)
+        private async UniTask<bool> PrepareInspirationCost(int ownerId, ActionCardCostDefinition definition, List<PreparedActionCardCost> prepared, HashSet<int> selectedTokenIds, CancellationToken cancellationToken = default)
         {
             var selected = new List<int>(definition.Amount);
             for (int index = 0; index < definition.Amount; index++)
@@ -319,7 +317,7 @@ namespace Core
                     var options = new List<PlayerChoiceOption>(candidates.Count);
                     foreach (CombatInspirationToken candidate in candidates)
                         options.Add(new PlayerChoiceOption(candidate.Id, CombatInspirationPresentation.GetName(candidate.Color)));
-                    selectedTokenId = await optionInput.RequestSelectOption("选择要支付的战斗灵感", options);
+                    selectedTokenId = await optionInput.RequestSelectOption("选择要支付的战斗灵感", options, cancellationToken: cancellationToken);
                 }
                 if (!candidates.Exists(candidate => candidate.Id == selectedTokenId)) return false;
 

@@ -364,7 +364,7 @@
 177. ActionQueue Runtime/Editor、Buff ActionQueue Adapter 与 Presentation Runtime 已建立独立 asmdef，`GameLogic` 现在能够显式引用这些程序集，不再依赖默认 `Assembly-CSharp`。包目录尚未迁为版本化 UPM，重新导包前仍需保留本地补丁或完成包托管。
 178. ActionQueue 核心新增 Root FIFO、Reactor 优先级、Engine 隔离、主动停止取消和间接循环预算 5 个自动化测试；连同 Buff、Preview、GameCore 与 Adapter 的 Unity MCP 回归共 220/220 通过，修正了此前“核心已有正式测试”的错误假设。
 179. 新增项目级 `ActionEnvironment`，统一每个大功能自己的 Engine、ReactorRegistry、ReactionGate、EngineGuard、生命周期 CancellationToken 与释放协议。Play Mode 数据探针已确认相同稳定 ID 在环境内返回同一句柄、跨环境返回不同句柄，且环境可完整释放。
-180. `ActionEventOutbox` 已接通当前 TEngine EventBus：每个 Root 独占一个 Outbox，成功后按登记顺序发布事实，失败、取消或环境释放则丢弃；并发复用同一 Outbox 会被明确拒绝，避免两个 Root 争抢提交权。
+180. `ActionEventOutbox` 已接通当前 TEngine EventBus：每个 Root 独占一个 Outbox，成功后按登记顺序发布尚未提交的事实，失败、取消或环境释放则丢弃剩余事实；不可回滚的增量状态可以显式发布检查点，并发复用同一 Outbox 会被明确拒绝。
 181. Engine 的返回值是 Root Outcome，普通 Reactor 注入 Action 的 `Failed` 不会自动升级为 Chain 失败。任何会决定事务是否提交的步骤必须处于 Root Composite 的可观察子链，或未来由显式 Chain Commit Policy 汇总；不得从可能独立失败的注入 Action 暂存权威提交事件。
 182. 环境释放的取消回调可能由业务代码抛出异常；`ActionEnvironment.Dispose` 已保证即使出现聚合取消异常，仍继续释放 Engine、实体 Registry 与 CancellationTokenSource。取消回调自身的异常诊断策略后续应由统一 Action Logger 收集，而不是让会话释放中断。
 183. 营地阶段现由 `PlayableSettlementActionSession` 持有独立的 ActionEnvironment、Reactor 池、Gate 与稳定实体句柄；持久数据继续由 `SettlementInstance` 拥有。环境在进入 Settlement 时创建、离开或销毁时释放，符合“不同大功能维护自己的 Runner 执行环境”的全生命周期方案。
@@ -382,3 +382,11 @@
 195. 行动费用先于交互式攻击效果提交；如果效果代码抛出非玩法异常，既有费用与此前命中无法自动回滚。ActionQueue 不是数据库事务，后续应让攻击准备生成不可变计划，并为系统异常定义补偿或“已开始行动仍消耗”的明确提交策略；本轮不伪造不可靠的通用回滚。
 196. Combat 环境生命周期取消尚未贯穿旧 `IPlayerInputProvider` 与 AttackPipeline。阶段退出会阻止新 Root，但已经等待玩家输入的旧效果可能在被释放的会话对象上继续完成；这是将攻击步骤拆为 Child Action 时的最高优先级接口改造项。
 197. 本轮 Unity MCP 五程序集回归为 232/232；BossFight Play Mode 探针确认 Combat Session、ActionEnvironment 和 Reactor Registry 均有效，正式 Strike/Focus/Encourage 契约可执行，控制台 0 error。探针未实际打牌或结算伤害，玩家存档不变。
+198. `PlayCharacterCardAction` 已升级为真正的 Composite Root：费用与输入准备、每个卡牌效果以及最终卡牌提交都是同一因果链中的 Child Action。所有可排队效果会在扣费前完成构造验证；扣费后的单个效果被 Reactor 阻止时只跳过该效果，卡牌仍按已开始行动提交，避免“扣费但卡牌仍可再次使用”。
+199. 默认玩家攻击已从旧 `AttackPipeline` 拆成 `CharacterAttackFlowAction` 子树，结果牌准备、部位选择、单次伤害、部位效果、结果展示、翻回、Boss 胜利声明和攻击完成事实都有独立 Action 类型。装备、Buff 与规则可以按具体 Action 注册 Reactor，不再只能覆盖整张卡或依赖 Pipeline Modifier。
+200. `ApplyHitLocationDamageAction` 被 Before Reactor 阻止时会把该次命中转换为失败并继续结算失败部位效果与后续结果；阻止部位效果或胜负声明只跳过对应节点。整张行动的取消仍必须发生在 Root/准备阶段，最终卡牌提交关闭 BeforeReaction，防止部分玩法状态已经改变后再取消提交。
+201. Combat 环境的 CancellationToken 已贯穿费用选择、准备型效果、武器/目标/部位输入、旧 AttackPipeline 以及专注/灵感效果；UGUI 等待在取消时会隐藏面板并退出。ActionQueue 的异常边界也会把“令牌已取消后出现的非标准等待异常”统一归类为 Cancelled，而不是误报业务失败。
+202. 攻击子树的数据测试覆盖完整伤害与胜利、伤害 Reactor 阻止、环境释放中断输入，以及命中后中断仍保留已提交状态事实；卡牌 Root 另覆盖效果 Reactor 阻止后的单次提交。下一步仍需把 Boss 行动迁成 Composite Root，并把相同检查点语义应用到猎人伤口与死亡结算。
+203. `UIPlayerInputProvider.PlayShuffleAndReveal` 仍同时承担表现等待、部位状态翻面和 EventBus 发布，说明当前 EventBus 混合了即时表现信号与提交后领域事实。后续应拆为纯 Presentation 请求和权威 Reveal Action；在该边界完成前，不应把洗牌/翻牌事件错误纳入会在 Root 末尾才提交的统一 Outbox。
+204. 攻击伤害、部位翻回和 Boss 胜利属于已写入且无法通用回滚的增量状态，现会通过 `ActionEventOutbox.PublishCheckpoint` 立即发布对应事实；后续卡牌使用事实仍保留到 Root 成功提交。环境在结果确认期间释放时，已发生伤害不会丢失事件，未发生的 AttackCompleted/CardPlayed 也不会误发。
+205. Unity MCP 全量 EditMode 回归为 238/238；正式 ZFramework Play Mode 入口可进入 BossFight，单场 Combat Session、Reactor Registry 与 4 名猎人数据有效，控制台 0 error。验证只做运行态数据探针，没有实际消费卡牌或写入战斗结果，玩家存档哈希保持不变。

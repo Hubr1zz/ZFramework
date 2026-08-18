@@ -1,3 +1,4 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using GameplayBase.CombatSystem;
 
@@ -25,6 +26,6 @@ namespace CardTactics.CombatSystem
     public interface IAttackStep
     {
         /// <summary>执行此步骤。可以是异步的（等待玩家输入等）。</summary>
-        UniTask Execute(AttackContext context, IPlayerInputProvider input);
+        UniTask Execute(AttackContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default);
     }
 }

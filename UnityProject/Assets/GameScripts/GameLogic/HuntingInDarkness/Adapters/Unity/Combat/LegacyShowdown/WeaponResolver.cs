@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Core;
 using Cysharp.Threading.Tasks;
 using SO.Character;
@@ -17,7 +18,7 @@ namespace GameplayBase.CombatSystem
     /// </summary>
     public interface IWeaponResolver
     {
-        UniTask<WeaponData> ResolveAsync(ActionCardContext context, IPlayerInputProvider input);
+        UniTask<WeaponData> ResolveAsync(ActionCardContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default);
     }
 
     // ═══════════════════════════════════════════
@@ -30,7 +31,7 @@ namespace GameplayBase.CombatSystem
     /// </summary>
     public class EquippedWeaponResolver : IWeaponResolver
     {
-        public UniTask<WeaponData> ResolveAsync(ActionCardContext context, IPlayerInputProvider input)
+        public UniTask<WeaponData> ResolveAsync(ActionCardContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             if (context.GameContext is GameManager gm)
             {
@@ -64,7 +65,7 @@ namespace GameplayBase.CombatSystem
             _filter = filter;
         }
 
-        public async UniTask<WeaponData> ResolveAsync(ActionCardContext context, IPlayerInputProvider input)
+        public async UniTask<WeaponData> ResolveAsync(ActionCardContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             var candidates = GetCandidates(context);
 
@@ -77,7 +78,7 @@ namespace GameplayBase.CombatSystem
             if (candidates.Count == 1)
                 return candidates[0];
 
-            return await input.RequestSelectWeapon(_prompt, candidates);
+            return await input.RequestSelectWeapon(_prompt, candidates, cancellationToken);
         }
 
         private List<WeaponData> GetCandidates(ActionCardContext context)

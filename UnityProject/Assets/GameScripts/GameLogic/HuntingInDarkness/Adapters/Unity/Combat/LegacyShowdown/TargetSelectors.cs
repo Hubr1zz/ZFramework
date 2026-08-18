@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -22,9 +23,9 @@ namespace GameplayBase.CombatSystem
         public bool HasValidTargets(AttackContext ctx) => _validTiles.Count > 0;
 
         public async UniTask<TargetSelection?> RequestSelection(
-            string prompt, AttackContext ctx, IPlayerInputProvider input)
+            string prompt, AttackContext ctx, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
-            var tile = await input.RequestSelectTile(prompt, _validTiles);
+            var tile = await input.RequestSelectTile(prompt, _validTiles, cancellationToken);
             if (tile == null) return null;
             return TargetSelection.ForTile(tile.Value);
         }
@@ -48,10 +49,10 @@ namespace GameplayBase.CombatSystem
         public bool HasValidTargets(AttackContext ctx) => _validEnemyIds.Count > 0;
 
         public async UniTask<TargetSelection?> RequestSelection(
-            string prompt, AttackContext ctx, IPlayerInputProvider input)
+            string prompt, AttackContext ctx, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             if (_validEnemyIds.Count == 0) return null;
-            int id = await input.RequestSelectTarget(prompt, _validEnemyIds);
+            int id = await input.RequestSelectTarget(prompt, _validEnemyIds, cancellationToken);
             return TargetSelection.ForUnit(id, TargetSelectionType.EnemyUnit);
         }
     }

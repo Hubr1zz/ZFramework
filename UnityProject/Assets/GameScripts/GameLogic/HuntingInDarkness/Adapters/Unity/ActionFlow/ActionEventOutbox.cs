@@ -27,6 +27,15 @@ namespace HuntingInDarkness.ActionFlow
             pendingEvents.Add(new PendingEvent<TEvent>(evt));
         }
 
+        /// <summary>发布已经不可回滚的增量状态事实，同时保持 Outbox 可供同一 Root 继续暂存后续事件。</summary>
+        public void PublishCheckpoint()
+        {
+            EnsurePending();
+            if (!claimed)
+                throw new InvalidOperationException("An unclaimed event outbox cannot publish a checkpoint.");
+            PublishPendingEvents();
+        }
+
         internal void Claim()
         {
             EnsurePending();
@@ -41,6 +50,11 @@ namespace HuntingInDarkness.ActionFlow
             if (!claimed)
                 throw new InvalidOperationException("An unclaimed event outbox cannot be committed.");
             State = ActionEventOutboxState.Committed;
+            PublishPendingEvents();
+        }
+
+        private void PublishPendingEvents()
+        {
             foreach (IPendingEvent pendingEvent in pendingEvents)
             {
                 try

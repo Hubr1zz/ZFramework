@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using System.Threading;
+using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
 using GameplayBase.Card.CharacterActionCard;
 using GameplayBase.Card.Effect;
 using GameplayBase.CombatSystem;
+using HuntingInDarkness.ActionFlow;
 using SO.Character;
 using UnityEngine;
 
@@ -36,7 +39,7 @@ namespace HuntingInDarkness.Combat
         public override void Execute(ActionCardContext context) => ExecuteAsync(context).Forget();
         public override UniTask ExecuteAsync(ActionCardContext context) => ExecutePreparedAsync(context);
 
-        public async UniTask<bool> PrepareAsync(ActionCardContext context)
+        public async UniTask<bool> PrepareAsync(ActionCardContext context, CancellationToken cancellationToken = default)
         {
             var input = GetInput(context);
             if (input == null) return false;
@@ -52,7 +55,7 @@ namespace HuntingInDarkness.Combat
                 return false;
             }
 
-            Vector2Int? selected = await input.RequestSelectTile($"选择移动目标（范围 {moveRange}）", candidates);
+            Vector2Int? selected = await input.RequestSelectTile($"选择移动目标（范围 {moveRange}）", candidates, cancellationToken);
             if (!selected.HasValue || !candidates.Contains(selected.Value)) return false;
 
             target = selected.Value;
@@ -60,7 +63,7 @@ namespace HuntingInDarkness.Combat
             return true;
         }
 
-        public UniTask ExecutePreparedAsync(ActionCardContext context)
+        public UniTask ExecutePreparedAsync(ActionCardContext context, CancellationToken cancellationToken = default)
         {
             if (!IsPrepared) return UniTask.CompletedTask;
 
@@ -83,7 +86,7 @@ namespace HuntingInDarkness.Combat
         }
     }
 
-    public sealed class PlayablePreparedAttackEffect : CharacterActionCardEffect, IPlayablePreparedActionEffect
+    public sealed class PlayablePreparedAttackEffect : CharacterActionCardEffect, IPlayablePreparedActionEffect, IPlayableQueuedActionEffect
     {
         private readonly PlayableLoadoutWeaponResolver weaponResolver = new();
         private CardTactics.CombatSystem.CombatManager combatManager;
@@ -98,22 +101,28 @@ namespace HuntingInDarkness.Combat
         public override void Execute(ActionCardContext context) => ExecuteAsync(context).Forget();
         public override UniTask ExecuteAsync(ActionCardContext context) => ExecutePreparedAsync(context);
 
-        public async UniTask<bool> PrepareAsync(ActionCardContext context)
+        public async UniTask<bool> PrepareAsync(ActionCardContext context, CancellationToken cancellationToken = default)
         {
             if (context.GameContext is not ICombatProvider combatProvider || context.GameContext is not ICombatRuntimeDataProvider combatData) return false;
             combatManager = combatProvider.CombatManager;
             stats = combatData.GetCharacterData(context.SourceCharacterId)?.CombatStats;
             if (combatManager == null || stats == null) return false;
 
-            weapon = await weaponResolver.ResolveAsync(context, combatManager.InputProvider);
+            weapon = await weaponResolver.ResolveAsync(context, combatManager.InputProvider, cancellationToken);
             IsPrepared = weapon != null;
             return IsPrepared;
         }
 
-        public async UniTask ExecutePreparedAsync(ActionCardContext context)
+        public async UniTask ExecutePreparedAsync(ActionCardContext context, CancellationToken cancellationToken = default)
         {
             if (!IsPrepared) return;
-            await combatManager.CharacterAttackBoss(context.SourceCharacterId, stats, weapon);
+            await combatManager.CharacterAttackBoss(context.SourceCharacterId, stats, weapon, cancellationToken);
+        }
+
+        public GameAction CreateAction(ActionCardContext context, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+        {
+            if (!IsPrepared || combatManager == null) return null;
+            return combatManager.CreateCharacterAttackAction(context.SourceCharacterId, stats, weapon, eventOutbox, source, target);
         }
 
         public void ResetPreparation()
@@ -146,7 +155,7 @@ namespace HuntingInDarkness.Combat
         public override void Execute(ActionCardContext context) => ExecuteAsync(context).Forget();
         public override UniTask ExecuteAsync(ActionCardContext context) => ExecutePreparedAsync(context);
 
-        public async UniTask<bool> PrepareAsync(ActionCardContext context)
+        public async UniTask<bool> PrepareAsync(ActionCardContext context, CancellationToken cancellationToken = default)
         {
             if (context?.GameContext is not ICombatProvider combatProvider || context.GameContext is not ICombatRuntimeDataProvider runtimeData || context.GameContext is not ICombatActionCommands commands) return false;
             combatData = runtimeData;
@@ -161,11 +170,11 @@ namespace HuntingInDarkness.Combat
 
             if (candidates.Count == 0)
             {
-                await input.ShowResult("当前没有加班中的队友需要鼓舞。");
+                await input.ShowResult("当前没有加班中的队友需要鼓舞。", cancellationToken);
                 return false;
             }
 
-            int selectedId = await input.RequestSelectTarget("选择要鼓舞的队友", candidates);
+            int selectedId = await input.RequestSelectTarget("选择要鼓舞的队友", candidates, cancellationToken);
             if (!candidates.Contains(selectedId)) return false;
 
             targetId = selectedId;
@@ -173,13 +182,13 @@ namespace HuntingInDarkness.Combat
             return true;
         }
 
-        public async UniTask ExecutePreparedAsync(ActionCardContext context)
+        public async UniTask ExecutePreparedAsync(ActionCardContext context, CancellationToken cancellationToken = default)
         {
             if (!IsPrepared || combatData == null || combatCommands == null || input == null) return;
 
             string targetName = combatData.GetCharacterData(targetId)?.Name ?? $"猎人 #{targetId}";
             bool succeeded = combatCommands.TryRelieveOvertimeCharacter(targetId);
-            await input.ShowResult(succeeded ? $"{targetName} 受到鼓舞，恢复了 1 时点。" : "鼓舞未能生效，目标状态已经改变。");
+            await input.ShowResult(succeeded ? $"{targetName} 受到鼓舞，恢复了 1 时点。" : "鼓舞未能生效，目标状态已经改变。", cancellationToken);
         }
 
         public void ResetPreparation()

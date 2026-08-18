@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading;
+using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -7,6 +9,8 @@ using GameplayBase.CombatSystem;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.Combat;
+using HuntingInDarkness.ActionFlow;
+using HuntingInDarkness.ActionFlow.Combat;
 using SO.Character;
 
 namespace CardTactics.CombatSystem
@@ -82,27 +86,13 @@ namespace CardTactics.CombatSystem
         // 角色攻击Boss
         // ═══════════════════════════════════════════
 
-        public async UniTask<AttackResult> CharacterAttackBoss(
-            int characterId, CharacterCombatStats stats, WeaponData weapon)
+        public async UniTask<AttackResult> CharacterAttackBoss(int characterId, CharacterCombatStats stats, WeaponData weapon, CancellationToken cancellationToken = default)
         {
-            var context = new AttackContext
-            {
-                AttackerId            = characterId,
-                DefenderId            = _gameContext.Boss.Id,
-                AttackerIsBoss        = false,
-                AttackerStats         = stats,
-                Weapon                = weapon,
-                DefenderToughness     = bossToughness,
-                AllHitLocationStates  = _bossHitLocationStates,
-                GameContext           = _gameContext,
-                BoardQuery            = _boardQuery
-            };
-
-            context.EffectiveTargetSelector = ResolveTargetSelector(context);
+            AttackContext context = CreateCharacterAttackContext(characterId, stats, weapon);
             var pipeline = BuildCharacterAttackPipeline(context);
             OnCharacterAttackPipelineBuilt?.Invoke(pipeline, context);
 
-            var result = await pipeline.Run(context, _inputProvider);
+            var result = await pipeline.Run(context, _inputProvider, cancellationToken);
 
             Debug.Log($"[CombatManager] 角色#{characterId}攻击Boss完成. Completed={result.Completed}");
 
@@ -116,6 +106,36 @@ namespace CardTactics.CombatSystem
             });
 
             return result;
+        }
+
+        public GameAction CreateCharacterAttackAction(int characterId, CharacterCombatStats stats, WeaponData weapon, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+        {
+            AttackContext context = CreateCharacterAttackContext(characterId, stats, weapon);
+            if (context.EffectiveTargetSelector?.SelectionType == TargetSelectionType.Tile)
+            {
+                var pipeline = BuildCharacterAttackPipeline(context);
+                OnCharacterAttackPipelineBuilt?.Invoke(pipeline, context);
+                return new LegacyCharacterAttackPipelineAction(context, pipeline, _inputProvider, eventOutbox, source, target);
+            }
+            return new CharacterAttackFlowAction(context, _inputProvider, _hitLocationResolver, _random, eventOutbox, source, target);
+        }
+
+        private AttackContext CreateCharacterAttackContext(int characterId, CharacterCombatStats stats, WeaponData weapon)
+        {
+            var context = new AttackContext
+            {
+                AttackerId = characterId,
+                DefenderId = _gameContext.Boss.Id,
+                AttackerIsBoss = false,
+                AttackerStats = stats,
+                Weapon = weapon,
+                DefenderToughness = bossToughness,
+                AllHitLocationStates = _bossHitLocationStates,
+                GameContext = _gameContext,
+                BoardQuery = _boardQuery
+            };
+            context.EffectiveTargetSelector = ResolveTargetSelector(context);
+            return context;
         }
 
         private AttackPipeline BuildCharacterAttackPipeline(AttackContext context)

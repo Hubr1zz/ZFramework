@@ -1,3 +1,4 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -40,7 +41,7 @@ namespace GameplayBase.CombatSystem
         /// 返回 null 表示取消或无合法目标，调用方应中止攻击。
         /// </summary>
         UniTask<TargetSelection?> RequestSelection(
-            string prompt, AttackContext ctx, IPlayerInputProvider input);
+            string prompt, AttackContext ctx, IPlayerInputProvider input, CancellationToken cancellationToken = default);
     }
 
     /// <summary>拦截并替换攻击目标选择方式的覆盖器接口。</summary>

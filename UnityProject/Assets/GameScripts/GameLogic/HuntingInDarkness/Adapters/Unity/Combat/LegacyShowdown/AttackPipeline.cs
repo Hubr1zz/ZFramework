@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using CardTactics.CombatSystem;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -63,14 +64,14 @@ namespace GameplayBase.CombatSystem
         /// 执行整个管线。
         /// 任意步骤抛出 AttackAbortedException → 捕获并标记中断。
         /// </summary>
-        public async UniTask<AttackResult> Run(
-            AttackContext context, IPlayerInputProvider input)
+        public async UniTask<AttackResult> Run(AttackContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             try
             {
                 foreach (var step in _steps)
                 {
-                    await step.Execute(context, input);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await step.Execute(context, input, cancellationToken);
 
                     // 步骤执行后检查中断标记
                     if (context.IsAborted)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using CardTactics.CombatSystem;
 using Core;
 using Cysharp.Threading.Tasks;
@@ -28,7 +29,7 @@ namespace GameplayBase.CombatSystem
             _random = random ?? throw new System.ArgumentNullException(nameof(random));
         }
 
-        public async UniTask Execute(AttackContext context, IPlayerInputProvider input)
+        public async UniTask Execute(AttackContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             int drawCount = context.AttackerStats?.Speed ?? 1;
             if (drawCount <= 0) drawCount = 1;
@@ -42,7 +43,7 @@ namespace GameplayBase.CombatSystem
                 state => state.DomainState.Definition.DrawWeight,
                 _random);
 
-            await input.PlayShuffleAndReveal(all, context.RevealedHitLocations);
+            await input.PlayShuffleAndReveal(all, context.RevealedHitLocations, cancellationToken);
 
             Debug.Log($"[Combat] 翻出 {context.RevealedHitLocations.Count} 张受击部位卡");
         }
@@ -73,7 +74,7 @@ namespace GameplayBase.CombatSystem
             this.random = random ?? throw new System.ArgumentNullException(nameof(random));
         }
 
-        public async UniTask Execute(AttackContext context, IPlayerInputProvider input)
+        public async UniTask Execute(AttackContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             context.CalculateAttackPower();
 
@@ -96,11 +97,11 @@ namespace GameplayBase.CombatSystem
                     await batchInput.RequestRevealAttackResult(
                         $"<b>攻击结果牌堆</b> [{current}/{total}]\n" +
                         $"Boss韧性 {toughness} - 武器威力 {weaponPower}\n" +
-                        $"成功牌 {deck.SuccessCards} / 失败牌 {deck.FailureCards}  成功率 {successRate:0.#}%");
+                        $"成功牌 {deck.SuccessCards} / 失败牌 {deck.FailureCards}  成功率 {successRate:0.#}%", cancellationToken);
                 }
 
                 var selected = await input.RequestSelectRevealedCard(
-                    $"分配{(resultCard == AttackResultCard.Success ? "成功" : "失败")}结果 [{current}/{total}] — 选择部位", remaining);
+                    $"分配{(resultCard == AttackResultCard.Success ? "成功" : "失败")}结果 [{current}/{total}] — 选择部位", remaining, cancellationToken);
 
                 context.CurrentHitLocation = selected.Data;
                 context.RollResult = current - 1;
@@ -129,8 +130,7 @@ namespace GameplayBase.CombatSystem
                 }
 
                 // ─── 触发受击部位卡效果 ───
-                await _effectResolver.ResolveHitLocationEffects(
-                    context, selected, input);
+                await _effectResolver.ResolveHitLocationEffects(context, selected, input, cancellationToken);
 
                 if (context.IsAborted)
                     throw new AttackAbortedException(
@@ -146,7 +146,7 @@ namespace GameplayBase.CombatSystem
                 if (context.GameContext?.Boss is GameplayBase.IBossVitalityState bossVitality)
                     resultMsg += $"\nBoss生命 {bossVitality.CurrentHealth}/{bossVitality.MaxHealth}";
 
-                await input.ShowResult(resultMsg);
+                await input.ShowResult(resultMsg, cancellationToken);
 
                 remaining.Remove(selected);
             }
@@ -173,11 +173,11 @@ namespace GameplayBase.CombatSystem
     {
         UniTask OnHitLocationRevealed(
             AttackContext context, HitLocationCardData hitLocation,
-            IPlayerInputProvider input);
+            IPlayerInputProvider input, CancellationToken cancellationToken = default);
 
         UniTask ResolveHitLocationEffects(
             AttackContext context, HitLocationRuntimeState hitLocationState,
-            IPlayerInputProvider input);
+            IPlayerInputProvider input, CancellationToken cancellationToken = default);
     }
 
     // ═══════════════════════════════════════════
@@ -190,18 +190,18 @@ namespace GameplayBase.CombatSystem
     /// </summary>
     public class TileSelectAttackStep : IAttackStep
     {
-        public async UniTask Execute(AttackContext context, IPlayerInputProvider input)
+        public async UniTask Execute(AttackContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             var selector = context.EffectiveTargetSelector;
 
             if (selector == null || !selector.HasValidTargets(context))
             {
-                await input.ShowResult("没有合法的目标格子，攻击取消");
+                await input.ShowResult("没有合法的目标格子，攻击取消", cancellationToken);
                 context.IsAborted = true;
                 return;
             }
 
-            var selection = await selector.RequestSelection("选择目标格子", context, input);
+            var selection = await selector.RequestSelection("选择目标格子", context, input, cancellationToken);
 
             if (selection == null)
             {
@@ -215,8 +215,7 @@ namespace GameplayBase.CombatSystem
             Debug.Log($"[TileSelectAttackStep] {context.AttackerId} → " +
                       $"格子 {context.SelectedTile}  攻击力:{context.TotalAttackPower}");
 
-            await input.ShowResult(
-                $"攻击格子 {context.SelectedTile}！攻击力：{context.TotalAttackPower}");
+            await input.ShowResult($"攻击格子 {context.SelectedTile}！攻击力：{context.TotalAttackPower}", cancellationToken);
         }
     }
 
@@ -237,7 +236,7 @@ namespace GameplayBase.CombatSystem
 
         public async UniTask OnHitLocationRevealed(
             AttackContext context, HitLocationCardData hitLocation,
-            IPlayerInputProvider input)
+            IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             await UniTask.CompletedTask;
         }
@@ -249,7 +248,7 @@ namespace GameplayBase.CombatSystem
         /// </summary>
         public async UniTask ResolveHitLocationEffects(
             AttackContext context, HitLocationRuntimeState hitLocationState,
-            IPlayerInputProvider input)
+            IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             // 构建受击部位效果上下文（HP 已扣减完毕，携带完整判定结果）
             var effectContext = new HitLocationContext

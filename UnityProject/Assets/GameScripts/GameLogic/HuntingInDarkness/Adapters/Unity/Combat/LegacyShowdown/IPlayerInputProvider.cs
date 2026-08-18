@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using CardTactics.CombatSystem;
 using Cysharp.Threading.Tasks;
 using GameplayBase.CombatSystem;
@@ -26,16 +27,16 @@ namespace GameplayBase.CombatSystem
         /// <param name="prompt">提示文本（如"点击掷骰判定闪避"）</param>
         /// <param name="maxExclusive">随机范围上限（结果为 0 ~ maxExclusive-1）</param>
         /// <returns>骰子结果</returns>
-        UniTask<int> RequestRoll(string prompt, int maxExclusive);
+        UniTask<int> RequestRoll(string prompt, int maxExclusive, CancellationToken cancellationToken = default);
 
         /// <summary>展示攻击结果（命中/未命中/中断），等待玩家确认后继续。</summary>
-        UniTask ShowResult(string message);
-        UniTask<int> RequestSelectTarget(string prompt, List<int> validTargetIds);
+        UniTask ShowResult(string message, CancellationToken cancellationToken = default);
+        UniTask<int> RequestSelectTarget(string prompt, List<int> validTargetIds, CancellationToken cancellationToken = default);
         /// <summary>
         /// 请求玩家选择一个棋盘格子。鼠标右键取消返回 null。
         /// </summary>
-        UniTask<Vector2Int?> RequestSelectTile(string prompt, List<Vector2Int> validTiles);
-        UniTask<int> RequestSelectCard(string prompt, List<int> validCardIds);
+        UniTask<Vector2Int?> RequestSelectTile(string prompt, List<Vector2Int> validTiles, CancellationToken cancellationToken = default);
+        UniTask<int> RequestSelectCard(string prompt, List<int> validCardIds, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 播放Boss部位卡洗牌 + 翻牌动画。
@@ -43,18 +44,19 @@ namespace GameplayBase.CombatSystem
         /// </summary>
         UniTask PlayShuffleAndReveal(
             List<HitLocationRuntimeState> allCards,
-            List<HitLocationRuntimeState> toReveal);
+            List<HitLocationRuntimeState> toReveal,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 力量尝试阶段：等待玩家从已翻开的部位卡中点击选择一张。
         /// </summary>
         UniTask<HitLocationRuntimeState> RequestSelectRevealedCard(
-            string prompt, List<HitLocationRuntimeState> revealedCards);
+            string prompt, List<HitLocationRuntimeState> revealedCards, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 请求玩家从装备栏选择一件武器。
         /// 由 PlayerSelectWeaponResolver 调用；只有一件候选武器时 resolver 直接返回，不调用此方法。
         /// </summary>
-        UniTask<WeaponData> RequestSelectWeapon(string prompt, List<WeaponData> candidates);
+        UniTask<WeaponData> RequestSelectWeapon(string prompt, List<WeaponData> candidates, CancellationToken cancellationToken = default);
     }
 }

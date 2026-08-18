@@ -212,9 +212,15 @@ namespace CardGame.ActionQueue
                         }
                         catch (Exception exception)
                         {
-                            LogException(exception);
-                            AbortActiveChain(ActionOutcome.Failure(
-                                $"Unhandled exception in {workItem.DebugName}."));
+                            if (chainCancellationToken.IsCancellationRequested)
+                            {
+                                AbortActiveChain(ActionOutcome.Cancelled("Action wait was cancelled."));
+                            }
+                            else
+                            {
+                                LogException(exception);
+                                AbortActiveChain(ActionOutcome.Failure($"Unhandled exception in {workItem.DebugName}."));
+                            }
                         }
                     }
 

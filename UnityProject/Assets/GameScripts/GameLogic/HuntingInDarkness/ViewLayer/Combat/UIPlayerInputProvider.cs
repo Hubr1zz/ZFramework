@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
@@ -106,7 +107,7 @@ namespace GameplayBase.CombatSystem
         // IPlayerInputProvider 实现
         // ═══════════════════════════════════════════
 
-        public async UniTask<int> RequestRoll(string prompt, int maxExclusive)
+        public async UniTask<int> RequestRoll(string prompt, int maxExclusive, CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
             var tcs = new UniTaskCompletionSource<int>();
@@ -120,12 +121,17 @@ namespace GameplayBase.CombatSystem
                 })
             });
 
-            int roll = await tcs.Task;
-            HidePanel();
-            return roll;
+            try
+            {
+                return await tcs.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                HidePanel();
+            }
         }
 
-        public async UniTask<int> RequestDrawAttackResult(string prompt, AttackResultDeckComposition composition)
+        public async UniTask<int> RequestDrawAttackResult(string prompt, AttackResultDeckComposition composition, CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
             var tcs = new UniTaskCompletionSource<int>();
@@ -135,12 +141,17 @@ namespace GameplayBase.CombatSystem
                 new("抽取结果牌", () => tcs.TrySetResult(UnityEngine.Random.Range(0, composition.TotalCards)))
             });
 
-            int drawIndex = await tcs.Task;
-            HidePanel();
-            return drawIndex;
+            try
+            {
+                return await tcs.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                HidePanel();
+            }
         }
 
-        public async UniTask RequestRevealAttackResult(string prompt)
+        public async UniTask RequestRevealAttackResult(string prompt, CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
             var tcs = new UniTaskCompletionSource();
@@ -150,11 +161,17 @@ namespace GameplayBase.CombatSystem
                 new("抽取下一张", () => tcs.TrySetResult())
             });
 
-            await tcs.Task;
-            HidePanel();
+            try
+            {
+                await tcs.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                HidePanel();
+            }
         }
 
-        public async UniTask<int> RequestDrawBossHitResult(string prompt, BossHitDeckComposition composition)
+        public async UniTask<int> RequestDrawBossHitResult(string prompt, BossHitDeckComposition composition, CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
             var tcs = new UniTaskCompletionSource<int>();
@@ -164,12 +181,17 @@ namespace GameplayBase.CombatSystem
                 new("抽取命中牌", () => tcs.TrySetResult(UnityEngine.Random.Range(0, composition.TotalCards)))
             });
 
-            int drawIndex = await tcs.Task;
-            HidePanel();
-            return drawIndex;
+            try
+            {
+                return await tcs.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                HidePanel();
+            }
         }
 
-        public async UniTask<int> RequestDrawDeathCard(string prompt, DeathDeckComposition composition)
+        public async UniTask<int> RequestDrawDeathCard(string prompt, DeathDeckComposition composition, CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
             if (composition.TotalCards <= 0)
@@ -184,12 +206,17 @@ namespace GameplayBase.CombatSystem
             }
 
             ShowCardGrid($"{prompt}\n\n<color=#aaaaaa>已知构成：存活 {composition.SurvivalCards} / 死亡 {composition.DeathCards}</color>", buttons);
-            int selectedPosition = await tcs.Task;
-            HidePanel();
-            return selectedPosition;
+            try
+            {
+                return await tcs.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                HidePanel();
+            }
         }
 
-        public async UniTask ShowResult(string message)
+        public async UniTask ShowResult(string message, CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
             var tcs = new UniTaskCompletionSource();
@@ -199,11 +226,17 @@ namespace GameplayBase.CombatSystem
                 new("确认", () => tcs.TrySetResult())
             });
 
-            await tcs.Task;
-            HidePanel();
+            try
+            {
+                await tcs.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                HidePanel();
+            }
         }
 
-        public async UniTask<int> RequestSelectTarget(string prompt, List<int> validTargetIds)
+        public async UniTask<int> RequestSelectTarget(string prompt, List<int> validTargetIds, CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
             if (validTargetIds == null || validTargetIds.Count == 0)
@@ -220,16 +253,21 @@ namespace GameplayBase.CombatSystem
             buttons[buttons.Length - 1] = new ButtonConfig("取消", () => tcs.TrySetResult(-1));
 
             ShowCardGrid(prompt, buttons, 2);
-            int result = await tcs.Task;
-            HidePanel();
-            return result;
+            try
+            {
+                return await tcs.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                HidePanel();
+            }
         }
 
         /// <summary>
         /// 玩家在棋盘上点击格子以选择移动目标。左键确认，右键取消（返回 null）。
         /// </summary>
         public async UniTask<Vector2Int?> RequestSelectTile(
-            string prompt, List<Vector2Int> validTiles)
+            string prompt, List<Vector2Int> validTiles, CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
 
@@ -245,35 +283,36 @@ namespace GameplayBase.CombatSystem
                 tilePositions.Add((tile, _boardManager.TileToWorld(tile)));
 
             Vector2Int? selected = null;
-
-            while (selected == null)
+            try
             {
-                await UniTask.NextFrame();
-
-                if (Input.GetMouseButtonDown(1))
-                    break;
-
-                if (Input.GetMouseButtonDown(0) && Camera.main != null)
+                while (selected == null)
                 {
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                    if (Mathf.Abs(ray.direction.y) > 0.001f)
+                    await UniTask.NextFrame(cancellationToken: cancellationToken);
+                    if (Input.GetMouseButtonDown(1)) break;
+                    if (Input.GetMouseButtonDown(0) && Camera.main != null)
                     {
-                        float t = -ray.origin.y / ray.direction.y;
-                        if (t > 0f)
+                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                        if (Mathf.Abs(ray.direction.y) > 0.001f)
                         {
-                            Vector3 hitPoint = ray.origin + ray.direction * t;
-                            selected = FindClosestValidTile(hitPoint, tilePositions, threshold);
+                            float t = -ray.origin.y / ray.direction.y;
+                            if (t > 0f)
+                            {
+                                Vector3 hitPoint = ray.origin + ray.direction * t;
+                                selected = FindClosestValidTile(hitPoint, tilePositions, threshold);
+                            }
                         }
                     }
                 }
             }
-
-            _boardVisualizer?.ClearHighlights();
-            HideHint();
+            finally
+            {
+                _boardVisualizer?.ClearHighlights();
+                HideHint();
+            }
             return selected;
         }
 
-        public async UniTask<int> RequestSelectCard(string prompt, List<int> validCardIds)
+        public async UniTask<int> RequestSelectCard(string prompt, List<int> validCardIds, CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
             if (validCardIds == null || validCardIds.Count == 0)
@@ -298,7 +337,7 @@ namespace GameplayBase.CombatSystem
             return result;
         }
 
-        public async UniTask<int> RequestSelectOption(string prompt, List<PlayerChoiceOption> options, int cancelOptionId = -1, string cancelLabel = "取消")
+        public async UniTask<int> RequestSelectOption(string prompt, List<PlayerChoiceOption> options, int cancelOptionId = -1, string cancelLabel = "取消", CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
             if (options == null || options.Count == 0)
@@ -314,29 +353,51 @@ namespace GameplayBase.CombatSystem
             buttons[buttons.Length - 1] = new ButtonConfig(cancelLabel, () => tcs.TrySetResult(cancelOptionId));
 
             ShowPanel(prompt, buttons);
-            int result = await tcs.Task;
-            HidePanel();
-            return result;
+            try
+            {
+                return await tcs.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                HidePanel();
+            }
         }
 
         public async UniTask PlayShuffleAndReveal(
             List<HitLocationRuntimeState> allCards,
-            List<HitLocationRuntimeState> toReveal)
+            List<HitLocationRuntimeState> toReveal,
+            CancellationToken cancellationToken = default)
         {
             EventBus.Publish(new HitLocationShuffleStartedEvent());
-            await UniTask.Delay(500);
-
-            foreach (var state in toReveal)
+            bool revealApplied = false;
+            try
             {
-                state.Reveal();
-                EventBus.Publish(new HitLocationFlippedFaceUpEvent { CardData = state.Data });
+                await UniTask.Delay(500, cancellationToken: cancellationToken);
+                foreach (var state in toReveal)
+                {
+                    state.Reveal();
+                    EventBus.Publish(new HitLocationFlippedFaceUpEvent { CardData = state.Data });
+                }
+                revealApplied = true;
+                await UniTask.Delay(300, cancellationToken: cancellationToken);
             }
-
-            await UniTask.Delay(300);
+            catch (System.OperationCanceledException)
+            {
+                if (revealApplied)
+                {
+                    foreach (HitLocationRuntimeState state in toReveal)
+                    {
+                        if (state == null || state.IsDestroyed) continue;
+                        state.Hide();
+                        EventBus.Publish(new HitLocationFlippedFaceDownEvent { CardData = state.Data });
+                    }
+                }
+                throw;
+            }
         }
 
         public async UniTask<HitLocationRuntimeState> RequestSelectRevealedCard(
-            string prompt, List<HitLocationRuntimeState> revealedCards)
+            string prompt, List<HitLocationRuntimeState> revealedCards, CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
             var tcs = new UniTaskCompletionSource<HitLocationRuntimeState>();
@@ -352,12 +413,17 @@ namespace GameplayBase.CombatSystem
 
             ShowPanel(prompt, buttons);
 
-            var result = await tcs.Task;
-            HidePanel();
-            return result;
+            try
+            {
+                return await tcs.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                HidePanel();
+            }
         }
 
-        public async UniTask<WeaponData> RequestSelectWeapon(string prompt, List<WeaponData> candidates)
+        public async UniTask<WeaponData> RequestSelectWeapon(string prompt, List<WeaponData> candidates, CancellationToken cancellationToken = default)
         {
             EnsureInitialized();
             var tcs = new UniTaskCompletionSource<WeaponData>();
@@ -379,9 +445,14 @@ namespace GameplayBase.CombatSystem
 
             ShowPanel(prompt, buttons);
 
-            var result = await tcs.Task;
-            HidePanel();
-            return result;
+            try
+            {
+                return await tcs.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                HidePanel();
+            }
         }
 
         // ═══════════════════════════════════════════

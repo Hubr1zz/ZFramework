@@ -1,3 +1,4 @@
+using System.Threading;
 using CardTactics.CombatSystem;
 using Core;
 using Cysharp.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace GameplayBase.CombatSystem
             this.attemptCount = Mathf.Max(this.attemptIndex, attemptCount);
         }
 
-        public async UniTask Execute(AttackContext context, IPlayerInputProvider input)
+        public async UniTask Execute(AttackContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             var defenderStats = context.DefenderStats;
             if (defenderStats == null || defenderStats.IsDead)
@@ -53,9 +54,9 @@ namespace GameplayBase.CombatSystem
                 $"闪避率 {dodgeRate:0.#}%";
 
             if (input is IBossHitDeckInputProvider deckInput)
-                context.RollResult = await deckInput.RequestDrawBossHitResult(prompt, deck);
+                context.RollResult = await deckInput.RequestDrawBossHitResult(prompt, deck, cancellationToken);
             else
-                context.RollResult = await input.RequestRoll(prompt, deck.TotalCards);
+                context.RollResult = await input.RequestRoll(prompt, deck.TotalCards, cancellationToken);
 
             BossHitDeckDraw draw = BossHitDeckRules.ResolveDraw(deck, context.RollResult);
             context.HitResult = draw.IsHit ? HitResult.Success : HitResult.Failure;
@@ -65,7 +66,7 @@ namespace GameplayBase.CombatSystem
             string resultMsg = draw.IsHit
                 ? "未能闪避，被Boss命中！"
                 : "闪避成功！躲开了Boss的攻击";
-            await input.ShowResult(resultMsg);
+            await input.ShowResult(resultMsg, cancellationToken);
         }
     }
 
@@ -101,7 +102,7 @@ namespace GameplayBase.CombatSystem
             _survivalEventResolver = survivalEventResolver;
         }
 
-        public async UniTask Execute(AttackContext context, IPlayerInputProvider input)
+        public async UniTask Execute(AttackContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             if (context.HitResult != HitResult.Success || context.DefenderStats == null || context.DefenderStats.IsDead)
                 return;
@@ -114,9 +115,9 @@ namespace GameplayBase.CombatSystem
             {
                 DeathDeck deck = defenderStats.InjuryState.DeathDeck;
                 var composition = new DeathDeckComposition(deck.SurvivalCardCount, deck.DeathCardCount);
-                await input.ShowResult($"<b>死亡判定</b>\n\n这次伤害会击中已经归零的{bodyPartName}。\n当前牌堆：存活 {composition.SurvivalCards} 张 / 死亡 {composition.DeathCards} 张。\n\n确认后所有牌将翻至背面并洗混。");
+                await input.ShowResult($"<b>死亡判定</b>\n\n这次伤害会击中已经归零的{bodyPartName}。\n当前牌堆：存活 {composition.SurvivalCards} 张 / 死亡 {composition.DeathCards} 张。\n\n确认后所有牌将翻至背面并洗混。", cancellationToken);
                 deathDrawOrder = deck.PrepareDraw(_random);
-                deathCardPosition = await deathDeckInput.RequestDrawDeathCard("<b>牌已洗混</b>\n选择一张背面牌并承担结果。", composition);
+                deathCardPosition = await deathDeckInput.RequestDrawDeathCard("<b>牌已洗混</b>\n选择一张背面牌并承担结果。", composition, cancellationToken);
             }
             HunterDamageResult damage = defenderStats.ApplyDamage(
                 _bodyPart,
@@ -161,11 +162,11 @@ namespace GameplayBase.CombatSystem
                 });
             }
 
-            await input.ShowResult(msg);
+            await input.ShowResult(msg, cancellationToken);
             if (damage.IsDead)
                 EventBus.Publish(new CharacterDiedEvent { CharacterId = context.DefenderId });
             else if (damage.FatalInjuryTriggered && _survivalEventResolver != null)
-                await _survivalEventResolver.ResolveAsync(context.DefenderId, damage, input);
+                await _survivalEventResolver.ResolveAsync(context.DefenderId, damage, input, cancellationToken);
         }
 
         private static string GetBodyPartDisplayName(HunterBodyPart bodyPart)

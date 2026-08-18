@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase.CombatSystem;
@@ -23,7 +24,7 @@ namespace HuntingInDarkness.Combat
 
     public interface ISurvivalEventResolver
     {
-        UniTask ResolveAsync(int characterId, HunterDamageResult damage, IPlayerInputProvider input);
+        UniTask ResolveAsync(int characterId, HunterDamageResult damage, IPlayerInputProvider input, CancellationToken cancellationToken = default);
     }
 
     public static class PlayableSurvivalEventRuntime
@@ -50,7 +51,7 @@ namespace HuntingInDarkness.Combat
             this.random = random ?? new SystemRandomSource();
         }
 
-        public async UniTask ResolveAsync(int characterId, HunterDamageResult damage, IPlayerInputProvider input)
+        public async UniTask ResolveAsync(int characterId, HunterDamageResult damage, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             if (!damage.FatalInjuryTriggered || damage.IsDead || input == null) return;
 
@@ -60,7 +61,7 @@ namespace HuntingInDarkness.Combat
             if (hunter == null || eventSystem == null || gameEvent == null) return;
 
             string resultText = string.IsNullOrWhiteSpace(gameEvent.hiddenText) ? string.Empty : $"\n\n<color=#e8c46a>{gameEvent.hiddenText}</color>";
-            await input.ShowResult($"【侥幸生还 · {gameEvent.eventName}】\n\n{gameEvent.displayText}{resultText}");
+            await input.ShowResult($"【侥幸生还 · {gameEvent.eventName}】\n\n{gameEvent.displayText}{resultText}", cancellationToken);
             foreach (EventEffect effect in gameEvent.immediateEffects)
                 eventSystem.ApplyEffect(effect, hunter);
             EventBus.Publish(new SurvivalEventResolvedEvent { CharacterId = characterId, EventName = gameEvent.eventName });

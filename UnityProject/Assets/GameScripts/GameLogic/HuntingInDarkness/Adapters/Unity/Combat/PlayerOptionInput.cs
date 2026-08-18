@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 
 namespace GameplayBase.CombatSystem
@@ -18,6 +19,6 @@ namespace GameplayBase.CombatSystem
     /// <summary>Optional extension for labelled choices that are not world entities or cards.</summary>
     public interface IPlayerOptionInputProvider
     {
-        UniTask<int> RequestSelectOption(string prompt, List<PlayerChoiceOption> options, int cancelOptionId = -1, string cancelLabel = "取消");
+        UniTask<int> RequestSelectOption(string prompt, List<PlayerChoiceOption> options, int cancelOptionId = -1, string cancelLabel = "取消", CancellationToken cancellationToken = default);
     }
 }

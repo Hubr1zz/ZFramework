@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CardGame.ActionQueue;
 using Core;
@@ -137,6 +138,25 @@ namespace HuntingInDarkness.Adapter.Tests
             UnityEngine.Object.DestroyImmediate(template);
         }
 
+        [Test]
+        public async Task EffectReactor_PreventionSkipsEffectButStillCommitsPaidCard()
+        {
+            CharacterActionCardData template = CreateTemplate(oncePerTurn: true, timePointCost: 1);
+            var card = new CharacterActionCardInstance(template, 7);
+            var effect = new CountingEffect();
+            card.FaceUpEffects.Add(effect);
+            using TestRig rig = CreateRig(card);
+            rig.Session.Reactors.RegisterGlobal(new PreventEffectReactor());
+
+            CombatCardCommandResult result = await rig.Session.PlayCardAsync(card, -1);
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(effect.ExecutionCount, Is.Zero);
+            Assert.That(card.IsAvailableThisTurn, Is.False);
+            Assert.That(rig.Timeline.GetTimePoints(7), Is.EqualTo(1));
+            UnityEngine.Object.DestroyImmediate(template);
+        }
+
         private static CharacterActionCardData CreateTemplate(bool oncePerTurn, int timePointCost = 0)
         {
             CharacterActionCardData template = ScriptableObject.CreateInstance<CharacterActionCardData>();
@@ -229,9 +249,18 @@ namespace HuntingInDarkness.Adapter.Tests
             public bool IsPrepared => false;
             public override bool CanExecute(ActionCardContext context) => true;
             public override void Execute(ActionCardContext context) { }
-            public Cysharp.Threading.Tasks.UniTask<bool> PrepareAsync(ActionCardContext context) => Cysharp.Threading.Tasks.UniTask.FromResult(false);
-            public Cysharp.Threading.Tasks.UniTask ExecutePreparedAsync(ActionCardContext context) => Cysharp.Threading.Tasks.UniTask.CompletedTask;
+            public Cysharp.Threading.Tasks.UniTask<bool> PrepareAsync(ActionCardContext context, CancellationToken cancellationToken = default) => Cysharp.Threading.Tasks.UniTask.FromResult(false);
+            public Cysharp.Threading.Tasks.UniTask ExecutePreparedAsync(ActionCardContext context, CancellationToken cancellationToken = default) => Cysharp.Threading.Tasks.UniTask.CompletedTask;
             public void ResetPreparation() { }
+        }
+
+        private sealed class CountingEffect : CharacterActionCardEffect
+        {
+            public int ExecutionCount { get; private set; }
+            public override string Description => "计数效果";
+            public override TargetType TargetType => TargetType.Self;
+            public override bool CanExecute(ActionCardContext context) => true;
+            public override void Execute(ActionCardContext context) => ExecutionCount++;
         }
 
         private sealed class PreventCardReactor : GameActionReactor<PlayCharacterCardAction>
@@ -241,6 +270,16 @@ namespace HuntingInDarkness.Adapter.Tests
             protected override void React(PlayCharacterCardAction action, ReactionContext context, ReactionResponse response)
             {
                 response.Prevent("测试规则阻止行动");
+            }
+        }
+
+        private sealed class PreventEffectReactor : GameActionReactor<ExecuteCharacterCardEffectAction>
+        {
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+
+            protected override void React(ExecuteCharacterCardEffectAction action, ReactionContext context, ReactionResponse response)
+            {
+                response.Prevent("测试效果被覆盖");
             }
         }
     }

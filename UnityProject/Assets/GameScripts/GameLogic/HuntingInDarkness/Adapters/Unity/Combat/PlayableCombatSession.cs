@@ -242,11 +242,11 @@ namespace HuntingInDarkness.Combat
             return value;
         }
 
-        public UniTask<InspirationGain> AddCombatInspirationAsync(int characterId, CombatInspirationColor color)
+        public UniTask<InspirationGain> AddCombatInspirationAsync(int characterId, CombatInspirationColor color, System.Threading.CancellationToken cancellationToken = default)
         {
             if (disposed || actionCardCostService == null)
                 return UniTask.FromResult(new InspirationGain(InspirationGainResult.Rejected, default));
-            return actionCardCostService.AddCombatInspirationAsync(characterId, color);
+            return actionCardCostService.AddCombatInspirationAsync(characterId, color, cancellationToken);
         }
 
         public IReadOnlyList<CombatInspirationToken> GetCombatInspirationTokens(int characterId)

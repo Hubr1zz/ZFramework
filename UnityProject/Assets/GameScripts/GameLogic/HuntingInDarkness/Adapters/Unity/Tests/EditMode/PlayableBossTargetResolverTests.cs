@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using GameplayBase.CombatSystem;
 using HuntingInDarkness.Combat;
@@ -82,7 +83,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
             public TargetInput(int selectedTarget) => this.selectedTarget = selectedTarget;
 
-            public UniTask<int> RequestSelectTarget(string prompt, List<int> validTargetIds)
+            public UniTask<int> RequestSelectTarget(string prompt, List<int> validTargetIds, CancellationToken cancellationToken = default)
             {
                 RequestCount++;
                 LastPrompt = prompt;
@@ -90,18 +91,18 @@ namespace HuntingInDarkness.Adapter.Tests
                 return UniTask.FromResult(selectedTarget);
             }
 
-            public UniTask ShowResult(string message)
+            public UniTask ShowResult(string message, CancellationToken cancellationToken = default)
             {
                 Results.Add(message);
                 return UniTask.CompletedTask;
             }
 
-            public UniTask<int> RequestRoll(string prompt, int maxExclusive) => UniTask.FromResult(0);
-            public UniTask<Vector2Int?> RequestSelectTile(string prompt, List<Vector2Int> validTiles) => UniTask.FromResult<Vector2Int?>(null);
-            public UniTask<int> RequestSelectCard(string prompt, List<int> validCardIds) => UniTask.FromResult(-1);
-            public UniTask PlayShuffleAndReveal(List<HitLocationRuntimeState> allCards, List<HitLocationRuntimeState> toReveal) => UniTask.CompletedTask;
-            public UniTask<HitLocationRuntimeState> RequestSelectRevealedCard(string prompt, List<HitLocationRuntimeState> revealedCards) => UniTask.FromResult<HitLocationRuntimeState>(null);
-            public UniTask<WeaponData> RequestSelectWeapon(string prompt, List<WeaponData> candidates) => UniTask.FromResult<WeaponData>(null);
+            public UniTask<int> RequestRoll(string prompt, int maxExclusive, CancellationToken cancellationToken = default) => UniTask.FromResult(0);
+            public UniTask<Vector2Int?> RequestSelectTile(string prompt, List<Vector2Int> validTiles, CancellationToken cancellationToken = default) => UniTask.FromResult<Vector2Int?>(null);
+            public UniTask<int> RequestSelectCard(string prompt, List<int> validCardIds, CancellationToken cancellationToken = default) => UniTask.FromResult(-1);
+            public UniTask PlayShuffleAndReveal(List<HitLocationRuntimeState> allCards, List<HitLocationRuntimeState> toReveal, CancellationToken cancellationToken = default) => UniTask.CompletedTask;
+            public UniTask<HitLocationRuntimeState> RequestSelectRevealedCard(string prompt, List<HitLocationRuntimeState> revealedCards, CancellationToken cancellationToken = default) => UniTask.FromResult<HitLocationRuntimeState>(null);
+            public UniTask<WeaponData> RequestSelectWeapon(string prompt, List<WeaponData> candidates, CancellationToken cancellationToken = default) => UniTask.FromResult<WeaponData>(null);
         }
     }
 }

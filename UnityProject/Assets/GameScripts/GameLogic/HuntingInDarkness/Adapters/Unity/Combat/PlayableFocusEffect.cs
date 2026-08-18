@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
@@ -15,7 +16,7 @@ namespace HuntingInDarkness.Combat
         public override CharacterActionCardEffect CreateRuntime() => new PlayableFocusEffect();
     }
 
-    public sealed class PlayableFocusEffect : CharacterActionCardEffect
+    public sealed class PlayableFocusEffect : CharacterActionCardEffect, IPlayableCancellableActionEffect
     {
         public override string Description => "投掷两枚三色骰并获得对应灵感";
         public override TargetType TargetType => TargetType.Self;
@@ -24,16 +25,18 @@ namespace HuntingInDarkness.Combat
 
         public override void Execute(ActionCardContext context) => ExecuteAsync(context).Forget();
 
-        public override async UniTask ExecuteAsync(ActionCardContext context)
+        public override UniTask ExecuteAsync(ActionCardContext context) => ExecuteAsync(context, default);
+
+        public async UniTask ExecuteAsync(ActionCardContext context, CancellationToken cancellationToken)
         {
             if (context?.GameContext is not ICombatProvider combatProvider || context.GameContext is not ICombatActionCommands commands) return;
             IPlayerInputProvider input = combatProvider.CombatManager?.InputProvider;
             if (input == null) return;
 
-            int roll = await input.RequestRoll("投掷两枚三色专注骰", FocusInspirationRules.OutcomeCount);
+            int roll = await input.RequestRoll("投掷两枚三色专注骰", FocusInspirationRules.OutcomeCount, cancellationToken);
             (CombatInspirationColor first, CombatInspirationColor second) = FocusInspirationRules.ResolveRoll(roll);
-            InspirationGain firstGain = await commands.AddCombatInspirationAsync(context.SourceCharacterId, first);
-            InspirationGain secondGain = await commands.AddCombatInspirationAsync(context.SourceCharacterId, second);
+            InspirationGain firstGain = await commands.AddCombatInspirationAsync(context.SourceCharacterId, first, cancellationToken);
+            InspirationGain secondGain = await commands.AddCombatInspirationAsync(context.SourceCharacterId, second, cancellationToken);
 
             var lines = new List<string>
             {
@@ -41,7 +44,7 @@ namespace HuntingInDarkness.Combat
                 $"第二枚：{CombatInspirationPresentation.GetName(second)}（{Describe(secondGain.Result)}）",
                 $"思维区：{commands.GetCombatInspirationTokens(context.SourceCharacterId).Count}/{commands.GetCombatInspirationCapacity(context.SourceCharacterId)}"
             };
-            await input.ShowResult(string.Join("\n", lines));
+            await input.ShowResult(string.Join("\n", lines), cancellationToken);
         }
 
         private static string Describe(InspirationGainResult result)

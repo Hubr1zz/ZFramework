@@ -3,6 +3,7 @@ using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase.CombatSystem;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace HuntingInDarkness.Combat
 {
@@ -11,7 +12,7 @@ namespace HuntingInDarkness.Combat
     {
         private bool hasPublished;
 
-        public UniTask Execute(AttackContext context, IPlayerInputProvider input)
+        public UniTask Execute(AttackContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
             TryPublish(context?.GameContext?.Boss as GameplayBase.IBossVitalityState, context?.AllHitLocationStates);
             return UniTask.CompletedTask;

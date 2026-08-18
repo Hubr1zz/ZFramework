@@ -1,3 +1,4 @@
+using System.Threading;
 using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
@@ -15,7 +16,7 @@ namespace HuntingInDarkness.Combat
         public override CharacterActionCardEffect CreateRuntime() => new GainCombatInspirationEffect(color);
     }
 
-    public sealed class GainCombatInspirationEffect : CharacterActionCardEffect
+    public sealed class GainCombatInspirationEffect : CharacterActionCardEffect, IPlayableCancellableActionEffect
     {
         private readonly CombatInspirationColor color;
 
@@ -28,10 +29,12 @@ namespace HuntingInDarkness.Combat
 
         public override void Execute(ActionCardContext context) => ExecuteAsync(context).Forget();
 
-        public override async UniTask ExecuteAsync(ActionCardContext context)
+        public override UniTask ExecuteAsync(ActionCardContext context) => ExecuteAsync(context, default);
+
+        public async UniTask ExecuteAsync(ActionCardContext context, CancellationToken cancellationToken)
         {
             if (context?.GameContext is not ICombatActionCommands commands) return;
-            await commands.AddCombatInspirationAsync(context.SourceCharacterId, color);
+            await commands.AddCombatInspirationAsync(context.SourceCharacterId, color, cancellationToken);
         }
     }
 }
