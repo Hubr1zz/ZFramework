@@ -19,9 +19,10 @@ namespace HuntingInDarkness.ActionFlow.Combat
         private readonly ActionCardCostService costService;
         private readonly FlipConditionEvaluator flipEvaluator;
         private readonly Func<int, bool> canOwnerAct;
+        private readonly Action<int, int> applyTimePointReward;
         private readonly ActionEnvironment environment;
 
-        public PlayableCombatActionSession(IGameContext gameContext, IBoardQuery boardQuery, IBoardCommand boardCommand, ActionCardCostService costService, FlipConditionEvaluator flipEvaluator, Func<int, bool> canOwnerAct)
+        public PlayableCombatActionSession(IGameContext gameContext, IBoardQuery boardQuery, IBoardCommand boardCommand, ActionCardCostService costService, FlipConditionEvaluator flipEvaluator, Func<int, bool> canOwnerAct, Action<int, int> applyTimePointReward)
         {
             this.gameContext = gameContext ?? throw new ArgumentNullException(nameof(gameContext));
             this.boardQuery = boardQuery;
@@ -29,6 +30,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
             this.costService = costService ?? throw new ArgumentNullException(nameof(costService));
             this.flipEvaluator = flipEvaluator ?? throw new ArgumentNullException(nameof(flipEvaluator));
             this.canOwnerAct = canOwnerAct ?? throw new ArgumentNullException(nameof(canOwnerAct));
+            this.applyTimePointReward = applyTimePointReward ?? throw new ArgumentNullException(nameof(applyTimePointReward));
             environment = new ActionEnvironment(new ActionEnvironmentConfiguration
             {
                 Name = "Combat",
@@ -72,6 +74,34 @@ namespace HuntingInDarkness.ActionFlow.Combat
             var action = new ExecuteBossTurnAction(requests, gameContext, boardQuery, outbox, boss, combat, ResolveEntity);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             return new BossTurnCommandResult(outcome.IsSuccess, outcome.Reason, action.ExecutedCardCount);
+        }
+
+        public async UniTask<CardRestoreCommandResult> RestoreCardAsync(CharacterActionCardInstance card)
+        {
+            if (!IsActive) return CardRestoreCommandResult.Failed("战斗会话已经结束", card?.InstanceId ?? -1);
+            if (card == null) return CardRestoreCommandResult.Failed("行动卡不存在");
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle owner = ResolveEntity(card.OwnerCharacterId);
+            var action = new RestoreCharacterCardAction(card, costService, flipEvaluator, outbox, owner, owner);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            return outcome.IsSuccess ? action.Result : CardRestoreCommandResult.Failed(outcome.Reason, card.InstanceId);
+        }
+
+        public async UniTask<DiscardResult> BurstCardAsync(CharacterActionCardInstance card)
+        {
+            if (!IsActive || card == null) return DiscardResult.Failed;
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle owner = ResolveEntity(card.OwnerCharacterId);
+            var action = new BurstCharacterCardAction(card, gameContext, outbox, applyTimePointReward, owner, owner);
+            try
+            {
+                ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+                return outcome.IsSuccess ? action.Result : DiscardResult.Failed;
+            }
+            finally
+            {
+                action.ResetPreparation();
+            }
         }
 
         public void Dispose() => environment.Dispose();

@@ -9,6 +9,7 @@ using GameplayBase;
 using GameplayBase.Card.CharacterActionCard;
 using GameplayBase.CombatSystem;
 using GameplayBase.CombatSystem.Cards.FlipConditions;
+using HuntingInDarkness.ActionFlow;
 using HuntingInDarkness.ActionFlow.Combat;
 using HuntingInDarkness.Combat;
 using HuntingInDarkness.GameCore.Cards;
@@ -157,6 +158,160 @@ namespace HuntingInDarkness.Adapter.Tests
             UnityEngine.Object.DestroyImmediate(template);
         }
 
+        [Test]
+        public async Task RestoreCardAsync_SpendsPreparedInspirationThenPublishesRestore()
+        {
+            CharacterActionCardData template = CreateTemplate(oncePerTurn: false);
+            var card = new CharacterActionCardInstance(template, 7);
+            card.RestoreConditions.Add(new CombatInspirationRestoreCondition(1, InspirationRequirement.Any));
+            card.SetFace(CardFace.FaceDown);
+            var received = new List<string>();
+            Action<CombatInspirationChangedEvent> inspiration = _ => received.Add("inspiration");
+            Action<CardRestoredEvent> restored = _ => received.Add("restored");
+            EventBus.Subscribe(inspiration);
+            EventBus.Subscribe(restored);
+            try
+            {
+                using TestRig rig = CreateRig(card, initialInspiration: 1);
+
+                CardRestoreCommandResult result = await rig.Session.RestoreCardAsync(card);
+
+                Assert.That(result.Success, Is.True);
+                Assert.That(card.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+                Assert.That(rig.Resources.GetCombatInspiration(7), Is.Zero);
+                Assert.That(received, Is.EqualTo(new[] { "inspiration", "restored" }));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(inspiration);
+                EventBus.Unsubscribe(restored);
+                UnityEngine.Object.DestroyImmediate(template);
+            }
+        }
+
+        [Test]
+        public async Task RestoreReactor_PreventionLeavesCardAndCostUntouched()
+        {
+            CharacterActionCardData template = CreateTemplate(oncePerTurn: false);
+            var card = new CharacterActionCardInstance(template, 7);
+            card.RestoreConditions.Add(new CombatInspirationRestoreCondition(1, InspirationRequirement.Any));
+            card.SetFace(CardFace.FaceDown);
+            using TestRig rig = CreateRig(card, initialInspiration: 1);
+            rig.Session.Reactors.RegisterGlobal(new PreventRestoreReactor());
+
+            CardRestoreCommandResult result = await rig.Session.RestoreCardAsync(card);
+
+            Assert.That(result.Success, Is.False);
+            Assert.That(card.CurrentFace, Is.EqualTo(CardFace.FaceDown));
+            Assert.That(rig.Resources.GetCombatInspiration(7), Is.EqualTo(1));
+            UnityEngine.Object.DestroyImmediate(template);
+        }
+
+        [Test]
+        public async Task ConcurrentRestoreRequests_OnlyOneCanCommit()
+        {
+            CharacterActionCardData template = CreateTemplate(oncePerTurn: false);
+            var card = new CharacterActionCardInstance(template, 7);
+            card.RestoreConditions.Add(new CombatInspirationRestoreCondition(1, InspirationRequirement.Any));
+            card.SetFace(CardFace.FaceDown);
+            using TestRig rig = CreateRig(card, initialInspiration: 1);
+
+            Task<CardRestoreCommandResult> first = rig.Session.RestoreCardAsync(card).AsTask();
+            Task<CardRestoreCommandResult> second = rig.Session.RestoreCardAsync(card).AsTask();
+            CardRestoreCommandResult[] results = await Task.WhenAll(first, second);
+
+            Assert.That(Array.FindAll(results, result => result.Success), Has.Length.EqualTo(1));
+            Assert.That(card.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+            Assert.That(rig.Resources.GetCombatInspiration(7), Is.Zero);
+            UnityEngine.Object.DestroyImmediate(template);
+        }
+
+        [Test]
+        public async Task BurstCardAsync_FlipsCardBeforeApplyingTimePointReward()
+        {
+            CharacterActionCardData template = CreateTemplate(oncePerTurn: false);
+            template.burstReward = new BurstRewardData { enabled = true, timePointReward = 1 };
+            var card = new CharacterActionCardInstance(template, 7);
+            using TestRig rig = CreateRig(card);
+            rig.Timeline.AccumulateTimePoints(7, 2);
+            var received = new List<string>();
+            Action<CardFlippedEvent> flipped = _ => received.Add("flipped");
+            Action<CardDiscardedEvent> discarded = _ => received.Add("discarded");
+            Action<TimePointChangedEvent> time = _ => received.Add("time");
+            EventBus.Subscribe(flipped);
+            EventBus.Subscribe(discarded);
+            EventBus.Subscribe(time);
+            try
+            {
+                DiscardResult result = await rig.Session.BurstCardAsync(card);
+
+                Assert.That(result.Success, Is.True);
+                Assert.That(card.CurrentFace, Is.EqualTo(CardFace.FaceDown));
+                Assert.That(rig.Timeline.GetTimePoints(7), Is.EqualTo(1));
+                Assert.That(received, Is.EqualTo(new[] { "flipped", "discarded", "time" }));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(flipped);
+                EventBus.Unsubscribe(discarded);
+                EventBus.Unsubscribe(time);
+                UnityEngine.Object.DestroyImmediate(template);
+            }
+        }
+
+        [Test]
+        public async Task BurstReactor_PreventionLeavesCardAndTimelineUntouched()
+        {
+            CharacterActionCardData template = CreateTemplate(oncePerTurn: false);
+            template.burstReward = new BurstRewardData { enabled = true, timePointReward = 1 };
+            var card = new CharacterActionCardInstance(template, 7);
+            using TestRig rig = CreateRig(card);
+            rig.Timeline.AccumulateTimePoints(7, 2);
+            rig.Session.Reactors.RegisterGlobal(new PreventBurstReactor());
+
+            DiscardResult result = await rig.Session.BurstCardAsync(card);
+
+            Assert.That(result.Success, Is.False);
+            Assert.That(card.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+            Assert.That(rig.Timeline.GetTimePoints(7), Is.EqualTo(2));
+            UnityEngine.Object.DestroyImmediate(template);
+        }
+
+        [Test]
+        public async Task BurstEffectFailure_StillCommitsStartedBurstOnce()
+        {
+            CharacterActionCardData template = CreateTemplate(oncePerTurn: false);
+            template.burstReward = new BurstRewardData { enabled = true, timePointReward = 1, bonusEffects = new List<CharacterActionCardEffectData> { new FailingBurstEffectData() } };
+            var card = new CharacterActionCardInstance(template, 7);
+            using TestRig rig = CreateRig(card);
+            rig.Timeline.AccumulateTimePoints(7, 2);
+
+            DiscardResult result = await rig.Session.BurstCardAsync(card);
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(card.CurrentFace, Is.EqualTo(CardFace.FaceDown));
+            Assert.That(rig.Timeline.GetTimePoints(7), Is.EqualTo(1));
+            UnityEngine.Object.DestroyImmediate(template);
+        }
+
+        [Test]
+        public async Task BurstEffectReactor_PreventionSkipsEffectAndCommitsBurst()
+        {
+            CharacterActionCardData template = CreateTemplate(oncePerTurn: false);
+            template.burstReward = new BurstRewardData { enabled = true, timePointReward = 1, bonusEffects = new List<CharacterActionCardEffectData> { new FailingBurstEffectData() } };
+            var card = new CharacterActionCardInstance(template, 7);
+            using TestRig rig = CreateRig(card);
+            rig.Timeline.AccumulateTimePoints(7, 2);
+            rig.Session.Reactors.RegisterGlobal(new PreventFailingBurstEffectReactor());
+
+            DiscardResult result = await rig.Session.BurstCardAsync(card);
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(card.CurrentFace, Is.EqualTo(CardFace.FaceDown));
+            Assert.That(rig.Timeline.GetTimePoints(7), Is.EqualTo(1));
+            UnityEngine.Object.DestroyImmediate(template);
+        }
+
         private static CharacterActionCardData CreateTemplate(bool oncePerTurn, int timePointCost = 0)
         {
             CharacterActionCardData template = ScriptableObject.CreateInstance<CharacterActionCardData>();
@@ -167,33 +322,35 @@ namespace HuntingInDarkness.Adapter.Tests
             return template;
         }
 
-        private static TestRig CreateRig(CharacterActionCardInstance card)
+        private static TestRig CreateRig(CharacterActionCardInstance card, int initialInspiration = 0)
         {
             var context = new TestGameContext(card.OwnerCharacterId);
             var timeline = new TimelineManager();
             timeline.RegisterCharacter(card.OwnerCharacterId, 2);
             var resources = new ActionCardResourcePool();
-            resources.Register(card.OwnerCharacterId);
+            resources.Register(card.OwnerCharacterId, initialInspiration);
             var flipEvaluator = new FlipConditionEvaluator(context);
             flipEvaluator.RegisterCard(card);
             var costService = new ActionCardCostService(() => timeline, () => null, flipEvaluator, resources);
-            var session = new PlayableCombatActionSession(context, null, null, costService, flipEvaluator, _ => true);
-            return new TestRig(session, flipEvaluator, timeline);
+            var session = new PlayableCombatActionSession(context, null, null, costService, flipEvaluator, _ => true, (characterId, reward) => timeline.AccumulateTimePoints(characterId, -reward));
+            return new TestRig(session, flipEvaluator, timeline, resources);
         }
 
         private sealed class TestRig : IDisposable
         {
             private readonly FlipConditionEvaluator flipEvaluator;
 
-            public TestRig(PlayableCombatActionSession session, FlipConditionEvaluator flipEvaluator, TimelineManager timeline)
+            public TestRig(PlayableCombatActionSession session, FlipConditionEvaluator flipEvaluator, TimelineManager timeline, ActionCardResourcePool resources)
             {
                 Session = session;
                 this.flipEvaluator = flipEvaluator;
                 Timeline = timeline;
+                Resources = resources;
             }
 
             public PlayableCombatActionSession Session { get; }
             public TimelineManager Timeline { get; }
+            public ActionCardResourcePool Resources { get; }
 
             public void Dispose()
             {
@@ -281,6 +438,52 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 response.Prevent("测试效果被覆盖");
             }
+        }
+
+        private sealed class PreventRestoreReactor : GameActionReactor<PrepareCardRestoreAction>
+        {
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+            protected override void React(PrepareCardRestoreAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试阻止恢复");
+        }
+
+        private sealed class PreventBurstReactor : GameActionReactor<BurstCharacterCardAction>
+        {
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+            protected override void React(BurstCharacterCardAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试阻止爆发");
+        }
+
+        [Serializable]
+        private sealed class FailingBurstEffectData : CharacterActionCardEffectData
+        {
+            public override CharacterActionCardEffect CreateRuntime() => new FailingBurstEffect();
+        }
+
+        private sealed class FailingBurstEffect : CharacterActionCardEffect, IPlayableQueuedActionEffect
+        {
+            public override string Description => "失败的测试爆发效果";
+            public override TargetType TargetType => TargetType.Self;
+            public override bool CanExecute(ActionCardContext context) => true;
+            public override void Execute(ActionCardContext context) { }
+            public GameAction CreateAction(ActionCardContext context, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target) => new FailingBurstEffectAction(source, target);
+        }
+
+        private sealed class FailingBurstEffectAction : CommandAction, ISourceAction, ITargetAction
+        {
+            public FailingBurstEffectAction(IReactorEntity source, IReactorEntity target)
+            {
+                Source = source;
+                Target = target;
+            }
+
+            public IReactorEntity Source { get; }
+            public IReactorEntity Target { get; }
+            protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken) => UniTask.FromResult(ActionOutcome.Failure("测试效果失败"));
+        }
+
+        private sealed class PreventFailingBurstEffectReactor : GameActionReactor<FailingBurstEffectAction>
+        {
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+            protected override void React(FailingBurstEffectAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试跳过爆发效果");
         }
     }
 }

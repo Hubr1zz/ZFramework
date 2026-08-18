@@ -72,7 +72,6 @@ namespace HuntingInDarkness.Combat
         private TimelineManager timelineManager;
         private FlipConditionEvaluator flipConditionEvaluator;
         private ActionCardCostService actionCardCostService;
-        private PlayableActionCardLifecycleService actionCardLifecycleService;
         private PlayableCombatActionSession combatActionSession;
         private BossController bossController;
         private CombatManager combatManager;
@@ -335,8 +334,7 @@ namespace HuntingInDarkness.Combat
             foreach (CharacterActionCardInstance card in allCards.Values)
                 flipConditionEvaluator.RegisterCard(card);
             actionCardCostService = new ActionCardCostService(() => timelineManager, () => combatManager?.InputProvider, flipConditionEvaluator, actionCardResources);
-            actionCardLifecycleService = new PlayableActionCardLifecycleService(flipConditionEvaluator, actionCardCostService);
-            combatActionSession = new PlayableCombatActionSession(this, boardQuery, boardCommand, actionCardCostService, flipConditionEvaluator, characterId => IsActive && timelineManager != null && timelineManager.CanCharacterAct(characterId, this));
+            combatActionSession = new PlayableCombatActionSession(this, boardQuery, boardCommand, actionCardCostService, flipConditionEvaluator, characterId => IsActive && timelineManager != null && timelineManager.CanCharacterAct(characterId, this), (characterId, reward) => timelineManager?.AccumulateTimePoints(characterId, -reward));
             scope.RegisterCleanup(combatActionSession.Dispose);
         }
 
@@ -420,20 +418,18 @@ namespace HuntingInDarkness.Combat
         private async UniTask<bool> TryRestoreCardAsync(int cardId)
         {
             if (!IsActive || !allCards.TryGetValue(cardId, out CharacterActionCardInstance card)) return false;
-            bool restored = await actionCardLifecycleService.TryRestoreAsync(card);
+            CardRestoreCommandResult result = await combatActionSession.RestoreCardAsync(card);
             if (!IsActive) return false;
-            if (restored)
+            if (result.Success)
                 SyncCharacterTimelineState(card.OwnerCharacterId);
-            return restored;
+            return result.Success;
         }
 
         private async UniTask<DiscardResult> TryDiscardCardAsync(int cardId)
         {
+            if (!IsActive || !allCards.TryGetValue(cardId, out CharacterActionCardInstance card)) return default;
+            DiscardResult result = await combatActionSession.BurstCardAsync(card);
             if (!IsActive) return default;
-            DiscardResult result = await flipConditionEvaluator.TryDiscardForRewardAsync(cardId);
-            if (!IsActive) return default;
-            if (result.Success && result.TimePointReward != 0)
-                timelineManager.AccumulateTimePoints(result.OwnerCharacterId, -result.TimePointReward);
             if (result.Success)
                 SyncCharacterTimelineState(result.OwnerCharacterId);
             return result;

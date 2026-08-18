@@ -280,8 +280,8 @@ namespace Core
         public System.Func<int, bool> CanCharacterAct;          // TimelineManager.CanCharacterAct
         public System.Func<bool> ShouldTransitionToBoss;         // TimelineManager.ShouldTransitionToBoss
         public System.Func<int, int, UniTask<bool>> RequestPlayCard; // Combat ActionEnvironment Root
-        public System.Func<int, UniTask<bool>> RequestRestoreCard; // FlipConditionEvaluator.TryRestoreAsync
-        public System.Func<int, UniTask<DiscardResult>> RequestDiscardCard; // FlipConditionEvaluator.TryDiscardForRewardAsync
+        public System.Func<int, UniTask<bool>> RequestRestoreCard; // Combat ActionEnvironment Root
+        public System.Func<int, UniTask<DiscardResult>> RequestDiscardCard; // Combat ActionEnvironment Root
         public System.Action RequestOverflowProcessing;           // TimelineManager.ProcessOverflow
         public System.Func<UniTask> RequestBossExecuteActions;    // BossController.ExecutePendingAsync
         public System.Action RequestBossDrawActions;              // BossController.DrawNext

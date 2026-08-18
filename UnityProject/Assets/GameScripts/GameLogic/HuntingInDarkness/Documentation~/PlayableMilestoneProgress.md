@@ -395,3 +395,9 @@
 208. 对抗检查发现 `PlayableDirectedBossAttackEffect` 只认识旧具体 `GameManager`，在当前 `PlayableCombatSession` 组合根下无法取得猎人战斗数据，正式 Boss 攻击会静默跳过。现已改用 `ICombatRuntimeDataProvider` 窄接口，并让旧兼容执行路径同样贯穿生命周期取消令牌。
 209. 尚未实现 `IPlayableQueuedBossActionEffect` 的非攻击 Boss 效果会作为单个兼容 Child Action 执行，已有 Reactor 可以整体阻止，但其内部步骤仍不能被细粒度覆盖；后续读表内容扩展时应按效果族提供专用 Action 工厂，不应把规则重新塞回 `BossController` 或增加新的独立 Runner。
 210. Unity MCP 全量 EditMode 回归为 242/242；正式 ZFramework Play Mode 数据探针确认可进入 BossFight，Combat Session、ActionEnvironment、Reactor Registry、4 名猎人与 Boss 均有效，控制台 0 error。探针未执行真实行动或结算伤害，玩家存档哈希保持不变。
+211. 主动恢复和灵感爆发已从旧 `ActionQueueRunner` 迁入单场 `PlayableCombatActionSession`。恢复 Root 统一处理条件重验、灵感选择/支付、卡面恢复和 `CardRestored` 检查点；爆发 Root 统一处理奖励效果准备与 Child Action、卡面翻转、`CardDiscarded` 检查点和时点返还，正式回合入口不再把爆发提交拆在 Evaluator 与 Session 两层。
+212. 恢复与爆发的 Before Reactor 均可在任何状态变更前阻止命令；爆发一旦通过准备，单个奖励 Child 被 Reactor 阻止或执行失败都只跳过该奖励并继续提交卡面与基础返还，避免前序奖励已经生效后仍保留正面卡而被重复刷取。并发恢复请求由 Combat Runner 串行重验，只有第一个请求能消费资源并恢复卡牌。
+213. `FlipConditionEvaluator` 仍通过 EventBus 直接执行回合结束自动恢复和其他卡牌联动，且旧手动恢复/弃置方法作为兼容代码保留但已无生产调用者。这些监听会在检查点发布期间同步产生二次状态变更；后续应把触发结果生成 Child Action/Reaction，而不是继续让 EventBus Listener 充当权威命令入口。
+214. 爆发配置中的 `CurrencyReward` 目前仍只有事实字段，没有对应的战斗货币权威存储；现有正式基础卡使用时点或灵感奖励，因此当前可玩流程不丢失已配置内容。正式出现货币型爆发卡前必须先明确资源归属与持久化边界，再由独立奖励 Action 提交，不能只让 UI 根据事件自行加值。
+215. Unity MCP 全量 EditMode 回归为 249/249；正式 ZFramework Play Mode 探针确认 BossFight Combat Action Session 有效、16 张运行时卡牌中 8 张可爆发，恢复与爆发 Root 接口已进入正式会话，控制台 0 error。探针未执行真实卡牌命令，玩家存档哈希保持不变。
+216. `ActionCardCostService` 提交灵感/时点等费用时仍直接发布 EventBus，而不是把费用事实交给 Root Outbox；当前灵感变化订阅者只有表现层，恢复提交顺序可验证，但未来若规则监听器在同步事件中修改卡牌会切开重验与恢复提交。费用网关后续应返回不可变 `CostCommitResult`，由 Root 统一写入检查点，EventBus 不应插入权威修改。

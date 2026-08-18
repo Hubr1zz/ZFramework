@@ -280,6 +280,26 @@ namespace Core
             return await _queueRunner.RunAsync(queue) == ActionQueueStatus.Completed;
         }
 
+        public bool CanManuallyRestore(CharacterActionCardInstance card)
+        {
+            if (card == null || card.CurrentFace != CardFace.FaceDown) return false;
+            var context = BuildContext(card, triggerSource: null);
+            return CardConditionRules.AllMatchingConditionsPass(card.RestoreConditions, FlipTriggerTiming.OnPayCost, condition => condition.Timing, condition => condition.Evaluate(context));
+        }
+
+        public bool TryApplyManualRestore(CharacterActionCardInstance card, out CardRestoredEvent evt)
+        {
+            evt = default;
+            if (!CanManuallyRestore(card)) return false;
+            var context = BuildContext(card, triggerSource: null);
+            foreach (IFlipCondition condition in card.RestoreConditions)
+                if (condition.Timing == FlipTriggerTiming.OnPayCost)
+                    condition.Consume(context);
+            card.SetFace(CardFace.FaceUp);
+            evt = new CardRestoredEvent { CardInstanceId = card.InstanceId, OwnerCharacterId = card.OwnerCharacterId };
+            return true;
+        }
+
         /// <summary>卡牌打出后，检查是否有翻面触发</summary>
         public void EvaluateAfterCardPlayed(int playedCardId, int ownerCharacterId)
         {
