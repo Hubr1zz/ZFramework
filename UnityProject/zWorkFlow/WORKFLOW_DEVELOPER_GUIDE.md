@@ -55,7 +55,7 @@ Workbench 中正式 Spec、正式 Change 和 Draft Change 条目都可通过右�
 - 导入报告进入批次后，左侧返回按钮右侧提供“导入记录信息”入口；右侧只能显示批次信息与导入提示，或当前 Spec 条目详情之一。批次信息不得作为每个 Spec 顶部的重复折叠区。
 - 配对 Change 以 Feature 为详细信息与审批主入口。Game Rule 详情只显示来源、配对 Feature 跳转和规则专属内容；Feature 展示共享 Proposal/Design/Tasks、审核、依赖、实现 Spec，并附带配对规则。
 - 关系图谱节点正文只显示名称与 readiness，类型由节点颜色和图例表达。下方信息区使用彩色标题、紧凑统计和正文层级；阻塞依赖按钮定位目标节点，待合入按钮打开所属 Change。
-- `.agents/skills/project-tooling/references/tooling-catalog.json` 是工程能力权威源，Workbench 与 Agent 共用；`.agent-memory/zworkflow/local/tooling-discovery.json` 仅保存可删除的来源指纹。Plugin 的 `decisionBasis` 可由 Workbench 编辑，Architecture 必须 `required + locked` 且只能在用户确认后由 Agent 改动。具有公共消费入口的工具类 Architecture 首次建档时由 Agent 基于代码与调用证据生成一次中英文 `usageNotes`，后续 setup 不覆盖用户编辑。
+- `.agents/skills/project-tooling/references/tooling-catalog.json` 是工程能力权威源，Workbench 与 Agent 共用；`.agent-memory/zworkflow/local/tooling-discovery.json` 仅保存可删除的来源指纹。`kind` 记录归属与复用边界，可选的项目级 `layers` 和条目 `layerIds` 记录实现分层，Workbench 可独立筛选两者。Plugin 的 `decisionBasis` 可由 Workbench 编辑，Architecture 必须 `required + locked` 且只能在用户确认后由 Agent 改动。具有公共消费入口的工具类 Architecture 首次建档时由 Agent 基于代码与调用证据生成一次中英文 `usageNotes`，后续 setup 不覆盖用户编辑。
 - OpenSpec 的项目契约分类使用 `system`；读取 legacy `architecture` 时只在内存中归一化。真正可独立复用的 Architecture 只进入工程能力目录，不与玩法 Spec 混为一类。
 - 深色主题的控件 tint 必须足以让按钮和输入框线框与面板背景区分；运行源码和 setup 模板使用同一主题常量。
 

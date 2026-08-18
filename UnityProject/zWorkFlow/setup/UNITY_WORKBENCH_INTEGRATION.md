@@ -38,7 +38,7 @@
 - OpenSpec：正式 Spec、Changes 分页；正式 Spec 按 System、Feature 实现、游戏规则筛选，legacy Architecture 归入 System。
 - 顶部刷新按钮右侧提供轻量关系图谱入口：展示正式 System/Feature Spec、未同步目标及可选的正式 Change 节点，中心节点按被依赖次数确定，System、Feature、Change 分层排布。视口左上角按钮显隐紫色 Change 节点；隐藏期间仍保留 Change 节点坐标，再次显示不会重置布局。Change 通过目标边连接将修改的 Spec。节点正文始终使用当前语言显示名称，稳定 ID 只保留在 tooltip 与依赖键中。类型由主节点颜色与图例表达；状态以主节点下方独立的小型状态柄表达，五种状态分别为：待 Sync、实现中、待合入 Delta、已实现、阻塞。完成实现但尚未 sync 的 Change 为“待 Sync”；未开始、部分完成或含延迟缺口的 Change 为“实现中”；被其他节点妨碍实现的 Change 为“阻塞”；正式 Spec 存在未合入目标时显示“待合入 Delta”，代码核验完成后显示“已实现”。节点视口比旧布局增高 20%，下方信息区压缩并支持纵向滚动；核心实现思路按条目换行。支持节点拖动、画布平移和滚轮缩放，箭头指向被依赖项。
 - 关系图谱只依赖 OpenSpec Spec/Change 与依赖 metadata，不依赖 `REFACTOR_QUEUE.md` 的存在、格式或内容。即使队列缺失/为空、正式 Spec 也为空，仍显示图谱标题、图例和空状态界面；队列解析错误只影响增量维护列表。
-- 关系图谱按钮右侧提供“工程能力”入口，读取 `.agents/skills/project-tooling/references/tooling-catalog.json`。页面不绘制能力依赖图；使用左侧 Plugin、Architecture、System 类型标签和条目列表筛选，右侧显示所选条目详情，与 OpenSpec 主从布局保持一致。所有条目允许按当前语言编辑并保存 `usageNotes` / `usageNotesEn` 自由文本；`usagePolicy` 仍是只读机器门禁。Plugin 另允许编辑 `decisionBasis`；Architecture 显示 required/locked 门禁且不允许直接编辑。
+- 关系图谱按钮右侧提供“工程能力”入口，读取 `.agents/skills/project-tooling/references/tooling-catalog.json`。页面不绘制能力依赖图；左侧使用 Plugin、Architecture、System 类型标签筛选，并在目录声明 `layers` 时额外提供项目分层筛选；右侧显示所选条目的类型、涉及分层和详情，与 OpenSpec 主从布局保持一致。类型表示归属/复用边界，分层表示实现落点，两者互不替代。所有条目允许按当前语言编辑并保存 `usageNotes` / `usageNotesEn` 自由文本；`usagePolicy` 仍是只读机器门禁。Plugin 另允许编辑 `decisionBasis`；Architecture 显示 required/locked 门禁且不允许直接编辑。
 - 工程能力目录的名称、描述、能力和约束随工作台语言切换中英文；稳定 ID、路径、版本、依赖和证据保持语言无关。
 - Markdown 轻量渲染器为一级标题、副标题（其余标题级别）和正文使用三组不同颜色，并同时适配编辑器深色与浅色主题。
 - 顶部使用紧凑的“项目根目录”按钮打开项目根目录，不直接显示机器完整路径。工程能力按钮旁边提供独立的“设计文档树”入口与“指令列表”入口；右侧状态灯只表示至少一个设计文档路径有效。设计文档树顶部只维护来源路径，不再维护单独文档根目录；每个来源成为树的顶层节点，检查时重扫新增/删除 Markdown 并保留用户折叠状态。

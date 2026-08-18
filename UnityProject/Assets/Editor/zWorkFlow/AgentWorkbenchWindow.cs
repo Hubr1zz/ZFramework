@@ -107,6 +107,7 @@ namespace AgentWorkflow.Editor
         private string _engineeringUsageNotesBuffer = string.Empty;
         private string _engineeringUsageNotesLanguage = string.Empty;
         private int _engineeringKindFilter;
+        private string _engineeringLayerFilterId = string.Empty;
         private string _engineeringCatalogError;
         private readonly List<DesignSourceEntry> _designDocumentSources = new();
         private readonly List<DocumentImplementationEntry> _changedImplementedDocuments = new();

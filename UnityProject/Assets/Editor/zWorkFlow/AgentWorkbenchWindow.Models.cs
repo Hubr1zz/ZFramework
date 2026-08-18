@@ -50,9 +50,20 @@ namespace AgentWorkflow.Editor
         [Serializable]
         private sealed class EngineeringCapabilityCatalog
         {
-            public int schemaVersion = 1;
+            public int schemaVersion = 2;
             public string updatedAt;
+            public EngineeringLayerDefinition[] layers;
             public EngineeringCapabilityEntry[] entries;
+        }
+
+        [Serializable]
+        private sealed class EngineeringLayerDefinition
+        {
+            public string id;
+            public string displayName;
+            public string displayNameEn;
+            public string description;
+            public string descriptionEn;
         }
 
         [Serializable]
@@ -77,6 +88,7 @@ namespace AgentWorkflow.Editor
             public string[] constraintsEn;
             public string[] evidence;
             public string[] dependencies;
+            public string[] layerIds;
         }
 
         private sealed class QueueItem

@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace TEngine
 {
-    internal class UpdateDriver : Module, IUpdateDriver
+    internal class UpdateDriverModule : Module, IUpdateDriver
     {
         private GameObject _entity;
         private MainBehaviour _behaviour;

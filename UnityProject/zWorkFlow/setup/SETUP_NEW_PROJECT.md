@@ -137,6 +137,7 @@ setup 开始时先建立只读基线，列出已有入口、skills、commands、
 - 已有等价重构队列、文档同步或成员偏好流程时标记复用，不创建重复能力。
 - 没有等价能力时，从 [PROJECT_CONTENT_TEMPLATE.md](PROJECT_CONTENT_TEMPLATE.md) 创建最小 `project-context`、`project-architecture` 与命中的 `project-domain-*`；通用核心已经提供空的 `project-refactor-queue` 与可配置的 `project-doc-sync`。只写 Phase 1 已确认事实，不复制安装源所在项目的内容。
 - 通用 `project-tooling` 安装后，把 Phase 1 已确认的 Plugin/System 候选写入其 `references/tooling-catalog.json`。Plugin 的 `decisionBasis` 保持空白，除非用户本次明确给出依据；Architecture 只有经用户确认才能创建，且必须 `usagePolicy=required`、`locked=true`。
+- 若目标项目有明确代码分层，在目录顶层声明项目自定义 `layers`，并用条目 `layerIds` 标记一个能力横跨的零到多个实现层。`kind` 仍只表示 Plugin/Architecture/System 的归属与复用边界，不把 Data/Adapter/View 或 MVC 等项目分层编码成 System 子类型；没有分层约束的项目省略这些可选字段。
 - 写入目录前先按稳定模块边界拆分：一个条目必须拥有可单独路由的职责、证据、约束和依赖；禁止用“整个引擎/整个框架”条目代替 README 与代码已明确区分的核心模块。生命周期、启动编排或状态管线在剥离玩法/UI/内容数据后仍可独立复用时归为 Architecture；具体项目接入另归 System。文档存在但实现缺失的条目只能以明确 partial 约束写入，不得宣称已实现。
 - 为工作台目录条目生成语义对齐的中英文字段：`displayName`/`displayNameEn`、`description`/`descriptionEn`、`capabilities`/`capabilitiesEn`、`constraints`/`constraintsEn`。稳定 ID、路径、依赖与版本不翻译；缺少英文内容不得声称工程能力页已完整支持英文。
 - Architecture 首次建档或从其他类型重分类时，若 Phase 1 证明它是具有直接消费入口的工具类 Architecture，则同次自动生成非空且语义对齐的 `usageNotes` / `usageNotesEn`。策略必须覆盖适用与非适用场景、业务层首选入口、必要的所有权/生命周期规则和应避免的平行实现或误用；只使用代码、接口、调用点与文档已确认的事实。纯边界、阶段顺序或概念模型不强制生成。

@@ -15,7 +15,11 @@ namespace AgentWorkflow.Editor
         private void ReloadEngineeringCatalog()
         {
             _engineeringCatalogError = string.Empty;
-            _engineeringCatalog = new EngineeringCapabilityCatalog { entries = Array.Empty<EngineeringCapabilityEntry>() };
+            _engineeringCatalog = new EngineeringCapabilityCatalog
+            {
+                layers = Array.Empty<EngineeringLayerDefinition>(),
+                entries = Array.Empty<EngineeringCapabilityEntry>()
+            };
             if (string.IsNullOrWhiteSpace(_engineeringCatalogPath) || !File.Exists(_engineeringCatalogPath))
             {
                 _selectedEngineeringCapability = null;
@@ -29,6 +33,12 @@ namespace AgentWorkflow.Editor
                 if (catalog == null || catalog.schemaVersion < 1)
                     throw new InvalidDataException("schemaVersion must be at least 1");
 
+                catalog.layers ??= Array.Empty<EngineeringLayerDefinition>();
+                catalog.layers = catalog.layers
+                    .Where(layer => layer != null && !string.IsNullOrWhiteSpace(layer.id))
+                    .GroupBy(layer => layer.id.Trim(), StringComparer.OrdinalIgnoreCase)
+                    .Select(group => group.First())
+                    .ToArray();
                 catalog.entries ??= Array.Empty<EngineeringCapabilityEntry>();
                 foreach (var entry in catalog.entries.Where(entry => entry != null))
                 {
@@ -39,7 +49,15 @@ namespace AgentWorkflow.Editor
                     entry.constraintsEn ??= Array.Empty<string>();
                     entry.evidence ??= Array.Empty<string>();
                     entry.dependencies ??= Array.Empty<string>();
+                    entry.layerIds = (entry.layerIds ?? Array.Empty<string>())
+                        .Where(id => !string.IsNullOrWhiteSpace(id))
+                        .Select(id => id.Trim())
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToArray();
                 }
+
+                if (!catalog.layers.Any(layer => string.Equals(layer.id, _engineeringLayerFilterId, StringComparison.OrdinalIgnoreCase)))
+                    _engineeringLayerFilterId = string.Empty;
 
                 _engineeringCatalog = catalog;
                 var selectedId = _selectedEngineeringCapability?.id;
@@ -91,7 +109,10 @@ namespace AgentWorkflow.Editor
                 .ThenBy(EngineeringDisplayName, StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            var visible = entries.Where(EngineeringEntryMatchesFilter).ToList();
+            var visible = entries
+                .Where(EngineeringEntryMatchesKindFilter)
+                .Where(EngineeringEntryMatchesLayerFilter)
+                .ToList();
             if (_selectedEngineeringCapability == null || !visible.Contains(_selectedEngineeringCapability))
                 SelectEngineeringCapability(visible.FirstOrDefault());
 
@@ -100,6 +121,7 @@ namespace AgentWorkflow.Editor
                 using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(270), GUILayout.ExpandHeight(true)))
                 {
                     DrawEngineeringKindFilters(entries);
+                    DrawEngineeringLayerFilter();
                     EditorGUILayout.Space(8);
                     _engineeringListScroll = BeginVerticalScrollView(
                         _engineeringListScroll,
@@ -133,11 +155,16 @@ namespace AgentWorkflow.Editor
             }
         }
 
-        private bool EngineeringEntryMatchesFilter(EngineeringCapabilityEntry entry) =>
+        private bool EngineeringEntryMatchesKindFilter(EngineeringCapabilityEntry entry) =>
             _engineeringKindFilter == 0 ||
             (_engineeringKindFilter == 1 && entry.kind == "plugin") ||
             (_engineeringKindFilter == 2 && entry.kind == "architecture") ||
             (_engineeringKindFilter == 3 && entry.kind == "system");
+
+        private bool EngineeringEntryMatchesLayerFilter(EngineeringCapabilityEntry entry) =>
+            string.IsNullOrWhiteSpace(_engineeringLayerFilterId) ||
+            (entry.layerIds ?? Array.Empty<string>()).Any(id =>
+                string.Equals(id, _engineeringLayerFilterId, StringComparison.OrdinalIgnoreCase));
 
         private void DrawEngineeringKindFilters(IReadOnlyCollection<EngineeringCapabilityEntry> entries)
         {
@@ -157,6 +184,24 @@ namespace AgentWorkflow.Editor
                         GUILayout.Height(TabButtonHeight)))
                     _engineeringKindFilter = index;
             }
+        }
+
+        private void DrawEngineeringLayerFilter()
+        {
+            var layers = _engineeringCatalog?.layers ?? Array.Empty<EngineeringLayerDefinition>();
+            if (layers.Length == 0)
+                return;
+
+            EditorGUILayout.Space(8);
+            EditorGUILayout.LabelField(L("engineering.layerFilter"), EditorStyles.boldLabel);
+            var ids = new[] { string.Empty }.Concat(layers.Select(layer => layer.id)).ToArray();
+            var labels = new[] { L("engineering.allLayers") }
+                .Concat(layers.Select(EngineeringLayerDisplayName))
+                .ToArray();
+            var selectedIndex = Array.FindIndex(ids, id =>
+                string.Equals(id, _engineeringLayerFilterId, StringComparison.OrdinalIgnoreCase));
+            selectedIndex = EditorGUILayout.Popup(Math.Max(0, selectedIndex), labels);
+            _engineeringLayerFilterId = ids[selectedIndex];
         }
 
         private static int EngineeringKindOrder(string kind) => kind switch
@@ -194,6 +239,7 @@ namespace AgentWorkflow.Editor
             DrawEngineeringField(L("engineering.policyLevel"), entry.usagePolicy);
             DrawEngineeringField(L("engineering.version"), entry.version);
             DrawEngineeringField(L("engineering.source"), entry.source);
+            DrawEngineeringArray(L("engineering.layers"), EngineeringLayerLabels(entry), false);
 
             if (_engineeringUsageNotesLanguage != _config.currentLanguage)
                 ResetEngineeringUsageNotesBuffer(entry);
@@ -407,6 +453,23 @@ namespace AgentWorkflow.Editor
 
         private string EngineeringDescription(EngineeringCapabilityEntry entry) =>
             entry == null ? string.Empty : EngineeringLocalizedText(entry.description, entry.descriptionEn);
+
+        private string EngineeringLayerDisplayName(EngineeringLayerDefinition layer) =>
+            layer == null ? string.Empty : Or(EngineeringLocalizedText(layer.displayName, layer.displayNameEn), layer.id);
+
+        private IEnumerable<string> EngineeringLayerLabels(EngineeringCapabilityEntry entry)
+        {
+            if (entry == null)
+                return Array.Empty<string>();
+
+            var definitions = _engineeringCatalog?.layers ?? Array.Empty<EngineeringLayerDefinition>();
+            return (entry.layerIds ?? Array.Empty<string>()).Select(id =>
+            {
+                var definition = definitions.FirstOrDefault(layer =>
+                    string.Equals(layer.id, id, StringComparison.OrdinalIgnoreCase));
+                return definition == null ? id : EngineeringLayerDisplayName(definition);
+            });
+        }
 
         private string EngineeringLocalizedText(string chinese, string english) =>
             _config.currentLanguage == "en-US" && !string.IsNullOrWhiteSpace(english) ? english : chinese;
