@@ -204,6 +204,19 @@ namespace Core
 
         public void Commit(int ownerId, IReadOnlyList<PreparedActionCardCost> costs)
         {
+            Commit(ownerId, costs, null);
+        }
+
+        public bool TryCommitWithCardFlipEvents(int ownerId, ActionCardCostTransaction transaction, ICollection<CardFlippedEvent> cardFlipEvents)
+        {
+            if (transaction == null) return true;
+            if (!CanPay(ownerId, transaction.Costs)) return false;
+            Commit(ownerId, transaction.Costs, cardFlipEvents);
+            return true;
+        }
+
+        private void Commit(int ownerId, IReadOnlyList<PreparedActionCardCost> costs, ICollection<CardFlippedEvent> cardFlipEvents)
+        {
             int timePoints = 0;
             int willpower = 0;
             var cardsToFlip = new List<int>();
@@ -240,7 +253,15 @@ namespace Core
             if (timePoints > 0)
                 timeline.AccumulateTimePoints(ownerId, timePoints);
             foreach (int cardId in cardsToFlip)
-                _flipEvaluator.FlipAsCost(cardId);
+            {
+                if (cardFlipEvents == null)
+                {
+                    _flipEvaluator.FlipAsCost(cardId);
+                    continue;
+                }
+                if (_flipEvaluator.TryApplyFlipAsCost(cardId, out CardFlippedEvent evt))
+                    cardFlipEvents.Add(evt);
+            }
         }
 
         public int AddCombatInspiration(int ownerId, int amount)

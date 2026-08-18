@@ -406,3 +406,9 @@
 219. `PlayerTurnState` 进入时会锁定选择、出牌、恢复、爆发和手动结束，等待玩家轮开始 Root 完成后才发布 `TurnPhaseChangedEvent` 并解锁输入。阶段会话在等待期间释放时不会继续发布新玩家轮通知；正式 Play Mode 已验证初始化结束后锁正确释放。
 220. `OnOtherCardFlipped / OnOtherCardRestored / OnOtherCardDiscarded` 三类跨卡联动仍由 EventBus 监听器同步修改状态，检查点发布可能继续产生 Root 外二次变化。这是当前战斗卡牌因果树的主要剩余缺口，后续应把联动条件解析成来源 Action 的后代节点，并对循环预算和稳定顺序补测试。
 221. Unity MCP 全量 EditMode 回归为 254/254；正式 ZFramework Play Mode 探针确认进入 BossFight 后处于 PlayerTurn、初始化锁已释放、Combat Action Session 有效且 4 名猎人可用，控制台 0 error。探针未执行玩家命令或写入战斗结果，玩家存档哈希保持不变。
+222. `OnOtherCardFlipped / OnOtherCardRestored / OnOtherCardDiscarded` 已从 `FlipConditionEvaluator` 的 EventBus 权威监听迁出。EventBus 现在只传播已经提交的卡牌事实，直接发布事实不会再绕过 Combat Runner 修改卡面。
+223. 新增 `ResolveCardLinkChainAction`：触发事实按 FIFO、候选卡按稳定 InstanceId 升序展开；每次真实翻面或恢复由独立 `ResolveLinkedCardTransitionAction` 提交并开放 Reactor 窗口。单卡联动被阻止不会中断同一事实的其他候选，产生的新事实继续进入同一因果链。
+224. 出牌后翻面、翻牌费用、主动恢复、爆发的翻面/弃置，以及玩家轮开始的自动变化均会在各自原 Root 内追加联动子树。翻牌费用先作为批量费用事务提交并发布检查点，再解析联动，随后才执行卡牌效果，避免费用联动延迟到整张牌结束之后。
+225. 对抗审查确认现有 `RestoreAfterNRestoresCondition.Evaluate` 会递增内部计数，说明条件查询并非纯函数；当前 Action 化后顺序已确定且 Consume 会在成功恢复时重置，但 Reactor 阻止时“是否应计入已观察事实”仍缺少统一契约。后续读表条件系统应拆成“观察事实更新条件状态 / 只读判定 / 成功提交消费”三个接口，不应继续把状态写入 `Evaluate`。
+226. 跨卡联动当前按已注册卡牌扫描，最坏为 O(n²)，Combat Chain 预算提高到 1024 以覆盖当前卡量和合理级联。大量装备/事件注入行动卡之前应按触发 Timing 建索引并做规模数据验证；旧 `CardEffectResolver` 与 `PlayableActionCardLifecycleService` 已无生产创建者，仍留待阶段 4 统一删除，避免本轮扩大清理范围。
+227. 联动条件异常会被隔离为对应 Child 的失败并记录错误，不再中止已经提交来源事实的整张卡牌 Root；同一事实的后续合法候选仍会继续结算。Unity MCP 定向 Combat ActionSession 24/24、全量 EditMode 260/260 通过，另覆盖稳定广度优先级联、逐卡 Reactor 阻止、翻牌费用联动、爆发 Flip→Discard 双触发以及 EventBus 事实不修改状态。

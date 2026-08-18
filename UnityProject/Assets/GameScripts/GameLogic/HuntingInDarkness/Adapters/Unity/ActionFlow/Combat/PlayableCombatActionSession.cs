@@ -37,7 +37,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
             {
                 Name = "Combat",
                 Kind = ActionEnvironmentKind.Combat,
-                MaxActionsPerChain = 256,
+                MaxActionsPerChain = 1024,
                 TraceCapacity = 48
             });
         }
@@ -54,7 +54,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle source = environment.EntityHandles.GetOrCreate("hunter", card.OwnerCharacterId.ToString(), GetEntityName(card.OwnerCharacterId));
             ReactorEntityHandle target = ResolveTarget(card, targetEntityId);
-            var action = new PlayCharacterCardAction(card, targetEntityId, gameContext, boardQuery, boardCommand, costService, flipEvaluator, outbox, canOwnerAct, source, target);
+            var action = new PlayCharacterCardAction(card, targetEntityId, gameContext, boardQuery, boardCommand, costService, flipEvaluator, outbox, canOwnerAct, source, target, ResolveEntity);
             try
             {
                 ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
@@ -84,7 +84,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
             if (card == null) return CardRestoreCommandResult.Failed("行动卡不存在");
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle owner = ResolveEntity(card.OwnerCharacterId);
-            var action = new RestoreCharacterCardAction(card, costService, flipEvaluator, outbox, owner, owner);
+            var action = new RestoreCharacterCardAction(card, costService, flipEvaluator, outbox, owner, owner, ResolveEntity);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             return outcome.IsSuccess ? action.Result : CardRestoreCommandResult.Failed(outcome.Reason, card.InstanceId);
         }
@@ -94,7 +94,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
             if (!IsActive || card == null) return DiscardResult.Failed;
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle owner = ResolveEntity(card.OwnerCharacterId);
-            var action = new BurstCharacterCardAction(card, gameContext, outbox, applyTimePointReward, owner, owner);
+            var action = new BurstCharacterCardAction(card, gameContext, outbox, applyTimePointReward, flipEvaluator, owner, owner, ResolveEntity);
             try
             {
                 ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);

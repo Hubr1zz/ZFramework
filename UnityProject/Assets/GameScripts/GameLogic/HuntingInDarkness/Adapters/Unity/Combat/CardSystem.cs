@@ -156,7 +156,7 @@ namespace Core
 
     /// <summary>
     /// 集中评估所有卡牌的翻面和恢复条件。
-    /// 监听事件，在合适时机触发条件检查。
+    /// EventBus 只发布事实；跨卡联动由战斗 ActionEnvironment 显式调度。
     /// </summary>
     public class FlipConditionEvaluator : IDisposable
     {
@@ -168,20 +168,10 @@ namespace Core
         public FlipConditionEvaluator(IGameContext gameContext)
         {
             _gameContext = gameContext;
-
-            // 订阅翻面事件 → 检查 OnOtherCardFlipped 联动
-            EventBus.Subscribe<CardFlippedEvent>(OnCardFlipped);
-            // 订阅恢复事件 → 检查 OnOtherCardRestored 联动
-            EventBus.Subscribe<CardRestoredEvent>(OnCardRestored);
-            // 订阅弃置事件 → 检查 OnOtherCardDiscarded 联动
-            EventBus.Subscribe<CardDiscardedEvent>(OnCardDiscarded);
         }
 
         public void Dispose()
         {
-            EventBus.Unsubscribe<CardFlippedEvent>(OnCardFlipped);
-            EventBus.Unsubscribe<CardRestoredEvent>(OnCardRestored);
-            EventBus.Unsubscribe<CardDiscardedEvent>(OnCardDiscarded);
             _allCards.Clear();
         }
 
@@ -193,6 +183,21 @@ namespace Core
         public void UnregisterCard(int cardInstanceId)
         {
             _allCards.Remove(cardInstanceId);
+        }
+
+        public IReadOnlyList<CharacterActionCardInstance> GetRegisteredCardsInStableOrder()
+        {
+            var cards = new List<CharacterActionCardInstance>(_allCards.Values);
+            cards.Sort((left, right) => left.InstanceId.CompareTo(right.InstanceId));
+            return cards;
+        }
+
+        public bool IsLinkedTransitionCandidate(CharacterActionCardInstance card, FlipTriggerTiming timing)
+        {
+            if (card == null) return false;
+            if (card.CurrentFace == CardFace.FaceDown)
+                return card.RestoreConditions.Exists(condition => condition.Timing == timing);
+            return timing == FlipTriggerTiming.OnOtherCardDiscarded && card.FlipConditions.Exists(condition => condition.Timing == timing);
         }
 
         public List<int> GetFlippableCostCandidates(
@@ -228,9 +233,23 @@ namespace Core
 
         public void FlipAsCost(int cardInstanceId)
         {
-            if (_allCards.TryGetValue(cardInstanceId, out CharacterActionCardInstance card) &&
-                card.CurrentFace == CardFace.FaceUp)
-                DoFlip(card);
+            if (TryApplyFlipAsCost(cardInstanceId, out CardFlippedEvent evt))
+                EventBus.Publish(evt);
+        }
+
+        public bool TryApplyFlipAsCost(int cardInstanceId, out CardFlippedEvent evt)
+        {
+            evt = default;
+            if (!_allCards.TryGetValue(cardInstanceId, out CharacterActionCardInstance card) || card.CurrentFace != CardFace.FaceUp) return false;
+            card.SetFace(CardFace.FaceDown);
+            evt = new CardFlippedEvent
+            {
+                CardInstanceId = card.InstanceId,
+                OwnerCharacterId = card.OwnerCharacterId,
+                OldFace = CardFace.FaceUp,
+                NewFace = CardFace.FaceDown
+            };
+            return true;
         }
 
         public void ResetPerTurnAvailability()
@@ -326,6 +345,38 @@ namespace Core
                 condition.Consume(context);
             card.SetFace(CardFace.FaceUp);
             restoredEvent = new CardRestoredEvent { CardInstanceId = card.InstanceId, OwnerCharacterId = card.OwnerCharacterId };
+            return true;
+        }
+
+        public bool TryApplyLinkedTransition(CharacterActionCardInstance card, FlipTriggerTiming timing, int triggerSourceCardId, out CardFlippedEvent? flippedEvent, out CardRestoredEvent? restoredEvent)
+        {
+            flippedEvent = null;
+            restoredEvent = null;
+            if (!IsLinkedTransitionCandidate(card, timing) || card.InstanceId == triggerSourceCardId) return false;
+            var context = BuildContext(card, triggerSourceCardId);
+            if (card.CurrentFace == CardFace.FaceDown)
+            {
+                List<IFlipCondition> conditions = card.RestoreConditions.FindAll(condition => condition.Timing == timing);
+                if (conditions.Exists(condition => !condition.Evaluate(context))) return false;
+                foreach (IFlipCondition condition in conditions)
+                    condition.Consume(context);
+                card.SetFace(CardFace.FaceUp);
+                restoredEvent = new CardRestoredEvent { CardInstanceId = card.InstanceId, OwnerCharacterId = card.OwnerCharacterId };
+                return true;
+            }
+
+            List<IFlipCondition> flipConditions = card.FlipConditions.FindAll(condition => condition.Timing == timing);
+            if (flipConditions.Exists(condition => !condition.Evaluate(context))) return false;
+            foreach (IFlipCondition condition in flipConditions)
+                condition.Consume(context);
+            card.SetFace(CardFace.FaceDown);
+            flippedEvent = new CardFlippedEvent
+            {
+                CardInstanceId = card.InstanceId,
+                OwnerCharacterId = card.OwnerCharacterId,
+                OldFace = CardFace.FaceUp,
+                NewFace = CardFace.FaceDown
+            };
             return true;
         }
 
@@ -430,58 +481,6 @@ namespace Core
                 CurrencyReward = reward.currencyReward,
                 TimePointReward = reward.timePointReward
             };
-        }
-
-        // ─── 事件回调 ───
-
-        private void OnCardFlipped(CardFlippedEvent evt)
-        {
-            // 其他卡翻面 → 检查有没有联动恢复/翻面
-            foreach (var card in _allCards.Values)
-            {
-                if (card.InstanceId == evt.CardInstanceId) continue; // 跳过自己
-
-                if (card.CurrentFace == CardFace.FaceDown)
-                {
-                    if (CheckRestoreConditions(card, FlipTriggerTiming.OnOtherCardFlipped, evt.CardInstanceId))
-                        DoRestore(card);
-                }
-            }
-        }
-
-        private void OnCardRestored(CardRestoredEvent evt)
-        {
-            foreach (var card in _allCards.Values)
-            {
-                if (card.InstanceId == evt.CardInstanceId) continue;
-
-                // 例如："当恢复两张其他卡时，恢复自身"
-                if (card.CurrentFace == CardFace.FaceDown)
-                {
-                    if (CheckRestoreConditions(card, FlipTriggerTiming.OnOtherCardRestored, evt.CardInstanceId))
-                        DoRestore(card);
-                }
-            }
-        }
-
-        private void OnCardDiscarded(CardDiscardedEvent evt)
-        {
-            // 其他卡被弃置 → 检查有没有 OnOtherCardDiscarded 联动
-            foreach (var card in _allCards.Values)
-            {
-                if (card.InstanceId == evt.CardInstanceId) continue;
-
-                if (card.CurrentFace == CardFace.FaceDown)
-                {
-                    if (CheckRestoreConditions(card, FlipTriggerTiming.OnOtherCardDiscarded, evt.CardInstanceId))
-                        DoRestore(card);
-                }
-                else
-                {
-                    if (CheckFlipConditions(card, FlipTriggerTiming.OnOtherCardDiscarded, evt.CardInstanceId))
-                        DoFlip(card);
-                }
-            }
         }
 
         // ─── 内部工具 ───

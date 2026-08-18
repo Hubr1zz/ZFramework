@@ -21,6 +21,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
         private int cardIndex;
         private bool resetScheduled;
         private bool resetFailed;
+        private bool lastLinkScheduled;
 
         public BeginPlayerTurnAction(IReadOnlyList<CharacterActionCardInstance> cards, FlipConditionEvaluator flipEvaluator, ActionEventOutbox eventOutbox, IReactorEntity combat, Func<int, IReactorEntity> resolveOwner, Action resetPlayerTurn)
         {
@@ -49,8 +50,17 @@ namespace HuntingInDarkness.ActionFlow.Combat
                 resetFailed = true;
                 return null;
             }
-            if (context.CompletedCount > 0 && context.LastOutcome.IsSuccess && lastAction?.Changed == true)
-                ChangedCardCount++;
+            if (lastAction != null)
+            {
+                if (!lastLinkScheduled && context.LastOutcome.IsSuccess && lastAction.Changed)
+                {
+                    lastLinkScheduled = true;
+                    ChangedCardCount++;
+                    return new ResolveCardLinkChainAction(new[] { lastAction.CreatedTrigger }, flipEvaluator, eventOutbox, combat, resolveOwner);
+                }
+                lastAction = null;
+                lastLinkScheduled = false;
+            }
             while (cardIndex < cards.Count)
             {
                 CharacterActionCardInstance card = cards[cardIndex++];
@@ -105,6 +115,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
         public int CardInstanceId => card.InstanceId;
         public int OwnerCharacterId => card.OwnerCharacterId;
         public bool Changed { get; private set; }
+        public CardLinkTrigger CreatedTrigger { get; private set; }
         public IReactorEntity Source { get; }
         public IReactorEntity Target { get; }
 
@@ -112,9 +123,17 @@ namespace HuntingInDarkness.ActionFlow.Combat
         {
             Changed = flipEvaluator.TryApplyTurnStartTransition(card, out CardFlippedEvent? flippedEvent, out CardRestoredEvent? restoredEvent);
             if (flippedEvent.HasValue)
-                eventOutbox.Stage(flippedEvent.Value);
+            {
+                CardFlippedEvent evt = flippedEvent.Value;
+                eventOutbox.Stage(evt);
+                CreatedTrigger = CardLinkTrigger.Flipped(evt.CardInstanceId, evt.OwnerCharacterId);
+            }
             if (restoredEvent.HasValue)
-                eventOutbox.Stage(restoredEvent.Value);
+            {
+                CardRestoredEvent evt = restoredEvent.Value;
+                eventOutbox.Stage(evt);
+                CreatedTrigger = CardLinkTrigger.Restored(evt.CardInstanceId, evt.OwnerCharacterId);
+            }
             if (Changed)
                 eventOutbox.PublishCheckpoint();
             return UniTask.FromResult(ActionOutcome.Success());

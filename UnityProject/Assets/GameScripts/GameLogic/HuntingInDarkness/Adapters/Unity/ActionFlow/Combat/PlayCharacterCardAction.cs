@@ -42,14 +42,19 @@ namespace HuntingInDarkness.ActionFlow.Combat
         private readonly Func<int, bool> canOwnerAct;
         private readonly IReactorEntity sourceEntity;
         private readonly IReactorEntity targetEntity;
+        private readonly Func<int, IReactorEntity> resolveEntity;
         private readonly List<CharacterActionCardEffect> effects;
         private readonly List<GameAction> effectActions = new();
+        private readonly List<CardLinkTrigger> costLinkTriggers = new();
         private ActionCardContext effectContext;
+        private FinalizeCharacterCardAction finalizationAction;
         private int effectIndex;
         private bool preparationCompleted;
+        private bool costLinksScheduled;
         private bool finalizationScheduled;
+        private bool finalLinksScheduled;
 
-        public PlayCharacterCardAction(CharacterActionCardInstance card, int targetEntityId, IGameContext gameContext, IBoardQuery boardQuery, IBoardCommand boardCommand, ActionCardCostService costService, FlipConditionEvaluator flipEvaluator, ActionEventOutbox eventOutbox, Func<int, bool> canOwnerAct, IReactorEntity sourceEntity, IReactorEntity targetEntity)
+        public PlayCharacterCardAction(CharacterActionCardInstance card, int targetEntityId, IGameContext gameContext, IBoardQuery boardQuery, IBoardCommand boardCommand, ActionCardCostService costService, FlipConditionEvaluator flipEvaluator, ActionEventOutbox eventOutbox, Func<int, bool> canOwnerAct, IReactorEntity sourceEntity, IReactorEntity targetEntity, Func<int, IReactorEntity> resolveEntity)
         {
             this.card = card ?? throw new ArgumentNullException(nameof(card));
             this.targetEntityId = targetEntityId;
@@ -62,6 +67,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
             this.canOwnerAct = canOwnerAct ?? throw new ArgumentNullException(nameof(canOwnerAct));
             this.sourceEntity = sourceEntity ?? throw new ArgumentNullException(nameof(sourceEntity));
             this.targetEntity = targetEntity ?? throw new ArgumentNullException(nameof(targetEntity));
+            this.resolveEntity = resolveEntity ?? throw new ArgumentNullException(nameof(resolveEntity));
             effects = GetEffects();
             IsAttack = effects.Exists(effect => effect?.TargetType == TargetType.SingleEnemy);
         }
@@ -81,12 +87,29 @@ namespace HuntingInDarkness.ActionFlow.Combat
             if (!preparationCompleted)
                 return null;
 
+            if (!costLinksScheduled)
+            {
+                costLinksScheduled = true;
+                if (costLinkTriggers.Count > 0)
+                    return new ResolveCardLinkChainAction(costLinkTriggers, flipEvaluator, eventOutbox, sourceEntity, resolveEntity);
+            }
+
             if (effectIndex < effectActions.Count)
                 return effectActions[effectIndex++];
 
-            if (finalizationScheduled) return null;
-            finalizationScheduled = true;
-            return new FinalizeCharacterCardAction(card, flipEvaluator, eventOutbox, IsAttack, sourceEntity, targetEntity);
+            if (!finalizationScheduled)
+            {
+                finalizationScheduled = true;
+                finalizationAction = new FinalizeCharacterCardAction(card, flipEvaluator, eventOutbox, IsAttack, sourceEntity, targetEntity);
+                return finalizationAction;
+            }
+            if (!finalLinksScheduled)
+            {
+                finalLinksScheduled = true;
+                if (context.LastOutcome.IsSuccess && finalizationAction.LinkTrigger.HasValue)
+                    return new ResolveCardLinkChainAction(new[] { finalizationAction.LinkTrigger.Value }, flipEvaluator, eventOutbox, sourceEntity, resolveEntity);
+            }
+            return null;
         }
 
         protected override ActionOutcome Resolve(CompositeExecutionContext context)
@@ -158,7 +181,15 @@ namespace HuntingInDarkness.ActionFlow.Combat
                 }
                 effectActions.Add(new ExecuteCharacterCardEffectAction(effect, effectContext, sourceEntity, targetEntity));
             }
-            if (!transaction.TryCommit(card.OwnerCharacterId, costService)) return ActionOutcome.Cancelled("行动费用已发生变化");
+            var costFlipEvents = new List<CardFlippedEvent>();
+            if (!costService.TryCommitWithCardFlipEvents(card.OwnerCharacterId, transaction, costFlipEvents)) return ActionOutcome.Cancelled("行动费用已发生变化");
+            foreach (CardFlippedEvent evt in costFlipEvents)
+            {
+                eventOutbox.Stage(evt);
+                costLinkTriggers.Add(CardLinkTrigger.Flipped(evt.CardInstanceId, evt.OwnerCharacterId));
+            }
+            if (costFlipEvents.Count > 0)
+                eventOutbox.PublishCheckpoint();
             preparationCompleted = true;
             return ActionOutcome.Success();
         }
@@ -265,6 +296,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
 
         public IReactorEntity Source { get; }
         public IReactorEntity Target { get; }
+        public CardLinkTrigger? LinkTrigger { get; private set; }
         public override ReactionPhases OpenReactionPhases => ReactionPhases.AfterResolved;
 
         protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
@@ -278,7 +310,10 @@ namespace HuntingInDarkness.ActionFlow.Combat
                 TimePointCost = card.TimePointCost
             });
             if (flipEvaluator.TryApplyAfterCardPlayed(card.InstanceId, card.OwnerCharacterId, out CardFlippedEvent flippedEvent))
+            {
                 eventOutbox.Stage(flippedEvent);
+                LinkTrigger = CardLinkTrigger.Flipped(flippedEvent.CardInstanceId, flippedEvent.OwnerCharacterId);
+            }
             eventOutbox.Stage(new CombatActionCommittedEvent
             {
                 CardInstanceId = card.InstanceId,

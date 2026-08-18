@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CardGame.ActionQueue;
@@ -15,7 +16,9 @@ using HuntingInDarkness.Combat;
 using HuntingInDarkness.GameCore.Cards;
 using NUnit.Framework;
 using SO.Boss.ActionCard;
+using SO.Character;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
@@ -427,6 +430,192 @@ namespace HuntingInDarkness.Adapter.Tests
             UnityEngine.Object.DestroyImmediate(template);
         }
 
+        [Test]
+        public async Task PlayCardAsync_ResolvesLinkedRestoresInStableBreadthFirstOrder()
+        {
+            CharacterActionCardData sourceTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData firstTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData secondTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData chainedTemplate = CreateTemplate(oncePerTurn: false);
+            var source = new CharacterActionCardInstance(sourceTemplate, 7);
+            var first = new CharacterActionCardInstance(firstTemplate, 7);
+            var second = new CharacterActionCardInstance(secondTemplate, 7);
+            var chained = new CharacterActionCardInstance(chainedTemplate, 7);
+            source.FlipConditions.Add(new AlwaysOnPlayCondition());
+            first.RestoreConditions.Add(new RestoreOnOtherFlipCondition());
+            second.RestoreConditions.Add(new RestoreOnOtherFlipCondition());
+            chained.RestoreConditions.Add(new RestoreAfterNRestoresCondition(2));
+            first.SetFace(CardFace.FaceDown);
+            second.SetFace(CardFace.FaceDown);
+            chained.SetFace(CardFace.FaceDown);
+            var restoredIds = new List<int>();
+            Action<CardRestoredEvent> handler = evt => restoredIds.Add(evt.CardInstanceId);
+            EventBus.Subscribe(handler);
+            try
+            {
+                using TestRig rig = CreateRig(source);
+                rig.FlipEvaluator.RegisterCard(chained);
+                rig.FlipEvaluator.RegisterCard(second);
+                rig.FlipEvaluator.RegisterCard(first);
+
+                CombatCardCommandResult result = await rig.Session.PlayCardAsync(source, -1);
+
+                Assert.That(result.Success, Is.True);
+                Assert.That(restoredIds, Is.EqualTo(new[] { first.InstanceId, second.InstanceId, chained.InstanceId }));
+                Assert.That(first.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+                Assert.That(second.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+                Assert.That(chained.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+                UnityEngine.Object.DestroyImmediate(sourceTemplate);
+                UnityEngine.Object.DestroyImmediate(firstTemplate);
+                UnityEngine.Object.DestroyImmediate(secondTemplate);
+                UnityEngine.Object.DestroyImmediate(chainedTemplate);
+            }
+        }
+
+        [Test]
+        public async Task LinkedTransitionReactor_PreventsOnlyMatchingCard()
+        {
+            CharacterActionCardData sourceTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData firstTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData secondTemplate = CreateTemplate(oncePerTurn: false);
+            var source = new CharacterActionCardInstance(sourceTemplate, 7);
+            var first = new CharacterActionCardInstance(firstTemplate, 7);
+            var second = new CharacterActionCardInstance(secondTemplate, 7);
+            source.FlipConditions.Add(new AlwaysOnPlayCondition());
+            first.RestoreConditions.Add(new RestoreOnOtherFlipCondition());
+            second.RestoreConditions.Add(new RestoreOnOtherFlipCondition());
+            first.SetFace(CardFace.FaceDown);
+            second.SetFace(CardFace.FaceDown);
+            using TestRig rig = CreateRig(source);
+            rig.FlipEvaluator.RegisterCard(first);
+            rig.FlipEvaluator.RegisterCard(second);
+            rig.Session.Reactors.RegisterGlobal(new PreventLinkedCardReactor(first.InstanceId));
+
+            CombatCardCommandResult result = await rig.Session.PlayCardAsync(source, -1);
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(first.CurrentFace, Is.EqualTo(CardFace.FaceDown));
+            Assert.That(second.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+            UnityEngine.Object.DestroyImmediate(sourceTemplate);
+            UnityEngine.Object.DestroyImmediate(firstTemplate);
+            UnityEngine.Object.DestroyImmediate(secondTemplate);
+        }
+
+        [Test]
+        public async Task FlipCardCost_QueuesItsLinkedRestoreBeforeCardEffects()
+        {
+            CharacterActionCardData sourceTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData costTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData linkedTemplate = CreateTemplate(oncePerTurn: false);
+            sourceTemplate.costs.Add(new FlipOtherCardActionCardCostData());
+            var source = new CharacterActionCardInstance(sourceTemplate, 7);
+            var costCard = new CharacterActionCardInstance(costTemplate, 7);
+            var linked = new CharacterActionCardInstance(linkedTemplate, 7);
+            linked.RestoreConditions.Add(new RestoreOnOtherFlipCondition());
+            linked.SetFace(CardFace.FaceDown);
+            using TestRig rig = CreateRig(source, input: new SelectedCardInputProvider(costCard.InstanceId));
+            rig.FlipEvaluator.RegisterCard(costCard);
+            rig.FlipEvaluator.RegisterCard(linked);
+
+            CombatCardCommandResult result = await rig.Session.PlayCardAsync(source, -1);
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(costCard.CurrentFace, Is.EqualTo(CardFace.FaceDown));
+            Assert.That(linked.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+            UnityEngine.Object.DestroyImmediate(sourceTemplate);
+            UnityEngine.Object.DestroyImmediate(costTemplate);
+            UnityEngine.Object.DestroyImmediate(linkedTemplate);
+        }
+
+        [Test]
+        public async Task ThrowingLinkedCondition_SkipsBrokenCardAndContinuesChain()
+        {
+            CharacterActionCardData sourceTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData brokenTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData validTemplate = CreateTemplate(oncePerTurn: false);
+            var source = new CharacterActionCardInstance(sourceTemplate, 7);
+            var broken = new CharacterActionCardInstance(brokenTemplate, 7);
+            var valid = new CharacterActionCardInstance(validTemplate, 7);
+            source.FlipConditions.Add(new AlwaysOnPlayCondition());
+            broken.RestoreConditions.Add(new ThrowingLinkedCondition());
+            valid.RestoreConditions.Add(new RestoreOnOtherFlipCondition());
+            broken.SetFace(CardFace.FaceDown);
+            valid.SetFace(CardFace.FaceDown);
+            using TestRig rig = CreateRig(source);
+            rig.FlipEvaluator.RegisterCard(broken);
+            rig.FlipEvaluator.RegisterCard(valid);
+            LogAssert.Expect(LogType.Exception, new Regex("测试联动条件异常"));
+
+            CombatCardCommandResult result = await rig.Session.PlayCardAsync(source, -1);
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(broken.CurrentFace, Is.EqualTo(CardFace.FaceDown));
+            Assert.That(valid.CurrentFace, Is.EqualTo(CardFace.FaceUp));
+            UnityEngine.Object.DestroyImmediate(sourceTemplate);
+            UnityEngine.Object.DestroyImmediate(brokenTemplate);
+            UnityEngine.Object.DestroyImmediate(validTemplate);
+        }
+
+        [Test]
+        public async Task BurstCardAsync_ResolvesFlipThenDiscardLinks()
+        {
+            CharacterActionCardData sourceTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData flipTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData discardTemplate = CreateTemplate(oncePerTurn: false);
+            sourceTemplate.burstReward = new BurstRewardData { enabled = true };
+            var source = new CharacterActionCardInstance(sourceTemplate, 7);
+            var flipLinked = new CharacterActionCardInstance(flipTemplate, 7);
+            var discardLinked = new CharacterActionCardInstance(discardTemplate, 7);
+            flipLinked.RestoreConditions.Add(new AlwaysLinkedRestoreCondition(FlipTriggerTiming.OnOtherCardFlipped));
+            discardLinked.RestoreConditions.Add(new AlwaysLinkedRestoreCondition(FlipTriggerTiming.OnOtherCardDiscarded));
+            flipLinked.SetFace(CardFace.FaceDown);
+            discardLinked.SetFace(CardFace.FaceDown);
+            var restoredIds = new List<int>();
+            Action<CardRestoredEvent> handler = evt => restoredIds.Add(evt.CardInstanceId);
+            EventBus.Subscribe(handler);
+            try
+            {
+                using TestRig rig = CreateRig(source);
+                rig.FlipEvaluator.RegisterCard(flipLinked);
+                rig.FlipEvaluator.RegisterCard(discardLinked);
+
+                DiscardResult result = await rig.Session.BurstCardAsync(source);
+
+                Assert.That(result.Success, Is.True);
+                Assert.That(restoredIds, Is.EqualTo(new[] { flipLinked.InstanceId, discardLinked.InstanceId }));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+                UnityEngine.Object.DestroyImmediate(sourceTemplate);
+                UnityEngine.Object.DestroyImmediate(flipTemplate);
+                UnityEngine.Object.DestroyImmediate(discardTemplate);
+            }
+        }
+
+        [Test]
+        public void CardFactEvents_DoNotMutateLinkedCardsOutsideActionEnvironment()
+        {
+            CharacterActionCardData sourceTemplate = CreateTemplate(oncePerTurn: false);
+            CharacterActionCardData linkedTemplate = CreateTemplate(oncePerTurn: false);
+            var source = new CharacterActionCardInstance(sourceTemplate, 7);
+            var linked = new CharacterActionCardInstance(linkedTemplate, 7);
+            linked.RestoreConditions.Add(new RestoreOnOtherFlipCondition());
+            linked.SetFace(CardFace.FaceDown);
+            using TestRig rig = CreateRig(source);
+            rig.FlipEvaluator.RegisterCard(linked);
+
+            EventBus.Publish(new CardFlippedEvent { CardInstanceId = source.InstanceId, OwnerCharacterId = source.OwnerCharacterId, OldFace = CardFace.FaceUp, NewFace = CardFace.FaceDown });
+
+            Assert.That(linked.CurrentFace, Is.EqualTo(CardFace.FaceDown));
+            UnityEngine.Object.DestroyImmediate(sourceTemplate);
+            UnityEngine.Object.DestroyImmediate(linkedTemplate);
+        }
+
         private static CharacterActionCardData CreateTemplate(bool oncePerTurn, int timePointCost = 0)
         {
             CharacterActionCardData template = ScriptableObject.CreateInstance<CharacterActionCardData>();
@@ -437,7 +626,7 @@ namespace HuntingInDarkness.Adapter.Tests
             return template;
         }
 
-        private static TestRig CreateRig(CharacterActionCardInstance card, int initialInspiration = 0, Action resetPlayerTurn = null)
+        private static TestRig CreateRig(CharacterActionCardInstance card, int initialInspiration = 0, Action resetPlayerTurn = null, IPlayerInputProvider input = null)
         {
             var context = new TestGameContext(card.OwnerCharacterId);
             var timeline = new TimelineManager();
@@ -446,7 +635,7 @@ namespace HuntingInDarkness.Adapter.Tests
             resources.Register(card.OwnerCharacterId, initialInspiration);
             var flipEvaluator = new FlipConditionEvaluator(context);
             flipEvaluator.RegisterCard(card);
-            var costService = new ActionCardCostService(() => timeline, () => null, flipEvaluator, resources);
+            var costService = new ActionCardCostService(() => timeline, () => input, flipEvaluator, resources);
             var session = new PlayableCombatActionSession(context, null, null, costService, flipEvaluator, _ => true, (characterId, reward) => timeline.AccumulateTimePoints(characterId, -reward), resetPlayerTurn ?? (() => { }));
             return new TestRig(session, flipEvaluator, timeline, resources);
         }
@@ -647,6 +836,53 @@ namespace HuntingInDarkness.Adapter.Tests
                 InvocationCount++;
                 response.Prevent("测试不应阻止核心轮次重置");
             }
+        }
+
+        private sealed class PreventLinkedCardReactor : GameActionReactor<ResolveLinkedCardTransitionAction>
+        {
+            private readonly int cardInstanceId;
+
+            public PreventLinkedCardReactor(int cardInstanceId) => this.cardInstanceId = cardInstanceId;
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+
+            protected override void React(ResolveLinkedCardTransitionAction action, ReactionContext context, ReactionResponse response)
+            {
+                if (action.CardInstanceId == cardInstanceId)
+                    response.Prevent("测试阻止指定联动");
+            }
+        }
+
+        private sealed class AlwaysLinkedRestoreCondition : IFlipCondition
+        {
+            public AlwaysLinkedRestoreCondition(FlipTriggerTiming timing) => Timing = timing;
+
+            public FlipTriggerTiming Timing { get; }
+            public string Description => "测试联动恢复";
+            public bool Evaluate(FlipConditionContext context) => context.TriggerSourceCardId.HasValue;
+            public void Consume(FlipConditionContext context) { }
+        }
+
+        private sealed class SelectedCardInputProvider : IPlayerInputProvider
+        {
+            private readonly int selectedCardId;
+
+            public SelectedCardInputProvider(int selectedCardId) => this.selectedCardId = selectedCardId;
+            public UniTask<int> RequestRoll(string prompt, int maxExclusive, CancellationToken cancellationToken = default) => UniTask.FromResult(0);
+            public UniTask ShowResult(string message, CancellationToken cancellationToken = default) => UniTask.CompletedTask;
+            public UniTask<int> RequestSelectTarget(string prompt, List<int> validTargetIds, CancellationToken cancellationToken = default) => UniTask.FromResult(validTargetIds[0]);
+            public UniTask<Vector2Int?> RequestSelectTile(string prompt, List<Vector2Int> validTiles, CancellationToken cancellationToken = default) => UniTask.FromResult<Vector2Int?>(validTiles[0]);
+            public UniTask<int> RequestSelectCard(string prompt, List<int> validCardIds, CancellationToken cancellationToken = default) => UniTask.FromResult(selectedCardId);
+            public UniTask PlayShuffleAndReveal(List<HitLocationRuntimeState> allCards, List<HitLocationRuntimeState> toReveal, CancellationToken cancellationToken = default) => UniTask.CompletedTask;
+            public UniTask<HitLocationRuntimeState> RequestSelectRevealedCard(string prompt, List<HitLocationRuntimeState> revealedCards, CancellationToken cancellationToken = default) => UniTask.FromResult(revealedCards[0]);
+            public UniTask<WeaponData> RequestSelectWeapon(string prompt, List<WeaponData> candidates, CancellationToken cancellationToken = default) => UniTask.FromResult(candidates[0]);
+        }
+
+        private sealed class ThrowingLinkedCondition : IFlipCondition
+        {
+            public FlipTriggerTiming Timing => FlipTriggerTiming.OnOtherCardFlipped;
+            public string Description => "测试异常联动";
+            public bool Evaluate(FlipConditionContext context) => throw new InvalidOperationException("测试联动条件异常");
+            public void Consume(FlipConditionContext context) { }
         }
     }
 }
