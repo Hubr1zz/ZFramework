@@ -33,7 +33,7 @@ try {
         -Destination (Join-Path $implementationRoot 'type-binding.ps1')
     $relocatedStatus = & (Join-Path $relocationRoot 'scripts/run.ps1') status -Root $projectRoot |
         ConvertFrom-Json
-    Assert-True ($relocatedStatus.schemaVersion -eq 3) `
+    Assert-True ($relocatedStatus.schemaVersion -eq 4) `
         'renaming and moving implementation scripts inside the skill must preserve the stable entrypoint.'
 }
 finally {
@@ -89,14 +89,18 @@ namespace PortableFixture
 }
 '@ | Set-Content -LiteralPath (Join-Path $fixtureCodeRoot 'Services.cs') -Encoding utf8
     @'
+using ServiceAlias = PortableFixture.PortableService;
+
 namespace PortableFixture
 {
     public sealed class PortableConsumer
     {
         private readonly PortableService _service = new PortableService();
+        private readonly ServiceAlias _aliasedService = new ServiceAlias();
         public void Tick()
         {
             _service.Run();
+            _aliasedService.Run();
             PortableEvents.Publish<int>(1);
         }
     }
@@ -136,6 +140,8 @@ namespace PortableFixture
     $servicePaths = @($serviceResult.resolvedCallers | ForEach-Object { $_.path })
     Assert-True ($servicePaths -contains 'Assets/GameRuntime/Code/PortableConsumer.cs') `
         "default Unity discovery must work without an Assets/Scripts convention. Result: $($serviceResult | ConvertTo-Json -Depth 6 -Compress)"
+    Assert-True (@($serviceResult.resolvedCallers | Where-Object { $_.receiver -eq '_aliasedService' }).Count -eq 1) `
+        'using aliases should resolve without recursive alias expansion.'
 
     $eventResult = & $queryScript callers -Root $fixtureRoot -Query 'PortableEvents.Publish' -Limit 20 |
         ConvertFrom-Json
@@ -157,6 +163,15 @@ namespace PortableFixture
     Assert-True (($renamedPaths -contains 'Assets/GameRuntime/Code/RenamedPortableConsumer.cs') -and
         ($renamedPaths -notcontains 'Assets/GameRuntime/Code/PortableConsumer.cs')) `
         'renaming or moving a target C# file must invalidate stale cached paths.'
+    $incrementalStatus = & $queryScript status -Root $fixtureRoot | ConvertFrom-Json
+    Assert-True ($incrementalStatus.parsedFileCount -eq 1 -and $incrementalStatus.reusedFileCount -eq 4) `
+        'renaming one file should parse the new path once and reuse all unchanged file facts.'
+
+    $invalidIndexPath = Join-Path $fixtureRoot 'invalid-index.json'
+    '{}' | Set-Content -LiteralPath $invalidIndexPath -Encoding utf8
+    $recoveredStatus = & $queryScript status -Root $fixtureRoot -IndexPath $invalidIndexPath | ConvertFrom-Json
+    Assert-True ($recoveredStatus.schemaVersion -eq 4 -and $recoveredStatus.fileCount -eq 5) `
+        'a valid JSON file with an incompatible cache shape should be discarded and rebuilt.'
 
     $packageResult = & $queryScript callers -Root $fixtureRoot `
         -SourceRoots @('Assets', 'Packages/LocalGame') -Query 'EmbeddedPackageService.Execute' -Limit 20 |
@@ -190,9 +205,9 @@ finally {
 
 [pscustomobject]@{
     passed = $true
-    schemaVersion = 3
+    schemaVersion = 4
     targetFileCount = $build.fileCount
     qualifiedTypeCount = $build.qualifiedTypeCount
     resolvedCallCount = $build.resolvedCallCount
-    assertions = 10
+    assertions = 13
 } | ConvertTo-Json -Compress
