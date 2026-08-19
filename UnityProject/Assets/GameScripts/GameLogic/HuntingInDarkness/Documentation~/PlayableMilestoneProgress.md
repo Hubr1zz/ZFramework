@@ -418,3 +418,10 @@
 231. 当前快速点击会保留进入队列时的揭示/移动意图，可防止排队等待期间状态变化把同一请求解释成另一种命令；但两个跨帧点击若第一个已经同步完成，第二个仍会被视为明确移动。最终输入手感确定后应在 View 增加可配置双击抑制或揭示动画锁，不能把时间阈值硬编码进领域规则。
 232. 地块事件仍由 `HuntEventSystem` 同步调用共享营地 `EventSystem`，事件选择事务尚未成为 Hunt Action 子树；采集覆盖层也仍直接准备、揭示和提交事务。地图生成会在地块内容解决前把相邻格改为可交互，与设计文档“先处理地块效果再开放相邻格”存在时序差异。三者应在下一批狩猎迁移中通过可等待的事件/采集 Action 与表现锁统一解决，不应只调整 View 回调顺序伪装领域状态。
 233. Unity MCP 定向 Hunt ActionSession 5/5、全量 EditMode 265/265 通过。正式 ZFramework Play Mode 探针确认从营地进入 Hunt 后独立会话和 Reactor 池有效、3 名猎人进入远征，正式 Tile 点击入口将相邻地块从 Interactable 提交为 Revealed，小队仍在原点且控制台 0 error；玩家存档哈希保持不变。
+234. 资源采集正式 View 已从直接调用事务改为通过 Hunt ActionSession 推进。`BeginHarvestAction` 锁定当前已揭示地图中的资源点并生成不可变牌序，Before Reactor 可安全覆盖抽取数量和命中率；UI 会按 Reactor 后的实际牌数重建卡背，不再假定资产原始 `DrawCount`。
+235. `AdvanceHarvestAction` 将单张揭示与最终提交拆为独立 Child。每张不可逆揭示立即发布 `HarvestCardRevealedEvent` 检查点；最后一张之后由 `CommitHarvestAction` 原子写入猎人收集物、耗尽资源点并发布 `HarvestCommittedEvent`。提交被覆盖时保留最后一张揭示并只允许重试提交，不会重抽或重复奖励。
+236. 对抗审查发现旧事务 `Cancel()` 只释放资源点预订但未使旧对象失效，调用方保留引用即可在新事务创建后继续翻牌，形成双事务竞争。现已增加幂等取消状态：取消/远征废弃后的事务不能揭示或提交；Hunt 会话释放会主动废弃所有未完成预订。
+237. 采集执行者现在在准备请求时按 Hunter 实例捕获，后续揭示与提交事实使用事务内 HunterId，不会因排队期间切换当前选中猎人而把奖励或 Reactor 路由记到另一角色。资源点实体句柄在单次 Hunt 内按对象引用缓存，跨步骤稳定且随环境释放。
+238. 正式 Action 入口会拒绝不属于当前地图或位于未揭示地块的资源点，避免外部调用使用伪造实例生成物品。旧 `ResourceSystem.Harvest` 与 `HuntManager` 同步回退仍为兼容代码保留，但正式 Popup 不再使用；阶段 4 应在确认无扩展调用者后删除双入口。
+239. 当前采集计划是准备时固定的有限牌序，尚不能表达案例中的矿脉“继续贪婪抽取/抽空则全损”等动态牌堆规则。后续表驱动资源点应以稳定 ResourcePointDefinitionId 选择采集策略/Action 工厂；普通事件或装备只通过 Reactor 调整参数或注入 Child，不应让 View 按资源显示名写特殊分支。
+240. Unity MCP 采集相关回归 12/12、全量 EditMode 272/272 通过。正式 ZFramework Play Mode 探针通过 Manager→Hunt ActionSession 接口在已揭示起点完成 1 张牌的准备、揭示和提交，资源点耗尽、奖励进入结果且会话继续有效，控制台 0 error；探针只改动 Play Mode 临时对象，玩家存档哈希保持不变。

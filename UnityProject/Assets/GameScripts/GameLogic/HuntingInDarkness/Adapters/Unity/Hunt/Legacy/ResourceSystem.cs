@@ -89,14 +89,14 @@ namespace HuntingInDarkness.Hunt
             return obtained;
         }
 
-        public PlayableHarvestTransaction PrepareHarvest(ResourcePointInstance point, HunterInstance hunter, float hitChance = 0.6f)
+        public PlayableHarvestTransaction PrepareHarvest(ResourcePointInstance point, HunterInstance hunter, float hitChance = 0.6f, int? drawCount = null)
         {
             if (point == null || point.IsExhausted || point.Resource == null) return null;
             if (!pendingHarvests.Add(point)) return null;
 
             try
             {
-                HarvestDrawPlan plan = HuntResourceRules.CreateHarvestPlan(point.DrawCount, hitChance, _rng);
+                HarvestDrawPlan plan = HuntResourceRules.CreateHarvestPlan(drawCount ?? point.DrawCount, hitChance, _rng);
                 return new PlayableHarvestTransaction(this, point, hunter, plan, () => pendingHarvests.Remove(point));
             }
             catch

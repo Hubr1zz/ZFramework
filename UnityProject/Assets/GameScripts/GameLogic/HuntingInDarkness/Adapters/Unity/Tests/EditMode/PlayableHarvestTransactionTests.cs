@@ -63,6 +63,21 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void CancelledTransaction_CannotResumeAfterPointIsReservedAgain()
+        {
+            var system = new ResourceSystem(new SequenceRandom(0.1));
+            var point = CreatePoint(1);
+            PlayableHarvestTransaction cancelled = system.PrepareHarvest(point, new HunterInstance(null, 1));
+
+            Assert.IsTrue(cancelled.Cancel());
+            Assert.IsTrue(cancelled.IsCancelled);
+            Assert.IsFalse(cancelled.CanReveal);
+            Assert.IsNotNull(system.PrepareHarvest(point, new HunterInstance(null, 2)));
+            Assert.Throws<InvalidOperationException>(() => cancelled.RevealNext());
+            Assert.Throws<InvalidOperationException>(() => system.CommitHarvest(cancelled));
+        }
+
+        [Test]
         public void RevealedTransaction_CannotCancelOrReroll()
         {
             var system = new ResourceSystem(new SequenceRandom(0.9));

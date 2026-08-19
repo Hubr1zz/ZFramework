@@ -138,7 +138,9 @@ Buff Gate 还需特别约束：Gate 虽按 Runner 注册，但不会自动按实
 
 状态：狩猎地图揭示/移动最小垂直切片已完成。`PlayableHuntActionSession` 随一次 Hunt 生命周期创建和释放，地图点击先捕获揭示或移动意图，再由 Runner 串行重验；`InteractHuntTileAction` 展开权威提交与地块事件两个 Child，分别开放 Reactor 覆盖窗口。提交后 Outbox 发布稳定坐标、交互类型、资源点数量和 Boss 标记事实；Boss 阶段切换延迟到 Root 与 Outbox 完成后，避免执行中的环境自释放。
 
-当前 Hunt 切片尚未把事件选择和资源采集纳入可等待子树。`HuntEventSystem` 仍同步桥接旧 EventSystem，采集覆盖层仍持有事务推进；相邻地块也会在事件选择完成前进入领域可交互状态。下一优先项是将采集计划/揭示/提交迁为独立 Composite，并为事件展示增加显式完成协议，再统一处理地图解锁时序。营地侧招募、休养和年度事件仍待迁移。
+资源采集切片也已完成：准备、逐卡揭示和最终提交全部由同一 Hunt 环境串行执行，分别开放 `BeginHarvestAction`、`RevealHarvestCardAction`、`CommitHarvestAction` Reactor 边界。准备阶段捕获执行猎人、验证资源点属于当前已揭示地图并允许覆盖牌数/命中率；每张揭示与最终奖励用 Outbox 检查点发布。会话退出会废弃未完成预订，提交被阻止时允许在不重抽的情况下重试。
+
+当前 Hunt 剩余核心缺口是事件选择的可等待子树。`HuntEventSystem` 仍同步桥接旧 EventSystem，相邻地块也会在事件选择完成前进入领域可交互状态。下一优先项是为事件展示增加显式完成协议，再统一处理地图解锁时序。动态“贪婪采集”等特殊资源规则也只保留 Action 工厂/策略扩展方向，尚未在普通固定牌序事务中硬编码。营地侧招募、休养和年度事件仍待迁移。
 
 ### 阶段 4：收口
 

@@ -65,6 +65,8 @@ namespace HuntingInDarkness.Hunt
 
         /// <summary>正式入口由 Hunt ActionSession 注入；为空时保留旧同步兼容路径。</summary>
         public System.Func<Vector2Int, UniTask> RequestTileInteraction;
+        public System.Func<ResourcePointInstance, UniTask<PlayableHarvestTransaction>> RequestPrepareHarvest;
+        public System.Func<PlayableHarvestTransaction, UniTask<PlayableHarvestStepResult>> RequestAdvanceHarvest;
 
         // ─── 构造 ────────────────────────────────────────────────
 
@@ -205,6 +207,15 @@ namespace HuntingInDarkness.Hunt
             OnResourcePointClicked?.Invoke(point, SelectedHunter);
         }
 
+        public bool IsHarvestablePoint(ResourcePointInstance point)
+        {
+            if (point == null || point.IsExhausted || point.Resource == null) return false;
+            foreach (HexTileInstance tile in Map.Values)
+                if (tile.State == TileState.Revealed && tile.ResourcePoints.Contains(point))
+                    return true;
+            return false;
+        }
+
         /// <summary>执行采集（由 UI 确认后调用）</summary>
         public List<ItemInstance> ExecuteHarvest(ResourcePointInstance point)
         {
@@ -215,12 +226,42 @@ namespace HuntingInDarkness.Hunt
 
         public PlayableHarvestTransaction PrepareHarvest(ResourcePointInstance point) => Resources.PrepareHarvest(point, SelectedHunter);
 
+        public UniTask<PlayableHarvestTransaction> PrepareHarvestAsync(ResourcePointInstance point)
+        {
+            if (RequestPrepareHarvest != null) return RequestPrepareHarvest(point);
+            return UniTask.FromResult(PrepareHarvest(point));
+        }
+
+        public UniTask<PlayableHarvestStepResult> AdvanceHarvestAsync(PlayableHarvestTransaction transaction)
+        {
+            if (RequestAdvanceHarvest != null) return RequestAdvanceHarvest(transaction);
+            if (transaction == null) return UniTask.FromResult(PlayableHarvestStepResult.Failed("采集事务不存在"));
+            if (transaction.IsCancelled) return UniTask.FromResult(PlayableHarvestStepResult.Failed("采集事务已经取消"));
+            if (!transaction.CanReveal && !transaction.IsComplete) return UniTask.FromResult(PlayableHarvestStepResult.Failed("采集事务不可推进"));
+            HarvestCardResult? revealedCard = transaction.CanReveal ? transaction.RevealNext() : null;
+            if (transaction.CanReveal) return UniTask.FromResult(PlayableHarvestStepResult.Revealed(revealedCard.Value));
+            IReadOnlyList<ItemInstance> obtained = CompleteHarvest(transaction);
+            return UniTask.FromResult(PlayableHarvestStepResult.Completed(revealedCard, obtained));
+        }
+
         public IReadOnlyList<ItemInstance> CompleteHarvest(PlayableHarvestTransaction transaction)
         {
             IReadOnlyList<ItemInstance> obtained = Resources.CommitHarvest(transaction);
             if (transaction?.Point != null)
-                OnResourcePointHarvested?.Invoke(transaction.Point);
+                NotifyResourcePointHarvested(transaction.Point);
             return obtained;
+        }
+
+        internal void NotifyResourcePointHarvested(ResourcePointInstance point)
+        {
+            try
+            {
+                OnResourcePointHarvested?.Invoke(point);
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception);
+            }
         }
 
         // ─── 狩猎结束 ─────────────────────────────────────────────

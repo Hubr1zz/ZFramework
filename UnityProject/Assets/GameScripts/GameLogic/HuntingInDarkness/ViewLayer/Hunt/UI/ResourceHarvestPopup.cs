@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.Hunt;
@@ -28,6 +29,7 @@ namespace UI.Hunt
         private static int nextInputOwnerId;
         private int inputOwnerId;
         private bool holdsInputGuard;
+        private bool harvestOperationRunning;
 
         private bool layoutBuilt;
 
@@ -145,34 +147,73 @@ namespace UI.Hunt
 
         private void OnClickHarvest()
         {
-            if (transaction?.IsCommitted == true) return;
-            transaction ??= _huntMgr?.PrepareHarvest(_point);
-            if (transaction == null)
-            {
-                _harvestBtn.interactable = false;
-                _resultText.text = "资源点状态已经改变，无法继续采集。";
-                return;
-            }
-            _closeBtn.interactable = false;
+            if (harvestOperationRunning || transaction?.IsCommitted == true) return;
+            AdvanceHarvestAsync().Forget();
+        }
 
-            if (transaction.CanReveal)
-            {
-                HarvestCardResult card = transaction.RevealNext();
-                RevealCard(card);
-            }
-
-            if (transaction.CanReveal)
-            {
-                harvestButtonText.text = $"翻开下一张（{transaction.RevealedCount}/{transaction.CardCount}）";
-                _resultText.text = $"已翻开 {transaction.RevealedCount}/{transaction.CardCount} · 命中 {transaction.RevealedHitCount}";
-                return;
-            }
-
-            IReadOnlyList<ItemInstance> obtained = _huntMgr.CompleteHarvest(transaction);
+        private async UniTaskVoid AdvanceHarvestAsync()
+        {
+            harvestOperationRunning = true;
             _harvestBtn.interactable = false;
-            _closeBtn.interactable = true;
-            harvestButtonText.text = "采集完成";
-            _resultText.text = obtained.Count > 0 ? $"✓ 获得：{_point.ResourceName} ×{obtained.Count}" : "全部落空（很不走运）";
+            _closeBtn.interactable = false;
+            try
+            {
+                if (transaction == null)
+                {
+                    transaction = await _huntMgr.PrepareHarvestAsync(_point);
+                    if (transaction != null)
+                        BuildCards(transaction.CardCount);
+                }
+                if (transaction == null)
+                {
+                    _closeBtn.interactable = true;
+                    _resultText.text = "资源点状态已经改变，无法继续采集。";
+                    return;
+                }
+
+                PlayableHarvestStepResult result = await _huntMgr.AdvanceHarvestAsync(transaction);
+                if (!result.Succeeded)
+                {
+                    if (result.HasRevealedCard)
+                        RevealCard(result.RevealedCard);
+                    _harvestBtn.interactable = true;
+                    _closeBtn.interactable = transaction.RevealedCount == 0;
+                    harvestButtonText.text = transaction.IsComplete ? "重试提交" : "重试翻牌";
+                    _resultText.text = string.IsNullOrWhiteSpace(result.Reason) ? "采集未完成，请重试。" : result.Reason;
+                    return;
+                }
+                if (result.HasRevealedCard)
+                    RevealCard(result.RevealedCard);
+
+                if (!result.IsCompleted)
+                {
+                    _harvestBtn.interactable = true;
+                    harvestButtonText.text = $"翻开下一张（{transaction.RevealedCount}/{transaction.CardCount}）";
+                    _resultText.text = $"已翻开 {transaction.RevealedCount}/{transaction.CardCount} · 命中 {transaction.RevealedHitCount}";
+                    return;
+                }
+
+                _closeBtn.interactable = true;
+                harvestButtonText.text = "采集完成";
+                _resultText.text = result.Obtained.Count > 0 ? $"✓ 获得：{_point.ResourceName} ×{result.Obtained.Count}" : "全部落空（很不走运）";
+            }
+            catch (System.OperationCanceledException)
+            {
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception);
+                if (_resultText != null)
+                    _resultText.text = "采集流程发生异常，请重试。";
+                if (_harvestBtn != null)
+                    _harvestBtn.interactable = transaction?.IsCommitted != true;
+                if (_closeBtn != null)
+                    _closeBtn.interactable = transaction == null || transaction.RevealedCount == 0 || transaction.IsCommitted;
+            }
+            finally
+            {
+                harvestOperationRunning = false;
+            }
         }
 
         private void RevealCard(HarvestCardResult card)
