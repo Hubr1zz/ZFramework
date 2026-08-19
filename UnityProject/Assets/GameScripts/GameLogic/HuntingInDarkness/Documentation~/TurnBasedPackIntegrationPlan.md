@@ -8,7 +8,7 @@
 
 不采用唯一全局 Runner。战役、营地、狩猎、战斗分别维护自己的 Action 执行环境和 Reactor 池，由战役协调器负责跨环境编排。这样既能共享同一套 Action 语义，又能让规则注册、取消、调试预算和释放边界与功能生命周期一致。
 
-当前阶段只完成评估与迁移门槛定义，不把既有流程零散接入新队列。旧 `GameCore/Cards/ActionQueue` 与 TurnBasedPack 不得共同执行同一个 Root Action。
+当前已完成环境基础、营地训练、主要战斗、狩猎地图/采集/事件及战役阶段切换的受控垂直迁移。旧 `GameCore/Cards/ActionQueue` 与 TurnBasedPack 仍不得共同执行同一个 Root Action。
 
 ## 第一性约束
 
@@ -63,7 +63,7 @@ Runner / Engine + ReactorRegistry + ReactionGates
 - Unity MCP 数据探针确认两个 Runner 的 ReactorRegistry 相互隔离：Runner A 的目标减伤 Reactor 不会影响 Runner B。
 - Engine 探针确认阻止产生 `Prevented`、失败可注入反击、间接循环会被预算终止为 `Failed`。
 - BuffSystem 与 PreviewSystem 的 17 个现有 EditMode 测试全部通过。
-- ActionQueue 核心目前没有 `[Test]` 自动化测试，只有示例与 Benchmark；不能把示例运行等同于核心回归保障。
+- ActionQueue 核心已经覆盖 Root FIFO、作用域隔离、取消、循环预算、提交事件和 after-commit 交接；业务回归继续通过 Unity MCP 执行。
 
 ## 接入前的实际阻塞
 
@@ -95,6 +95,8 @@ Runner / Engine + ReactorRegistry + ReactionGates
 - `ActionEnvironment` 统一 Engine、Reactor、Gate、Guard、生命周期取消和释放。
 - `ReactorEntityHandleRegistry` 保证同一环境内稳定引用身份、不同环境之间身份隔离，释放后禁止重新创建句柄。
 - `ActionEventOutbox` 每个 Root 独占；成功后按顺序发布 TEngine 事件，失败、取消、阻止或环境释放时丢弃。
+- `StageAfterCommit` 专用于跨环境交接：检查点不会提前发布，只有 Root 成功且源 Engine 已清理活动链后才触发监听器，因此监听器可以安全释放源环境或向目标环境提交新 Root。
+- `PlayableCampaignActionSession` 随战役存活并串行阶段切换；Settlement、Hunt、Combat 环境仍只维护各自生命周期，不互相嵌套执行。
 
 需要特别注意：Engine 返回的是 Root Action 的 Outcome，并不会自动把任意 Reactor 注入 Action 的普通 `Failed` 汇总成整个 Chain 失败。会影响提交成败的关键步骤必须成为 Root Composite 的可观察子 Action，或由后续明确的 Chain Commit Policy 汇总；不能让“可能失败但不影响 Root Outcome”的 Reactor Action 暂存权威提交事件。
 
@@ -142,7 +144,9 @@ Buff Gate 还需特别约束：Gate 虽按 Runner 注册，但不会自动按实
 
 狩猎事件的可等待子树已经完成：地块提交后先由独立 Action 选择事件，再按 FIFO 将每个事件/子事件展开成可覆盖节点；View 仅通过 `IHuntEventInput` 返回决定，结算、重投和效果仍归 Runner。地图规则同步拆为揭示与开放邻格两步，最终开放只发生在事件子树结束之后。无 UI 环境会确定性选择首个合法选项，避免测试与兼容入口悬挂。
 
-当前 Hunt 剩余重点是 Boss 遭遇与跨阶段结果还没有进入 `CampaignFlowCoordinator`，`TriggerCombat` 事件效果仍只发布全局事实；动态“贪婪采集”等特殊资源规则也只保留 Action 工厂/策略扩展方向。旧 `EventSystem` 全局队列和 Hunt 同步自动回退形成暂时双入口，待营地年度事件迁入 Settlement 环境后统一删除。营地侧招募、休养和年度事件仍待迁移。
+战役阶段切换的底层入口已进入 `PlayableCampaignActionSession`：请求由 Campaign Runner 串行重验，Before Reactor 可阻止或注入前置流程，阶段提交事实仅在源 Root 收尾后发布。Boss 胜利也改用 after-commit 交接，不再在 Combat Root 检查点内同步销毁自身环境。
+
+当前跨环境剩余重点是 `TriggerCombat` 事件效果仍只发布无遭遇上下文的全局事实，不能在正式内容中作为权威切换入口；必须先改为携带来源环境与遭遇定义的提交结果，再由 Campaign Runner 消费。阶段进入初始化若在 FSM 已切换后抛出异常，仍没有通用回滚；进入营地的异步存档也尚未成为 Campaign Outcome。生产内容的 Reactor 表绑定层应随首批装备/状态表落地，不提前制造空抽象。动态“贪婪采集”等特殊资源规则仍只保留 Action 工厂/策略扩展方向，营地侧招募、休养和年度事件仍待迁移。
 
 ### 阶段 4：收口
 

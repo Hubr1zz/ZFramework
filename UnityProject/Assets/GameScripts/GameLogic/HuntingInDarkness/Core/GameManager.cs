@@ -17,6 +17,7 @@ using HuntingInDarkness.Settlement;
 using HuntingInDarkness.Combat;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.ActionFlow.Hunt;
+using HuntingInDarkness.ActionFlow.Campaign;
 using SO.Boss.ActionCard;
 using SO.Boss.HitLocation;
 using SO.Combat;
@@ -36,7 +37,7 @@ namespace Core
     /// 管理三个游戏大阶段（Settlement / Hunt / BossFight）的根物体开关，
     /// 以及 Boss决战子系统的初始化与运行。
     /// </summary>
-    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider
+    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, ICampaignPhaseTransitionHost
     {
         // ─── 单例 ─────────────────────────────────────────────────────
         public static GameManager Instance { get; private set; }
@@ -122,6 +123,7 @@ namespace Core
         private PlayableCombatSession _combatSession;
         private PlayableSettlementActionSession settlementActionSession;
         private PlayableHuntActionSession huntActionSession;
+        private PlayableCampaignActionSession campaignActionSession;
         private IHuntEventInput huntEventInput;
 
         // ─── 运行时数据 ───────────────────────────────────────────────
@@ -174,6 +176,7 @@ namespace Core
             var startPhase = devMode ? devStartPhase : GamePhase.Settlement;
             _settlementManager = CreateSettlementManager();
             _phaseManager.Start(startPhase);
+            campaignActionSession = new PlayableCampaignActionSession(this);
 
             if (startPhase == GamePhase.Settlement)
             {
@@ -614,6 +617,8 @@ namespace Core
         public SettlementInstance SettlementData => _settlementManager?.Data;
         public IReadOnlyList<HunterInstance> ActiveHuntHunters => _huntMgr != null ? _huntMgr.ActiveHunters : System.Array.Empty<HunterInstance>();
         public bool IsHuntActionSessionActive => huntActionSession?.IsActive == true;
+        public bool IsCampaignActionSessionActive => campaignActionSession?.IsActive == true;
+        public CardGame.ActionQueue.ReactorRegistry CampaignActionReactors => campaignActionSession?.Reactors;
         public CardGame.ActionQueue.ReactorRegistry HuntActionReactors => huntActionSession?.Reactors;
         public InventionSystem SettlementInventions => _settlementManager?.Inventions;
         public WorkshopSystem SettlementWorkshop => _settlementManager?.Workshop;
@@ -692,21 +697,44 @@ namespace Core
         /// 切换游戏大阶段。GameManager 负责 Enable/Disable 对应根物体，
         /// 并触发该阶段的初始化逻辑。
         /// </summary>
-        public void TransitionToPhase(GamePhase newPhase)
+        public void TransitionToPhase(GamePhase newPhase) => TransitionToPhaseAsync(newPhase).Forget();
+
+        public UniTask<CampaignPhaseTransitionResult> TransitionToPhaseAsync(GamePhase newPhase)
         {
-            if (_phaseManager == null || newPhase == _phaseManager.CurrentPhase) return;
+            if (campaignActionSession?.IsActive == true)
+                return campaignActionSession.TransitionAsync(newPhase, this.GetCancellationTokenOnDestroy());
+            GamePhase previousPhase = CurrentGamePhase;
+            if (TryApplyPhaseTransition(newPhase, out string reason))
+                return UniTask.FromResult(new CampaignPhaseTransitionResult(true, previousPhase != CurrentGamePhase, previousPhase, CurrentGamePhase, string.Empty));
+            return UniTask.FromResult(CampaignPhaseTransitionResult.Failed(CurrentGamePhase, reason));
+        }
+
+        GamePhase ICampaignPhaseTransitionHost.CurrentPhase => CurrentGamePhase;
+
+        bool ICampaignPhaseTransitionHost.TryApplyPhaseTransition(GamePhase targetPhase, out string reason) => TryApplyPhaseTransition(targetPhase, out reason);
+
+        private bool TryApplyPhaseTransition(GamePhase newPhase, out string reason)
+        {
+            reason = string.Empty;
+            if (_phaseManager == null)
+            {
+                reason = "阶段管理器尚未初始化";
+                return false;
+            }
+            if (newPhase == _phaseManager.CurrentPhase) return true;
             GamePhase previousPhase = _phaseManager.CurrentPhase;
 
-            // 离开当前阶段的清理
-            switch (_phaseManager.CurrentPhase)
+            // 先让 FSM 确认切换，再释放旧会话，避免切换被拒绝时留下“旧阶段仍在但会话已销毁”。
+            if (!_phaseManager.TransitionTo(newPhase))
             {
-                case GamePhase.BossFight:
-                    ApplyBossFightLoot();
-                    DisposeCombatSession();
-                    break;
+                reason = $"无法从 {previousPhase} 切换到 {newPhase}";
+                return false;
             }
-
-            if (!_phaseManager.TransitionTo(newPhase)) return;
+            if (previousPhase == GamePhase.BossFight)
+            {
+                ApplyBossFightLoot();
+                DisposeCombatSession();
+            }
             if (previousPhase == GamePhase.Settlement)
                 DisposeSettlementActionSession();
             if (previousPhase == GamePhase.Hunt)
@@ -741,6 +769,7 @@ namespace Core
                     EnterBossFightPhase();
                     break;
             }
+            return true;
         }
 
         private void EnterBossFightPhase()
@@ -780,6 +809,9 @@ namespace Core
 
         private void OnDestroy()
         {
+            PlayableCampaignActionSession campaignSession = campaignActionSession;
+            campaignActionSession = null;
+            campaignSession?.Dispose();
             _phaseManager?.Shutdown();
             EventBus.Unsubscribe<BossDefeatedEvent>(OnBossDefeated);
             EventBus.Unsubscribe<GameOverEvent>(OnGameOver);

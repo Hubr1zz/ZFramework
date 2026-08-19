@@ -431,3 +431,8 @@
 244. 对抗审查修复了测试夹具中起点与普通地块 ScriptableObject 同名导致配置映射碰撞、事件测试实际未进入事件节点的问题，并增加阻塞输入验证：玩家尚未确认时效果为 0 且邻格仍锁定，确认后两级事件效果各提交一次并统一开放邻格。
 245. 当前仍保留两项有边界的兼容债务：`EventSystem` 同时维护旧营地全局事件队列和新的单节点结算 API；`HuntManager` 在没有 ActionSession 时还包含同步自动选择回退。营地事件迁入其 Action 环境后应删除双编排入口，并把输入端口装配从 `GameManager` 移入 Hunt Session/View Installer，避免组合根继续增长。
 246. Unity MCP 定向 Hunt ActionSession 6/6、全量 EditMode 273/273 通过。正式 ZFramework Play Mode 数据探针经正式 Hunt Session 揭示带运行时两级事件链的地块，事件资源增量为 2、原锁定邻格在链后开放、会话保持有效且控制台 0 error；运行时资产已销毁，玩家存档哈希保持不变。
+247. ActionQueue 宏观评估确认全游戏共用语义但分离执行环境的方案成立：Campaign、Settlement、Hunt、Combat 各自拥有 Runner/Reactor/Gate 与生命周期，跨环境只允许在来源 Root 提交并收尾后产生目标 Root，禁止 Runner 互相嵌套执行。
+248. 对抗审查发现 Boss 胜利原本在 Combat Outbox 检查点同步发布，`GameManager` 监听后会在攻击 Root 尚未收尾时释放当前 Combat 环境。新增 after-commit 事件区后，检查点不会提前发布跨环境事实，失败/取消会丢弃，成功则在 Engine 清空活动链后安全交接。
+249. 新增常驻 `PlayableCampaignActionSession` 与 `TransitionCampaignPhaseAction`，公开阶段请求由 Campaign Runner 串行重验，Before Reactor 可阻止或注入战役级前置流程；阶段提交事实仅在 Root 成功后发布。不同功能仍维护独立执行环境，没有退化为会泄漏规则与生命周期的单一全局 Runner。
+250. `GameManager` 现作为窄 `ICampaignPhaseTransitionHost` 保留场景装配兼容职责，并把顺序调整为“FSM 接受 → 释放旧会话 → 初始化新阶段”，避免转换被拒绝后旧阶段仍在但会话已丢失。新阶段初始化异常回滚、保存失败反馈和 `TriggerCombat` 遭遇上下文仍明确留给后续完整 Coordinator。
+251. Unity MCP 全量 EditMode 279/279 通过。正式 ZFramework Play Mode 数据探针通过 Campaign 命令完成 `Settlement → Hunt`，Campaign 与 Hunt Session 均有效、3 名猎人进入远征且控制台 0 error；探针未执行玩法结算，玩家存档哈希保持不变。

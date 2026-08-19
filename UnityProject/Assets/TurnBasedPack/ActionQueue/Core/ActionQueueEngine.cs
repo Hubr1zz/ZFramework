@@ -228,7 +228,6 @@ namespace CardGame.ActionQueue
                         ? _activeChain.AbortOutcome
                         : _activeChain.RootOutcome ?? ActionOutcome.Failure("Root action produced no outcome.");
 
-                    request.Completion.TrySetResult(rootOutcome);
                     if (_activeChain.DiscardHistory)
                         DebugClearAll();
                     else
@@ -238,6 +237,9 @@ namespace CardGame.ActionQueue
                     _activeChainCancellation = null;
                     _workQueue.Clear();
                     _activeChain = null;
+                    // 先完成本 Root 的内部清理，再唤醒外部 continuation。外部可能立刻释放 Engine
+                    // 或向另一个环境交接流程，不能让它重入一个仍持有 ActiveChain 的执行泵。
+                    request.Completion.TrySetResult(rootOutcome);
                 }
             }
             finally

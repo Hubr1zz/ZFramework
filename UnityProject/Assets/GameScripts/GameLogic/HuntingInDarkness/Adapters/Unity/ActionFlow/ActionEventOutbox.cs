@@ -16,15 +16,23 @@ namespace HuntingInDarkness.ActionFlow
     public sealed class ActionEventOutbox
     {
         private readonly List<IPendingEvent> pendingEvents = new();
+        private readonly List<IPendingEvent> afterCommitEvents = new();
         private bool claimed;
 
         public ActionEventOutboxState State { get; private set; } = ActionEventOutboxState.Pending;
-        public int PendingCount => pendingEvents.Count;
+        public int PendingCount => pendingEvents.Count + afterCommitEvents.Count;
 
         public void Stage<TEvent>(TEvent evt) where TEvent : struct
         {
             EnsurePending();
             pendingEvents.Add(new PendingEvent<TEvent>(evt));
+        }
+
+        /// <summary>仅在所属 Root 完成后发布；检查点不会提前冲刷跨环境交接事实。</summary>
+        public void StageAfterCommit<TEvent>(TEvent evt) where TEvent : struct
+        {
+            EnsurePending();
+            afterCommitEvents.Add(new PendingEvent<TEvent>(evt));
         }
 
         /// <summary>发布已经不可回滚的增量状态事实，同时保持 Outbox 可供同一 Root 继续暂存后续事件。</summary>
@@ -51,11 +59,17 @@ namespace HuntingInDarkness.ActionFlow
                 throw new InvalidOperationException("An unclaimed event outbox cannot be committed.");
             State = ActionEventOutboxState.Committed;
             PublishPendingEvents();
+            PublishEvents(afterCommitEvents);
         }
 
         private void PublishPendingEvents()
         {
-            foreach (IPendingEvent pendingEvent in pendingEvents)
+            PublishEvents(pendingEvents);
+        }
+
+        private static void PublishEvents(List<IPendingEvent> events)
+        {
+            foreach (IPendingEvent pendingEvent in events)
             {
                 try
                 {
@@ -66,7 +80,7 @@ namespace HuntingInDarkness.ActionFlow
                     Debug.LogException(exception);
                 }
             }
-            pendingEvents.Clear();
+            events.Clear();
         }
 
         internal void Discard()
@@ -74,6 +88,7 @@ namespace HuntingInDarkness.ActionFlow
             if (State != ActionEventOutboxState.Pending) return;
             State = ActionEventOutboxState.Discarded;
             pendingEvents.Clear();
+            afterCommitEvents.Clear();
         }
 
         private void EnsurePending()

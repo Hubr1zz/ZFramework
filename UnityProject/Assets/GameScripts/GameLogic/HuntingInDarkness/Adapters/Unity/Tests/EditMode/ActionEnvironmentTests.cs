@@ -98,6 +98,76 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task ExecuteAsync_AfterCommitFactsIgnoreCheckpointsAndPublishAfterRoot()
+        {
+            var received = new List<int>();
+            int countAtCheckpoint = -1;
+            System.Action<TestCommittedEvent> handler = evt => received.Add(evt.Value);
+            EventBus.Subscribe(handler);
+            try
+            {
+                using var environment = CreateEnvironment(ActionEnvironmentKind.Combat);
+                var outbox = new ActionEventOutbox();
+
+                ActionOutcome outcome = await environment.ExecuteAsync(new CheckpointThenCommitAction(outbox, () => countAtCheckpoint = received.Count), outbox);
+
+                Assert.That(outcome.IsSuccess, Is.True);
+                Assert.That(countAtCheckpoint, Is.EqualTo(1));
+                Assert.That(received, Is.EqualTo(new[] { 1, 2 }));
+                Assert.That(outbox.State, Is.EqualTo(ActionEventOutboxState.Committed));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
+        public async Task ExecuteAsync_FailureDiscardsAfterCommitFacts()
+        {
+            int receivedCount = 0;
+            System.Action<TestCommittedEvent> handler = _ => receivedCount++;
+            EventBus.Subscribe(handler);
+            try
+            {
+                using var environment = CreateEnvironment(ActionEnvironmentKind.Campaign);
+                var outbox = new ActionEventOutbox();
+
+                ActionOutcome outcome = await environment.ExecuteAsync(new AfterCommitThenFailAction(outbox), outbox);
+
+                Assert.That(outcome.Status, Is.EqualTo(ActionStatus.Failed));
+                Assert.That(receivedCount, Is.Zero);
+                Assert.That(outbox.State, Is.EqualTo(ActionEventOutboxState.Discarded));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
+        public async Task ExecuteAsync_AfterCommitHandlerCanDisposeSourceEnvironment()
+        {
+            var environment = CreateEnvironment(ActionEnvironmentKind.Combat);
+            var outbox = new ActionEventOutbox();
+            System.Action<TestCommittedEvent> handler = _ => environment.Dispose();
+            EventBus.Subscribe(handler);
+            try
+            {
+                ActionOutcome outcome = await environment.ExecuteAsync(new AfterCommitAction(outbox), outbox);
+
+                Assert.That(outcome.IsSuccess, Is.True);
+                Assert.That(environment.IsDisposed, Is.True);
+                Assert.That(outbox.State, Is.EqualTo(ActionEventOutboxState.Committed));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+                environment.Dispose();
+            }
+        }
+
+        [Test]
         public async Task Dispose_CancelsActiveRootAndDiscardsFacts()
         {
             int receivedCount = 0;
@@ -242,6 +312,59 @@ namespace HuntingInDarkness.Adapter.Tests
                 started.TrySetResult(true);
                 await release.Task;
                 return ActionOutcome.Success();
+            }
+        }
+
+        private sealed class CheckpointThenCommitAction : CommandAction
+        {
+            private readonly ActionEventOutbox outbox;
+            private readonly System.Action afterCheckpoint;
+
+            public CheckpointThenCommitAction(ActionEventOutbox outbox, System.Action afterCheckpoint)
+            {
+                this.outbox = outbox;
+                this.afterCheckpoint = afterCheckpoint;
+            }
+
+            protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
+            {
+                outbox.Stage(new TestCommittedEvent(1));
+                outbox.StageAfterCommit(new TestCommittedEvent(2));
+                outbox.PublishCheckpoint();
+                afterCheckpoint();
+                return UniTask.FromResult(ActionOutcome.Success());
+            }
+        }
+
+        private sealed class AfterCommitThenFailAction : CommandAction
+        {
+            private readonly ActionEventOutbox outbox;
+
+            public AfterCommitThenFailAction(ActionEventOutbox outbox)
+            {
+                this.outbox = outbox;
+            }
+
+            protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
+            {
+                outbox.StageAfterCommit(new TestCommittedEvent(1));
+                return UniTask.FromResult(ActionOutcome.Failure("test"));
+            }
+        }
+
+        private sealed class AfterCommitAction : CommandAction
+        {
+            private readonly ActionEventOutbox outbox;
+
+            public AfterCommitAction(ActionEventOutbox outbox)
+            {
+                this.outbox = outbox;
+            }
+
+            protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
+            {
+                outbox.StageAfterCommit(new TestCommittedEvent(1));
+                return UniTask.FromResult(ActionOutcome.Success());
             }
         }
     }

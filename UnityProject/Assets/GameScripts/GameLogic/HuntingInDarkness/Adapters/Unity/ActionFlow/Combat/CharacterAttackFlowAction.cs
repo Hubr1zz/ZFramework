@@ -415,10 +415,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
         protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
             if (execution.Context.GameContext?.Boss is IBossVitalityState vitality && vitality.TryClaimDefeat())
-            {
-                execution.EventOutbox.Stage(new BossDefeatedEvent());
-                execution.EventOutbox.PublishCheckpoint();
-            }
+                execution.EventOutbox.StageAfterCommit(new BossDefeatedEvent());
             return UniTask.FromResult(ActionOutcome.Success());
         }
     }
