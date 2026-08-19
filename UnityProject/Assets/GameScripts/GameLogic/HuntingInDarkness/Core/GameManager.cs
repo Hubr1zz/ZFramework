@@ -122,6 +122,7 @@ namespace Core
         private PlayableCombatSession _combatSession;
         private PlayableSettlementActionSession settlementActionSession;
         private PlayableHuntActionSession huntActionSession;
+        private IHuntEventInput huntEventInput;
 
         // ─── 运行时数据 ───────────────────────────────────────────────
 
@@ -523,6 +524,7 @@ namespace Core
             }
 
             PlayableHuntDestinationRuntime.ApplyTo(_huntMgr);
+            _huntMgr.EventInput = huntEventInput;
             _huntMgr.OnEnter(hunters, _settlementManager?.Data.CurrentYear ?? 1);
             DisposeHuntActionSession();
             huntActionSession = new PlayableHuntActionSession(_huntMgr);
@@ -618,6 +620,21 @@ namespace Core
         public HunterManagementSystem SettlementHunters => _settlementManager?.HunterMgmt;
         public event System.Action<EventData, HunterInstance> SettlementEventPresented;
         public event System.Action<bool> SettlementProgressLoadCompleted;
+
+        public void SetHuntEventInput(IHuntEventInput input)
+        {
+            huntEventInput = input;
+            if (_huntMgr != null)
+                _huntMgr.EventInput = input;
+        }
+
+        public void ClearHuntEventInput(IHuntEventInput input)
+        {
+            if (!ReferenceEquals(huntEventInput, input)) return;
+            huntEventInput = null;
+            if (_huntMgr != null && ReferenceEquals(_huntMgr.EventInput, input))
+                _huntMgr.EventInput = null;
+        }
 
         public bool TryDepartForHunt(List<int> hunterIds) => _settlementManager != null && _settlementManager.TryDepart(hunterIds);
 

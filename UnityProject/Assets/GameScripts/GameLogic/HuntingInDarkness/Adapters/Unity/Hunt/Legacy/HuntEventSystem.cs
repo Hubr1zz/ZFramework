@@ -42,48 +42,44 @@ namespace HuntingInDarkness.Hunt
         /// </summary>
         public void OnTileRevealed(HexTileInstance tile, HunterInstance selectedHunter)
         {
-            if (tile == null || tile.HasBossEncounter) return;
+            EventData gameEvent = SelectTileRevealEvent(tile);
+            if (gameEvent != null)
+                _eventSystem.TriggerEvent(gameEvent, selectedHunter);
+        }
 
-            // 地块规则事件（必触发）
+        public EventData SelectTileRevealEvent(HexTileInstance tile)
+        {
+            if (tile == null || tile.HasBossEncounter) return null;
             if (tile.Config?.tileRevealEvent != null)
             {
                 Debug.Log($"[HuntEvent] 地块 {tile.AxialCoord} 规则事件：{tile.Config.tileRevealEvent.eventName}");
-                _eventSystem.TriggerEvent(tile.Config.tileRevealEvent, selectedHunter);
-                return;
+                return tile.Config.tileRevealEvent;
             }
-
-            // 随机狩猎事件（30%）
-            if (HuntEventRules.ShouldTrigger(0.30, _rng))
-            {
-                var evt = PickRandomHuntEvent();
-                if (evt != null)
-                {
-                    Debug.Log($"[HuntEvent] 随机触发狩猎事件：{evt.eventName}");
-                    _eventSystem.TriggerEvent(evt, selectedHunter);
-                }
-            }
+            if (!HuntEventRules.ShouldTrigger(0.30, _rng)) return null;
+            EventData gameEvent = PickRandomHuntEvent();
+            if (gameEvent != null)
+                Debug.Log($"[HuntEvent] 随机触发狩猎事件：{gameEvent.eventName}");
+            return gameEvent;
         }
 
         /// <summary>猎人移动到已翻开地块时的事件检查</summary>
         public void OnSquadMoved(HexTileInstance tile, HunterInstance selectedHunter)
         {
-            if (tile == null || tile.State != TileState.Revealed) return;
+            EventData gameEvent = SelectSquadMoveEvent(tile);
+            if (gameEvent != null)
+                _eventSystem.TriggerEvent(gameEvent, selectedHunter);
+        }
 
-            // Boss遭遇：移动到Boss地块时触发（由 HuntManager 处理）
+        public EventData SelectSquadMoveEvent(HexTileInstance tile)
+        {
+            if (tile == null || tile.State != TileState.Revealed) return null;
             if (tile.HasBossEncounter)
             {
                 Debug.Log($"[HuntEvent] 移动到Boss遭遇地块 {tile.AxialCoord}");
-                return;
+                return null;
             }
-            if (!checkedMoveTiles.Add(tile.AxialCoord)) return;
-
-            // 小概率触发随机事件（15%）
-            if (HuntEventRules.ShouldTrigger(0.15, _rng))
-            {
-                var evt = PickRandomHuntEvent();
-                if (evt != null)
-                    _eventSystem.TriggerEvent(evt, selectedHunter);
-            }
+            if (!checkedMoveTiles.Add(tile.AxialCoord) || !HuntEventRules.ShouldTrigger(0.15, _rng)) return null;
+            return PickRandomHuntEvent();
         }
 
         // ─── 内部工具 ─────────────────────────────────────────────

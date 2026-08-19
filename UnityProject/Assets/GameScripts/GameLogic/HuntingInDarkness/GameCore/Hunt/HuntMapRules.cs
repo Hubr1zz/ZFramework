@@ -60,11 +60,20 @@ namespace HuntingInDarkness.GameCore.Hunt
 
         public static List<GridPosition> Reveal(HuntMapState map, GridPosition position)
         {
-            if (!map.Tiles.TryGetValue(position, out HuntTileState tile) ||
-                tile.Visibility != HuntTileVisibility.Interactable)
-                return new List<GridPosition>();
+            if (!RevealOnly(map, position)) return new List<GridPosition>();
+            return UnlockNeighbors(map, position);
+        }
 
+        public static bool RevealOnly(HuntMapState map, GridPosition position)
+        {
+            if (!map.Tiles.TryGetValue(position, out HuntTileState tile) || tile.Visibility != HuntTileVisibility.Interactable) return false;
             tile.Visibility = HuntTileVisibility.Revealed;
+            return true;
+        }
+
+        public static List<GridPosition> UnlockNeighbors(HuntMapState map, GridPosition position)
+        {
+            if (!map.Tiles.TryGetValue(position, out HuntTileState tile) || tile.Visibility != HuntTileVisibility.Revealed) return new List<GridPosition>();
             var newlyInteractable = new List<GridPosition>();
             foreach (GridPosition neighbor in GetNeighbors(position))
             {

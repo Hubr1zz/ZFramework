@@ -425,3 +425,9 @@
 238. 正式 Action 入口会拒绝不属于当前地图或位于未揭示地块的资源点，避免外部调用使用伪造实例生成物品。旧 `ResourceSystem.Harvest` 与 `HuntManager` 同步回退仍为兼容代码保留，但正式 Popup 不再使用；阶段 4 应在确认无扩展调用者后删除双入口。
 239. 当前采集计划是准备时固定的有限牌序，尚不能表达案例中的矿脉“继续贪婪抽取/抽空则全损”等动态牌堆规则。后续表驱动资源点应以稳定 ResourcePointDefinitionId 选择采集策略/Action 工厂；普通事件或装备只通过 Reactor 调整参数或注入 Child，不应让 View 按资源显示名写特殊分支。
 240. Unity MCP 采集相关回归 12/12、全量 EditMode 272/272 通过。正式 ZFramework Play Mode 探针通过 Manager→Hunt ActionSession 接口在已揭示起点完成 1 张牌的准备、揭示和提交，资源点耗尽、奖励进入结果且会话继续有效，控制台 0 error；探针只改动 Play Mode 临时对象，玩家存档哈希保持不变。
+241. 狩猎事件已从共享 `EventSystem.TriggerEvent` 回调桥迁入 Hunt Action 子树。地块交互现在依次展开提交、事件选择、逐事件节点结算与地图开放；每个事件节点都是独立 Reactor 边界，子事件链由 Hunt Runner 以 FIFO 维护，不再依赖全局可变事件队列推进。
+242. `IHuntEventInput` 将表现层限制为叙事确认、选项/猎人选择、判定重投决定和结果确认。正式 `PlayableSettlementEventView` 复用原有事件界面实现该端口，但骰子、重投消耗、效果提交和链推进全部由 Action 持有；无 View 的测试/兼容环境采用首个合法选项的确定性回退，不会使 Runner 永久等待。
+243. 地图领域规则已拆分为 `RevealOnly` 与 `UnlockNeighbors`。揭示提交会立即确定地块和资源点，但相邻格保持 Locked，直到整个事件子树结束后由 `FinalizeHuntTileInteractionAction` 开放并通知 View，符合“先地块效果、后开放邻格”的设计时序；事件被 Reactor 跳过时仍可正常完成开放。
+244. 对抗审查修复了测试夹具中起点与普通地块 ScriptableObject 同名导致配置映射碰撞、事件测试实际未进入事件节点的问题，并增加阻塞输入验证：玩家尚未确认时效果为 0 且邻格仍锁定，确认后两级事件效果各提交一次并统一开放邻格。
+245. 当前仍保留两项有边界的兼容债务：`EventSystem` 同时维护旧营地全局事件队列和新的单节点结算 API；`HuntManager` 在没有 ActionSession 时还包含同步自动选择回退。营地事件迁入其 Action 环境后应删除双编排入口，并把输入端口装配从 `GameManager` 移入 Hunt Session/View Installer，避免组合根继续增长。
+246. Unity MCP 定向 Hunt ActionSession 6/6、全量 EditMode 273/273 通过。正式 ZFramework Play Mode 数据探针经正式 Hunt Session 揭示带运行时两级事件链的地块，事件资源增量为 2、原锁定邻格在链后开放、会话保持有效且控制台 0 error；运行时资产已销毁，玩家存档哈希保持不变。

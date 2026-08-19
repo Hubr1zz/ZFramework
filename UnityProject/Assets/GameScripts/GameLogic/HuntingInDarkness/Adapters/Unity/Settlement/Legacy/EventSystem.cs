@@ -23,6 +23,7 @@ namespace HuntingInDarkness.Settlement
 
         /// <summary>当事件结束（包含子事件链全部处理完）后调用</summary>
         public System.Action OnEventChainCompleted;
+        internal SettlementInstance Settlement => _settlement;
 
         // 当前处理中的事件队列（子事件链用）
         private readonly Queue<EventData> _pendingChain = new();
@@ -77,11 +78,20 @@ namespace HuntingInDarkness.Settlement
         /// </summary>
         public void ResolveNarrative(EventData evt)
         {
-            foreach (var effect in evt.immediateEffects)
-                ApplyEffect(effect, _selectedHunter);
-            MarkEventCompleted(evt);
-            EnqueueChain(evt.chainedEvents);
+            IReadOnlyList<EventData> chain = ResolveNarrativeStandalone(evt, _selectedHunter);
+            EnqueueChain(chain);
             ProcessNextInChain();
+        }
+
+        /// <summary>结算单个叙事节点并返回后续节点，不触碰共享事件队列。</summary>
+        public IReadOnlyList<EventData> ResolveNarrativeStandalone(EventData gameEvent, HunterInstance actor = null)
+        {
+            if (gameEvent == null) return System.Array.Empty<EventData>();
+            if (gameEvent.immediateEffects != null)
+                foreach (EventEffect effect in gameEvent.immediateEffects)
+                    ApplyEffect(effect, actor, actor);
+            MarkEventCompleted(gameEvent);
+            return gameEvent.chainedEvents ?? (IReadOnlyList<EventData>)System.Array.Empty<EventData>();
         }
 
         // ─── 抉择事件结算 ────────────────────────────────────────
@@ -119,7 +129,7 @@ namespace HuntingInDarkness.Settlement
             var effects = success ? option.successEffects : option.failEffects;
             if (effects != null)
                 foreach (var effect in effects)
-                    ApplyEffect(effect, actor);
+                    ApplyEffect(effect, actor, actor);
             MarkEventCompleted(evt);
 
             // 追加子事件链
@@ -163,6 +173,11 @@ namespace HuntingInDarkness.Settlement
 
         public void ApplyEffect(EventEffect effect, HunterInstance target)
         {
+            ApplyEffect(effect, target, _selectedHunter ?? target);
+        }
+
+        private void ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor)
+        {
             if (effect == null) return;
             if (effect.effectType == EventEffectType.ScheduleEvent)
             {
@@ -180,7 +195,7 @@ namespace HuntingInDarkness.Settlement
                 ToCoreEffectKind(effect.effectType),
                 effect.targetName,
                 effect.value,
-                _selectedHunter ?? target,
+                eventActor,
                 target,
                 _settlement.GetAvailableHunters(),
                 _settlement.GetResource,
@@ -189,7 +204,7 @@ namespace HuntingInDarkness.Settlement
                 _settlement.UnlockInvention);
 
             if (outcome.Handled && effect.effectType == EventEffectType.AddAilment)
-                PlayableSymptomRuntime.SynchronizeHunter(_selectedHunter ?? target);
+                PlayableSymptomRuntime.SynchronizeHunter(eventActor);
             if (outcome.Handled && (effect.effectType == EventEffectType.AddCourage || effect.effectType == EventEffectType.AddUnderstanding))
                 PlayableGrowthMilestoneRuntime.Synchronize(_settlement);
 
@@ -213,7 +228,7 @@ namespace HuntingInDarkness.Settlement
 
         // ─── 工具 ────────────────────────────────────────────────
 
-        private void EnqueueChain(List<EventData> chain)
+        private void EnqueueChain(IEnumerable<EventData> chain)
         {
             if (chain == null) return;
             foreach (var e in chain)

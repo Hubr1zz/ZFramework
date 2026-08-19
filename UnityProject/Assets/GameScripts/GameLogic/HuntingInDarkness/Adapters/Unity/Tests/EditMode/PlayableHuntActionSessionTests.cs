@@ -1,8 +1,11 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CardGame.ActionQueue;
 using Core;
+using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
@@ -115,6 +118,40 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(rig.Manager.SquadPosition, Is.EqualTo(Vector2Int.zero));
         }
 
+        [Test]
+        public async Task Reveal_WaitsForEntireEventChainBeforeUnlockingNeighbors()
+        {
+            using var rig = new HuntRig();
+            EventData chainedEvent = ScriptableObject.CreateInstance<EventData>();
+            chainedEvent.name = "QueuedTileEventChild";
+            chainedEvent.eventName = "后续事件";
+            chainedEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = "test-resource", value = 1 });
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = "test-resource", value = 1 });
+            rig.TileEvent.chainedEvents.Add(chainedEvent);
+            var input = new BlockingNarrativeInput();
+            rig.Manager.EventInput = input;
+            HexTileInstance target = rig.FirstInteractable;
+            List<HexTileInstance> lockedNeighbors = HexMapGenerator.GetNeighbors(target.AxialCoord).Where(position => rig.Manager.Map.TryGetValue(position, out HexTileInstance tile) && tile.State == TileState.Locked).Select(position => rig.Manager.Map[position]).ToList();
+            Assert.That(lockedNeighbors, Is.Not.Empty);
+
+            UniTask<HuntTileCommandResult> interaction = rig.Session.InteractTileAsync(target.AxialCoord);
+            Task started = await Task.WhenAny(input.Started.Task, Task.Delay(5000));
+            Assert.That(started, Is.SameAs(input.Started.Task), "事件 Action 未在 5 秒内请求玩家输入");
+
+            Assert.That(target.State, Is.EqualTo(TileState.Revealed));
+            Assert.That(lockedNeighbors.All(tile => tile.State == TileState.Locked), Is.True);
+            Assert.That(rig.Settlement.GetResource("test-resource"), Is.Zero);
+
+            input.Continue.TrySetResult(true);
+            HuntTileCommandResult result = await interaction;
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(input.PresentationCount, Is.EqualTo(2));
+            Assert.That(lockedNeighbors.All(tile => tile.State == TileState.Interactable), Is.True);
+            Assert.That(rig.Settlement.GetResource("test-resource"), Is.EqualTo(2));
+            UnityEngine.Object.DestroyImmediate(chainedEvent);
+        }
+
         private sealed class HuntRig : IDisposable
         {
             private readonly EventData tileEvent;
@@ -129,13 +166,16 @@ namespace HuntingInDarkness.Adapter.Tests
                 tileEvent.category = EventCategory.Hunt;
                 tileEvent.drawWeight = 1;
                 startingTile = ScriptableObject.CreateInstance<HexTileData>();
+                startingTile.name = "QueuedStartingTile";
                 startingTile.tileType = TileType.Starting;
                 startingTile.tileName = "起点";
                 plainTile = ScriptableObject.CreateInstance<HexTileData>();
+                plainTile.name = "QueuedPlainTile";
                 plainTile.tileType = TileType.Plains;
                 plainTile.tileName = "测试地块";
                 plainTile.tileRevealEvent = tileEvent;
-                EventSystem = new EventSystem(new SettlementInstance(), new FirstRandom());
+                Settlement = new SettlementInstance();
+                EventSystem = new EventSystem(Settlement, new FirstRandom());
                 Manager = new HuntManager(EventSystem, seed: 17)
                 {
                     StartingTileConfig = startingTile,
@@ -146,6 +186,8 @@ namespace HuntingInDarkness.Adapter.Tests
             }
 
             public EventSystem EventSystem { get; }
+            public SettlementInstance Settlement { get; }
+            public EventData TileEvent => tileEvent;
             public HuntManager Manager { get; }
             public PlayableHuntActionSession Session { get; }
             public HexTileInstance FirstInteractable => Manager.Map.Values.First(tile => tile.State == TileState.Interactable);
@@ -157,6 +199,25 @@ namespace HuntingInDarkness.Adapter.Tests
                 UnityEngine.Object.DestroyImmediate(startingTile);
                 UnityEngine.Object.DestroyImmediate(tileEvent);
             }
+        }
+
+        private sealed class BlockingNarrativeInput : IHuntEventInput
+        {
+            public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            public TaskCompletionSource<bool> Continue { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            public int PresentationCount { get; private set; }
+
+            public async UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken)
+            {
+                PresentationCount++;
+                if (PresentationCount != 1) return;
+                Started.TrySetResult(true);
+                await Continue.Task.AsUniTask().AttachExternalCancellation(cancellationToken);
+            }
+
+            public UniTask<HuntEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new HuntEventChoiceSelection(-1, null));
+            public UniTask<HuntEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(HuntEventCheckDecision.Accept);
+            public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
         }
 
         private sealed class PreventCommitReactor : GameActionReactor<CommitHuntTileInteractionAction>

@@ -72,24 +72,25 @@ namespace HuntingInDarkness.Hunt
             Vector2Int coord,
             System.Action<HexTileInstance> spawnResourcesCallback)
         {
-            if (!map.TryGetValue(coord, out HexTileInstance selected) ||
-                selected.DomainState == null ||
-                selected.DomainState.Visibility != HuntTileVisibility.Interactable)
-                return new List<Vector2Int>();
+            if (!RevealTileDeferred(map, coord, spawnResourcesCallback)) return new List<Vector2Int>();
+            return UnlockNeighbors(map, coord);
+        }
 
-            var domainMap = new HuntMapState();
-            foreach (KeyValuePair<Vector2Int, HexTileInstance> pair in map)
-                if (pair.Value.DomainState != null)
-                    domainMap.Tiles[ToCore(pair.Key)] = pair.Value.DomainState;
-
-            List<GridPosition> revealed = CoreMapGenerator.Reveal(domainMap, ToCore(coord));
+        public bool RevealTileDeferred(Dictionary<Vector2Int, HexTileInstance> map, Vector2Int coord, System.Action<HexTileInstance> spawnResourcesCallback)
+        {
+            if (!TryBuildDomainMap(map, coord, HuntTileVisibility.Interactable, out HuntMapState domainMap, out HexTileInstance selected)) return false;
+            if (!CoreMapGenerator.RevealOnly(domainMap, ToCore(coord))) return false;
             selected.SyncFromDomain();
-            if (selected.State != TileState.Revealed)
-                return new List<Vector2Int>();
-
             spawnResourcesCallback?.Invoke(selected);
-            var result = new List<Vector2Int>(revealed.Count);
-            foreach (GridPosition position in revealed)
+            return selected.State == TileState.Revealed;
+        }
+
+        public List<Vector2Int> UnlockNeighbors(Dictionary<Vector2Int, HexTileInstance> map, Vector2Int coord)
+        {
+            if (!TryBuildDomainMap(map, coord, HuntTileVisibility.Revealed, out HuntMapState domainMap, out _)) return new List<Vector2Int>();
+            List<GridPosition> unlocked = CoreMapGenerator.UnlockNeighbors(domainMap, ToCore(coord));
+            var result = new List<Vector2Int>(unlocked.Count);
+            foreach (GridPosition position in unlocked)
             {
                 Vector2Int unityPosition = ToUnity(position);
                 if (map.TryGetValue(unityPosition, out HexTileInstance tile))
@@ -127,6 +128,17 @@ namespace HuntingInDarkness.Hunt
 
         private static GridPosition ToCore(Vector2Int value) =>
             new GridPosition(value.x, value.y);
+
+        private static bool TryBuildDomainMap(Dictionary<Vector2Int, HexTileInstance> map, Vector2Int coord, HuntTileVisibility expectedVisibility, out HuntMapState domainMap, out HexTileInstance selected)
+        {
+            domainMap = new HuntMapState();
+            selected = null;
+            if (map == null || !map.TryGetValue(coord, out selected) || selected.DomainState == null || selected.DomainState.Visibility != expectedVisibility) return false;
+            foreach (KeyValuePair<Vector2Int, HexTileInstance> pair in map)
+                if (pair.Value.DomainState != null)
+                    domainMap.Tiles[ToCore(pair.Key)] = pair.Value.DomainState;
+            return true;
+        }
 
         private static Vector2Int ToUnity(GridPosition value) =>
             new Vector2Int(value.X, value.Y);

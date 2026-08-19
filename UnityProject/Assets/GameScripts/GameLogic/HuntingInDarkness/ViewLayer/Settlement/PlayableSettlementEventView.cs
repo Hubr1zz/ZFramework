@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.Threading;
 using Core;
+using Cysharp.Threading.Tasks;
 using GameplayBase;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
@@ -8,8 +11,17 @@ using UnityEngine;
 namespace HuntingInDarkness.ViewLayer.Settlement
 {
     /// <summary>可玩组合根的事件 View：选择对象、展示判定、重投，再提交唯一结果。</summary>
-    public sealed class PlayableSettlementEventView : MonoBehaviour
+    public sealed class PlayableSettlementEventView : MonoBehaviour, IHuntEventInput
     {
+        private enum HuntPromptKind
+        {
+            None,
+            Narrative,
+            Choice,
+            Check,
+            Result
+        }
+
         private const int WindowId = 68022;
         private static int nextHuntInputOwnerId;
         private GameManager manager;
@@ -25,13 +37,83 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private GUIStyle bodyStyle;
         private GUIStyle resultStyle;
         private Texture2D windowTexture;
+        private HuntPromptKind huntPrompt;
+        private UniTaskCompletionSource narrativeSource;
+        private UniTaskCompletionSource<HuntEventChoiceSelection> choiceSource;
+        private UniTaskCompletionSource<HuntEventCheckDecision> checkSource;
+        private UniTaskCompletionSource resultSource;
 
         public void Initialize(GameManager gameManager)
         {
             manager = gameManager;
             huntInputOwnerId = System.Threading.Interlocked.Increment(ref nextHuntInputOwnerId);
             if (manager != null)
+            {
                 manager.SettlementEventPresented += ShowEvent;
+                manager.SetHuntEventInput(this);
+            }
+        }
+
+        public async UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken)
+        {
+            BeginHuntPrompt(HuntPromptKind.Narrative, gameEvent, actor);
+            narrativeSource = new UniTaskCompletionSource();
+            try
+            {
+                await narrativeSource.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                narrativeSource = null;
+                EndHuntPrompt(HuntPromptKind.Narrative);
+            }
+        }
+
+        public async UniTask<HuntEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken)
+        {
+            BeginHuntPrompt(HuntPromptKind.Choice, gameEvent, actor);
+            choiceSource = new UniTaskCompletionSource<HuntEventChoiceSelection>();
+            try
+            {
+                return await choiceSource.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                choiceSource = null;
+                EndHuntPrompt(HuntPromptKind.Choice);
+            }
+        }
+
+        public async UniTask<HuntEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction preparedTransaction, CancellationToken cancellationToken)
+        {
+            BeginHuntPrompt(HuntPromptKind.Check, preparedTransaction.GameEvent, preparedTransaction.Actor);
+            transaction = preparedTransaction;
+            checkSource = new UniTaskCompletionSource<HuntEventCheckDecision>();
+            try
+            {
+                return await checkSource.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                checkSource = null;
+                EndHuntPrompt(HuntPromptKind.Check);
+            }
+        }
+
+        public async UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken)
+        {
+            BeginHuntPrompt(HuntPromptKind.Result, gameEvent, null);
+            resultText = string.IsNullOrWhiteSpace(result.ResultText) ? (result.Success ? "判定成功。" : "判定失败。") : result.ResultText;
+            resultSource = new UniTaskCompletionSource();
+            try
+            {
+                await resultSource.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                resultSource = null;
+                EndHuntPrompt(HuntPromptKind.Result);
+            }
         }
 
         private void OnGUI()
@@ -107,7 +189,12 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                         GUILayout.Label(reason, bodyStyle);
                 }
                 if (availableOptionCount == 0 && GUILayout.Button("没有可行的行动，只能接受沉默", GUILayout.Height(44f)))
-                    ResolveNarrative();
+                {
+                    if (huntPrompt == HuntPromptKind.Choice)
+                        choiceSource?.TrySetResult(new HuntEventChoiceSelection(-1, null));
+                    else
+                        ResolveNarrative();
+                }
                 return;
             }
 
@@ -161,10 +248,20 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
             GUI.enabled = transaction.CanReroll;
             if (GUILayout.Button(transaction.CanReroll ? "消耗 1 意志重投" : "无法继续重投", GUILayout.Height(42f)))
-                transaction.TryReroll();
+            {
+                if (huntPrompt == HuntPromptKind.Check)
+                    checkSource?.TrySetResult(HuntEventCheckDecision.Reroll);
+                else
+                    transaction.TryReroll();
+            }
             GUI.enabled = true;
             if (GUILayout.Button("接受这个结果", GUILayout.Height(44f)))
-                CommitChoice();
+            {
+                if (huntPrompt == HuntPromptKind.Check)
+                    checkSource?.TrySetResult(HuntEventCheckDecision.Accept);
+                else
+                    CommitChoice();
+            }
         }
 
         private void DrawCommittedResult()
@@ -179,6 +276,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void ShowEvent(EventData gameEvent, HunterInstance hunter)
         {
+            if (huntPrompt != HuntPromptKind.None) return;
             if (manager == null || manager.CurrentGamePhase != GamePhase.Settlement && manager.CurrentGamePhase != GamePhase.Hunt) return;
             eventPhase = manager.CurrentGamePhase;
             if (eventPhase == GamePhase.Hunt)
@@ -201,6 +299,11 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             }
 
             pendingOptionIndex = optionIndex;
+            if (huntPrompt == HuntPromptKind.Choice)
+            {
+                choiceSource?.TrySetResult(new HuntEventChoiceSelection(optionIndex, currentHunter));
+                return;
+            }
             PrepareChoice(currentHunter);
         }
 
@@ -227,6 +330,11 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void PrepareChoice(HunterInstance hunter)
         {
+            if (huntPrompt == HuntPromptKind.Choice)
+            {
+                choiceSource?.TrySetResult(new HuntEventChoiceSelection(pendingOptionIndex, hunter));
+                return;
+            }
             transaction = manager.PrepareSettlementChoice(currentEvent, pendingOptionIndex, hunter);
             pendingOptionIndex = -1;
             if (transaction == null)
@@ -250,6 +358,11 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void ContinueEventChain()
         {
+            if (huntPrompt == HuntPromptKind.Result)
+            {
+                resultSource?.TrySetResult();
+                return;
+            }
             PlayableEventChoiceTransaction completed = transaction;
             transaction = null;
             resultText = string.Empty;
@@ -259,6 +372,11 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void ResolveNarrative()
         {
+            if (huntPrompt == HuntPromptKind.Narrative)
+            {
+                narrativeSource?.TrySetResult();
+                return;
+            }
             EventData resolved = currentEvent;
             currentEvent = null;
             currentHunter = null;
@@ -271,6 +389,31 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private void ReleaseHuntInputIfIdle()
         {
             if (currentEvent != null || transaction != null || !string.IsNullOrEmpty(resultText)) return;
+            PlayableHuntInputGuard.Release(huntInputOwnerId);
+        }
+
+        private void BeginHuntPrompt(HuntPromptKind prompt, EventData gameEvent, HunterInstance actor)
+        {
+            if (huntPrompt != HuntPromptKind.None) throw new System.InvalidOperationException("狩猎事件输入端口已经在处理另一项请求。");
+            huntPrompt = prompt;
+            eventPhase = GamePhase.Hunt;
+            currentEvent = gameEvent;
+            currentHunter = actor;
+            transaction = null;
+            pendingOptionIndex = -1;
+            resultText = string.Empty;
+            PlayableHuntInputGuard.Acquire(huntInputOwnerId);
+        }
+
+        private void EndHuntPrompt(HuntPromptKind prompt)
+        {
+            if (huntPrompt != prompt) return;
+            huntPrompt = HuntPromptKind.None;
+            currentEvent = null;
+            currentHunter = null;
+            transaction = null;
+            pendingOptionIndex = -1;
+            resultText = string.Empty;
             PlayableHuntInputGuard.Release(huntInputOwnerId);
         }
 
@@ -337,9 +480,16 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void OnDestroy()
         {
+            narrativeSource?.TrySetCanceled();
+            choiceSource?.TrySetCanceled();
+            checkSource?.TrySetCanceled();
+            resultSource?.TrySetCanceled();
             PlayableHuntInputGuard.Release(huntInputOwnerId);
             if (manager != null)
+            {
                 manager.SettlementEventPresented -= ShowEvent;
+                manager.ClearHuntEventInput(this);
+            }
             if (windowTexture != null)
                 Destroy(windowTexture);
         }
