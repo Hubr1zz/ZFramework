@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core;
 using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.GameCore.Board;
@@ -24,7 +25,7 @@ namespace HuntingInDarkness.Hunt
         public HuntEventSystem   HuntEvents    { get; private set; }
         private readonly EventSystem _eventSystem;
         internal EventSystem EventSystem => _eventSystem;
-        public IHuntEventInput EventInput { get; set; }
+        public IPlayableEventInput EventInput { get; set; }
 
         // ─── 地图状态 ─────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ namespace HuntingInDarkness.Hunt
             _eventSystem = sharedEventSystem;
             MapGen       = new HexMapGenerator(_rng, mapRadius: 3);
             Resources    = new ResourceSystem(_rng);
-            HuntEvents   = new HuntEventSystem(_eventSystem, _rng);
+            HuntEvents   = new HuntEventSystem(_rng);
             PlayableHuntContentRuntime.ApplyTo(this);
         }
 

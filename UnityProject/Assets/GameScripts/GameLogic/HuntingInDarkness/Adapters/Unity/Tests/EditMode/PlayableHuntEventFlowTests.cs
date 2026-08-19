@@ -27,19 +27,16 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void RevealNonBoss_WithGuaranteedRoll_PresentsConfiguredEvent()
+        public void RevealNonBoss_WithGuaranteedRoll_SelectsConfiguredEvent()
         {
             EventData gameEvent = CreateEvent("GuaranteedHuntEvent");
-            var eventSystem = new EventSystem(new SettlementInstance(), new FirstRandom());
-            var huntEvents = new HuntEventSystem(eventSystem, new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
-            EventData presented = null;
-            eventSystem.OnEventTriggered = (triggered, _) => presented = triggered;
+            var huntEvents = new HuntEventSystem(new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
 
             try
             {
-                huntEvents.OnTileRevealed(new HexTileInstance { State = TileState.Revealed }, null);
+                EventData selected = huntEvents.SelectTileRevealEvent(new HexTileInstance { State = TileState.Revealed });
 
-                Assert.That(presented, Is.SameAs(gameEvent));
+                Assert.That(selected, Is.SameAs(gameEvent));
             }
             finally
             {
@@ -53,16 +50,13 @@ namespace HuntingInDarkness.Adapter.Tests
             EventData gameEvent = CreateEvent("ForbiddenBossEvent");
             HexTileData config = ScriptableObject.CreateInstance<HexTileData>();
             config.tileRevealEvent = gameEvent;
-            var eventSystem = new EventSystem(new SettlementInstance(), new FirstRandom());
-            var huntEvents = new HuntEventSystem(eventSystem, new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
-            int presentedCount = 0;
-            eventSystem.OnEventTriggered = (_, _) => presentedCount++;
+            var huntEvents = new HuntEventSystem(new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
 
             try
             {
-                huntEvents.OnTileRevealed(new HexTileInstance { State = TileState.Revealed, HasBossEncounter = true, Config = config }, null);
+                EventData selected = huntEvents.SelectTileRevealEvent(new HexTileInstance { State = TileState.Revealed, HasBossEncounter = true, Config = config });
 
-                Assert.That(presentedCount, Is.Zero);
+                Assert.That(selected, Is.Null);
             }
             finally
             {
@@ -75,21 +69,16 @@ namespace HuntingInDarkness.Adapter.Tests
         public void MoveEvent_ChecksEachTileOncePerSession()
         {
             EventData gameEvent = CreateEvent("OncePerTileEvent");
-            var eventSystem = new EventSystem(new SettlementInstance(), new FirstRandom());
-            var huntEvents = new HuntEventSystem(eventSystem, new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
+            var huntEvents = new HuntEventSystem(new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
             var tile = new HexTileInstance { State = TileState.Revealed, AxialCoord = new Vector2Int(1, 0) };
-            int presentedCount = 0;
-            eventSystem.OnEventTriggered = (_, _) => presentedCount++;
 
             try
             {
-                huntEvents.OnSquadMoved(tile, null);
-                huntEvents.OnSquadMoved(tile, null);
-                Assert.That(presentedCount, Is.EqualTo(1));
+                Assert.That(huntEvents.SelectSquadMoveEvent(tile), Is.SameAs(gameEvent));
+                Assert.That(huntEvents.SelectSquadMoveEvent(tile), Is.Null);
 
                 huntEvents.ResetSession();
-                huntEvents.OnSquadMoved(tile, null);
-                Assert.That(presentedCount, Is.EqualTo(2));
+                Assert.That(huntEvents.SelectSquadMoveEvent(tile), Is.SameAs(gameEvent));
             }
             finally
             {
@@ -103,25 +92,19 @@ namespace HuntingInDarkness.Adapter.Tests
             EventData gameEvent = CreateEvent("FutureHuntEvent");
             gameEvent.minYear = 2;
             gameEvent.maxYear = 3;
-            var eventSystem = new EventSystem(new SettlementInstance(), new FirstRandom());
-            var huntEvents = new HuntEventSystem(eventSystem, new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
+            var huntEvents = new HuntEventSystem(new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
             var tile = new HexTileInstance { State = TileState.Revealed };
-            int presentedCount = 0;
-            eventSystem.OnEventTriggered = (_, _) => presentedCount++;
 
             try
             {
                 huntEvents.ResetSession(1);
-                huntEvents.OnTileRevealed(tile, null);
-                Assert.That(presentedCount, Is.Zero);
+                Assert.That(huntEvents.SelectTileRevealEvent(tile), Is.Null);
 
                 huntEvents.ResetSession(2);
-                huntEvents.OnTileRevealed(tile, null);
-                Assert.That(presentedCount, Is.EqualTo(1));
+                Assert.That(huntEvents.SelectTileRevealEvent(tile), Is.SameAs(gameEvent));
 
                 huntEvents.ResetSession(4);
-                huntEvents.OnTileRevealed(tile, null);
-                Assert.That(presentedCount, Is.EqualTo(1));
+                Assert.That(huntEvents.SelectTileRevealEvent(tile), Is.Null);
             }
             finally
             {

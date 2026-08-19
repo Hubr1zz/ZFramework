@@ -142,13 +142,13 @@ Buff Gate 还需特别约束：Gate 虽按 Runner 注册，但不会自动按实
 
 资源采集切片也已完成：准备、逐卡揭示和最终提交全部由同一 Hunt 环境串行执行，分别开放 `BeginHarvestAction`、`RevealHarvestCardAction`、`CommitHarvestAction` Reactor 边界。准备阶段捕获执行猎人、验证资源点属于当前已揭示地图并允许覆盖牌数/命中率；每张揭示与最终奖励用 Outbox 检查点发布。会话退出会废弃未完成预订，提交被阻止时允许在不重抽的情况下重试。
 
-狩猎事件的可等待子树已经完成：地块提交后先由独立 Action 选择事件，再按 FIFO 将每个事件/子事件展开成可覆盖节点；View 仅通过 `IHuntEventInput` 返回决定，结算、重投和效果仍归 Runner。地图规则同步拆为揭示与开放邻格两步，最终开放只发生在事件子树结束之后。无 UI 环境会确定性选择首个合法选项，避免测试与兼容入口悬挂。
+狩猎事件的可等待子树已经完成：地块提交后先由独立 Action 选择事件，再按 FIFO 将每个事件/子事件展开成可覆盖节点；View 仅通过通用 `IPlayableEventInput` 返回决定，结算、重投和效果仍归 Runner。地图规则同步拆为揭示与开放邻格两步，最终开放只发生在事件子树结束之后。无 UI 环境会确定性选择首个合法选项，避免测试与兼容入口悬挂。
 
 战役阶段切换的底层入口已进入 `PlayableCampaignActionSession`：请求由 Campaign Runner 串行重验，Before Reactor 可阻止或注入前置流程，阶段提交事实仅在源 Root 收尾后发布。Boss 胜利也改用 after-commit 交接，不再在 Combat Root 检查点内同步销毁自身环境。
 
 `TriggerCombat` 的跨环境链路已经完成：Hunt Root 用 after-commit 发布带来源 Session、阶段、坐标、事件和稳定 EncounterId 的 `CampaignEncounterRequest`；营地旧事件入口也改发结构化遭遇事实。Campaign Runner 重新验证来源会话、从 `PlayableEncounterCatalog` 解析 BattleSetup，再切换至 BossFight；未知配置和旧会话保持原阶段。首场 `first-showdown` 已通过目录接线，两类 Boss 地块均配置稳定 ID；目录接口后续可替换为读表 Provider。
 
-当前剩余边界是营地事件效果本身仍由旧 `EventSystem` 直接提交，只有遭遇交接进入 Campaign Runner；营地事件迁入 Settlement Action 环境后才能获得完整 Root/Reaction 语义。一次事件树出现多个遭遇时目前确定性采用事件定义优先的首个请求并停止后续链，尚未设计“战后恢复原事件链”。阶段进入初始化若在 FSM 已切换后抛出异常仍没有通用回滚；进入营地的异步存档也尚未成为 Campaign Outcome。生产内容的 Reactor 表绑定层应随首批装备/状态表落地，不提前制造空抽象。动态“贪婪采集”等特殊资源规则仍只保留 Action 工厂/策略扩展方向，营地侧招募、休养和年度事件仍待迁移。
+营地年度事件也已迁入 Settlement Action 环境，并与 Hunt 复用同一个节点 Action、输入契约、提交检查点和事件链保护；两个环境仍各自维护 Runner、实体与 Reactor 池。旧 `EventSystem` 共享队列已没有生产调用者，但兼容类和旧 UI 尚待阶段 4 清理。一次事件树出现多个遭遇时目前确定性采用事件定义优先的首个请求并停止后续链，尚未设计“战后恢复原事件链”。阶段进入初始化若在 FSM 已切换后抛出异常仍没有通用回滚；进入营地的异步存档也尚未成为 Campaign Outcome。生产内容的 Reactor 表绑定层应随首批装备/状态表落地，不提前制造空抽象。动态“贪婪采集”等特殊资源规则仍只保留 Action 工厂/策略扩展方向，营地侧招募与休养仍待迁移。
 
 ### 阶段 4：收口
 

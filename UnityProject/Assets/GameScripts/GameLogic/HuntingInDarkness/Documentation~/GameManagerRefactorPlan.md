@@ -51,8 +51,8 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 2. 阶段切换现在先由 FSM 接受，再释放旧会话，已消除“转换被拒绝但旧会话已销毁”；但新阶段初始化抛出异常时仍缺少离开/进入计划和补偿式回滚，应继续收归完整 `CampaignFlowCoordinator`。
 3. `GameManager` 仍是兼容外观与临时装配点。新增玩法不得继续向其中加入领域规则，应进入 GameCore、会话对象或窄 Adapter。
 4. 当前 `CombatSession` 仍通过全局 EventBus 接收伤亡、有效伤害等事实；事件尚未携带 SessionId。正常生命周期已在离场时退订，但未来并行模拟或异步事件跨帧延迟时，需要由 ActionEnvironment/Outbox 提供明确会话归属。
-5. 事件输入端口目前仍以历史名称 `IHuntEventInput` 由 `GameManager` 暂存并转交 Settlement/Hunt Session，这是复用现有 View 的小范围接线。抽出阶段 Session/View Installer 时应重命名为通用端口并由会话直接拥有，组合根只负责构造和释放。
-6. `TriggerCombat` 已使用带 SessionId、来源阶段与 EncounterId 的结构化请求，并由 Campaign Runner 校验、解析和切换；营地年度事件也已迁入 Settlement Runner。旧 `EventSystem` 的共享队列 API 只剩兼容调用方，确认旧 UI 无生产依赖后应删除，避免新内容重新接入双编排入口。
+5. 事件输入端口已重命名为通用 `IPlayableEventInput`，Hunt/Settlement Session 共享契约但维护独立执行环境；`GameManager` 仍暂存并分发同一个 View 实例。抽出阶段 Session/View Installer 时应让会话直接拥有输入端口，组合根只负责构造和释放。
+6. `TriggerCombat` 已使用带 SessionId、来源阶段与 EncounterId 的结构化请求，并由 Campaign Runner 校验、解析和切换；营地年度事件也已迁入 Settlement Runner。旧 `EventSystem` 的共享队列 API 已无生产调用者，但旧类和两套兼容 UI 尚未删除；确认场景引用后应一起收口，避免新内容重新接入双编排入口。
 7. 进入营地的自动保存仍是异步 `.Forget()`，领域切换成功与磁盘失败没有统一结果；后续需要显式保存重试/退出策略，不能把文件 IO 伪装成可回滚领域事务。
 8. 战斗事件目前默认使用当前狩猎小队，或营地全部可用猎人；事件级参与者选择规则尚未定稿。正式出现单挑、护送或临时盟友遭遇时，应让遭遇定义产生显式 Roster Plan，而不是在 `GameManager` 增加名称判断。
 

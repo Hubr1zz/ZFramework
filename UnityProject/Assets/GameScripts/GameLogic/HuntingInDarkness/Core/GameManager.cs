@@ -18,6 +18,7 @@ using HuntingInDarkness.Combat;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Campaign;
+using HuntingInDarkness.ActionFlow.Events;
 using SO.Boss.ActionCard;
 using SO.Boss.HitLocation;
 using SO.Combat;
@@ -124,7 +125,7 @@ namespace Core
         private PlayableSettlementActionSession settlementActionSession;
         private PlayableHuntActionSession huntActionSession;
         private PlayableCampaignActionSession campaignActionSession;
-        private IHuntEventInput huntEventInput;
+        private IPlayableEventInput playableEventInput;
 
         // ─── 运行时数据 ───────────────────────────────────────────────
 
@@ -465,7 +466,7 @@ namespace Core
         {
             DisposeSettlementActionSession();
             if (_settlementManager?.Data == null) return;
-            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, huntEventInput);
+            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput);
         }
 
         private void DisposeSettlementActionSession()
@@ -528,7 +529,7 @@ namespace Core
             }
 
             PlayableHuntDestinationRuntime.ApplyTo(_huntMgr);
-            _huntMgr.EventInput = huntEventInput;
+            _huntMgr.EventInput = playableEventInput;
             _huntMgr.OnEnter(hunters, _settlementManager?.Data.CurrentYear ?? 1);
             DisposeHuntActionSession();
             huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId);
@@ -627,19 +628,19 @@ namespace Core
         public event System.Action<EventData, HunterInstance> SettlementEventPresented;
         public event System.Action<bool> SettlementProgressLoadCompleted;
 
-        public void SetHuntEventInput(IHuntEventInput input)
+        public void SetPlayableEventInput(IPlayableEventInput input)
         {
-            huntEventInput = input;
+            playableEventInput = input;
             if (settlementActionSession != null)
                 settlementActionSession.EventInput = input;
             if (_huntMgr != null)
                 _huntMgr.EventInput = input;
         }
 
-        public void ClearHuntEventInput(IHuntEventInput input)
+        public void ClearPlayableEventInput(IPlayableEventInput input)
         {
-            if (!ReferenceEquals(huntEventInput, input)) return;
-            huntEventInput = null;
+            if (!ReferenceEquals(playableEventInput, input)) return;
+            playableEventInput = null;
             if (settlementActionSession != null && ReferenceEquals(settlementActionSession.EventInput, input))
                 settlementActionSession.EventInput = null;
             if (_huntMgr != null && ReferenceEquals(_huntMgr.EventInput, input))

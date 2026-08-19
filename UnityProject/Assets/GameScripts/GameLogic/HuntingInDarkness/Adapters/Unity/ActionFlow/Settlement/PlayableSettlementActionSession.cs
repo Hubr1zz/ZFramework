@@ -1,9 +1,9 @@
 using System;
 using CardGame.ActionQueue;
 using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
-using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 
 namespace HuntingInDarkness.ActionFlow.Settlement
@@ -16,7 +16,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly EventSystem eventSystem;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IHuntEventInput eventInput = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
@@ -37,7 +37,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         public ReactorRegistry Reactors => environment.Reactors;
         public ReactionGateRegistry ReactionGates => environment.ReactionGates;
         public bool IsRunning => environment.IsRunning;
-        public IHuntEventInput EventInput { get; set; }
+        public IPlayableEventInput EventInput { get; set; }
 
         public bool CanTrainWeapon(int hunterId, string masteryId, out string reason)
         {

@@ -6,6 +6,7 @@ using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Campaign;
+using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
@@ -319,6 +320,67 @@ namespace HuntingInDarkness.Adapter.Tests
             }
         }
 
+        [Test]
+        public async Task ForeignActorSelection_FallsBackToCurrentSettlementRoster()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            HunterInstance rosterHunter = settlement.Hunters[0];
+            var foreignHunter = new HunterInstance(null, 999) { Name = "外来猎人" };
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "foreign-actor";
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption
+            {
+                optionText = "迎难而上",
+                checkType = CheckType.Courage,
+                checkTarget = 1,
+                successEffects = new List<EventEffect> { new EventEffect { effectType = EventEffectType.AddCourage, targetName = "selected", value = 1 } }
+            });
+            try
+            {
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem, new ForeignActorInput(foreignHunter));
+
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(rosterHunter.Courage, Is.EqualTo(1));
+                Assert.That(foreignHunter.Courage, Is.Zero);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public async Task SelfReferencingEvent_IsCommittedOnceAndReportsDuplicate()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            EventData gameEvent = CreateNarrativeEvent("self-cycle", "碎石", 1);
+            gameEvent.chainedEvents.Add(gameEvent);
+            int preventedCount = 0;
+            Action<PlayableEventDuplicatePreventedEvent> handler = _ => preventedCount++;
+            EventBus.Subscribe(handler);
+            try
+            {
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem);
+
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(result.ResolvedCount, Is.EqualTo(1));
+                Assert.That(settlement.GetResource("碎石"), Is.EqualTo(1));
+                Assert.That(preventedCount, Is.EqualTo(1));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
         private static SettlementInstance CreateSettlement(int resourceAmount)
         {
             var settlement = new SettlementInstance();
@@ -359,7 +421,7 @@ namespace HuntingInDarkness.Adapter.Tests
             public double NextDouble() => 0d;
         }
 
-        private sealed class BlockingEventInput : IHuntEventInput
+        private sealed class BlockingEventInput : IPlayableEventInput
         {
             public UniTaskCompletionSource<bool> Started { get; } = new();
 
@@ -369,12 +431,12 @@ namespace HuntingInDarkness.Adapter.Tests
                 await UniTask.Delay(-1, cancellationToken: cancellationToken);
             }
 
-            public UniTask<HuntEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new HuntEventChoiceSelection(-1, null));
-            public UniTask<HuntEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(HuntEventCheckDecision.Accept);
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(-1, null));
+            public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
             public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
         }
 
-        private sealed class RerollThenBlockInput : IHuntEventInput
+        private sealed class RerollThenBlockInput : IPlayableEventInput
         {
             private readonly HunterInstance hunter;
             private int checkCount;
@@ -386,16 +448,31 @@ namespace HuntingInDarkness.Adapter.Tests
 
             public UniTaskCompletionSource<bool> Rerolled { get; } = new();
             public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
-            public UniTask<HuntEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new HuntEventChoiceSelection(0, hunter));
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(0, hunter));
 
-            public async UniTask<HuntEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken)
+            public async UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken)
             {
-                if (checkCount++ == 0) return HuntEventCheckDecision.Reroll;
+                if (checkCount++ == 0) return PlayableEventCheckDecision.Reroll;
                 Rerolled.TrySetResult(true);
                 await UniTask.Delay(-1, cancellationToken: cancellationToken);
-                return HuntEventCheckDecision.Accept;
+                return PlayableEventCheckDecision.Accept;
             }
 
+            public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
+        }
+
+        private sealed class ForeignActorInput : IPlayableEventInput
+        {
+            private readonly HunterInstance foreignActor;
+
+            public ForeignActorInput(HunterInstance foreignActor)
+            {
+                this.foreignActor = foreignActor;
+            }
+
+            public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(0, foreignActor));
+            public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
             public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
         }
 
@@ -429,11 +506,11 @@ namespace HuntingInDarkness.Adapter.Tests
             }
         }
 
-        private sealed class PreventEventEntryReactor : GameActionReactor<ResolveSettlementEventEntryAction>
+        private sealed class PreventEventEntryReactor : GameActionReactor<ResolvePlayableEventNodeAction>
         {
             public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
 
-            protected override void React(ResolveSettlementEventEntryAction action, ReactionContext context, ReactionResponse response)
+            protected override void React(ResolvePlayableEventNodeAction action, ReactionContext context, ReactionResponse response)
             {
                 response.Prevent("事件被营地规则阻止");
             }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.Data;
@@ -79,15 +80,32 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             using var rig = new HuntRig();
             HexTileInstance target = rig.FirstInteractable;
-            int presentedCount = 0;
-            rig.EventSystem.OnEventTriggered = (_, _) => presentedCount++;
-            rig.Session.Reactors.RegisterGlobal(new PreventTileEventReactor());
+            int triggeredCount = 0;
+            int committedCount = 0;
+            Action<GameEventTriggeredEvent> triggeredHandler = evt =>
+            {
+                if (evt.EventId == rig.TileEvent.name)
+                    triggeredCount++;
+            };
+            Action<HuntEventNodeCommittedEvent> committedHandler = _ => committedCount++;
+            EventBus.Subscribe(triggeredHandler);
+            EventBus.Subscribe(committedHandler);
+            try
+            {
+                rig.Session.Reactors.RegisterGlobal(new PreventEventNodeReactor());
 
-            HuntTileCommandResult result = await rig.Session.InteractTileAsync(target.AxialCoord);
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(target.AxialCoord);
 
-            Assert.That(result.Succeeded, Is.True);
-            Assert.That(target.State, Is.EqualTo(TileState.Revealed));
-            Assert.That(presentedCount, Is.Zero);
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(target.State, Is.EqualTo(TileState.Revealed));
+                Assert.That(triggeredCount, Is.Zero);
+                Assert.That(committedCount, Is.Zero);
+            }
+            finally
+            {
+                EventBus.Unsubscribe(triggeredHandler);
+                EventBus.Unsubscribe(committedHandler);
+            }
         }
 
         [Test]
@@ -151,6 +169,31 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(lockedNeighbors.All(tile => tile.State == TileState.Interactable), Is.True);
             Assert.That(rig.Settlement.GetResource("test-resource"), Is.EqualTo(2));
             UnityEngine.Object.DestroyImmediate(chainedEvent);
+        }
+
+        [Test]
+        public async Task Reveal_SelfReferencingEventCommitsOnceAndStillUnlocksNeighbors()
+        {
+            using var rig = new HuntRig();
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = "cycle-resource", value = 1 });
+            rig.TileEvent.chainedEvents.Add(rig.TileEvent);
+            HexTileInstance target = rig.FirstInteractable;
+            int preventedCount = 0;
+            Action<PlayableEventDuplicatePreventedEvent> handler = _ => preventedCount++;
+            EventBus.Subscribe(handler);
+            try
+            {
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(target.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(rig.Settlement.GetResource("cycle-resource"), Is.EqualTo(1));
+                Assert.That(preventedCount, Is.EqualTo(1));
+                Assert.That(HexMapGenerator.GetNeighbors(target.AxialCoord).Where(rig.Manager.Map.ContainsKey).All(position => rig.Manager.Map[position].State != TileState.Locked), Is.True);
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
         }
 
         [Test]
@@ -278,7 +321,7 @@ namespace HuntingInDarkness.Adapter.Tests
             }
         }
 
-        private sealed class BlockingNarrativeInput : IHuntEventInput
+        private sealed class BlockingNarrativeInput : IPlayableEventInput
         {
             public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
             public TaskCompletionSource<bool> Continue { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -292,8 +335,8 @@ namespace HuntingInDarkness.Adapter.Tests
                 await Continue.Task.AsUniTask().AttachExternalCancellation(cancellationToken);
             }
 
-            public UniTask<HuntEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new HuntEventChoiceSelection(-1, null));
-            public UniTask<HuntEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(HuntEventCheckDecision.Accept);
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(-1, null));
+            public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
             public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
         }
 
@@ -303,10 +346,10 @@ namespace HuntingInDarkness.Adapter.Tests
             protected override void React(CommitHuntTileInteractionAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试规则阻止地块提交");
         }
 
-        private sealed class PreventTileEventReactor : GameActionReactor<ResolveHuntTileEventAction>
+        private sealed class PreventEventNodeReactor : GameActionReactor<ResolvePlayableEventNodeAction>
         {
             public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
-            protected override void React(ResolveHuntTileEventAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试规则覆盖地块事件");
+            protected override void React(ResolvePlayableEventNodeAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试规则覆盖事件节点");
         }
 
         private sealed class FirstRandom : IRandomSource

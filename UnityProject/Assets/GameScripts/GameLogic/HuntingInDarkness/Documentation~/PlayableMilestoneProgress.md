@@ -447,3 +447,8 @@
 260. 营地战斗事件只在整个 Settlement Root 成功收尾后发布带 SessionId 的 Campaign 遭遇请求，并停止余下事件与子链。事件执行期间所有正式出发入口会拒绝切换阶段，避免 View 点击让来源 Runner 销毁自身；旧 3D 营地确认窗也已改走 `GameManager` 命令外观。
 261. 对抗审查覆盖多节点子链、遭遇截断、执行期 Dispose 和 Entry Reactor 阻止。仍保留两项明确债务：通用事件输入端口沿用历史名 `IHuntEventInput`，Hunt/Settlement 的节点 Action 存在相似代码；应在抽出阶段 Session/View Installer 时一次合并，避免当前里程碑扩大到无必要的大重构。
 262. Unity MCP 定向 Settlement ActionSession 11/11、全量 EditMode 291/291 通过；正式 ZFramework 场景进入 Play Mode 后可找到运行时 GameManager，控制台 0 error。验证未使用截图、未执行玩家选择，玩家存档哈希保持不变。
+263. 狩猎与营地事件现共享通用 `IPlayableEventInput` 和 `ResolvePlayableEventNodeAction`，统一叙事确认、选择、判定、意志重投、效果、子事件与提交检查点；两个阶段仍由各自 ActionEnvironment 和 Reactor 池执行，同一节点类型可以在不同大功能中注册互不泄漏的覆盖规则。
+264. `HuntEventSystem` 已收敛为纯事件选择器，不再持有或触发旧 `EventSystem` 共享队列。代码审计确认 `TriggerEvent/TriggerEventList/OnEventTriggered` 没有生产调用者；旧类和旧 UI 的静态兼容外观暂留，待确认场景引用后与旧 UI 一次删除，避免本阶段扩大清理范围。
+265. 通用事件根新增引用身份链保护，同一个事件定义在一次根链中至多提交一次；自引用或间接循环会发布诊断事实并跳过重复节点，避免依赖全局 Action 预算才停止重复奖励。输入返回的猎人也必须属于本次候选名册，否则回退到确定性的合法自动选择。
+266. 对抗验证发现无 UI 自动选择曾先用空猎人尝试带判定选项，导致资格表面通过但结算退化成纯叙事；现仅对不需要猎人的普通选项尝试空输入，再按候选名册顺序选择。营地非法猎人、自引用事件，以及狩猎自引用后仍开放邻格均有回归覆盖。
+267. Unity MCP 聚焦 Hunt/Settlement 事件回归 28/28、全量 EditMode 294/294 通过；正式 ZFramework Play Mode 数据探针找到唯一运行时 GameManager，控制台 0 error。验证未使用截图、未执行玩家选择，玩家存档哈希保持不变。
