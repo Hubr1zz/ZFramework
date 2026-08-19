@@ -3,6 +3,7 @@ using CardGame.ActionQueue;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
+using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 
 namespace HuntingInDarkness.ActionFlow.Settlement
@@ -12,12 +13,15 @@ namespace HuntingInDarkness.ActionFlow.Settlement
     {
         private readonly SettlementInstance settlement;
         private readonly IWeaponTrainingContent weaponTrainingContent;
+        private readonly EventSystem eventSystem;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IHuntEventInput eventInput = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
+            this.eventSystem = eventSystem;
+            EventInput = eventInput;
             SessionId = Guid.NewGuid();
             environment = new ActionEnvironment(new ActionEnvironmentConfiguration
             {
@@ -32,6 +36,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         public Guid SessionId { get; }
         public ReactorRegistry Reactors => environment.Reactors;
         public ReactionGateRegistry ReactionGates => environment.ReactionGates;
+        public bool IsRunning => environment.IsRunning;
+        public IHuntEventInput EventInput { get; set; }
 
         public bool CanTrainWeapon(int hunterId, string masteryId, out string reason)
         {
@@ -62,6 +68,22 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? WeaponTrainingCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public async UniTask<SettlementEventCommandResult> ResolveEventsAsync(System.Collections.Generic.IReadOnlyList<EventData> events)
+        {
+            if (!IsActive) return SettlementEventCommandResult.Failed("当前不在营地阶段", 0);
+            if (eventSystem == null) return SettlementEventCommandResult.Failed("营地事件系统尚未配置", 0);
+            if (events == null || events.Count == 0) return SettlementEventCommandResult.Success(0, false);
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
+            ReactorEntityHandle chainEntity = environment.EntityHandles.GetOrCreate("settlement-event-chain", SessionId.ToString("N"), "营地事件链");
+            IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("settlement-event", gameEvent != null ? gameEvent.name : "unknown", gameEvent != null ? gameEvent.eventName : "营地事件");
+            var action = new ResolveSettlementEventChainAction(eventSystem, EventInput, events, SessionId, outbox, settlementEntity, chainEntity, ResolveEventEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementEventCommandResult.Failed(outcome.Reason, action.Result.ResolvedCount) : action.Result;
         }
 
         public void Dispose() => environment.Dispose();

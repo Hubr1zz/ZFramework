@@ -30,9 +30,6 @@ namespace HuntingInDarkness.Settlement
 
         // ─── UI 回调（由 SettlementUIManager 注入）────────────────
 
-        /// <summary>当有事件需要显示 UI 时触发</summary>
-        public System.Action<EventData, HunterInstance> OnEventTriggered;
-
         /// <summary>当进入狩猎阶段时触发（GameManager 监听，切换 Root）</summary>
         public System.Action<List<int>> OnDepartForHunt;
 
@@ -49,14 +46,12 @@ namespace HuntingInDarkness.Settlement
             Workshop   = new WorkshopSystem(Data, Inventions);
             HunterMgmt = new HunterManagementSystem(Data, _rng);
 
-            // 事件系统回调 → 转发给 UI
-            Events.OnEventTriggered = (evt, hunter) => OnEventTriggered?.Invoke(evt, hunter);
         }
 
         // ─── 生命周期 ────────────────────────────────────────────
 
         /// <summary>进入营地阶段（狩猎结算后调用）</summary>
-        public void OnEnter(HuntRecord huntRecord = null)
+        public IReadOnlyList<EventData> OnEnter(HuntRecord huntRecord = null)
         {
             Debug.Log($"[SettlementManager] 进入营地阶段 — 年份 {Data.CurrentYear}");
 
@@ -71,9 +66,7 @@ namespace HuntingInDarkness.Settlement
                 yearEvents = Timeline.GetEventsForYear(Data.CurrentYear);
             }
 
-            // 触发该年事件
-            if (yearEvents.Count > 0)
-                Events.TriggerEventList(yearEvents);
+            return yearEvents;
         }
 
         /// <summary>离开营地阶段</summary>
@@ -140,7 +133,6 @@ namespace HuntingInDarkness.Settlement
             Inventions = new InventionSystem(Data);
             Workshop   = new WorkshopSystem(Data, Inventions);
             HunterMgmt = new HunterManagementSystem(Data, _rng);
-            Events.OnEventTriggered = (evt, hunter) => OnEventTriggered?.Invoke(evt, hunter);
             PlayableSettlementContentRuntime.TryApplyTo(this);
         }
 

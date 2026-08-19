@@ -37,7 +37,6 @@ namespace UI.Settlement
         public void Init(SettlementManager mgr)
         {
             _settlementMgr = mgr;
-            mgr.OnEventTriggered = ShowEvent;
             EventBus.Subscribe<YearAdvancedEvent>(OnYearAdvanced);
 
             if (!ValidateSceneRefs()) return;
@@ -100,7 +99,7 @@ namespace UI.Settlement
                 {
                     var ids = new List<int>(squad.Count);
                     foreach (var h in squad) ids.Add(h.InstanceId);
-                    _settlementMgr.TryDepart(ids); // 成功会触发阶段切换
+                    GameManager.Instance?.TryDepartForHunt(ids);
                     CloseOverlay();
                 },
                 onCancel: CloseOverlay);

@@ -184,9 +184,9 @@ namespace Core
             if (startPhase == GamePhase.Settlement)
             {
                 _settlementManager.EnsureStartingConditions();
-                _settlementManager.OnEnter();
                 StartSettlementActionSession();
                 EnsureSettlementUI();
+                QueueSettlementEvents(_settlementManager.OnEnter());
             }
             else if (startPhase == GamePhase.Hunt)
             {
@@ -456,7 +456,6 @@ namespace Core
         private SettlementManager CreateSettlementManager()
         {
             var mgr = new SettlementManager();
-            mgr.OnEventTriggered = (gameEvent, hunter) => SettlementEventPresented?.Invoke(gameEvent, hunter);
             // 当营地系统要求出发狩猎时，切换到 Hunt 阶段
             mgr.OnDepartForHunt = (hunterIds) => TransitionToPhase(GamePhase.Hunt);
             return mgr;
@@ -466,7 +465,7 @@ namespace Core
         {
             DisposeSettlementActionSession();
             if (_settlementManager?.Data == null) return;
-            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog));
+            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, huntEventInput);
         }
 
         private void DisposeSettlementActionSession()
@@ -631,6 +630,8 @@ namespace Core
         public void SetHuntEventInput(IHuntEventInput input)
         {
             huntEventInput = input;
+            if (settlementActionSession != null)
+                settlementActionSession.EventInput = input;
             if (_huntMgr != null)
                 _huntMgr.EventInput = input;
         }
@@ -639,11 +640,30 @@ namespace Core
         {
             if (!ReferenceEquals(huntEventInput, input)) return;
             huntEventInput = null;
+            if (settlementActionSession != null && ReferenceEquals(settlementActionSession.EventInput, input))
+                settlementActionSession.EventInput = null;
             if (_huntMgr != null && ReferenceEquals(_huntMgr.EventInput, input))
                 _huntMgr.EventInput = null;
         }
 
-        public bool TryDepartForHunt(List<int> hunterIds) => _settlementManager != null && _settlementManager.TryDepart(hunterIds);
+        public bool TryDepartForHunt(List<int> hunterIds)
+        {
+            if (settlementActionSession?.IsRunning == true) return false;
+            return _settlementManager != null && _settlementManager.TryDepart(hunterIds);
+        }
+
+        private void QueueSettlementEvents(IReadOnlyList<EventData> events)
+        {
+            if (events == null || events.Count == 0 || settlementActionSession == null) return;
+            ResolveSettlementEventsAsync(settlementActionSession, events).Forget();
+        }
+
+        private async UniTaskVoid ResolveSettlementEventsAsync(PlayableSettlementActionSession session, IReadOnlyList<EventData> events)
+        {
+            SettlementEventCommandResult result = await session.ResolveEventsAsync(events);
+            if (!result.Succeeded && ReferenceEquals(session, settlementActionSession))
+                Debug.LogWarning($"[GameManager] 营地事件链未完成：{result.Reason}");
+        }
 
         public void ResolveSettlementNarrative(EventData gameEvent) => _settlementManager?.Events.ResolveNarrative(gameEvent);
 
@@ -792,9 +812,9 @@ namespace Core
                     // 若有待结算的狩猎记录（推进年份），否则普通进入
                     var record = _pendingHuntRecord;
                     _pendingHuntRecord = null;
-                    _settlementManager.OnEnter(record);
                     StartSettlementActionSession();
                     EnsureSettlementUI();
+                    QueueSettlementEvents(_settlementManager.OnEnter(record));
                     // 持久化：进入营地时自动存档
                     if (_settlementManager?.Data != null)
                         SaveLoadSystem.SaveAsync(
@@ -982,10 +1002,17 @@ namespace Core
                 DisposeSettlementActionSession();
                 _settlementManager = CreateSettlementManager();
                 _settlementManager.EnsureStartingConditions();
-                _settlementManager.OnEnter();
-                StartSettlementActionSession();
                 _gameOverScreen.gameObject.SetActive(false);
-                TransitionToPhase(GamePhase.Settlement);
+                if (CurrentGamePhase == GamePhase.Settlement)
+                {
+                    StartSettlementActionSession();
+                    EnsureSettlementUI();
+                    QueueSettlementEvents(_settlementManager.OnEnter());
+                }
+                else
+                {
+                    TransitionToPhase(GamePhase.Settlement);
+                }
             };
             go.SetActive(false);
         }

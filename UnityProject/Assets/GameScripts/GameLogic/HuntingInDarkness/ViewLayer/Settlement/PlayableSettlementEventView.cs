@@ -48,10 +48,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             manager = gameManager;
             huntInputOwnerId = System.Threading.Interlocked.Increment(ref nextHuntInputOwnerId);
             if (manager != null)
-            {
-                manager.SettlementEventPresented += ShowEvent;
                 manager.SetHuntEventInput(this);
-            }
         }
 
         public async UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken)
@@ -396,7 +393,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         {
             if (huntPrompt != HuntPromptKind.None) throw new System.InvalidOperationException("狩猎事件输入端口已经在处理另一项请求。");
             huntPrompt = prompt;
-            eventPhase = GamePhase.Hunt;
+            eventPhase = manager != null ? manager.CurrentGamePhase : GamePhase.Settlement;
             currentEvent = gameEvent;
             currentHunter = actor;
             transaction = null;
@@ -487,7 +484,6 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             PlayableHuntInputGuard.Release(huntInputOwnerId);
             if (manager != null)
             {
-                manager.SettlementEventPresented -= ShowEvent;
                 manager.ClearHuntEventInput(this);
             }
             if (windowTexture != null)

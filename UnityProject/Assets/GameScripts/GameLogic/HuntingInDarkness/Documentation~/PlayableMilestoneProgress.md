@@ -442,3 +442,8 @@
 255. `GameEventType.Combat` 与 `TriggerCombat` 效果现在都能产生结构化请求；同一节点重复配置时优先采用事件定义的 EncounterId，整棵事件树只提交第一个遭遇并停止战前后续链，避免同一选择排入多场战斗或在 BossFight 中继续弹出旧事件。
 256. 对抗审查将请求从 Hunt 专属提升到 Campaign 级，补上营地战斗事件入口；营地遭遇默认绑定全部可用猎人，狩猎遭遇绑定当前小队。单挑/护送等特殊名册仍应由未来表驱动 Roster Plan 表达，不进入组合根硬编码。
 257. Unity MCP 全量 EditMode 286/286 通过。正式 ZFramework Play Mode 数据探针确认未知遭遇保持 Settlement，有效 `first-showdown` 进入 BossFight、Combat/Campaign Session 有效且 3 名当前猎人激活，控制台 0 error；玩家存档哈希保持不变。
+258. 营地年度调度与事件执行已经拆权：`SettlementManager.OnEnter` 只从 Timeline 产出本年事件列表，`PlayableSettlementActionSession` 的单一 Root 负责 FIFO 节点、子事件、玩家输入与遭遇交接；正式入口不再通过旧 `EventSystem` 共享队列直接驱动 View。
+259. 每个营地事件节点都是独立 Reactor 边界。叙事确认、选择猎人、判定重投和结果确认仍由 View 返回纯输入，骰值、效果和子链由 Action 提交；意志重投与最终节点分别发布 `EventReroll / EventResolution` 事务检查点，使阶段取消时已消耗意志或已提交节点都会保存、当前待确认节点不会产生效果。
+260. 营地战斗事件只在整个 Settlement Root 成功收尾后发布带 SessionId 的 Campaign 遭遇请求，并停止余下事件与子链。事件执行期间所有正式出发入口会拒绝切换阶段，避免 View 点击让来源 Runner 销毁自身；旧 3D 营地确认窗也已改走 `GameManager` 命令外观。
+261. 对抗审查覆盖多节点子链、遭遇截断、执行期 Dispose 和 Entry Reactor 阻止。仍保留两项明确债务：通用事件输入端口沿用历史名 `IHuntEventInput`，Hunt/Settlement 的节点 Action 存在相似代码；应在抽出阶段 Session/View Installer 时一次合并，避免当前里程碑扩大到无必要的大重构。
+262. Unity MCP 定向 Settlement ActionSession 11/11、全量 EditMode 291/291 通过；正式 ZFramework 场景进入 Play Mode 后可找到运行时 GameManager，控制台 0 error。验证未使用截图、未执行玩家选择，玩家存档哈希保持不变。
