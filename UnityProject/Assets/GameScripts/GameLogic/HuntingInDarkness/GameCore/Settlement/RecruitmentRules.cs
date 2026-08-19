@@ -56,6 +56,12 @@ namespace HuntingInDarkness.GameCore.Settlement
                 reason = $"名字不能超过 {MaximumNameLength} 个字符。";
                 return false;
             }
+            foreach (char character in normalizedName)
+                if (char.IsControl(character))
+                {
+                    reason = "名字不能包含换行或控制字符。";
+                    return false;
+                }
 
             if (existingNames != null)
             {

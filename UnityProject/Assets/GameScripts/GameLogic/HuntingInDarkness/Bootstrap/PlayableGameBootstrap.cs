@@ -84,6 +84,7 @@ namespace HuntingInDarkness.Bootstrap
             managerObject.SetActive(false);
             var manager = managerObject.AddComponent<GameManager>();
             manager.ConfigureForStandaloneTest(defaultBattleSetup, settings.InitialPhase, settings.CellSize);
+            manager.ConfigureSettlementContent(settings.SettlementContent);
             managerObject.SetActive(true);
 
             var mainCamera = Camera.main;

@@ -25,6 +25,11 @@ namespace HuntingInDarkness.GameCore.Settlement
     {
         public static bool CanRecover(HunterState hunter, HunterBodyPart bodyPart, out string reason)
         {
+            if (!IsSupportedBodyPart(bodyPart))
+            {
+                reason = "未知的受伤部位。";
+                return false;
+            }
             if (hunter == null)
             {
                 reason = "没有选择需要休养的猎人。";
@@ -110,6 +115,11 @@ namespace HuntingInDarkness.GameCore.Settlement
                     hitPoints.legs = health;
                     break;
             }
+        }
+
+        private static bool IsSupportedBodyPart(HunterBodyPart bodyPart)
+        {
+            return bodyPart == HunterBodyPart.Head || bodyPart == HunterBodyPart.Torso || bodyPart == HunterBodyPart.Arms || bodyPart == HunterBodyPart.Legs;
         }
     }
 }

@@ -12,6 +12,7 @@ using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.GameCore.Combat;
 using HuntingInDarkness.GameCore.Cards;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.Combat;
@@ -126,6 +127,7 @@ namespace Core
         private PlayableHuntActionSession huntActionSession;
         private PlayableCampaignActionSession campaignActionSession;
         private IPlayableEventInput playableEventInput;
+        private PlayableSettlementContentCatalog settlementContentCatalog;
 
         // ─── 运行时数据 ───────────────────────────────────────────────
 
@@ -310,6 +312,13 @@ namespace Core
             chineseCharacterSet = testChineseCharacterSet;
         }
 
+        public void ConfigureSettlementContent(PlayableSettlementContentCatalog catalog)
+        {
+            if (gameObject.activeInHierarchy)
+                throw new System.InvalidOperationException("Settlement content must be configured before GameManager is activated.");
+            settlementContentCatalog = catalog;
+        }
+
         /// <summary>解析本场战斗装配：优先用注入的载荷，否则用序列化配置自行组装。</summary>
         private BattleSetup ResolveSetup()
         {
@@ -466,7 +475,7 @@ namespace Core
         {
             DisposeSettlementActionSession();
             if (_settlementManager?.Data == null) return;
-            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput);
+            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog));
         }
 
         private void DisposeSettlementActionSession()
@@ -620,6 +629,7 @@ namespace Core
         public IReadOnlyList<HunterInstance> ActiveHuntHunters => _huntMgr != null ? _huntMgr.ActiveHunters : System.Array.Empty<HunterInstance>();
         public bool IsHuntActionSessionActive => huntActionSession?.IsActive == true;
         public bool IsCampaignActionSessionActive => campaignActionSession?.IsActive == true;
+        public CardGame.ActionQueue.ReactorRegistry SettlementActionReactors => settlementActionSession?.Reactors;
         public CardGame.ActionQueue.ReactorRegistry CampaignActionReactors => campaignActionSession?.Reactors;
         public CardGame.ActionQueue.ReactorRegistry HuntActionReactors => huntActionSession?.Reactors;
         public InventionSystem SettlementInventions => _settlementManager?.Inventions;
@@ -687,6 +697,38 @@ namespace Core
             if (settlementActionSession == null || !settlementActionSession.IsActive)
                 return UniTask.FromResult(WeaponTrainingCommandResult.Failed("仅可在营地阶段训练"));
             return settlementActionSession.TrainWeaponAsync(hunterId, masteryId);
+        }
+
+        public bool CanRecruitHunter(out string reason)
+        {
+            if (settlementActionSession != null && settlementActionSession.IsActive)
+                return settlementActionSession.CanRecruit(out reason);
+            reason = "仅可在营地阶段招募。";
+            return false;
+        }
+
+        public UniTask<RecruitHunterCommandResult> RecruitHunterAsync(HunterData template, string requestedName)
+        {
+            if (settlementActionSession == null || !settlementActionSession.IsActive)
+                return UniTask.FromResult(RecruitHunterCommandResult.Failed("仅可在营地阶段招募。"));
+            return settlementActionSession.RecruitHunterAsync(template, requestedName);
+        }
+
+        public bool HasRecoverableHunter() => settlementActionSession?.IsActive == true && settlementActionSession.HasRecoverableHunter();
+
+        public bool CanRecoverHunter(int hunterId, HunterBodyPart bodyPart, out string reason)
+        {
+            if (settlementActionSession != null && settlementActionSession.IsActive)
+                return settlementActionSession.CanRecoverHunter(hunterId, bodyPart, out reason);
+            reason = "仅可在营地阶段休养。";
+            return false;
+        }
+
+        public UniTask<RecoverHunterCommandResult> RecoverHunterAsync(int hunterId, HunterBodyPart bodyPart)
+        {
+            if (settlementActionSession == null || !settlementActionSession.IsActive)
+                return UniTask.FromResult(RecoverHunterCommandResult.Failed("仅可在营地阶段休养。"));
+            return settlementActionSession.RecoverHunterAsync(hunterId, bodyPart);
         }
 
         public bool TrySpendHunterGrowth(int hunterId, HunterGrowthChoice choice)

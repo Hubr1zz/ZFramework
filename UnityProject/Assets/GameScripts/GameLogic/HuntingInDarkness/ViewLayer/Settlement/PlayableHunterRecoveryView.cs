@@ -1,5 +1,7 @@
 using Core;
+using Cysharp.Threading.Tasks;
 using GameplayBase;
+using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
@@ -14,9 +16,10 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private const int WindowId = 68024;
         private static readonly HunterBodyPart[] bodyParts = { HunterBodyPart.Head, HunterBodyPart.Torso, HunterBodyPart.Arms, HunterBodyPart.Legs };
         private GameManager manager;
-        private PlayableHunterRecoveryService service;
+        private PlayableSettlementContentCatalog catalog;
         private HunterInstance selectedHunter;
         private bool visible;
+        private bool requestRunning;
         private string statusText = string.Empty;
         private GUIStyle windowStyle;
         private GUIStyle titleStyle;
@@ -28,7 +31,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         public void Initialize(GameManager gameManager, PlayableSettlementContentCatalog catalog)
         {
             manager = gameManager;
-            service = new PlayableHunterRecoveryService(() => manager?.SettlementData, catalog?.RecoveryCostItem, catalog?.RecoveryCost ?? 0, catalog?.RecoveryAmount ?? 1);
+            this.catalog = catalog;
         }
 
         private void OnGUI()
@@ -50,8 +53,8 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void DrawRecoveryButton()
         {
-            bool hasWoundedHunter = service.HasRecoverableHunter();
-            string costLabel = service.Cost == 0 ? "无需物资" : $"{service.CostItemName} ×{service.Cost}";
+            bool hasWoundedHunter = manager.HasRecoverableHunter();
+            string costLabel = GetRecoveryCost() == 0 ? "无需物资" : $"{GetCostItemName()} ×{GetRecoveryCost()}";
             var buttonRect = new Rect((Screen.width - 300f) * 0.5f, 62f, 300f, 36f);
             GUI.enabled = hasWoundedHunter;
             if (GUI.Button(buttonRect, hasWoundedHunter ? $"营火休养（每次 {costLabel}）" : "所有存活猎人均无普通伤势"))
@@ -70,7 +73,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         {
             GUILayout.Space(10f);
             GUILayout.Label("伤口不会在黑暗里自行愈合", titleStyle);
-            GUILayout.Label($"每次休养消耗 {FormatCost()}，为一个部位恢复 {service.RecoveryAmount} 点普通生命。永久损伤与症状不会因此消失。", bodyStyle);
+            GUILayout.Label($"每次休养消耗 {FormatCost()}，为一个部位恢复 {GetRecoveryAmount()} 点普通生命。永久损伤与症状不会因此消失。", bodyStyle);
             GUILayout.Space(10f);
 
             if (selectedHunter == null || !selectedHunter.IsAlive)
@@ -116,9 +119,9 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             foreach (HunterBodyPart bodyPart in bodyParts)
             {
                 HunterRecoveryRules.GetHealth(selectedHunter, bodyPart, out int currentHealth, out int maximumHealth);
-                bool canTreat = service.CanTreat(selectedHunter, bodyPart, out string reason);
-                string label = canTreat ? $"治疗{GetBodyPartName(bodyPart)}　{currentHealth}/{maximumHealth} → {Mathf.Min(maximumHealth, currentHealth + service.RecoveryAmount)}/{maximumHealth}" : $"{GetBodyPartName(bodyPart)}　{currentHealth}/{maximumHealth}　·　{reason}";
-                GUI.enabled = canTreat;
+                bool canTreat = manager.CanRecoverHunter(selectedHunter.InstanceId, bodyPart, out string reason);
+                string label = canTreat ? $"治疗{GetBodyPartName(bodyPart)}　{currentHealth}/{maximumHealth} → {Mathf.Min(maximumHealth, currentHealth + GetRecoveryAmount())}/{maximumHealth}" : $"{GetBodyPartName(bodyPart)}　{currentHealth}/{maximumHealth}　·　{reason}";
+                GUI.enabled = canTreat && !requestRunning;
                 if (GUILayout.Button(label, GUILayout.Height(38f)))
                     Treat(bodyPart);
                 GUI.enabled = true;
@@ -127,10 +130,29 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void Treat(HunterBodyPart bodyPart)
         {
-            if (!service.TryTreat(selectedHunter, bodyPart, out HunterRecoveryResult result, out statusText)) return;
+            if (requestRunning) return;
+            TreatAsync(bodyPart).Forget();
+        }
 
-            statusText = $"{selectedHunter.Name} 的{GetBodyPartName(bodyPart)}恢复 {result.RecoveredHealth} 点生命（{result.CurrentHealth}/{result.MaximumHealth}）。";
-            manager.SaveSettlementProgress();
+        private async UniTaskVoid TreatAsync(HunterBodyPart bodyPart)
+        {
+            HunterInstance hunter = selectedHunter;
+            if (hunter == null) return;
+            requestRunning = true;
+            try
+            {
+                RecoverHunterCommandResult result = await manager.RecoverHunterAsync(hunter.InstanceId, bodyPart);
+                statusText = result.Reason;
+                if (result.Succeeded)
+                {
+                    HunterRecoveryResult recovery = result.Recovery;
+                    statusText = $"{hunter.Name} 的{GetBodyPartName(bodyPart)}恢复 {recovery.RecoveredHealth} 点生命（{recovery.CurrentHealth}/{recovery.MaximumHealth}）。";
+                }
+            }
+            finally
+            {
+                requestRunning = false;
+            }
         }
 
         private bool IsWounded(HunterInstance hunter)
@@ -141,7 +163,13 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             return false;
         }
 
-        private string FormatCost() => service.Cost == 0 ? "无需物资" : $"{service.CostItemName} ×{service.Cost}";
+        private string FormatCost() => GetRecoveryCost() == 0 ? "无需物资" : $"{GetCostItemName()} ×{GetRecoveryCost()}";
+
+        private int GetRecoveryCost() => catalog?.RecoveryCost ?? 0;
+
+        private int GetRecoveryAmount() => catalog?.RecoveryAmount ?? 1;
+
+        private string GetCostItemName() => catalog?.RecoveryCostItem != null ? catalog.RecoveryCostItem.itemName : "未配置物资";
 
         private static string FormatHealth(HunterInstance hunter)
         {

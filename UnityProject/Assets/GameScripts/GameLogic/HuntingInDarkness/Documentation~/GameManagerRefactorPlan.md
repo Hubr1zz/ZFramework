@@ -42,7 +42,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 - 第 4 步已完成主体抽取：战斗只在进入 `BossFight` 时创建，字段、装配、回合、卡牌、棋盘和表现适配器由 `PlayableCombatSession` 拥有，离开时通过 `PlayableCombatSessionScope` 显式释放；`GameManager` 只保留创建、结算与兼容接口转发。
 - 战斗名册的存活标记和武器列表已从静态 Adapter 下沉到每个 `CharacterRuntimeData`，第二场装配不会覆盖第一场对象仍在完成的异步读取；静态 Adapter 只保留启动配置与武器资产投影缓存。
 - 第 3 步已完成必要底座：`PlayableCampaignActionSession` 提供常驻 Campaign Runner，阶段切换与遭遇开始分别进入 `TransitionCampaignPhaseAction`、`BeginCampaignEncounterAction`；阶段转换事实使用 after-commit 发布，Boss 胜利和 Hunt 遭遇不会再在源 Root 内同步销毁环境。完整 Coordinator 仍需继续迁移阶段进入计划、保存反馈与失败回滚。
-- 第 2、5 步仍待完成；`GameManager` 暂时作为 `ICampaignPhaseTransitionHost` 执行场景根和旧会话装配。
+- 第 2、5 步仍待完成；`GameManager` 暂时作为 `ICampaignPhaseTransitionHost` 执行场景根和旧会话装配。招募与休养 View 已改走窄命令外观，内容目录只在启动时注入并转交 Settlement Session，不再由 View Service 直接提交状态。
 - 第 6 步已提前完成安全子项：移除 `GameManager.OnDestroy` 中的全局 `EventBus.Clear()`，并在销毁时清空单例；完全删除兼容单例仍须等待调用方迁移。
 
 ## 已知剩余风险

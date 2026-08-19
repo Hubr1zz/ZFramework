@@ -1,5 +1,7 @@
 using Core;
+using Cysharp.Threading.Tasks;
 using GameplayBase;
+using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
@@ -12,8 +14,9 @@ namespace HuntingInDarkness.ViewLayer.Settlement
     {
         private const int WindowId = 68023;
         private GameManager manager;
-        private PlayableRecruitmentService service;
+        private PlayableSettlementContentCatalog catalog;
         private bool visible;
+        private bool requestRunning;
         private int selectedTemplateIndex;
         private string requestedName = string.Empty;
         private string statusText = string.Empty;
@@ -28,7 +31,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         public void Initialize(GameManager gameManager, PlayableSettlementContentCatalog catalog)
         {
             manager = gameManager;
-            service = new PlayableRecruitmentService(() => manager?.SettlementData, () => manager?.SettlementHunters, catalog?.RecruitmentTemplates, catalog?.RecruitmentCostItem, catalog?.RecruitmentCost ?? 0, catalog?.MaximumLivingHunters ?? 1);
+            this.catalog = catalog;
         }
 
         private void OnGUI()
@@ -50,9 +53,9 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void DrawRecruitmentButton()
         {
-            bool canRecruit = service.CanRecruit(out string reason);
-            int cost = service.GetCurrentCost();
-            string costLabel = cost == 0 ? "免费援助" : $"{service.CostItemName} ×{cost}";
+            bool canRecruit = manager.CanRecruitHunter(out string reason);
+            int cost = GetCurrentCost();
+            string costLabel = cost == 0 ? "免费援助" : $"{GetCostItemName()} ×{cost}";
             bool campEmpty = manager.SettlementData.GetAvailableHunters().Count == 0;
             string label = campEmpty ? $"营火将熄灭 · 呼唤幸存者（{costLabel}）" : $"营火招募（{costLabel}）";
             var buttonRect = new Rect((Screen.width - 300f) * 0.5f, 18f, 300f, 38f);
@@ -81,19 +84,20 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
             GUILayout.Label("给陌生人一个留下的理由", titleStyle);
             GUILayout.Label("选择一段生存经历，并亲自为这名猎人取名。这个名字会永久写入营地年鉴。", bodyStyle);
-            int cost = service.GetCurrentCost();
-            GUILayout.Label(cost == 0 ? "营地已无人守火：本次援助不消耗物资。" : $"接纳成本：{service.CostItemName} ×{cost}　·　每年限一次", mutedStyle);
+            int cost = GetCurrentCost();
+            GUILayout.Label(cost == 0 ? "营地已无人守火：本次援助不消耗物资。" : $"接纳成本：{GetCostItemName()} ×{cost}　·　每年限一次", mutedStyle);
             GUILayout.Space(10f);
 
-            if (service.Templates.Count == 0)
+            if (catalog == null || catalog.RecruitmentTemplates.Count == 0)
             {
                 GUILayout.Label("当前没有配置可招募的猎人模板。", mutedStyle);
             }
             else
             {
-                for (int index = 0; index < service.Templates.Count; index++)
+                for (int index = 0; index < catalog.RecruitmentTemplates.Count; index++)
                 {
-                    HunterData template = service.Templates[index];
+                    HunterData template = catalog.RecruitmentTemplates[index];
+                    if (template == null) continue;
                     bool selected = index == selectedTemplateIndex;
                     if (GUILayout.Toggle(selected, $"{(selected ? "◆" : "◇")} {template.hunterName}", GUI.skin.button, GUILayout.Height(34f)))
                         selectedTemplateIndex = index;
@@ -108,7 +112,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                 GUILayout.Label(statusText, mutedStyle);
             GUILayout.FlexibleSpace();
 
-            GUI.enabled = service.Templates.Count > 0 && service.CanRecruit(out _);
+            GUI.enabled = !requestRunning && catalog != null && catalog.RecruitmentTemplates.Count > 0 && manager.CanRecruitHunter(out _);
             if (GUILayout.Button("接纳并记入年鉴", GUILayout.Height(42f)))
                 Recruit();
             GUI.enabled = true;
@@ -118,9 +122,10 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void DrawSelectedTemplate()
         {
-            if (selectedTemplateIndex < 0 || selectedTemplateIndex >= service.Templates.Count) return;
+            if (catalog == null || selectedTemplateIndex < 0 || selectedTemplateIndex >= catalog.RecruitmentTemplates.Count) return;
 
-            HunterData template = service.Templates[selectedTemplateIndex];
+            HunterData template = catalog.RecruitmentTemplates[selectedTemplateIndex];
+            if (template == null) return;
             HunterCombatStats stats = template.initialStats;
             GUILayout.Label($"力量 {stats.strength}　技巧 {stats.accuracy}　敏捷 {stats.evasion}　移动 {stats.movement}　意志 {template.initialWillpower}", mutedStyle);
             if (template.startingTraits.Count > 0)
@@ -140,10 +145,30 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void Recruit()
         {
-            HunterData template = selectedTemplateIndex >= 0 && selectedTemplateIndex < service.Templates.Count ? service.Templates[selectedTemplateIndex] : null;
-            if (!service.TryRecruit(template, requestedName, out recruitedHunter, out statusText)) return;
-            manager.SaveSettlementProgress();
+            if (requestRunning) return;
+            RecruitAsync().Forget();
         }
+
+        private async UniTaskVoid RecruitAsync()
+        {
+            HunterData template = catalog != null && selectedTemplateIndex >= 0 && selectedTemplateIndex < catalog.RecruitmentTemplates.Count ? catalog.RecruitmentTemplates[selectedTemplateIndex] : null;
+            requestRunning = true;
+            try
+            {
+                RecruitHunterCommandResult result = await manager.RecruitHunterAsync(template, requestedName);
+                statusText = result.Reason;
+                if (result.Succeeded)
+                    recruitedHunter = result.Hunter;
+            }
+            finally
+            {
+                requestRunning = false;
+            }
+        }
+
+        private int GetCurrentCost() => RecruitmentRules.GetCost(manager?.SettlementData?.GetAvailableHunters().Count ?? 0, catalog?.RecruitmentCost ?? 0);
+
+        private string GetCostItemName() => catalog?.RecruitmentCostItem != null ? catalog.RecruitmentCostItem.itemName : "未配置物资";
 
         private void Open()
         {

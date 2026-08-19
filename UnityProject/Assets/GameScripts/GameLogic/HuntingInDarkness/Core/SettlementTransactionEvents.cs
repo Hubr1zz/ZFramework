@@ -3,6 +3,8 @@ namespace Core
     public enum SettlementTransactionKind
     {
         WeaponTraining,
+        Recruitment,
+        Recovery,
         EventReroll,
         EventResolution
     }

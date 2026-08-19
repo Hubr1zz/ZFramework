@@ -148,7 +148,7 @@ Buff Gate 还需特别约束：Gate 虽按 Runner 注册，但不会自动按实
 
 `TriggerCombat` 的跨环境链路已经完成：Hunt Root 用 after-commit 发布带来源 Session、阶段、坐标、事件和稳定 EncounterId 的 `CampaignEncounterRequest`；营地旧事件入口也改发结构化遭遇事实。Campaign Runner 重新验证来源会话、从 `PlayableEncounterCatalog` 解析 BattleSetup，再切换至 BossFight；未知配置和旧会话保持原阶段。首场 `first-showdown` 已通过目录接线，两类 Boss 地块均配置稳定 ID；目录接口后续可替换为读表 Provider。
 
-营地年度事件也已迁入 Settlement Action 环境，并与 Hunt 复用同一个节点 Action、输入契约、提交检查点和事件链保护；两个环境仍各自维护 Runner、实体与 Reactor 池。旧 `EventSystem` 共享队列已没有生产调用者，但兼容类和旧 UI 尚待阶段 4 清理。一次事件树出现多个遭遇时目前确定性采用事件定义优先的首个请求并停止后续链，尚未设计“战后恢复原事件链”。阶段进入初始化若在 FSM 已切换后抛出异常仍没有通用回滚；进入营地的异步存档也尚未成为 Campaign Outcome。生产内容的 Reactor 表绑定层应随首批装备/状态表落地，不提前制造空抽象。动态“贪婪采集”等特殊资源规则仍只保留 Action 工厂/策略扩展方向，营地侧招募与休养仍待迁移。
+营地年度事件也已迁入 Settlement Action 环境，并与 Hunt 复用同一个节点 Action、输入契约、提交检查点和事件链保护；两个环境仍各自维护 Runner、实体与 Reactor 池。招募与分部位休养也已成为 Settlement Root，View 只提交命令，资源、名册/伤势与事务事实由 Outbox 在成功后发布；费用、容量和恢复量均开放 Before Reactor 覆盖。旧 `EventSystem` 共享队列已没有生产调用者，招募/休养旧 Service 也无生产创建者，但兼容类和旧 UI/测试尚待阶段 4 清理。一次事件树出现多个遭遇时目前确定性采用事件定义优先的首个请求并停止后续链，尚未设计“战后恢复原事件链”。阶段进入初始化若在 FSM 已切换后抛出异常仍没有通用回滚；进入营地的异步存档也尚未成为 Campaign Outcome。生产内容的 Reactor 表绑定层应随首批装备/状态表落地，不提前制造空抽象。动态“贪婪采集”等特殊资源规则仍只保留 Action 工厂/策略扩展方向。
 
 ### 阶段 4：收口
 

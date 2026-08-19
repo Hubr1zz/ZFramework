@@ -3,6 +3,7 @@ using CardGame.ActionQueue;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 
@@ -13,13 +14,15 @@ namespace HuntingInDarkness.ActionFlow.Settlement
     {
         private readonly SettlementInstance settlement;
         private readonly IWeaponTrainingContent weaponTrainingContent;
+        private readonly ISettlementCareContent careContent;
         private readonly EventSystem eventSystem;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
+            this.careContent = careContent ?? new PlayableSettlementCareContentAdapter(null);
             this.eventSystem = eventSystem;
             EventInput = eventInput;
             SessionId = Guid.NewGuid();
@@ -38,6 +41,84 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         public ReactionGateRegistry ReactionGates => environment.ReactionGates;
         public bool IsRunning => environment.IsRunning;
         public IPlayableEventInput EventInput { get; set; }
+
+        public bool CanRecruit(out string reason)
+        {
+            bool hasTemplate = false;
+            foreach (HunterData template in careContent.RecruitmentTemplates)
+                if (template != null)
+                {
+                    hasTemplate = true;
+                    break;
+                }
+            if (!hasTemplate)
+            {
+                reason = "没有可用的新猎人模板。";
+                return false;
+            }
+
+            int availableCount = settlement.GetAvailableHunters().Count;
+            int resourceCost = RecruitmentRules.GetCost(availableCount, careContent.RecruitmentCost);
+            if (resourceCost > 0 && string.IsNullOrWhiteSpace(careContent.RecruitmentCostResourceId))
+            {
+                reason = "招募成本尚未配置。";
+                return false;
+            }
+            int availableResource = string.IsNullOrWhiteSpace(careContent.RecruitmentCostResourceId) ? 0 : settlement.GetResource(careContent.RecruitmentCostResourceId);
+            return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, availableCount, careContent.MaximumLivingHunters, availableResource, careContent.RecruitmentCost, out reason);
+        }
+
+        public async UniTask<RecruitHunterCommandResult> RecruitHunterAsync(HunterData template, string requestedName)
+        {
+            if (!IsActive) return RecruitHunterCommandResult.Failed("当前不在营地阶段。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
+            ReactorEntityHandle recruitEntity = environment.EntityHandles.GetOrCreate("recruitment-template", template != null ? template.name : "unknown", template != null ? template.hunterName : "未知猎人模板");
+            int resourceCost = RecruitmentRules.GetCost(settlement.GetAvailableHunters().Count, careContent.RecruitmentCost);
+            var action = new RecruitHunterAction(settlement, template, requestedName, careContent.RecruitmentTemplates, careContent.RecruitmentCostResourceId, resourceCost, careContent.MaximumLivingHunters, outbox, settlementEntity, recruitEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? RecruitHunterCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public bool HasRecoverableHunter()
+        {
+            foreach (HunterInstance hunter in settlement.GetAvailableHunters())
+                if (IsWounded(hunter))
+                    return true;
+            return false;
+        }
+
+        public bool CanRecoverHunter(int hunterId, HunterBodyPart bodyPart, out string reason)
+        {
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            if (!HunterRecoveryRules.CanRecover(hunter, bodyPart, out reason)) return false;
+            if (careContent.RecoveryCost == 0) return true;
+            if (string.IsNullOrWhiteSpace(careContent.RecoveryCostResourceId))
+            {
+                reason = "休养成本尚未配置。";
+                return false;
+            }
+            if (settlement.GetResource(careContent.RecoveryCostResourceId) >= careContent.RecoveryCost) return true;
+            reason = $"缺少 {careContent.RecoveryCostResourceId}。";
+            return false;
+        }
+
+        public async UniTask<RecoverHunterCommandResult> RecoverHunterAsync(int hunterId, HunterBodyPart bodyPart)
+        {
+            if (!IsActive) return RecoverHunterCommandResult.Failed("当前不在营地阶段。");
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            if (hunter == null) return RecoverHunterCommandResult.Failed("猎人不属于当前营地。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
+            ReactorEntityHandle hunterEntity = environment.EntityHandles.GetOrCreate("hunter", hunter.InstanceId.ToString(), hunter.Name);
+            var action = new RecoverHunterAction(settlement, hunter, bodyPart, careContent.RecoveryCostResourceId, careContent.RecoveryCost, careContent.RecoveryAmount, outbox, settlementEntity, hunterEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? RecoverHunterCommandResult.Failed(outcome.Reason) : action.Result;
+        }
 
         public bool CanTrainWeapon(int hunterId, string masteryId, out string reason)
         {
@@ -84,6 +165,14 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementEventCommandResult.Failed(outcome.Reason, action.Result.ResolvedCount) : action.Result;
+        }
+
+        private static bool IsWounded(HunterInstance hunter)
+        {
+            return HunterRecoveryRules.CanRecover(hunter, HunterBodyPart.Head, out _)
+                || HunterRecoveryRules.CanRecover(hunter, HunterBodyPart.Torso, out _)
+                || HunterRecoveryRules.CanRecover(hunter, HunterBodyPart.Arms, out _)
+                || HunterRecoveryRules.CanRecover(hunter, HunterBodyPart.Legs, out _);
         }
 
         public void Dispose() => environment.Dispose();
