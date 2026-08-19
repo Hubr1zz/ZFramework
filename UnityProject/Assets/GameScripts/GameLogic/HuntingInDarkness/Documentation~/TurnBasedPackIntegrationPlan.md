@@ -136,6 +136,10 @@ Buff Gate 还需特别约束：Gate 虽按 Runner 注册，但不会自动按实
 
 迁移移动/翻开/采集/事件/遭遇，以及招募、休养、年度事件等。跨环境结果统一交给 Campaign 协调器产生新 Root。
 
+状态：狩猎地图揭示/移动最小垂直切片已完成。`PlayableHuntActionSession` 随一次 Hunt 生命周期创建和释放，地图点击先捕获揭示或移动意图，再由 Runner 串行重验；`InteractHuntTileAction` 展开权威提交与地块事件两个 Child，分别开放 Reactor 覆盖窗口。提交后 Outbox 发布稳定坐标、交互类型、资源点数量和 Boss 标记事实；Boss 阶段切换延迟到 Root 与 Outbox 完成后，避免执行中的环境自释放。
+
+当前 Hunt 切片尚未把事件选择和资源采集纳入可等待子树。`HuntEventSystem` 仍同步桥接旧 EventSystem，采集覆盖层仍持有事务推进；相邻地块也会在事件选择完成前进入领域可交互状态。下一优先项是将采集计划/揭示/提交迁为独立 Composite，并为事件展示增加显式完成协议，再统一处理地图解锁时序。营地侧招募、休养和年度事件仍待迁移。
+
 ### 阶段 4：收口
 
 删除无调用者的旧 `GameCore/Cards/ActionQueue`、EventBus 权威修改监听器和兼容流程。最后接入 Debugger、Preview 与更完整的 Presentation。

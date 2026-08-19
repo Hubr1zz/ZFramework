@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using Cysharp.Threading.Tasks;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.GameCore.Board;
@@ -62,6 +63,9 @@ namespace HuntingInDarkness.Hunt
         /// <summary>狩猎阶段结束（切回 Settlement）</summary>
         public System.Action<HuntRecord> OnHuntCompleted;
 
+        /// <summary>正式入口由 Hunt ActionSession 注入；为空时保留旧同步兼容路径。</summary>
+        public System.Func<Vector2Int, UniTask> RequestTileInteraction;
+
         // ─── 构造 ────────────────────────────────────────────────
 
         public HuntManager(EventSystem sharedEventSystem, int seed = 0)
@@ -112,6 +116,11 @@ namespace HuntingInDarkness.Hunt
         public void OnTileClicked(Vector2Int coord)
         {
             if (PlayableHuntInputGuard.IsBlocked) return;
+            if (RequestTileInteraction != null)
+            {
+                RequestTileInteraction(coord).Forget();
+                return;
+            }
             if (!Map.TryGetValue(coord, out var tile)) return;
 
             if (tile.State == TileState.Interactable)
@@ -127,41 +136,58 @@ namespace HuntingInDarkness.Hunt
 
         private void RevealTile(Vector2Int coord)
         {
-            var newInteractable = MapGen.RevealTile(Map, coord, tile =>
-                Resources.SpawnResourcePoints(tile));
-
-            OnTileStateChanged?.Invoke(coord, TileState.Revealed);
-            foreach (var n in newInteractable)
-                OnTileStateChanged?.Invoke(n, TileState.Interactable);
-
-            var tile = Map[coord];
-            HuntEvents.OnTileRevealed(tile, SelectedHunter);
-
-            // Boss遭遇：翻开 Boss 地块 → 直接切 Boss 战
-            if (tile.HasBossEncounter)
-            {
-                Debug.Log("[HuntManager] 翻开了 Boss 遭遇地块！");
-                OnBossEncounterTriggered?.Invoke();
-            }
-
-            EventBus.Publish(new GameEventTriggeredEvent
-                { EventId = $"tile_reveal:{coord.x},{coord.y}" });
+            if (!TryCommitTileInteraction(coord, HuntTileInteractionKind.Reveal, out HuntTileInteractionCommit commit)) return;
+            ResolveTileInteractionEvent(commit);
+            if (commit.BossEncounter)
+                NotifyBossEncounter(commit);
+            EventBus.Publish(new GameEventTriggeredEvent { EventId = $"tile_reveal:{coord.x},{coord.y}" });
         }
 
         private void MoveSquad(Vector2Int target)
         {
-            if (!Map.TryGetValue(target, out var tile)) return;
-            if (tile.State != TileState.Revealed) return;
+            if (!TryCommitTileInteraction(target, HuntTileInteractionKind.Move, out HuntTileInteractionCommit commit)) return;
+            ResolveTileInteractionEvent(commit);
+            if (commit.BossEncounter)
+                NotifyBossEncounter(commit);
+        }
 
-            _navigation.MoveTo(ToCore(target));
-            OnSquadMoved?.Invoke(target);
-            HuntEvents.OnSquadMoved(tile, SelectedHunter);
+        public bool TryCommitTileInteraction(Vector2Int coordinate, HuntTileInteractionKind intendedKind, out HuntTileInteractionCommit commit)
+        {
+            commit = default;
+            if (PlayableHuntInputGuard.IsBlocked || !Map.TryGetValue(coordinate, out HexTileInstance tile)) return false;
+            if (intendedKind == HuntTileInteractionKind.Reveal && tile.State == TileState.Interactable)
+            {
+                List<Vector2Int> newlyInteractable = MapGen.RevealTile(Map, coordinate, revealed => Resources.SpawnResourcePoints(revealed));
+                if (tile.State != TileState.Revealed) return false;
+                OnTileStateChanged?.Invoke(coordinate, TileState.Revealed);
+                foreach (Vector2Int neighbor in newlyInteractable)
+                    OnTileStateChanged?.Invoke(neighbor, TileState.Interactable);
+                commit = new HuntTileInteractionCommit(HuntTileInteractionKind.Reveal, coordinate, tile, newlyInteractable);
+                return true;
+            }
+            if (intendedKind != HuntTileInteractionKind.Move || tile.State != TileState.Revealed || !IsAdjacentToSquad(coordinate)) return false;
 
-            // Boss遭遇：移动到 Boss 地块 → 触发战斗
-            if (tile.HasBossEncounter)
-                OnBossEncounterTriggered?.Invoke();
+            _navigation.MoveTo(ToCore(coordinate));
+            OnSquadMoved?.Invoke(coordinate);
+            Debug.Log($"[HuntManager] 小队移动到 {coordinate}");
+            commit = new HuntTileInteractionCommit(HuntTileInteractionKind.Move, coordinate, tile, null);
+            return true;
+        }
 
-            Debug.Log($"[HuntManager] 小队移动到 {target}");
+        internal void ResolveTileInteractionEvent(HuntTileInteractionCommit commit)
+        {
+            if (!commit.IsCommitted) return;
+            if (commit.Kind == HuntTileInteractionKind.Reveal)
+                HuntEvents.OnTileRevealed(commit.Tile, SelectedHunter);
+            else if (commit.Kind == HuntTileInteractionKind.Move)
+                HuntEvents.OnSquadMoved(commit.Tile, SelectedHunter);
+        }
+
+        internal void NotifyBossEncounter(HuntTileInteractionCommit commit)
+        {
+            if (!commit.IsCommitted || !commit.BossEncounter) return;
+            Debug.Log(commit.Kind == HuntTileInteractionKind.Reveal ? "[HuntManager] 翻开了 Boss 遭遇地块！" : $"[HuntManager] 移动到 Boss 遭遇地块 {commit.Coordinate}");
+            OnBossEncounterTriggered?.Invoke();
         }
 
         // ─── 资源采集 ─────────────────────────────────────────────

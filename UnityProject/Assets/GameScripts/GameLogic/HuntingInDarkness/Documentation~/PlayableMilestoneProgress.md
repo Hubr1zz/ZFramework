@@ -412,3 +412,9 @@
 225. 对抗审查确认现有 `RestoreAfterNRestoresCondition.Evaluate` 会递增内部计数，说明条件查询并非纯函数；当前 Action 化后顺序已确定且 Consume 会在成功恢复时重置，但 Reactor 阻止时“是否应计入已观察事实”仍缺少统一契约。后续读表条件系统应拆成“观察事实更新条件状态 / 只读判定 / 成功提交消费”三个接口，不应继续把状态写入 `Evaluate`。
 226. 跨卡联动当前按已注册卡牌扫描，最坏为 O(n²)，Combat Chain 预算提高到 1024 以覆盖当前卡量和合理级联。大量装备/事件注入行动卡之前应按触发 Timing 建索引并做规模数据验证；旧 `CardEffectResolver` 与 `PlayableActionCardLifecycleService` 已无生产创建者，仍留待阶段 4 统一删除，避免本轮扩大清理范围。
 227. 联动条件异常会被隔离为对应 Child 的失败并记录错误，不再中止已经提交来源事实的整张卡牌 Root；同一事实的后续合法候选仍会继续结算。Unity MCP 定向 Combat ActionSession 24/24、全量 EditMode 260/260 通过，另覆盖稳定广度优先级联、逐卡 Reactor 阻止、翻牌费用联动、爆发 Flip→Discard 双触发以及 EventBus 事实不修改状态。
+228. 狩猎地图交互已建立独立 `PlayableHuntActionSession`，单次远征拥有自己的 Runner、Reactor、Gate 和稳定小队/地块实体句柄；进入 Hunt 时创建，离开阶段或销毁组合根时释放。正式 Tile View 继续调用 `HuntManager.OnTileClicked`，但生产路径已通过注入的异步命令入口进入 Hunt Runner，旧同步入口只保留兼容。
+229. `InteractHuntTileAction` 将一次点击拆成权威地块提交与地块内容结算两个 Child。揭示/移动在执行时按请求捕获的意图重新验证，提交成功后立即发布 `HuntTileInteractionCommittedEvent` 检查点；地块事件可被 Reactor 独立覆盖，不能回滚已经揭示的地图状态。
+230. Boss 遭遇不会在 Hunt Root 内直接切换阶段，而是在 Runner 与 Outbox 完成后由会话通知 `GameManager`，避免阶段切换释放正在执行自身的 Hunt 环境。提交 Reactor 阻止时地图与事实均不变化；事件 Reactor 阻止时只跳过内容，揭示仍保持成功。
+231. 当前快速点击会保留进入队列时的揭示/移动意图，可防止排队等待期间状态变化把同一请求解释成另一种命令；但两个跨帧点击若第一个已经同步完成，第二个仍会被视为明确移动。最终输入手感确定后应在 View 增加可配置双击抑制或揭示动画锁，不能把时间阈值硬编码进领域规则。
+232. 地块事件仍由 `HuntEventSystem` 同步调用共享营地 `EventSystem`，事件选择事务尚未成为 Hunt Action 子树；采集覆盖层也仍直接准备、揭示和提交事务。地图生成会在地块内容解决前把相邻格改为可交互，与设计文档“先处理地块效果再开放相邻格”存在时序差异。三者应在下一批狩猎迁移中通过可等待的事件/采集 Action 与表现锁统一解决，不应只调整 View 回调顺序伪装领域状态。
+233. Unity MCP 定向 Hunt ActionSession 5/5、全量 EditMode 265/265 通过。正式 ZFramework Play Mode 探针确认从营地进入 Hunt 后独立会话和 Reactor 池有效、3 名猎人进入远征，正式 Tile 点击入口将相邻地块从 Interactable 提交为 Revealed，小队仍在原点且控制台 0 error；玩家存档哈希保持不变。

@@ -16,6 +16,7 @@ using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.Combat;
 using HuntingInDarkness.ActionFlow.Settlement;
+using HuntingInDarkness.ActionFlow.Hunt;
 using SO.Boss.ActionCard;
 using SO.Boss.HitLocation;
 using SO.Combat;
@@ -120,6 +121,7 @@ namespace Core
         private HuntRecord           _pendingHuntRecord;
         private PlayableCombatSession _combatSession;
         private PlayableSettlementActionSession settlementActionSession;
+        private PlayableHuntActionSession huntActionSession;
 
         // ─── 运行时数据 ───────────────────────────────────────────────
 
@@ -467,6 +469,13 @@ namespace Core
             session?.Dispose();
         }
 
+        private void DisposeHuntActionSession()
+        {
+            PlayableHuntActionSession session = huntActionSession;
+            huntActionSession = null;
+            session?.Dispose();
+        }
+
         // ═══════════════════════════════════════════
         // 狩猎阶段子系统
         // ═══════════════════════════════════════════
@@ -515,6 +524,8 @@ namespace Core
 
             PlayableHuntDestinationRuntime.ApplyTo(_huntMgr);
             _huntMgr.OnEnter(hunters, _settlementManager?.Data.CurrentYear ?? 1);
+            DisposeHuntActionSession();
+            huntActionSession = new PlayableHuntActionSession(_huntMgr);
 
             // 3D 地图可视化
             if (_huntVisualizer == null && huntRoot != null)
@@ -600,6 +611,8 @@ namespace Core
         public GamePhase CurrentGamePhase => _phaseManager?.CurrentPhase ?? GamePhase.Settlement;
         public SettlementInstance SettlementData => _settlementManager?.Data;
         public IReadOnlyList<HunterInstance> ActiveHuntHunters => _huntMgr != null ? _huntMgr.ActiveHunters : System.Array.Empty<HunterInstance>();
+        public bool IsHuntActionSessionActive => huntActionSession?.IsActive == true;
+        public CardGame.ActionQueue.ReactorRegistry HuntActionReactors => huntActionSession?.Reactors;
         public InventionSystem SettlementInventions => _settlementManager?.Inventions;
         public WorkshopSystem SettlementWorkshop => _settlementManager?.Workshop;
         public HunterManagementSystem SettlementHunters => _settlementManager?.HunterMgmt;
@@ -679,6 +692,8 @@ namespace Core
             if (!_phaseManager.TransitionTo(newPhase)) return;
             if (previousPhase == GamePhase.Settlement)
                 DisposeSettlementActionSession();
+            if (previousPhase == GamePhase.Hunt)
+                DisposeHuntActionSession();
 
             // 进入新阶段的初始化
             switch (newPhase)
@@ -756,6 +771,7 @@ namespace Core
             EventBus.Unsubscribe<CardHoverPreviewEndEvent>(OnCardHoverPreviewEnd);
             EventBus.Unsubscribe<SettlementTransactionCommittedEvent>(OnSettlementTransactionCommitted);
             DisposeSettlementActionSession();
+            DisposeHuntActionSession();
             DisposeCombatSession();
             if (Instance == this)
                 Instance = null;
