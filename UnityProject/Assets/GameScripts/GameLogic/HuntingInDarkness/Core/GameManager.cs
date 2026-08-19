@@ -130,6 +130,7 @@ namespace Core
 
         /// <summary>本场战斗的装配载荷（狩猎阶段注入；未注入时由序列化配置组装）</summary>
         private BattleSetup _pendingSetup;
+        private IReadOnlyList<HunterInstance> pendingEncounterHunters;
 
         // ─── ICombatProvider ───
         public CombatManager CombatManager => _combatSession?.CombatManager;
@@ -165,6 +166,8 @@ namespace Core
             EventBus.Subscribe<CardHoverPreviewEvent>(OnCardHoverPreview);
             EventBus.Subscribe<CardHoverPreviewEndEvent>(OnCardHoverPreviewEnd);
             EventBus.Subscribe<SettlementTransactionCommittedEvent>(OnSettlementTransactionCommitted);
+            EventBus.Subscribe<CampaignEncounterRequestedEvent>(OnCampaignEncounterRequested);
+            EventBus.Subscribe<PlayableEventEncounterRequestedEvent>(OnPlayableEventEncounterRequested);
 
             (GetComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableWeaponMasteryToast>() ?? gameObject.AddComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableWeaponMasteryToast>()).Initialize(this);
             (GetComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableHunterLossToast>() ?? gameObject.AddComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableHunterLossToast>()).Initialize(this);
@@ -510,10 +513,9 @@ namespace Core
                 _huntMgr = new HuntManager(sharedEventSys);
                 _huntMgr.OnBossEncounterTriggered = () =>
                 {
-                    // TODO（正式游戏路径）：在此用当前小队 / 所在地图 / 触发的 Boss 组装 BattleSetup
-                    //   并 InjectBattleSetup(...) + 重建战斗。当前战斗在 Awake.BuildBattle 一次性构建，
-                    //   尚未支持狩猎中途按遭遇重建棋盘；测试/默认路径不受影响。
-                    TransitionToPhase(GamePhase.BossFight);
+                    if (huntActionSession == null) return;
+                    var request = new CampaignEncounterRequest(huntActionSession.SessionId, PlayableEncounterRuntime.DefaultEncounterId, CampaignEncounterSourceKind.HuntBossTile, GamePhase.Hunt, _huntMgr.SquadPosition, string.Empty, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId);
+                    BeginEncounterAsync(request).Forget();
                 };
                 _huntMgr.OnHuntCompleted = (record) =>
                 {
@@ -530,7 +532,7 @@ namespace Core
             _huntMgr.EventInput = huntEventInput;
             _huntMgr.OnEnter(hunters, _settlementManager?.Data.CurrentYear ?? 1);
             DisposeHuntActionSession();
-            huntActionSession = new PlayableHuntActionSession(_huntMgr);
+            huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId);
 
             // 3D 地图可视化
             if (_huntVisualizer == null && huntRoot != null)
@@ -709,9 +711,50 @@ namespace Core
             return UniTask.FromResult(CampaignPhaseTransitionResult.Failed(CurrentGamePhase, reason));
         }
 
+        public UniTask<CampaignEncounterStartResult> BeginEncounterAsync(CampaignEncounterRequest request)
+        {
+            if (campaignActionSession?.IsActive == true)
+                return campaignActionSession.BeginEncounterAsync(request, this.GetCancellationTokenOnDestroy());
+            if (TryBeginEncounter(request, out string reason))
+                return UniTask.FromResult(new CampaignEncounterStartResult(true, request.EncounterId, string.Empty));
+            return UniTask.FromResult(CampaignEncounterStartResult.Failed(request.EncounterId, reason));
+        }
+
         GamePhase ICampaignPhaseTransitionHost.CurrentPhase => CurrentGamePhase;
 
         bool ICampaignPhaseTransitionHost.TryApplyPhaseTransition(GamePhase targetPhase, out string reason) => TryApplyPhaseTransition(targetPhase, out reason);
+
+        bool ICampaignPhaseTransitionHost.TryBeginEncounter(CampaignEncounterRequest request, out string reason) => TryBeginEncounter(request, out reason);
+
+        private bool TryBeginEncounter(CampaignEncounterRequest request, out string reason)
+        {
+            if (CurrentGamePhase != request.SourcePhase)
+            {
+                reason = "遭遇请求的来源阶段已经结束";
+                return false;
+            }
+            bool sourceSessionMatches = request.SourceKind switch
+            {
+                CampaignEncounterSourceKind.HuntBossTile or CampaignEncounterSourceKind.HuntEvent => huntActionSession?.IsActive == true && huntActionSession.SessionId == request.SourceSessionId,
+                CampaignEncounterSourceKind.SettlementEvent => settlementActionSession?.IsActive == true && settlementActionSession.SessionId == request.SourceSessionId,
+                _ => false
+            };
+            if (!sourceSessionMatches)
+            {
+                reason = "遭遇请求不属于当前阶段会话";
+                return false;
+            }
+            if (!PlayableEncounterRuntime.TryCreateSetup(request.EncounterId, out BattleSetup setup, out reason)) return false;
+
+            BattleSetup previousSetup = _pendingSetup;
+            IReadOnlyList<HunterInstance> previousHunters = pendingEncounterHunters;
+            _pendingSetup = setup;
+            pendingEncounterHunters = request.SourceKind == CampaignEncounterSourceKind.SettlementEvent ? _settlementManager?.Data.GetAvailableHunters() : _huntMgr?.ActiveHunters;
+            if (TryApplyPhaseTransition(GamePhase.BossFight, out reason)) return true;
+            _pendingSetup = previousSetup;
+            pendingEncounterHunters = previousHunters;
+            return false;
+        }
 
         private bool TryApplyPhaseTransition(GamePhase newPhase, out string reason)
         {
@@ -774,6 +817,8 @@ namespace Core
 
         private void EnterBossFightPhase()
         {
+            IReadOnlyList<HunterInstance> encounterHunters = pendingEncounterHunters ?? _huntMgr?.ActiveHunters;
+            pendingEncounterHunters = null;
             if (!StartCombatSession())
             {
                 if (CurrentGamePhase == GamePhase.BossFight)
@@ -781,7 +826,7 @@ namespace Core
                 return;
             }
 
-            _combatSession.Start(_huntMgr?.ActiveHunters, _settlementManager?.HunterMgmt, QueueDefeatedHuntCompletion);
+            _combatSession.Start(encounterHunters, _settlementManager?.HunterMgmt, QueueDefeatedHuntCompletion);
         }
 
         /// <summary>
@@ -819,6 +864,8 @@ namespace Core
             EventBus.Unsubscribe<CardHoverPreviewEvent>(OnCardHoverPreview);
             EventBus.Unsubscribe<CardHoverPreviewEndEvent>(OnCardHoverPreviewEnd);
             EventBus.Unsubscribe<SettlementTransactionCommittedEvent>(OnSettlementTransactionCommitted);
+            EventBus.Unsubscribe<CampaignEncounterRequestedEvent>(OnCampaignEncounterRequested);
+            EventBus.Unsubscribe<PlayableEventEncounterRequestedEvent>(OnPlayableEventEncounterRequested);
             DisposeSettlementActionSession();
             DisposeHuntActionSession();
             DisposeCombatSession();
@@ -848,6 +895,30 @@ namespace Core
         {
             Debug.Log($"[GameManager] 游戏结束：{evt.Reason}");
             _gameOverScreen?.Show(evt.Reason);
+        }
+
+        private void OnCampaignEncounterRequested(CampaignEncounterRequestedEvent evt) => BeginCampaignEncounterAsync(evt.Request).Forget();
+
+        private void OnPlayableEventEncounterRequested(PlayableEventEncounterRequestedEvent evt)
+        {
+            if (CurrentGamePhase == GamePhase.Settlement && settlementActionSession?.IsActive == true)
+            {
+                var request = new CampaignEncounterRequest(settlementActionSession.SessionId, string.IsNullOrWhiteSpace(evt.EncounterId) ? PlayableEncounterRuntime.DefaultEncounterId : evt.EncounterId, CampaignEncounterSourceKind.SettlementEvent, GamePhase.Settlement, Vector2Int.zero, evt.SourceEventId, "settlement");
+                BeginEncounterAsync(request).Forget();
+                return;
+            }
+            if (CurrentGamePhase == GamePhase.Hunt && huntActionSession?.IsActive == true)
+            {
+                var request = new CampaignEncounterRequest(huntActionSession.SessionId, string.IsNullOrWhiteSpace(evt.EncounterId) ? PlayableEncounterRuntime.DefaultEncounterId : evt.EncounterId, CampaignEncounterSourceKind.HuntEvent, GamePhase.Hunt, _huntMgr?.SquadPosition ?? Vector2Int.zero, evt.SourceEventId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId);
+                BeginEncounterAsync(request).Forget();
+            }
+        }
+
+        private async UniTaskVoid BeginCampaignEncounterAsync(CampaignEncounterRequest request)
+        {
+            CampaignEncounterStartResult result = await BeginEncounterAsync(request);
+            if (!result.Succeeded)
+                Debug.LogWarning($"[GameManager] 无法开始遭遇 {request.EncounterId}：{result.Reason}");
         }
 
         private void OnSettlementTransactionCommitted(SettlementTransactionCommittedEvent evt)

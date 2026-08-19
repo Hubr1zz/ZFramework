@@ -14,6 +14,7 @@ namespace HuntingInDarkness.Settlement
         private readonly int optionIndex;
         private EventResolutionResult committedResult;
         private IReadOnlyList<EventData> standaloneChain;
+        private IReadOnlyList<string> standaloneEncounterIds;
         private bool continued;
 
         public EventData GameEvent => gameEvent;
@@ -62,16 +63,17 @@ namespace HuntingInDarkness.Settlement
         }
 
         /// <summary>提交单个节点但不推进共享事件队列，供 ActionQueue 自己维护事件子树。</summary>
-        public PlayableEventCommitResult CommitStandalone()
+        public PlayableEventCommitResult CommitStandalone(bool captureEncounterRequests = false)
         {
             if (!IsCommitted)
             {
                 IsCommitted = true;
-                PlayableEventCommitResult result = eventSystem.CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, Success, RollValue);
+                PlayableEventCommitResult result = eventSystem.CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, Success, RollValue, captureEncounterRequests);
                 committedResult = result.Result;
                 standaloneChain = result.ChainedEvents;
+                standaloneEncounterIds = result.EncounterIds;
             }
-            return new PlayableEventCommitResult(committedResult, standaloneChain);
+            return new PlayableEventCommitResult(committedResult, standaloneChain, standaloneEncounterIds);
         }
 
         public void Continue()
@@ -100,17 +102,27 @@ namespace HuntingInDarkness.Settlement
         internal EventResolutionResult CommitPreparedChoice(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue)
         {
             PlayableEventCommitResult result = CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, success, rollValue);
-            EnqueueChain(result.ChainedEvents);
+            if (result.EncounterIds.Count > 0)
+                _pendingChain.Clear();
+            else
+                EnqueueChain(result.ChainedEvents);
             return result.Result;
         }
 
-        internal PlayableEventCommitResult CommitPreparedChoiceStandalone(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue)
+        internal PlayableEventCommitResult CommitPreparedChoiceStandalone(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue, bool captureEncounterRequests = false)
         {
             EventOption option = gameEvent.options[optionIndex];
             List<EventEffect> effects = success ? option.successEffects : option.failEffects;
+            var encounterIds = new List<string>();
+            if (gameEvent.eventType == GameEventType.Combat && !string.IsNullOrWhiteSpace(gameEvent.combatEncounterId))
+                RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (effects != null)
                 foreach (EventEffect effect in effects)
-                    ApplyEffect(effect, actor, actor);
+                    ApplyEffect(effect, actor, actor, encounterIds);
+            if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
+                RecordEncounter(gameEvent.combatEncounterId, encounterIds);
+            if (!captureEncounterRequests)
+                PublishEncounters(encounterIds, gameEvent.name);
             MarkEventCompleted(gameEvent);
             var result = new EventResolutionResult
             {
@@ -119,7 +131,7 @@ namespace HuntingInDarkness.Settlement
                 ResultText = success ? option.successText : option.failText
             };
             IReadOnlyList<EventData> chain = success ? option.successChain : option.failChain;
-            return new PlayableEventCommitResult(result, chain);
+            return new PlayableEventCommitResult(result, chain, encounterIds);
         }
 
         internal void ContinuePreparedChoice() => ProcessNextInChain();
@@ -128,12 +140,37 @@ namespace HuntingInDarkness.Settlement
     public readonly struct PlayableEventCommitResult
     {
         public PlayableEventCommitResult(EventResolutionResult result, IReadOnlyList<EventData> chainedEvents)
+            : this(result, chainedEvents, System.Array.Empty<string>())
+        {
+        }
+
+        public PlayableEventCommitResult(EventResolutionResult result, IReadOnlyList<EventData> chainedEvents, IReadOnlyList<string> encounterIds)
         {
             Result = result;
             ChainedEvents = chainedEvents ?? System.Array.Empty<EventData>();
+            EncounterIds = encounterIds ?? System.Array.Empty<string>();
         }
 
         public EventResolutionResult Result { get; }
         public IReadOnlyList<EventData> ChainedEvents { get; }
+        public IReadOnlyList<string> EncounterIds { get; }
+    }
+
+    public readonly struct PlayableEventNodeCommitResult
+    {
+        public PlayableEventNodeCommitResult(IReadOnlyList<EventData> chainedEvents, IReadOnlyList<string> encounterIds)
+        {
+            ChainedEvents = chainedEvents ?? System.Array.Empty<EventData>();
+            EncounterIds = encounterIds ?? System.Array.Empty<string>();
+        }
+
+        public IReadOnlyList<EventData> ChainedEvents { get; }
+        public IReadOnlyList<string> EncounterIds { get; }
+    }
+
+    public struct PlayableEventEncounterRequestedEvent
+    {
+        public string EncounterId;
+        public string SourceEventId;
     }
 }

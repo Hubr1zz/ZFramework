@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Settlement;
@@ -67,6 +68,41 @@ namespace HuntingInDarkness.Adapter.Tests
             }
             finally
             {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void CombatNarrative_PublishesStructuredEncounterRequest()
+        {
+            var eventSystem = new EventSystem(new SettlementInstance(), new SequenceRandom(0));
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "SettlementCombatEvent";
+            gameEvent.eventType = GameEventType.Combat;
+            gameEvent.combatEncounterId = "first-showdown";
+            EventData child = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.chainedEvents.Add(child);
+            PlayableEventEncounterRequestedEvent received = default;
+            int receivedCount = 0;
+            System.Action<PlayableEventEncounterRequestedEvent> handler = evt =>
+            {
+                received = evt;
+                receivedCount++;
+            };
+            EventBus.Subscribe(handler);
+            try
+            {
+                IReadOnlyList<EventData> chain = eventSystem.ResolveNarrativeStandalone(gameEvent);
+
+                Assert.That(receivedCount, Is.EqualTo(1));
+                Assert.That(received.EncounterId, Is.EqualTo("first-showdown"));
+                Assert.That(received.SourceEventId, Is.EqualTo(gameEvent.name));
+                Assert.That(chain, Is.Empty);
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+                Object.DestroyImmediate(child);
                 Object.DestroyImmediate(gameEvent);
             }
         }

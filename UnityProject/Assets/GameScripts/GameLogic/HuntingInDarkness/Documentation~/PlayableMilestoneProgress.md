@@ -436,3 +436,9 @@
 249. 新增常驻 `PlayableCampaignActionSession` 与 `TransitionCampaignPhaseAction`，公开阶段请求由 Campaign Runner 串行重验，Before Reactor 可阻止或注入战役级前置流程；阶段提交事实仅在 Root 成功后发布。不同功能仍维护独立执行环境，没有退化为会泄漏规则与生命周期的单一全局 Runner。
 250. `GameManager` 现作为窄 `ICampaignPhaseTransitionHost` 保留场景装配兼容职责，并把顺序调整为“FSM 接受 → 释放旧会话 → 初始化新阶段”，避免转换被拒绝后旧阶段仍在但会话已丢失。新阶段初始化异常回滚、保存失败反馈和 `TriggerCombat` 遭遇上下文仍明确留给后续完整 Coordinator。
 251. Unity MCP 全量 EditMode 279/279 通过。正式 ZFramework Play Mode 数据探针通过 Campaign 命令完成 `Settlement → Hunt`，Campaign 与 Hunt Session 均有效、3 名猎人进入远征且控制台 0 error；探针未执行玩法结算，玩家存档哈希保持不变。
+252. `TriggerCombat` 不再依赖 `combat:名称` 字符串通知。新增 Campaign 级不可变遭遇请求，携带来源 SessionId、阶段、地块坐标、事件 ID、路线上下文和稳定 EncounterId；Hunt 地块/事件只在整个 Root 成功后通过 after-commit 交接。
+253. `BeginCampaignEncounterAction` 统一处理遭遇开始，Before Reactor 可阻止流程；`GameManager` Host 会重新核对当前来源阶段及 Hunt/Settlement Session，再解析 BattleSetup。旧会话延迟事实、重复请求、未知 EncounterId 和阶段已变化都会失败并保持原阶段。
+254. 新增可编辑 `PlayableEncounterCatalog` 与运行时 Provider 接口。首场 `first-showdown` 复用现有 Boss、2 张共享行动卡和默认猎人配置；Unity MCP 已把目录接入启动设置，并为 BrokenRuins、ShallowSwamp 两类 Boss 权重地块配置稳定 ID，未按显示名写分支。
+255. `GameEventType.Combat` 与 `TriggerCombat` 效果现在都能产生结构化请求；同一节点重复配置时优先采用事件定义的 EncounterId，整棵事件树只提交第一个遭遇并停止战前后续链，避免同一选择排入多场战斗或在 BossFight 中继续弹出旧事件。
+256. 对抗审查将请求从 Hunt 专属提升到 Campaign 级，补上营地战斗事件入口；营地遭遇默认绑定全部可用猎人，狩猎遭遇绑定当前小队。单挑/护送等特殊名册仍应由未来表驱动 Roster Plan 表达，不进入组合根硬编码。
+257. Unity MCP 全量 EditMode 286/286 通过。正式 ZFramework Play Mode 数据探针确认未知遭遇保持 Settlement，有效 `first-showdown` 进入 BossFight、Combat/Campaign Session 有效且 3 名当前猎人激活，控制台 0 error；玩家存档哈希保持不变。

@@ -146,7 +146,9 @@ Buff Gate 还需特别约束：Gate 虽按 Runner 注册，但不会自动按实
 
 战役阶段切换的底层入口已进入 `PlayableCampaignActionSession`：请求由 Campaign Runner 串行重验，Before Reactor 可阻止或注入前置流程，阶段提交事实仅在源 Root 收尾后发布。Boss 胜利也改用 after-commit 交接，不再在 Combat Root 检查点内同步销毁自身环境。
 
-当前跨环境剩余重点是 `TriggerCombat` 事件效果仍只发布无遭遇上下文的全局事实，不能在正式内容中作为权威切换入口；必须先改为携带来源环境与遭遇定义的提交结果，再由 Campaign Runner 消费。阶段进入初始化若在 FSM 已切换后抛出异常，仍没有通用回滚；进入营地的异步存档也尚未成为 Campaign Outcome。生产内容的 Reactor 表绑定层应随首批装备/状态表落地，不提前制造空抽象。动态“贪婪采集”等特殊资源规则仍只保留 Action 工厂/策略扩展方向，营地侧招募、休养和年度事件仍待迁移。
+`TriggerCombat` 的跨环境链路已经完成：Hunt Root 用 after-commit 发布带来源 Session、阶段、坐标、事件和稳定 EncounterId 的 `CampaignEncounterRequest`；营地旧事件入口也改发结构化遭遇事实。Campaign Runner 重新验证来源会话、从 `PlayableEncounterCatalog` 解析 BattleSetup，再切换至 BossFight；未知配置和旧会话保持原阶段。首场 `first-showdown` 已通过目录接线，两类 Boss 地块均配置稳定 ID；目录接口后续可替换为读表 Provider。
+
+当前剩余边界是营地事件效果本身仍由旧 `EventSystem` 直接提交，只有遭遇交接进入 Campaign Runner；营地事件迁入 Settlement Action 环境后才能获得完整 Root/Reaction 语义。一次事件树出现多个遭遇时目前确定性采用事件定义优先的首个请求并停止后续链，尚未设计“战后恢复原事件链”。阶段进入初始化若在 FSM 已切换后抛出异常仍没有通用回滚；进入营地的异步存档也尚未成为 Campaign Outcome。生产内容的 Reactor 表绑定层应随首批装备/状态表落地，不提前制造空抽象。动态“贪婪采集”等特殊资源规则仍只保留 Action 工厂/策略扩展方向，营地侧招募、休养和年度事件仍待迁移。
 
 ### 阶段 4：收口
 

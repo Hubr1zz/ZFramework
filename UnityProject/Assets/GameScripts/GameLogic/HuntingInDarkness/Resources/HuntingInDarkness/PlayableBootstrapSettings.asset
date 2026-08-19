@@ -27,6 +27,8 @@ MonoBehaviour:
   bossCameraEulerAngles: {x: 32, y: 0, z: 0}
   keyLightColor: {r: 1, g: 0.88, b: 0.72, a: 1}
   keyLightIntensity: 1.25
+  defaultEncounterId: first-showdown
+  encounterCatalog: {fileID: 11400000, guid: 29acea6d34f976d4db229b661d8a8784, type: 2}
   fieldRules: {fileID: 0}
   hunterSquad:
   - {fileID: 11400000, guid: 5cc179a3fc5a72a41b2511fead2a9978, type: 2}

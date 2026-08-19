@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e65de47770082c43a89e0873e94336e, type: 3}
+  m_Name: PlayableEncounterCatalog
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Combat.PlayableEncounterCatalog
+  encounters:
+  - encounterId: first-showdown
+    fieldRules: {fileID: 0}
+    sharedHunterCards:
+    - {fileID: 11400000, guid: ae69877306ed57e44a68bb29c3a64cc2, type: 2}
+    - {fileID: 11400000, guid: 33f68fc54e2849e44ac8b43c5d77aaa5, type: 2}
+    boss: {fileID: 11400000, guid: 92395c87edb70c944a4d8705fea4fffc, type: 2}

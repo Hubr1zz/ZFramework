@@ -40,6 +40,8 @@ namespace HuntingInDarkness.Bootstrap
         [SerializeField, Min(0f)] private float keyLightIntensity = 1.25f;
 
         [Header("首场决战内容")]
+        [SerializeField] private string defaultEncounterId = "first-showdown";
+        [SerializeField] private PlayableEncounterCatalog encounterCatalog;
         [SerializeField] private CombatFieldRulesSO fieldRules;
         [SerializeField] private List<CharacterConfigSO> hunterSquad = new();
         [SerializeField] private List<CharacterActionCardData> sharedHunterCards = new();
@@ -96,8 +98,10 @@ namespace HuntingInDarkness.Bootstrap
         public PlayableGrowthMilestoneCatalog GrowthMilestones => growthMilestones;
         public PlayableWeaponMasteryCatalog WeaponMastery => weaponMastery;
         public float CellSize => Mathf.Max(0.1f, cellSize);
+        public string DefaultEncounterId => string.IsNullOrWhiteSpace(defaultEncounterId) ? "default" : defaultEncounterId.Trim();
+        public PlayableEncounterCatalog EncounterCatalog => encounterCatalog;
 
-        public bool CanCreateGame => boss != null && hunterSquad.Exists(config => config != null) && huntContent != null && huntContent.IsConfigured && settlementContent != null && settlementContent.IsConfigured && combatEquipment != null && combatEquipment.IsConfigured && survivalEvents != null && survivalEvents.IsConfigured && permanentInjuries != null && permanentInjuries.IsConfigured && symptoms != null && symptoms.IsConfigured && growthMilestones != null && growthMilestones.IsConfigured && weaponMastery != null && weaponMastery.IsConfigured;
+        public bool CanCreateGame => boss != null && hunterSquad.Exists(config => config != null) && (encounterCatalog == null || encounterCatalog.IsConfigured) && huntContent != null && huntContent.IsConfigured && settlementContent != null && settlementContent.IsConfigured && combatEquipment != null && combatEquipment.IsConfigured && survivalEvents != null && survivalEvents.IsConfigured && permanentInjuries != null && permanentInjuries.IsConfigured && symptoms != null && symptoms.IsConfigured && growthMilestones != null && growthMilestones.IsConfigured && weaponMastery != null && weaponMastery.IsConfigured;
 
         public BattleSetup CreateBattleSetup()
         {

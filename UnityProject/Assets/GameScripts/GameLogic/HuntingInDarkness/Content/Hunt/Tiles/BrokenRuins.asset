@@ -32,3 +32,4 @@ MonoBehaviour:
     maxPerTile: 1
   maxResourcePoints: 2
   bossEncounterWeight: 3
+  bossEncounterId: first-showdown

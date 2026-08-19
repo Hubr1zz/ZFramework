@@ -1,4 +1,5 @@
 using Core;
+using GameplayBase.CombatSystem;
 using HuntingInDarkness.Testing;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
@@ -76,11 +77,13 @@ namespace HuntingInDarkness.Bootstrap
             PlayableSymptomRuntime.Configure(settings.Symptoms);
             PlayableGrowthMilestoneRuntime.Configure(settings.GrowthMilestones);
             PlayableWeaponMasteryRuntime.Configure(settings.WeaponMastery);
+            BattleSetup defaultBattleSetup = settings.CreateBattleSetup();
+            PlayableEncounterRuntime.Configure(settings.EncounterCatalog, settings.DefaultEncounterId, defaultBattleSetup);
 
             var managerObject = new GameObject("GameManager (Playable)");
             managerObject.SetActive(false);
             var manager = managerObject.AddComponent<GameManager>();
-            manager.ConfigureForStandaloneTest(settings.CreateBattleSetup(), settings.InitialPhase, settings.CellSize);
+            manager.ConfigureForStandaloneTest(defaultBattleSetup, settings.InitialPhase, settings.CellSize);
             managerObject.SetActive(true);
 
             var mainCamera = Camera.main;

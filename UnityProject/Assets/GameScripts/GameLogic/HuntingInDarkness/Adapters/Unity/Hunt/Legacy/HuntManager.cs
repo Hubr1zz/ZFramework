@@ -219,7 +219,10 @@ namespace HuntingInDarkness.Hunt
                 HunterInstance actor = FindAvailableEventActor(gameEvent.options[optionIndex]);
                 PlayableEventChoiceTransaction transaction = _eventSystem.PrepareChoice(gameEvent, optionIndex, actor);
                 if (transaction != null)
-                    return transaction.CommitStandalone().ChainedEvents;
+                {
+                    PlayableEventCommitResult result = transaction.CommitStandalone();
+                    return result.EncounterIds.Count > 0 ? System.Array.Empty<EventData>() : result.ChainedEvents;
+                }
             }
             return _eventSystem.ResolveNarrativeStandalone(gameEvent, SelectedHunter);
         }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace HuntingInDarkness.Data
 {
@@ -52,7 +53,8 @@ namespace HuntingInDarkness.Data
         public List<EventEffect> immediateEffects = new();
 
         [Header("战斗配置（eventType = Combat 时使用）")]
-        public string combatTargetBossName; // 对应 Boss 的名称（后续扩展为 SO 引用）
+        [FormerlySerializedAs("combatTargetBossName")]
+        public string combatEncounterId;
 
         [Header("子事件链（本事件结束后触发）")]
         public List<EventData> chainedEvents = new();
@@ -119,7 +121,7 @@ namespace HuntingInDarkness.Data
     public class EventEffect
     {
         public EventEffectType effectType = EventEffectType.AddResource;
-        public string          targetName = ""; // 资源名/属性名/发明名
+        public string          targetName = ""; // 资源名/属性名/发明名；TriggerCombat 时为稳定 EncounterId
         public int             value      = 1;
         [TextArea] public string description = "";
     }

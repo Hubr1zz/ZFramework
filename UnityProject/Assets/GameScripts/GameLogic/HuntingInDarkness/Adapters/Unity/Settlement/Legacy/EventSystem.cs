@@ -78,20 +78,44 @@ namespace HuntingInDarkness.Settlement
         /// </summary>
         public void ResolveNarrative(EventData evt)
         {
-            IReadOnlyList<EventData> chain = ResolveNarrativeStandalone(evt, _selectedHunter);
-            EnqueueChain(chain);
+            PlayableEventNodeCommitResult result = ResolveNarrativeNode(evt, _selectedHunter, false);
+            if (result.EncounterIds.Count > 0)
+            {
+                _pendingChain.Clear();
+                return;
+            }
+            EnqueueChain(result.ChainedEvents);
             ProcessNextInChain();
         }
 
         /// <summary>结算单个叙事节点并返回后续节点，不触碰共享事件队列。</summary>
         public IReadOnlyList<EventData> ResolveNarrativeStandalone(EventData gameEvent, HunterInstance actor = null)
         {
-            if (gameEvent == null) return System.Array.Empty<EventData>();
+            PlayableEventNodeCommitResult result = ResolveNarrativeNode(gameEvent, actor, false);
+            return result.EncounterIds.Count > 0 ? System.Array.Empty<EventData>() : result.ChainedEvents;
+        }
+
+        /// <summary>结算单个节点并捕获跨环境遭遇请求，避免 Action 流程依赖全局字符串事件。</summary>
+        public PlayableEventNodeCommitResult ResolveNarrativeNodeStandalone(EventData gameEvent, HunterInstance actor = null)
+        {
+            return ResolveNarrativeNode(gameEvent, actor, true);
+        }
+
+        private PlayableEventNodeCommitResult ResolveNarrativeNode(EventData gameEvent, HunterInstance actor, bool captureEncounterRequests)
+        {
+            if (gameEvent == null) return new PlayableEventNodeCommitResult(System.Array.Empty<EventData>(), System.Array.Empty<string>());
+            var encounterIds = new List<string>();
+            if (gameEvent.eventType == GameEventType.Combat && !string.IsNullOrWhiteSpace(gameEvent.combatEncounterId))
+                RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (gameEvent.immediateEffects != null)
                 foreach (EventEffect effect in gameEvent.immediateEffects)
-                    ApplyEffect(effect, actor, actor);
+                    ApplyEffect(effect, actor, actor, encounterIds);
+            if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
+                RecordEncounter(gameEvent.combatEncounterId, encounterIds);
+            if (!captureEncounterRequests)
+                PublishEncounters(encounterIds, gameEvent.name);
             MarkEventCompleted(gameEvent);
-            return gameEvent.chainedEvents ?? (IReadOnlyList<EventData>)System.Array.Empty<EventData>();
+            return new PlayableEventNodeCommitResult(gameEvent.chainedEvents, encounterIds);
         }
 
         // ─── 抉择事件结算 ────────────────────────────────────────
@@ -127,21 +151,33 @@ namespace HuntingInDarkness.Settlement
 
             // 执行效果
             var effects = success ? option.successEffects : option.failEffects;
+            var encounterIds = new List<string>();
+            if (evt.eventType == GameEventType.Combat && !string.IsNullOrWhiteSpace(evt.combatEncounterId))
+                RecordEncounter(evt.combatEncounterId, encounterIds);
             if (effects != null)
                 foreach (var effect in effects)
-                    ApplyEffect(effect, actor, actor);
+                    ApplyEffect(effect, actor, actor, encounterIds);
+            if (evt.eventType == GameEventType.Combat && encounterIds.Count == 0)
+                RecordEncounter(evt.combatEncounterId, encounterIds);
+            PublishEncounters(encounterIds, evt.name);
             MarkEventCompleted(evt);
+
+            var result = new EventResolutionResult
+            {
+                Success = success,
+                RollValue = rollValue,
+                ResultText = success ? option.successText : option.failText
+            };
+            if (encounterIds.Count > 0)
+            {
+                _pendingChain.Clear();
+                return result;
+            }
 
             // 追加子事件链
             EnqueueChain(success ? option.successChain : option.failChain);
             ProcessNextInChain();
-
-            return new EventResolutionResult
-            {
-                Success    = success,
-                RollValue  = rollValue,
-                ResultText = success ? option.successText : option.failText
-            };
+            return result;
         }
 
         // ─── 骰子系统 ────────────────────────────────────────────
@@ -176,7 +212,7 @@ namespace HuntingInDarkness.Settlement
             ApplyEffect(effect, target, _selectedHunter ?? target);
         }
 
-        private void ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor)
+        private void ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null)
         {
             if (effect == null) return;
             if (effect.effectType == EventEffectType.ScheduleEvent)
@@ -219,7 +255,7 @@ namespace HuntingInDarkness.Settlement
             }
 
             if (outcome.TriggerCombat)
-                EventBus.Publish(new GameEventTriggeredEvent { EventId = "combat:" + effect.targetName });
+                RecordEncounter(effect.targetName, encounterIds);
             if (outcome.AdvanceYear)
                 Debug.Log("[EventSystem] 效果要求推进年份（由外部处理）");
             if (!outcome.Handled)
@@ -233,6 +269,24 @@ namespace HuntingInDarkness.Settlement
             if (chain == null) return;
             foreach (var e in chain)
                 if (e != null) _pendingChain.Enqueue(e);
+        }
+
+        private static void RecordEncounter(string encounterId, List<string> encounterIds)
+        {
+            string resolvedId = encounterId?.Trim() ?? string.Empty;
+            if (encounterIds == null)
+            {
+                EventBus.Publish(new PlayableEventEncounterRequestedEvent { EncounterId = resolvedId, SourceEventId = string.Empty });
+                return;
+            }
+            if (!encounterIds.Contains(resolvedId))
+                encounterIds.Add(resolvedId);
+        }
+
+        private static void PublishEncounters(IEnumerable<string> encounterIds, string sourceEventId)
+        {
+            foreach (string encounterId in encounterIds)
+                EventBus.Publish(new PlayableEventEncounterRequestedEvent { EncounterId = encounterId, SourceEventId = sourceEventId ?? string.Empty });
         }
 
         private void MarkEventCompleted(EventData gameEvent)

@@ -70,6 +70,7 @@ namespace HuntingInDarkness.Data
 
         [Header("怪物遭遇（翻开时的Boss遭遇概率，0=无）")]
         public int bossEncounterWeight = 0;
+        public string bossEncounterId = "";
     }
 
     // ─── 地块运行时实例 ──────────────────────────────────────────

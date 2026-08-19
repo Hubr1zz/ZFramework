@@ -7,6 +7,7 @@ using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Hunt;
+using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Hunt;
@@ -152,6 +153,82 @@ namespace HuntingInDarkness.Adapter.Tests
             UnityEngine.Object.DestroyImmediate(chainedEvent);
         }
 
+        [Test]
+        public async Task CombatEvent_PublishesOneContextualRequestAfterRootAndStopsLaterChain()
+        {
+            using var rig = new HuntRig();
+            EventData ignoredChild = ScriptableObject.CreateInstance<EventData>();
+            ignoredChild.name = "AfterCombatChild";
+            ignoredChild.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = "should-not-apply", value = 1 });
+            rig.TileEvent.eventType = GameEventType.Combat;
+            rig.TileEvent.combatEncounterId = "event-boss";
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.TriggerCombat, targetName = "ignored-effect-boss" });
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.TriggerCombat, targetName = "ignored-second-boss" });
+            rig.TileEvent.chainedEvents.Add(ignoredChild);
+            HexTileInstance target = rig.FirstInteractable;
+            int receivedCount = 0;
+            int legacyRequestCount = 0;
+            CampaignEncounterRequest received = default;
+            bool neighborsUnlockedWhenPublished = false;
+            Action<CampaignEncounterRequestedEvent> handler = evt =>
+            {
+                receivedCount++;
+                received = evt.Request;
+                neighborsUnlockedWhenPublished = HexMapGenerator.GetNeighbors(target.AxialCoord).Where(rig.Manager.Map.ContainsKey).All(position => rig.Manager.Map[position].State != TileState.Locked);
+            };
+            Action<PlayableEventEncounterRequestedEvent> legacyHandler = _ => legacyRequestCount++;
+            EventBus.Subscribe(handler);
+            EventBus.Subscribe(legacyHandler);
+            try
+            {
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(target.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(receivedCount, Is.EqualTo(1));
+                Assert.That(legacyRequestCount, Is.Zero);
+                Assert.That(received.SourceSessionId, Is.EqualTo(rig.Session.SessionId));
+                Assert.That(received.EncounterId, Is.EqualTo("event-boss"));
+                Assert.That(received.SourceKind, Is.EqualTo(CampaignEncounterSourceKind.HuntEvent));
+                Assert.That(received.SourceCoordinate, Is.EqualTo(target.AxialCoord));
+                Assert.That(received.SourceEventId, Is.EqualTo(rig.TileEvent.name));
+                Assert.That(received.SourceContextId, Is.EqualTo("test-destination"));
+                Assert.That(neighborsUnlockedWhenPublished, Is.True);
+                Assert.That(rig.Settlement.GetResource("should-not-apply"), Is.Zero);
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+                EventBus.Unsubscribe(legacyHandler);
+                UnityEngine.Object.DestroyImmediate(ignoredChild);
+            }
+        }
+
+        [Test]
+        public async Task BossTile_UsesConfiguredEncounterIdAndCurrentSession()
+        {
+            using var rig = new HuntRig();
+            HexTileInstance target = rig.FirstInteractable;
+            target.HasBossEncounter = true;
+            target.DomainState.HasBossEncounter = true;
+            target.Config.bossEncounterId = "tile-boss";
+            CampaignEncounterRequest received = default;
+            Action<CampaignEncounterRequestedEvent> handler = evt => received = evt.Request;
+            EventBus.Subscribe(handler);
+            try
+            {
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(target.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(received.EncounterId, Is.EqualTo("tile-boss"));
+                Assert.That(received.SourceSessionId, Is.EqualTo(rig.Session.SessionId));
+                Assert.That(received.SourceKind, Is.EqualTo(CampaignEncounterSourceKind.HuntBossTile));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
         private sealed class HuntRig : IDisposable
         {
             private readonly EventData tileEvent;
@@ -182,7 +259,7 @@ namespace HuntingInDarkness.Adapter.Tests
                     TilePool = { plainTile }
                 };
                 Manager.OnEnter(null);
-                Session = new PlayableHuntActionSession(Manager);
+                Session = new PlayableHuntActionSession(Manager, "default-boss", "test-destination");
             }
 
             public EventSystem EventSystem { get; }

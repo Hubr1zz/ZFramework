@@ -6,7 +6,9 @@ using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
 using HuntingInDarkness.ActionFlow.Campaign;
+using HuntingInDarkness.ActionFlow.Hunt;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
@@ -67,6 +69,47 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(host.AppliedPhases, Is.Empty);
         }
 
+        [Test]
+        public async Task BeginEncounterAsync_UsesCampaignRunnerAndPublishesCommittedRequest()
+        {
+            var host = new RecordingHost(GamePhase.Hunt);
+            using var session = new PlayableCampaignActionSession(host);
+            var request = new CampaignEncounterRequest(Guid.NewGuid(), "test-boss", CampaignEncounterSourceKind.HuntEvent, GamePhase.Hunt, new Vector2Int(2, -1), "event:test", "test-route");
+            CampaignEncounterRequest received = default;
+            Action<CampaignEncounterStartedEvent> handler = evt => received = evt.Request;
+            EventBus.Subscribe(handler);
+            try
+            {
+                CampaignEncounterStartResult result = await session.BeginEncounterAsync(request);
+
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(host.EncounterRequests, Is.EqualTo(new[] { request }));
+                Assert.That(host.CurrentPhase, Is.EqualTo(GamePhase.BossFight));
+                Assert.That(received.EncounterId, Is.EqualTo("test-boss"));
+                Assert.That(received.SourceSessionId, Is.EqualTo(request.SourceSessionId));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
+        public async Task EncounterReactor_PreventionLeavesHostUntouched()
+        {
+            var host = new RecordingHost(GamePhase.Hunt);
+            using var session = new PlayableCampaignActionSession(host);
+            session.Reactors.RegisterGlobal(new PreventEncounterReactor());
+            var request = new CampaignEncounterRequest(Guid.NewGuid(), "test-boss", CampaignEncounterSourceKind.HuntBossTile, GamePhase.Hunt, Vector2Int.zero, string.Empty, string.Empty);
+
+            CampaignEncounterStartResult result = await session.BeginEncounterAsync(request);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Reason, Is.EqualTo("测试规则阻止遭遇"));
+            Assert.That(host.CurrentPhase, Is.EqualTo(GamePhase.Hunt));
+            Assert.That(host.EncounterRequests, Is.Empty);
+        }
+
         private sealed class RecordingHost : ICampaignPhaseTransitionHost
         {
             public RecordingHost(GamePhase currentPhase)
@@ -76,6 +119,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
             public GamePhase CurrentPhase { get; private set; }
             public List<GamePhase> AppliedPhases { get; } = new();
+            public List<CampaignEncounterRequest> EncounterRequests { get; } = new();
 
             public bool TryApplyPhaseTransition(GamePhase targetPhase, out string reason)
             {
@@ -84,6 +128,20 @@ namespace HuntingInDarkness.Adapter.Tests
                 reason = string.Empty;
                 return true;
             }
+
+            public bool TryBeginEncounter(CampaignEncounterRequest request, out string reason)
+            {
+                EncounterRequests.Add(request);
+                CurrentPhase = GamePhase.BossFight;
+                reason = string.Empty;
+                return true;
+            }
+        }
+
+        private sealed class PreventEncounterReactor : GameActionReactor<BeginCampaignEncounterAction>
+        {
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+            protected override void React(BeginCampaignEncounterAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试规则阻止遭遇");
         }
 
         private sealed class PreventHuntTransitionReactor : GameActionReactor<TransitionCampaignPhaseAction>

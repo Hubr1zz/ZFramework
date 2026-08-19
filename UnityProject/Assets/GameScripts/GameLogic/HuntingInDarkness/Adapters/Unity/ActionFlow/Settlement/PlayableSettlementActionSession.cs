@@ -18,6 +18,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
+            SessionId = Guid.NewGuid();
             environment = new ActionEnvironment(new ActionEnvironmentConfiguration
             {
                 Name = "Settlement",
@@ -28,6 +29,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         }
 
         public bool IsActive => !environment.IsDisposed;
+        public Guid SessionId { get; }
         public ReactorRegistry Reactors => environment.Reactors;
         public ReactionGateRegistry ReactionGates => environment.ReactionGates;
 
