@@ -173,6 +173,20 @@ namespace PortableFixture
     Assert-True ($basePaths -contains 'Assets/GameRuntime/Code/DerivedView.cs') `
         'base method calls should resolve through inheritance.'
 
+    $fixtureIndexPath = Join-Path $fixtureRoot '.agents/codebase-query/code-query-index.json'
+    $lfIndex = Get-Content -Raw -LiteralPath $fixtureIndexPath -Encoding utf8
+    foreach ($sourceFile in Get-ChildItem -LiteralPath (Join-Path $fixtureRoot 'Assets') -Recurse -Filter '*.cs' -File) {
+        $sourceText = [System.IO.File]::ReadAllText($sourceFile.FullName, [Text.Encoding]::UTF8)
+        $crlfText = $sourceText.Replace("`r`n", "`n").Replace("`r", "`n").Replace("`n", "`r`n")
+        [System.IO.File]::WriteAllText($sourceFile.FullName, $crlfText, [System.Text.UTF8Encoding]::new($false))
+    }
+    $fixtureStatePath = Join-Path $fixtureRoot '.agent-memory/zworkflow/local/code-query-state.json'
+    if (Test-Path -LiteralPath $fixtureStatePath) { Remove-Item -LiteralPath $fixtureStatePath -Force }
+    & $queryScript build -Root $fixtureRoot 2>$null | Out-Null
+    $crlfIndex = Get-Content -Raw -LiteralPath $fixtureIndexPath -Encoding utf8
+    Assert-True ($lfIndex -ceq $crlfIndex) `
+        'LF and CRLF checkouts of identical C# text must publish byte-identical canonical indexes.'
+
     Move-Item -LiteralPath (Join-Path $fixtureCodeRoot 'PortableConsumer.cs') `
         -Destination (Join-Path $fixtureCodeRoot 'RenamedPortableConsumer.cs')
     $incrementalBuild = & $queryScript build -Root $fixtureRoot | ConvertFrom-Json
@@ -226,5 +240,5 @@ finally {
     targetFileCount = $build.fileCount
     qualifiedTypeCount = $build.qualifiedTypeCount
     resolvedCallCount = $build.resolvedCallCount
-    assertions = 18
+    assertions = 19
 } | ConvertTo-Json -Compress

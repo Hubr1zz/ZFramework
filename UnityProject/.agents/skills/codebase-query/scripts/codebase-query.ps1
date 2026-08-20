@@ -171,6 +171,21 @@ function Get-SourceSignature {
     }
 }
 
+function Get-PortableSourceHash {
+    param([string]$LiteralPath)
+
+    $text = [System.IO.File]::ReadAllText($LiteralPath, [Text.Encoding]::UTF8)
+    $normalized = $text.Replace("`r`n", "`n").Replace("`r", "`n")
+    $bytes = [Text.Encoding]::UTF8.GetBytes($normalized)
+    $sha256 = [Security.Cryptography.SHA256]::Create()
+    try {
+        return [BitConverter]::ToString($sha256.ComputeHash($bytes)).Replace('-', '').ToLowerInvariant()
+    }
+    finally {
+        $sha256.Dispose()
+    }
+}
+
 function Get-SourceFingerprints {
     param([string]$ProjectRoot, [System.IO.FileInfo[]]$Files)
 
@@ -195,7 +210,7 @@ function Get-SourceFingerprints {
             $existing.sourceHash
         }
         else {
-            (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            Get-PortableSourceHash -LiteralPath $_.FullName
         }
         [pscustomobject]@{
             path = $relativePath
@@ -288,8 +303,9 @@ function New-CodeIndex {
         }
         else {
             $text = Get-Content -Raw -LiteralPath $file.FullName -Encoding utf8
-            $records.Add((New-CSharpFileRecord -Text $text -Path $relativePath -SourceLength $file.Length `
-                -SourceHash $sourceHash -KeywordSet $keywordSet))
+            $normalizedText = $text.Replace("`r`n", "`n").Replace("`r", "`n")
+            $sourceLength = [Text.Encoding]::UTF8.GetByteCount($normalizedText)
+            $records.Add((New-CSharpFileRecord -Text $normalizedText -Path $relativePath -SourceLength $sourceLength -SourceHash $sourceHash -KeywordSet $keywordSet))
             $parsedFileCount++
         }
         if (($fileIndex + 1) % 25 -eq 0 -or $fileIndex + 1 -eq $SourceFiles.Count) {
