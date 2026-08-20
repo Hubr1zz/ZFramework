@@ -188,15 +188,17 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void PresentCheck(PlayableEventChoiceTransaction transaction)
         {
-            string body = $"{transaction.Option.optionText}\n\n骰值 {transaction.RollValue} + 属性 {transaction.Bonus} = {transaction.Total}\n目标 {transaction.Target}\n\n{(transaction.Success ? "判定成功" : "判定失败")}";
+            bool usesCards = transaction.Option.checkPresentation != EventCheckPresentationKind.PhysicalDice;
+            string valueLabel = usesCards ? "牌面" : "骰值";
+            string body = $"{transaction.Option.optionText}\n\n{valueLabel} {transaction.RollValue} + 属性 {transaction.Bonus} = {transaction.Total}\n目标 {transaction.Target}\n\n{(transaction.Success ? "判定成功" : "判定失败")}";
             if (transaction.HasRerolled)
-                body += "\n已消耗 1 意志重投并保留较高骰值。";
+                body += $"\n已消耗 1 意志重新{(usesCards ? "抽牌" : "投掷")}并保留较高结果。";
             var choices = new List<TabletopEventChoicePresentation>
             {
                 new("接受结果", "提交当前判定", true, string.Empty, () => checkSource?.TrySetResult(PlayableEventCheckDecision.Accept))
             };
             if (transaction.CanReroll)
-                choices.Insert(0, new TabletopEventChoicePresentation("重投", "消耗 1 意志，再次投掷实体骰子", true, string.Empty, () => checkSource?.TrySetResult(PlayableEventCheckDecision.Reroll)));
+                choices.Insert(0, new TabletopEventChoicePresentation(usesCards ? "重抽" : "重投", usesCards ? "消耗 1 意志，再进行一次桌面抽牌" : "消耗 1 意志，再次投掷实体骰子", true, string.Empty, () => checkSource?.TrySetResult(PlayableEventCheckDecision.Reroll)));
             PresentPanel(transaction.GameEvent.eventName, body, ActorFooter(transaction.Actor), transaction.Success ? TabletopEventPrimaryTone.Success : TabletopEventPrimaryTone.Failure, choices);
         }
 
@@ -207,7 +209,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             {
                 new TabletopEventChoicePresentation("继续", "收起事件卡并推进事件链", true, string.Empty, () => resultSource?.TrySetResult())
             };
-            PresentPanel(currentEvent?.eventName ?? "事件结果", body, result.RollValue > 0 ? $"最终骰值 {result.RollValue}" : string.Empty, result.Success ? TabletopEventPrimaryTone.Success : TabletopEventPrimaryTone.Failure, choices);
+            PresentPanel(currentEvent?.eventName ?? "事件结果", body, result.RollValue > 0 ? $"最终判定值 {result.RollValue}" : string.Empty, result.Success ? TabletopEventPrimaryTone.Success : TabletopEventPrimaryTone.Failure, choices);
         }
 
         private void PresentPanel(string title, string body, string footer, TabletopEventPrimaryTone tone, IReadOnlyList<TabletopEventChoicePresentation> choices)

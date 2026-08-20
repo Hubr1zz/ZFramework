@@ -1,3 +1,7 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using NUnit.Framework;
@@ -29,6 +33,33 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void CardResultValidator_RequiresStableUniqueCardsAndBoundedValues()
+        {
+            var request = new TabletopRandomInteractionRequest("cards-1", TabletopRandomInteractionKind.FlipCards, "7", "event", 2, 10, "bone-omens");
+
+            Assert.That(TabletopRandomInteractionResultValidator.TryGetCheckTotal(request, new TabletopRandomInteractionResult("cards-1", new[] { 3, 8 }, new[] { "bone-omens:3", "bone-omens:8" }), out int total), Is.True);
+            Assert.That(total, Is.EqualTo(11));
+            Assert.That(TabletopRandomInteractionResultValidator.TryGetCheckTotal(request, new TabletopRandomInteractionResult("cards-1", new[] { 3, 8 }, new[] { "same", "same" }), out _), Is.False);
+            Assert.That(TabletopRandomInteractionResultValidator.TryGetCheckTotal(request, new TabletopRandomInteractionResult("cards-1", new[] { 3, 8 }, new[] { "foreign:3", "foreign:8" }), out _), Is.False);
+            Assert.That(TabletopRandomInteractionResultValidator.TryGetCheckTotal(request, new TabletopRandomInteractionResult("cards-1", new[] { 3, 11 }, new[] { "bone-omens:3", "bone-omens:11" }), out _), Is.False);
+            Assert.That(TabletopRandomInteractionResultValidator.TryGetCheckTotal(request, new TabletopRandomInteractionResult("cards-1", new[] { 3, 8 }, new[] { "bone-omens:3" }), out _), Is.False);
+        }
+
+        [Test]
+        public async Task Router_DispatchesDiceAndCardsToDedicatedPresenters()
+        {
+            var dice = new RecordingPresenter();
+            var cards = new RecordingPresenter();
+            var router = new TabletopRandomInteractionRouter(dice, cards);
+
+            await router.PresentAsync(new TabletopRandomInteractionRequest("dice", TabletopRandomInteractionKind.PhysicalDice, "", ""), CancellationToken.None);
+            await router.PresentAsync(new TabletopRandomInteractionRequest("cards", TabletopRandomInteractionKind.OldMaid, "", "", deckId: "omens"), CancellationToken.None);
+
+            Assert.That(dice.CallCount, Is.EqualTo(1));
+            Assert.That(cards.CallCount, Is.EqualTo(1));
+        }
+
+        [Test]
         public void ResolveUpwardValue_UsesWorldRotationInsteadOfSpawnOrder()
         {
             Vector3[] normals = { Vector3.up, Vector3.right };
@@ -37,6 +68,18 @@ namespace HuntingInDarkness.Adapter.Tests
             int result = PhysicalDie3D.ResolveUpwardValue(normals, values, Quaternion.Euler(0f, 0f, 90f));
 
             Assert.That(result, Is.EqualTo(7));
+        }
+
+        private sealed class RecordingPresenter : ITabletopRandomInteractionPresenter
+        {
+            public int CallCount { get; private set; }
+
+            public UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
+            {
+                CallCount++;
+                string[] cardIds = request.Kind == TabletopRandomInteractionKind.PhysicalDice ? Array.Empty<string>() : new[] { $"{request.DeckId}:card" };
+                return UniTask.FromResult(new TabletopRandomInteractionResult(request.InteractionId, new[] { 1 }, cardIds));
+            }
         }
     }
 }

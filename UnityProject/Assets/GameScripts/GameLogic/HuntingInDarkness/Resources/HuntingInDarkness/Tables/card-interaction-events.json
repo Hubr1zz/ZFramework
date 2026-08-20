@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "random_bone_omens",
+      "eventName": "掌中的骨兆",
+      "eventType": "Choice",
+      "displayText": "清点猎物时，你们发现十枚薄如纸片的骨片。每一枚都刻着不同的眼睛，只有翻开后，刻痕才会短暂发亮。",
+      "hiddenText": "骨片重新黯淡。无论它是否说中了什么，翻牌的人都已经把那个征兆记在心里。",
+      "options": [
+        {
+          "optionText": "让一名猎人翻开骨兆，解读刻痕",
+          "checkType": "Understanding",
+          "checkTarget": 7,
+          "checkPresentation": "FlipCards",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "bone-omens",
+          "checkInstruction": "选择一枚骨兆并将它翻开",
+          "successText": "骨片上的眼睛朝向石堆。你们在那里找到了可用的材料，解读者也理解了这种征兆。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "碎石", "value": 2, "description": "碎石 +2" },
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
+          ],
+          "failText": "光痕彼此抵消，留下一个无法解释的空洞。猎人强迫自己记下这种失败。",
+          "failEffects": [
+            { "effectType": "AddLuck", "targetName": "selected", "value": 1, "description": "命运值 +1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "不让未知征兆替你们做决定",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "骨片被重新包好。今晚，你们只相信亲手做出的选择。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    }
+  ]
+}

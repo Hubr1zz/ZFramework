@@ -35,11 +35,15 @@ Unavailable options and hunters SHALL remain visible as disabled cards with a re
 - **THEN** that option cannot be clicked and explains why it is unavailable
 
 ### Requirement: Physical randomness remains between selection and check confirmation
-The event presenter SHALL only return the selected option, actor, reroll decision, and confirmation; physical dice or future card randomness SHALL remain awaited by the owning ActionQueue before rule commit.
+The event presenter SHALL only return the selected option, actor, reroll decision, and confirmation. Event table content SHALL select physical dice, draw cards, flip cards, or Old Maid through configuration; the owning ActionQueue SHALL map that configuration to a tabletop request, await a validated result, and only then prepare or reroll the rule transaction.
 
 #### Scenario: A checked option is selected
 - **WHEN** an actor has been chosen
 - **THEN** the phase action requests the tabletop random presenter before opening the check-result cards
+
+#### Scenario: Card-based check is rerolled
+- **WHEN** the player spends Willpower to retry a card-based check
+- **THEN** the owning ActionQueue requests the same configured deck interaction again, retains the higher rule result, and the 3D event cards describe the action as drawing rather than throwing dice
 
 ### Requirement: Input ownership is released on every exit path
 The presenter SHALL block conflicting Hunt commands and the pre-existing physical tabletop colliders in either phase while a prompt is active. Event cards created after that background lease SHALL remain interactive. The presenter SHALL release both forms of ownership after completion, cancellation, or destruction.

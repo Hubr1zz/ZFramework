@@ -105,7 +105,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                 PlayableEventCheckDecision decision = await eventInput.PresentCheckAsync(transaction, cancellationToken);
                 if (decision != PlayableEventCheckDecision.Reroll) break;
                 if (!transaction.CanReroll) break;
-                int? rerollValue = randomInteractionPresenter != null ? await RollPhysicalDiceAsync(transaction.Actor, "reroll", cancellationToken) : null;
+                int? rerollValue = randomInteractionPresenter != null ? await ResolveTabletopCheckAsync(transaction.Option, transaction.Actor, "reroll", cancellationToken) : null;
                 if (!transaction.TryReroll(rerollValue)) break;
                 PublishCommitCheckpoint(PlayableEventCommitKind.Reroll, transaction.Actor);
             }
@@ -123,20 +123,39 @@ namespace HuntingInDarkness.ActionFlow.Events
             if (selection.OptionIndex < 0 || selection.OptionIndex >= gameEvent.options.Count) return null;
             EventOption option = gameEvent.options[selection.OptionIndex];
             if (!PlayableEventOptionAvailability.CanUse(option, selection.Actor, eventSystem.Settlement, out _)) return null;
-            int? rollValue = option.checkType != CheckType.None && randomInteractionPresenter != null ? await RollPhysicalDiceAsync(selection.Actor, "initial", cancellationToken) : null;
+            int? rollValue = option.checkType != CheckType.None && randomInteractionPresenter != null ? await ResolveTabletopCheckAsync(option, selection.Actor, "initial", cancellationToken) : null;
             return eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor, rollValue);
         }
 
-        private async UniTask<int> RollPhysicalDiceAsync(HunterInstance actor, string step, CancellationToken cancellationToken)
+        private async UniTask<int> ResolveTabletopCheckAsync(EventOption option, HunterInstance actor, string step, CancellationToken cancellationToken)
         {
             string actorId = actor != null ? actor.InstanceId.ToString() : string.Empty;
-            var request = new TabletopRandomInteractionRequest($"event:{gameEvent.name}:{actorId}:{step}:{Guid.NewGuid():N}", TabletopRandomInteractionKind.PhysicalDice, actorId, gameEvent.name, 1, 10, instruction: "投掷事件判定骰");
+            TabletopRandomInteractionKind kind = option.checkPresentation switch
+            {
+                EventCheckPresentationKind.DrawCards => TabletopRandomInteractionKind.DrawCards,
+                EventCheckPresentationKind.FlipCards => TabletopRandomInteractionKind.FlipCards,
+                EventCheckPresentationKind.OldMaid => TabletopRandomInteractionKind.OldMaid,
+                _ => TabletopRandomInteractionKind.PhysicalDice
+            };
+            string instruction = string.IsNullOrWhiteSpace(option.checkInstruction) ? DefaultInstruction(kind) : option.checkInstruction;
+            var request = new TabletopRandomInteractionRequest($"event:{gameEvent.name}:{actorId}:{step}:{Guid.NewGuid():N}", kind, actorId, gameEvent.name, option.checkCount, option.checkSides, option.checkDeckId, instruction);
             TabletopRandomInteractionResult result = await randomInteractionPresenter.PresentAsync(request, cancellationToken);
             if (result.Cancelled)
                 throw new OperationCanceledException("玩家取消了桌面随机交互。", cancellationToken);
-            if (!TabletopRandomInteractionResultValidator.TryGetDiceTotal(request, result, out int total))
-                throw new InvalidOperationException("物理骰子没有返回有效的事件判定结果。");
+            if (!TabletopRandomInteractionResultValidator.TryGetCheckTotal(request, result, out int total))
+                throw new InvalidOperationException("桌面随机交互没有返回有效的事件判定结果。");
             return total;
+        }
+
+        private static string DefaultInstruction(TabletopRandomInteractionKind kind)
+        {
+            return kind switch
+            {
+                TabletopRandomInteractionKind.DrawCards => "从牌堆抽取事件判定牌",
+                TabletopRandomInteractionKind.FlipCards => "选择并翻开事件判定牌",
+                TabletopRandomInteractionKind.OldMaid => "抽取一张牌，避开鬼牌",
+                _ => "投掷事件判定骰"
+            };
         }
 
         private PlayableEventChoiceSelection FindAutomaticSelection()

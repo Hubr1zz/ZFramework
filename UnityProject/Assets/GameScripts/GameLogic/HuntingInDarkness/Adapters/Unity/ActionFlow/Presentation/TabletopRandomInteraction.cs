@@ -64,6 +64,30 @@ namespace HuntingInDarkness.ActionFlow.Presentation
 
     public static class TabletopRandomInteractionResultValidator
     {
+        public static bool TryGetCheckTotal(TabletopRandomInteractionRequest request, TabletopRandomInteractionResult result, out int total)
+        {
+            if (request.Kind == TabletopRandomInteractionKind.PhysicalDice)
+                return TryGetDiceTotal(request, result, out total);
+
+            total = 0;
+            if (result.Cancelled || !string.Equals(request.InteractionId, result.InteractionId, StringComparison.Ordinal)) return false;
+            if (string.IsNullOrWhiteSpace(request.DeckId)) return false;
+            if (result.Values == null || result.CardIds == null || result.Values.Count != request.Count || result.CardIds.Count != request.Count) return false;
+            var cardIds = new HashSet<string>(StringComparer.Ordinal);
+            string cardIdPrefix = $"{request.DeckId.Trim()}:";
+            long resolvedTotal = 0;
+            for (int index = 0; index < result.Values.Count; index++)
+            {
+                int value = result.Values[index];
+                string cardId = result.CardIds[index];
+                if (value < 1 || value > request.Sides || string.IsNullOrWhiteSpace(cardId) || !cardId.StartsWith(cardIdPrefix, StringComparison.Ordinal) || !cardIds.Add(cardId)) return false;
+                resolvedTotal += value;
+                if (resolvedTotal > int.MaxValue) return false;
+            }
+            total = (int)resolvedTotal;
+            return true;
+        }
+
         public static bool TryGetDiceTotal(TabletopRandomInteractionRequest request, TabletopRandomInteractionResult result, out int total)
         {
             total = 0;
@@ -79,6 +103,38 @@ namespace HuntingInDarkness.ActionFlow.Presentation
             }
             total = (int)resolvedTotal;
             return true;
+        }
+    }
+
+    /// <summary>按交互种类分发到专用 3D presenter，并阻止跨阶段随机表现重叠。</summary>
+    public sealed class TabletopRandomInteractionRouter : ITabletopRandomInteractionPresenter
+    {
+        private readonly ITabletopRandomInteractionPresenter dicePresenter;
+        private readonly ITabletopRandomInteractionPresenter cardPresenter;
+        private bool isPresenting;
+
+        public TabletopRandomInteractionRouter(ITabletopRandomInteractionPresenter dicePresenter, ITabletopRandomInteractionPresenter cardPresenter)
+        {
+            this.dicePresenter = dicePresenter;
+            this.cardPresenter = cardPresenter;
+        }
+
+        public async UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
+        {
+            while (isPresenting)
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+            ITabletopRandomInteractionPresenter presenter = request.Kind == TabletopRandomInteractionKind.PhysicalDice ? dicePresenter : cardPresenter;
+            if (presenter == null) throw new NotSupportedException($"当前没有可处理 {request.Kind} 的桌面表现器。");
+
+            isPresenting = true;
+            try
+            {
+                return await presenter.PresentAsync(request, cancellationToken);
+            }
+            finally
+            {
+                isPresenting = false;
+            }
         }
     }
 }

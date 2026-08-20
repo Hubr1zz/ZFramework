@@ -31,6 +31,11 @@ namespace HuntingInDarkness.ContentTables
         public string optionText;
         public string checkType;
         public int checkTarget;
+        public string checkPresentation = "PhysicalDice";
+        public int checkCount = 1;
+        public int checkSides = 10;
+        public string checkDeckId;
+        public string checkInstruction;
         public string successText;
         public List<EventEffectTableRecord> successEffects = new();
         public string failText;
@@ -99,6 +104,7 @@ namespace HuntingInDarkness.ContentTables
     {
         private const string TablePath = "HuntingInDarkness/Tables/events";
         private const string BloodlineTablePath = "HuntingInDarkness/Tables/bloodline-events";
+        private const string CardInteractionTablePath = "HuntingInDarkness/Tables/card-interaction-events";
         private static List<EventTableRecord> cachedRecords;
         private static List<EventData> cachedEvents;
 
@@ -135,6 +141,7 @@ namespace HuntingInDarkness.ContentTables
                 var source = new JsonEventTableSource(TablePath);
                 cachedRecords = new List<EventTableRecord>(source.Load());
                 cachedRecords.AddRange(new JsonEventTableSource(BloodlineTablePath).Load());
+                cachedRecords.AddRange(new JsonEventTableSource(CardInteractionTablePath).Load());
             }
             var knownIds = new HashSet<string>(StringComparer.Ordinal);
             Dictionary<string, EventTableRecord> targetRecords = BuildUniqueTargetRecords(cachedRecords, out HashSet<string> duplicateIds);
@@ -219,7 +226,7 @@ namespace HuntingInDarkness.ContentTables
                 return options;
             foreach (EventOptionTableRecord record in records)
             {
-                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || !TryParse(record.checkType, out CheckType checkType))
+                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation))
                 {
                     Debug.LogError($"[ContentTable] 事件 {eventId} 含无效选项。");
                     continue;
@@ -229,6 +236,11 @@ namespace HuntingInDarkness.ContentTables
                     optionText = record.optionText,
                     checkType = checkType,
                     checkTarget = record.checkTarget,
+                    checkPresentation = checkPresentation,
+                    checkCount = record.checkCount == 0 ? 1 : record.checkCount,
+                    checkSides = record.checkSides == 0 ? 10 : record.checkSides,
+                    checkDeckId = record.checkDeckId ?? string.Empty,
+                    checkInstruction = record.checkInstruction ?? string.Empty,
                     successText = record.successText ?? string.Empty,
                     successEffects = ConvertEffects(record.successEffects, eventId),
                     failText = record.failText ?? string.Empty,
@@ -245,9 +257,19 @@ namespace HuntingInDarkness.ContentTables
             if (records == null)
                 return true;
             foreach (EventOptionTableRecord record in records)
-                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || !TryParse(record.checkType, out CheckType _) || !ValidateEffects(record.successEffects) || !ValidateEffects(record.failEffects) || !ValidateConditions(record.alwaysAvailable, record.conditions))
+                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects) || !ValidateEffects(record.failEffects) || !ValidateConditions(record.alwaysAvailable, record.conditions))
                     return false;
             return true;
+        }
+
+        private static bool ValidateCheckPresentation(EventOptionTableRecord record, CheckType checkType, EventCheckPresentationKind presentation)
+        {
+            if (checkType == CheckType.None) return true;
+            int count = record.checkCount == 0 ? 1 : record.checkCount;
+            int sides = record.checkSides == 0 ? 10 : record.checkSides;
+            if (count < 1 || count > 12 || sides < 2 || sides > 20 || count > sides) return false;
+            if (presentation == EventCheckPresentationKind.PhysicalDice) return sides == 6 || sides == 10;
+            return !string.IsNullOrWhiteSpace(record.checkDeckId);
         }
 
         private static List<EventOptionCondition> ConvertConditions(IReadOnlyList<EventOptionConditionTableRecord> records)
@@ -384,6 +406,16 @@ namespace HuntingInDarkness.ContentTables
         private static bool TryParse<TEnum>(string value, out TEnum result) where TEnum : struct
         {
             return Enum.TryParse(value, true, out result) && Enum.IsDefined(typeof(TEnum), result);
+        }
+
+        private static bool TryParseCheckPresentation(string value, out EventCheckPresentationKind result)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                result = EventCheckPresentationKind.PhysicalDice;
+                return true;
+            }
+            return TryParse(value, out result);
         }
     }
 }

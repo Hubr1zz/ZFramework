@@ -459,6 +459,27 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task EventCheck_UsesConfiguredCardInteractionInsideSettlementRoot()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            HunterInstance hunter = settlement.Hunters[0];
+            hunter.Understanding = 0;
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_bone_omens");
+            var presenter = new FixedCardPresenter(9);
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), new EventSystem(settlement, new FirstRandom()), new FixedChoiceInput(0, hunter), randomInteractionPresenter: presenter);
+
+            SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(settlement.GetResource("碎石"), Is.EqualTo(2));
+            Assert.That(hunter.Understanding, Is.EqualTo(1));
+            Assert.That(presenter.Requests, Has.Count.EqualTo(1));
+            Assert.That(presenter.Requests[0].Kind, Is.EqualTo(TabletopRandomInteractionKind.FlipCards));
+            Assert.That(presenter.Requests[0].DeckId, Is.EqualTo("bone-omens"));
+            Assert.That(presenter.Requests[0].ActorId, Is.EqualTo(hunter.InstanceId.ToString()));
+        }
+
+        [Test]
         public async Task EventCheck_DoesNotPresentRerollWhenActorCannotPayRerollCost()
         {
             SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
@@ -686,6 +707,21 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 Requests.Add(request);
                 return UniTask.FromResult(new TabletopRandomInteractionResult(request.InteractionId, new[] { values.Dequeue() }, Array.Empty<string>()));
+            }
+        }
+
+        private sealed class FixedCardPresenter : ITabletopRandomInteractionPresenter
+        {
+            private readonly int value;
+
+            public FixedCardPresenter(int value) => this.value = value;
+
+            public List<TabletopRandomInteractionRequest> Requests { get; } = new();
+
+            public UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
+            {
+                Requests.Add(request);
+                return UniTask.FromResult(new TabletopRandomInteractionResult(request.InteractionId, new[] { value }, new[] { $"{request.DeckId}:card-{value}" }));
             }
         }
 

@@ -103,6 +103,19 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(eventSystem.PrepareChoice(gameEvent, optionIndex, listener), Is.Null);
         }
 
+        [Test]
+        public void CardInteractionEvent_MapsStableDeckAndPresentationFromTable()
+        {
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_bone_omens");
+            EventOption option = gameEvent.options.First(item => item.checkType != CheckType.None);
+
+            Assert.That(option.checkPresentation, Is.EqualTo(EventCheckPresentationKind.FlipCards));
+            Assert.That(option.checkCount, Is.EqualTo(1));
+            Assert.That(option.checkSides, Is.EqualTo(10));
+            Assert.That(option.checkDeckId, Is.EqualTo("bone-omens"));
+            Assert.That(option.checkInstruction, Does.Contain("骨兆"));
+        }
+
         private sealed class FirstRandom : IRandomSource
         {
             public int Next(int minInclusive, int maxExclusive) => minInclusive;

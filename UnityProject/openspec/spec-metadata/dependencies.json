@@ -128,6 +128,13 @@
       "specPath": "openspec/specs/tabletop-settlement-symptoms/spec.md"
     },
     {
+      "id": "tabletop-random-interaction",
+      "label": "桌游式随机交互",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-random-interaction/spec.md"
+    },
+    {
       "id": "tabletop-event-interaction",
       "label": "跨阶段桌面事件交互",
       "category": "feature",
@@ -405,6 +412,16 @@
       "type": "requires",
       "status": "defined",
       "reason": "关键词条件通过共享世界空间事件卡显示并提交玩家选择",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-event-interaction--requires--tabletop-random-interaction",
+      "from": "tabletop-event-interaction",
+      "to": "tabletop-random-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地与狩猎事件通过统一桌面随机路由等待并校验骰子、抽牌、翻牌或抽鬼牌结果",
       "gapId": "",
       "blocksImplementation": false
     },

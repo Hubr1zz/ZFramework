@@ -28,6 +28,14 @@ namespace HuntingInDarkness.Data
         Custom         // 自定义（值由 customCheckStat 指定）
     }
 
+    public enum EventCheckPresentationKind
+    {
+        PhysicalDice,
+        DrawCards,
+        FlipCards,
+        OldMaid
+    }
+
     /// <summary>
     /// 游戏事件 ScriptableObject 模板。
     /// 支持：叙事/抉择/战斗三种类型、子事件链、条件判定、结果隐藏/显示。
@@ -100,6 +108,13 @@ namespace HuntingInDarkness.Data
         [Header("判定（可选）")]
         public CheckType checkType    = CheckType.None;
         public int       checkTarget  = 0; // 成功需满足的值（如：≥3）
+
+        [Header("桌面随机表现")]
+        public EventCheckPresentationKind checkPresentation = EventCheckPresentationKind.PhysicalDice;
+        [Min(1)] public int checkCount = 1;
+        [Min(2)] public int checkSides = 10;
+        public string checkDeckId = "";
+        public string checkInstruction = "";
 
         [Header("成功结果")]
         [TextArea] public string successText   = "成功了";

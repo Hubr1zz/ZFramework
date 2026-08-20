@@ -149,7 +149,9 @@ namespace Core
         private bool huntRetreatInFlight;
         private bool preparedHuntExit;
         [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
+        [SerializeField] private TabletopCardInteractionPresenter tabletopCardPresenter;
         [SerializeField] private Vector3 tabletopDiceAnchorOffset = new(0f, 0f, -1.65f);
+        private ITabletopRandomInteractionPresenter tabletopInteractionRouter;
         private PlayableSettlementContentCatalog settlementContentCatalog;
         private PlayableWorkshopCatalog workshopContentCatalog;
 
@@ -183,7 +185,11 @@ namespace Core
             EnsureRootObjects();
             if (tabletopRandomPresenter == null)
                 tabletopRandomPresenter = GetComponent<PhysicalDiceTabletopPresenter>() ?? gameObject.AddComponent<PhysicalDiceTabletopPresenter>();
+            if (tabletopCardPresenter == null)
+                tabletopCardPresenter = GetComponent<TabletopCardInteractionPresenter>() ?? gameObject.AddComponent<TabletopCardInteractionPresenter>();
             tabletopRandomPresenter.AnchorResolver = ResolveTabletopRandomAnchor;
+            tabletopCardPresenter.AnchorResolver = ResolveTabletopRandomAnchor;
+            tabletopInteractionRouter = new TabletopRandomInteractionRouter(tabletopRandomPresenter, tabletopCardPresenter);
 
             // 阶段管理器
             _phaseManager = new PhaseManager(GameModule.Fsm);
@@ -533,7 +539,7 @@ namespace Core
         {
             DisposeSettlementActionSession();
             if (_settlementManager?.Data == null) return;
-            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items), tabletopRandomPresenter, _settlementManager.Workshop, _settlementManager.Inventions, workshopContentCatalog, PlayableSymptomRuntime.Catalog, actionEnvironmentInstallers);
+            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items), tabletopInteractionRouter, _settlementManager.Workshop, _settlementManager.Inventions, workshopContentCatalog, PlayableSymptomRuntime.Catalog, actionEnvironmentInstallers);
         }
 
         private void DisposeSettlementActionSession()
@@ -608,7 +614,7 @@ namespace Core
                 _huntVisualizer = visGo.AddComponent<HuntMapVisualizer>();
             }
             _huntVisualizer?.Init(_huntMgr);
-            huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId, tabletopRandomPresenter, _huntVisualizer, actionEnvironmentInstallers);
+            huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId, tabletopInteractionRouter, _huntVisualizer, actionEnvironmentInstallers);
             EnsureHuntRetreatPanel();
 
             // Hunt UI
