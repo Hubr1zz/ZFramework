@@ -12,6 +12,21 @@ title: "狩猎桌面资源采集"
 
 ## Requirements
 
+### Requirement: 采集要求小队到达资源地块
+
+系统 MUST 仅允许小队采集当前所在、且已经翻开的地块上的资源点。远处已翻开的资源棋子 MAY 保持可见，但在小队移动到对应地块之前，桌面选择入口与 Hunt ActionQueue 的准备动作 MUST 拒绝该资源点。
+
+采集事务创建后，Hunt ActionQueue MUST 在事务完成或玩家离开采集前拒绝翻牌与移动命令，避免小队位置与采集目标在流程中途分离。
+
+#### Scenario: 玩家尝试远程采集已翻开的资源点
+
+- **GIVEN** 相邻地块已经翻开并展示资源棋子
+- **AND** 小队仍停留在其他地块
+- **WHEN** 玩家选择该资源棋子或请求准备采集
+- **THEN** 系统不打开采集桌面且不创建采集事务
+- **WHEN** 小队移动到该资源地块后再次请求准备采集
+- **THEN** 系统允许 ActionQueue 创建采集事务
+
 ### Requirement: Harvest uses world-space physical cards
 When a resource marker has a valid world presentation anchor, the hunt view SHALL present its material pool as face-down 3D cards beside that resource point instead of opening the screen-space harvest popup.
 

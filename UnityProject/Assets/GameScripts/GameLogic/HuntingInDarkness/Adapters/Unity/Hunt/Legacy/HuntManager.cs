@@ -254,7 +254,7 @@ namespace HuntingInDarkness.Hunt
             if (pointIndex < 0 || pointIndex >= tile.ResourcePoints.Count) return;
 
             var point = tile.ResourcePoints[pointIndex];
-            if (point.IsExhausted) return;
+            if (!IsHarvestablePoint(point)) return;
 
             OnResourcePointClicked?.Invoke(point, SelectedHunter);
         }
@@ -262,10 +262,8 @@ namespace HuntingInDarkness.Hunt
         public bool IsHarvestablePoint(ResourcePointInstance point)
         {
             if (point == null || point.IsExhausted || point.Resource == null) return false;
-            foreach (HexTileInstance tile in Map.Values)
-                if (tile.State == TileState.Revealed && tile.ResourcePoints.Contains(point))
-                    return true;
-            return false;
+            if (!Map.TryGetValue(SquadPosition, out HexTileInstance squadTile)) return false;
+            return squadTile.State == TileState.Revealed && squadTile.ResourcePoints.Contains(point);
         }
 
         /// <summary>执行采集（由 UI 确认后调用）</summary>

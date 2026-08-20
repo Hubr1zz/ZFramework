@@ -67,6 +67,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public async UniTask<HuntTileCommandResult> InteractTileAsync(Vector2Int coordinate)
         {
             if (!IsActive) return HuntTileCommandResult.Failed("狩猎会话已经结束");
+            if (HasActiveHarvest) return HuntTileCommandResult.Failed("请先完成或离开当前资源采集");
             HuntTileInteractionKind intendedKind = GetIntendedKind(coordinate);
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle squad = environment.EntityHandles.GetOrCreate("hunt-squad", "active", "狩猎小队");

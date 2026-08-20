@@ -136,6 +136,59 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(foreignPoint.IsExhausted, Is.False);
         }
 
+        [Test]
+        public async Task PrepareHarvestAsync_RequiresSquadPresenceOnResourceTile()
+        {
+            using var rig = new HuntRig(drawCount: 1);
+            HexTileInstance resourceTile = null;
+            foreach (HexTileInstance tile in rig.Manager.Map.Values)
+                if (tile.State == TileState.Interactable)
+                {
+                    resourceTile = tile;
+                    break;
+                }
+            Assert.That(resourceTile, Is.Not.Null);
+            rig.Manager.Map[Vector2Int.zero].ResourcePoints.Remove(rig.Point);
+            resourceTile.State = TileState.Revealed;
+            resourceTile.ResourcePoints.Add(rig.Point);
+            int selectionCount = 0;
+            rig.Manager.OnResourcePointClicked += (_, _) => selectionCount++;
+
+            rig.Manager.OnResourcePointSelected(resourceTile.AxialCoord, 0);
+            PlayableHarvestTransaction remote = await rig.Session.PrepareHarvestAsync(rig.Point);
+            HuntTileCommandResult movement = await rig.Session.InteractTileAsync(resourceTile.AxialCoord);
+            rig.Manager.OnResourcePointSelected(resourceTile.AxialCoord, 0);
+            PlayableHarvestTransaction arrived = await rig.Session.PrepareHarvestAsync(rig.Point);
+
+            Assert.That(remote, Is.Null);
+            Assert.That(movement.Succeeded, Is.True);
+            Assert.That(rig.Manager.SquadPosition, Is.EqualTo(resourceTile.AxialCoord));
+            Assert.That(selectionCount, Is.EqualTo(1));
+            Assert.That(arrived, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task InteractTileAsync_RejectsMapInteractionWhileHarvestIsActive()
+        {
+            using var rig = new HuntRig(drawCount: 1);
+            HexTileInstance target = null;
+            foreach (HexTileInstance tile in rig.Manager.Map.Values)
+                if (tile.State == TileState.Interactable)
+                {
+                    target = tile;
+                    break;
+                }
+            Assert.That(target, Is.Not.Null);
+
+            PlayableHarvestTransaction transaction = await rig.Session.PrepareHarvestAsync(rig.Point);
+            HuntTileCommandResult interaction = await rig.Session.InteractTileAsync(target.AxialCoord);
+
+            Assert.That(transaction, Is.Not.Null);
+            Assert.That(interaction.Succeeded, Is.False);
+            Assert.That(target.State, Is.EqualTo(TileState.Interactable));
+            Assert.That(rig.Manager.SquadPosition, Is.EqualTo(Vector2Int.zero));
+        }
+
         private sealed class HuntRig : IDisposable
         {
             private readonly ItemData resource;
