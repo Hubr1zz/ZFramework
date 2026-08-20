@@ -106,7 +106,6 @@ namespace HuntingInDarkness.Bootstrap
             {
                 gameObject.AddComponent<PlayableHuntDestinationView>().Initialize(manager, null, settings.HuntDestinations);
                 gameObject.AddComponent<PlayableSettlementEventView>().Initialize(manager);
-                gameObject.AddComponent<PlayableGrowthMilestoneToast>().Initialize(manager);
             }
 
             Debug.Log("[PlayableGameBootstrap] 可游玩流程已接入 ZFramework 启动场景。", this);

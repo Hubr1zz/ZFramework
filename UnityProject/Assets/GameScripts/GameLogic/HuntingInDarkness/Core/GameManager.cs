@@ -195,8 +195,7 @@ namespace Core
             EventBus.Subscribe<CampaignEncounterRequestedEvent>(OnCampaignEncounterRequested);
             EventBus.Subscribe<PlayableEventEncounterRequestedEvent>(OnPlayableEventEncounterRequested);
 
-            (GetComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableWeaponMasteryToast>() ?? gameObject.AddComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableWeaponMasteryToast>()).Initialize(this);
-            (GetComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableHunterLossToast>() ?? gameObject.AddComponent<HuntingInDarkness.ViewLayer.Settlement.PlayableHunterLossToast>()).Initialize(this);
+            (GetComponent<SettlementNoticePresenter3D>() ?? gameObject.AddComponent<SettlementNoticePresenter3D>()).Initialize(this);
         }
 
         private void Start()
