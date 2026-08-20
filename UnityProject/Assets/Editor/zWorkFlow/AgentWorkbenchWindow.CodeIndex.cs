@@ -48,7 +48,7 @@ namespace AgentWorkflow.Editor
         private double codeIndexElapsedSeconds;
         private int codeIndexDiskFileCount;
 
-        private string CodeIndexPath => Path.Combine(_projectRoot, ".agent-memory", "zworkflow", "local", "code-query-index.json");
+        private string CodeIndexPath => Path.Combine(_projectRoot, ".agents", "codebase-query", "code-query-index.json");
         private string CodeIndexProgressPath => Path.Combine(_projectRoot, ".agent-memory", "zworkflow", "local", "code-query-progress.json");
         private bool IsCodeIndexBuilding => codeIndexProcess != null && !codeIndexProcess.HasExited;
 
