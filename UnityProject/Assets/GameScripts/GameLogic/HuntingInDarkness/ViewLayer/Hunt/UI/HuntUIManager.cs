@@ -1,4 +1,5 @@
 using Core;
+using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using UnityEngine;
@@ -21,6 +22,7 @@ namespace UI.Hunt
         private ResourceHarvestPopup _harvestPopup;
         private EventPopupHunt       _eventPopupHunt;
         private HuntHarvestPanel3D harvestPanel3D;
+        private HuntStatusBoard3D statusBoard3D;
 
         // 顶部信息栏
         private Text _infoLabel;
@@ -36,6 +38,8 @@ namespace UI.Hunt
 
             if (_initialized)
             {
+                if (statusBoard3D != null)
+                    statusBoard3D.Initialize(_huntMgr);
                 Refresh();
                 return;
             }
@@ -45,11 +49,20 @@ namespace UI.Hunt
 
             // 订阅事件
             EventBus.Subscribe<GameEventTriggeredEvent>(OnGameEvent);
+            EventBus.Subscribe<HuntTileInteractionCommittedEvent>(OnTileInteractionCommitted);
+            EventBus.Subscribe<HarvestCommittedEvent>(OnHarvestCommitted);
             _initialized = true;
         }
 
         private void BuildUI()
         {
+            if (huntVisualizer != null)
+            {
+                statusBoard3D = HuntStatusBoard3D.Create(huntVisualizer.transform);
+                statusBoard3D.Initialize(_huntMgr);
+                return;
+            }
+
             FullStretch(gameObject);
 
             // 顶部信息栏
@@ -82,29 +95,43 @@ namespace UI.Hunt
         public void Refresh()
         {
             if (_huntMgr == null) return;
+            if (statusBoard3D != null)
+            {
+                statusBoard3D.Refresh();
+                return;
+            }
             _infoLabel.text = $"{PlayableHuntDestinationRuntime.ActiveDisplayName}  — 小队位置 {_huntMgr.SquadPosition}";
             _statusOverlay?.Init(_huntMgr.ActiveHunters);
         }
 
         private void ShowHarvestPopup(ResourcePointInstance point, HunterInstance hunter)
         {
-            if (huntVisualizer != null && huntVisualizer.TryGetResourcePointPresentationPosition(point, out Vector3 position))
+            if (huntVisualizer != null)
             {
                 if (_harvestPopup != null)
                     _harvestPopup.gameObject.SetActive(false);
+                Vector3 position = huntVisualizer.TryGetResourcePointPresentationPosition(point, out Vector3 markerPosition)
+                    ? markerPosition
+                    : huntVisualizer.TabletopInteractionAnchor.position + new Vector3(0f, 0.58f, -1.55f);
                 harvestPanel3D ??= HuntHarvestPanel3D.Create(huntVisualizer.transform);
                 harvestPanel3D.Show(point, _huntMgr, position);
                 return;
             }
+            if (_harvestPopup == null)
+                return;
             _harvestPopup.gameObject.SetActive(true);
             _harvestPopup.Show(point, hunter, _huntMgr);
         }
 
         private void OnGameEvent(GameEventTriggeredEvent e)
         {
-            if (e.EventId.StartsWith("tile_reveal:"))
+            if (e.EventId?.StartsWith("tile_reveal:") == true)
                 Refresh();
         }
+
+        private void OnTileInteractionCommitted(HuntTileInteractionCommittedEvent _) => Refresh();
+
+        private void OnHarvestCommitted(HarvestCommittedEvent _) => Refresh();
 
         // ─── uGUI 工厂 ────────────────────────────────────────────
 
@@ -147,6 +174,10 @@ namespace UI.Hunt
         private void OnDestroy()
         {
             EventBus.Unsubscribe<GameEventTriggeredEvent>(OnGameEvent);
+            EventBus.Unsubscribe<HuntTileInteractionCommittedEvent>(OnTileInteractionCommitted);
+            EventBus.Unsubscribe<HarvestCommittedEvent>(OnHarvestCommitted);
+            if (statusBoard3D != null)
+                Destroy(statusBoard3D.gameObject);
             if (harvestPanel3D != null)
             {
                 harvestPanel3D.DismissForSessionChange();

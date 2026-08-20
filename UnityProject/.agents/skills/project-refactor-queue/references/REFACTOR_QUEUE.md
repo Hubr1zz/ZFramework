@@ -27,7 +27,17 @@
 - **状态**: 已维护
 - **维护人**: Hubr1zz
 - **维护时间**: 2026-07-27 15:13:45
-- **维护备注**: 2026-08-20 资源采集主路径已迁入 3D；本条收缩为狩猎 HUD/事件/兼容回退的后续统一。
+- **维护备注**: 2026-08-20 资源采集主路径已迁入 3D；同日常规 Hunt 顶栏、猎人状态与流程引导迁入地图边缘实体状态桌，旧 uGUI 仅保留无 `HuntMapVisualizer` 的兼容宿主。本条后续范围收缩为兼容回退与 GameOverScreen。
+
+### [优先级: 中] HuntManager 单赋值回调限制多 Presenter 扩展
+- **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs`、`Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs`
+- **类型**: 架构边界 / 事件扩展性
+- **描述**: `OnResourcePointClicked` 等公开 `Action` 字段由 View 直接覆盖，当前只能安全容纳一个订阅者；后续加入事件覆盖、教程注入或多个 3D Presenter 时容易互相替换。应在完整梳理 Hunt 命令与已提交事实后，将输入请求收口为明确 Command Port，将多消费者刷新迁入 ActionQueue outbox + EventBus 的类型化已提交事件；迁移期间保留兼容桥，不并存两套权威写入路径。
+- **来源**: 2026-08-20 狩猎 3D 状态桌实现审查
+- **状态**: 待处理
+- **维护人**: codex
+- **维护时间**: 2026-08-20
+- **维护备注**: 影响后续功能覆盖与流程注入；需要结合 Hunt runner/reactor 宏观职责一次性设计，暂不做局部反复重构。
 
 ### [优先级: 中] 统一配置 TMP 中文字体与 fallback
 - **文件**: `Assets/` 下使用 TextMeshPro 的营地、事件与桌面表现组件；项目 TMP Settings / 字体资产
