@@ -309,6 +309,8 @@ namespace AgentWorkflow.Editor
             ["codeIndex.cancelled"] = ("索引构建已取消。", "Index build cancelled."),
             ["codeIndex.coverage"] = ("覆盖率", "Coverage"),
             ["codeIndex.files"] = ("文件", "Files"),
+            ["codeIndex.parsed"] = ("本次提取", "Extracted This Build"),
+            ["codeIndex.reused"] = ("复用缓存", "Reused Extractions"),
             ["codeIndex.types"] = ("类型", "Types"),
             ["codeIndex.methods"] = ("方法", "Methods"),
             ["codeIndex.calls"] = ("已解析调用", "Resolved Calls"),

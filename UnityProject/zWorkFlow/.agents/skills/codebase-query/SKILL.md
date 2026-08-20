@@ -40,8 +40,9 @@ MCP、SQLite、Tree-sitter、向量搜索、ADR、UI、安装器或 watcher。
 & .agents/skills/codebase-query/scripts/run.ps1 changed
 ```
 
-默认输出紧凑 JSON，适合 Agent 在一次工具调用中读取。索引缺失或代码文件发生
-变化时会自动重建。缓存位于 Git 忽略的
+默认输出紧凑 JSON，适合 Agent 在一次工具调用中读取。索引缺失时会自动构建；代码
+变化时只重新提取变化文件，再对紧凑结构事实重新绑定。构建进度写入 stderr 和本地进度快照，不污染
+stdout 的 JSON。缓存位于 Git 忽略的
 `.agent-memory/zworkflow/local/code-query-index.json`。
 
 ## 优先路由
@@ -61,7 +62,7 @@ PowerShell 7 不可用、命令执行失败或查询超出契约能力时才能�
 5. Unity 生命周期、Inspector、Scene、Prefab、ScriptableObject、UnityEvent、反射、
    Addressables 和动态 EventBus 关系不在该静态索引的完整能力范围内。
 6. 本索引是可删除、可再生成的派生索引，不是项目事实、ADR 或 OpenSpec 的权威源。
-7. JSON 中的 `engine=codebase-query-regex-binding-v3` 与 `schemaVersion` 可用于确认本次
+7. JSON 中的 `engine=codebase-query-regex-binding-v5` 与 `schemaVersion` 可用于确认本次
    结果确实来自索引工具；没有这些字段时不得声称已使用索引。
 
 `scripts/run.ps1` 是稳定公共入口。实现脚本与类型绑定库通过文件内 capability marker
