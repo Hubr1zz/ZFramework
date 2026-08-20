@@ -56,7 +56,9 @@ $forcedWindowWidthOffenders = @($layoutSources | Where-Object {
 Assert-LayoutRule ($changes -match 'ChangeDetailContentWidth\(\)') 'Changes details must use a local width budget.'
 Assert-LayoutRule ($changes -notmatch 'changeDetailPanelWidth') 'Changes split view still forces a manually projected detail width.'
 Assert-LayoutRule ($changes -match 'VerticalScope\(ReportPanelStyle\(\),\s*GUILayout\.ExpandWidth\(true\)') 'Changes detail panel must consume only the remaining flexible width.'
-Assert-LayoutRule ($changes -match 'return\s+CurrentLayoutContentWidth\(\);') 'Changes detail content must use the active local layout width.'
+Assert-LayoutRule ($changes -match 'Event\.current\.type\s*!=\s*EventType\.Repaint') 'Changes detail width must be sampled only after IMGUI resolves the local repaint rect.'
+Assert-LayoutRule ($changes -match 'return\s+changeDetailContentWidth\s*;') 'Changes detail renderers must reuse a stable cached width across Layout and Repaint.'
+Assert-LayoutRule ($changes -match 'CurrentLayoutContentWidth\(ChangeDetailHorizontalChrome\)') 'Changes detail width must deduct its local horizontal chrome.'
 Assert-LayoutRule ($window -match 'CurrentLayoutContentWidth\(') 'the shared local width budget helper is missing.'
 Assert-LayoutRule ($windowTemplate -match 'CurrentLayoutContentWidth\(') 'the portable local width budget helper is missing.'
 Assert-LayoutRule ($window -match 'position\.width\s*<\s*CompactToolbarThreshold') 'the shared toolbar does not switch to a compact layout at narrow widths.'
@@ -72,6 +74,6 @@ Assert-LayoutRule (-not (Test-Path -LiteralPath $packagedSkillPath)) 'the projec
     passed = $true
     pages = $layoutSources.Count
     minimumWindow = '900x600'
-    checks = 18
+    checks = 20
     packaged = $false
 } | ConvertTo-Json -Compress
