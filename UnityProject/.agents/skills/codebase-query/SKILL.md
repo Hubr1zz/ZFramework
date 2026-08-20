@@ -43,7 +43,7 @@ MCP、SQLite、Tree-sitter、向量搜索、ADR、UI、安装器或 watcher。
 默认输出紧凑 JSON，适合 Agent 在一次工具调用中读取。索引缺失时会自动构建；代码
 变化时只重新提取变化文件，再对紧凑结构事实重新绑定。构建进度写入 stderr 和 Git 忽略的本地进度快照，
 不污染 stdout 的 JSON。确定性的正式索引位于 Git 管理的
-`.agents/codebase-query/code-query-index.json`，其中只保存项目相对路径与源码内容哈希，不保存本机路径、文件时间或生成时间。本地 sidecar 仅用于复用已计算哈希，不进入 Git。
+`.agents/codebase-query/code-query-index.json`，其中只保存项目相对路径与规范化为 UTF-8/LF 后的源码内容哈希，不保存本机路径、文件时间或生成时间。本地 sidecar 仅用于复用已计算哈希，不进入 Git。
 
 ## 优先路由
 
