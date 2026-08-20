@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 3,
+  "capability": "csharp-derived-index",
+  "title": "C# 派生索引",
+  "category": "system",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "PowerShell 回归测试通过；Unity MCP 从工作台启动路径完成 830/830 文件索引，覆盖率 100%，缺失与异常路径均为 0。",
+    "evidence": [
+      ".agents/skills/codebase-query/tests/codebase-query.tests.ps1",
+      ".agents/skills/codebase-query/scripts/codebase-query.ps1",
+      "zWorkFlow/WORKFLOW_DEVELOPER_GUIDE.md"
+    ],
+    "differences": [],
+    "verifiedAt": "2026-08-20T07:41:00-07:00",
+    "codeEvidence": [
+      {
+        "guid": "995e9a44316d7ea40ac0592b1b060078",
+        "displayPath": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
+        "line": 48
+      }
+    ]
+  },
+  "implementationOutline": [
+    "Workbench 启动 pwsh 子进程执行公共 codebase-query 入口，并轮询本地进度快照而不阻塞 Unity 主线程。",
+    "索引器对每个文件单次扫描标识符并用类型哈希表绑定；别名解析通过 visited 集合阻止循环递归。",
+    "构建完成后比较磁盘清单、索引路径、缺失项与异常项，全部一致才显示成功。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": [
+    "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs:48",
+    ".agents/skills/codebase-query/scripts/codebase-query.ps1:1"
+  ]
+}

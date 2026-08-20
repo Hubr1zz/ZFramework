@@ -30,9 +30,8 @@
 | `changed` | `-Limit` | Git 改动文件及其候选影响文件 |
 
 可用 `-Root` 指定项目根目录，用 `-IndexPath` 改变缓存位置，用 `-SourceRoots`
-覆盖默认 `Assets` 源码根。默认排除常见第三方目录 `Assets/Plugins`、
-`Assets/ThirdParty`、`Assets/External`、`Assets/Standard Assets`；可通过
-`-ExcludeRoots` 调整或清空。输出默认是紧凑 JSON；传入 `-Pretty` 可得到缩进 JSON。
+覆盖默认 `Assets` 源码根。默认覆盖其中全部 C# 文件；需要缩小查询范围时，可通过
+`-ExcludeRoots` 显式排除第三方或生成目录。输出默认是紧凑 JSON；传入 `-Pretty` 可得到缩进 JSON。
 每次输出包含 `engine=codebase-query-regex-binding-v3` 与 `schemaVersion=3`，供 Agent 和人工核验查询来源。
 
 `scripts/run.ps1` 是唯一稳定公共入口。内部实现和绑定库按 capability marker 动态发现，

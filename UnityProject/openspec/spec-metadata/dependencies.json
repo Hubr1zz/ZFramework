@@ -7,6 +7,13 @@
       "category": "system",
       "readiness": "implemented",
       "specPath": "openspec/specs/zframework-startup-lifecycle/spec.md"
+    },
+    {
+      "id": "csharp-derived-index",
+      "label": "C# 派生索引",
+      "category": "system",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/csharp-derived-index/spec.md"
     }
   ],
   "edges": []
