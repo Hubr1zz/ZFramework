@@ -5,6 +5,7 @@ namespace Core
         WeaponTraining,
         Recruitment,
         Recovery,
+        Equipment,
         EventReroll,
         EventResolution
     }

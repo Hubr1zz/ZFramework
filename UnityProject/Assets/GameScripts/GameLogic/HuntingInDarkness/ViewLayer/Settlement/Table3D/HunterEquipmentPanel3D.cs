@@ -1,69 +1,131 @@
+using System;
+using System.Collections.Generic;
 using Cards3D;
+using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
+using HuntingInDarkness.Settlement;
 using TMPro;
 using UnityEngine;
 
 namespace UI
 {
-    /// <summary>点击猎人卡后铺在营地桌面的 3D 装备查看板；装备变更入口预留给后续 ActionQueue 命令。</summary>
+    /// <summary>猎人卡打开的 3D 装备桌板；拖放只发命令，权威状态由 Settlement ActionQueue 提交。</summary>
     public sealed class HunterEquipmentPanel3D : WorldSpaceViewPanel
     {
-        private const float PanelWidth = 4.2f;
-        private const float PanelHeight = 3.9f;
+        private const float PanelWidth = 6.2f;
+        private const float PanelHeight = 4.5f;
+        private const string EquipmentDropScope = "hunter-equipment";
+        private const string StorageDropScope = "settlement-equipment-storage";
+        private const int StoragePageSize = 9;
 
+        private readonly List<SettlementItemCard3D> storageCards = new();
+        private readonly List<ItemData> storedItems = new();
         private TextMeshPro statsText;
+        private TextMeshPro statusText;
+        private SlotGrid storageGrid;
         private SlotGrid equipmentGrid;
+        private HunterInstance hunter;
+        private SettlementInstance settlement;
+        private IReadOnlyList<ItemData> items = Array.Empty<ItemData>();
+        private Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> equipCommand;
+        private Func<int, int, UniTask<SettlementEquipmentCommandResult>> unequipCommand;
+        private GameObject previousPageButton;
+        private GameObject nextPageButton;
+        private int storagePage;
+        private bool isBuilt;
 
         public static HunterEquipmentPanel3D Create(Transform parent)
         {
             var gameObject = new GameObject("HunterEquipmentPanel3D");
             gameObject.transform.SetParent(parent, false);
             var panel = gameObject.AddComponent<HunterEquipmentPanel3D>();
-            panel.Build();
+            panel.EnsureBuilt();
             panel.Hide();
             return panel;
         }
 
-        public void Show(HunterInstance hunter, Vector3 worldPosition)
+        private void Awake() => EnsureBuilt();
+
+        public void EnsureBuilt()
         {
-            if (hunter == null) return;
-            ClearEquipmentCards();
-            Title.text = $"{hunter.Name} · 装备板";
-            statsText.text = BuildStats(hunter);
+            if (isBuilt) return;
+            isBuilt = true;
+            Build();
+        }
 
-            if (hunter.Equipment != null)
-                foreach (ItemInstance item in hunter.Equipment)
-                {
-                    if (item?.Data == null) continue;
-                    SettlementItemCard3D card = SettlementItemCard3D.Create(item.Data, item.Count, ContentRoot);
-                    equipmentGrid.TryPlaceCard(card);
-                }
+        public void ConfigureCommands(Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> onEquip, Func<int, int, UniTask<SettlementEquipmentCommandResult>> onUnequip)
+        {
+            equipCommand = onEquip;
+            unequipCommand = onUnequip;
+        }
 
+        public void Show(HunterInstance selectedHunter, SettlementInstance settlementData, IReadOnlyList<ItemData> availableItems, Vector3 worldPosition)
+        {
+            if (selectedHunter == null || settlementData == null) return;
+            hunter = selectedHunter;
+            settlement = settlementData;
+            items = availableItems ?? Array.Empty<ItemData>();
+            Title.text = $"{hunter.Name} · 装备桌";
+            statusText.text = "将仓库卡拖入右侧槽位；将已装备卡拖回左侧仓库即可卸下。";
+            RebuildCards();
             ShowAt(worldPosition);
+        }
+
+        public void RefreshVisible()
+        {
+            if (!gameObject.activeSelf || hunter == null || settlement == null) return;
+            RebuildCards();
         }
 
         private void Build()
         {
             BuildBase();
             SetSize(PanelWidth, PanelHeight);
+            BuildStats();
+            BuildStatus();
 
+            storageGrid = SlotGrid.Create(ContentRoot, new Vector3(-1.52f, 0.015f, -0.20f), 3, 3, CardView3D.CW + 0.06f, CardView3D.CH + 0.06f, 0.10f, false, CardCategory.Equipment);
+            storageGrid.DropScope = StorageDropScope;
+            foreach (CardSlot slot in storageGrid.Slots)
+                slot.DropScope = StorageDropScope;
+            storageGrid.AddLabel("装备仓库");
+
+            equipmentGrid = SlotGrid.Create(ContentRoot, new Vector3(1.52f, 0.015f, -0.20f), 3, 3, CardView3D.CW + 0.06f, CardView3D.CH + 0.06f, 0.10f, false, CardCategory.Equipment);
+            equipmentGrid.DropScope = EquipmentDropScope;
+            foreach (CardSlot slot in equipmentGrid.Slots)
+                slot.DropScope = EquipmentDropScope;
+            equipmentGrid.AddLabel("猎人装备槽");
+            previousPageButton = BuildPageButton("PreviousStoragePage", "<", new Vector3(-2.75f, 0.03f, 1.42f), -1);
+            nextPageButton = BuildPageButton("NextStoragePage", ">", new Vector3(-0.30f, 0.03f, 1.42f), 1);
+            BuildCloseButton();
+        }
+
+        private void BuildStats()
+        {
             var statsObject = new GameObject("HunterStats");
             statsObject.transform.SetParent(ContentRoot, false);
-            statsObject.transform.localPosition = new Vector3(-1.25f, 0.015f, -0.05f);
+            statsObject.transform.localPosition = new Vector3(0f, 0.015f, 1.74f);
             statsObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             statsText = statsObject.AddComponent<TextMeshPro>();
-            statsText.fontSize = 0.105f;
-            statsText.alignment = TextAlignmentOptions.TopLeft;
+            statsText.fontSize = 0.09f;
+            statsText.alignment = TextAlignmentOptions.Center;
             statsText.color = new Color(0.82f, 0.82f, 0.78f);
-            statsText.rectTransform.sizeDelta = new Vector2(1.35f, 2.8f);
+            statsText.rectTransform.sizeDelta = new Vector2(5.2f, 0.32f);
+        }
 
-            equipmentGrid = SlotGrid.Create(ContentRoot, new Vector3(0.72f, 0.015f, -0.18f), 3, 3, CardView3D.CW + 0.06f, CardView3D.CH + 0.06f, 0.10f, false, CardCategory.Equipment);
-            equipmentGrid.OccupantsDraggable = false;
-            foreach (CardSlot slot in equipmentGrid.Slots)
-                slot.AllowOccupantDrag = false;
-            equipmentGrid.AddLabel("装备槽");
-            BuildCloseButton();
+        private void BuildStatus()
+        {
+            var statusObject = new GameObject("Status");
+            statusObject.transform.SetParent(ContentRoot, false);
+            statusObject.transform.localPosition = new Vector3(0f, 0.015f, -2.03f);
+            statusObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            statusText = statusObject.AddComponent<TextMeshPro>();
+            statusText.fontSize = 0.075f;
+            statusText.alignment = TextAlignmentOptions.Center;
+            statusText.color = new Color(0.72f, 0.74f, 0.70f);
+            statusText.rectTransform.sizeDelta = new Vector2(5.2f, 0.25f);
         }
 
         private void BuildCloseButton()
@@ -89,8 +151,155 @@ namespace UI
             label.rectTransform.sizeDelta = new Vector2(0.45f, 0.18f);
         }
 
-        private void ClearEquipmentCards()
+        private GameObject BuildPageButton(string name, string labelText, Vector3 localPosition, int direction)
         {
+            GameObject buttonObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            buttonObject.name = name;
+            buttonObject.transform.SetParent(transform, false);
+            buttonObject.transform.localPosition = localPosition;
+            buttonObject.transform.localScale = new Vector3(0.42f, 0.04f, 0.22f);
+            buttonObject.GetComponent<Renderer>().material.color = new Color(0.22f, 0.28f, 0.36f);
+            buttonObject.AddComponent<ClickProxy>().OnClick = () => ChangeStoragePage(direction);
+
+            var labelObject = new GameObject("Label");
+            labelObject.transform.SetParent(buttonObject.transform, false);
+            labelObject.transform.localPosition = new Vector3(0f, 0.6f, 0f);
+            labelObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            labelObject.transform.localScale = new Vector3(1f / 0.42f, 1f / 0.22f, 1f);
+            TextMeshPro label = labelObject.AddComponent<TextMeshPro>();
+            label.text = labelText;
+            label.fontSize = 0.11f;
+            label.alignment = TextAlignmentOptions.Center;
+            label.color = new Color(0.86f, 0.90f, 0.95f);
+            label.rectTransform.sizeDelta = new Vector2(0.32f, 0.18f);
+            return buttonObject;
+        }
+
+        private void ChangeStoragePage(int direction)
+        {
+            storagePage += direction;
+            RebuildCards();
+        }
+
+        private void RebuildCards()
+        {
+            ClearCards();
+            statsText.text = BuildStats(hunter);
+            FillStorageCards();
+            FillEquipmentCards();
+        }
+
+        private void FillStorageCards()
+        {
+            storedItems.Clear();
+            foreach (ItemData item in items)
+            {
+                if (item == null || item.itemType == ItemType.Resource) continue;
+                if (settlement.GetStoredEquipment(item.itemName) > 0)
+                    storedItems.Add(item);
+            }
+
+            int pageCount = Mathf.Max(1, Mathf.CeilToInt((float)storedItems.Count / StoragePageSize));
+            storagePage = Mathf.Clamp(storagePage, 0, pageCount - 1);
+            previousPageButton.SetActive(storagePage > 0);
+            nextPageButton.SetActive(storagePage < pageCount - 1);
+            statusText.text = storedItems.Count == 0 ? "装备仓库为空。制造装备后，可将卡牌拖入猎人装备槽。" : $"仓库 {storagePage + 1}/{pageCount} 页 · 拖入右侧装备；将右侧卡拖回仓库可卸下。";
+
+            int startIndex = storagePage * StoragePageSize;
+            int endIndex = Mathf.Min(startIndex + StoragePageSize, storedItems.Count);
+            for (int itemIndex = startIndex; itemIndex < endIndex; itemIndex++)
+            {
+                ItemData item = storedItems[itemIndex];
+                int count = settlement.GetStoredEquipment(item.itemName);
+                CardSlot visualSlot = storageGrid.Slots[itemIndex - startIndex];
+                Vector3 localPosition = ContentRoot.InverseTransformPoint(visualSlot.transform.position + Vector3.up * 0.013f);
+                SettlementItemCard3D card = SettlementItemCard3D.Create(item, count, ContentRoot, localPosition);
+                card.ConfigureCommandDrop(EquipmentDropScope, RequestEquip);
+                storageCards.Add(card);
+            }
+        }
+
+        private void FillEquipmentCards()
+        {
+            if (hunter.Equipment == null) return;
+            foreach (ItemInstance item in hunter.Equipment)
+            {
+                if (item?.Data == null) continue;
+                SettlementItemCard3D card = SettlementItemCard3D.Create(item, ContentRoot);
+                if (!equipmentGrid.TryPlaceCard(card))
+                {
+                    Destroy(card.gameObject);
+                    continue;
+                }
+                card.ConfigureCommandDrop(StorageDropScope, RequestUnequip);
+            }
+        }
+
+        private void RequestEquip(SettlementItemCard3D card) => EquipAsync(card).Forget();
+
+        private async UniTaskVoid EquipAsync(SettlementItemCard3D card)
+        {
+            if (card == null || equipCommand == null)
+            {
+                card?.CompleteDropRequest(true);
+                statusText.text = "装备命令尚未接入。";
+                return;
+            }
+
+            SettlementEquipmentCommandResult result;
+            try
+            {
+                result = await equipCommand.Invoke(hunter.InstanceId, card.Item);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                if (this != null && card != null) card.CompleteDropRequest(true);
+                if (this != null) statusText.text = "装备命令执行异常，请重试。";
+                return;
+            }
+            if (result.Succeeded) return;
+            if (this == null) return;
+            if (card != null) card.CompleteDropRequest(true);
+            statusText.text = result.Reason;
+        }
+
+        private void RequestUnequip(SettlementItemCard3D card) => UnequipAsync(card).Forget();
+
+        private async UniTaskVoid UnequipAsync(SettlementItemCard3D card)
+        {
+            if (card == null || card.Instance == null || unequipCommand == null)
+            {
+                card?.CompleteDropRequest(true);
+                statusText.text = "卸下命令尚未接入。";
+                return;
+            }
+
+            SettlementEquipmentCommandResult result;
+            try
+            {
+                result = await unequipCommand.Invoke(hunter.InstanceId, card.Instance.InstanceId);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                if (this != null && card != null) card.CompleteDropRequest(true);
+                if (this != null) statusText.text = "卸下命令执行异常，请重试。";
+                return;
+            }
+            if (result.Succeeded) return;
+            if (this == null) return;
+            if (card != null) card.CompleteDropRequest(true);
+            statusText.text = result.Reason;
+        }
+
+        private void ClearCards()
+        {
+            foreach (SettlementItemCard3D card in storageCards)
+                if (card != null)
+                    Destroy(card.gameObject);
+            storageCards.Clear();
+
             foreach (CardSlot slot in equipmentGrid.Slots)
             {
                 CardView3D card = slot.OccupantCard;
@@ -101,7 +310,7 @@ namespace UI
 
         private static string BuildStats(HunterInstance hunter)
         {
-            return $"年龄  {hunter.Age}\n意志  {hunter.Willpower}/{hunter.WillpowerMax}\n命运  {hunter.Luck}\n压抑  {hunter.Insanity}\n\n力量  {hunter.Stats.strength}\n精准  {hunter.Stats.accuracy}\n敏捷  {hunter.Stats.evasion}\n移动  {hunter.Stats.movement}\n速度  {hunter.Stats.speed}\n\n装备  {hunter.Equipment?.Count ?? 0}/{EquipmentRules.MaximumEquipmentCount}";
+            return $"年龄 {hunter.Age}  意志 {hunter.Willpower}/{hunter.WillpowerMax}  命运 {hunter.Luck}  压抑 {hunter.Insanity}    力 {hunter.Stats.strength}  准 {hunter.Stats.accuracy}  敏 {hunter.Stats.evasion}  移 {hunter.Stats.movement}  速 {hunter.Stats.speed}    装备 {hunter.Equipment?.Count ?? 0}/{EquipmentRules.MaximumEquipmentCount}";
         }
     }
 }

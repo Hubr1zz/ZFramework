@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Cards3D;
 using Core;
+using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
 using UnityEngine;
@@ -42,6 +44,8 @@ namespace UI
         public System.Action<WorkshopCard3D>   OnWorkshopClicked;
         /// <summary>点击出发卡，上报当前小队，由外部弹出出发确认窗。</summary>
         public System.Action<List<HunterInstance>> OnDepartureRequested;
+        public System.Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> OnEquipRequested;
+        public System.Func<int, int, UniTask<SettlementEquipmentCommandResult>> OnUnequipRequested;
 
         // ─── 注入数据 ─────────────────────────────────────────────────────
         private SettlementManager _mgr;
@@ -73,6 +77,8 @@ namespace UI
         {
             if (hunterEquipmentPanel == null)
                 hunterEquipmentPanel = HunterEquipmentPanel3D.Create(transform);
+            hunterEquipmentPanel.EnsureBuilt();
+            hunterEquipmentPanel.ConfigureCommands(OnEquipRequested, OnUnequipRequested);
         }
 
         private void ShowHunterEquipment(HunterInstance hunter)
@@ -84,7 +90,7 @@ namespace UI
             }
 
             Vector3 position = hunterEquipmentPanelAnchor != null ? hunterEquipmentPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.2f));
-            hunterEquipmentPanel.Show(hunter, position);
+            hunterEquipmentPanel.Show(hunter, _mgr.Data, PlayableSettlementItemRegistry.Items, position);
         }
 
         private void FillAllZones()
@@ -210,6 +216,7 @@ namespace UI
         {
             if (_mgr == null) return;
             FillAllZones();
+            hunterEquipmentPanel?.RefreshVisible();
         }
 
         /// <summary>刷新发明与工坊卡牌的视觉状态。</summary>

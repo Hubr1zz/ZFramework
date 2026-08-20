@@ -38,6 +38,9 @@ namespace Cards3D
         [BoxGroup("过滤"), LabelText("允许类别")]
         public CardCategory[] AcceptedCategories = { CardCategory.Any };
 
+        [BoxGroup("过滤"), LabelText("拖放作用域")]
+        public string DropScope = string.Empty;
+
         [BoxGroup("交互"), LabelText("允许拖出卡牌")]
         public bool OccupantsDraggable = true;
 
@@ -143,6 +146,7 @@ namespace Cards3D
             slot.SlotW              = SlotW;        // 赋属性（此时才安全）
             slot.SlotH              = SlotH;
             slot.AcceptedCategories = AcceptedCategories;
+            slot.DropScope          = DropScope;
             slot.AllowOccupantDrag  = OccupantsDraggable;
             slot.Build();                           // 属性齐全后构建视觉
 

@@ -48,6 +48,9 @@ namespace Cards3D
         [BoxGroup("过滤"), LabelText("允许类别")]
         public CardCategory[] AcceptedCategories = { CardCategory.Any };
 
+        [BoxGroup("过滤"), LabelText("拖放作用域")]
+        public string DropScope = string.Empty;
+
         [BoxGroup("交互"), LabelText("允许拖出卡牌")]
         public bool AllowOccupantDrag = true;
 

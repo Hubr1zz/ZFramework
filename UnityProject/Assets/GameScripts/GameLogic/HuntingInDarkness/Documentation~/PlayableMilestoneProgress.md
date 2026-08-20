@@ -463,3 +463,8 @@
 276. 新增 `ITabletopRandomInteractionPresenter` 端口，统一物理骰子、抽卡、翻牌与抽鬼牌的可等待生命周期；请求只携带稳定 Actor/Target/Deck ID，不把场景 Transform 泄漏到数据层，结果由表现完成后返回给 ActionQueue。物理骰子实体、稳定检测和各事件 Action 接线将在后续切片实现。
 277. 对抗审查暂时把猎人装备槽设为只读：装备仓库卡与装备/卸下 ActionQueue 事务尚未接通前，不允许玩家产生“卡已放入但权威数据未提交”的假成功。检查同时修复了旧资源拖放的隐藏占位错误：无效落点现在会重新占据原槽，不再只把视觉送回原位却把槽错误标为空。下一步应同时实现仓库 3D 卡区、异步命令结果和面板刷新，不得让 View 直接调用 `HunterManagementSystem`。
 278. 本轮 Roslyn 使用 Unity 现有 GameLogic 编译响应文件完成数据级编译，只有既有未使用事件警告。Unity MCP HTTP Server 已恢复，但 Unity Bridge 未注册任何实例，因而尚未完成 Editor 控制台、EditMode 与 Play Mode 验证；恢复 Bridge 后必须先补齐该门禁，再继续装备事务或物理骰子实现。
+279. 猎人装备与卸下已进入 Settlement ActionQueue：仓库卡拖入猎人槽或已装备卡拖回仓库时，View 只提交异步命令；Action 在同一 Settlement Runner 中重验内容注册、猎人归属、容量、护甲覆盖、武器上限、库存和精确运行时装备实例，成功后统一发布装备事实与营地事务事实。
+280. `HunterEquipmentPanel3D` 现同时展示可分页的 3D 装备仓库和猎人 3×3 装备槽，拖放作用域防止卡牌吸附到全局无关槽位；无效落点、命令失败和 Reactor 阻止都会恢复原位并允许重试。面板构建为幂等初始化，可由运行时工厂或后续 Inspector 预放置入口安全使用。
+281. 并发装备请求由 Settlement Runner 串行重验，同一份库存只会提交一次；卸下按 `ItemInstance.InstanceId` 精确定位，不会因同名装备删除错误副本。成功事务沿用统一监听器刷新 3D 桌面与保存，旧 `HunterManagementSystem` 装备入口暂留兼容但正式 View 已不再调用。
+282. 当前装备权威模型仍以列表保存，3D 具体槽位只承担拖放目标，刷新后会按列表顺序紧凑排列；如果后续规则要求左右手、护符位或槽位 Reactor，应先在数据层引入稳定 SlotId，再让卡槽提交 SlotId，不能从 Transform 或显示顺序反推。`ItemData` 同样缺少稳定内容 ID，仓库和 Reactor 实体目前仍以 `itemName` 兼容映射；读表落地前必须迁移为稳定 ID 并处理同名/改名存档升级。
+283. Unity MCP 聚焦装备与拖拽回归 7/7、全量 EditMode 311/311 通过。正式 ZFramework Play Mode 数据探针确认 Settlement ActionSession 有效、唯一 3D 营地桌已建立、装备面板包含 2 个 SlotGrid 与 18 个实体槽，控制台 0 error；验证未使用截图或提交装备操作，玩家存档哈希保持不变。

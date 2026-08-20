@@ -57,7 +57,6 @@ namespace HuntingInDarkness.Adapter.Tests
                 gameObject.transform.SetParent(parent, false);
                 var card = gameObject.AddComponent<TestCard>();
                 card.category = category;
-                card.InitView(Vector3.zero);
                 return card;
             }
 

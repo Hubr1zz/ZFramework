@@ -1,4 +1,5 @@
 using HuntingInDarkness.Data;
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -14,8 +15,12 @@ namespace Cards3D
         private TextMeshPro nameText;
         private TextMeshPro typeText;
         private TextMeshPro descriptionText;
+        private string requiredDropScope;
+        private Action<SettlementItemCard3D> dropRequested;
+        private bool requestInFlight;
 
         public ItemData Item { get; private set; }
+        public ItemInstance Instance { get; private set; }
         public int Count { get; private set; }
         public override string DisplayName => Item != null ? $"{Item.itemName} ×{Count}" : base.DisplayName;
 
@@ -30,6 +35,26 @@ namespace Cards3D
             card.Count = Mathf.Max(1, count);
             card.InitView(localPosition);
             return card;
+        }
+
+        public static SettlementItemCard3D Create(ItemInstance instance, Transform parent, Vector3 localPosition = default)
+        {
+            SettlementItemCard3D card = Create(instance?.Data, instance?.Count ?? 1, parent, localPosition);
+            card.Instance = instance;
+            return card;
+        }
+
+        public void ConfigureCommandDrop(string dropScope, Action<SettlementItemCard3D> onDropRequested)
+        {
+            requiredDropScope = dropScope ?? string.Empty;
+            dropRequested = onDropRequested;
+            EnableDrag = dropRequested != null;
+        }
+
+        public void CompleteDropRequest(bool allowRetry)
+        {
+            requestInFlight = false;
+            EnableDrag = allowRetry && dropRequested != null;
         }
 
         protected override void BuildTextFields()
@@ -51,6 +76,21 @@ namespace Cards3D
             nameText.color = new Color(0.92f, 0.88f, 0.78f);
             typeText.color = new Color(0.68f, 0.73f, 0.78f);
             descriptionText.color = new Color(0.76f, 0.76f, 0.72f);
+        }
+
+        protected override bool CanDropInto(CardSlot slot)
+        {
+            return !requestInFlight && slot != null && string.Equals(slot.DropScope, requiredDropScope, StringComparison.Ordinal) && base.CanDropInto(slot);
+        }
+
+        protected override bool TryHandleSlotDrop(CardSlot slot)
+        {
+            if (dropRequested == null) return false;
+            RestoreDragHome();
+            requestInFlight = true;
+            EnableDrag = false;
+            dropRequested.Invoke(this);
+            return true;
         }
 
         private Color GetColor()

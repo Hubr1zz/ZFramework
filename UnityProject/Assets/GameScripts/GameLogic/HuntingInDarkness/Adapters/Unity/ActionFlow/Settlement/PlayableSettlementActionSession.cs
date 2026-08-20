@@ -15,14 +15,16 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly SettlementInstance settlement;
         private readonly IWeaponTrainingContent weaponTrainingContent;
         private readonly ISettlementCareContent careContent;
+        private readonly ISettlementEquipmentContent equipmentContent;
         private readonly EventSystem eventSystem;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
             this.careContent = careContent ?? new PlayableSettlementCareContentAdapter(null);
+            this.equipmentContent = equipmentContent ?? new PlayableSettlementEquipmentContentAdapter(null);
             this.eventSystem = eventSystem;
             EventInput = eventInput;
             SessionId = Guid.NewGuid();
@@ -134,6 +136,57 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 return false;
             }
             return WeaponTrainingRules.CanTrain(hunter.IsAvailable && !hunter.IsDead, settlement.IsInventionUnlocked(weaponTrainingContent.RequiredInventionId), settlement.GetResource(weaponTrainingContent.CostResourceId), weaponTrainingContent.ResourceCost, masteryId, weaponTrainingContent.Experience, out reason);
+        }
+
+        public bool CanEquipItem(int hunterId, ItemData item, out string reason)
+        {
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            if (hunter == null)
+            {
+                reason = "猎人不属于当前营地。";
+                return false;
+            }
+            if (!equipmentContent.Contains(item))
+            {
+                reason = "装备内容尚未配置。";
+                return false;
+            }
+            if (settlement.GetStoredEquipment(item.itemName) <= 0)
+            {
+                reason = "装备仓库中已没有该物品。";
+                return false;
+            }
+            return PlayableEquipmentRules.CanEquip(hunter, item, out reason);
+        }
+
+        public async UniTask<SettlementEquipmentCommandResult> EquipItemAsync(int hunterId, ItemData item)
+        {
+            if (!IsActive) return SettlementEquipmentCommandResult.Failed("当前不在营地阶段。");
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            if (hunter == null) return SettlementEquipmentCommandResult.Failed("猎人不属于当前营地。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle hunterEntity = environment.EntityHandles.GetOrCreate("hunter", hunter.InstanceId.ToString(), hunter.Name);
+            ReactorEntityHandle itemEntity = environment.EntityHandles.GetOrCreate("settlement-item", item != null ? item.itemName : "unknown", item != null ? item.itemName : "未知装备");
+            var action = new EquipHunterItemAction(settlement, hunter, item, equipmentContent, outbox, itemEntity, hunterEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementEquipmentCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public async UniTask<SettlementEquipmentCommandResult> UnequipItemAsync(int hunterId, int equipmentInstanceId)
+        {
+            if (!IsActive) return SettlementEquipmentCommandResult.Failed("当前不在营地阶段。");
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            if (hunter == null) return SettlementEquipmentCommandResult.Failed("猎人不属于当前营地。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle hunterEntity = environment.EntityHandles.GetOrCreate("hunter", hunter.InstanceId.ToString(), hunter.Name);
+            ReactorEntityHandle storageEntity = environment.EntityHandles.GetOrCreate("settlement-equipment-storage", "active", "装备仓库");
+            var action = new UnequipHunterItemAction(settlement, hunter, equipmentInstanceId, outbox, hunterEntity, storageEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementEquipmentCommandResult.Failed(outcome.Reason) : action.Result;
         }
 
         public async UniTask<WeaponTrainingCommandResult> TrainWeaponAsync(int hunterId, string masteryId)
