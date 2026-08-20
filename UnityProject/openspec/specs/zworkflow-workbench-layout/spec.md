@@ -18,6 +18,7 @@ Every nested Workbench panel SHALL size rendered content from its own available 
 #### Scenario: OpenSpec Changes renders at minimum size
 - **WHEN** the Workbench displays OpenSpec / Changes at `900x600`
 - **THEN** detail Markdown, tables, fields, and editors remain within the right-hand viewport without ordinary horizontal scrolling
+- **AND** the right-hand panel is capped to the local width remaining after the list, gap, panel chrome, and scrollbar budget
 
 #### Scenario: Shared toolbar renders at minimum size
 - **WHEN** the Workbench width is below the single-row toolbar budget

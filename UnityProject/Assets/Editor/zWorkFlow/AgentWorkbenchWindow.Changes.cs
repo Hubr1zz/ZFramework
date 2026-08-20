@@ -15,10 +15,14 @@ namespace AgentWorkflow.Editor
     {
         private const float ChangeListWidth = 270f;
         private const float ChangePanelGap = 6f;
+        private const float ChangePanelHorizontalChrome = 12f;
+        private const float ChangeDetailHorizontalChrome = 24f;
+        private float changeDetailPanelWidth = 1f;
 
         private void DrawChangesPanel()
         {
             DrawChangeFolderControls();
+            changeDetailPanelWidth = Mathf.Max(1f, CurrentLayoutContentWidth() - ChangeListWidth - ChangePanelGap - ChangePanelHorizontalChrome);
 
             var visibleChanges = new List<ChangeEntry>();
             using (new EditorGUILayout.HorizontalScope(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
@@ -47,7 +51,7 @@ namespace AgentWorkflow.Editor
                 }
 
                 GUILayout.Space(ChangePanelGap);
-                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
+                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(changeDetailPanelWidth), GUILayout.MaxWidth(changeDetailPanelWidth), GUILayout.ExpandHeight(true)))
                 {
                     _changeDetailScroll.x = 0f;
                     _changeDetailScroll = BeginVerticalScrollView(
@@ -942,7 +946,9 @@ namespace AgentWorkflow.Editor
 
         private float ChangeDetailContentWidth()
         {
-            return CurrentLayoutContentWidth();
+            var localWidth = CurrentLayoutContentWidth();
+            var viewportWidth = Mathf.Max(1f, changeDetailPanelWidth - ChangeDetailHorizontalChrome);
+            return Mathf.Min(localWidth, viewportWidth);
         }
 
         private bool IsEditingChangeNotes(string path) =>

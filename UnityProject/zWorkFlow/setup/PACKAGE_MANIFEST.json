@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "packageVersion": "2026.08.20.4",
+  "packageVersion": "2026.08.20.5",
   "packageKind": "generic-zworkflow-bootstrap",
   "setupEntry": "setup/SETUP_NEW_PROJECT.md",
   "upgradePolicy": {

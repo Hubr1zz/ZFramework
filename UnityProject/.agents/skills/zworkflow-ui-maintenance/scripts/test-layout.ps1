@@ -50,8 +50,18 @@ $globalViewWidthOffenders = @($layoutSources | Where-Object {
 $forcedWindowWidthOffenders = @($layoutSources | Where-Object {
     (Get-Content -Raw -LiteralPath $_.FullName -Encoding utf8) -match 'Mathf\.Max\(\s*(?:1[8-9]\d|[2-9]\d\d)[fF]?\s*,\s*position\.width'
 })
+$minimumWindowWidth = 900
+$changeListWidth = 270
+$changePanelGap = 6
+$changePanelHorizontalChrome = 12
+$changeDetailHorizontalChrome = 24
+$minimumDetailPanelWidth = $minimumWindowWidth - $changeListWidth - $changePanelGap - $changePanelHorizontalChrome
+$minimumDetailContentWidth = $minimumDetailPanelWidth - $changeDetailHorizontalChrome
 
 Assert-LayoutRule ($changes -match 'ChangeDetailContentWidth\(\)') 'Changes details must use a local width budget.'
+Assert-LayoutRule ($changes -match 'changeDetailPanelWidth\s*=\s*Mathf\.Max\(1f,\s*CurrentLayoutContentWidth\(\)\s*-\s*ChangeListWidth\s*-\s*ChangePanelGap\s*-\s*ChangePanelHorizontalChrome\)') 'Changes split view must derive the detail budget from its local parent container.'
+Assert-LayoutRule ($changes -match 'GUILayout\.MaxWidth\(changeDetailPanelWidth\)') 'Changes detail panel is not capped to its local width budget.'
+Assert-LayoutRule ($changes -notmatch 'position\.width') 'nested Changes content reads the EditorWindow width instead of its local container.'
 Assert-LayoutRule ($window -match 'CurrentLayoutContentWidth\(') 'the shared local width budget helper is missing.'
 Assert-LayoutRule ($windowTemplate -match 'CurrentLayoutContentWidth\(') 'the portable local width budget helper is missing.'
 Assert-LayoutRule ($window -match 'position\.width\s*<\s*CompactToolbarThreshold') 'the shared toolbar does not switch to a compact layout at narrow widths.'
@@ -62,11 +72,15 @@ Assert-LayoutRule ($changesTemplate.Replace("`r`n", "`n") -eq $changes.Replace("
 Assert-LayoutRule ($markdownTemplate.Replace("`r`n", "`n") -eq $markdown.Replace("`r`n", "`n")) 'portable Markdown template differs from the installed shared renderer.'
 Assert-LayoutRule ($manifest -notmatch 'zworkflow-ui-maintenance') 'the project-only skill was added to the migration manifest.'
 Assert-LayoutRule (-not (Test-Path -LiteralPath $packagedSkillPath)) 'the project-only skill was copied into the portable zWorkFlow package.'
+Assert-LayoutRule ($minimumDetailPanelWidth -gt 0 -and $minimumDetailContentWidth -gt 0) 'the Changes split-view budget is invalid at the 900px minimum window width.'
+Assert-LayoutRule ($minimumDetailPanelWidth -lt $minimumWindowWidth -and $minimumDetailContentWidth -lt $minimumDetailPanelWidth) 'the Changes viewport budget can exceed its parent at minimum window width.'
 
 [pscustomobject]@{
     passed = $true
     pages = $layoutSources.Count
     minimumWindow = '900x600'
-    checks = 13
+    checks = 19
+    minimumDetailPanelWidth = $minimumDetailPanelWidth
+    minimumDetailContentWidth = $minimumDetailContentWidth
     packaged = $false
 } | ConvertTo-Json -Compress
