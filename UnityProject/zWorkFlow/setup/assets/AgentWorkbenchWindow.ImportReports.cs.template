@@ -2069,24 +2069,21 @@ namespace AgentWorkflow.Editor
             float height,
             Action<int> onSelectedClick = null)
         {
-            using (new EditorGUILayout.HorizontalScope(GUILayout.Height(height)))
+            if (labels == null || labels.Count == 0)
+                return selectedIndex;
+
+            const float spacing = 1f;
+            var row = GUILayoutUtility.GetRect(1f, height, GUILayout.ExpandWidth(true), GUILayout.Height(height));
+            var buttonWidth = Mathf.Max(1f, (row.width - spacing * (labels.Count - 1)) / labels.Count);
+            for (var index = 0; index < labels.Count; index++)
             {
-                for (var index = 0; index < labels.Count; index++)
-                {
-                    var selected = index == selectedIndex;
-                    var active = GUILayout.Toggle(
-                        selected,
-                        labels[index],
-                        style,
-                        GUILayout.Height(height),
-                        GUILayout.ExpandWidth(true));
-                    if (active && !selected)
-                        selectedIndex = index;
-                    else if (selected && !active)
-                        onSelectedClick?.Invoke(index);
-                    if (index + 1 < labels.Count)
-                        GUILayout.Space(1f);
-                }
+                var selected = index == selectedIndex;
+                var rect = new Rect(row.x + index * (buttonWidth + spacing), row.y, buttonWidth, height);
+                var active = GUI.Toggle(rect, selected, labels[index], style);
+                if (active && !selected)
+                    selectedIndex = index;
+                else if (selected && !active)
+                    onSelectedClick?.Invoke(index);
             }
             return selectedIndex;
         }
