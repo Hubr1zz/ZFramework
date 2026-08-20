@@ -30,9 +30,12 @@ namespace HuntingInDarkness.GameCore.Hunt
         {
             var map = new HuntMapState();
             List<GridPosition> allPositions = GetRadialPositions(_radius);
+            if (startingTile != null)
+                map.Tiles[GridPosition.Zero] = new HuntTileState(GridPosition.Zero, startingTile);
 
             foreach (GridPosition position in allPositions)
             {
+                if (map.Tiles.ContainsKey(position)) continue;
                 HuntTileDefinition definition = position == GridPosition.Zero && startingTile != null
                     ? startingTile
                     : PickTile(pool);
@@ -113,10 +116,19 @@ namespace HuntingInDarkness.GameCore.Hunt
             for (int i = 1; i < count; i++)
             {
                 var candidates = new List<GridPosition>();
-                foreach (GridPosition position in placed)
-                foreach (GridPosition neighbor in GetNeighbors(position))
-                    if (allPositions.Contains(neighbor) && !map.Tiles.ContainsKey(neighbor))
-                        candidates.Add(neighbor);
+                if (definition.MustBeAdjacent)
+                {
+                    foreach (GridPosition position in placed)
+                    foreach (GridPosition neighbor in GetNeighbors(position))
+                        if (allPositions.Contains(neighbor) && !map.Tiles.ContainsKey(neighbor) && !candidates.Contains(neighbor))
+                            candidates.Add(neighbor);
+                }
+                else
+                {
+                    foreach (GridPosition position in allPositions)
+                        if (!map.Tiles.ContainsKey(position))
+                            candidates.Add(position);
+                }
                 if (candidates.Count == 0) break;
                 GridPosition next = candidates[_random.Next(0, candidates.Count)];
                 placed.Add(next);

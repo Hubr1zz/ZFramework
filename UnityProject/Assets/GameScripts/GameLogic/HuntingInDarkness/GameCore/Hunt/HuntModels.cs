@@ -17,6 +17,7 @@ namespace HuntingInDarkness.GameCore.Hunt
         public int SpawnWeight { get; }
         public bool SpawnInGroup { get; }
         public int GroupSize { get; }
+        public bool MustBeAdjacent { get; }
         public int BossEncounterWeight { get; }
 
         public HuntTileDefinition(
@@ -24,12 +25,14 @@ namespace HuntingInDarkness.GameCore.Hunt
             int spawnWeight,
             bool spawnInGroup,
             int groupSize,
-            int bossEncounterWeight)
+            int bossEncounterWeight,
+            bool mustBeAdjacent = true)
         {
             Id = id ?? string.Empty;
             SpawnWeight = spawnWeight;
             SpawnInGroup = spawnInGroup;
             GroupSize = groupSize;
+            MustBeAdjacent = mustBeAdjacent;
             BossEncounterWeight = bossEncounterWeight;
         }
     }

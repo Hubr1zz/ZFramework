@@ -124,7 +124,8 @@ namespace HuntingInDarkness.Hunt
                 data.spawnWeight,
                 data.spawnInGroup,
                 data.groupSize,
-                data.bossEncounterWeight);
+                data.bossEncounterWeight,
+                data.mustBeAdjacent);
 
         private static GridPosition ToCore(Vector2Int value) =>
             new GridPosition(value.x, value.y);
