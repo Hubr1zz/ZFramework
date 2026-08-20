@@ -1549,7 +1549,7 @@ namespace AgentWorkflow.Editor
                 return;
 
             var columns = rows.Max(row => row.Length);
-            var cellWidth = Mathf.Max(40, (width - (columns - 1) * 4) / columns);
+            var cellWidth = Mathf.Max(1f, (width - (columns - 1) * 4) / columns);
             for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
             {
                 var style = MarkdownBodyStyle();
