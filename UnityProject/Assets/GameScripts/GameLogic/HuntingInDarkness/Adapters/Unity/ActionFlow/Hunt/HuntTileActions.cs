@@ -8,6 +8,7 @@ using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.ActionFlow.Presentation;
 using UnityEngine;
 
 namespace HuntingInDarkness.ActionFlow.Hunt
@@ -53,17 +54,19 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly ActionEventOutbox eventOutbox;
         private readonly HuntEncounterAccumulator encounterAccumulator;
         private readonly Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity;
+        private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private CommitHuntTileInteractionAction commitAction;
         private bool eventScheduled;
         private bool finalizeScheduled;
 
-        public InteractHuntTileAction(HuntManager manager, Vector2Int coordinate, HuntTileInteractionKind intendedKind, Guid huntSessionId, string defaultEncounterId, string destinationId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity)
+        public InteractHuntTileAction(HuntManager manager, Vector2Int coordinate, HuntTileInteractionKind intendedKind, Guid huntSessionId, string defaultEncounterId, string destinationId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.coordinate = coordinate;
             this.intendedKind = intendedKind;
             this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
             this.resolveEventEntity = resolveEventEntity ?? throw new ArgumentNullException(nameof(resolveEventEntity));
+            this.randomInteractionPresenter = randomInteractionPresenter;
             encounterAccumulator = new HuntEncounterAccumulator(huntSessionId, defaultEncounterId, destinationId);
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
@@ -84,7 +87,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             if (!eventScheduled)
             {
                 eventScheduled = true;
-                return new ResolveHuntTileEventAction(manager, commitAction.Commit, eventOutbox, encounterAccumulator, Source, Target, resolveEventEntity);
+                return new ResolveHuntTileEventAction(manager, commitAction.Commit, eventOutbox, encounterAccumulator, Source, Target, resolveEventEntity, randomInteractionPresenter);
             }
             if (!finalizeScheduled)
             {
@@ -163,19 +166,21 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly ActionEventOutbox eventOutbox;
         private readonly HuntEncounterAccumulator encounterAccumulator;
         private readonly Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity;
+        private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly Queue<HuntingInDarkness.Data.EventData> pendingEvents = new();
         private readonly PlayableEventChainGuard chainGuard = new();
         private SelectHuntTileEventAction selectAction;
         private ResolvePlayableEventNodeAction currentEntry;
         private bool selectionCollected;
 
-        internal ResolveHuntTileEventAction(HuntManager manager, HuntTileInteractionCommit commit, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity)
+        internal ResolveHuntTileEventAction(HuntManager manager, HuntTileInteractionCommit commit, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
         {
             this.manager = manager;
             this.commit = commit;
             this.eventOutbox = eventOutbox;
             this.encounterAccumulator = encounterAccumulator;
             this.resolveEventEntity = resolveEventEntity;
+            this.randomInteractionPresenter = randomInteractionPresenter;
             Source = source;
             Target = target;
         }
@@ -210,7 +215,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             }
             if (pendingEvents.Count == 0) return null;
             HuntingInDarkness.Data.EventData nextEvent = pendingEvents.Dequeue();
-            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, manager.SelectedHunter, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent));
+            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, manager.SelectedHunter, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter);
             return currentEntry;
         }
 

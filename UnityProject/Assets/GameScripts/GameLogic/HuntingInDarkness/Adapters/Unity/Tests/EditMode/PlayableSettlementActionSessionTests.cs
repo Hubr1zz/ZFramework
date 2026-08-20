@@ -7,6 +7,7 @@ using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
@@ -321,6 +322,76 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task EventCheck_UsesPhysicalDiceResultsForInitialRollAndReroll()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            HunterInstance hunter = settlement.Hunters[0];
+            hunter.Courage = 0;
+            hunter.Willpower = 1;
+            hunter.WillpowerMax = 1;
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "physical-dice-check";
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption
+            {
+                optionText = "尝试",
+                checkType = CheckType.Courage,
+                checkTarget = 8,
+                successEffects = new List<EventEffect> { new EventEffect { effectType = EventEffectType.AddResource, targetName = "碎石", value = 3 } }
+            });
+            var input = new RerollThenAcceptInput(hunter);
+            var presenter = new FixedDicePresenter(2, 9);
+            try
+            {
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem, input, randomInteractionPresenter: presenter);
+
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(settlement.GetResource("碎石"), Is.EqualTo(3));
+                Assert.That(hunter.Willpower, Is.Zero);
+                Assert.That(presenter.Requests, Has.Count.EqualTo(2));
+                Assert.That(presenter.Requests[0].Sides, Is.EqualTo(10));
+                Assert.That(presenter.Requests[0].ActorId, Is.EqualTo(hunter.InstanceId.ToString()));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public async Task EventCheck_DoesNotPresentRerollWhenActorCannotPayRerollCost()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            HunterInstance hunter = settlement.Hunters[0];
+            hunter.Courage = 0;
+            hunter.Willpower = 0;
+            hunter.WillpowerMax = 1;
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "no-reroll-cost";
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption { optionText = "尝试", checkType = CheckType.Courage, checkTarget = 8 });
+            var presenter = new FixedDicePresenter(2, 9);
+            try
+            {
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem, new RerollThenAcceptInput(hunter), randomInteractionPresenter: presenter);
+
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(presenter.Requests, Has.Count.EqualTo(1));
+                Assert.That(hunter.Willpower, Is.Zero);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
         public async Task ForeignActorSelection_FallsBackToCurrentSettlementRoster()
         {
             SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
@@ -474,6 +545,34 @@ namespace HuntingInDarkness.Adapter.Tests
             public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(0, foreignActor));
             public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
             public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
+        }
+
+        private sealed class RerollThenAcceptInput : IPlayableEventInput
+        {
+            private readonly HunterInstance hunter;
+            private int checkCount;
+
+            public RerollThenAcceptInput(HunterInstance hunter) => this.hunter = hunter;
+
+            public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(0, hunter));
+            public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(checkCount++ == 0 ? PlayableEventCheckDecision.Reroll : PlayableEventCheckDecision.Accept);
+            public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
+        }
+
+        private sealed class FixedDicePresenter : ITabletopRandomInteractionPresenter
+        {
+            private readonly Queue<int> values;
+
+            public FixedDicePresenter(params int[] values) => this.values = new Queue<int>(values);
+
+            public List<TabletopRandomInteractionRequest> Requests { get; } = new();
+
+            public UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
+            {
+                Requests.Add(request);
+                return UniTask.FromResult(new TabletopRandomInteractionResult(request.InteractionId, new[] { values.Dequeue() }, Array.Empty<string>()));
+            }
         }
 
         private sealed class TrainingTermsReactor : GameActionReactor<TrainWeaponAction>

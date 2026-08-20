@@ -41,6 +41,8 @@ namespace HuntingInDarkness.Hunt
         private readonly Dictionary<Vector2Int, GameObject> _resourceMarkers = new();
         private GameObject _squadToken;
 
+        public Transform TabletopInteractionAnchor => _squadToken != null ? _squadToken.transform : transform;
+
         // ─── 初始化 ──────────────────────────────────────────────
 
         public void Init(HuntManager huntMgr)

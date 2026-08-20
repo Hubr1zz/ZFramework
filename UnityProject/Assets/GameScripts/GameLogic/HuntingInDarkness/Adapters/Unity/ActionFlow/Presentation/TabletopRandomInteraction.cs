@@ -61,4 +61,24 @@ namespace HuntingInDarkness.ActionFlow.Presentation
     {
         UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken);
     }
+
+    public static class TabletopRandomInteractionResultValidator
+    {
+        public static bool TryGetDiceTotal(TabletopRandomInteractionRequest request, TabletopRandomInteractionResult result, out int total)
+        {
+            total = 0;
+            if (request.Kind != TabletopRandomInteractionKind.PhysicalDice || result.Cancelled) return false;
+            if (!string.Equals(request.InteractionId, result.InteractionId, StringComparison.Ordinal)) return false;
+            if (result.Values == null || result.Values.Count != request.Count) return false;
+            long resolvedTotal = 0;
+            foreach (int value in result.Values)
+            {
+                if (value < 1 || value > request.Sides) return false;
+                resolvedTotal += value;
+                if (resolvedTotal > int.MaxValue) return false;
+            }
+            total = (int)resolvedTotal;
+            return true;
+        }
+    }
 }

@@ -4,6 +4,7 @@ using System.Threading;
 using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
 
@@ -39,8 +40,9 @@ namespace HuntingInDarkness.ActionFlow.Events
         private readonly IReadOnlyList<HunterInstance> hunters;
         private readonly ActionEventOutbox eventOutbox;
         private readonly Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint;
+        private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
 
-        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target)
+        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
         {
             this.eventSystem = eventSystem ?? throw new ArgumentNullException(nameof(eventSystem));
             this.eventInput = eventInput;
@@ -49,6 +51,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             this.hunters = hunters ?? Array.Empty<HunterInstance>();
             this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
             this.stageCommitCheckpoint = stageCommitCheckpoint;
+            this.randomInteractionPresenter = randomInteractionPresenter;
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
         }
@@ -82,11 +85,11 @@ namespace HuntingInDarkness.ActionFlow.Events
                 : FindAutomaticSelection();
             if (!IsAllowedActor(selection.Actor))
                 selection = new PlayableEventChoiceSelection(-1, null);
-            PlayableEventChoiceTransaction transaction = selection.IsValid ? eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor) : null;
+            PlayableEventChoiceTransaction transaction = selection.IsValid ? await PrepareChoiceAsync(selection, cancellationToken) : null;
             if (transaction == null)
             {
                 selection = FindAutomaticSelection();
-                transaction = selection.IsValid ? eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor) : null;
+                transaction = selection.IsValid ? await PrepareChoiceAsync(selection, cancellationToken) : null;
             }
             if (transaction == null)
             {
@@ -101,7 +104,9 @@ namespace HuntingInDarkness.ActionFlow.Events
             {
                 PlayableEventCheckDecision decision = await eventInput.PresentCheckAsync(transaction, cancellationToken);
                 if (decision != PlayableEventCheckDecision.Reroll) break;
-                if (!transaction.TryReroll()) break;
+                if (!transaction.CanReroll) break;
+                int? rerollValue = randomInteractionPresenter != null ? await RollPhysicalDiceAsync(transaction.Actor, "reroll", cancellationToken) : null;
+                if (!transaction.TryReroll(rerollValue)) break;
                 PublishCommitCheckpoint(PlayableEventCommitKind.Reroll, transaction.Actor);
             }
             PlayableEventCommitResult result = transaction.CommitStandalone(true);
@@ -111,6 +116,27 @@ namespace HuntingInDarkness.ActionFlow.Events
             if (eventInput != null)
                 await eventInput.ConfirmResultAsync(gameEvent, result.Result, cancellationToken);
             return ActionOutcome.Success();
+        }
+
+        private async UniTask<PlayableEventChoiceTransaction> PrepareChoiceAsync(PlayableEventChoiceSelection selection, CancellationToken cancellationToken)
+        {
+            if (selection.OptionIndex < 0 || selection.OptionIndex >= gameEvent.options.Count) return null;
+            EventOption option = gameEvent.options[selection.OptionIndex];
+            if (!PlayableEventOptionAvailability.CanUse(option, selection.Actor, eventSystem.Settlement, out _)) return null;
+            int? rollValue = option.checkType != CheckType.None && randomInteractionPresenter != null ? await RollPhysicalDiceAsync(selection.Actor, "initial", cancellationToken) : null;
+            return eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor, rollValue);
+        }
+
+        private async UniTask<int> RollPhysicalDiceAsync(HunterInstance actor, string step, CancellationToken cancellationToken)
+        {
+            string actorId = actor != null ? actor.InstanceId.ToString() : string.Empty;
+            var request = new TabletopRandomInteractionRequest($"event:{gameEvent.name}:{actorId}:{step}:{Guid.NewGuid():N}", TabletopRandomInteractionKind.PhysicalDice, actorId, gameEvent.name, 1, 10, instruction: "投掷事件判定骰");
+            TabletopRandomInteractionResult result = await randomInteractionPresenter.PresentAsync(request, cancellationToken);
+            if (result.Cancelled)
+                throw new OperationCanceledException("玩家取消了桌面随机交互。", cancellationToken);
+            if (!TabletopRandomInteractionResultValidator.TryGetDiceTotal(request, result, out int total))
+                throw new InvalidOperationException("物理骰子没有返回有效的事件判定结果。");
+            return total;
         }
 
         private PlayableEventChoiceSelection FindAutomaticSelection()

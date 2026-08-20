@@ -41,11 +41,11 @@ namespace HuntingInDarkness.Settlement
             Bonus = bonus;
         }
 
-        public bool TryReroll()
+        public bool TryReroll(int? preparedRoll = null)
         {
             if (!CanReroll) return false;
 
-            RerollResult result = eventSystem.TryReroll(actor, RollValue, 1, 10);
+            RerollResult result = preparedRoll.HasValue ? eventSystem.TryReroll(actor, RollValue, preparedRoll.Value) : eventSystem.TryReroll(actor, RollValue, 1, 10);
             if (!result.Success) return false;
 
             RollValue = result.FinalRoll;
@@ -86,15 +86,16 @@ namespace HuntingInDarkness.Settlement
 
     public partial class EventSystem
     {
-        public PlayableEventChoiceTransaction PrepareChoice(EventData gameEvent, int optionIndex, HunterInstance actor = null)
+        public PlayableEventChoiceTransaction PrepareChoice(EventData gameEvent, int optionIndex, HunterInstance actor = null, int? preparedRoll = null)
         {
             if (gameEvent?.options == null || optionIndex < 0 || optionIndex >= gameEvent.options.Count) return null;
+            if (preparedRoll.HasValue && (preparedRoll.Value < 1 || preparedRoll.Value > 10)) return null;
 
             EventOption option = gameEvent.options[optionIndex];
             actor ??= _selectedHunter;
             if (option.checkType != CheckType.None && actor == null) return null;
             if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, out _)) return null;
-            int rollValue = option.checkType == CheckType.None ? 0 : RollDice(1, 10);
+            int rollValue = option.checkType == CheckType.None ? 0 : preparedRoll ?? RollDice(1, 10);
             int bonus = GetCheckBonus(actor, option.checkType);
             return new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, rollValue, bonus);
         }

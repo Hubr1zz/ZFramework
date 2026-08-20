@@ -221,6 +221,13 @@ namespace HuntingInDarkness.GameCore.Settlement
             return new RerollOutcome(true, newRoll, Math.Max(currentRoll, newRoll));
         }
 
+        public static RerollOutcome TryReroll(HunterState hunter, int currentRoll, int newRoll)
+        {
+            if (newRoll < 1 || newRoll > 10) return new RerollOutcome(false, 0, currentRoll);
+            if (!hunter.SpendWillpower()) return new RerollOutcome(false, 0, currentRoll);
+            return new RerollOutcome(true, newRoll, Math.Max(currentRoll, newRoll));
+        }
+
         public static int ClampWillpower(int current, int delta, int maximum) =>
             Math.Max(0, Math.Min(current + delta, maximum));
     }

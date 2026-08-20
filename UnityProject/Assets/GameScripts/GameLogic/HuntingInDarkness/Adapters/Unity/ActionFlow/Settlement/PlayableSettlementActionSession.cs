@@ -2,6 +2,7 @@ using System;
 using CardGame.ActionQueue;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
@@ -17,15 +18,17 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly ISettlementCareContent careContent;
         private readonly ISettlementEquipmentContent equipmentContent;
         private readonly EventSystem eventSystem;
+        private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
             this.careContent = careContent ?? new PlayableSettlementCareContentAdapter(null);
             this.equipmentContent = equipmentContent ?? new PlayableSettlementEquipmentContentAdapter(null);
             this.eventSystem = eventSystem;
+            this.randomInteractionPresenter = randomInteractionPresenter;
             EventInput = eventInput;
             SessionId = Guid.NewGuid();
             environment = new ActionEnvironment(new ActionEnvironmentConfiguration
@@ -214,7 +217,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
             ReactorEntityHandle chainEntity = environment.EntityHandles.GetOrCreate("settlement-event-chain", SessionId.ToString("N"), "营地事件链");
             IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("settlement-event", gameEvent != null ? gameEvent.name : "unknown", gameEvent != null ? gameEvent.eventName : "营地事件");
-            var action = new ResolveSettlementEventChainAction(eventSystem, EventInput, events, SessionId, outbox, settlementEntity, chainEntity, ResolveEventEntity);
+            var action = new ResolveSettlementEventChainAction(eventSystem, EventInput, events, SessionId, outbox, settlementEntity, chainEntity, ResolveEventEntity, randomInteractionPresenter);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementEventCommandResult.Failed(outcome.Reason, action.Result.ResolvedCount) : action.Result;

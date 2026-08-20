@@ -205,6 +205,15 @@ namespace HuntingInDarkness.Settlement
             return new RerollResult { Success = true, NewRoll = newRoll, FinalRoll = best };
         }
 
+        public RerollResult TryReroll(HunterInstance hunter, int currentRoll, int newRoll)
+        {
+            if (newRoll < 1 || newRoll > 10) return new RerollResult { Success = false, FinalRoll = currentRoll };
+            RerollOutcome outcome = EventRules.TryReroll(hunter, currentRoll, newRoll);
+            if (!outcome.Success) return new RerollResult { Success = false, FinalRoll = currentRoll };
+            Debug.Log($"[EventSystem] 物理重投 {hunter.Name}：{currentRoll} → {outcome.NewRoll}（取最高 {outcome.FinalRoll}）");
+            return new RerollResult { Success = true, NewRoll = outcome.NewRoll, FinalRoll = outcome.FinalRoll };
+        }
+
         // ─── 效果执行 ────────────────────────────────────────────
 
         public void ApplyEffect(EventEffect effect, HunterInstance target)

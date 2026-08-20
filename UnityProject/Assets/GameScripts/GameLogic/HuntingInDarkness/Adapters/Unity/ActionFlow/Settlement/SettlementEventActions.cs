@@ -5,6 +5,7 @@ using Core;
 using GameplayBase;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Combat;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
@@ -41,18 +42,20 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly Queue<EventData> pendingEvents = new();
         private readonly PlayableEventChainGuard chainGuard = new();
         private readonly Func<EventData, IReactorEntity> resolveEventEntity;
+        private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private ResolvePlayableEventNodeAction currentEntry;
         private CampaignEncounterRequest encounterRequest;
         private string failureReason;
         private int resolvedCount;
 
-        public ResolveSettlementEventChainAction(EventSystem eventSystem, IPlayableEventInput eventInput, IReadOnlyList<EventData> events, Guid sessionId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<EventData, IReactorEntity> resolveEventEntity)
+        public ResolveSettlementEventChainAction(EventSystem eventSystem, IPlayableEventInput eventInput, IReadOnlyList<EventData> events, Guid sessionId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
         {
             this.eventSystem = eventSystem ?? throw new ArgumentNullException(nameof(eventSystem));
             this.eventInput = eventInput;
             this.sessionId = sessionId;
             this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
             this.resolveEventEntity = resolveEventEntity ?? throw new ArgumentNullException(nameof(resolveEventEntity));
+            this.randomInteractionPresenter = randomInteractionPresenter;
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
             chainId = Guid.NewGuid().ToString("N");
@@ -98,7 +101,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             if (pendingEvents.Count == 0) return null;
             EventData nextEvent = pendingEvents.Dequeue();
             int sequence = resolvedCount;
-            currentEntry = new ResolvePlayableEventNodeAction(eventSystem, eventInput, nextEvent, null, eventSystem.Settlement.GetAvailableHunters(), eventOutbox, checkpoint => StageCommitCheckpoint(checkpoint, sequence), Source, resolveEventEntity(nextEvent));
+            currentEntry = new ResolvePlayableEventNodeAction(eventSystem, eventInput, nextEvent, null, eventSystem.Settlement.GetAvailableHunters(), eventOutbox, checkpoint => StageCommitCheckpoint(checkpoint, sequence), Source, resolveEventEntity(nextEvent), randomInteractionPresenter);
             return currentEntry;
         }
 

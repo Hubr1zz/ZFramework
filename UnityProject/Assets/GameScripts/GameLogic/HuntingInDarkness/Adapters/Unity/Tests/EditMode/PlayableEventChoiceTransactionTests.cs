@@ -73,6 +73,31 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void CheckedChoice_RejectsInvalidPreparedPhysicalRolls()
+        {
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 8125) { Understanding = 0, Willpower = 1, WillpowerMax = 1 };
+            settlement.Hunters.Add(hunter);
+            var eventSystem = new EventSystem(settlement, new SequenceRandom(0));
+            EventData gameEvent = CreateCheckedEvent();
+
+            try
+            {
+                Assert.That(eventSystem.PrepareChoice(gameEvent, 0, hunter, 0), Is.Null);
+                Assert.That(eventSystem.PrepareChoice(gameEvent, 0, hunter, 11), Is.Null);
+                PlayableEventChoiceTransaction transaction = eventSystem.PrepareChoice(gameEvent, 0, hunter, 5);
+                Assert.That(transaction, Is.Not.Null);
+                Assert.That(transaction.RollValue, Is.EqualTo(5));
+                Assert.That(transaction.TryReroll(11), Is.False);
+                Assert.That(hunter.Willpower, Is.EqualTo(1));
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
         public void CombatNarrative_PublishesStructuredEncounterRequest()
         {
             var eventSystem = new EventSystem(new SettlementInstance(), new SequenceRandom(0));

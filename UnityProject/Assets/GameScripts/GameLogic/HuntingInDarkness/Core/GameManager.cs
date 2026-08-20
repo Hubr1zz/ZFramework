@@ -20,6 +20,8 @@ using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.ActionFlow.Presentation;
+using HuntingInDarkness.ViewLayer.Tabletop;
 using SO.Boss.ActionCard;
 using SO.Boss.HitLocation;
 using SO.Combat;
@@ -127,6 +129,7 @@ namespace Core
         private PlayableHuntActionSession huntActionSession;
         private PlayableCampaignActionSession campaignActionSession;
         private IPlayableEventInput playableEventInput;
+        [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
         private PlayableSettlementContentCatalog settlementContentCatalog;
 
         // ─── 运行时数据 ───────────────────────────────────────────────
@@ -157,6 +160,9 @@ namespace Core
 
             // 确保阶段根物体存在（若 Inspector 未配置则自动创建）
             EnsureRootObjects();
+            if (tabletopRandomPresenter == null)
+                tabletopRandomPresenter = GetComponent<PhysicalDiceTabletopPresenter>() ?? gameObject.AddComponent<PhysicalDiceTabletopPresenter>();
+            tabletopRandomPresenter.AnchorResolver = ResolveTabletopRandomAnchor;
 
             // 阶段管理器
             _phaseManager = new PhaseManager(GameModule.Fsm);
@@ -286,6 +292,18 @@ namespace Core
                 rt.offsetMin = rt.offsetMax = Vector2.zero;
                 uiNode = go;
             }
+        }
+
+        private Vector3 ResolveTabletopRandomAnchor(TabletopRandomInteractionRequest request)
+        {
+            if (int.TryParse(request.ActorId, out int hunterId) && settlementRoot != null)
+                foreach (HunterCard3D card in settlementRoot.GetComponentsInChildren<HunterCard3D>(true))
+                    if (card != null && card.gameObject.activeInHierarchy && card.Hunter != null && card.Hunter.InstanceId == hunterId)
+                        return card.transform.position;
+            if (CurrentGamePhase == GamePhase.Hunt && _huntVisualizer != null)
+                return _huntVisualizer.TabletopInteractionAnchor.position;
+            GameObject phaseRoot = CurrentGamePhase == GamePhase.Hunt ? huntRoot : settlementRoot;
+            return phaseRoot != null ? phaseRoot.transform.position : transform.position;
         }
 
         // ─── 各子系统初始化 ──────────────────────────────────────────
@@ -475,7 +493,7 @@ namespace Core
         {
             DisposeSettlementActionSession();
             if (_settlementManager?.Data == null) return;
-            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items));
+            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items), tabletopRandomPresenter);
         }
 
         private void DisposeSettlementActionSession()
@@ -541,7 +559,7 @@ namespace Core
             _huntMgr.EventInput = playableEventInput;
             _huntMgr.OnEnter(hunters, _settlementManager?.Data.CurrentYear ?? 1);
             DisposeHuntActionSession();
-            huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId);
+            huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId, tabletopRandomPresenter);
 
             // 3D 地图可视化
             if (_huntVisualizer == null && huntRoot != null)
