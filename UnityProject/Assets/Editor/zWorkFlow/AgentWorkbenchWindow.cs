@@ -25,6 +25,7 @@ namespace AgentWorkflow.Editor
     /// </summary>
     public sealed partial class AgentWorkbenchWindow : EditorWindow
     {
+        private const float CompactToolbarThreshold = 1180f;
         private const string MaintainerPrefKey = "AgentWorkflow.Workbench.Maintainer";
         private const float MainEntryButtonHeight = 40f;
         private const float TabButtonHeight = 32f;
@@ -383,77 +384,106 @@ namespace AgentWorkflow.Editor
 
         private void DrawToolbar()
         {
+            if (position.width < CompactToolbarThreshold)
+            {
+                using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
+                {
+                    DrawPrimaryToolbarActions();
+                    GUILayout.FlexibleSpace();
+                    DrawProjectRootButton();
+                }
+                using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
+                {
+                    GUILayout.FlexibleSpace();
+                    DrawSecondaryToolbarActions();
+                }
+                return;
+            }
+
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
-                if (GUILayout.Button(L("toolbar.refresh"), EditorStyles.toolbarButton, GUILayout.Width(115)))
-                {
-                    if (TryLeaveRawEditor())
-                        Reload();
-                }
-
-                if (GUILayout.Button(L("toolbar.graph"), EditorStyles.toolbarButton, GUILayout.Width(115)))
-                {
-                    if (TryLeaveRawEditor())
-                        _tab = ToolTab.DependencyGraph;
-                }
-
-                if (GUILayout.Button(L("toolbar.engineering"), EditorStyles.toolbarButton, GUILayout.Width(115)))
-                {
-                    if (TryLeaveRawEditor())
-                        _tab = ToolTab.EngineeringCapabilities;
-                }
-
-                if (GUILayout.Button(L("toolbar.designDocumentTree"), EditorStyles.toolbarButton, GUILayout.Width(115)))
-                {
-                    if (TryLeaveRawEditor())
-                        _tab = ToolTab.DesignDocumentTree;
-                }
-
+                DrawPrimaryToolbarActions();
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button(
-                        new GUIContent(
-                            L("toolbar.projectRoot"),
-                            $"{L("toolbar.openRoot")}\n{_projectRoot}"),
-                        EditorStyles.toolbarButton,
-                        GUILayout.Width(88)))
-                    OpenPath(_projectRoot);
-
-                if (GUILayout.Button(
-                        L("toolbar.commandList"),
-                        EditorStyles.toolbarButton,
-                        GUILayout.Width(115)))
-                {
-                    if (TryLeaveRawEditor())
-                        _tab = ToolTab.CommandList;
-                }
-
-                if (GUILayout.Button(L("toolbar.config"), EditorStyles.toolbarButton, GUILayout.Width(101)))
-                {
-                    if (TryLeaveRawEditor())
-                        _tab = ToolTab.Configuration;
-                }
-
-                if (GUILayout.Button(L("toolbar.introduction"), EditorStyles.toolbarButton, GUILayout.Width(101)))
-                {
-                    if (TryLeaveRawEditor())
-                        _tab = ToolTab.Introduction;
-                }
-
-                if (GUILayout.Button(
-                        L(AgentWorkbenchTheme.IsDarkMode ? "toolbar.normal" : "toolbar.dark"),
-                        EditorStyles.toolbarButton,
-                        GUILayout.Width(137)))
-                {
-                    _config.themeMode = AgentWorkbenchTheme.IsDarkMode ? "normal" : "dark";
-                    SaveWorkbenchConfig();
-                }
-
-                GUILayout.Label(
-                    L("toolbar.documentBridge"),
-                    EditorStyles.miniLabel,
-                    GUILayout.Width(88));
-                DrawStatusLight(_documentBridgeConnected);
+                DrawProjectRootButton();
+                DrawSecondaryToolbarActions();
             }
+        }
+
+        private void DrawPrimaryToolbarActions()
+        {
+            if (GUILayout.Button(L("toolbar.refresh"), EditorStyles.toolbarButton, GUILayout.Width(115)))
+            {
+                if (TryLeaveRawEditor())
+                    Reload();
+            }
+
+            if (GUILayout.Button(L("toolbar.graph"), EditorStyles.toolbarButton, GUILayout.Width(115)))
+            {
+                if (TryLeaveRawEditor())
+                    _tab = ToolTab.DependencyGraph;
+            }
+
+            if (GUILayout.Button(L("toolbar.engineering"), EditorStyles.toolbarButton, GUILayout.Width(115)))
+            {
+                if (TryLeaveRawEditor())
+                    _tab = ToolTab.EngineeringCapabilities;
+            }
+
+            if (GUILayout.Button(L("toolbar.designDocumentTree"), EditorStyles.toolbarButton, GUILayout.Width(115)))
+            {
+                if (TryLeaveRawEditor())
+                    _tab = ToolTab.DesignDocumentTree;
+            }
+        }
+
+        private void DrawProjectRootButton()
+        {
+            if (GUILayout.Button(
+                    new GUIContent(
+                        L("toolbar.projectRoot"),
+                        $"{L("toolbar.openRoot")}\n{_projectRoot}"),
+                    EditorStyles.toolbarButton,
+                    GUILayout.Width(88)))
+                OpenPath(_projectRoot);
+        }
+
+        private void DrawSecondaryToolbarActions()
+        {
+            if (GUILayout.Button(
+                    L("toolbar.commandList"),
+                    EditorStyles.toolbarButton,
+                    GUILayout.Width(115)))
+            {
+                if (TryLeaveRawEditor())
+                    _tab = ToolTab.CommandList;
+            }
+
+            if (GUILayout.Button(L("toolbar.config"), EditorStyles.toolbarButton, GUILayout.Width(101)))
+            {
+                if (TryLeaveRawEditor())
+                    _tab = ToolTab.Configuration;
+            }
+
+            if (GUILayout.Button(L("toolbar.introduction"), EditorStyles.toolbarButton, GUILayout.Width(101)))
+            {
+                if (TryLeaveRawEditor())
+                    _tab = ToolTab.Introduction;
+            }
+
+            if (GUILayout.Button(
+                    L(AgentWorkbenchTheme.IsDarkMode ? "toolbar.normal" : "toolbar.dark"),
+                    EditorStyles.toolbarButton,
+                    GUILayout.Width(137)))
+            {
+                _config.themeMode = AgentWorkbenchTheme.IsDarkMode ? "normal" : "dark";
+                SaveWorkbenchConfig();
+            }
+
+            GUILayout.Label(
+                L("toolbar.documentBridge"),
+                EditorStyles.miniLabel,
+                GUILayout.Width(88));
+            DrawStatusLight(_documentBridgeConnected);
         }
 
         private void DrawRefactorQueueTab()
@@ -1289,7 +1319,7 @@ namespace AgentWorkflow.Editor
             }
 
             var style = new GUIStyle(EditorStyles.textArea) { wordWrap = true, richText = false };
-            var editorWidth = Mathf.Max(280f, width - 16f);
+            var editorWidth = Mathf.Max(1f, width - 16f);
             var editorHeight = Mathf.Max(
                 300f,
                 style.CalcHeight(new GUIContent(_editingMarkdownBuffer ?? string.Empty), editorWidth) + 16f);

@@ -54,6 +54,7 @@ $forcedWindowWidthOffenders = @($layoutSources | Where-Object {
 Assert-LayoutRule ($changes -match 'ChangeDetailContentWidth\(\)') 'Changes details must use a local width budget.'
 Assert-LayoutRule ($window -match 'CurrentLayoutContentWidth\(') 'the shared local width budget helper is missing.'
 Assert-LayoutRule ($windowTemplate -match 'CurrentLayoutContentWidth\(') 'the portable local width budget helper is missing.'
+Assert-LayoutRule ($window -match 'position\.width\s*<\s*CompactToolbarThreshold') 'the shared toolbar does not switch to a compact layout at narrow widths.'
 Assert-LayoutRule ($globalViewWidthOffenders.Count -eq 0) "nested Workbench content reads global Editor view width: $(@($globalViewWidthOffenders | ForEach-Object Name) -join ', ')."
 Assert-LayoutRule ($forcedWindowWidthOffenders.Count -eq 0) "Workbench content forces a window-derived visual minimum: $(@($forcedWindowWidthOffenders | ForEach-Object Name) -join ', ')."
 Assert-LayoutRule ($markdown -notmatch 'Mathf\.Max\(40[^\r\n]*\(width[^\r\n]*/\s*columns') 'Markdown table columns can still force their parent wider.'
@@ -66,6 +67,6 @@ Assert-LayoutRule (-not (Test-Path -LiteralPath $packagedSkillPath)) 'the projec
     passed = $true
     pages = $layoutSources.Count
     minimumWindow = '900x600'
-    checks = 12
+    checks = 13
     packaged = $false
 } | ConvertTo-Json -Compress

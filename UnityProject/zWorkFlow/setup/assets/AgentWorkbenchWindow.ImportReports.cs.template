@@ -1056,7 +1056,7 @@ namespace AgentWorkflow.Editor
                 if (GUILayout.Button(
                         new GUIContent($"↗ {label}", sourcePath),
                         ReportActionButtonStyle(),
-                        GUILayout.MaxWidth(Mathf.Max(180, width)),
+                        GUILayout.MaxWidth(Mathf.Max(1f, width)),
                         GUILayout.Height(28)))
                     OpenMarkdownDocument(sourcePath);
             }
