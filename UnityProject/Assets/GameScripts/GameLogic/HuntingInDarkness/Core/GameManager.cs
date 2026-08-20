@@ -22,6 +22,7 @@ using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Presentation;
+using HuntingInDarkness.ViewLayer.Flow;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using HuntingInDarkness.ViewLayer.Hunt;
 using SO.Boss.ActionCard;
@@ -133,7 +134,7 @@ namespace Core
         private HuntUIManager        _huntUI;
         private HuntRetreatPanel3D huntRetreatPanel;
         private DevModePanel         _devPanel;
-        private GameOverScreen       _gameOverScreen;
+        private TabletopGameOverView3D gameOverView;
         /// <summary>狩猎结算记录，由 HuntManager 回调注入，供 TransitionToPhase(Settlement) 消费</summary>
         private HuntRecord           _pendingHuntRecord;
         private PlayableCombatSession _combatSession;
@@ -225,8 +226,7 @@ namespace Core
             // 开发者面板（挂在 Shared UI 节点上，F1 切换显隐）
             EnsureDevPanel();
 
-            // GameOverScreen（挂在 Shared UI 节点上，初始隐藏）
-            EnsureGameOverScreen();
+            EnsureGameOverView();
         }
 
         private void Update()
@@ -1190,7 +1190,7 @@ namespace Core
         private void OnGameOver(GameOverEvent evt)
         {
             Debug.Log($"[GameManager] 游戏结束：{evt.Reason}");
-            _gameOverScreen?.Show(evt.Reason);
+            gameOverView?.Show(evt.Reason);
         }
 
         private void OnCampaignEncounterRequested(CampaignEncounterRequestedEvent evt) => BeginCampaignEncounterAsync(evt.Request).Forget();
@@ -1266,14 +1266,13 @@ namespace Core
             _devPanel.Init(this);
         }
 
-        private void EnsureGameOverScreen()
+        private void EnsureGameOverView()
         {
-            if (_gameOverScreen != null) return;
-            var parent = uiShared != null ? uiShared : gameObject;
-            var go = new GameObject("GameOverScreen");
-            go.transform.SetParent(parent.transform, false);
-            _gameOverScreen = go.AddComponent<GameOverScreen>();
-            _gameOverScreen.OnRestart = () =>
+            if (gameOverView != null) return;
+            var viewObject = new GameObject("TabletopGameOverView3D");
+            viewObject.transform.SetParent(transform, false);
+            gameOverView = viewObject.AddComponent<TabletopGameOverView3D>();
+            gameOverView.OnRestart = () =>
             {
                 // 删除存档后重置到营地开头
                 SaveLoadSystem.DeleteSaveAsync(this.GetCancellationTokenOnDestroy()).Forget();
@@ -1281,7 +1280,6 @@ namespace Core
                 DisposeSettlementActionSession();
                 _settlementManager = CreateSettlementManager();
                 _settlementManager.EnsureStartingConditions();
-                _gameOverScreen.gameObject.SetActive(false);
                 if (CurrentGamePhase == GamePhase.Settlement)
                 {
                     StartSettlementActionSession();
@@ -1293,7 +1291,6 @@ namespace Core
                     TransitionToPhase(GamePhase.Settlement);
                 }
             };
-            go.SetActive(false);
         }
 
         // ═══════════════════════════════════════════

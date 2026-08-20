@@ -190,7 +190,7 @@ namespace HuntingInDarkness.ViewLayer.Flow
 
         private void GateCurrentPhasePresentation()
         {
-            GameObject phaseRoot = manager?.TabletopPresentationRoot?.gameObject;
+            GameObject phaseRoot = manager != null ? manager.TabletopPresentationRoot?.gameObject : null;
             if (phaseRoot == null)
                 return;
             gatedPhaseRoots.Add(phaseRoot);
@@ -212,7 +212,7 @@ namespace HuntingInDarkness.ViewLayer.Flow
 
         private void RestoreCurrentPhasePresentation()
         {
-            GameObject currentRoot = manager?.TabletopPresentationRoot?.gameObject;
+            GameObject currentRoot = manager != null ? manager.TabletopPresentationRoot?.gameObject : null;
             foreach (GameObject phaseRoot in gatedPhaseRoots)
                 if (phaseRoot != null)
                     phaseRoot.SetActive(phaseRoot == currentRoot);
