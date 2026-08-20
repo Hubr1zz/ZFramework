@@ -468,3 +468,6 @@
 281. 并发装备请求由 Settlement Runner 串行重验，同一份库存只会提交一次；卸下按 `ItemInstance.InstanceId` 精确定位，不会因同名装备删除错误副本。成功事务沿用统一监听器刷新 3D 桌面与保存，旧 `HunterManagementSystem` 装备入口暂留兼容但正式 View 已不再调用。
 282. 当前装备权威模型仍以列表保存，3D 具体槽位只承担拖放目标，刷新后会按列表顺序紧凑排列；如果后续规则要求左右手、护符位或槽位 Reactor，应先在数据层引入稳定 SlotId，再让卡槽提交 SlotId，不能从 Transform 或显示顺序反推。`ItemData` 同样缺少稳定内容 ID，仓库和 Reactor 实体目前仍以 `itemName` 兼容映射；读表落地前必须迁移为稳定 ID 并处理同名/改名存档升级。
 283. Unity MCP 聚焦装备与拖拽回归 7/7、全量 EditMode 311/311 通过。正式 ZFramework Play Mode 数据探针确认 Settlement ActionSession 有效、唯一 3D 营地桌已建立、装备面板包含 2 个 SlotGrid 与 18 个实体槽，控制台 0 error；验证未使用截图或提交装备操作，玩家存档哈希保持不变。
+284. 症状内化与克服已进入 `PlayableSettlementActionSession`：View 只提交猎人 ID、稳定症状 ID 与选择，Action 在 Settlement Runner 中重新验证内容、年份、意志、胆识与成长，并发布症状事实和统一事务事实；Before Reactor 可阻止或把内化改写为克服。
+285. 猎人装备桌新增“症状”实体入口，分页症状卡展示内化进度，3D 按钮分别说明内化与克服条件；正式 Bootstrap 不再创建旧 `PlayableSymptomGrowthView`。对抗审查同时修复父对象先销毁时 `PlayableSettlementEventView.OnDestroy` 对已销毁 3D 事件板调用 `Close()` 的生命周期异常。
+286. Unity MCP 症状 Action 回归 5/5、全量 EditMode 359/359 通过；正式 ZFramework Play Mode 确认 Settlement 中存在症状板、装备桌入口与命令回调，实际初始猎人的症状卡可打开，旧屏幕症状 View 不存在，退出 Play Mode 控制台 0 error；玩家存档哈希保持不变。首次冷全量运行仍暴露既有 Hunt 事件夹具的顺序抖动，已在重构风险中记录。

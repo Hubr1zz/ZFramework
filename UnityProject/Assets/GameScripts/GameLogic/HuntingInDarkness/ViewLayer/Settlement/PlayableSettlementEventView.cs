@@ -308,9 +308,11 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             checkSource?.TrySetCanceled();
             resultSource?.TrySetCanceled();
             PlayableHuntInputGuard.Release(inputOwnerId);
-            panel?.Close();
             if (panel != null)
+            {
+                panel.Close();
                 Destroy(panel.gameObject);
+            }
             panel = null;
             manager?.ClearPlayableEventInput(this);
         }

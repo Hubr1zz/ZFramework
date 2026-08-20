@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace HuntingInDarkness.GameCore.Settlement
 {
+    public enum SymptomResolutionChoice
+    {
+        Internalize,
+        Overcome
+    }
+
     [Serializable]
     public sealed class HunterSymptomState
     {
@@ -81,22 +87,7 @@ namespace HuntingInDarkness.GameCore.Settlement
         public static bool TryInternalize(HunterState hunter, SymptomDefinition definition, int currentYear, out string reason)
         {
             HunterSymptomState state = Find(hunter, definition?.Id);
-            if (!CanProgress(hunter, definition, state, out reason)) return false;
-            if (state.IsInternalized)
-            {
-                reason = "这一症状已经被内化。";
-                return false;
-            }
-            if (state.LastReflectionYear == currentYear)
-            {
-                reason = "本年已经面对过这一症状。";
-                return false;
-            }
-            if (hunter.Willpower < definition.ReflectionWillpowerCost)
-            {
-                reason = "意志不足。";
-                return false;
-            }
+            if (!CanInternalize(hunter, definition, currentYear, out reason)) return false;
 
             hunter.Willpower -= definition.ReflectionWillpowerCost;
             state.LastReflectionYear = currentYear;
@@ -115,6 +106,43 @@ namespace HuntingInDarkness.GameCore.Settlement
         public static bool TryOvercome(HunterState hunter, SymptomDefinition definition, out string reason)
         {
             HunterSymptomState state = Find(hunter, definition?.Id);
+            if (!CanOvercome(hunter, definition, out reason)) return false;
+
+            hunter.UnspentGrowth -= definition.OvercomeGrowthCost;
+            ReverseAppliedModifiers(hunter, state);
+            state.IsOvercome = true;
+            hunter.Ailments.RemoveAll(value => value == definition.DisplayName);
+            AddUnique(hunter.Traits, GetOvercomeTraitName(definition));
+            reason = string.Empty;
+            return true;
+        }
+
+        public static bool CanInternalize(HunterState hunter, SymptomDefinition definition, int currentYear, out string reason)
+        {
+            HunterSymptomState state = Find(hunter, definition?.Id);
+            if (!CanProgress(hunter, definition, state, out reason)) return false;
+            if (state.IsInternalized)
+            {
+                reason = "这一症状已经被内化。";
+                return false;
+            }
+            if (state.LastReflectionYear == currentYear)
+            {
+                reason = "本年已经面对过这一症状。";
+                return false;
+            }
+            if (hunter.Willpower < definition.ReflectionWillpowerCost)
+            {
+                reason = "意志不足。";
+                return false;
+            }
+            reason = string.Empty;
+            return true;
+        }
+
+        public static bool CanOvercome(HunterState hunter, SymptomDefinition definition, out string reason)
+        {
+            HunterSymptomState state = Find(hunter, definition?.Id);
             if (!CanProgress(hunter, definition, state, out reason)) return false;
             if (hunter.Courage < definition.OvercomeCourageRequirement)
             {
@@ -126,12 +154,6 @@ namespace HuntingInDarkness.GameCore.Settlement
                 reason = $"需要 {definition.OvercomeGrowthCost} 点成长。";
                 return false;
             }
-
-            hunter.UnspentGrowth -= definition.OvercomeGrowthCost;
-            ReverseAppliedModifiers(hunter, state);
-            state.IsOvercome = true;
-            hunter.Ailments.RemoveAll(value => value == definition.DisplayName);
-            AddUnique(hunter.Traits, GetOvercomeTraitName(definition));
             reason = string.Empty;
             return true;
         }

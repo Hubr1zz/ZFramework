@@ -10,6 +10,7 @@ namespace Core
         Invention,
         WorkshopConstruction,
         HunterGrowth,
+        Symptom,
         EventReroll,
         EventResolution
     }

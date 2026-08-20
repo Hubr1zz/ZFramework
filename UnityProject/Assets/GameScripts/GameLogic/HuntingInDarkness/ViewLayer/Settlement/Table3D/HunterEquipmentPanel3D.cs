@@ -34,8 +34,10 @@ namespace UI
         private Func<int, int, UniTask<SettlementEquipmentCommandResult>> unequipCommand;
         private Action<HunterInstance> recoveryRequested;
         private Action<HunterInstance> advancementRequested;
+        private Action<HunterInstance> symptomRequested;
         private GameObject recoveryButton;
         private GameObject advancementButton;
+        private GameObject symptomButton;
         private GameObject previousPageButton;
         private GameObject nextPageButton;
         private int storagePage;
@@ -60,12 +62,13 @@ namespace UI
             Build();
         }
 
-        public void ConfigureCommands(Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> onEquip, Func<int, int, UniTask<SettlementEquipmentCommandResult>> onUnequip, Action<HunterInstance> onRecoveryRequested = null, Action<HunterInstance> onAdvancementRequested = null)
+        public void ConfigureCommands(Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> onEquip, Func<int, int, UniTask<SettlementEquipmentCommandResult>> onUnequip, Action<HunterInstance> onRecoveryRequested = null, Action<HunterInstance> onAdvancementRequested = null, Action<HunterInstance> onSymptomRequested = null)
         {
             equipCommand = onEquip;
             unequipCommand = onUnequip;
             recoveryRequested = onRecoveryRequested;
             advancementRequested = onAdvancementRequested;
+            symptomRequested = onSymptomRequested;
         }
 
         public void Show(HunterInstance selectedHunter, SettlementInstance settlementData, IReadOnlyList<ItemData> availableItems, Vector3 worldPosition)
@@ -108,6 +111,7 @@ namespace UI
             nextPageButton = BuildPageButton("NextStoragePage", ">", new Vector3(-0.30f, 0.03f, 1.42f), 1);
             recoveryButton = BuildRecoveryButton();
             advancementButton = BuildAdvancementButton();
+            symptomButton = BuildSymptomButton();
             BuildCloseButton();
         }
 
@@ -230,6 +234,29 @@ namespace UI
             return buttonObject;
         }
 
+        private GameObject BuildSymptomButton()
+        {
+            GameObject buttonObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            buttonObject.name = "SymptomButton";
+            buttonObject.transform.SetParent(transform, false);
+            buttonObject.transform.localPosition = new Vector3(0.38f, 0.03f, 1.42f);
+            buttonObject.transform.localScale = new Vector3(0.58f, 0.04f, 0.28f);
+            buttonObject.GetComponent<Renderer>().material.color = new Color(0.35f, 0.20f, 0.27f);
+            buttonObject.AddComponent<ClickProxy>().OnClick = () => symptomRequested?.Invoke(hunter);
+            var labelObject = new GameObject("Label");
+            labelObject.transform.SetParent(buttonObject.transform, false);
+            labelObject.transform.localPosition = new Vector3(0f, 0.6f, 0f);
+            labelObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            labelObject.transform.localScale = new Vector3(1f / 0.58f, 1f / 0.28f, 1f);
+            TextMeshPro label = labelObject.AddComponent<TextMeshPro>();
+            label.text = "症状";
+            label.fontSize = 0.09f;
+            label.alignment = TextAlignmentOptions.Center;
+            label.color = new Color(0.95f, 0.82f, 0.90f);
+            label.rectTransform.sizeDelta = new Vector2(0.48f, 0.22f);
+            return buttonObject;
+        }
+
         private void ChangeStoragePage(int direction)
         {
             storagePage += direction;
@@ -242,6 +269,7 @@ namespace UI
             statsText.text = BuildStats(hunter);
             recoveryButton.SetActive(IsWounded(hunter));
             advancementButton.SetActive(hunter.IsAvailable);
+            symptomButton.SetActive(HasSymptoms(hunter));
             FillStorageCards();
             FillEquipmentCards();
         }
@@ -376,6 +404,15 @@ namespace UI
                 || HunterRecoveryRules.CanRecover(hunter, HunterBodyPart.Torso, out _)
                 || HunterRecoveryRules.CanRecover(hunter, HunterBodyPart.Arms, out _)
                 || HunterRecoveryRules.CanRecover(hunter, HunterBodyPart.Legs, out _);
+        }
+
+        private static bool HasSymptoms(HunterInstance hunter)
+        {
+            if (hunter?.SymptomStates == null) return false;
+            foreach (HunterSymptomState state in hunter.SymptomStates)
+                if (state != null && !state.IsOvercome && PlayableSymptomRuntime.Catalog != null && PlayableSymptomRuntime.Catalog.TryGetById(state.SymptomId, out _))
+                    return true;
+            return false;
         }
     }
 }

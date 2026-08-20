@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 
@@ -36,7 +37,7 @@ namespace HuntingInDarkness.Settlement
     }
 
     [CreateAssetMenu(fileName = "PlayableSymptomCatalog", menuName = "Hunting in Darkness/Symptom Catalog")]
-    public sealed class PlayableSymptomCatalog : ScriptableObject
+    public sealed class PlayableSymptomCatalog : ScriptableObject, ISettlementSymptomContent
     {
         [SerializeField] private List<PlayableSymptomDefinition> symptoms = new();
 

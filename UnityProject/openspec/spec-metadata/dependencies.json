@@ -91,6 +91,13 @@
       "category": "feature",
       "readiness": "implemented",
       "specPath": "openspec/specs/tabletop-settlement-advancement-ledger/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-symptoms",
+      "label": "营地桌面症状成长",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-symptoms/spec.md"
     }
   ],
   "edges": [
@@ -231,6 +238,16 @@
       "type": "requires",
       "status": "defined",
       "reason": "成长与训练由营地 Runner 提交，年鉴读取同一营地持久状态",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-symptoms--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-symptoms",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "症状内化与克服由营地 Runner 串行重验并提交长期猎人状态",
       "gapId": "",
       "blocksImplementation": false
     }

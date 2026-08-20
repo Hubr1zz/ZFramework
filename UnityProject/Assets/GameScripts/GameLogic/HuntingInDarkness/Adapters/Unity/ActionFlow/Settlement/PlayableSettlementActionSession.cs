@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using CardGame.ActionQueue;
 using Cysharp.Threading.Tasks;
@@ -21,12 +22,13 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly WorkshopSystem workshopSystem;
         private readonly InventionSystem inventionSystem;
         private readonly PlayableWorkshopCatalog workshopCatalog;
+        private readonly ISettlementSymptomContent symptomContent;
         private readonly PlayableWorkshopConstructionService workshopConstructionService;
         private readonly EventSystem eventSystem;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
@@ -35,6 +37,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             this.workshopSystem = workshopSystem;
             this.inventionSystem = inventionSystem;
             this.workshopCatalog = workshopCatalog;
+            this.symptomContent = symptomContent;
             workshopConstructionService = new PlayableWorkshopConstructionService(() => this.settlement);
             this.eventSystem = eventSystem;
             this.randomInteractionPresenter = randomInteractionPresenter;
@@ -183,6 +186,52 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? HunterGrowthCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public IReadOnlyList<SymptomDefinition> GetHunterSymptoms(int hunterId)
+        {
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            var definitions = new System.Collections.Generic.List<SymptomDefinition>();
+            if (hunter?.SymptomStates == null || symptomContent == null) return definitions;
+            foreach (HunterSymptomState state in hunter.SymptomStates)
+                if (state != null && !state.IsOvercome && symptomContent.TryGetById(state.SymptomId, out SymptomDefinition definition))
+                    definitions.Add(definition);
+            return definitions;
+        }
+
+        public bool CanResolveHunterSymptom(int hunterId, string symptomId, SymptomResolutionChoice choice, out string reason)
+        {
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            if (hunter == null)
+            {
+                reason = "猎人不属于当前营地。";
+                return false;
+            }
+            if (symptomContent == null || !symptomContent.TryGetById(symptomId, out SymptomDefinition definition))
+            {
+                reason = "症状内容尚未配置。";
+                return false;
+            }
+            if (choice == SymptomResolutionChoice.Internalize) return HunterSymptomRules.CanInternalize(hunter, definition, settlement.CurrentYear, out reason);
+            if (choice == SymptomResolutionChoice.Overcome) return HunterSymptomRules.CanOvercome(hunter, definition, out reason);
+            reason = "症状处理方式无效。";
+            return false;
+        }
+
+        public async UniTask<HunterSymptomCommandResult> ResolveHunterSymptomAsync(int hunterId, string symptomId, SymptomResolutionChoice choice)
+        {
+            if (!IsActive) return HunterSymptomCommandResult.Failed("当前不在营地阶段。");
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            if (hunter == null) return HunterSymptomCommandResult.Failed("猎人不属于当前营地。");
+            if (symptomContent == null) return HunterSymptomCommandResult.Failed("症状内容尚未配置。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle hunterEntity = environment.EntityHandles.GetOrCreate("hunter", hunter.InstanceId.ToString(), hunter.Name);
+            ReactorEntityHandle symptomEntity = environment.EntityHandles.GetOrCreate("symptom", symptomId, symptomId);
+            var action = new ResolveHunterSymptomAction(settlement, hunter, symptomId, choice, symptomContent, outbox, hunterEntity, symptomEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? HunterSymptomCommandResult.Failed(outcome.Reason) : action.Result;
         }
 
         public bool CanEquipItem(int hunterId, ItemData item, out string reason)

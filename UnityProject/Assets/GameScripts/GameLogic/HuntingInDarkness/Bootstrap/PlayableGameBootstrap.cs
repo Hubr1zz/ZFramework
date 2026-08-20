@@ -106,7 +106,6 @@ namespace HuntingInDarkness.Bootstrap
             {
                 gameObject.AddComponent<PlayableHuntDestinationView>().Initialize(manager, null, settings.HuntDestinations);
                 gameObject.AddComponent<PlayableSettlementEventView>().Initialize(manager);
-                gameObject.AddComponent<PlayableSymptomGrowthView>().Initialize(manager, settings.Symptoms);
                 gameObject.AddComponent<PlayableGrowthMilestoneToast>().Initialize(manager);
             }
 

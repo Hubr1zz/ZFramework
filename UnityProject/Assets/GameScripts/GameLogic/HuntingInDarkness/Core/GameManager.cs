@@ -525,7 +525,7 @@ namespace Core
         {
             DisposeSettlementActionSession();
             if (_settlementManager?.Data == null) return;
-            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items), tabletopRandomPresenter, _settlementManager.Workshop, _settlementManager.Inventions, workshopContentCatalog);
+            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items), tabletopRandomPresenter, _settlementManager.Workshop, _settlementManager.Inventions, workshopContentCatalog, PlayableSymptomRuntime.Catalog);
         }
 
         private void DisposeSettlementActionSession()
@@ -668,6 +668,7 @@ namespace Core
                 _settlementTable3D.OnRecruitRequested = (template, requestedName) => settlementActionSession != null ? settlementActionSession.RecruitHunterAsync(template, requestedName) : UniTask.FromResult(RecruitHunterCommandResult.Failed("当前不在营地阶段。"));
                 _settlementTable3D.OnGrowthRequested = (hunterId, choice) => settlementActionSession != null ? settlementActionSession.SpendHunterGrowthAsync(hunterId, choice) : UniTask.FromResult(HunterGrowthCommandResult.Failed("当前不在营地阶段。"));
                 _settlementTable3D.OnWeaponTrainingRequested = (hunterId, masteryId) => settlementActionSession != null ? settlementActionSession.TrainWeaponAsync(hunterId, masteryId) : UniTask.FromResult(WeaponTrainingCommandResult.Failed("当前不在营地阶段。"));
+                _settlementTable3D.OnSymptomRequested = (hunterId, symptomId, choice) => settlementActionSession != null ? settlementActionSession.ResolveHunterSymptomAsync(hunterId, symptomId, choice) : UniTask.FromResult(HunterSymptomCommandResult.Failed("当前不在营地阶段。"));
 
                 // 点击发明卡（有主动效果时）→ TODO: 展示效果选择面板
                 _settlementTable3D.OnInventionEffectRequested = card =>

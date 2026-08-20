@@ -52,6 +52,10 @@ namespace UI
         [SerializeField] private HunterAdvancementPanel3D hunterAdvancementPanel;
         [SerializeField] private Transform hunterAdvancementPanelAnchor;
 
+        [Header("猎人 3D 症状板")]
+        [SerializeField] private HunterSymptomPanel3D hunterSymptomPanel;
+        [SerializeField] private Transform hunterSymptomPanelAnchor;
+
         [Header("营地 3D 年鉴")]
         [SerializeField] private CampLedgerPanel3D campLedgerPanel;
         [SerializeField] private Transform campLedgerPanelAnchor;
@@ -87,6 +91,7 @@ namespace UI
         public System.Func<HunterData, string, UniTask<RecruitHunterCommandResult>> OnRecruitRequested;
         public System.Func<int, HuntingInDarkness.GameCore.Settlement.HunterGrowthChoice, UniTask<HunterGrowthCommandResult>> OnGrowthRequested;
         public System.Func<int, string, UniTask<WeaponTrainingCommandResult>> OnWeaponTrainingRequested;
+        public System.Func<int, string, HuntingInDarkness.GameCore.Settlement.SymptomResolutionChoice, UniTask<HunterSymptomCommandResult>> OnSymptomRequested;
 
         // ─── 注入数据 ─────────────────────────────────────────────────────
         private SettlementManager _mgr;
@@ -108,6 +113,7 @@ namespace UI
             EnsureRecruitmentPanel();
             EnsureRecruitmentLauncher();
             EnsureHunterAdvancementPanel();
+            EnsureHunterSymptomPanel();
             EnsureCampLedger();
             EnsureInventionUnlockPanel();
             EnsureWorkshopConstructionPanel();
@@ -143,7 +149,7 @@ namespace UI
             if (hunterEquipmentPanel == null)
                 hunterEquipmentPanel = HunterEquipmentPanel3D.Create(transform);
             hunterEquipmentPanel.EnsureBuilt();
-            hunterEquipmentPanel.ConfigureCommands(OnEquipRequested, OnUnequipRequested, ShowHunterRecovery, ShowHunterAdvancement);
+            hunterEquipmentPanel.ConfigureCommands(OnEquipRequested, OnUnequipRequested, ShowHunterRecovery, ShowHunterAdvancement, ShowHunterSymptoms);
         }
 
         private void EnsureHunterRecoveryPanel()
@@ -190,6 +196,21 @@ namespace UI
             hunterEquipmentPanel?.Hide();
             Vector3 position = hunterAdvancementPanelAnchor != null ? hunterAdvancementPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.1f));
             hunterAdvancementPanel.Open(hunter, _mgr.Data, PlayableWeaponMasteryRuntime.Catalog, OnGrowthRequested, OnWeaponTrainingRequested, position);
+        }
+
+        private void EnsureHunterSymptomPanel()
+        {
+            if (hunterSymptomPanel == null)
+                hunterSymptomPanel = HunterSymptomPanel3D.Create(transform);
+            hunterSymptomPanel.EnsureBuilt();
+        }
+
+        private void ShowHunterSymptoms(HunterInstance hunter)
+        {
+            if (hunter == null || hunterSymptomPanel == null) return;
+            hunterEquipmentPanel?.Hide();
+            Vector3 position = hunterSymptomPanelAnchor != null ? hunterSymptomPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.0f));
+            hunterSymptomPanel.Open(hunter, _mgr.Data, PlayableSymptomRuntime.Catalog, OnSymptomRequested, position);
         }
 
         private void EnsureCampLedger()
@@ -436,6 +457,7 @@ namespace UI
             recruitmentPanel?.RefreshVisible();
             recruitmentLauncher?.RefreshState();
             hunterAdvancementPanel?.RefreshVisible();
+            hunterSymptomPanel?.RefreshVisible();
             campLedgerPanel?.RefreshVisible();
             campLedgerLauncher?.Configure(_mgr.Data);
         }
