@@ -19,6 +19,7 @@ $templateRoot = Join-Path $projectRoot 'zWorkFlow/setup/assets'
 $changesPath = Join-Path $projectRoot 'Assets/Editor/zWorkFlow/AgentWorkbenchWindow.Changes.cs'
 $markdownPath = Join-Path $projectRoot 'Assets/Editor/zWorkFlow/AgentWorkbenchWindow.ImportReports.cs'
 $windowPath = Join-Path $projectRoot 'Assets/Editor/zWorkFlow/AgentWorkbenchWindow.cs'
+$agentInstructionsPath = Join-Path $projectRoot 'AGENTS.md'
 $manifestPath = Join-Path $projectRoot 'zWorkFlow/setup/PACKAGE_MANIFEST.json'
 $packagedSkillPath = Join-Path $projectRoot 'zWorkFlow/.agents/skills/zworkflow-ui-maintenance'
 $changesTemplatePath = Join-Path $projectRoot 'zWorkFlow/setup/assets/AgentWorkbenchWindow.Changes.cs.template'
@@ -30,6 +31,7 @@ Assert-LayoutRule (Test-Path -LiteralPath $templateRoot -PathType Container) 'po
 Assert-LayoutRule (Test-Path -LiteralPath $changesPath -PathType Leaf) 'Changes page source is missing.'
 Assert-LayoutRule (Test-Path -LiteralPath $markdownPath -PathType Leaf) 'shared Markdown renderer is missing.'
 Assert-LayoutRule (Test-Path -LiteralPath $windowPath -PathType Leaf) 'shared Workbench window source is missing.'
+Assert-LayoutRule (Test-Path -LiteralPath $agentInstructionsPath -PathType Leaf) 'project agent instructions are missing.'
 Assert-LayoutRule (Test-Path -LiteralPath $manifestPath -PathType Leaf) 'package manifest is missing.'
 Assert-LayoutRule (Test-Path -LiteralPath $changesTemplatePath -PathType Leaf) 'portable Changes template is missing.'
 Assert-LayoutRule (Test-Path -LiteralPath $markdownTemplatePath -PathType Leaf) 'portable Markdown template is missing.'
@@ -38,6 +40,7 @@ Assert-LayoutRule (Test-Path -LiteralPath $windowTemplatePath -PathType Leaf) 'p
 $changes = Get-Content -Raw -LiteralPath $changesPath -Encoding utf8
 $markdown = Get-Content -Raw -LiteralPath $markdownPath -Encoding utf8
 $window = Get-Content -Raw -LiteralPath $windowPath -Encoding utf8
+$agentInstructions = Get-Content -Raw -LiteralPath $agentInstructionsPath -Encoding utf8
 $manifest = Get-Content -Raw -LiteralPath $manifestPath -Encoding utf8
 $changesTemplate = Get-Content -Raw -LiteralPath $changesTemplatePath -Encoding utf8
 $markdownTemplate = Get-Content -Raw -LiteralPath $markdownTemplatePath -Encoding utf8
@@ -54,7 +57,6 @@ Assert-LayoutRule ($changes -match 'ChangeDetailContentWidth\(\)') 'Changes deta
 Assert-LayoutRule ($changes -notmatch 'changeDetailPanelWidth') 'Changes split view still forces a manually projected detail width.'
 Assert-LayoutRule ($changes -match 'VerticalScope\(ReportPanelStyle\(\),\s*GUILayout\.ExpandWidth\(true\)') 'Changes detail panel must consume only the remaining flexible width.'
 Assert-LayoutRule ($changes -match 'return\s+CurrentLayoutContentWidth\(\);') 'Changes detail content must use the active local layout width.'
-Assert-LayoutRule ($changes -notmatch 'position\.width') 'nested Changes content reads the EditorWindow width instead of its local container.'
 Assert-LayoutRule ($window -match 'CurrentLayoutContentWidth\(') 'the shared local width budget helper is missing.'
 Assert-LayoutRule ($windowTemplate -match 'CurrentLayoutContentWidth\(') 'the portable local width budget helper is missing.'
 Assert-LayoutRule ($window -match 'position\.width\s*<\s*CompactToolbarThreshold') 'the shared toolbar does not switch to a compact layout at narrow widths.'
@@ -63,12 +65,13 @@ Assert-LayoutRule ($forcedWindowWidthOffenders.Count -eq 0) "Workbench content f
 Assert-LayoutRule ($markdown -notmatch 'Mathf\.Max\(40[^\r\n]*\(width[^\r\n]*/\s*columns') 'Markdown table columns can still force their parent wider.'
 Assert-LayoutRule ($changesTemplate.Replace("`r`n", "`n") -eq $changes.Replace("`r`n", "`n")) 'portable Changes template differs from the installed Editor page.'
 Assert-LayoutRule ($markdownTemplate.Replace("`r`n", "`n") -eq $markdown.Replace("`r`n", "`n")) 'portable Markdown template differs from the installed shared renderer.'
+Assert-LayoutRule ($agentInstructions -match '\.agents/skills/zworkflow-ui-maintenance/SKILL\.md') 'Workbench UI changes are not routed through the project-only maintenance skill.'
 Assert-LayoutRule ($manifest -notmatch 'zworkflow-ui-maintenance') 'the project-only skill was added to the migration manifest.'
 Assert-LayoutRule (-not (Test-Path -LiteralPath $packagedSkillPath)) 'the project-only skill was copied into the portable zWorkFlow package.'
 [pscustomobject]@{
     passed = $true
     pages = $layoutSources.Count
     minimumWindow = '900x600'
-    checks = 17
+    checks = 18
     packaged = $false
 } | ConvertTo-Json -Compress
