@@ -8,7 +8,7 @@ title: "读表发明与信仰分支"
 
 ## Purpose
 
-让大量发明通过可替换数据源接入既有稳定身份目录、3D 发明卡和各阶段 ActionQueue，并以“信仰 → 仪式”和“纸和笔 → 植物知识”提供可玩的长期成长分支。
+让大量发明通过可替换数据源接入既有稳定身份目录、3D 发明卡、事件链和各阶段 ActionQueue，并以“信仰 → 仪式/祈祷”和“纸和笔 → 植物知识”提供可玩的成长分支。
 
 ## Requirements
 
@@ -80,3 +80,14 @@ Action-effect records SHALL define a non-empty globally unique effect ID, a supp
 #### Scenario: Two inventions reuse an Action-effect ID
 - **WHEN** two table records declare the same stable Action-effect ID
 - **THEN** both conflicting inventions SHALL be rejected before entering the playable catalog
+
+### Requirement: Active effects reference Triggered events by stable identity
+An active-effect record SHALL define a globally unique effect ID, player-facing name, stable Triggered-event ID, and a non-negative yearly allowance. Unknown events, non-Triggered events, malformed records, local duplicates, and collisions across table or asset sources SHALL fail closed before gameplay.
+
+#### Scenario: Prayer is mastered
+- **WHEN** the player opens the prayer invention card
+- **THEN** its configured annual night-vigil effect is presented without a content-specific View or effect executor
+
+#### Scenario: An active effect points at a random or scheduled event
+- **WHEN** the invention table is assembled
+- **THEN** that invention is rejected rather than exposing a repeatable bypass into an ordinary campaign event

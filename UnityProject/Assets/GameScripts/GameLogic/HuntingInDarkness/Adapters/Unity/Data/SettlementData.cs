@@ -95,8 +95,14 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class InventionActiveEffect
     {
+        [Tooltip("稳定效果 ID；用于年度次数与存档。")]
+        public string effectId;
         public string effectName;
         [TextArea] public string description;
+        [Tooltip("启动的稳定事件 ID。事件负责角色选择、判定、随机表现与结算。")]
+        public string eventId;
+        [Min(0), Tooltip("每年最多使用次数；0 表示不限次数。")]
+        public int maxUsesPerYear = 1;
     }
 
     // ─── Timeline 数据模型 ───────────────────────────────────────
@@ -171,6 +177,9 @@ namespace HuntingInDarkness.Data
 
         [Header("战役持续修正（稳定 ModifierId → 实际生效值）")]
         public List<SettlementModifierState> ActiveModifiers = new();
+
+        [Header("发明主动效果年度使用状态")]
+        public List<InventionActiveEffectUsage> InventionActiveEffectUses = new();
 
         [Header("已建工坊（稳定工坊 ID → 是否建成）")]
         public List<StringBoolEntry> BuiltWorkshops = new();

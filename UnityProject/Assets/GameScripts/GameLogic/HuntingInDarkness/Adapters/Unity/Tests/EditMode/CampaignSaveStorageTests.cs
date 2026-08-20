@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using Core;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Settlement;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
@@ -46,6 +48,20 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(CampaignSaveCodec.TryDecode(legacy, out string payload, out bool isLegacy, out string reason), Is.True, reason);
             Assert.That(payload, Is.EqualTo(legacy));
             Assert.That(isLegacy, Is.True);
+        }
+
+        [Test]
+        public void SettlementJson_PersistsInventionActiveEffectUsage()
+        {
+            var settlement = new SettlementInstance();
+            settlement.InventionActiveEffectUses.Add(new InventionActiveEffectUsage { EffectId = "prayer:vigil", Year = 3, UseCount = 1 });
+
+            string json = JsonUtility.ToJson(settlement);
+            SettlementInstance restored = JsonUtility.FromJson<SettlementInstance>(json);
+
+            Assert.That(restored.InventionActiveEffectUses, Has.Count.EqualTo(1));
+            Assert.That(restored.InventionActiveEffectUses[0].EffectId, Is.EqualTo("prayer:vigil"));
+            Assert.That(restored.InventionActiveEffectUses[0].Year, Is.EqualTo(3));
         }
 
         [Test]

@@ -82,7 +82,8 @@ namespace HuntingInDarkness.Data
         Random,    // 随机抽取事件
         Hunt,      // 狩猎阶段专属
         Settlement, // 营地阶段专属
-        Scheduled // 只允许通过 Timeline 延时调度
+        Scheduled, // 只允许通过 Timeline 延时调度
+        Triggered // 只允许由发明、特性等显式入口启动
     }
 
     // ─── 事件选项 ────────────────────────────────────────────────

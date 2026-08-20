@@ -65,6 +65,27 @@
         }
       ],
       "category": "Knowledge"
+    },
+    {
+      "id": "prayer",
+      "inventionName": "祈祷",
+      "description": "营地学会以共同的祷词在黑暗中维系信念。",
+      "prerequisiteIds": ["faith"],
+      "costs": [
+        { "itemId": "mushroom_flesh", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "每年可主持一次夜祷；选择猎人进行实体骰子胆识判定，成功恢复 1 意志。",
+      "activeEffects": [
+        {
+          "effectId": "prayer:night-vigil",
+          "effectName": "主持夜祷",
+          "description": "选择一名猎人投掷 d10 进行胆识判定。",
+          "eventId": "active_prayer_night_vigil",
+          "maxUsesPerYear": 1
+        }
+      ],
+      "category": "Knowledge"
     }
   ]
 }

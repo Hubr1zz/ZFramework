@@ -534,6 +534,26 @@
       "reason": "植物知识在 BeginHarvestAction 的前置窗口覆盖草药采集概率，并由 3D 采集桌展示最终值",
       "gapId": "",
       "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-invention--requires--tabletop-event-interaction",
+      "from": "tabletop-settlement-invention",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "已掌握发明的主动效果复用世界空间事件选择、实体随机表现与事件链提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-invention--requires--campaign-persistence",
+      "from": "tabletop-settlement-invention",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "主动效果的年度使用次数随 SettlementInstance 保存，并在跨年或读档后继续重验",
+      "gapId": "",
+      "blocksImplementation": false
     }
   ]
 }

@@ -155,7 +155,7 @@ namespace HuntingInDarkness.Settlement
             if (!DelayedEventRules.TryCreatePlan(_settlement.CurrentYear, delayYears, eventId, out DelayedEventPlan plan, out reason))
                 return false;
 
-            EventData gameEvent = FindEvent(plan.EventId);
+            EventData gameEvent = ResolveEvent(plan.EventId);
             if (gameEvent == null)
             {
                 reason = $"找不到事件内容：{plan.EventId}";
@@ -191,7 +191,7 @@ namespace HuntingInDarkness.Settlement
                 if (entry == null || entry.EntryType != TimelineEntryType.Scheduled || entry.IsCompleted || entry.Year > year || !presentedScheduledEntries.Add(entry))
                     continue;
 
-                EventData gameEvent = FindEvent(entry.EventId);
+                EventData gameEvent = ResolveEvent(entry.EventId);
                 if (gameEvent != null)
                 {
                     result.Add(gameEvent);
@@ -203,8 +203,9 @@ namespace HuntingInDarkness.Settlement
             }
         }
 
-        private EventData FindEvent(string eventId)
+        public EventData ResolveEvent(string eventId)
         {
+            if (string.IsNullOrWhiteSpace(eventId)) return null;
             EventData gameEvent = MainStoryEvents.Find(candidate => candidate != null && candidate.name == eventId);
             return gameEvent != null ? gameEvent : RandomEventPool.Find(candidate => candidate != null && candidate.name == eventId);
         }

@@ -97,6 +97,28 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Build_MapsActiveEventEffectsAndRejectsUnknownEvent()
+        {
+            InventionTableRecord prayer = CreateRecord("prayer", "祈祷");
+            prayer.activeEffects.Add(new InventionActiveEffectTableRecord { effectId = "prayer:vigil", effectName = "夜祷", eventId = "active_prayer", maxUsesPerYear = 1 });
+            var knownEvents = new HashSet<string> { "active_prayer" };
+
+            List<InventionData> accepted = Track(PlayableInventionTableRuntime.Build(new[] { prayer }, null, null, null, knownEvents));
+
+            Assert.That(accepted, Has.Count.EqualTo(1));
+            Assert.That(accepted[0].activeEffects, Has.Count.EqualTo(1));
+            Assert.That(accepted[0].activeEffects[0].eventId, Is.EqualTo("active_prayer"));
+            Assert.That(accepted[0].activeEffects[0].maxUsesPerYear, Is.EqualTo(1));
+
+            prayer.activeEffects[0].eventId = "missing";
+            var errors = new List<string>();
+            List<InventionData> rejected = PlayableInventionTableRuntime.Build(new[] { prayer }, null, null, errors.Add, knownEvents);
+
+            Assert.That(rejected, Is.Empty);
+            Assert.That(errors.Exists(error => error.Contains("未知或非 Triggered 事件")), Is.True);
+        }
+
+        [Test]
         public void Build_RejectsIdentityConflictsBrokenReferencesCyclesAndOverflow()
         {
             ItemData stone = CreateItem("broken_stone", "碎石");

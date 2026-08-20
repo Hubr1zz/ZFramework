@@ -8,7 +8,7 @@ title: 营地桌面发明解锁
 
 ## Purpose
 
-定义玩家通过营地 3D 发明卡查看条件并掌握发明的完整流程，确保卡牌只表达意图，规则校验、资源消费、效果应用、事件与存档边界统一归属 Settlement ActionQueue。
+定义玩家通过营地 3D 发明卡掌握并使用发明的完整流程，确保卡牌只表达意图，解锁、主动效果、事件与存档边界统一归属 Settlement ActionQueue。
 
 ## Requirements
 
@@ -100,3 +100,25 @@ The settlement catalog SHALL reject invention identities whose stable IDs, displ
 
 - **WHEN** a committed event effect requests an unknown invention ContentId
 - **THEN** no unlocked flag, annals entry, or successful invention fact is produced
+
+### Requirement: Mastered inventions expose event-backed active effects
+An unlocked invention with active effects SHALL open a bounded, paged world-space effect board. Selecting an available effect SHALL submit one Settlement root action, hide the board before event presentation, and reuse the shared event chain for actor selection, physical randomness, results, and chained effects.
+
+#### Scenario: Player leads the configured night prayer
+- **WHEN** the mastered prayer card activates its annual vigil effect
+- **THEN** the shared event table selects a hunter, throws the configured physical d10 beside that hunter, and commits the result inside the same Settlement causal chain
+
+#### Scenario: Many effects are configured
+- **WHEN** one invention has more than four active effects
+- **THEN** the effect board paginates them and no label or button extends outside its panel
+
+### Requirement: Active-effect use limits are persistent and authoritative
+The Settlement root SHALL revalidate invention ownership, mastery, effect membership, Triggered-event identity, and the persisted yearly use count at execution time. Successful event completion SHALL record the use and publish one stable InventionActivation transaction; prevention or event failure SHALL record neither.
+
+#### Scenario: The same annual effect is requested twice
+- **WHEN** the first request has committed in the current year
+- **THEN** the serialized Settlement runner rejects the second request without reopening or applying its event
+
+#### Scenario: The campaign enters a new year or reloads a save
+- **WHEN** the persisted effect usage belongs to an earlier year
+- **THEN** the current year's configured allowance is available again

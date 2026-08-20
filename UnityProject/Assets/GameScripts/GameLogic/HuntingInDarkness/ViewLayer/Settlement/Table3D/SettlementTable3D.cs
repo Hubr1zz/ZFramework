@@ -66,6 +66,10 @@ namespace UI
         [SerializeField] private InventionUnlockPanel3D inventionUnlockPanel;
         [SerializeField] private Transform inventionUnlockPanelAnchor;
 
+        [Header("发明主动效果 3D 面板")]
+        [SerializeField] private InventionActiveEffectPanel3D inventionActiveEffectPanel;
+        [SerializeField] private Transform inventionActiveEffectPanelAnchor;
+
         [Header("工坊建设 3D 确认板")]
         [SerializeField] private WorkshopConstructionPanel3D workshopConstructionPanel;
         [SerializeField] private Transform workshopConstructionPanelAnchor;
@@ -76,8 +80,7 @@ namespace UI
 
         // ─── 点击回调（上层先设置，Init 时下发给对应分区）──────────────────
         public System.Action<HunterInstance>   OnHunterClicked;
-        /// <summary>点击发明卡（有主动效果时触发），由外部展示效果选择面板。</summary>
-        public System.Action<InventionCard3D>  OnInventionEffectRequested;
+        public System.Func<InventionData, InventionActiveEffect, UniTask<SettlementInventionActiveEffectCommandResult>> OnInventionEffectRequested;
         /// <summary>点击工坊卡，由外部展示可制造物品面板。</summary>
         public System.Action<WorkshopCard3D>   OnWorkshopClicked;
         /// <summary>点击出发卡，上报当前小队，由外部弹出出发确认窗。</summary>
@@ -118,6 +121,7 @@ namespace UI
             EnsureHunterSymptomPanel();
             EnsureCampLedger();
             EnsureInventionUnlockPanel();
+            EnsureInventionActiveEffectPanel();
             EnsureWorkshopConstructionPanel();
             EnsureDepartureLauncher();
             WireZoneCallbacks();  // 把上层设的回调下发给分区
@@ -147,7 +151,7 @@ namespace UI
         private void WireZoneCallbacks()
         {
             _hunterZone.OnHunterClicked              = ShowHunterEquipment;
-            _inventionZone.OnInventionEffectRequested = OnInventionEffectRequested;
+            _inventionZone.OnInventionEffectRequested = ShowInventionEffects;
             _inventionZone.OnInventionUnlockRequested = ShowInventionUnlock;
             _workshopZone.OnWorkshopClicked          = ShowWorkshopCrafting;
             _workshopZone.OnCraftRequested           = OnCraftRequested;
@@ -264,6 +268,13 @@ namespace UI
             inventionUnlockPanel.EnsureBuilt();
         }
 
+        private void EnsureInventionActiveEffectPanel()
+        {
+            if (inventionActiveEffectPanel == null)
+                inventionActiveEffectPanel = InventionActiveEffectPanel3D.Create(transform);
+            inventionActiveEffectPanel.EnsureBuilt();
+        }
+
         private void EnsureWorkshopConstructionPanel()
         {
             if (workshopConstructionPanel == null)
@@ -293,6 +304,14 @@ namespace UI
             inventionUnlockPanel.Open(card.Data, _mgr.Inventions, OnInventionUnlockRequested, position);
         }
 
+        private void ShowInventionEffects(InventionCard3D card)
+        {
+            if (card?.Data == null || inventionActiveEffectPanel == null) return;
+            HideContextPanels();
+            Vector3 position = inventionActiveEffectPanelAnchor != null ? inventionActiveEffectPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -2.85f));
+            inventionActiveEffectPanel.Open(card.Data, _mgr.Data, _mgr.Inventions, OnInventionEffectRequested, position);
+        }
+
         private void ShowHunterEquipment(HunterInstance hunter)
         {
             if (hunterEquipmentPanel == null)
@@ -315,6 +334,7 @@ namespace UI
             hunterSymptomPanel?.Hide();
             campLedgerPanel?.Hide();
             inventionUnlockPanel?.Hide();
+            inventionActiveEffectPanel?.Hide();
             workshopConstructionPanel?.Hide();
             _workshopZone?.CloseCraftPanels(retainedWorkshop);
         }
@@ -507,6 +527,7 @@ namespace UI
             hunterSymptomPanel?.RefreshVisible();
             campLedgerPanel?.RefreshVisible();
             campLedgerLauncher?.Configure(_mgr.Data);
+            inventionActiveEffectPanel?.RefreshVisible();
         }
 
         // ─── 清理 ─────────────────────────────────────────────────────────

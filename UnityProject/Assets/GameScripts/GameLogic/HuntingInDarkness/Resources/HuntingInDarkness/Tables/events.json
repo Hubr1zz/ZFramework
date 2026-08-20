@@ -118,6 +118,37 @@
       "maxYear": 0,
       "drawWeight": 2,
       "category": "Random"
+    },
+    {
+      "id": "active_prayer_night_vigil",
+      "eventName": "无火夜祷",
+      "eventType": "Choice",
+      "displayText": "信仰无法点燃木柴，却能让一个人在黑暗里再站直一次。谁来主持今夜的祈祷？",
+      "hiddenText": "祷词散去后，黑暗仍在；但被选中的猎人重新握紧了武器。",
+      "options": [
+        {
+          "optionText": "直面恐惧，带领同伴完成夜祷",
+          "checkType": "Courage",
+          "checkTarget": 7,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在主持夜祷的猎人旁投掷一枚 d10",
+          "successText": "你的声音压过了黑暗中的低语。意志恢复 1。",
+          "successEffects": [
+            { "effectType": "AddWillpower", "targetName": "selected", "value": 1, "description": "意志 +1" }
+          ],
+          "failText": "祷词被恐惧打断。至少，没有人因此失去更多东西。",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Triggered"
     }
   ]
 }

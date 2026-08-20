@@ -25,10 +25,11 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly ISettlementSymptomContent symptomContent;
         private readonly PlayableWorkshopConstructionService workshopConstructionService;
         private readonly EventSystem eventSystem;
+        private readonly Func<string, EventData> resolveEvent;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null, Func<string, EventData> resolveEvent = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
@@ -40,6 +41,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             this.symptomContent = symptomContent;
             workshopConstructionService = new PlayableWorkshopConstructionService(() => this.settlement);
             this.eventSystem = eventSystem;
+            this.resolveEvent = resolveEvent;
             this.randomInteractionPresenter = randomInteractionPresenter;
             EventInput = eventInput;
             SessionId = Guid.NewGuid();
@@ -341,6 +343,39 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementInventionCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public bool CanActivateInventionEffect(InventionData invention, InventionActiveEffect effect, out string reason)
+        {
+            EventData gameEvent = effect != null ? resolveEvent?.Invoke(effect.eventId) : null;
+            if (inventionSystem == null || invention == null || !inventionSystem.AllInventions.Contains(invention))
+            {
+                reason = "发明不属于当前营地。";
+                return false;
+            }
+            if (effect == null || invention.activeEffects == null || !invention.activeEffects.Contains(effect))
+            {
+                reason = "主动效果不属于该发明。";
+                return false;
+            }
+            bool eventAvailable = gameEvent != null && gameEvent.category == EventCategory.Triggered && string.Equals(gameEvent.name, effect.eventId, StringComparison.Ordinal);
+            return InventionActiveEffectRules.CanActivate(inventionSystem.IsUnlocked(invention), settlement.CurrentYear, effect.effectId, effect.eventId, effect.maxUsesPerYear, settlement.InventionActiveEffectUses, eventAvailable, out reason);
+        }
+
+        public async UniTask<SettlementInventionActiveEffectCommandResult> ActivateInventionEffectAsync(InventionData invention, InventionActiveEffect effect)
+        {
+            if (!IsActive) return SettlementInventionActiveEffectCommandResult.Failed("当前不在营地阶段。");
+            if (eventSystem == null || inventionSystem == null) return SettlementInventionActiveEffectCommandResult.Failed("营地主动效果系统尚未配置。");
+            EventData gameEvent = effect != null ? resolveEvent?.Invoke(effect.eventId) : null;
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
+            ReactorEntityHandle inventionEntity = environment.EntityHandles.GetOrCreate("settlement-invention", invention != null ? invention.ContentId : "unknown", invention != null ? invention.inventionName : "未知发明");
+            IReactorEntity ResolveEventEntity(EventData candidate) => environment.EntityHandles.GetOrCreate("settlement-event", candidate != null ? candidate.name : "unknown", candidate != null ? candidate.eventName : "营地事件");
+            var action = new ActivateSettlementInventionEffectAction(settlement, inventionSystem, invention, effect, gameEvent, eventSystem, EventInput, SessionId, outbox, settlementEntity, inventionEntity, ResolveEventEntity, randomInteractionPresenter);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementInventionActiveEffectCommandResult.Failed(outcome.Reason) : action.Result;
         }
 
         public async UniTask<SettlementWorkshopConstructionResult> BuildWorkshopAsync(PlayableWorkshopDefinition definition)

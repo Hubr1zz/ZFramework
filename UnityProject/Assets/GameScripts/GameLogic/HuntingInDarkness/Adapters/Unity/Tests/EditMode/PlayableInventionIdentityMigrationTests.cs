@@ -108,6 +108,19 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(PlayableSettlementInventionRegistry.Inventions, Is.Empty);
         }
 
+        [Test]
+        public void Configure_RejectsActiveEffectIdentityCollisionsAcrossSources()
+        {
+            InventionData first = CreateInvention("first", "First", "第一发明");
+            InventionData second = CreateInvention("second", "Second", "第二发明");
+            first.activeEffects.Add(new InventionActiveEffect { effectId = "shared:effect", effectName = "甲", eventId = "event_a", maxUsesPerYear = 1 });
+            second.activeEffects.Add(new InventionActiveEffect { effectId = "shared:effect", effectName = "乙", eventId = "event_b", maxUsesPerYear = 1 });
+
+            PlayableSettlementInventionRegistry.Configure(new[] { first, second });
+
+            Assert.That(PlayableSettlementInventionRegistry.Inventions, Is.Empty);
+        }
+
         private InventionData CreateInvention(string contentId, string assetName, string displayName)
         {
             InventionData invention = ScriptableObject.CreateInstance<InventionData>();

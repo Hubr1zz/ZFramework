@@ -38,6 +38,8 @@ namespace HuntingInDarkness.Settlement
 
             var candidates = new List<InventionData>();
             var owners = new Dictionary<string, HashSet<InventionData>>(StringComparer.Ordinal);
+            var activeEffectOwners = new Dictionary<string, HashSet<InventionData>>(StringComparer.Ordinal);
+            var invalidActiveEffectOwners = new HashSet<InventionData>();
             foreach (InventionData invention in inventions)
             {
                 if (invention == null || !invention.HasExplicitContentId || string.IsNullOrWhiteSpace(invention.ContentId) || string.IsNullOrWhiteSpace(invention.inventionName)) continue;
@@ -45,12 +47,24 @@ namespace HuntingInDarkness.Settlement
                 AddOwner(owners, invention.ContentId, invention);
                 AddOwner(owners, invention.inventionName, invention);
                 AddOwner(owners, invention.name, invention);
+                if (invention.activeEffects == null) continue;
+                var localEffectIds = new HashSet<string>(StringComparer.Ordinal);
+                foreach (InventionActiveEffect effect in invention.activeEffects)
+                {
+                    string effectId = effect?.effectId?.Trim() ?? string.Empty;
+                    if (effect == null || effectId.Length == 0 || string.IsNullOrWhiteSpace(effect.eventId) || effect.maxUsesPerYear < 0 || !localEffectIds.Add(effectId))
+                    {
+                        invalidActiveEffectOwners.Add(invention);
+                        continue;
+                    }
+                    AddOwner(activeEffectOwners, effectId, invention);
+                }
             }
 
             foreach (InventionData invention in candidates)
             {
                 bool assetAliasIsValid = string.IsNullOrWhiteSpace(invention.name) || IsUnambiguous(owners, invention.name, invention);
-                if (!IsUnambiguous(owners, invention.ContentId, invention) || !IsUnambiguous(owners, invention.inventionName, invention) || !assetAliasIsValid) continue;
+                if (!IsUnambiguous(owners, invention.ContentId, invention) || !IsUnambiguous(owners, invention.inventionName, invention) || !assetAliasIsValid || invalidActiveEffectOwners.Contains(invention) || HasConflictingActiveEffect(invention, activeEffectOwners)) continue;
                 inventionById.Add(invention.ContentId, invention);
                 AddAlias(invention.inventionName, invention);
                 AddAlias(invention.name, invention);
@@ -149,6 +163,17 @@ namespace HuntingInDarkness.Settlement
             string key = identifier?.Trim() ?? string.Empty;
             if (key.Length > 0 && key != invention.ContentId && !inventionByAlias.ContainsKey(key))
                 inventionByAlias.Add(key, invention);
+        }
+
+        private static bool HasConflictingActiveEffect(InventionData invention, IReadOnlyDictionary<string, HashSet<InventionData>> owners)
+        {
+            if (invention?.activeEffects == null) return false;
+            foreach (InventionActiveEffect effect in invention.activeEffects)
+            {
+                string effectId = effect?.effectId?.Trim() ?? string.Empty;
+                if (effectId.Length > 0 && owners.TryGetValue(effectId, out HashSet<InventionData> values) && values.Count > 1) return true;
+            }
+            return false;
         }
     }
 }

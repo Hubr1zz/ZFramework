@@ -36,6 +36,16 @@ namespace HuntingInDarkness.ContentTables
     }
 
     [Serializable]
+    public sealed class InventionActiveEffectTableRecord
+    {
+        public string effectId;
+        public string effectName;
+        public string description;
+        public string eventId;
+        public int maxUsesPerYear = 1;
+    }
+
+    [Serializable]
     public sealed class InventionTableRecord : IStableContentRecord
     {
         public string id;
@@ -47,6 +57,7 @@ namespace HuntingInDarkness.ContentTables
         public string effectDescription;
         public List<InventionEffectTableRecord> effects = new();
         public List<InventionActionEffectTableRecord> actionEffects = new();
+        public List<InventionActiveEffectTableRecord> activeEffects = new();
         public string category;
 
         public string Id => id;
@@ -108,6 +119,7 @@ namespace HuntingInDarkness.ContentTables
             public List<string> ExclusiveIds;
             public List<InventionPassiveEffect> Effects;
             public List<InventionActionEffect> ActionEffects;
+            public List<InventionActiveEffect> ActiveEffects;
         }
 
         private static string cachedTableText;
@@ -126,16 +138,17 @@ namespace HuntingInDarkness.ContentTables
         {
             if (tableAsset == null) return Array.Empty<InventionData>();
             string tableText = tableAsset.text ?? string.Empty;
-            string dependencySignature = BuildDependencySignature(items, baseInventions);
+            IReadOnlyList<EventData> events = PlayableEventTableRuntime.GetEvents();
+            string dependencySignature = BuildDependencySignature(items, baseInventions, events);
             if (string.Equals(cachedTableText, tableText, StringComparison.Ordinal) && cachedDependencySignature == dependencySignature && cachedInventions != null && cachedInventions.TrueForAll(invention => invention != null)) return cachedInventions;
 
-            cachedInventions = Build(new JsonInventionTableSource(tableAsset).Load(), items, baseInventions, message => Debug.LogError($"[ContentTable] {message}"));
+            cachedInventions = Build(new JsonInventionTableSource(tableAsset).Load(), items, baseInventions, message => Debug.LogError($"[ContentTable] {message}"), BuildEventIds(events));
             cachedTableText = tableText;
             cachedDependencySignature = dependencySignature;
             return cachedInventions;
         }
 
-        public static List<InventionData> Build(IReadOnlyList<InventionTableRecord> records, IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> baseInventions = null, Action<string> reportError = null)
+        public static List<InventionData> Build(IReadOnlyList<InventionTableRecord> records, IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> baseInventions = null, Action<string> reportError = null, IReadOnlyCollection<string> eventIds = null)
         {
             var result = new List<InventionData>();
             if (records == null) return result;
@@ -147,7 +160,7 @@ namespace HuntingInDarkness.ContentTables
             for (int index = 0; index < records.Count; index++)
             {
                 if (invalidIndexes.Contains(index)) continue;
-                if (!TryValidate(records[index], itemById, out ValidatedRecord validated, out string error))
+                if (!TryValidate(records[index], itemById, eventIds, out ValidatedRecord validated, out string error))
                 {
                     reportError?.Invoke(error);
                     invalidIndexes.Add(index);
@@ -158,6 +171,7 @@ namespace HuntingInDarkness.ContentTables
 
             RejectModifierIdentityConflicts(validatedById, reportError);
             RejectActionEffectIdentityConflicts(validatedById, reportError);
+            RejectActiveEffectIdentityConflicts(validatedById, reportError);
             RejectBrokenGraph(validatedById, baseById, reportError);
             Dictionary<string, InventionData> createdById = CreateAssets(records, validatedById, result);
             LinkGraph(validatedById, baseById, createdById);
@@ -197,7 +211,7 @@ namespace HuntingInDarkness.ContentTables
             return invalid;
         }
 
-        private static bool TryValidate(InventionTableRecord record, IReadOnlyDictionary<string, ItemData> itemById, out ValidatedRecord validated, out string error)
+        private static bool TryValidate(InventionTableRecord record, IReadOnlyDictionary<string, ItemData> itemById, IReadOnlyCollection<string> eventIds, out ValidatedRecord validated, out string error)
         {
             validated = null;
             string id = record?.id?.Trim() ?? string.Empty;
@@ -215,6 +229,7 @@ namespace HuntingInDarkness.ContentTables
             if (!TryBuildCosts(record, itemById, out List<InventionCost> costs, out error)) return false;
             if (!TryBuildEffects(record, out List<InventionPassiveEffect> effects, out error)) return false;
             if (!TryBuildActionEffects(record, out List<InventionActionEffect> actionEffects, out error)) return false;
+            if (!TryBuildActiveEffects(record, eventIds, out List<InventionActiveEffect> activeEffects, out error)) return false;
 
             List<string> prerequisiteIds = NormalizeIds(record.prerequisiteIds);
             List<string> exclusiveIds = NormalizeIds(record.exclusiveIds);
@@ -224,7 +239,7 @@ namespace HuntingInDarkness.ContentTables
                 return false;
             }
 
-            validated = new ValidatedRecord { Source = record, Id = id, Name = name, Category = category, Costs = costs, PrerequisiteIds = prerequisiteIds, ExclusiveIds = exclusiveIds, Effects = effects, ActionEffects = actionEffects };
+            validated = new ValidatedRecord { Source = record, Id = id, Name = name, Category = category, Costs = costs, PrerequisiteIds = prerequisiteIds, ExclusiveIds = exclusiveIds, Effects = effects, ActionEffects = actionEffects, ActiveEffects = activeEffects };
             error = string.Empty;
             return true;
         }
@@ -298,6 +313,40 @@ namespace HuntingInDarkness.ContentTables
             return true;
         }
 
+        private static bool TryBuildActiveEffects(InventionTableRecord record, IReadOnlyCollection<string> eventIds, out List<InventionActiveEffect> effects, out string error)
+        {
+            effects = new List<InventionActiveEffect>();
+            error = string.Empty;
+            if (record.activeEffects == null) return true;
+            var effectIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (InventionActiveEffectTableRecord effect in record.activeEffects)
+            {
+                string effectId = effect?.effectId?.Trim() ?? string.Empty;
+                string effectName = effect?.effectName?.Trim() ?? string.Empty;
+                string eventId = effect?.eventId?.Trim() ?? string.Empty;
+                if (effect == null || effectId.Length == 0 || effectName.Length == 0 || eventId.Length == 0 || effect.maxUsesPerYear < 0 || !effectIds.Add(effectId))
+                {
+                    error = $"发明 {record.id} 含无效或重复的主动效果：{effectId}";
+                    return false;
+                }
+                if (!ContainsEventId(eventIds, eventId))
+                {
+                    error = $"发明 {record.id} 的主动效果引用了未知或非 Triggered 事件：{eventId}";
+                    return false;
+                }
+                effects.Add(new InventionActiveEffect { effectId = effectId, effectName = effectName, description = effect.description ?? string.Empty, eventId = eventId, maxUsesPerYear = effect.maxUsesPerYear });
+            }
+            return true;
+        }
+
+        private static bool ContainsEventId(IReadOnlyCollection<string> eventIds, string eventId)
+        {
+            if (eventIds == null) return false;
+            foreach (string candidate in eventIds)
+                if (string.Equals(candidate, eventId, StringComparison.Ordinal)) return true;
+            return false;
+        }
+
         private static void RejectModifierIdentityConflicts(Dictionary<string, ValidatedRecord> records, Action<string> reportError)
         {
             var owners = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
@@ -352,6 +401,34 @@ namespace HuntingInDarkness.ContentTables
                 if (occurrenceCount <= 1) continue;
                 foreach (string ownerId in pair.Value) rejected.Add(ownerId);
                 reportError?.Invoke($"跨阶段 Action 效果 ID 冲突：{pair.Key}");
+            }
+            foreach (string id in rejected)
+                records.Remove(id);
+        }
+
+        private static void RejectActiveEffectIdentityConflicts(Dictionary<string, ValidatedRecord> records, Action<string> reportError)
+        {
+            var owners = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            foreach (ValidatedRecord record in records.Values)
+                foreach (InventionActiveEffect effect in record.ActiveEffects)
+                {
+                    if (!owners.TryGetValue(effect.effectId, out HashSet<string> ownerIds))
+                    {
+                        ownerIds = new HashSet<string>(StringComparer.Ordinal);
+                        owners.Add(effect.effectId, ownerIds);
+                    }
+                    ownerIds.Add(record.Id);
+                }
+
+            var rejected = new HashSet<string>(StringComparer.Ordinal);
+            foreach (KeyValuePair<string, HashSet<string>> pair in owners)
+            {
+                int occurrenceCount = 0;
+                foreach (string ownerId in pair.Value)
+                    occurrenceCount += records[ownerId].ActiveEffects.FindAll(effect => effect.effectId == pair.Key).Count;
+                if (occurrenceCount <= 1) continue;
+                foreach (string ownerId in pair.Value) rejected.Add(ownerId);
+                reportError?.Invoke($"发明主动效果 ID 冲突：{pair.Key}");
             }
             foreach (string id in rejected)
                 records.Remove(id);
@@ -458,6 +535,7 @@ namespace HuntingInDarkness.ContentTables
                 invention.effectDescription = record.Source.effectDescription ?? string.Empty;
                 invention.unlockEffects = record.Effects;
                 invention.actionEffects = record.ActionEffects;
+                invention.activeEffects = record.ActiveEffects;
                 invention.category = record.Category;
                 createdById.Add(record.Id, invention);
                 result.Add(invention);
@@ -561,7 +639,16 @@ namespace HuntingInDarkness.ContentTables
             if (key.Length > 0) identities.Add(key);
         }
 
-        private static string BuildDependencySignature(IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> inventions)
+        private static HashSet<string> BuildEventIds(IReadOnlyList<EventData> events)
+        {
+            var result = new HashSet<string>(StringComparer.Ordinal);
+            if (events == null) return result;
+            foreach (EventData gameEvent in events)
+                if (gameEvent != null && gameEvent.category == EventCategory.Triggered && !string.IsNullOrWhiteSpace(gameEvent.name)) result.Add(gameEvent.name.Trim());
+            return result;
+        }
+
+        private static string BuildDependencySignature(IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> inventions, IReadOnlyList<EventData> events)
         {
             var values = new List<string>();
             if (items != null)
@@ -570,6 +657,9 @@ namespace HuntingInDarkness.ContentTables
             if (inventions != null)
                 foreach (InventionData invention in inventions)
                     if (invention != null) values.Add($"invention:{invention.ContentId}:{RuntimeHelpers.GetHashCode(invention)}");
+            if (events != null)
+                foreach (EventData gameEvent in events)
+                    if (gameEvent != null) values.Add($"event:{gameEvent.name}:{RuntimeHelpers.GetHashCode(gameEvent)}");
             return string.Join("\n", values);
         }
     }

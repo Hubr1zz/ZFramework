@@ -57,6 +57,10 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(plantKnowledge.prerequisites, Is.EqualTo(new[] { paperAndPen }));
             Assert.That(plantKnowledge.actionEffects, Has.Count.EqualTo(1));
             Assert.That(plantKnowledge.actionEffects[0].kind, Is.EqualTo(InventionActionEffectKind.ModifyHarvestHitChance));
+            Assert.That(PlayableSettlementInventionRegistry.TryGet("prayer", out InventionData prayer), Is.True);
+            Assert.That(prayer.prerequisites, Is.EqualTo(new[] { faith }));
+            Assert.That(prayer.activeEffects, Has.Count.EqualTo(1));
+            Assert.That(manager.Timeline.ResolveEvent(prayer.activeEffects[0].eventId).category, Is.EqualTo(EventCategory.Triggered));
             Assert.That(manager.Timeline.RandomEventPool, Has.Count.GreaterThanOrEqualTo(5));
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.name == "random_stone_vigil"), Is.True);
             Assert.That(manager.Timeline.RandomEventPool.FindAll(gameEvent => gameEvent != null && gameEvent.eventType == GameEventType.Choice && gameEvent.maxYear <= 0), Has.Count.GreaterThanOrEqualTo(3));
