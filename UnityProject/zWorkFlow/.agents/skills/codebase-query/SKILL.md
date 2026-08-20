@@ -41,9 +41,9 @@ MCP、SQLite、Tree-sitter、向量搜索、ADR、UI、安装器或 watcher。
 ```
 
 默认输出紧凑 JSON，适合 Agent 在一次工具调用中读取。索引缺失时会自动构建；代码
-变化时只重新提取变化文件，再对紧凑结构事实重新绑定。构建进度写入 stderr 和本地进度快照，不污染
-stdout 的 JSON。缓存位于 Git 忽略的
-`.agent-memory/zworkflow/local/code-query-index.json`。
+变化时只重新提取变化文件，再对紧凑结构事实重新绑定。构建进度写入 stderr 和 Git 忽略的本地进度快照，
+不污染 stdout 的 JSON。确定性的正式索引位于 Git 管理的
+`.agents/codebase-query/code-query-index.json`，其中只保存项目相对路径与规范化为 UTF-8/LF 后的源码内容哈希，不保存本机路径、文件时间或生成时间。本地 sidecar 仅用于复用已计算哈希，不进入 Git。
 
 ## 优先路由
 
@@ -61,8 +61,8 @@ PowerShell 7 不可用、命令执行失败或查询超出契约能力时才能�
 4. 不依据索引单独声明“没有调用者”“没有影响”或“代码未使用”。
 5. Unity 生命周期、Inspector、Scene、Prefab、ScriptableObject、UnityEvent、反射、
    Addressables 和动态 EventBus 关系不在该静态索引的完整能力范围内。
-6. 本索引是可删除、可再生成的派生索引，不是项目事实、ADR 或 OpenSpec 的权威源。
-7. JSON 中的 `engine=codebase-query-regex-binding-v5` 与 `schemaVersion` 可用于确认本次
+6. 本索引是可删除、可再生成并由 Git 同步的派生索引，不是项目事实、ADR 或 OpenSpec 的权威源。
+7. JSON 中的 `engine=codebase-query-regex-binding-v6` 与 `schemaVersion` 可用于确认本次
    结果确实来自索引工具；没有这些字段时不得声称已使用索引。
 
 `scripts/run.ps1` 是稳定公共入口。实现脚本与类型绑定库通过文件内 capability marker
