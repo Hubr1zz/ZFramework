@@ -55,6 +55,11 @@ The departure table SHALL NOT open while another Settlement action chain is awai
 - **WHEN** the player activates the departure launcher
 - **THEN** the event cards retain input ownership and no departure panel is opened
 
+#### Scenario: Departure preparation owns the tabletop
+- **WHEN** the squad or destination cards are open
+- **THEN** the underlying settlement table is hidden so its recruitment, equipment, workshop, and ledger cards cannot open overlapping flows
+- **AND** cancelling preparation restores the settlement table to its previous active state
+
 ### Requirement: Destination content remains configuration-driven
 Available routes SHALL come from `PlayableHuntDestinationCatalog`; when no route is available, the existing configured hunt content SHALL remain a valid fallback without changing the View contract.
 

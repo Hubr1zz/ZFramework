@@ -19,7 +19,10 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private PlayableSettlementHud settlementHud;
         private PlayableHuntDestinationCatalog catalog;
         private TabletopHuntDeparturePanel3D panel;
+        private UI.SettlementTable3D settlementTable;
         private bool requestInFlight;
+        private bool hidesSettlementTable;
+        private bool settlementTableWasActive;
         private int selectedDestinationIndex;
 
         public bool IsPresenting => panel != null && panel.IsOpen;
@@ -50,6 +53,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                         pendingHunterIds.Add(hunterId);
             EnsurePanel();
             panel.PresentSquad(GetPanelAnchor(), hunters, pendingHunterIds, OpenDestinations, Close);
+            HideSettlementTable();
         }
 
         private void RequestDepartureFromHud(List<int> hunterIds) => RequestDeparture(hunterIds);
@@ -139,9 +143,33 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private void Close()
         {
             panel?.Close();
+            RestoreSettlementTable();
             pendingHunterIds.Clear();
             availableDestinations.Clear();
             selectedDestinationIndex = 0;
+        }
+
+        private void HideSettlementTable()
+        {
+            if (hidesSettlementTable)
+                return;
+            Transform presentationRoot = manager?.TabletopPresentationRoot;
+            settlementTable = presentationRoot != null ? presentationRoot.GetComponentInChildren<UI.SettlementTable3D>(true) : null;
+            if (settlementTable == null)
+                return;
+            settlementTableWasActive = settlementTable.gameObject.activeSelf;
+            settlementTable.gameObject.SetActive(false);
+            hidesSettlementTable = true;
+        }
+
+        private void RestoreSettlementTable()
+        {
+            if (!hidesSettlementTable)
+                return;
+            if (settlementTable != null)
+                settlementTable.gameObject.SetActive(settlementTableWasActive);
+            settlementTable = null;
+            hidesSettlementTable = false;
         }
 
         private void OnDestroy()
@@ -151,6 +179,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                 settlementHud.DepartureRequested -= RequestDepartureFromHud;
             manager?.ClearPlayableHuntDepartureInput(this);
             panel?.Close();
+            RestoreSettlementTable();
             if (panel != null)
                 Destroy(panel.gameObject);
             panel = null;
