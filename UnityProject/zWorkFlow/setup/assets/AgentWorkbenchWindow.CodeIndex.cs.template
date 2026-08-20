@@ -25,6 +25,8 @@ namespace AgentWorkflow.Editor
             public string root;
             public string generatedAtUtc;
             public int fileCount;
+            public int parsedFileCount;
+            public int reusedFileCount;
             public int typeCount;
             public int methodCount;
             public int qualifiedTypeCount;
@@ -97,6 +99,8 @@ namespace AgentWorkflow.Editor
             using (new EditorGUILayout.VerticalScope("box"))
             {
                 DrawCodeIndexMetric(L("codeIndex.files"), $"{codeIndexResult.indexedFileCount}/{codeIndexResult.discoveredFileCount}");
+                DrawCodeIndexMetric(L("codeIndex.parsed"), codeIndexResult.parsedFileCount.ToString());
+                DrawCodeIndexMetric(L("codeIndex.reused"), codeIndexResult.reusedFileCount.ToString());
                 DrawCodeIndexMetric(L("codeIndex.coverage"), $"{codeIndexResult.coveragePercent:0.00}%");
                 DrawCodeIndexMetric(L("codeIndex.types"), codeIndexResult.typeCount.ToString());
                 DrawCodeIndexMetric(L("codeIndex.methods"), codeIndexResult.methodCount.ToString());

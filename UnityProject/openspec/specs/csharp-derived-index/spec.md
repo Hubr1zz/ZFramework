@@ -32,3 +32,10 @@ The Workbench SHALL compare the index result with the current disk inventory and
 #### Scenario: Source inventory differs from the index
 - **WHEN** the disk C# file count or indexed paths do not match the completed result
 - **THEN** the Workbench reports a failed or stale state and asks for a rebuild
+
+### Requirement: Incremental extraction with atomic publication
+The indexer SHALL reuse unchanged per-file extraction facts and SHALL atomically replace the published cache after rebinding the complete project graph.
+
+#### Scenario: One source file changes
+- **WHEN** the existing index is compatible and one C# file changes
+- **THEN** only that file is re-extracted, all unchanged file facts are reused, and readers never observe a partially written index

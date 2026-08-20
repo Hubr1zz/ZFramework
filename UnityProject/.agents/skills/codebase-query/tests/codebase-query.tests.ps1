@@ -21,6 +21,11 @@ New-Item -ItemType Directory -Path $localRoot -Force | Out-Null
 $build = & $queryScript build -Root $projectRoot | ConvertFrom-Json
 Assert-True ($build.fileCount -gt 0) 'at least one target C# file should be indexed.'
 Assert-True ($build.qualifiedTypeCount -gt 0) 'qualified C# types should be indexed.'
+Assert-True ($build.coveragePercent -eq 100 -and $build.missingFileCount -eq 0 -and $build.unexpectedFileCount -eq 0) `
+    'the default build must verify complete Assets C# coverage.'
+$repeatBuild = & $queryScript build -Root $projectRoot | ConvertFrom-Json
+Assert-True ($repeatBuild.parsedFileCount -eq 0 -and $repeatBuild.reusedFileCount -eq $repeatBuild.fileCount) `
+    'a repeated manual build should reuse every unchanged file extraction.'
 
 $relocationRoot = Join-Path $localRoot ("codebase-query-relocation-" + [Guid]::NewGuid().ToString('N'))
 try {
@@ -33,7 +38,7 @@ try {
         -Destination (Join-Path $implementationRoot 'type-binding.ps1')
     $relocatedStatus = & (Join-Path $relocationRoot 'scripts/run.ps1') status -Root $projectRoot |
         ConvertFrom-Json
-    Assert-True ($relocatedStatus.schemaVersion -eq 4) `
+    Assert-True ($relocatedStatus.schemaVersion -eq 5) `
         'renaming and moving implementation scripts inside the skill must preserve the stable entrypoint.'
 }
 finally {
@@ -170,7 +175,7 @@ namespace PortableFixture
     $invalidIndexPath = Join-Path $fixtureRoot 'invalid-index.json'
     '{}' | Set-Content -LiteralPath $invalidIndexPath -Encoding utf8
     $recoveredStatus = & $queryScript status -Root $fixtureRoot -IndexPath $invalidIndexPath | ConvertFrom-Json
-    Assert-True ($recoveredStatus.schemaVersion -eq 4 -and $recoveredStatus.fileCount -eq 5) `
+    Assert-True ($recoveredStatus.schemaVersion -eq 5 -and $recoveredStatus.fileCount -eq 5) `
         'a valid JSON file with an incompatible cache shape should be discarded and rebuilt.'
 
     $packageResult = & $queryScript callers -Root $fixtureRoot `
@@ -205,9 +210,10 @@ finally {
 
 [pscustomobject]@{
     passed = $true
-    schemaVersion = 4
+    schemaVersion = 5
     targetFileCount = $build.fileCount
     qualifiedTypeCount = $build.qualifiedTypeCount
     resolvedCallCount = $build.resolvedCallCount
-    assertions = 13
+    assertions = 15
 } | ConvertTo-Json -Compress
+
