@@ -40,6 +40,7 @@ namespace HuntingInDarkness.Hunt
         private readonly Dictionary<Vector2Int, Renderer>   _tileRenderers = new();
         private readonly Dictionary<Vector2Int, GameObject> _resourceMarkers = new();
         private PlayableHuntSquadPawn3D squadPawn;
+        private PlayableHuntMapIntroCamera3D mapIntroCamera;
 
         public Transform TabletopInteractionAnchor => squadPawn != null ? squadPawn.transform : transform;
 
@@ -68,6 +69,18 @@ namespace HuntingInDarkness.Hunt
 
             BuildAllTiles();
             PlaceSquadToken(huntMgr.SquadPosition);
+            PresentMapIntro();
+        }
+
+        private void PresentMapIntro()
+        {
+            Camera presentationCamera = Camera.main;
+            if (presentationCamera == null || _tileObjects.Count == 0) return;
+            mapIntroCamera ??= GetComponent<PlayableHuntMapIntroCamera3D>() ?? gameObject.AddComponent<PlayableHuntMapIntroCamera3D>();
+            var tilePositions = new List<Vector3>(_tileObjects.Count);
+            foreach (GameObject tileObject in _tileObjects.Values)
+                if (tileObject != null) tilePositions.Add(tileObject.transform.position);
+            mapIntroCamera.Present(presentationCamera, tilePositions);
         }
 
         private void BuildAllTiles()
