@@ -24,7 +24,8 @@ The event presenter SHALL represent the primary narrative and every player decis
 
 #### Scenario: A choice event has several options
 - **WHEN** the prompt opens
-- **THEN** the narrative appears on a primary card and every option appears as a separate physical choice card
+- **THEN** the narrative appears on a primary card and every option appears as a separate physical choice card titled with the action the player will take
+- **AND** check type, target, and requirements remain readable without replacing the action label with a generic option number
 
 ### Requirement: Availability remains visible and authoritative
 Unavailable options and hunters SHALL remain visible as disabled cards with a reason, and the presenter SHALL revalidate availability before returning a selection.

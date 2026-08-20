@@ -138,13 +138,13 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                 bool available = CanPresentOption(option, out string reason);
                 if (available)
                     availableCount++;
+                string optionTitle = string.IsNullOrWhiteSpace(option.optionText) ? $"选项 {index + 1}" : option.optionText;
                 string requirements = PlayableEventOptionAvailability.GetRequirements(option);
-                string body = option.optionText;
-                if (option.checkType != CheckType.None)
-                    body += $"\n\n{GetCheckName(option.checkType)}判定 · 目标 {option.checkTarget}";
+                string body = optionTitle;
+                body += option.checkType == CheckType.None ? "\n\n无需判定 · 直接结算" : $"\n\n{GetCheckName(option.checkType)}判定 · 目标 {option.checkTarget}";
                 if (!string.IsNullOrWhiteSpace(requirements))
                     body += $"\n{requirements}";
-                choices.Add(new TabletopEventChoicePresentation($"选项 {index + 1}", body, available, available ? "点击选择" : reason, () => SelectOption(optionIndex)));
+                choices.Add(new TabletopEventChoicePresentation(optionTitle, body, available, available ? "点击选择" : reason, () => SelectOption(optionIndex)));
             }
             if (availableCount == 0)
                 choices.Add(new TabletopEventChoicePresentation("接受沉默", "当前没有可行行动，按叙事结果继续。", true, string.Empty, () => choiceSource?.TrySetResult(new PlayableEventChoiceSelection(-1, null))));
