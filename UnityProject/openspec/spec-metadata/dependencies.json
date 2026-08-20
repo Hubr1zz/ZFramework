@@ -184,6 +184,13 @@
       "specPath": "openspec/specs/table-driven-hunter-templates/spec.md"
     },
     {
+      "id": "event-driven-hunter-death",
+      "label": "事件驱动猎人永久死亡",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/event-driven-hunter-death/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -539,6 +546,36 @@
       "type": "requires",
       "status": "defined",
       "reason": "猎人来源模板 ID 与初始装备 ID 随权威猎人状态跨会话保存",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-death--requires--tabletop-event-interaction",
+      "from": "event-driven-hunter-death",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "致死选项由所属阶段事件 Action 节点选择猎人、等待实体交互并提交效果",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-death--requires--campaign-persistence",
+      "from": "event-driven-hunter-death",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "死亡状态、装备归还和年鉴记录属于需要保存的权威营地事务",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-death--requires--tabletop-game-over",
+      "from": "event-driven-hunter-death",
+      "to": "tabletop-game-over",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件杀死最后一名猎人后沿用统一 3D 战役失败与重开流程",
       "gapId": "",
       "blocksImplementation": false
     },

@@ -110,10 +110,11 @@ namespace HuntingInDarkness.ActionFlow.Events
                 PublishCommitCheckpoint(PlayableEventCommitKind.Reroll, transaction.Actor);
             }
             PlayableEventCommitResult result = transaction.CommitStandalone(true);
-            ChainedEvents = result.ChainedEvents;
-            EncounterIds = result.EncounterIds;
+            bool campaignEnded = eventSystem.Settlement.GetAliveHunters().Count == 0;
+            ChainedEvents = campaignEnded ? System.Array.Empty<EventData>() : result.ChainedEvents;
+            EncounterIds = campaignEnded ? System.Array.Empty<string>() : result.EncounterIds;
             PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, transaction.Actor);
-            if (eventInput != null)
+            if (eventInput != null && !campaignEnded)
                 await eventInput.ConfirmResultAsync(gameEvent, result.Result, cancellationToken);
             return ActionOutcome.Success();
         }

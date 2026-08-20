@@ -18,6 +18,7 @@ namespace HuntingInDarkness.Settlement
         private readonly SettlementInstance _settlement;
         private readonly IRandomSource      _rng;
         private readonly IDelayedEventScheduler delayedEventScheduler;
+        private readonly IHunterDeathCommand hunterDeathCommand;
 
         /// <summary>当事件需要展示 UI 时，调用此回调（SettlementUIManager 注入）</summary>
         public System.Action<EventData, HunterInstance> OnEventTriggered;
@@ -30,11 +31,12 @@ namespace HuntingInDarkness.Settlement
         private readonly Queue<EventData> _pendingChain = new();
         private HunterInstance            _selectedHunter;
 
-        public EventSystem(SettlementInstance settlement, IRandomSource rng, IDelayedEventScheduler delayedEventScheduler = null)
+        public EventSystem(SettlementInstance settlement, IRandomSource rng, IDelayedEventScheduler delayedEventScheduler = null, IHunterDeathCommand hunterDeathCommand = null)
         {
             _settlement = settlement;
             _rng        = rng;
             this.delayedEventScheduler = delayedEventScheduler;
+            this.hunterDeathCommand = hunterDeathCommand;
         }
 
         // ─── 触发事件 ────────────────────────────────────────────
@@ -134,8 +136,13 @@ namespace HuntingInDarkness.Settlement
 
             var option = evt.options[optionIndex];
             actor ??= _selectedHunter;
-            if (option.checkType != CheckType.None && actor == null)
+            bool requiresHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
+            if (requiresHunter && actor == null)
                 return new EventResolutionResult { Success = false, ResultText = "该选项需要一名猎人执行。" };
+            if (requiresHunter && !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))
+                return new EventResolutionResult { Success = false, ResultText = "所选猎人不属于当前营地。" };
+            if (PlayableEventOptionAvailability.HasHunterDeathEffect(option) && hunterDeathCommand == null)
+                return new EventResolutionResult { Success = false, ResultText = "猎人死亡流程尚未准备完成。" };
             if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, out string unavailableReason))
                 return new EventResolutionResult { Success = false, ResultText = unavailableReason };
 
@@ -160,7 +167,11 @@ namespace HuntingInDarkness.Settlement
                     ApplyEffect(effect, actor, actor, encounterIds);
             if (evt.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(evt.combatEncounterId, encounterIds);
-            PublishEncounters(encounterIds, evt.name);
+            bool campaignEnded = _settlement.GetAliveHunters().Count == 0;
+            if (campaignEnded)
+                encounterIds.Clear();
+            else
+                PublishEncounters(encounterIds, evt.name);
             MarkEventCompleted(evt);
 
             var result = new EventResolutionResult
@@ -169,6 +180,11 @@ namespace HuntingInDarkness.Settlement
                 RollValue = rollValue,
                 ResultText = success ? option.successText : option.failText
             };
+            if (campaignEnded)
+            {
+                _pendingChain.Clear();
+                return result;
+            }
             if (encounterIds.Count > 0)
             {
                 _pendingChain.Clear();
@@ -255,6 +271,23 @@ namespace HuntingInDarkness.Settlement
                 }
                 if (!delayedEventScheduler.TryScheduleEventAfterYears(effect.targetName, effect.value, out string reason))
                     Debug.LogWarning($"[EventSystem] 无法安排延时事件 {effect.targetName}：{reason}");
+                return;
+            }
+            if (effect.effectType == EventEffectType.KillHunter)
+            {
+                HunterInstance actor = target ?? eventActor;
+                if (actor == null)
+                {
+                    Debug.LogWarning("[EventSystem] 无法结算猎人死亡：事件没有猎人执行者");
+                    return;
+                }
+                if (hunterDeathCommand == null)
+                {
+                    Debug.LogWarning("[EventSystem] 无法结算猎人死亡：死亡命令端口尚未注入");
+                    return;
+                }
+                if (!hunterDeathCommand.TryKill(actor, effect.targetName, effect.description, out string reason))
+                    Debug.LogWarning($"[EventSystem] 无法结算 {actor.Name} 的死亡：{reason}");
                 return;
             }
 

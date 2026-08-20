@@ -93,7 +93,9 @@ namespace HuntingInDarkness.Settlement
 
             EventOption option = gameEvent.options[optionIndex];
             actor ??= _selectedHunter;
-            if (option.checkType != CheckType.None && actor == null) return null;
+            bool requiresHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
+            if (requiresHunter && (actor == null || !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))) return null;
+            if (PlayableEventOptionAvailability.HasHunterDeathEffect(option) && hunterDeathCommand == null) return null;
             if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, out _)) return null;
             int rollValue = option.checkType == CheckType.None ? 0 : preparedRoll ?? RollDice(1, 10);
             int bonus = GetCheckBonus(actor, option.checkType);
@@ -122,7 +124,10 @@ namespace HuntingInDarkness.Settlement
                     ApplyEffect(effect, actor, actor, encounterIds);
             if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
-            if (!captureEncounterRequests)
+            bool campaignEnded = _settlement.GetAliveHunters().Count == 0;
+            if (campaignEnded)
+                encounterIds.Clear();
+            if (!captureEncounterRequests && !campaignEnded)
                 PublishEncounters(encounterIds, gameEvent.name);
             MarkEventCompleted(gameEvent);
             var result = new EventResolutionResult
@@ -131,7 +136,9 @@ namespace HuntingInDarkness.Settlement
                 RollValue = rollValue,
                 ResultText = success ? option.successText : option.failText
             };
-            IReadOnlyList<EventData> chain = success ? option.successChain : option.failChain;
+            IReadOnlyList<EventData> chain = System.Array.Empty<EventData>();
+            if (!campaignEnded)
+                chain = success ? option.successChain : option.failChain;
             return new PlayableEventCommitResult(result, chain, encounterIds);
         }
 

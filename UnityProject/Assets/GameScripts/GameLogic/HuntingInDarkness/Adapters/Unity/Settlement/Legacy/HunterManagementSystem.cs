@@ -12,7 +12,7 @@ namespace HuntingInDarkness.Settlement
     /// 猎人管理系统（纯 C#）。
     /// 职责：招募猎人、装备管理、死亡判定、属性查询。
     /// </summary>
-    public class HunterManagementSystem
+    public class HunterManagementSystem : IHunterDeathCommand
     {
         private readonly SettlementInstance _settlement;
         private readonly IRandomSource      _rng;
@@ -131,7 +131,7 @@ namespace HuntingInDarkness.Settlement
                 if (h == null || !h.IsAlive) continue;
                 if (h.RollDeath(_rng))
                 {
-                    if (CommitDeath(h))
+                    if (CommitDeath(h, "hunt_survival", "未能从狩猎中归来"))
                         dead.Add(h);
                 }
             }
@@ -141,10 +141,26 @@ namespace HuntingInDarkness.Settlement
         /// <summary>直接杀死猎人（来自事件/伤害）</summary>
         public void KillHunter(HunterInstance hunter)
         {
-            if (hunter == null || !hunter.IsAlive)
-                return;
+            TryKill(hunter, "combat", string.Empty, out _);
+        }
+
+        public bool TryKill(HunterInstance hunter, string causeId, string causeText, out string reason)
+        {
+            if (hunter == null)
+            {
+                reason = "死亡目标不存在";
+                return false;
+            }
+            if (!ReferenceEquals(_settlement.GetHunter(hunter.InstanceId), hunter))
+            {
+                reason = "死亡目标不属于当前营地";
+                return false;
+            }
+
             hunter.IsAlive = false;
-            CommitDeath(hunter);
+            CommitDeath(hunter, NormalizeCause(causeId, 64), NormalizeCause(causeText, 96));
+            reason = string.Empty;
+            return true;
         }
 
         /// <summary>提交规则层已经判定的退休，归还装备并保留猎人历史。</summary>
@@ -190,7 +206,7 @@ namespace HuntingInDarkness.Settlement
             hunter.EquippedItemNames.Clear();
         }
 
-        private bool CommitDeath(HunterInstance hunter)
+        private bool CommitDeath(HunterInstance hunter, string causeId, string causeText)
         {
             if (hunter == null || hunter.IsAlive)
                 return false;
@@ -205,7 +221,7 @@ namespace HuntingInDarkness.Settlement
             {
                 Year = _settlement.CurrentYear,
                 EventId = eventId,
-                EventName = $"{hunter.Name} 死亡",
+                EventName = string.IsNullOrWhiteSpace(causeText) ? $"{hunter.Name} 死亡" : $"{hunter.Name} 死亡：{causeText}",
                 IsCompleted = true,
                 EntryType = TimelineEntryType.RosterChanged
             });
@@ -222,9 +238,18 @@ namespace HuntingInDarkness.Settlement
             }
 
             Debug.Log($"[HunterMgmt] {hunter.Name} 死亡；{inspiration.HunterIds.Count} 名猎人各获得 {inspiration.GrowthPerHunter} 点激励成长");
-            EventBus.Publish(new HunterDiedEvent(hunter.InstanceId, hunter.Name, _settlement.CurrentYear, inspiration.GrowthPerHunter, inspiration.HunterIds.Count));
+            EventBus.Publish(new HunterDiedEvent(hunter.InstanceId, hunter.Name, _settlement.CurrentYear, inspiration.GrowthPerHunter, inspiration.HunterIds.Count, causeId, causeText));
             EventBus.Publish(new HunterRosterChangedEvent());
             return true;
+        }
+
+        private static string NormalizeCause(string value, int maximumLength)
+        {
+            string normalized = value?.Trim() ?? string.Empty;
+            foreach (char character in normalized)
+                if (char.IsControl(character))
+                    return string.Empty;
+            return normalized.Length <= maximumLength ? normalized : normalized.Substring(0, maximumLength);
         }
     }
 }

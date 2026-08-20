@@ -570,6 +570,85 @@ namespace HuntingInDarkness.Adapter.Tests
             }
         }
 
+        [Test]
+        public async Task EventKillHunter_UsesSharedDeathTransactionInsideSettlementRoot()
+        {
+            var manager = new SettlementManager(3);
+            var victim = new HunterInstance(null, 31) { Name = "交易者", Age = 3 };
+            victim.EquippedItemNames.Add("旧护符");
+            var survivor = new HunterInstance(null, 32) { Name = "守望者", Age = 2 };
+            manager.Data.Hunters.Add(victim);
+            manager.Data.Hunters.Add(survivor);
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "event-death";
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption
+            {
+                optionText = "履行交易",
+                successEffects = new List<EventEffect> { new EventEffect { effectType = EventEffectType.KillHunter, targetName = "dark_bargain", description = "履行了黑暗交易" } }
+            });
+            HunterDiedEvent diedEvent = default;
+            Action<HunterDiedEvent> handler = evt => diedEvent = evt;
+            var input = new FixedChoiceInput(0, victim);
+            EventBus.Subscribe(handler);
+            try
+            {
+                using var session = new PlayableSettlementActionSession(manager.Data, new TestWeaponTrainingContent(), manager.Events, input);
+
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(victim.IsAlive, Is.False);
+                Assert.That(victim.EquippedItemNames, Is.Empty);
+                Assert.That(manager.Data.GetStoredEquipment("旧护符"), Is.EqualTo(1));
+                Assert.That(manager.Data.Timeline.FindAll(entry => entry.EventId == "death:31"), Has.Count.EqualTo(1));
+                Assert.That(survivor.UnspentGrowth, Is.EqualTo(1));
+                Assert.That(diedEvent.CauseId, Is.EqualTo("dark_bargain"));
+                Assert.That(input.ResultConfirmationCount, Is.EqualTo(1));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public async Task EventKillHunter_LastHunterSkipsResultPromptForGameOverOwnership()
+        {
+            var manager = new SettlementManager(4);
+            var victim = new HunterInstance(null, 33) { Name = "最后的守火者", Age = 3 };
+            manager.Data.Hunters.Add(victim);
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "last-hunter-event-death";
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption
+            {
+                optionText = "走入黑暗",
+                successEffects = new List<EventEffect> { new EventEffect { effectType = EventEffectType.KillHunter, targetName = "dark_bargain", description = "履行了最后的交易" } }
+            });
+            EventData chainedEvent = ScriptableObject.CreateInstance<EventData>();
+            chainedEvent.name = "must-not-run-after-game-over";
+            gameEvent.options[0].successChain.Add(chainedEvent);
+            var input = new FixedChoiceInput(0, victim);
+            try
+            {
+                using var session = new PlayableSettlementActionSession(manager.Data, new TestWeaponTrainingContent(), manager.Events, input);
+
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(result.ResolvedCount, Is.EqualTo(1));
+                Assert.That(victim.IsAlive, Is.False);
+                Assert.That(input.ResultConfirmationCount, Is.Zero);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(chainedEvent);
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
         private static SettlementInstance CreateSettlement(int resourceAmount)
         {
             var settlement = new SettlementInstance();
@@ -636,10 +715,16 @@ namespace HuntingInDarkness.Adapter.Tests
                 this.hunter = hunter;
             }
 
+            public int ResultConfirmationCount { get; private set; }
+
             public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
             public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(optionIndex, hunter));
             public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
-            public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
+            public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken)
+            {
+                ResultConfirmationCount++;
+                return UniTask.CompletedTask;
+            }
         }
 
         private sealed class RerollThenBlockInput : IPlayableEventInput

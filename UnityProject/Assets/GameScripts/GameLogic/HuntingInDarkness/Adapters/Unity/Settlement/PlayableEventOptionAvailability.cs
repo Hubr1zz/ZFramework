@@ -8,10 +8,50 @@ namespace HuntingInDarkness.Settlement
     {
         public static bool RequiresHunter(EventOption option)
         {
-            if (option?.conditions == null || option.alwaysAvailable) return false;
+            if (option == null) return false;
+            if (ContainsHunterEffect(option.successEffects) || ContainsHunterEffect(option.failEffects)) return true;
+            if (option.conditions == null || option.alwaysAvailable) return false;
             foreach (EventOptionCondition condition in option.conditions)
                 if (condition != null && EventOptionAvailabilityRules.RequiresHunter(condition.ToDomain()))
                     return true;
+            return false;
+        }
+
+        public static bool HasHunterDeathEffect(EventOption option)
+        {
+            return option != null && (ContainsEffect(option.successEffects, EventEffectType.KillHunter) || ContainsEffect(option.failEffects, EventEffectType.KillHunter));
+        }
+
+        private static bool ContainsEffect(IReadOnlyList<EventEffect> effects, EventEffectType effectType)
+        {
+            if (effects == null) return false;
+            foreach (EventEffect effect in effects)
+                if (effect != null && effect.effectType == effectType)
+                    return true;
+            return false;
+        }
+
+        private static bool ContainsHunterEffect(IReadOnlyList<EventEffect> effects)
+        {
+            if (effects == null) return false;
+            foreach (EventEffect effect in effects)
+            {
+                if (effect == null) continue;
+                switch (effect.effectType)
+                {
+                    case EventEffectType.AddWillpower:
+                    case EventEffectType.RemoveWillpower:
+                    case EventEffectType.AddLuck:
+                    case EventEffectType.AddInsanity:
+                    case EventEffectType.AddCourage:
+                    case EventEffectType.AddUnderstanding:
+                    case EventEffectType.AddTrait:
+                    case EventEffectType.AddAilment:
+                    case EventEffectType.KillHunter:
+                    case EventEffectType.ActivateBloodline:
+                        return true;
+                }
+            }
             return false;
         }
 

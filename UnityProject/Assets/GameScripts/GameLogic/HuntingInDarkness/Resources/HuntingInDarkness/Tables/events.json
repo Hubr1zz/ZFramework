@@ -120,6 +120,47 @@
       "category": "Random"
     },
     {
+      "id": "random_dark_bargain",
+      "eventName": "黑暗的交易",
+      "eventType": "Choice",
+      "displayText": "营火之外传来一个与你们声音相同的低语。它愿意交出一袋黑盐，只要求一名猎人独自走进火光照不到的地方。",
+      "hiddenText": "黑暗从不白白给予东西。拒绝它也并不意味着没有代价。",
+      "options": [
+        {
+          "optionText": "选择一名猎人履行交易，换取三份黑盐",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "被选中的猎人没有回头。黎明前，一袋黑盐出现在空着的座位上。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 3, "description": "黑盐 +3" },
+            { "effectType": "KillHunter", "targetName": "dark_bargain", "value": 1, "description": "履行了黑暗交易" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "选择一名猎人拒绝低语并守住营火",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "低语整夜没有停下。守火者活到了黎明，却再也无法忘记那道与自己相同的声音。压抑 +1。",
+          "successEffects": [
+            { "effectType": "AddInsanity", "targetName": "selected", "value": 1, "description": "压抑 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 3,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    },
+    {
       "id": "active_prayer_night_vigil",
       "eventName": "无火夜祷",
       "eventType": "Choice",

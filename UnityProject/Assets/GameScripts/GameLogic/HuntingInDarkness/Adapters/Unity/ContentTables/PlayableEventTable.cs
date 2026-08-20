@@ -187,7 +187,7 @@ namespace HuntingInDarkness.ContentTables
                 error = $"事件 {record.id} 的类型或类别无效。";
                 return false;
             }
-            if (!ValidateOptions(record.options) || !ValidateEffects(record.immediateEffects))
+            if (!ValidateOptions(record.options) || !ValidateEffects(record.immediateEffects, false))
             {
                 error = $"事件 {record.id} 含无效选项或效果。";
                 return false;
@@ -257,7 +257,7 @@ namespace HuntingInDarkness.ContentTables
             if (records == null)
                 return true;
             foreach (EventOptionTableRecord record in records)
-                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects) || !ValidateEffects(record.failEffects) || !ValidateConditions(record.alwaysAvailable, record.conditions))
+                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects, true) || !ValidateEffects(record.failEffects, true) || !ValidateConditions(record.alwaysAvailable, record.conditions))
                     return false;
             return true;
         }
@@ -302,7 +302,7 @@ namespace HuntingInDarkness.ContentTables
             return true;
         }
 
-        private static bool ValidateEffects(IReadOnlyList<EventEffectTableRecord> records)
+        private static bool ValidateEffects(IReadOnlyList<EventEffectTableRecord> records, bool allowHunterDeath)
         {
             if (records == null)
                 return true;
@@ -314,7 +314,20 @@ namespace HuntingInDarkness.ContentTables
                     return false;
                 if (effectType == EventEffectType.ActivateBloodline && !PlayableBloodlineRuntime.Content.TryGet(record.targetName, out _))
                     return false;
+                if (effectType == EventEffectType.KillHunter && (!allowHunterDeath || !IsValidHunterDeathCauseId(record.targetName)))
+                    return false;
             }
+            return true;
+        }
+
+        private static bool IsValidHunterDeathCauseId(string causeId)
+        {
+            if (string.IsNullOrWhiteSpace(causeId)) return false;
+            string normalized = causeId.Trim();
+            if (normalized.Length > 64) return false;
+            foreach (char character in normalized)
+                if (char.IsControl(character))
+                    return false;
             return true;
         }
 

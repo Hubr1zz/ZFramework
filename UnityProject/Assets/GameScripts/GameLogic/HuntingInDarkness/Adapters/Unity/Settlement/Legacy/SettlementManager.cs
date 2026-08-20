@@ -41,10 +41,10 @@ namespace HuntingInDarkness.Settlement
             Data  = new SettlementInstance();
 
             Timeline   = new TimelineSystem(Data, _rng);
-            Events     = new EventSystem(Data, _rng, Timeline);
+            HunterMgmt = new HunterManagementSystem(Data, _rng);
+            Events     = new EventSystem(Data, _rng, Timeline, HunterMgmt);
             Inventions = new InventionSystem(Data);
             Workshop   = new WorkshopSystem(Data, Inventions);
-            HunterMgmt = new HunterManagementSystem(Data, _rng);
 
         }
 
@@ -129,10 +129,10 @@ namespace HuntingInDarkness.Settlement
             if (data == null) return;
             Data       = data;
             Timeline   = new TimelineSystem(Data, _rng);
-            Events     = new EventSystem(Data, _rng, Timeline);
+            HunterMgmt = new HunterManagementSystem(Data, _rng);
+            Events     = new EventSystem(Data, _rng, Timeline, HunterMgmt);
             Inventions = new InventionSystem(Data);
             Workshop   = new WorkshopSystem(Data, Inventions);
-            HunterMgmt = new HunterManagementSystem(Data, _rng);
             PlayableSettlementContentRuntime.TryApplyTo(this);
         }
 

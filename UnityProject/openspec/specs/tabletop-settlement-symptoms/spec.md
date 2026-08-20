@@ -46,3 +46,9 @@ Settlement ActionQueue SHALL 在执行时重新核对猎人归属、症状内容
 ### Requirement: 正常流程不创建旧屏幕症状窗口
 
 正式 `PlayableGameBootstrap` SHALL 不再实例化 `PlayableSymptomGrowthView`；症状长期状态仍 SHALL 兼容现有存档与内容目录。
+
+#### Scenario: 正式营地查看猎人症状
+
+- **WHEN** `PlayableGameBootstrap` 建立可游玩营地桌面
+- **THEN** 症状 SHALL 只通过猎人装备桌的世界空间入口与症状板呈现
+- **AND** 不得创建旧 `PlayableSymptomGrowthView`

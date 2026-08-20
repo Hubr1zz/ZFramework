@@ -111,6 +111,8 @@ namespace UI
         private void OnHunterDied(HunterDiedEvent evt)
         {
             string body = $"{evt.HunterName} 没能从黑暗中回来。";
+            if (!string.IsNullOrWhiteSpace(evt.CauseText))
+                body += $"\n{evt.CauseText}";
             if (evt.InspiredHunterCount > 0 && evt.GrowthPerHunter > 0)
                 body += $"\n\n{evt.InspiredHunterCount} 名同伴各获得 {evt.GrowthPerHunter} 点成长。";
             Enqueue(new SettlementNotice("营地失去了一位猎人", body, $"第 {evt.Year} 年", TabletopEventPrimaryTone.Failure));

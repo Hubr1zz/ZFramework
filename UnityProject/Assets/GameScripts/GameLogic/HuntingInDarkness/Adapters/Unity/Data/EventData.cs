@@ -155,7 +155,7 @@ namespace HuntingInDarkness.Data
         AddUnderstanding,   // 增加知识
         AddTrait,           // 添加特性：targetName=特性名
         AddAilment,         // 添加症状
-        KillHunter,         // 猎人死亡判定
+        KillHunter,         // 选中猎人永久死亡：targetName=稳定死因ID，description=玩家可见死因
         UnlockInvention,    // 解锁发明：targetName=稳定发明 ContentId
         TriggerCombat,      // 触发战斗
         AdvanceYear,        // 推进年份

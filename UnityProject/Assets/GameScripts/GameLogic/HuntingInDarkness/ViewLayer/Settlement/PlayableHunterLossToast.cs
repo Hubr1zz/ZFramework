@@ -49,6 +49,8 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private void OnHunterDied(HunterDiedEvent evt)
         {
             string nextMessage = $"{evt.HunterName} 没能从黑暗中回来";
+            if (!string.IsNullOrWhiteSpace(evt.CauseText))
+                nextMessage += $"\n{evt.CauseText}";
             if (evt.InspiredHunterCount > 0 && evt.GrowthPerHunter > 0)
                 nextMessage += $"\n营地记住了这次失去：{evt.InspiredHunterCount} 名猎人各获得 {evt.GrowthPerHunter} 点成长";
             pendingMessages.Enqueue(nextMessage);

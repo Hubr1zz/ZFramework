@@ -54,6 +54,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             var settlement = new SettlementInstance();
             var hunter = new HunterInstance(null, 8124) { Understanding = 0 };
+            settlement.Hunters.Add(hunter);
             var eventSystem = new EventSystem(settlement, new SequenceRandom(0));
             EventData gameEvent = CreateCheckedEvent();
 

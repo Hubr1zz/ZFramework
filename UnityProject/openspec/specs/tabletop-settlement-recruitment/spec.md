@@ -55,3 +55,9 @@
 ### Requirement: 正常流程不创建旧屏幕空间招募窗
 
 正式 `PlayableGameBootstrap` SHALL 不再实例化 `PlayableRecruitmentView`；旧类只作为尚未清理序列化引用时的兼容实现保留。
+
+#### Scenario: 正式营地进入招募流程
+
+- **WHEN** `PlayableGameBootstrap` 建立可游玩营地桌面
+- **THEN** 招募 SHALL 只通过世界空间营火卡与招募板呈现
+- **AND** 不得创建旧 `PlayableRecruitmentView`
