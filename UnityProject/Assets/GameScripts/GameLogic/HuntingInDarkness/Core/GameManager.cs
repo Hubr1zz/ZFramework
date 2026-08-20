@@ -129,7 +129,7 @@ namespace Core
         private SettlementManager    _settlementManager;
         [SerializeField] private SettlementUIManager _settlementUIManager; // 场景预建并连线（缺失则报错）
         private bool _settlementUIInited;
-        private SettlementTable3D    _settlementTable3D;
+        [SerializeField] private SettlementTable3D _settlementTable3D;
         private HuntManager          _huntMgr;
         private HuntMapVisualizer    _huntVisualizer;
         private HuntUIManager        _huntUI;
@@ -657,37 +657,38 @@ namespace Core
             }
 
             // ── 3D 卡牌桌（猎人 / 资源 / 工坊 / 发明）──
-            if (_settlementTable3D == null && settlementRoot != null)
+            if (_settlementTable3D == null)
             {
+                if (settlementRoot == null) return;
                 var tableGo = new GameObject("SettlementTable3D");
                 tableGo.transform.SetParent(settlementRoot.transform, false);
                 _settlementTable3D = tableGo.AddComponent<SettlementTable3D>();
-
-                // 点击猎人卡 → 打开 2D 详情面板
-                _settlementTable3D.OnHunterClicked = h =>
-                    _settlementUIManager?.ShowHunterDetail(h);
-
-                _settlementTable3D.OnEquipRequested = (hunterId, item) => settlementActionSession != null ? settlementActionSession.EquipItemAsync(hunterId, item) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
-                _settlementTable3D.OnUnequipRequested = (hunterId, equipmentInstanceId) => settlementActionSession != null ? settlementActionSession.UnequipItemAsync(hunterId, equipmentInstanceId) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
-                _settlementTable3D.OnCraftRequested = recipe => settlementActionSession != null ? settlementActionSession.CraftAsync(recipe) : UniTask.FromResult(SettlementCraftCommandResult.Failed("当前不在营地阶段。"));
-                _settlementTable3D.OnInventionUnlockRequested = invention => settlementActionSession != null ? settlementActionSession.UnlockInventionAsync(invention) : UniTask.FromResult(SettlementInventionCommandResult.Failed("当前不在营地阶段。"));
-                _settlementTable3D.OnWorkshopConstructionRequested = definition => settlementActionSession != null ? settlementActionSession.BuildWorkshopAsync(definition) : UniTask.FromResult(SettlementWorkshopConstructionResult.Failed("当前不在营地阶段。"));
-                _settlementTable3D.OnRecoveryRequested = (hunterId, bodyPart) => settlementActionSession != null ? settlementActionSession.RecoverHunterAsync(hunterId, bodyPart) : UniTask.FromResult(RecoverHunterCommandResult.Failed("当前不在营地阶段。"));
-                _settlementTable3D.OnRecruitRequested = (template, requestedName) => settlementActionSession != null ? settlementActionSession.RecruitHunterAsync(template, requestedName) : UniTask.FromResult(RecruitHunterCommandResult.Failed("当前不在营地阶段。"));
-                _settlementTable3D.OnGrowthRequested = (hunterId, choice) => settlementActionSession != null ? settlementActionSession.SpendHunterGrowthAsync(hunterId, choice) : UniTask.FromResult(HunterGrowthCommandResult.Failed("当前不在营地阶段。"));
-                _settlementTable3D.OnWeaponTrainingRequested = (hunterId, masteryId) => settlementActionSession != null ? settlementActionSession.TrainWeaponAsync(hunterId, masteryId) : UniTask.FromResult(WeaponTrainingCommandResult.Failed("当前不在营地阶段。"));
-                _settlementTable3D.OnSymptomRequested = (hunterId, symptomId, choice) => settlementActionSession != null ? settlementActionSession.ResolveHunterSymptomAsync(hunterId, symptomId, choice) : UniTask.FromResult(HunterSymptomCommandResult.Failed("当前不在营地阶段。"));
-
-                // 点击发明卡（有主动效果时）→ TODO: 展示效果选择面板
-                _settlementTable3D.OnInventionEffectRequested = card =>
-                {
-                    // TODO: 弹出 3D canvas 让玩家选择要触发的效果
-                };
-
-                _settlementTable3D.OnDepartureRequested = squad => RequestHuntDeparture(squad != null ? squad.Where(hunter => hunter != null).Select(hunter => hunter.InstanceId).ToList() : new List<int>());
-
-                _settlementTable3D.Init(_settlementManager, workshopContentCatalog, settlementContentCatalog);
             }
+
+            // 无论桌面来自场景还是运行时回退，都从组合根注入同一组命令端口。
+            _settlementTable3D.OnHunterClicked = h =>
+                _settlementUIManager?.ShowHunterDetail(h);
+
+            _settlementTable3D.OnEquipRequested = (hunterId, item) => settlementActionSession != null ? settlementActionSession.EquipItemAsync(hunterId, item) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
+            _settlementTable3D.OnUnequipRequested = (hunterId, equipmentInstanceId) => settlementActionSession != null ? settlementActionSession.UnequipItemAsync(hunterId, equipmentInstanceId) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
+            _settlementTable3D.OnCraftRequested = recipe => settlementActionSession != null ? settlementActionSession.CraftAsync(recipe) : UniTask.FromResult(SettlementCraftCommandResult.Failed("当前不在营地阶段。"));
+            _settlementTable3D.OnInventionUnlockRequested = invention => settlementActionSession != null ? settlementActionSession.UnlockInventionAsync(invention) : UniTask.FromResult(SettlementInventionCommandResult.Failed("当前不在营地阶段。"));
+            _settlementTable3D.OnWorkshopConstructionRequested = definition => settlementActionSession != null ? settlementActionSession.BuildWorkshopAsync(definition) : UniTask.FromResult(SettlementWorkshopConstructionResult.Failed("当前不在营地阶段。"));
+            _settlementTable3D.OnRecoveryRequested = (hunterId, bodyPart) => settlementActionSession != null ? settlementActionSession.RecoverHunterAsync(hunterId, bodyPart) : UniTask.FromResult(RecoverHunterCommandResult.Failed("当前不在营地阶段。"));
+            _settlementTable3D.OnRecruitRequested = (template, requestedName) => settlementActionSession != null ? settlementActionSession.RecruitHunterAsync(template, requestedName) : UniTask.FromResult(RecruitHunterCommandResult.Failed("当前不在营地阶段。"));
+            _settlementTable3D.OnGrowthRequested = (hunterId, choice) => settlementActionSession != null ? settlementActionSession.SpendHunterGrowthAsync(hunterId, choice) : UniTask.FromResult(HunterGrowthCommandResult.Failed("当前不在营地阶段。"));
+            _settlementTable3D.OnWeaponTrainingRequested = (hunterId, masteryId) => settlementActionSession != null ? settlementActionSession.TrainWeaponAsync(hunterId, masteryId) : UniTask.FromResult(WeaponTrainingCommandResult.Failed("当前不在营地阶段。"));
+            _settlementTable3D.OnSymptomRequested = (hunterId, symptomId, choice) => settlementActionSession != null ? settlementActionSession.ResolveHunterSymptomAsync(hunterId, symptomId, choice) : UniTask.FromResult(HunterSymptomCommandResult.Failed("当前不在营地阶段。"));
+
+            // 点击发明卡（有主动效果时）→ TODO: 展示效果选择面板
+            _settlementTable3D.OnInventionEffectRequested = card =>
+            {
+                // TODO: 弹出 3D canvas 让玩家选择要触发的效果
+            };
+
+            _settlementTable3D.OnDepartureRequested = squad => RequestHuntDeparture(squad != null ? squad.Where(hunter => hunter != null).Select(hunter => hunter.InstanceId).ToList() : new List<int>());
+
+            _settlementTable3D.Init(_settlementManager, workshopContentCatalog, settlementContentCatalog);
         }
 
         // ═══════════════════════════════════════════
@@ -1380,13 +1381,7 @@ namespace Core
             if (CurrentGamePhase == GamePhase.Settlement)
                 StartSettlementActionSession();
 
-            // 场景常驻 HUD（SettlementUIManager）不销毁，重新填充数据即可；
-            // SettlementTable3D 是运行时创建，销毁后由 EnsureSettlementUI 重建。
-            if (_settlementTable3D != null)
-            {
-                Object.Destroy(_settlementTable3D.gameObject);
-                _settlementTable3D = null;
-            }
+            // 场景实例与运行时回退都保留，由幂等 Init 重新绑定新存档数据和命令端口。
             EnsureSettlementUI();
             _settlementUIManager?.Refresh();
             Debug.Log($"[GameManager] DevLoad 完成，年份 {data.CurrentYear}");

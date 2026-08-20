@@ -114,10 +114,20 @@
 - **类型**: 组合根 / 场景装配
 - **描述**: `EnsureSettlementUI` 只在 `_settlementTable3D == null` 时配置命令回调并调用 `Init`；未来若按现有 SerializeField/场景化设计预置该组件，非空引用会直接跳过完整装配，导致分区、ActionQueue 命令和 EventBus 订阅未初始化。应在完整梳理重复初始化与订阅幂等性后，把“创建缺失实例”和“配置并初始化现有实例”拆成两个明确步骤，并以初始化状态防止重复订阅。
 - **来源**: 2026-08-20 狩猎回营年鉴刷新审查
+- **状态**: 已处理
+- **维护人**: codex
+- **维护时间**: 2026-08-20
+- **维护备注**: 2026-08-20 已完成：`GameManager` 可序列化注入场景桌面，缺失时仍创建运行时回退；两条路径统一绑定命令端口并初始化。`SettlementTable3D.Init` 在重绑数据前取消旧 EventBus 订阅，读档保留原桌面并幂等刷新。
+
+### [优先级: 低] 3D 桌面回退视图的 EditMode 材质与销毁语义不安全
+- **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/`、`Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Cards3D/`
+- **类型**: 编辑器生命周期 / 材质所有权
+- **描述**: 程序化回退视图在 EditMode 数据测试中频繁读取 `Renderer.material` 并调用运行时 `Destroy`，Unity 会报告材质实例泄漏与编辑器销毁语义错误。玩家运行时路径尚不受影响，但会污染生命周期测试并可能隐藏编辑器资源泄漏。应在整体梳理卡牌/背景材质所有权后，统一使用 `MaterialPropertyBlock` 或明确的实例材质释放策略，并按 `Application.isPlaying` 选择 `Destroy` / `DestroyImmediate`。
+- **来源**: 2026-08-20 SettlementTable3D 重复初始化数据验证
 - **状态**: 待处理
 - **维护人**: codex
 - **维护时间**: 2026-08-20
-- **维护备注**: 当前正式运行路径由 GameManager 程序化创建，尚不触发；待营地桌面场景化时应先处理，避免只修单个回调。
+- **维护备注**: 本阶段只隔离测试日志，不扩大为跨视图材质重构。
 
 ### [优先级: 中] 收敛战斗兼容代码中的旧 ActionQueue
 - **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Cards/ActionQueue.cs`、`Adapters/Unity/Combat/{ActionCardResolution,CardSystem,PlayableActionCardLifecycle}.cs`

@@ -46,5 +46,13 @@ namespace UI
             }
             return squad;
         }
+
+        /// <summary>重绑存档时移除旧猎人卡的槽位引用，卡牌实例由所属 HunterZone 释放。</summary>
+        public void Clear()
+        {
+            if (_squadGrid == null) return;
+            foreach (var slot in _squadGrid.Slots)
+                slot.ClearCard();
+        }
     }
 }

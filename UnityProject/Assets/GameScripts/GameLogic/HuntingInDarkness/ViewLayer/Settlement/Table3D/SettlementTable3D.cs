@@ -103,6 +103,8 @@ namespace UI
 
         public void Init(SettlementManager mgr, PlayableWorkshopCatalog catalog = null, PlayableSettlementContentCatalog settlementContent = null)
         {
+            if (mgr == null) throw new System.ArgumentNullException(nameof(mgr));
+            UnsubscribeEvents();
             _mgr = mgr;
             workshopCatalog = catalog;
             settlementContentCatalog = settlementContent;
@@ -119,12 +121,27 @@ namespace UI
             EnsureWorkshopConstructionPanel();
             EnsureDepartureLauncher();
             WireZoneCallbacks();  // 把上层设的回调下发给分区
+            HideContextPanels();
+            _squadZone?.Clear();
             FillAllZones();
 
+            SubscribeEvents();
+        }
+
+        private void SubscribeEvents()
+        {
             EventBus.Subscribe<ResourceChangedEvent>(OnResourceChanged);
             EventBus.Subscribe<HunterRosterChangedEvent>(OnRosterChanged);
             EventBus.Subscribe<HuntCompletedEvent>(OnHuntCompleted);
             EventBus.Subscribe<YearAdvancedEvent>(OnYearAdvanced);
+        }
+
+        private void UnsubscribeEvents()
+        {
+            EventBus.Unsubscribe<ResourceChangedEvent>(OnResourceChanged);
+            EventBus.Unsubscribe<HunterRosterChangedEvent>(OnRosterChanged);
+            EventBus.Unsubscribe<HuntCompletedEvent>(OnHuntCompleted);
+            EventBus.Unsubscribe<YearAdvancedEvent>(OnYearAdvanced);
         }
 
         private void WireZoneCallbacks()
@@ -318,10 +335,15 @@ namespace UI
 
         private void EnsureSceneRefs()
         {
-            // 任一分区已连线即视为场景已布置，跳过自动搭建
-            if (_hunterZone || _resourceZone || _workshopZone || _inventionZone) return;
+            bool hasAnyZone = _hunterZone || _resourceZone || _workshopZone || _inventionZone;
+            if (!hasAnyZone)
+            {
+                BuildFallbackLayout();
+                return;
+            }
 
-            BuildFallbackLayout();
+            if (_hunterZone && _resourceZone && _workshopZone && _inventionZone) return;
+            throw new System.InvalidOperationException("SettlementTable3D 场景装配不完整：Hunter、Resource、Workshop 与 Invention 四个分区必须全部连线，或全部留空以使用运行时回退。");
         }
 
         private void BuildFallbackLayout()
@@ -491,10 +513,7 @@ namespace UI
 
         private void OnDestroy()
         {
-            EventBus.Unsubscribe<ResourceChangedEvent>(OnResourceChanged);
-            EventBus.Unsubscribe<HunterRosterChangedEvent>(OnRosterChanged);
-            EventBus.Unsubscribe<HuntCompletedEvent>(OnHuntCompleted);
-            EventBus.Unsubscribe<YearAdvancedEvent>(OnYearAdvanced);
+            UnsubscribeEvents();
         }
     }
 }
