@@ -79,6 +79,7 @@ namespace HuntingInDarkness.Settlement
             manager.Workshop.AllRecipes = allRecipes;
             if (manager.Data.Hunters.Count > 0)
             {
+                PlayableBloodlineRuntime.Synchronize(manager.Data);
                 PlayableSettlementItemRegistry.RestoreEquipment(manager.Data);
                 PlayableSymptomRuntime.Synchronize(manager.Data);
                 PlayableGrowthMilestoneRuntime.Synchronize(manager.Data);
@@ -94,6 +95,7 @@ namespace HuntingInDarkness.Settlement
                     manager.Data.AddResource(resource.Item, resource.Amount);
 
             PlayableSettlementItemRegistry.RestoreEquipment(manager.Data);
+            PlayableBloodlineRuntime.Synchronize(manager.Data);
             PlayableSymptomRuntime.Synchronize(manager.Data);
             PlayableGrowthMilestoneRuntime.Synchronize(manager.Data);
             Debug.Log($"[SettlementManager] 已从内容目录创建 {manager.Data.Hunters.Count} 名初始猎人。");

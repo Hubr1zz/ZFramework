@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "bloodlines": [
+    {
+      "id": "ember-remembered",
+      "displayName": "余烬之血",
+      "description": "这一血脉会在失去同伴后记住残余的温度。",
+      "activationHint": "在营地经历一次重要离别后可被事件激活。",
+      "drawWeight": 3
+    },
+    {
+      "id": "stone-listener",
+      "displayName": "听石之血",
+      "description": "这一血脉能从石头的沉默中分辨细微差异。",
+      "activationHint": "通过与古老石质遗迹相关的事件激活。",
+      "drawWeight": 2
+    },
+    {
+      "id": "deep-dreamer",
+      "displayName": "深梦之血",
+      "description": "这一血脉的梦偶尔会先于现实抵达。",
+      "activationHint": "在高压抑状态下完成一次梦境事件后激活。",
+      "drawWeight": 1
+    }
+  ]
+}

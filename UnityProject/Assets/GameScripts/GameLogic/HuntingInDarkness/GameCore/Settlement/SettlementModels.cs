@@ -80,6 +80,9 @@ namespace HuntingInDarkness.GameCore.Settlement
         public int Courage;
         public int Understanding;
         public int UnspentGrowth;
+        public string BloodlineId;
+        public string BloodlineName;
+        public bool IsBloodlineActivated;
         public List<int> EquipmentIds = new List<int>();
         public List<int> CollectibleIds = new List<int>();
         public List<string> Traits = new List<string>();

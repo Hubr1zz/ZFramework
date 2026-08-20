@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
@@ -37,6 +38,11 @@ namespace HuntingInDarkness.Settlement
         {
             var hunter = new HunterInstance(template, HunterIdentityRules.NextAvailableId(_settlement.Hunters));
             if (!string.IsNullOrEmpty(customName)) hunter.Name = customName;
+            if (!PlayableBloodlineRuntime.TryAssign(hunter, out string bloodlineReason))
+            {
+                Debug.LogError($"[HunterMgmt] 招募失败：{bloodlineReason}");
+                return null;
+            }
             if (!PlayableSettlementModifierRuntime.TryReconcileHunter(_settlement, hunter, out string reason))
             {
                 Debug.LogError($"[HunterMgmt] 招募失败：{reason}");
@@ -53,6 +59,11 @@ namespace HuntingInDarkness.Settlement
         {
             var hunter = new HunterInstance(template, HunterIdentityRules.NextAvailableId(_settlement.Hunters));
             hunter.Name = name;
+            if (!PlayableBloodlineRuntime.TryAssign(hunter, out string bloodlineReason))
+            {
+                Debug.LogError($"[HunterMgmt] 无法添加初始猎人：{bloodlineReason}");
+                return;
+            }
             if (!PlayableSettlementModifierRuntime.TryReconcileHunter(_settlement, hunter, out string reason))
             {
                 Debug.LogError($"[HunterMgmt] 无法添加初始猎人：{reason}");

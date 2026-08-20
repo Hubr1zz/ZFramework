@@ -395,7 +395,8 @@ namespace UI
 
         private static string BuildStats(HunterInstance hunter)
         {
-            return $"年龄 {hunter.Age}  意志 {hunter.Willpower}/{hunter.WillpowerMax}  命运 {hunter.Luck}  压抑 {hunter.Insanity}    力 {hunter.Stats.strength}  准 {hunter.Stats.accuracy}  敏 {hunter.Stats.evasion}  移 {hunter.Stats.movement}  速 {hunter.Stats.speed}    装备 {hunter.Equipment?.Count ?? 0}/{EquipmentRules.MaximumEquipmentCount}";
+            string bloodline = string.IsNullOrWhiteSpace(hunter.BloodlineName) ? "未知血脉" : $"{hunter.BloodlineName} · {(hunter.IsBloodlineActivated ? "已激活" : "未激活")}";
+            return $"年龄 {hunter.Age}  意志 {hunter.Willpower}/{hunter.WillpowerMax}  命运 {hunter.Luck}  压抑 {hunter.Insanity}    力 {hunter.Stats.strength}  准 {hunter.Stats.accuracy}  敏 {hunter.Stats.evasion}  移 {hunter.Stats.movement}  速 {hunter.Stats.speed}\n血脉 {bloodline}    装备 {hunter.Equipment?.Count ?? 0}/{EquipmentRules.MaximumEquipmentCount}";
         }
 
         private static bool IsWounded(HunterInstance hunter)

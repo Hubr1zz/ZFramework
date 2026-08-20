@@ -163,6 +163,13 @@
       "specPath": "openspec/specs/table-driven-invention-content/spec.md"
     },
     {
+      "id": "table-driven-hunter-bloodlines",
+      "label": "读表猎人血脉",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-hunter-bloodlines/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -448,6 +455,26 @@
       "type": "requires",
       "status": "defined",
       "reason": "表发明复用现有 3D 发明卡、稳定身份目录与 Settlement ActionQueue 解锁事务",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-bloodlines--requires--tabletop-settlement-recruitment",
+      "from": "table-driven-hunter-bloodlines",
+      "to": "tabletop-settlement-recruitment",
+      "type": "requires",
+      "status": "defined",
+      "reason": "血脉在 Settlement Runner 的招募提交点抽取并随猎人进入权威名册",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-bloodlines--requires--campaign-persistence",
+      "from": "table-driven-hunter-bloodlines",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "稳定血脉 ID、缓存显示名与激活状态随猎人数据跨会话保存和恢复",
       "gapId": "",
       "blocksImplementation": false
     },

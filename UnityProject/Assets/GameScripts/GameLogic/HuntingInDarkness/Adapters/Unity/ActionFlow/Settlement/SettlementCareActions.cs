@@ -5,6 +5,7 @@ using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
@@ -109,6 +110,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             if (!RecruitmentRules.TryNormalizeName(requestedName, existingNames, out string normalizedName, out reason)) return Fail(reason);
 
             var hunter = new HunterInstance(template, HunterIdentityRules.NextAvailableId(settlement.Hunters)) { Name = normalizedName };
+            if (!PlayableBloodlineRuntime.TryAssign(hunter, out reason)) return Fail(reason);
             PlayableSymptomRuntime.SynchronizeHunter(hunter);
             if (!PlayableSettlementModifierRuntime.TryReconcileHunter(settlement, hunter, out reason)) return Fail(reason);
             var annal = new AnnalEntry

@@ -101,7 +101,7 @@ namespace Cards3D
                 _statsText.text  = $"力{s.strength}  敏{s.evasion}  速{s.speed}";
                 _statsText.color = new Color(0.60f, 0.68f, 0.78f);
 
-                _stateText.text  = "点击查看";
+                _stateText.text  = string.IsNullOrWhiteSpace(_hunter.BloodlineName) ? "点击查看" : $"{_hunter.BloodlineName} · 查看";
                 _stateText.color = new Color(0.50f, 0.60f, 0.72f);
             }
             else

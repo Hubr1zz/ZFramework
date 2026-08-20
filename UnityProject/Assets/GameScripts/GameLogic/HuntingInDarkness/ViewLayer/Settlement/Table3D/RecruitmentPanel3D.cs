@@ -180,7 +180,7 @@ namespace UI
                 RecruitHunterCommandResult result = await recruitCommand.Invoke(template, requestedName);
                 if (this == null) return;
                 isSubmitting = false;
-                persistentStatus = result.Succeeded ? $"{result.Hunter.Name} 已加入营地，可以为其分配装备。" : result.Reason;
+                persistentStatus = result.Succeeded ? $"{result.Hunter.Name} 已加入营地 · 血脉：{result.Hunter.BloodlineName}\n可以为其分配装备。" : result.Reason;
                 if (result.Succeeded) requestedName = string.Empty;
                 Rebuild();
             }

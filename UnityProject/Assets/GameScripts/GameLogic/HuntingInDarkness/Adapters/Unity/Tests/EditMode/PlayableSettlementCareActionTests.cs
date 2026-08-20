@@ -41,6 +41,9 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(result.Succeeded, Is.True, result.Reason);
                 Assert.That(result.Hunter.Name, Is.EqualTo("余烬"));
                 Assert.That(result.Hunter.InstanceId, Is.EqualTo(101));
+                Assert.That(result.Hunter.BloodlineId, Is.Not.Empty);
+                Assert.That(result.Hunter.BloodlineName, Is.Not.Empty);
+                Assert.That(result.Hunter.IsBloodlineActivated, Is.False);
                 Assert.That(settlement.GetResource("口粮"), Is.EqualTo(1));
                 Assert.That(settlement.LastRecruitmentYear, Is.EqualTo(3));
                 Assert.That(settlement.Timeline[^1].EntryType, Is.EqualTo(TimelineEntryType.PlayerAdded));
