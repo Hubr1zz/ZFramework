@@ -35,6 +35,13 @@
       "category": "architecture",
       "readiness": "implemented",
       "specPath": "openspec/specs/showdown-phase-orchestration/spec.md"
+    },
+    {
+      "id": "csharp-derived-index",
+      "label": "C# 派生索引",
+      "category": "system",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/csharp-derived-index/spec.md"
     }
   ],
   "edges": [

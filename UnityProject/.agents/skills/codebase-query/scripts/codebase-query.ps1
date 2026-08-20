@@ -9,8 +9,10 @@ param(
     [string]$Path,
     [string]$Root = (Get-Location).Path,
     [string]$IndexPath = '.agent-memory/zworkflow/local/code-query-index.json',
+    [string]$ProgressPath = '.agent-memory/zworkflow/local/code-query-progress.json',
     [string[]]$SourceRoots = @(),
-    [string[]]$ExcludeRoots = @('Assets/Plugins', 'Assets/ThirdParty', 'Assets/External', 'Assets/Standard Assets'),
+    [string[]]$ExcludeRoots = @(),
+    [switch]$IncludeAll,
     [ValidateRange(1, 200)]
     [int]$Limit = 30,
     [switch]$Pretty
@@ -54,6 +56,7 @@ function Find-CodebaseQuerySkillRoot {
 }
 
 $initialProjectRoot = [System.IO.Path]::GetFullPath($Root).TrimEnd('\', '/')
+if ($IncludeAll) { $ExcludeRoots = [string[]]::new(0) }
 $script:CodebaseQuerySkillRoot = Find-CodebaseQuerySkillRoot -ProjectRoot $initialProjectRoot
 $bindingCandidates = @(Get-ChildItem -LiteralPath $script:CodebaseQuerySkillRoot -Recurse -Filter '*.ps1' -File |
     Where-Object { $_.FullName -ne $PSCommandPath -and
@@ -79,6 +82,30 @@ function Convert-ToPortablePath {
         $value = $value.Substring(2)
     }
     return $value.TrimStart('/')
+}
+
+function Write-CodeQueryProgress {
+    param(
+        [string]$Stage,
+        [int]$Completed,
+        [int]$Total,
+        [string]$Message
+    )
+
+    if ([string]::IsNullOrWhiteSpace($script:ResolvedProgressPath)) { return }
+    $directory = Split-Path -Parent $script:ResolvedProgressPath
+    if (-not (Test-Path -LiteralPath $directory)) {
+        New-Item -ItemType Directory -Path $directory -Force | Out-Null
+    }
+    $value = [ordered]@{
+        stage = $Stage
+        completed = $Completed
+        total = $Total
+        percent = if ($Total -gt 0) { [Math]::Round($Completed * 100.0 / $Total, 1) } else { 0 }
+        message = $Message
+        updatedAtUtc = [DateTime]::UtcNow.ToString('o')
+    }
+    [System.IO.File]::WriteAllText($script:ResolvedProgressPath, ($value | ConvertTo-Json -Compress), [System.Text.UTF8Encoding]::new($false))
 }
 
 function Resolve-IndexedPath {
@@ -145,10 +172,10 @@ function Get-SourceFiles {
         $resolvedRoots.Add($candidate)
     }
 
-    $resolvedExclusions = @($ConfiguredExcludeRoots | ForEach-Object {
+    $resolvedExclusions = if (@($ConfiguredExcludeRoots).Count -gt 0) { @($ConfiguredExcludeRoots | ForEach-Object {
         if ([System.IO.Path]::IsPathRooted($_)) { [System.IO.Path]::GetFullPath($_) }
         else { [System.IO.Path]::GetFullPath((Join-Path $ProjectRoot $_)) }
-    })
+    }) } else { @() }
 
     $files = @($resolvedRoots | ForEach-Object {
         Get-ChildItem -LiteralPath $_ -Recurse -Filter '*.cs' -File
@@ -217,6 +244,7 @@ function New-CodeIndex {
     foreach ($keyword in $keywords) { $keywordSet[$keyword] = $true }
 
     $records = [System.Collections.Generic.List[object]]::new()
+    $parsedFileCount = 0
     foreach ($file in $SourceFiles) {
         $text = Get-Content -Raw -LiteralPath $file.FullName -Encoding utf8
         $namespaces = Get-RegexValues -Text $text -Pattern '(?m)^\s*namespace\s+([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)'
@@ -253,24 +281,16 @@ function New-CodeIndex {
             calls = @($calls)
             typeReferences = @()
         })
-    }
-
-    $knownTypes = @($records | ForEach-Object { $_.types | ForEach-Object { $_.name } } | Sort-Object -Unique)
-    foreach ($record in $records) {
-        $fullPath = Resolve-IndexedPath -ProjectRoot $ProjectRoot -RelativePath $record.path
-        $text = Get-Content -Raw -LiteralPath $fullPath -Encoding utf8
-        $references = [System.Collections.Generic.List[string]]::new()
-        foreach ($typeName in $knownTypes) {
-            $declaredTypeNames = @($record.types | ForEach-Object { $_.name })
-            if ($declaredTypeNames -contains $typeName) { continue }
-            if ([regex]::IsMatch($text, "\b$([regex]::Escape($typeName))\b")) {
-                $references.Add($typeName)
-            }
+        $parsedFileCount++
+        if ($parsedFileCount -eq $SourceFiles.Count -or $parsedFileCount % 50 -eq 0) {
+            Write-CodeQueryProgress -Stage 'parse' -Completed $parsedFileCount -Total $SourceFiles.Count -Message $file.Name
         }
-        $record.typeReferences = @($references)
     }
-
+    Write-CodeQueryProgress -Stage 'bind' -Completed 0 -Total $SourceFiles.Count -Message 'Resolving C# types and calls'
     $bindingSummary = Add-CSharpTypeBindings -Records $records -ProjectRoot $ProjectRoot
+    foreach ($record in $records) {
+        $record.typeReferences = @($record.qualifiedTypeReferences | ForEach-Object { ($_ -split '\.')[-1] } | Sort-Object -Unique)
+    }
 
     $index = [ordered]@{
         schemaVersion = $script:IndexVersion
@@ -281,8 +301,11 @@ function New-CodeIndex {
         sourceRoots = if (@($ConfiguredSourceRoots).Count -gt 0) { @($ConfiguredSourceRoots) } else { @('Assets') }
         excludeRoots = @($ConfiguredExcludeRoots)
         fileCount = $SourceFiles.Count
+        typeCount = @($records | ForEach-Object { $_.types }).Count
+        methodCount = @($records | ForEach-Object { $_.methods }).Count
         qualifiedTypeCount = $bindingSummary.qualifiedTypeCount
         resolvedCallCount = $bindingSummary.resolvedCallCount
+        includesAllSourceFiles = @($ConfiguredExcludeRoots).Count -eq 0
         files = @($records)
     }
 
@@ -294,6 +317,7 @@ function New-CodeIndex {
         $ResolvedIndexPath,
         ($index | ConvertTo-Json -Depth 8 -Compress),
         [System.Text.UTF8Encoding]::new($false))
+    Write-CodeQueryProgress -Stage 'complete' -Completed $SourceFiles.Count -Total $SourceFiles.Count -Message 'Index written and verified'
     return [pscustomobject]$index
 }
 
@@ -406,6 +430,10 @@ $resolvedIndexPath = if ([System.IO.Path]::IsPathRooted($IndexPath)) {
 else {
     [System.IO.Path]::GetFullPath((Join-Path $projectRoot $IndexPath))
 }
+$script:ResolvedProgressPath = if ([string]::IsNullOrWhiteSpace($ProgressPath)) { $null }
+elseif ([System.IO.Path]::IsPathRooted($ProgressPath)) { [System.IO.Path]::GetFullPath($ProgressPath) }
+else { [System.IO.Path]::GetFullPath((Join-Path $projectRoot $ProgressPath)) }
+Write-CodeQueryProgress -Stage 'scan' -Completed 0 -Total 0 -Message 'Discovering C# source files'
 
 $index = Get-FreshIndex -ProjectRoot $projectRoot -ResolvedIndexPath $resolvedIndexPath `
     -ConfiguredSourceRoots $SourceRoots -Force:($Command -eq 'build') `
@@ -413,6 +441,11 @@ $index = Get-FreshIndex -ProjectRoot $projectRoot -ResolvedIndexPath $resolvedIn
 
 switch ($Command) {
     'build' {
+        $indexedPaths = @($index.files | ForEach-Object { $_.path } | Sort-Object -Unique)
+        $sourceFiles = Get-SourceFiles -ProjectRoot $projectRoot -ConfiguredSourceRoots $SourceRoots -ConfiguredExcludeRoots $ExcludeRoots
+        $sourcePaths = @($sourceFiles | ForEach-Object { Convert-ToRelativePath -BasePath $projectRoot -TargetPath $_.FullName } | Sort-Object -Unique)
+        $missingPaths = @($sourcePaths | Where-Object { $indexedPaths -notcontains $_ })
+        $unexpectedPaths = @($indexedPaths | Where-Object { $sourcePaths -notcontains $_ })
         Write-Result ([pscustomobject]@{
             command = 'build'
             indexPath = Convert-ToRelativePath -BasePath $projectRoot -TargetPath $resolvedIndexPath
@@ -422,6 +455,12 @@ switch ($Command) {
             methodCount = @($index.files | ForEach-Object { $_.methods }).Count
             qualifiedTypeCount = $index.qualifiedTypeCount
             resolvedCallCount = $index.resolvedCallCount
+            discoveredFileCount = $sourcePaths.Count
+            indexedFileCount = $indexedPaths.Count
+            missingFileCount = $missingPaths.Count
+            unexpectedFileCount = $unexpectedPaths.Count
+            coveragePercent = if ($sourcePaths.Count -gt 0) { [Math]::Round(($sourcePaths.Count - $missingPaths.Count) * 100.0 / $sourcePaths.Count, 2) } else { 0 }
+            includesAllSourceFiles = $index.includesAllSourceFiles
         })
     }
     'status' {

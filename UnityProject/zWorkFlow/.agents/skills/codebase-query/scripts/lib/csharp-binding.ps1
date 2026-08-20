@@ -73,8 +73,13 @@ function Resolve-CSharpTypeName {
         [string]$RawType,
         [object]$Record,
         [hashtable]$TypesBySimpleName,
-        [hashtable]$TypesByQualifiedName
+        [hashtable]$TypesByQualifiedName,
+        [hashtable]$Visited = @{}
     )
+
+    $visitKey = $RawType.Trim()
+    if ($Visited.ContainsKey($visitKey)) { return @() }
+    $Visited[$visitKey] = $true
 
     $simpleName = Get-SimpleCSharpTypeName -TypeName $RawType
     if (-not $simpleName) { return @() }
@@ -92,7 +97,7 @@ function Resolve-CSharpTypeName {
     foreach ($alias in @($Record.aliases)) {
         if ($alias.name -eq $simpleName) {
             $aliasTargets = Resolve-CSharpTypeName -RawType $alias.target -Record $Record `
-                -TypesBySimpleName $TypesBySimpleName -TypesByQualifiedName $TypesByQualifiedName
+                -TypesBySimpleName $TypesBySimpleName -TypesByQualifiedName $TypesByQualifiedName -Visited $Visited
             foreach ($target in $aliasTargets) { $resolved.Add($target) }
         }
     }
@@ -254,8 +259,9 @@ function Add-CSharpTypeBindings {
         }
 
         $qualifiedReferences = [System.Collections.Generic.List[string]]::new()
-        foreach ($simpleName in $typesBySimpleName.Keys) {
-            if (-not [regex]::IsMatch($code, "\b$([regex]::Escape($simpleName))\b")) { continue }
+        $identifiers = @([regex]::Matches($code, '\b[A-Za-z_]\w*\b') | ForEach-Object { $_.Value } | Sort-Object -Unique)
+        foreach ($simpleName in $identifiers) {
+            if (-not $typesBySimpleName.ContainsKey($simpleName)) { continue }
             foreach ($resolvedType in (Resolve-CSharpTypeName -RawType $simpleName -Record $record `
                 -TypesBySimpleName $typesBySimpleName -TypesByQualifiedName $typesByQualifiedName)) {
                 $declaredQualifiedNames = @($record.types | ForEach-Object { $_.qualifiedName })

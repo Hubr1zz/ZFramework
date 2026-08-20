@@ -7,8 +7,10 @@ param(
     [string]$Path,
     [string]$Root = (Get-Location).Path,
     [string]$IndexPath = '.agent-memory/zworkflow/local/code-query-index.json',
+    [string]$ProgressPath = '.agent-memory/zworkflow/local/code-query-progress.json',
     [string[]]$SourceRoots = @(),
-    [string[]]$ExcludeRoots = @('Assets/Plugins', 'Assets/ThirdParty', 'Assets/External', 'Assets/Standard Assets'),
+    [string[]]$ExcludeRoots = @(),
+    [switch]$IncludeAll,
     [ValidateRange(1, 200)]
     [int]$Limit = 30,
     [switch]$Pretty
@@ -36,8 +38,10 @@ $arguments = @{
     Command = $Command
     Root = $Root
     IndexPath = $IndexPath
+    ProgressPath = $ProgressPath
     SourceRoots = $SourceRoots
     ExcludeRoots = $ExcludeRoots
+    IncludeAll = $IncludeAll
     Limit = $Limit
     Pretty = $Pretty
 }

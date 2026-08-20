@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "packageVersion": "2026.08.04.4",
+  "packageVersion": "2026.08.20.1",
   "packageKind": "generic-zworkflow-bootstrap",
   "setupEntry": "setup/SETUP_NEW_PROJECT.md",
   "upgradePolicy": {
@@ -25,6 +25,7 @@
       "files": [
         "AgentWorkbenchSupport.cs",
         "AgentWorkbenchWindow.Changes.cs",
+        "AgentWorkbenchWindow.CodeIndex.cs",
         "AgentWorkbenchWindow.cs",
         "AgentWorkbenchWindow.Data.cs",
         "AgentWorkbenchWindow.EditorGuidance.cs",
@@ -75,6 +76,7 @@
     "setup/assets/AgentWorkbenchWindow.cs.template",
     "setup/assets/AgentWorkbenchWindow.ImportReports.cs.template",
     "setup/assets/AgentWorkbenchWindow.Changes.cs.template",
+    "setup/assets/AgentWorkbenchWindow.CodeIndex.cs.template",
     "setup/assets/AgentWorkbenchWindow.Data.cs.template",
     "setup/assets/AgentWorkbenchWindow.Models.cs.template",
     "setup/assets/AgentWorkbenchWindow.Translations.cs.template",

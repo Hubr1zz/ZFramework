@@ -12,11 +12,12 @@
 
 ## 没有同类工作台
 
-完整 setup 请求即包含安装许可，可同时从 `setup/assets/AgentWorkbenchWindow*.cs.template` 与 `setup/assets/AgentWorkbenchSupport.cs.template` 创建独立窗口及其配置/本地化支持文件。`AgentWorkbenchWindow` 的主窗口、导入报告、正式 Change、引擎指引、数据访问、翻译显示层和内部模型模板必须成套安装；目标路径必须全部未被占用，并满足：
+完整 setup 请求即包含安装许可，可同时从 `setup/assets/AgentWorkbenchWindow*.cs.template` 与 `setup/assets/AgentWorkbenchSupport.cs.template` 创建独立窗口及其配置/本地化支持文件。`AgentWorkbenchWindow` 的主窗口、导入报告、正式 Change、代码索引、引擎指引、数据访问、翻译显示层和内部模型模板必须成套安装；目标路径必须全部未被占用，并满足：
 
 - 使用项目无关的命名空间、菜单与配置键。
 - 不依赖第三方编辑器插件或运行时程序集。
 - JSON 缺失或损坏时只显示警告，不影响其他功能。
+- 代码索引页必须通过 `pwsh` 子进程异步执行公共 `codebase-query/scripts/run.ps1`，默认覆盖 `Assets` 下全部 C# 文件，并独立核对磁盘文件数、索引文件数、缺失项与异常项；派生缓存继续由 Git 忽略。
 - Draft 与正式 Change 的审核问题使用同一表格；非阻塞 warning/info 可逐行填写接受备注并勾选，blocking 行禁止接受。
 - 外部设计文档只允许打开，不允许编辑。
 - 设计来源配置使用 schema v2 `sources[]`，允许添加、替换和移除多个等价路径；每条路径持有稳定唯一 ID，不预先声明规则、内容或美术角色。schema v1 单路径自动迁移为 `primary`。

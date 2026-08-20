@@ -26,6 +26,7 @@
 | 多路径设计来源 | `design-source.json` schema v2、`design-source-schema.md` | 多个等价路径使用稳定 ID；按 scope 跨路径收敛后再做语义类型过滤，同名来源可审计 |
 | OpenSpec 中英文增量翻译 | `openspec-translate/`、`openspec/localization.json`、`openspec/translations/` | 原路径保持唯一权威；文件与块级 SHA-256 只重译变化块；Spec 条目名称按 capability ID 分别保存中英文并驱动当前语言引用 |
 | C# 代码结构查询加速 | `codebase-query/` | Unity 项目在 `Assets` 或显式项目内 source roots 存在 C# 且 PowerShell 7+ 可用时安装；索引 v3 使用 UTF-8 和可移植 `/` 路径，提供完整类型、继承、receiver 调用绑定、影响分级和词法回退；缺少 `pwsh` 时经用户许可才尝试安装，否则回退原生检索 |
+| C# 索引可视化 | `AgentWorkbenchWindow.CodeIndex.cs` | 主入口手动异步构建 `Assets/**/*.cs` 全量派生索引，展示构建进度、磁盘/索引文件数、覆盖率、缺失项、类型、方法与解析调用统计 |
 | 共享功能目录边界 | `.agents/skills/<功能>/references/` | 保护清单与维护队列分离并按需读取；项目事实和完整功能文档只保留一个权威源；工具目录只含入口、命令、配置和薄 wrapper |
 | 已有工作流内容保全接入 | `AGENT_WORKFLOW_COEXISTENCE.md` | 完整 Claude/Codex Skills、角色与项目代码流程先迁入共享源并校验，再把原路径薄化；冲突项不做半迁移，工具设置/凭据/历史保持不变 |
 | 工程能力模块拆分 | `project-tooling/` | README/Wiki 核心模块经目录、接口、asmdef 或配置证据核验后分别建条目；总框架/启动 System 不得吞并 Resource、Event、Config、UI、Procedure 等稳定模块 |
@@ -40,6 +41,7 @@
 - `Assets/Scripts/Editor/AgentWorkbenchWindow.cs` ↔ `setup/assets/AgentWorkbenchWindow.cs.template`
 - `Assets/Scripts/Editor/AgentWorkbenchWindow.ImportReports.cs` ↔ `setup/assets/AgentWorkbenchWindow.ImportReports.cs.template`
 - `Assets/Scripts/Editor/AgentWorkbenchWindow.Changes.cs` ↔ `setup/assets/AgentWorkbenchWindow.Changes.cs.template`
+- `Assets/Scripts/Editor/AgentWorkbenchWindow.CodeIndex.cs` ↔ `setup/assets/AgentWorkbenchWindow.CodeIndex.cs.template`
 - `Assets/Scripts/Editor/AgentWorkbenchWindow.Data.cs` ↔ `setup/assets/AgentWorkbenchWindow.Data.cs.template`
 - `Assets/Scripts/Editor/AgentWorkbenchWindow.Models.cs` ↔ `setup/assets/AgentWorkbenchWindow.Models.cs.template`
 - `Assets/Scripts/Editor/AgentWorkbenchWindow.Translations.cs` ↔ `setup/assets/AgentWorkbenchWindow.Translations.cs.template`

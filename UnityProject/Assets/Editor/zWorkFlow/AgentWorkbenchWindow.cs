@@ -215,6 +215,7 @@ namespace AgentWorkflow.Editor
             if (_dependencyGraphSavePending &&
                 EditorApplication.timeSinceStartup - _dependencyGraphChangedAt >= 0.5d)
                 PersistDependencyGraphLayout();
+            PollCodeIndexBuild();
         }
 
         private void OnDisable()
@@ -327,12 +328,13 @@ namespace AgentWorkflow.Editor
             {
                 ToolTab.RefactorQueue,
                 ToolTab.OpenSpec,
+                ToolTab.CodeIndex,
                 ToolTab.ImportReports
             };
             var selectedTabIndex = Array.IndexOf(visibleTabs, _tab);
             var nextTabIndex = DrawUniformTabs(
                 selectedTabIndex,
-                new[] { L("main.refactor"), L("main.openSpec"), L("main.imports") },
+                new[] { L("main.refactor"), L("main.openSpec"), L("main.codeIndex"), L("main.imports") },
                 MainEntryButtonStyle(),
                 MainEntryButtonHeight);
             if (nextTabIndex >= 0 && nextTabIndex != selectedTabIndex && TryLeaveRawEditor())
@@ -352,6 +354,9 @@ namespace AgentWorkflow.Editor
                     break;
                 case ToolTab.DesignDocumentTree:
                     DrawDesignDocumentTreeTab();
+                    break;
+                case ToolTab.CodeIndex:
+                    DrawCodeIndexTab();
                     break;
                 case ToolTab.CommandList:
                     DrawCommandList();
