@@ -147,6 +147,7 @@ namespace Core
         private bool preparedHuntExit;
         [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
         private PlayableSettlementContentCatalog settlementContentCatalog;
+        private PlayableWorkshopCatalog workshopContentCatalog;
 
         // ─── 运行时数据 ───────────────────────────────────────────────
 
@@ -361,6 +362,13 @@ namespace Core
             settlementContentCatalog = catalog;
         }
 
+        public void ConfigureWorkshopContent(PlayableWorkshopCatalog catalog)
+        {
+            if (gameObject.activeInHierarchy)
+                throw new System.InvalidOperationException("Workshop content must be configured before GameManager is activated.");
+            workshopContentCatalog = catalog;
+        }
+
         /// <summary>解析本场战斗装配：优先用注入的载荷，否则用序列化配置自行组装。</summary>
         private BattleSetup ResolveSetup()
         {
@@ -517,7 +525,7 @@ namespace Core
         {
             DisposeSettlementActionSession();
             if (_settlementManager?.Data == null) return;
-            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items), tabletopRandomPresenter, _settlementManager.Workshop, _settlementManager.Inventions);
+            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items), tabletopRandomPresenter, _settlementManager.Workshop, _settlementManager.Inventions, workshopContentCatalog);
         }
 
         private void DisposeSettlementActionSession()
@@ -655,6 +663,7 @@ namespace Core
                 _settlementTable3D.OnUnequipRequested = (hunterId, equipmentInstanceId) => settlementActionSession != null ? settlementActionSession.UnequipItemAsync(hunterId, equipmentInstanceId) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
                 _settlementTable3D.OnCraftRequested = recipe => settlementActionSession != null ? settlementActionSession.CraftAsync(recipe) : UniTask.FromResult(SettlementCraftCommandResult.Failed("当前不在营地阶段。"));
                 _settlementTable3D.OnInventionUnlockRequested = invention => settlementActionSession != null ? settlementActionSession.UnlockInventionAsync(invention) : UniTask.FromResult(SettlementInventionCommandResult.Failed("当前不在营地阶段。"));
+                _settlementTable3D.OnWorkshopConstructionRequested = definition => settlementActionSession != null ? settlementActionSession.BuildWorkshopAsync(definition) : UniTask.FromResult(SettlementWorkshopConstructionResult.Failed("当前不在营地阶段。"));
 
                 // 点击发明卡（有主动效果时）→ TODO: 展示效果选择面板
                 _settlementTable3D.OnInventionEffectRequested = card =>
@@ -664,7 +673,7 @@ namespace Core
 
                 _settlementTable3D.OnDepartureRequested = squad => RequestHuntDeparture(squad != null ? squad.Where(hunter => hunter != null).Select(hunter => hunter.InstanceId).ToList() : new List<int>());
 
-                _settlementTable3D.Init(_settlementManager);
+                _settlementTable3D.Init(_settlementManager, workshopContentCatalog);
             }
         }
 

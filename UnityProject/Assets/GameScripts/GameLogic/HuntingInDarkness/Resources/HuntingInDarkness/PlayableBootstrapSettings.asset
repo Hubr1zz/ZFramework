@@ -43,6 +43,7 @@ MonoBehaviour:
   huntContent: {fileID: 11400000, guid: 2314ca48b045a2b4c995c2283d7ca108, type: 2}
   huntDestinations: {fileID: 11400000, guid: 9cde4642e9a49844fb711f6a7c990ae7, type: 2}
   settlementContent: {fileID: 11400000, guid: d83222627b2bf78418ae1a72a4489485, type: 2}
+  workshopContent: {fileID: 11400000, guid: 60094c9dc03ac5246ac03ee0cfaba61d, type: 2}
   combatEquipment: {fileID: 11400000, guid: 691e29270485bb1408f1ec7b625089a5, type: 2}
   survivalEvents: {fileID: 11400000, guid: 13fc75c68456a7d4fae80f31274af677, type: 2}
   permanentInjuries: {fileID: 11400000, guid: 1d485a10e89a91247a0243d19166f1d2, type: 2}

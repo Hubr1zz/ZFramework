@@ -8,6 +8,7 @@ namespace Core
         Equipment,
         Crafting,
         Invention,
+        WorkshopConstruction,
         EventReroll,
         EventResolution
     }

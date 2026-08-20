@@ -54,6 +54,7 @@ namespace HuntingInDarkness.Bootstrap
 
         [Header("营地开局内容")]
         [SerializeField] private PlayableSettlementContentCatalog settlementContent;
+        [SerializeField] private PlayableWorkshopCatalog workshopContent;
 
         [Header("战斗装备映射")]
         [SerializeField] private PlayableCombatEquipmentCatalog combatEquipment;
@@ -91,6 +92,7 @@ namespace HuntingInDarkness.Bootstrap
         public PlayableHuntContentCatalog HuntContent => huntContent;
         public PlayableHuntDestinationCatalog HuntDestinations => huntDestinations;
         public PlayableSettlementContentCatalog SettlementContent => settlementContent;
+        public PlayableWorkshopCatalog WorkshopContent => workshopContent;
         public PlayableCombatEquipmentCatalog CombatEquipment => combatEquipment;
         public PlayableSurvivalEventCatalog SurvivalEvents => survivalEvents;
         public PlayablePermanentInjuryCatalog PermanentInjuries => permanentInjuries;
@@ -101,7 +103,7 @@ namespace HuntingInDarkness.Bootstrap
         public string DefaultEncounterId => string.IsNullOrWhiteSpace(defaultEncounterId) ? "default" : defaultEncounterId.Trim();
         public PlayableEncounterCatalog EncounterCatalog => encounterCatalog;
 
-        public bool CanCreateGame => boss != null && hunterSquad.Exists(config => config != null) && (encounterCatalog == null || encounterCatalog.IsConfigured) && huntContent != null && huntContent.IsConfigured && settlementContent != null && settlementContent.IsConfigured && combatEquipment != null && combatEquipment.IsConfigured && survivalEvents != null && survivalEvents.IsConfigured && permanentInjuries != null && permanentInjuries.IsConfigured && symptoms != null && symptoms.IsConfigured && growthMilestones != null && growthMilestones.IsConfigured && weaponMastery != null && weaponMastery.IsConfigured;
+        public bool CanCreateGame => boss != null && hunterSquad.Exists(config => config != null) && (encounterCatalog == null || encounterCatalog.IsConfigured) && huntContent != null && huntContent.IsConfigured && settlementContent != null && settlementContent.IsConfigured && workshopContent != null && combatEquipment != null && combatEquipment.IsConfigured && survivalEvents != null && survivalEvents.IsConfigured && permanentInjuries != null && permanentInjuries.IsConfigured && symptoms != null && symptoms.IsConfigured && growthMilestones != null && growthMilestones.IsConfigured && weaponMastery != null && weaponMastery.IsConfigured;
 
         public BattleSetup CreateBattleSetup()
         {

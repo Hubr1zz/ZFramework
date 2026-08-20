@@ -63,6 +63,13 @@
       "category": "feature",
       "readiness": "implemented",
       "specPath": "openspec/specs/tabletop-settlement-invention/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-workshop-construction",
+      "label": "营地桌面工坊建设",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-workshop-construction/spec.md"
     }
   ],
   "edges": [
@@ -153,6 +160,26 @@
       "type": "requires",
       "status": "defined",
       "reason": "发明解锁由营地阶段 Runner 串行校验、提交并发布持久化事务",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-workshop-construction--requires--tabletop-settlement-invention",
+      "from": "tabletop-settlement-workshop-construction",
+      "to": "tabletop-settlement-invention",
+      "type": "requires",
+      "status": "defined",
+      "reason": "工坊蓝图可由前置发明控制建设资格",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-workshop-construction--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-workshop-construction",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "建设事务在营地 Runner 内串行提交并触发持久化",
       "gapId": "",
       "blocksImplementation": false
     }

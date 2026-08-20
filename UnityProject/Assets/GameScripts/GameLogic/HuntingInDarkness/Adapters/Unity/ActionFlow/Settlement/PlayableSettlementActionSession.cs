@@ -20,11 +20,13 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly ISettlementEquipmentContent equipmentContent;
         private readonly WorkshopSystem workshopSystem;
         private readonly InventionSystem inventionSystem;
+        private readonly PlayableWorkshopCatalog workshopCatalog;
+        private readonly PlayableWorkshopConstructionService workshopConstructionService;
         private readonly EventSystem eventSystem;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
@@ -32,6 +34,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             this.equipmentContent = equipmentContent ?? new PlayableSettlementEquipmentContentAdapter(null);
             this.workshopSystem = workshopSystem;
             this.inventionSystem = inventionSystem;
+            this.workshopCatalog = workshopCatalog;
+            workshopConstructionService = new PlayableWorkshopConstructionService(() => this.settlement);
             this.eventSystem = eventSystem;
             this.randomInteractionPresenter = randomInteractionPresenter;
             EventInput = eventInput;
@@ -268,6 +272,21 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementInventionCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public async UniTask<SettlementWorkshopConstructionResult> BuildWorkshopAsync(PlayableWorkshopDefinition definition)
+        {
+            if (!IsActive) return SettlementWorkshopConstructionResult.Failed("当前不在营地阶段。");
+            if (workshopCatalog == null) return SettlementWorkshopConstructionResult.Failed("营地工坊蓝图尚未配置。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
+            string workshopId = string.IsNullOrWhiteSpace(definition?.WorkshopId) ? "unknown" : definition.WorkshopId;
+            ReactorEntityHandle workshopEntity = environment.EntityHandles.GetOrCreate("settlement-workshop", workshopId, definition != null ? definition.DisplayName : "未知工坊");
+            var action = new BuildSettlementWorkshopAction(settlement, workshopConstructionService, workshopCatalog.Workshops, definition, outbox, settlementEntity, workshopEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementWorkshopConstructionResult.Failed(outcome.Reason) : action.Result;
         }
 
         public async UniTask<WeaponTrainingCommandResult> TrainWeaponAsync(int hunterId, string masteryId)

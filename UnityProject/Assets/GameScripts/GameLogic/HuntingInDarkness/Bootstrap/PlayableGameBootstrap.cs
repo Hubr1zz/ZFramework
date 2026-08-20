@@ -85,6 +85,7 @@ namespace HuntingInDarkness.Bootstrap
             var manager = managerObject.AddComponent<GameManager>();
             manager.ConfigureForStandaloneTest(defaultBattleSetup, settings.InitialPhase, settings.CellSize);
             manager.ConfigureSettlementContent(settings.SettlementContent);
+            manager.ConfigureWorkshopContent(settings.WorkshopContent);
             managerObject.SetActive(true);
 
             var mainCamera = Camera.main;
@@ -109,7 +110,6 @@ namespace HuntingInDarkness.Bootstrap
                 gameObject.AddComponent<PlayableSettlementEventView>().Initialize(manager);
                 gameObject.AddComponent<PlayableRecruitmentView>().Initialize(manager, settings.SettlementContent);
                 gameObject.AddComponent<PlayableHunterRecoveryView>().Initialize(manager, settings.SettlementContent);
-                gameObject.AddComponent<PlayableWorkshopConstructionView>().Initialize(manager);
                 gameObject.AddComponent<PlayableSymptomGrowthView>().Initialize(manager, settings.Symptoms);
                 gameObject.AddComponent<PlayableGrowthMilestoneToast>().Initialize(manager);
             }

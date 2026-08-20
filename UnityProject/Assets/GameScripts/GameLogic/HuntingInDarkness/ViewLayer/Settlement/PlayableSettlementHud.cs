@@ -213,29 +213,9 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         private void DrawProgression(SettlementInstance data)
         {
-            var inventionSystem = manager.SettlementInventions;
-            var workshopSystem = manager.SettlementWorkshop;
-            if (inventionSystem == null || workshopSystem == null)
-            {
-                GUILayout.Label("营地成长系统尚未初始化。", mutedStyle);
-                return;
-            }
-
-            GUILayout.Label("发明", sectionStyle);
-            GUILayout.Label("发明决定营地学会什么，并解锁对应的生产能力。", mutedStyle);
-            foreach (var invention in inventionSystem.AllInventions)
-                DrawInvention(inventionSystem, data, invention);
-
+            GUILayout.Label("桌面发展", sectionStyle);
+            GUILayout.Label("发明、工坊建设、制造与装备库存已经迁入营地 3D 桌面。", mutedStyle);
             DrawWeaponTraining(data);
-
-            GUILayout.Space(12f);
-            GUILayout.Label("加工台", sectionStyle);
-            GUILayout.Label("把狩猎带回的材料转化为长期库存。", mutedStyle);
-            foreach (var recipe in workshopSystem.AllRecipes)
-                DrawRecipe(workshopSystem, data, recipe);
-
-            GUILayout.Space(12f);
-            DrawEquipmentStorage(data);
 
             if (!string.IsNullOrEmpty(progressionResult))
             {
