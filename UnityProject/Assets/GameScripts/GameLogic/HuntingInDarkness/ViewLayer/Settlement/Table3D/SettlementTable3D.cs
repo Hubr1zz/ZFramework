@@ -37,6 +37,10 @@ namespace UI
         [SerializeField] private HunterEquipmentPanel3D hunterEquipmentPanel;
         [SerializeField] private Transform hunterEquipmentPanelAnchor;
 
+        [Header("发明 3D 确认板")]
+        [SerializeField] private InventionUnlockPanel3D inventionUnlockPanel;
+        [SerializeField] private Transform inventionUnlockPanelAnchor;
+
         [Header("狩猎整备入口")]
         [SerializeField] private Vector3 fallbackDepartureLauncherPosition = new(3.25f, 0.03f, -2.65f);
         private TabletopDepartureLauncherCard3D departureLauncher;
@@ -52,6 +56,7 @@ namespace UI
         public System.Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> OnEquipRequested;
         public System.Func<int, int, UniTask<SettlementEquipmentCommandResult>> OnUnequipRequested;
         public System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> OnCraftRequested;
+        public System.Func<InventionData, UniTask<SettlementInventionCommandResult>> OnInventionUnlockRequested;
 
         // ─── 注入数据 ─────────────────────────────────────────────────────
         private SettlementManager _mgr;
@@ -63,6 +68,7 @@ namespace UI
             _mgr = mgr;
             EnsureSceneRefs();    // 未连线时程序化搭建四区 + presenter
             EnsureHunterEquipmentPanel();
+            EnsureInventionUnlockPanel();
             EnsureDepartureLauncher();
             WireZoneCallbacks();  // 把上层设的回调下发给分区
             FillAllZones();
@@ -76,6 +82,7 @@ namespace UI
         {
             _hunterZone.OnHunterClicked              = ShowHunterEquipment;
             _inventionZone.OnInventionEffectRequested = OnInventionEffectRequested;
+            _inventionZone.OnInventionUnlockRequested = ShowInventionUnlock;
             _workshopZone.OnWorkshopClicked          = OnWorkshopClicked;
             _workshopZone.OnCraftRequested           = OnCraftRequested;
             if (_squadZone != null) _squadZone.OnDepartureRequested = OnDepartureRequested;
@@ -96,6 +103,20 @@ namespace UI
             hunterEquipmentPanel.ConfigureCommands(OnEquipRequested, OnUnequipRequested);
         }
 
+        private void EnsureInventionUnlockPanel()
+        {
+            if (inventionUnlockPanel == null)
+                inventionUnlockPanel = InventionUnlockPanel3D.Create(transform);
+            inventionUnlockPanel.EnsureBuilt();
+        }
+
+        private void ShowInventionUnlock(InventionCard3D card)
+        {
+            if (card?.Data == null || inventionUnlockPanel == null) return;
+            Vector3 position = inventionUnlockPanelAnchor != null ? inventionUnlockPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -2.85f));
+            inventionUnlockPanel.Open(card.Data, _mgr.Inventions, OnInventionUnlockRequested, position);
+        }
+
         private void ShowHunterEquipment(HunterInstance hunter)
         {
             if (hunterEquipmentPanel == null)
@@ -113,7 +134,7 @@ namespace UI
             _hunterZone.Fill(_mgr.Data.GetAvailableHunters());
             _resourceZone.Fill(_mgr.Data.Resources);
             _workshopZone.Fill(_mgr.Workshop);
-            _inventionZone.Fill(_mgr.Inventions.AllInventions);
+            _inventionZone.Fill(_mgr.Inventions);
         }
 
         // ─── 程序化回退布局 ─────────────────────────────────────────────────
@@ -232,6 +253,7 @@ namespace UI
             if (_mgr == null) return;
             FillAllZones();
             hunterEquipmentPanel?.RefreshVisible();
+            inventionUnlockPanel?.RefreshVisible();
         }
 
         /// <summary>刷新发明与工坊卡牌的视觉状态。</summary>
@@ -247,6 +269,7 @@ namespace UI
             _resourceZone.RefreshCounts(_mgr);
             _workshopZone.RefreshCards();
             hunterEquipmentPanel?.RefreshVisible();
+            inventionUnlockPanel?.RefreshVisible();
         }
 
         // ─── EventBus ─────────────────────────────────────────────────────

@@ -61,6 +61,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 8. 战斗事件目前默认使用当前狩猎小队，或营地全部可用猎人；事件级参与者选择规则尚未定稿。正式出现单挑、护送或临时盟友遭遇时，应让遭遇定义产生显式 Roster Plan，而不是在 `GameManager` 增加名称判断。
 9. `PlayableSettlementEventView` 已承担营地与狩猎共用表现，类名不再准确。未来迁移 View Installer 时应在确认场景序列化引用后一次性改名，避免为了命名洁癖引入多轮兼容迁移。
 10. 出猎目前由 `GameManager` 串联 Settlement 与 Campaign 两个 Runner；目的地在阶段切换失败时会恢复，但已提交名册尚无统一补偿动作。后续跨 Runner 流程继续增加时，应由 `CampaignFlowCoordinator` 提供带补偿的请求对象，不要继续把编排分支堆入 `GameManager`。
+11. `InventionSystem` 仍通过 `effectDescription` 关键词直接修改猎人，并把资源消费、解锁和效果应用包在一个不可回滚的方法内。当前 Settlement Action 已补齐串行入口、重复成本校验和提交事件；后续表驱动效果落地时，应把发明效果改为结构化定义，并由可预检、可补偿的领域事务执行，避免文本变化或效果异常造成部分提交。
 
 ## 暂不改动
 

@@ -19,17 +19,19 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly ISettlementCareContent careContent;
         private readonly ISettlementEquipmentContent equipmentContent;
         private readonly WorkshopSystem workshopSystem;
+        private readonly InventionSystem inventionSystem;
         private readonly EventSystem eventSystem;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
             this.careContent = careContent ?? new PlayableSettlementCareContentAdapter(null);
             this.equipmentContent = equipmentContent ?? new PlayableSettlementEquipmentContentAdapter(null);
             this.workshopSystem = workshopSystem;
+            this.inventionSystem = inventionSystem;
             this.eventSystem = eventSystem;
             this.randomInteractionPresenter = randomInteractionPresenter;
             EventInput = eventInput;
@@ -237,6 +239,35 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementCraftCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public bool CanUnlockInvention(InventionData invention, out string reason)
+        {
+            if (inventionSystem == null)
+            {
+                reason = "营地发明系统尚未配置。";
+                return false;
+            }
+            if (invention == null || !inventionSystem.AllInventions.Contains(invention))
+            {
+                reason = "发明不属于当前营地。";
+                return false;
+            }
+            return inventionSystem.CanUnlock(invention, out reason);
+        }
+
+        public async UniTask<SettlementInventionCommandResult> UnlockInventionAsync(InventionData invention)
+        {
+            if (!IsActive) return SettlementInventionCommandResult.Failed("当前不在营地阶段。");
+            if (inventionSystem == null) return SettlementInventionCommandResult.Failed("营地发明系统尚未配置。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
+            ReactorEntityHandle inventionEntity = environment.EntityHandles.GetOrCreate("settlement-invention", invention != null ? invention.inventionName : "unknown", invention != null ? invention.inventionName : "未知发明");
+            var action = new UnlockSettlementInventionAction(settlement, inventionSystem, invention, outbox, settlementEntity, inventionEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementInventionCommandResult.Failed(outcome.Reason) : action.Result;
         }
 
         public async UniTask<WeaponTrainingCommandResult> TrainWeaponAsync(int hunterId, string masteryId)

@@ -56,6 +56,13 @@
       "category": "feature",
       "readiness": "implemented",
       "specPath": "openspec/specs/tabletop-hunt-retreat/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-invention",
+      "label": "营地桌面发明解锁",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-invention/spec.md"
     }
   ],
   "edges": [
@@ -136,6 +143,16 @@
       "type": "requires",
       "status": "defined",
       "reason": "Campaign 接受切换后由营地消费狩猎记录与转入资源",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-invention--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-invention",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "发明解锁由营地阶段 Runner 串行校验、提交并发布持久化事务",
       "gapId": "",
       "blocksImplementation": false
     }

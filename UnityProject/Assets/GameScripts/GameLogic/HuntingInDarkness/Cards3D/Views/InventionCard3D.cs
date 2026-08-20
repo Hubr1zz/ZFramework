@@ -7,11 +7,17 @@ namespace Cards3D
 {
     public class InventionCard3D : CardView3D
     {
-        static readonly Color ColBody  = new(0.20f, 0.28f, 0.36f);
+        static readonly Color ColBody = new(0.20f, 0.28f, 0.36f);
         static readonly Color ColHover = new(0.32f, 0.44f, 0.58f);
+        static readonly Color ColAvailable = new(0.34f, 0.30f, 0.12f);
+        static readonly Color ColAvailableHover = new(0.48f, 0.42f, 0.18f);
+        static readonly Color ColLocked = new(0.13f, 0.14f, 0.17f);
 
         InventionData              _data;
         List<InventionActiveEffect> _effects = new();
+        bool isUnlocked;
+        bool canUnlock;
+        string availabilityReason = string.Empty;
 
         [SerializeField] TextMeshPro    _nameText;
         [SerializeField] TextMeshPro    _descText;
@@ -25,6 +31,7 @@ namespace Cards3D
 
         /// <summary>点击发明卡时触发（由外部注入以展示效果选择面板）</summary>
         public System.Action<InventionCard3D> OnEffectMenuRequested;
+        public System.Action<InventionCard3D> OnUnlockRequested;
 
         protected override CardCategory GetDefaultCategory() => CardCategory.Invention;
 
@@ -87,7 +94,7 @@ namespace Cards3D
         {
             if (_bodyRenderer == null || _data == null) return;
 
-            _bodyRenderer.material.color = IsHovered ? ColHover : ColBody;
+            _bodyRenderer.material.color = ResolveBodyColor();
 
             if (_imageRenderer != null) _imageRenderer.sprite = _data.icon;
 
@@ -100,18 +107,38 @@ namespace Cards3D
             _descText.color = new Color(0.65f, 0.70f, 0.78f);
 
             bool hasEffects = _effects != null && _effects.Count > 0;
-            _hintText.text  = hasEffects ? "点击使用" : "";
+            _hintText.text = isUnlocked ? (hasEffects ? "已掌握 · 点击使用" : "已掌握") : (canUnlock ? "点击发明" : availabilityReason);
             _hintText.color = new Color(0.70f, 0.82f, 0.95f);
         }
 
         protected override void OnMouseDown()
         {
+            if (!isUnlocked)
+            {
+                OnUnlockRequested?.Invoke(this);
+                return;
+            }
             if (_effects != null && _effects.Count > 0)
                 OnEffectMenuRequested?.Invoke(this);
             else
                 base.OnMouseDown();
         }
 
+        public void ConfigureState(bool unlocked, bool unlockable, string reason)
+        {
+            isUnlocked = unlocked;
+            canUnlock = unlockable;
+            availabilityReason = reason ?? string.Empty;
+            ApplyVisuals();
+        }
+
         public void Refresh() => ApplyVisuals();
+
+        private Color ResolveBodyColor()
+        {
+            if (isUnlocked) return IsHovered ? ColHover : ColBody;
+            if (canUnlock) return IsHovered ? ColAvailableHover : ColAvailable;
+            return ColLocked;
+        }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Cards3D;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.Settlement;
 using UnityEngine;
 
 namespace UI
@@ -15,29 +16,41 @@ namespace UI
 
         /// <summary>点击发明卡（有主动效果时）回调，由上层展示效果选择面板。</summary>
         public System.Action<InventionCard3D> OnInventionEffectRequested;
+        public System.Action<InventionCard3D> OnInventionUnlockRequested;
 
         private readonly List<InventionCard3D> _cards = new();
+        private InventionSystem inventionSystem;
 
         public void SetRefs(SlotGrid grid) => _grid = grid;
 
-        public void Fill(List<InventionData> inventions)
+        public void Fill(InventionSystem system)
         {
             Clear();
-            if (_grid == null) return;
+            inventionSystem = system;
+            if (_grid == null || inventionSystem == null) return;
 
-            foreach (var inv in inventions)
+            foreach (var inv in inventionSystem.AllInventions)
             {
                 var card = EntityCreator.CreateInventionCard(inv, transform);
                 card.OnEffectMenuRequested = c => OnInventionEffectRequested?.Invoke(c);
+                card.OnUnlockRequested = c => OnInventionUnlockRequested?.Invoke(c);
                 _grid.TryPlaceCard(card);
                 _cards.Add(card);
             }
+            RefreshCards();
         }
 
         /// <summary>刷新发明卡视觉状态（解锁/可解锁/锁定）。</summary>
         public void RefreshCards()
         {
-            foreach (var c in _cards) c.Refresh();
+            foreach (InventionCard3D card in _cards)
+            {
+                if (card == null || inventionSystem == null) continue;
+                bool unlocked = inventionSystem.IsUnlocked(card.Data);
+                string reason = string.Empty;
+                bool canUnlock = !unlocked && inventionSystem.CanUnlock(card.Data, out reason);
+                card.ConfigureState(unlocked, canUnlock, unlocked ? string.Empty : reason);
+            }
         }
 
         public void Clear()

@@ -7,6 +7,7 @@ namespace Core
         Recovery,
         Equipment,
         Crafting,
+        Invention,
         EventReroll,
         EventResolution
     }

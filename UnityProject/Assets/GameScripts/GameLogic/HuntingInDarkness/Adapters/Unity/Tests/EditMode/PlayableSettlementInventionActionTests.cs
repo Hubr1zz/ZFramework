@@ -1,0 +1,173 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using CardGame.ActionQueue;
+using Core;
+using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow.Settlement;
+using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Settlement;
+using HuntingInDarkness.Settlement;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace HuntingInDarkness.Adapter.Tests
+{
+    public sealed class PlayableSettlementInventionActionTests
+    {
+        [Test]
+        public async Task UnlockInventionAsync_SuccessCommitsResourcesUnlockAndFacts()
+        {
+            TestContext context = CreateContext(2);
+            var received = new List<string>();
+            Action<ResourceChangedEvent> resourceHandler = evt => received.Add($"resource:{evt.OldAmount}>{evt.NewAmount}");
+            Action<SettlementInventionUnlockedEvent> inventionHandler = evt => received.Add($"invention:{evt.InventionName}");
+            Action<SettlementTransactionCommittedEvent> transactionHandler = evt => received.Add($"transaction:{evt.Kind}");
+            EventBus.Subscribe(resourceHandler);
+            EventBus.Subscribe(inventionHandler);
+            EventBus.Subscribe(transactionHandler);
+            try
+            {
+                using var session = new PlayableSettlementActionSession(context.Settlement, new EmptyWeaponTrainingContent(), inventionSystem: context.System);
+
+                SettlementInventionCommandResult result = await session.UnlockInventionAsync(context.Invention);
+
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(context.Settlement.GetResource("碎石"), Is.Zero);
+                Assert.That(context.System.IsUnlocked(context.Invention), Is.True);
+                Assert.That(received, Is.EqualTo(new[] { "resource:2>0", "invention:石工", "transaction:Invention" }));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(resourceHandler);
+                EventBus.Unsubscribe(inventionHandler);
+                EventBus.Unsubscribe(transactionHandler);
+                context.Dispose();
+            }
+        }
+
+        [Test]
+        public async Task UnlockInventionAsync_ConcurrentRequestsSpendOnlyOnce()
+        {
+            TestContext context = CreateContext(2);
+            try
+            {
+                using var session = new PlayableSettlementActionSession(context.Settlement, new EmptyWeaponTrainingContent(), inventionSystem: context.System);
+
+                Task<SettlementInventionCommandResult> first = session.UnlockInventionAsync(context.Invention).AsTask();
+                Task<SettlementInventionCommandResult> second = session.UnlockInventionAsync(context.Invention).AsTask();
+                SettlementInventionCommandResult[] results = await Task.WhenAll(first, second);
+
+                Assert.That(Array.FindAll(results, result => result.Succeeded).Length, Is.EqualTo(1));
+                Assert.That(context.Settlement.GetResource("碎石"), Is.Zero);
+            }
+            finally
+            {
+                context.Dispose();
+            }
+        }
+
+        [Test]
+        public async Task UnlockInventionAsync_PreventedReactorLeavesStateUntouched()
+        {
+            TestContext context = CreateContext(2);
+            try
+            {
+                using var session = new PlayableSettlementActionSession(context.Settlement, new EmptyWeaponTrainingContent(), inventionSystem: context.System);
+                session.Reactors.RegisterGlobal(new PreventInventionReactor());
+
+                SettlementInventionCommandResult result = await session.UnlockInventionAsync(context.Invention);
+
+                Assert.That(result.Succeeded, Is.False);
+                Assert.That(result.Reason, Is.EqualTo("测试规则阻止发明"));
+                Assert.That(context.Settlement.GetResource("碎石"), Is.EqualTo(2));
+                Assert.That(context.System.IsUnlocked(context.Invention), Is.False);
+            }
+            finally
+            {
+                context.Dispose();
+            }
+        }
+
+        [Test]
+        public async Task UnlockInventionAsync_ForeignInventionCannotMutateSettlement()
+        {
+            TestContext context = CreateContext(2);
+            InventionData foreign = ScriptableObject.CreateInstance<InventionData>();
+            foreign.inventionName = "外来发明";
+            try
+            {
+                using var session = new PlayableSettlementActionSession(context.Settlement, new EmptyWeaponTrainingContent(), inventionSystem: context.System);
+
+                SettlementInventionCommandResult result = await session.UnlockInventionAsync(foreign);
+
+                Assert.That(result.Succeeded, Is.False);
+                Assert.That(context.Settlement.GetResource("碎石"), Is.EqualTo(2));
+                Assert.That(context.Settlement.IsInventionUnlocked(foreign.inventionName), Is.False);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(foreign);
+                context.Dispose();
+            }
+        }
+
+        private static TestContext CreateContext(int resourceAmount)
+        {
+            var settlement = new SettlementInstance();
+            settlement.AddResource("碎石", resourceAmount);
+            ItemData resource = ScriptableObject.CreateInstance<ItemData>();
+            resource.itemName = "碎石";
+            resource.itemType = ItemType.Resource;
+            InventionData invention = ScriptableObject.CreateInstance<InventionData>();
+            invention.inventionName = "石工";
+            invention.costs.Add(new InventionCost { resource = resource, count = 1 });
+            invention.costs.Add(new InventionCost { resource = resource, count = 1 });
+            var system = new InventionSystem(settlement);
+            system.AllInventions.Add(invention);
+            return new TestContext(settlement, system, invention, resource);
+        }
+
+        private sealed class TestContext : IDisposable
+        {
+            private readonly ItemData resource;
+
+            public TestContext(SettlementInstance settlement, InventionSystem system, InventionData invention, ItemData resource)
+            {
+                Settlement = settlement;
+                System = system;
+                Invention = invention;
+                this.resource = resource;
+            }
+
+            public SettlementInstance Settlement { get; }
+            public InventionSystem System { get; }
+            public InventionData Invention { get; }
+
+            public void Dispose()
+            {
+                UnityEngine.Object.DestroyImmediate(Invention);
+                UnityEngine.Object.DestroyImmediate(resource);
+            }
+        }
+
+        private sealed class PreventInventionReactor : GameActionReactor<UnlockSettlementInventionAction>
+        {
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+            protected override void React(UnlockSettlementInventionAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试规则阻止发明");
+        }
+
+        private sealed class EmptyWeaponTrainingContent : IWeaponTrainingContent
+        {
+            public string RequiredInventionId => string.Empty;
+            public string CostResourceId => string.Empty;
+            public int ResourceCost => 0;
+            public int Experience => 0;
+            public bool TryGetFamily(string masteryId, out WeaponMasteryFamilyDefinition family)
+            {
+                family = null;
+                return false;
+            }
+        }
+    }
+}
