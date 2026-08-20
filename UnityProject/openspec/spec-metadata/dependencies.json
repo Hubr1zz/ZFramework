@@ -156,6 +156,13 @@
       "specPath": "openspec/specs/table-driven-crafting-content/spec.md"
     },
     {
+      "id": "table-driven-invention-content",
+      "label": "读表发明与信仰分支",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-invention-content/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -421,6 +428,26 @@
       "type": "requires",
       "status": "defined",
       "reason": "表配方复用现有工坊可用性、3D 配方卡与 Settlement ActionQueue 制作事务",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-invention-content--requires--table-driven-item-keywords",
+      "from": "table-driven-invention-content",
+      "to": "table-driven-item-keywords",
+      "type": "requires",
+      "status": "defined",
+      "reason": "发明成本以稳定物品 ContentId 解析并由统一资源账本消费",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-invention-content--requires--tabletop-settlement-invention",
+      "from": "table-driven-invention-content",
+      "to": "tabletop-settlement-invention",
+      "type": "requires",
+      "status": "defined",
+      "reason": "表发明复用现有 3D 发明卡、稳定身份目录与 Settlement ActionQueue 解锁事务",
       "gapId": "",
       "blocksImplementation": false
     },

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "inventions": [
+    {
+      "id": "faith",
+      "inventionName": "信仰",
+      "description": "营地开始以共同信念对抗漫长黑夜。",
+      "prerequisiteIds": [],
+      "costs": [
+        { "itemId": "broken_stone", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "解锁信仰分支。",
+      "category": "Knowledge"
+    },
+    {
+      "id": "ritual",
+      "inventionName": "仪式",
+      "description": "以反复演练的仪轨稳固猎人们的心智。",
+      "prerequisiteIds": ["faith"],
+      "costs": [
+        { "itemId": "soft_organ", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "全体可出战猎人的意志点上限 +1。",
+      "category": "Knowledge"
+    }
+  ]
+}

@@ -49,6 +49,9 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(saltWard.keywords, Is.EquivalentTo(new[] { "ritual", "ward" }));
             Assert.That(saltWard.armorStats.armorBody, Is.EqualTo(1));
             Assert.That(manager.Workshop.AllRecipes.Exists(recipe => recipe != null && recipe.recipeName == "刻制盐纹护符" && recipe.outputItem == saltWard), Is.True);
+            Assert.That(PlayableSettlementInventionRegistry.TryGet("faith", out InventionData faith), Is.True);
+            Assert.That(PlayableSettlementInventionRegistry.TryGet("ritual", out InventionData ritual), Is.True);
+            Assert.That(ritual.prerequisites, Is.EqualTo(new[] { faith }));
             Assert.That(manager.Timeline.RandomEventPool, Has.Count.GreaterThanOrEqualTo(5));
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.name == "random_stone_vigil"), Is.True);
             Assert.That(manager.Timeline.RandomEventPool.FindAll(gameEvent => gameEvent != null && gameEvent.eventType == GameEventType.Choice && gameEvent.maxYear <= 0), Has.Count.GreaterThanOrEqualTo(3));

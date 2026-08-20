@@ -26,6 +26,7 @@ namespace HuntingInDarkness.Settlement
         [SerializeField] private List<EventData> randomEvents = new();
         [SerializeField] private List<EventData> mainStoryEvents = new();
         [SerializeField] private List<InventionData> inventions = new();
+        [SerializeField] private TextAsset inventionTable;
         [SerializeField] private List<CraftRecipe> recipes = new();
 
         [Header("招募")]
@@ -56,9 +57,9 @@ namespace HuntingInDarkness.Settlement
         {
             if (manager == null || !IsConfigured) return false;
 
-            List<InventionData> configuredInventions = inventions.FindAll(invention => invention != null);
-            PlayableSettlementInventionRegistry.Configure(configuredInventions);
-            if (PlayableSettlementInventionRegistry.Inventions.Count != configuredInventions.Count)
+            PlayableSettlementContentExtensions.Extend(GetKnownItems(), recipes, inventions, inventionTable, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions);
+            PlayableSettlementInventionRegistry.Configure(allInventions);
+            if (PlayableSettlementInventionRegistry.Inventions.Count != allInventions.Count)
             {
                 Debug.LogError("[SettlementManager] 发明目录包含空白、重复或别名冲突的稳定身份，已拒绝装配。");
                 return false;
@@ -67,7 +68,6 @@ namespace HuntingInDarkness.Settlement
             manager.HunterMgmt.ConfigureDeathInspiration(deathInspirationGrowth, deathInspirationMinimumAge);
             manager.Data.HuntsPerYear = Mathf.Max(1, huntsPerYear);
             manager.Data.HuntsCompletedThisYear = Mathf.Clamp(manager.Data.HuntsCompletedThisYear, 0, manager.Data.HuntsPerYear - 1);
-            PlayableSettlementContentExtensions.Extend(GetKnownItems(), recipes, inventions, out List<ItemData> allItems, out List<CraftRecipe> allRecipes);
             PlayableSettlementItemRegistry.Configure(allItems);
             PlayableSettlementItemRegistry.MigratePersistentState(manager.Data);
             PlayableSettlementInventionRegistry.MigratePersistentState(manager.Data);

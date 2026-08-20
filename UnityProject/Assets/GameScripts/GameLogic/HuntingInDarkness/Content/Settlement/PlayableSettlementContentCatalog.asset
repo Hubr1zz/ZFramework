@@ -35,6 +35,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bbdb198c4c6e406479b4717a7d1d8aa2, type: 2}
   - {fileID: 11400000, guid: f8ab2e4560ff3934b9f563f6bed6f005, type: 2}
   - {fileID: 11400000, guid: 82d3979997c86da4288a14a92f7b2b7e, type: 2}
+  inventionTable: {fileID: 4900000, guid: 644686d452642234cb73944616376d89, type: 3}
   recipes:
   - recipeName: "\u6253\u78E8\u77F3\u5668"
     ingredients:

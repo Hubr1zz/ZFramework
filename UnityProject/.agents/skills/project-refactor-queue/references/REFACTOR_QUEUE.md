@@ -139,6 +139,16 @@
 - **维护时间**: 2026-08-20
 - **维护备注**: 现有来源接口是后续切换点；应在完整分析战役启动与内容目录生命周期后一次迁移。
 
+### [优先级: 高] 发明效果从本地化文本解析迁移为结构化 Action 效果
+- **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs`、`Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/InventionSystem.cs`
+- **类型**: 内容扩展性 / 规则注入
+- **描述**: 当前 `InventionSystem.ApplyEffect` 通过中文 `effectDescription` 关键词决定力量或意志上限变化。首个“仪式”分支可沿用该兼容入口跑通流程，但改写文案、本地化或大量效果覆盖会静默改变规则。后续应一次性定义稳定 effect type + 参数表，将效果转换为 Settlement `GameAction`，允许所属环境 Reactor 覆盖或注入；`effectDescription` 只保留玩家文本，不再作为规则权威。不要为每个新发明继续追加字符串分支。
+- **来源**: 2026-08-20 读表发明与信仰分支实现审查
+- **状态**: 待处理
+- **维护人**: codex
+- **维护时间**: 2026-08-20
+- **维护备注**: 需先宏观设计发明、事件、装备等共享效果协议；当前阶段只记录，不局部建立第二套效果系统。
+
 ### [优先级: 高] 物品库存与装备存档迁移到稳定 ContentId
 - **文件**: `Adapters/Unity/Data/{ItemData,HunterData,SettlementData}.cs`、`Adapters/Unity/Settlement/SettlementEquipmentStorage.cs`、营地资源/制作/装备 Action 与存档迁移器
 - **类型**: 内容身份 / 存档演进
