@@ -1136,6 +1136,13 @@ namespace Core
         // 清理
         // ═══════════════════════════════════════════
 
+        private void OnApplicationQuit()
+        {
+            if (_settlementManager?.Data == null)
+                return;
+            SaveLoadSystem.SaveImmediate(_settlementManager.Data);
+        }
+
         private void OnDestroy()
         {
             PlayableCampaignActionSession campaignSession = campaignActionSession;

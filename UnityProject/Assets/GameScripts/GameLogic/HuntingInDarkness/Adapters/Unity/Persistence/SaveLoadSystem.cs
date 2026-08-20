@@ -34,18 +34,9 @@ namespace Core
                 string savePath = SavePath;
                 string json = JsonUtility.ToJson(data, prettyPrint: true);
                 int saveVersion = Interlocked.Increment(ref nextSaveVersion);
-                await UniTask.RunOnThreadPool(
-                    () =>
-                    {
-                        lock (SaveGate)
-                        {
-                            if (saveVersion < lastWrittenSaveVersion) return;
-                            System.IO.File.WriteAllText(savePath, json);
-                            lastWrittenSaveVersion = saveVersion;
-                        }
-                    },
-                    cancellationToken: cancellationToken);
-                Debug.Log($"[SaveLoad] 存档成功 → {savePath}");
+                bool saved = await UniTask.RunOnThreadPool(() => TryWriteSnapshot(savePath, json, saveVersion), cancellationToken: cancellationToken);
+                if (saved)
+                    Debug.Log($"[SaveLoad] 存档成功 → {savePath}");
             }
             catch (System.OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -54,6 +45,36 @@ namespace Core
             catch (System.Exception ex)
             {
                 Debug.LogError($"[SaveLoad] 存档失败: {ex.Message}");
+            }
+        }
+
+        public static void SaveImmediate(SettlementInstance data)
+        {
+            if (data == null)
+                return;
+            try
+            {
+                string savePath = SavePath;
+                string json = JsonUtility.ToJson(data, prettyPrint: true);
+                int saveVersion = Interlocked.Increment(ref nextSaveVersion);
+                if (TryWriteSnapshot(savePath, json, saveVersion))
+                    Debug.Log($"[SaveLoad] 退出前存档成功 → {savePath}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[SaveLoad] 退出前存档失败: {ex.Message}");
+            }
+        }
+
+        private static bool TryWriteSnapshot(string savePath, string json, int saveVersion)
+        {
+            lock (SaveGate)
+            {
+                if (saveVersion < lastWrittenSaveVersion)
+                    return false;
+                System.IO.File.WriteAllText(savePath, json);
+                lastWrittenSaveVersion = saveVersion;
+                return true;
             }
         }
 

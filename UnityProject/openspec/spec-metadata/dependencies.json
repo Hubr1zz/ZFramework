@@ -51,6 +51,13 @@
       "specPath": "openspec/specs/tabletop-opening-sequence/spec.md"
     },
     {
+      "id": "campaign-persistence",
+      "label": "战役持久化与恢复",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-persistence/spec.md"
+    },
+    {
       "id": "tabletop-hunt-departure",
       "label": "3D 狩猎远征整备",
       "category": "feature",
@@ -172,6 +179,26 @@
       "type": "requires",
       "status": "defined",
       "reason": "开场序列暂时遮蔽营地表现，并在结束后恢复已经等待输入的营地流程",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-persistence--requires--tabletop-opening-sequence",
+      "from": "campaign-persistence",
+      "to": "tabletop-opening-sequence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "继续战役通过 3D 开场序列发现并加载最近营地记录",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-persistence--requires--settlement-phase-orchestration",
+      "from": "campaign-persistence",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地阶段提供需要跨会话保存和恢复的权威 SettlementInstance",
       "gapId": "",
       "blocksImplementation": false
     },
