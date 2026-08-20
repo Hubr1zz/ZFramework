@@ -121,6 +121,46 @@ namespace HuntingInDarkness.GameCore.Settlement
         }
     }
 
+    public static class InventionEffectRules
+    {
+        public static bool IsEligible(HunterState hunter, InventionEffectTarget target)
+        {
+            if (hunter == null || hunter.IsDead) return false;
+            return target == InventionEffectTarget.AliveHunters || target == InventionEffectTarget.AvailableHunters && hunter.IsAvailable;
+        }
+
+        public static bool TryApply(HunterState hunter, InventionEffectKind kind, int value, out int previousValue, out int currentValue)
+        {
+            previousValue = 0;
+            currentValue = 0;
+            if (hunter == null || kind == InventionEffectKind.None) return false;
+            switch (kind)
+            {
+                case InventionEffectKind.ModifyWillpowerMaximum:
+                    previousValue = hunter.WillpowerMax;
+                    hunter.WillpowerMax = ClampToInt((long)hunter.WillpowerMax + value, 0);
+                    hunter.Willpower = Math.Max(0, Math.Min(hunter.Willpower, hunter.WillpowerMax));
+                    currentValue = hunter.WillpowerMax;
+                    return true;
+                case InventionEffectKind.ModifyStrength:
+                    if (hunter.Stats == null) return false;
+                    previousValue = hunter.Stats.strength;
+                    hunter.Stats.strength = ClampToInt((long)hunter.Stats.strength + value, int.MinValue);
+                    currentValue = hunter.Stats.strength;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static int ClampToInt(long value, int minimum)
+        {
+            if (value < minimum) return minimum;
+            if (value > int.MaxValue) return int.MaxValue;
+            return (int)value;
+        }
+    }
+
     public static class WorkshopRules
     {
         public static bool IsUnlocked(

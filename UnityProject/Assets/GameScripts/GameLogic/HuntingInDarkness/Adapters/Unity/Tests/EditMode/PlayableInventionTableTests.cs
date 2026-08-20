@@ -32,6 +32,7 @@ namespace HuntingInDarkness.Adapter.Tests
             faith.costs.Add(new InventionCostTableRecord { itemId = "broken_stone", count = 2 });
             InventionTableRecord ritual = CreateRecord("ritual", "仪式");
             ritual.prerequisiteIds.Add("faith");
+            ritual.effects.Add(new InventionEffectTableRecord { kind = "ModifyWillpowerMaximum", target = "AvailableHunters", value = 1 });
 
             List<InventionData> inventions = Track(PlayableInventionTableRuntime.Build(new[] { faith, ritual }, new[] { stone }));
 
@@ -41,6 +42,24 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(inventions[0].costs[0].resource, Is.SameAs(stone));
             Assert.That(inventions[0].costs[0].count, Is.EqualTo(3));
             Assert.That(inventions[1].prerequisites, Is.EqualTo(new[] { inventions[0] }));
+            Assert.That(inventions[1].unlockEffects, Has.Count.EqualTo(1));
+            Assert.That(inventions[1].unlockEffects[0].kind, Is.EqualTo(InventionEffectKind.ModifyWillpowerMaximum));
+        }
+
+        [Test]
+        public void Build_RejectsUnknownTargetAndZeroStructuredEffects()
+        {
+            InventionTableRecord unknownTarget = CreateRecord("unknown_target", "未知目标");
+            unknownTarget.effects.Add(new InventionEffectTableRecord { kind = "ModifyStrength", target = "Visitors", value = 1 });
+            InventionTableRecord zeroValue = CreateRecord("zero_value", "零值效果");
+            zeroValue.effects.Add(new InventionEffectTableRecord { kind = "ModifyWillpowerMaximum", target = "AvailableHunters", value = 0 });
+            var errors = new List<string>();
+
+            List<InventionData> inventions = PlayableInventionTableRuntime.Build(new[] { unknownTarget, zeroValue }, null, null, errors.Add);
+
+            Assert.That(inventions, Is.Empty);
+            Assert.That(errors.Exists(error => error.Contains("无效效果目标")), Is.True);
+            Assert.That(errors.Exists(error => error.Contains("不能为 0")), Is.True);
         }
 
         [Test]
@@ -113,6 +132,7 @@ namespace HuntingInDarkness.Adapter.Tests
             ritualRecord.prerequisiteIds.Add("faith");
             ritualRecord.costs.Add(new InventionCostTableRecord { itemId = "soft_organ", count = 1 });
             ritualRecord.effectDescription = "全体可出战猎人的意志点上限 +1。";
+            ritualRecord.effects.Add(new InventionEffectTableRecord { kind = "ModifyWillpowerMaximum", target = "AvailableHunters", value = 1 });
             List<InventionData> inventions = Track(PlayableInventionTableRuntime.Build(new[] { faithRecord, ritualRecord }, new[] { stone, organ }));
             var settlement = new SettlementInstance();
             settlement.AddResource(stone, 1);

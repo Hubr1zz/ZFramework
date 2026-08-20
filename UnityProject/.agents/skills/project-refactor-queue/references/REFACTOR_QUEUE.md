@@ -144,10 +144,20 @@
 - **类型**: 内容扩展性 / 规则注入
 - **描述**: 当前 `InventionSystem.ApplyEffect` 通过中文 `effectDescription` 关键词决定力量或意志上限变化。首个“仪式”分支可沿用该兼容入口跑通流程，但改写文案、本地化或大量效果覆盖会静默改变规则。后续应一次性定义稳定 effect type + 参数表，将效果转换为 Settlement `GameAction`，允许所属环境 Reactor 覆盖或注入；`effectDescription` 只保留玩家文本，不再作为规则权威。不要为每个新发明继续追加字符串分支。
 - **来源**: 2026-08-20 读表发明与信仰分支实现审查
+- **状态**: 已处理
+- **维护人**: codex
+- **维护时间**: 2026-08-20
+- **维护备注**: 2026-08-20 已完成：表记录以稳定 effect kind/target/value 映射到 `InventionData.unlockEffects`，正式解锁 Root 在提交后按稳定猎人顺序展开独立效果 Child Action，允许 Settlement Reactor 逐角色改写或阻止；文案只负责展示。旧 `TryUnlock` 直调保留文本解析作为非正式兼容入口。
+
+### [优先级: 高] 战役级发明被动需要持久化 Modifier 语义
+- **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs`、营地招募/事件/狩猎 Action 环境安装器
+- **类型**: 长期状态 / 规则注入
+- **描述**: 当前结构化 `unlockEffects` 明确只在解锁瞬间影响当时符合条件的猎人；之后招募的猎人不会继承，Reactor 临时改写后的实际数值也没有战役级来源记录。设计文档中的祭坛、植物知识、书籍、神话和战略属于持续规则，不能继续用一次性数值模拟。加入这些内容前，应完整定义稳定 ModifierId、来源发明 ID、作用域、叠加/移除、存档迁移与各阶段环境 Installer 映射；新猎人和新 Session 从同一权威投影装配，View 不补数值。
+- **来源**: 2026-08-20 结构化发明解锁效果对抗审查
 - **状态**: 待处理
 - **维护人**: codex
 - **维护时间**: 2026-08-20
-- **维护备注**: 需先宏观设计发明、事件、装备等共享效果协议；当前阶段只记录，不局部建立第二套效果系统。
+- **维护备注**: 与一次性 `unlockEffects` 分开设计，避免将永久规则和不可逆状态变更混为一种效果。
 
 ### [优先级: 高] 物品库存与装备存档迁移到稳定 ContentId
 - **文件**: `Adapters/Unity/Data/{ItemData,HunterData,SettlementData}.cs`、`Adapters/Unity/Settlement/SettlementEquipmentStorage.cs`、营地资源/制作/装备 Action 与存档迁移器

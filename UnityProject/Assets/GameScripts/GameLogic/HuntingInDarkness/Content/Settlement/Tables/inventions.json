@@ -23,6 +23,13 @@
       ],
       "exclusiveIds": [],
       "effectDescription": "全体可出战猎人的意志点上限 +1。",
+      "effects": [
+        {
+          "kind": "ModifyWillpowerMaximum",
+          "target": "AvailableHunters",
+          "value": 1
+        }
+      ],
       "category": "Knowledge"
     }
   ]

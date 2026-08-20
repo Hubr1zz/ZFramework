@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Content;
+using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 
 namespace HuntingInDarkness.ContentTables
@@ -15,6 +16,14 @@ namespace HuntingInDarkness.ContentTables
     }
 
     [Serializable]
+    public sealed class InventionEffectTableRecord
+    {
+        public string kind;
+        public string target;
+        public int value = 1;
+    }
+
+    [Serializable]
     public sealed class InventionTableRecord : IStableContentRecord
     {
         public string id;
@@ -24,6 +33,7 @@ namespace HuntingInDarkness.ContentTables
         public List<InventionCostTableRecord> costs = new();
         public List<string> exclusiveIds = new();
         public string effectDescription;
+        public List<InventionEffectTableRecord> effects = new();
         public string category;
 
         public string Id => id;
@@ -83,6 +93,7 @@ namespace HuntingInDarkness.ContentTables
             public List<InventionCost> Costs;
             public List<string> PrerequisiteIds;
             public List<string> ExclusiveIds;
+            public List<InventionPassiveEffect> Effects;
         }
 
         private static string cachedTableText;
@@ -186,6 +197,7 @@ namespace HuntingInDarkness.ContentTables
                 return false;
             }
             if (!TryBuildCosts(record, itemById, out List<InventionCost> costs, out error)) return false;
+            if (!TryBuildEffects(record, out List<InventionPassiveEffect> effects, out error)) return false;
 
             List<string> prerequisiteIds = NormalizeIds(record.prerequisiteIds);
             List<string> exclusiveIds = NormalizeIds(record.exclusiveIds);
@@ -195,8 +207,35 @@ namespace HuntingInDarkness.ContentTables
                 return false;
             }
 
-            validated = new ValidatedRecord { Source = record, Id = id, Name = name, Category = category, Costs = costs, PrerequisiteIds = prerequisiteIds, ExclusiveIds = exclusiveIds };
+            validated = new ValidatedRecord { Source = record, Id = id, Name = name, Category = category, Costs = costs, PrerequisiteIds = prerequisiteIds, ExclusiveIds = exclusiveIds, Effects = effects };
             error = string.Empty;
+            return true;
+        }
+
+        private static bool TryBuildEffects(InventionTableRecord record, out List<InventionPassiveEffect> effects, out string error)
+        {
+            effects = new List<InventionPassiveEffect>();
+            error = string.Empty;
+            if (record.effects == null) return true;
+            foreach (InventionEffectTableRecord effect in record.effects)
+            {
+                if (effect == null || !Enum.TryParse(effect.kind, true, out InventionEffectKind kind) || kind == InventionEffectKind.None || !Enum.IsDefined(typeof(InventionEffectKind), kind))
+                {
+                    error = $"发明 {record.id} 含无效效果类型：{effect?.kind}";
+                    return false;
+                }
+                if (!Enum.TryParse(effect.target, true, out InventionEffectTarget target) || !Enum.IsDefined(typeof(InventionEffectTarget), target))
+                {
+                    error = $"发明 {record.id} 含无效效果目标：{effect.target}";
+                    return false;
+                }
+                if (effect.value == 0)
+                {
+                    error = $"发明 {record.id} 的效果数值不能为 0。";
+                    return false;
+                }
+                effects.Add(new InventionPassiveEffect { kind = kind, target = target, value = effect.value });
+            }
             return true;
         }
 
@@ -299,6 +338,7 @@ namespace HuntingInDarkness.ContentTables
                 invention.description = record.Source.description ?? string.Empty;
                 invention.costs = record.Costs;
                 invention.effectDescription = record.Source.effectDescription ?? string.Empty;
+                invention.unlockEffects = record.Effects;
                 invention.category = record.Category;
                 createdById.Add(record.Id, invention);
                 result.Add(invention);

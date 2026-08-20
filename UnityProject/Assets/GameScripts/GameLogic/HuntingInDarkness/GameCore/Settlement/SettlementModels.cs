@@ -152,6 +152,19 @@ namespace HuntingInDarkness.GameCore.Settlement
         }
     }
 
+    public enum InventionEffectKind
+    {
+        None,
+        ModifyWillpowerMaximum,
+        ModifyStrength
+    }
+
+    public enum InventionEffectTarget
+    {
+        AvailableHunters,
+        AliveHunters
+    }
+
     public sealed class CraftRecipeDefinition
     {
         public string Id { get; }

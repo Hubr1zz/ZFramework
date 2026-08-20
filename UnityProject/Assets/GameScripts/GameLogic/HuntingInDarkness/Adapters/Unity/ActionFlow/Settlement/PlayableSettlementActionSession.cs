@@ -337,7 +337,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
             ReactorEntityHandle inventionEntity = environment.EntityHandles.GetOrCreate("settlement-invention", invention != null ? invention.ContentId : "unknown", invention != null ? invention.inventionName : "未知发明");
-            var action = new UnlockSettlementInventionAction(settlement, inventionSystem, invention, outbox, settlementEntity, inventionEntity);
+            var action = new UnlockSettlementInventionAction(settlement, inventionSystem, invention, outbox, settlementEntity, inventionEntity, hunter => environment.EntityHandles.GetOrCreate("hunter", hunter.InstanceId.ToString(), hunter.Name));
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementInventionCommandResult.Failed(outcome.Reason) : action.Result;

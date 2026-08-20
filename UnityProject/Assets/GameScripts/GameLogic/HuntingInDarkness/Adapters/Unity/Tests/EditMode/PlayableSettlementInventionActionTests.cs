@@ -122,6 +122,62 @@ namespace HuntingInDarkness.Adapter.Tests
             }
         }
 
+        [Test]
+        public async Task UnlockInventionAsync_StructuredEffectUsesPerHunterReactorBoundary()
+        {
+            TestContext context = CreateContext(2);
+            var first = new HunterInstance(null, 11) { Name = "甲", Willpower = 2, WillpowerMax = 2 };
+            var second = new HunterInstance(null, 12) { Name = "乙", Willpower = 2, WillpowerMax = 2 };
+            context.Settlement.Hunters.Add(second);
+            context.Settlement.Hunters.Add(first);
+            context.Invention.unlockEffects.Add(new InventionPassiveEffect { kind = InventionEffectKind.ModifyWillpowerMaximum, target = InventionEffectTarget.AvailableHunters, value = 1 });
+            try
+            {
+                using var session = new PlayableSettlementActionSession(context.Settlement, new EmptyWeaponTrainingContent(), inventionSystem: context.System);
+                var reactor = new ModifyAndPreventHunterEffectReactor(11, 12);
+                session.Reactors.RegisterGlobal(reactor);
+
+                SettlementInventionCommandResult result = await session.UnlockInventionAsync(context.Invention);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(first.WillpowerMax, Is.EqualTo(4));
+                Assert.That(second.WillpowerMax, Is.EqualTo(2));
+                Assert.That(reactor.ObservedHunterIds, Is.EqualTo(new[] { 11, 12 }));
+                Assert.That(context.System.IsUnlocked(context.Invention), Is.True);
+                Assert.That(context.Settlement.GetResource("碎石"), Is.Zero);
+            }
+            finally
+            {
+                context.Dispose();
+            }
+        }
+
+        [Test]
+        public async Task UnlockInventionAsync_StructuredEffectSkipsIneligibleHunterAtExecution()
+        {
+            TestContext context = CreateContext(2);
+            var first = new HunterInstance(null, 21) { Name = "先执行者", Willpower = 2, WillpowerMax = 2 };
+            var retiredDuringChain = new HunterInstance(null, 22) { Name = "链中退役者", Willpower = 2, WillpowerMax = 2 };
+            context.Settlement.Hunters.Add(first);
+            context.Settlement.Hunters.Add(retiredDuringChain);
+            context.Invention.unlockEffects.Add(new InventionPassiveEffect { kind = InventionEffectKind.ModifyWillpowerMaximum, target = InventionEffectTarget.AvailableHunters, value = 1 });
+            try
+            {
+                using var session = new PlayableSettlementActionSession(context.Settlement, new EmptyWeaponTrainingContent(), inventionSystem: context.System);
+                session.Reactors.RegisterGlobal(new RetireNextHunterReactor(21, retiredDuringChain));
+
+                SettlementInventionCommandResult result = await session.UnlockInventionAsync(context.Invention);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(first.WillpowerMax, Is.EqualTo(3));
+                Assert.That(retiredDuringChain.WillpowerMax, Is.EqualTo(2));
+            }
+            finally
+            {
+                context.Dispose();
+            }
+        }
+
         private static TestContext CreateContext(int resourceAmount)
         {
             var settlement = new SettlementInstance();
@@ -167,6 +223,47 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
             protected override void React(UnlockSettlementInventionAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试规则阻止发明");
+        }
+
+        private sealed class ModifyAndPreventHunterEffectReactor : GameActionReactor<ApplySettlementInventionEffectAction>
+        {
+            private readonly int modifiedHunterId;
+            private readonly int preventedHunterId;
+
+            public ModifyAndPreventHunterEffectReactor(int modifiedHunterId, int preventedHunterId)
+            {
+                this.modifiedHunterId = modifiedHunterId;
+                this.preventedHunterId = preventedHunterId;
+            }
+
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+            public List<int> ObservedHunterIds { get; } = new();
+
+            protected override void React(ApplySettlementInventionEffectAction action, ReactionContext context, ReactionResponse response)
+            {
+                ObservedHunterIds.Add(action.Hunter.InstanceId);
+                if (action.Hunter.InstanceId == modifiedHunterId) action.SetValue(2);
+                if (action.Hunter.InstanceId == preventedHunterId) response.Prevent("测试角色免疫发明效果");
+            }
+        }
+
+        private sealed class RetireNextHunterReactor : GameActionReactor<ApplySettlementInventionEffectAction>
+        {
+            private readonly int triggerHunterId;
+            private readonly HunterInstance hunterToRetire;
+
+            public RetireNextHunterReactor(int triggerHunterId, HunterInstance hunterToRetire)
+            {
+                this.triggerHunterId = triggerHunterId;
+                this.hunterToRetire = hunterToRetire;
+            }
+
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+
+            protected override void React(ApplySettlementInventionEffectAction action, ReactionContext context, ReactionResponse response)
+            {
+                if (action.Hunter.InstanceId == triggerHunterId) hunterToRetire.Availability = HunterAvailabilityState.Retired;
+            }
         }
 
         private sealed class EmptyWeaponTrainingContent : IWeaponTrainingContent

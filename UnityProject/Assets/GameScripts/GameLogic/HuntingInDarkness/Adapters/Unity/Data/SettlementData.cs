@@ -32,8 +32,11 @@ namespace HuntingInDarkness.Data
         [Header("互斥（只能选其一）")]
         public List<InventionData> exclusiveWith = new();
 
-        [Header("发明效果（文字描述，逻辑在 InventionSystem 中处理）")]
+        [Header("发明效果说明（仅供玩家阅读）")]
         [TextArea] public string effectDescription;
+
+        [Header("解锁时结构化效果")]
+        public List<InventionPassiveEffect> unlockEffects = new();
 
         [Header("发明类别")]
         public InventionCategory category = InventionCategory.Basic;
@@ -72,6 +75,14 @@ namespace HuntingInDarkness.Data
     {
         public ItemData resource;
         public int count = 1;
+    }
+
+    [System.Serializable]
+    public sealed class InventionPassiveEffect
+    {
+        public InventionEffectKind kind;
+        public InventionEffectTarget target = InventionEffectTarget.AvailableHunters;
+        public int value = 1;
     }
 
     [System.Serializable]

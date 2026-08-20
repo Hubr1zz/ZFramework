@@ -13,14 +13,14 @@ title: "读表发明与信仰分支"
 ## Requirements
 
 ### Requirement: Invention tables use stable content references
-Each invention record SHALL define a stable ID, display name, category, prerequisite IDs, exclusion IDs, item costs, and effect presentation without using display text as a cross-content identity.
+Each invention record SHALL define a stable ID, display name, category, prerequisite IDs, exclusion IDs, item costs, structured unlock effects, and effect presentation without using display text as a cross-content identity or rule selector.
 
 #### Scenario: Settlement assembles a valid invention table
 - **WHEN** referenced item content and configured ScriptableObject inventions are available
 - **THEN** valid records map to ordinary `InventionData` nodes and join the existing invention catalog in table order
 
 ### Requirement: Invalid invention graphs fail before gameplay
-The table adapter SHALL reject missing identities, cross-namespace identity collisions, invalid categories or costs, unknown references, self references, prerequisite cycles, dependencies on rejected records, and aggregate costs outside the supported integer range.
+The table adapter SHALL reject missing identities, cross-namespace identity collisions, invalid categories, costs, effect kinds or effect targets, zero-value effects, unknown references, self references, prerequisite cycles, dependencies on rejected records, and aggregate costs outside the supported integer range.
 
 #### Scenario: Two table nodes form a prerequisite cycle
 - **WHEN** each node requires the other
@@ -43,6 +43,17 @@ Table records SHALL remain Adapter input; GameCore rules SHALL decide availabili
 #### Scenario: Player unlocks ritual
 - **WHEN** faith is mastered, the configured soft-organ cost is available, and the player confirms the ritual card
 - **THEN** the Settlement ActionQueue consumes the cost, records stable mastery and annals facts, and increases every available hunter's willpower maximum by one
+
+### Requirement: Unlock effects are structured Action children
+Effect descriptions SHALL remain player-facing text only. After the unlock commit, each eligible hunter effect SHALL execute as a child `GameAction` in the current Settlement environment with its own source, target, and Reactor window.
+
+#### Scenario: A rule changes one hunter's ritual benefit
+- **WHEN** a Settlement Reactor changes the ritual effect amount for one hunter
+- **THEN** that hunter receives the overridden amount while other eligible hunters retain their own independently resolved effects
+
+#### Scenario: A rule prevents one hunter effect
+- **WHEN** a Reactor prevents one eligible hunter's effect child after the invention commit
+- **THEN** the invention remains mastered, its cost remains consumed, and other eligible effect children continue in stable roster order
 
 ### Requirement: Baseline faith branch is playable
 The baseline table SHALL contain `faith` as a root node and `ritual` as its direct child, using stable item costs already present in the Settlement catalog.

@@ -41,6 +41,14 @@ namespace HuntingInDarkness.Settlement
         /// <summary>尝试解锁发明。返回是否成功。</summary>
         public bool TryUnlock(InventionData invention)
         {
+            if (!TryCommitUnlock(invention)) return false;
+            ApplyLegacyEffect(invention);
+            return true;
+        }
+
+        /// <summary>只提交成本、解锁状态与年鉴；正式流程由 Settlement ActionQueue 继续展开结构化效果。</summary>
+        public bool TryCommitUnlock(InventionData invention)
+        {
             if (!CanUnlock(invention, out var reason))
             {
                 Debug.LogWarning($"[InventionSystem] 无法解锁 {invention?.inventionName}: {reason}");
@@ -58,8 +66,6 @@ namespace HuntingInDarkness.Settlement
             _settlement.UnlockInvention(invention.ContentId);
             Debug.Log($"[InventionSystem] 解锁发明：{invention.inventionName}");
 
-            // 应用效果
-            ApplyEffect(invention);
             SettlementTimelineJournal.RecordInvention(_settlement, invention.ContentId, invention.inventionName);
 
             return true;
@@ -67,11 +73,19 @@ namespace HuntingInDarkness.Settlement
 
         // ─── 效果应用 ─────────────────────────────────────────────
 
-        /// <summary>将发明效果应用到营地/猎人（根据 effectDescription 解析）</summary>
-        private void ApplyEffect(InventionData invention)
+        /// <summary>旧直调入口的兼容效果；正式 3D 流程不经过此处。</summary>
+        private void ApplyLegacyEffect(InventionData invention)
         {
-            // 根据发明名称/类别分发效果
-            // 实际项目中可用 SO 上挂 EventEffect 列表；此处用关键词匹配简化
+            if (invention.unlockEffects != null && invention.unlockEffects.Count > 0)
+            {
+                foreach (InventionPassiveEffect effect in invention.unlockEffects)
+                    foreach (HunterInstance hunter in _settlement.Hunters)
+                        if (InventionEffectRules.IsEligible(hunter, effect.target))
+                            InventionEffectRules.TryApply(hunter, effect.kind, effect.value, out _, out _);
+                return;
+            }
+
+            // 仅保留旧资产兼容；新内容不得依赖本地化文案解析。
             var desc = invention.effectDescription ?? "";
 
             if (desc.Contains("+1 力量"))
@@ -88,8 +102,7 @@ namespace HuntingInDarkness.Settlement
                 Debug.Log("[InventionSystem] 全员意志点上限+1");
             }
 
-            // 其他效果在此扩展...
-            Debug.Log($"[InventionSystem] 发明效果已应用：{invention.inventionName} — {desc}");
+            Debug.LogWarning($"[InventionSystem] 发明 {invention.inventionName} 仍在使用旧文本效果兼容路径。请迁移为 unlockEffects。");
         }
 
         // ─── 查询工具 ─────────────────────────────────────────────
