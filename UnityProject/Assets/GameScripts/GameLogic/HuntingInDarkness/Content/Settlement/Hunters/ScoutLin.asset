@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 685fc9d050fbac7428be3ef6d6b7a8f7, type: 3}
   m_Name: ScoutLin
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.HunterData
+  contentId: scout_lin
   hunterName: "\u65A5\u5019\xB7\u6797"
   initialStats:
     strength: 0

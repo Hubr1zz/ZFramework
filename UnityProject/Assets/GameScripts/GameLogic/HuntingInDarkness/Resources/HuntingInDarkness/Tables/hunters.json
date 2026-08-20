@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "hunters": [
+    {
+      "id": "ember_keeper_yao",
+      "displayName": "拾火者·遥",
+      "starting": false,
+      "recruitable": true,
+      "stats": {
+        "strength": 1,
+        "accuracy": 1,
+        "evasion": 1,
+        "movement": 5,
+        "luck": 0,
+        "speed": 1
+      },
+      "willpower": 2,
+      "luck": 0,
+      "insanity": 2,
+      "startingEquipmentIds": ["salt_ward"],
+      "traits": ["守火"],
+      "ailments": []
+    }
+  ]
+}

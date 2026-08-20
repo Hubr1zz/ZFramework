@@ -23,12 +23,16 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(catalog.MaximumLivingHunters, Is.GreaterThanOrEqualTo(4));
 
             var names = new HashSet<string>();
+            var ids = new HashSet<string>();
             foreach (HunterData template in catalog.RecruitmentTemplates)
             {
                 Assert.That(template, Is.Not.Null);
+                Assert.That(template.HasExplicitContentId, Is.True);
+                Assert.That(ids.Add(template.ContentId), Is.True, $"重复的招募模板 ID：{template.ContentId}");
                 Assert.That(template.hunterName, Is.Not.Empty);
                 Assert.That(names.Add(template.hunterName), Is.True, $"重复的招募模板名：{template.hunterName}");
             }
         }
+
     }
 }

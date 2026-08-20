@@ -63,6 +63,7 @@ namespace HuntingInDarkness.GameCore.Settlement
     public class HunterState
     {
         public int InstanceId;
+        public string OriginTemplateId;
         public string Name;
         public bool IsAlive = true;
         public HunterAvailabilityState Availability = HunterAvailabilityState.Active;

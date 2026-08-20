@@ -177,6 +177,13 @@
       "specPath": "openspec/specs/table-driven-hunter-bloodlines/spec.md"
     },
     {
+      "id": "table-driven-hunter-templates",
+      "label": "读表猎人模板与稳定身份",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-hunter-templates/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -502,6 +509,36 @@
       "type": "requires",
       "status": "defined",
       "reason": "血脉资格与激活结果通过统一3D事件卡展示，并在所属阶段ActionQueue节点内提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-templates--requires--tabletop-settlement-recruitment",
+      "from": "table-driven-hunter-templates",
+      "to": "tabletop-settlement-recruitment",
+      "type": "requires",
+      "status": "defined",
+      "reason": "表模板复用营地 3D 候选卡与 Settlement ActionQueue 招募事务",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-templates--requires--table-driven-item-keywords",
+      "from": "table-driven-hunter-templates",
+      "to": "table-driven-item-keywords",
+      "type": "requires",
+      "status": "defined",
+      "reason": "初始装备通过稳定物品 ContentId 解析并进入统一装备数据契约",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-templates--requires--campaign-persistence",
+      "from": "table-driven-hunter-templates",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "猎人来源模板 ID 与初始装备 ID 随权威猎人状态跨会话保存",
       "gapId": "",
       "blocksImplementation": false
     },

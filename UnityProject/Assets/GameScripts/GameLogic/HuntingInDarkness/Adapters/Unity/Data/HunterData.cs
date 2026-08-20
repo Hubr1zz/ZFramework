@@ -16,6 +16,8 @@ namespace HuntingInDarkness.Data
     public class HunterData : ScriptableObject
     {
         [Header("基础")]
+        [SerializeField, Tooltip("稳定内容 ID。写入存档和跨表引用时使用；旧资产为空时暂以资产名兼容。")]
+        private string contentId;
         public string hunterName = "新猎人";
 
         [Header("初始战斗属性")]
@@ -32,6 +34,19 @@ namespace HuntingInDarkness.Data
         [Header("特性/症状")]
         public List<string> startingTraits   = new();
         public List<string> startingAilments = new();
+
+        public string ContentId
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(contentId)) return contentId.Trim();
+                if (!string.IsNullOrWhiteSpace(name)) return name.Trim();
+                return hunterName?.Trim() ?? string.Empty;
+            }
+        }
+
+        public bool HasExplicitContentId => !string.IsNullOrWhiteSpace(contentId);
+        public void ConfigureContentId(string value) => contentId = value?.Trim() ?? string.Empty;
     }
 
     // ─── 战斗属性 ────────────────────────────────────────────────
@@ -75,11 +90,12 @@ namespace HuntingInDarkness.Data
         public HunterInstance(HunterData template, int id = -1)
         {
             InstanceId = id >= 0 ? id : _nextId++;
+            OriginTemplateId = template != null ? template.ContentId : string.Empty;
             Name       = template != null ? template.hunterName : "猎人";
 
             if (template != null)
             {
-                var s = template.initialStats;
+                HunterCombatStats s = template.initialStats ?? new HunterCombatStats();
                 Stats = new HunterCombatStats
                 {
                     strength = s.strength,
@@ -87,7 +103,11 @@ namespace HuntingInDarkness.Data
                     evasion  = s.evasion,
                     movement = s.movement,
                     luck     = s.luck,
-                    speed    = s.speed
+                    speed    = s.speed,
+                    armorHead = s.armorHead,
+                    armorBody = s.armorBody,
+                    armorArms = s.armorArms,
+                    armorLegs = s.armorLegs
                 };
 
                 Willpower    = template.initialWillpower;
@@ -95,8 +115,16 @@ namespace HuntingInDarkness.Data
                 Luck         = template.initialLuck;
                 Insanity     = template.initialInsanity;
 
-                Traits   = new List<string>(template.startingTraits);
-                Ailments = new List<string>(template.startingAilments);
+                Traits = template.startingTraits != null ? new List<string>(template.startingTraits) : new List<string>();
+                Ailments = template.startingAilments != null ? new List<string>(template.startingAilments) : new List<string>();
+
+                if (template.startingEquipment != null)
+                    foreach (ItemData item in template.startingEquipment)
+                    {
+                        if (item == null || item.itemType == ItemType.Resource || Equipment.Count >= EquipmentRules.MaximumEquipmentCount) continue;
+                        Equipment.Add(new ItemInstance(item));
+                        EquippedItemIds.Add(item.ContentId);
+                    }
             }
 
             // 部位血量初始值

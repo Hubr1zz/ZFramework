@@ -24,8 +24,9 @@ namespace HuntingInDarkness.Adapter.Tests
             settlement.AddResource("口粮", 2);
             HunterData template = CreateTemplate("流浪者");
             var received = new List<string>();
+            string recruitedTemplateId = string.Empty;
             Action<ResourceChangedEvent> resourceHandler = evt => received.Add($"resource:{evt.OldAmount}>{evt.NewAmount}");
-            Action<HunterRecruitedEvent> recruitedHandler = evt => received.Add($"recruited:{evt.HunterName}");
+            Action<HunterRecruitedEvent> recruitedHandler = evt => { recruitedTemplateId = evt.TemplateId; received.Add($"recruited:{evt.HunterName}"); };
             Action<HunterRosterChangedEvent> rosterHandler = _ => received.Add("roster");
             Action<SettlementTransactionCommittedEvent> commitHandler = evt => received.Add($"commit:{evt.Kind}");
             EventBus.Subscribe(resourceHandler);
@@ -41,6 +42,8 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(result.Succeeded, Is.True, result.Reason);
                 Assert.That(result.Hunter.Name, Is.EqualTo("余烬"));
                 Assert.That(result.Hunter.InstanceId, Is.EqualTo(101));
+                Assert.That(result.Hunter.OriginTemplateId, Is.EqualTo("test_hunter"));
+                Assert.That(recruitedTemplateId, Is.EqualTo("test_hunter"));
                 Assert.That(result.Hunter.BloodlineId, Is.Not.Empty);
                 Assert.That(result.Hunter.BloodlineName, Is.Not.Empty);
                 Assert.That(result.Hunter.IsBloodlineActivated, Is.False);
@@ -309,6 +312,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             HunterData template = ScriptableObject.CreateInstance<HunterData>();
             template.name = name;
+            template.ConfigureContentId("test_hunter");
             template.hunterName = name;
             return template;
         }

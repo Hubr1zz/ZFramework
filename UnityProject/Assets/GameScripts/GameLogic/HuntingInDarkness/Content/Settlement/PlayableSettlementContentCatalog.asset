@@ -17,6 +17,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b3a9e5377fb8e154d8b81f41dafa08cc, type: 2}
   - {fileID: 11400000, guid: 3a1d1dbb74a2b504dace801c04d51657, type: 2}
   - {fileID: 11400000, guid: f55568ba5d1ee4940822f5aa52aa54a2, type: 2}
+  hunterTable: {fileID: 4900000, guid: 9d72aaead5aa4db893d5c2e3c3907270, type: 3}
   startingResources:
   - item: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
     amount: 2

@@ -133,7 +133,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             Result = new RecruitHunterCommandResult(true, string.Empty, hunter);
             if (ResourceCost > 0)
                 eventOutbox.Stage(new ResourceChangedEvent { ResourceName = costResourceId, OldAmount = oldResourceAmount, NewAmount = settlement.GetResource(costResourceId) });
-            eventOutbox.Stage(new HunterRecruitedEvent { HunterId = hunter.InstanceId, HunterName = hunter.Name, TemplateId = template.name });
+            eventOutbox.Stage(new HunterRecruitedEvent { HunterId = hunter.InstanceId, HunterName = hunter.Name, TemplateId = template.ContentId });
             eventOutbox.Stage(new HunterRosterChangedEvent());
             eventOutbox.Stage(new SettlementTransactionCommittedEvent { TransactionId = $"recruit:{hunter.InstanceId}", Kind = SettlementTransactionKind.Recruitment });
             return UniTask.FromResult(ActionOutcome.Success());

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 685fc9d050fbac7428be3ef6d6b7a8f7, type: 3}
   m_Name: WarriorChen
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.HunterData
+  contentId: warrior_chen
   hunterName: "\u6218\u58EB\xB7\u9648"
   initialStats:
     strength: 2

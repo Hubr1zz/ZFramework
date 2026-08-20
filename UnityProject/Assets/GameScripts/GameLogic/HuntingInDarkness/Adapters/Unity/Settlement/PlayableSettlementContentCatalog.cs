@@ -22,6 +22,7 @@ namespace HuntingInDarkness.Settlement
     {
         [SerializeField, Min(1)] private int huntsPerYear = 2;
         [SerializeField] private List<HunterData> startingHunters = new();
+        [SerializeField] private TextAsset hunterTable;
         [SerializeField] private List<StartingResourceDefinition> startingResources = new();
         [SerializeField] private List<EventData> randomEvents = new();
         [SerializeField] private List<EventData> mainStoryEvents = new();
@@ -34,6 +35,7 @@ namespace HuntingInDarkness.Settlement
         [SerializeField] private ItemData recruitmentCostItem;
         [SerializeField, Min(0)] private int recruitmentCost = 1;
         [SerializeField, Min(1)] private int maximumLivingHunters = 6;
+        [NonSerialized] private List<HunterData> resolvedRecruitmentTemplates;
 
         [Header("营火休养")]
         [SerializeField] private ItemData recoveryCostItem;
@@ -44,8 +46,8 @@ namespace HuntingInDarkness.Settlement
         [SerializeField, Min(0)] private int deathInspirationGrowth = 1;
         [SerializeField, Min(1)] private int deathInspirationMinimumAge = 2;
 
-        public bool IsConfigured => startingHunters.Exists(hunter => hunter != null);
-        public IReadOnlyList<HunterData> RecruitmentTemplates => recruitmentTemplates;
+        public bool IsConfigured => startingHunters != null && startingHunters.Exists(hunter => hunter != null) || hunterTable != null;
+        public IReadOnlyList<HunterData> RecruitmentTemplates => resolvedRecruitmentTemplates ?? recruitmentTemplates;
         public ItemData RecruitmentCostItem => recruitmentCostItem;
         public int RecruitmentCost => Mathf.Max(0, recruitmentCost);
         public int MaximumLivingHunters => Mathf.Max(1, maximumLivingHunters);
@@ -55,9 +57,17 @@ namespace HuntingInDarkness.Settlement
 
         public bool ApplyTo(SettlementManager manager)
         {
+            resolvedRecruitmentTemplates = null;
             if (manager == null || !IsConfigured) return false;
 
             PlayableSettlementContentExtensions.Extend(GetKnownItems(), recipes, inventions, inventionTable, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions);
+            if (!PlayableHunterTemplateTableRuntime.Extend(startingHunters, recruitmentTemplates, allItems, hunterTable, out List<HunterData> allStartingHunters, out List<HunterData> allRecruitmentTemplates, message => Debug.LogError($"[SettlementManager] {message}"))) return false;
+            if (allStartingHunters.Count == 0)
+            {
+                Debug.LogError("[SettlementManager] 猎人内容未提供任何有效初始模板，已拒绝装配。");
+                return false;
+            }
+            resolvedRecruitmentTemplates = allRecruitmentTemplates;
             PlayableSettlementInventionRegistry.Configure(allInventions);
             if (PlayableSettlementInventionRegistry.Inventions.Count != allInventions.Count)
             {
@@ -86,7 +96,7 @@ namespace HuntingInDarkness.Settlement
                 return true;
             }
 
-            foreach (var hunter in startingHunters)
+            foreach (var hunter in allStartingHunters)
                 if (hunter != null)
                     manager.HunterMgmt.AddStartingHunter(hunter.hunterName, hunter);
 

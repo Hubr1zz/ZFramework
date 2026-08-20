@@ -65,6 +65,18 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void SettlementJson_PersistsHunterOriginTemplateId()
+        {
+            var settlement = new SettlementInstance();
+            settlement.Hunters.Add(new HunterInstance(null, 101) { OriginTemplateId = "ember_keeper_yao" });
+
+            SettlementInstance restored = JsonUtility.FromJson<SettlementInstance>(JsonUtility.ToJson(settlement));
+
+            Assert.That(restored.Hunters, Has.Count.EqualTo(1));
+            Assert.That(restored.Hunters[0].OriginTemplateId, Is.EqualTo("ember_keeper_yao"));
+        }
+
+        [Test]
         public void FileStore_SecondWriteKeepsPreviousSnapshotAsBackup()
         {
             Assert.That(CampaignSaveFileStore.TryWrite(savePath, "first", out string reason), Is.True, reason);
