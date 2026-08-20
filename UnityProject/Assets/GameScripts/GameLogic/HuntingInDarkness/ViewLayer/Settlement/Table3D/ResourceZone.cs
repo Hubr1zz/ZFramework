@@ -25,6 +25,7 @@ namespace UI
 
             foreach (var entry in resources)
             {
+                if (entry.Value <= 0) continue;
                 var card = EntityCreator.CreateResourceCard(entry.Key, entry.Value, transform);
                 _grid.TryPlaceCard(card);
                 _cards.Add(card);

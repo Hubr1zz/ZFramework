@@ -455,8 +455,8 @@ namespace UI
 
         private void OnResourceChanged(ResourceChangedEvent e)
         {
-            // 命中已有卡就地更新；否则整区重填
-            if (!_resourceZone.TryUpdateCount(e.ResourceName, e.NewAmount))
+            // 耗尽时移除实体卡；新增类型或重新获得已耗尽资源时整区重填。
+            if (e.NewAmount <= 0 || !_resourceZone.TryUpdateCount(e.ResourceName, e.NewAmount))
                 _resourceZone.Fill(_mgr.Data.Resources);
             RefreshContextPanels();
         }
