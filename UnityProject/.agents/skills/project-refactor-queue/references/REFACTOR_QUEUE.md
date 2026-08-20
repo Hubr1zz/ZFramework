@@ -22,12 +22,12 @@
 ### [优先级: 中] Hunt UI + GameOverScreen 自建 → manager/creator 初始化
 - **文件**: `UI/Hunt/{HuntUIManager,EventPopupHunt,HunterStatusOverlay,ResourceHarvestPopup}.cs`、`UI/GameOverScreen.cs`（及 `GameManager` 对 GameOverScreen 的 AddComponent）
 - **类型**: 职责 / 可配置化
-- **描述**: Settlement 域已按「生成者初始化生成物 / 高级 manager 初始化子面板」范式改完（HunterDetailPanel、SettlementUIManager 场景化、DeparturePanel/EventPopup 拆骨架+列表项模板 Bind）。Hunt 域同型未改：`HuntUIManager` 自身 Awake 自建（同旧 SettlementUIManager），其 EventPopupHunt/HunterStatusOverlay/ResourceHarvestPopup 由它 AddComponent 且各自 Awake 自建；`GameOverScreen` 由 GameManager AddComponent 且自建。按同范式：HuntUIManager 场景化（[SerializeField] 引用子面板，Init 校验报错）、各子面板拆骨架+列表项模板、GameOverScreen 改场景引用或 Prefab 实例化。
+- **描述**: Settlement 域已按「生成者初始化生成物 / 高级 manager 初始化子面板」范式改完。狩猎资源点的正常高频路径现已使用世界空间 3D 翻牌，`ResourceHarvestPopup` 只保留无 3D 锚点时的兼容回退；但 `HuntUIManager`、顶部/底部栏、HunterStatusOverlay、EventPopupHunt 和回退 Popup 仍由运行时代码自建，`GameOverScreen` 也由 GameManager AddComponent。后续应把低频流程 UI 场景化或 Prefab 化，并继续评估事件展示是否应迁为世界空间事件卡，而不是把回退 Popup 再扩展成第二套主表现。
 - **来源**: 重构任务（用户选择「先转 Settlement 两个」，Hunt 组暂缓）
 - **状态**: 已维护
 - **维护人**: Hubr1zz
 - **维护时间**: 2026-07-27 15:13:45
-- **维护备注**: -
+- **维护备注**: 2026-08-20 资源采集主路径已迁入 3D；本条收缩为狩猎 HUD/事件/兼容回退的后续统一。
 
 ### [优先级: 中] 统一配置 TMP 中文字体与 fallback
 - **文件**: `Assets/` 下使用 TextMeshPro 的营地、事件与桌面表现组件；项目 TMP Settings / 字体资产

@@ -14,21 +14,25 @@ namespace UI.Hunt
     public class HuntUIManager : MonoBehaviour
     {
         private HuntManager _huntMgr;
+        private HuntMapVisualizer huntVisualizer;
         private bool _initialized;
 
         // 子面板
         private HunterStatusOverlay  _statusOverlay;
         private ResourceHarvestPopup _harvestPopup;
         private EventPopupHunt       _eventPopupHunt;
+        private HuntHarvestPanel3D harvestPanel3D;
 
         // 顶部信息栏
         private Text _infoLabel;
 
         // ─── 初始化 ──────────────────────────────────────────────
 
-        public void Init(HuntManager huntMgr)
+        public void Init(HuntManager huntMgr, HuntMapVisualizer visualizer = null)
         {
+            harvestPanel3D?.DismissForSessionChange();
             _huntMgr = huntMgr;
+            huntVisualizer = visualizer;
             huntMgr.OnResourcePointClicked = ShowHarvestPopup;
 
             if (_initialized)
@@ -112,6 +116,14 @@ namespace UI.Hunt
 
         private void ShowHarvestPopup(ResourcePointInstance point, HunterInstance hunter)
         {
+            if (huntVisualizer != null && huntVisualizer.TryGetResourcePointPresentationPosition(point, out Vector3 position))
+            {
+                if (_harvestPopup != null)
+                    _harvestPopup.gameObject.SetActive(false);
+                harvestPanel3D ??= HuntHarvestPanel3D.Create(huntVisualizer.transform);
+                harvestPanel3D.Show(point, _huntMgr, position);
+                return;
+            }
             _harvestPopup.gameObject.SetActive(true);
             _harvestPopup.Show(point, hunter, _huntMgr);
         }
@@ -179,6 +191,11 @@ namespace UI.Hunt
         private void OnDestroy()
         {
             EventBus.Unsubscribe<GameEventTriggeredEvent>(OnGameEvent);
+            if (harvestPanel3D != null)
+            {
+                harvestPanel3D.DismissForSessionChange();
+                Destroy(harvestPanel3D.gameObject);
+            }
         }
     }
 }

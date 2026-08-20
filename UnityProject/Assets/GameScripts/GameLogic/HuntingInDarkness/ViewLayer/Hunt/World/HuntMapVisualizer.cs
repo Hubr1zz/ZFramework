@@ -43,6 +43,19 @@ namespace HuntingInDarkness.Hunt
 
         public Transform TabletopInteractionAnchor => _squadToken != null ? _squadToken.transform : transform;
 
+        public bool TryGetResourcePointPresentationPosition(ResourcePointInstance point, out Vector3 position)
+        {
+            position = default;
+            if (point == null || _huntMgr == null) return false;
+            foreach (KeyValuePair<Vector2Int, HexTileInstance> pair in _huntMgr.Map)
+            {
+                if (!pair.Value.ResourcePoints.Contains(point) || !_resourceMarkers.TryGetValue(pair.Key, out GameObject marker) || marker == null) continue;
+                position = marker.transform.position + new Vector3(0f, 0.58f, -1.55f);
+                return true;
+            }
+            return false;
+        }
+
         // ─── 初始化 ──────────────────────────────────────────────
 
         public void Init(HuntManager huntMgr)

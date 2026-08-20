@@ -578,7 +578,7 @@ namespace Core
         {
             if (_huntUI != null)
             {
-                _huntUI.Init(_huntMgr);
+                _huntUI.Init(_huntMgr, _huntVisualizer);
                 return;
             }
             var uiParent = uiHunt != null ? uiHunt : huntRoot;
@@ -586,7 +586,7 @@ namespace Core
             var uiGo = new GameObject("HuntUIManager", typeof(RectTransform));
             uiGo.transform.SetParent(uiParent.transform, false);
             _huntUI = uiGo.AddComponent<HuntUIManager>();
-            _huntUI.Init(_huntMgr);
+            _huntUI.Init(_huntMgr, _huntVisualizer);
         }
 
         private void EnsureSettlementUI()
