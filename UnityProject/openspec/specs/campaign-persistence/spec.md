@@ -48,3 +48,31 @@ title: 战役持久化与恢复
 
 - **WHEN** 存档包含当前目录无法解析的物品标识，或身份版本高于当前运行时
 - **THEN** 未知标识 SHALL 保留，未来版本状态 SHALL NOT 被当前运行时降级或重写
+
+### Requirement: Save replacement preserves a recoverable snapshot
+
+每次保存 SHALL 先把带 schemaVersion 与内容校验值的完整封套写入同目录临时文件并刷盘，再替换正式文件；已有正式文件 SHALL 保留为上一份备份。版本门禁 SHALL 覆盖异步保存、立即保存与删除。
+
+#### Scenario: The process stops during a write
+
+- **WHEN** 新快照尚未完成原子替换
+- **THEN** 旧正式文件或上一份备份 SHALL 仍可作为完整候选读取
+
+#### Scenario: The primary save is corrupt
+
+- **WHEN** 文件头、封套、校验值或 Settlement JSON 验证失败
+- **THEN** 继续战役 SHALL 尝试上一份备份，并只在主档和备份均无效时拒绝继续
+
+#### Scenario: A legacy raw save is loaded
+
+- **WHEN** 文件是可识别的旧版 SettlementInstance JSON 而非新封套
+- **THEN** 读取 SHALL 保持兼容，下一次保存 SHALL 自动写为当前封套格式
+
+### Requirement: Campaign deletion removes recovery artifacts
+
+删除战役 SHALL 在同一个版本门禁中清理正式文件、备份与遗留临时文件，且更旧的后台保存 SHALL NOT 在删除后重新创建存档。
+
+#### Scenario: A new campaign replaces an old one
+
+- **WHEN** 玩家确认删除旧战役
+- **THEN** 开场交互 SHALL 不再把任一旧候选识别为可继续的战役

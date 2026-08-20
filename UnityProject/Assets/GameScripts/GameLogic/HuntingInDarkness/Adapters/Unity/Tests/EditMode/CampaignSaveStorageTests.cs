@@ -1,0 +1,86 @@
+using System;
+using System.IO;
+using Core;
+using HuntingInDarkness.Data;
+using NUnit.Framework;
+
+namespace HuntingInDarkness.Adapter.Tests
+{
+    public sealed class CampaignSaveStorageTests
+    {
+        private string testDirectory;
+        private string savePath;
+
+        [SetUp]
+        public void SetUp()
+        {
+            testDirectory = Path.Combine(Path.GetTempPath(), $"hunting-in-darkness-save-{Guid.NewGuid():N}");
+            savePath = Path.Combine(testDirectory, "campaign.json");
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (Directory.Exists(testDirectory)) Directory.Delete(testDirectory, true);
+        }
+
+        [Test]
+        public void Codec_RoundTripsAndRejectsTamperedPayload()
+        {
+            string encoded = CampaignSaveCodec.Encode("{\"CurrentYear\":3}");
+
+            Assert.That(CampaignSaveCodec.TryDecode(encoded, out string payload, out bool isLegacy, out string reason), Is.True, reason);
+            Assert.That(payload, Is.EqualTo("{\"CurrentYear\":3}"));
+            Assert.That(isLegacy, Is.False);
+
+            string tampered = encoded.Replace("CurrentYear", "CurrentFear");
+            Assert.That(CampaignSaveCodec.TryDecode(tampered, out _, out _, out reason), Is.False);
+            Assert.That(reason, Does.Contain("校验失败"));
+        }
+
+        [Test]
+        public void Codec_AcceptsLegacySettlementJson()
+        {
+            const string legacy = "{\"CurrentYear\":2}";
+
+            Assert.That(CampaignSaveCodec.TryDecode(legacy, out string payload, out bool isLegacy, out string reason), Is.True, reason);
+            Assert.That(payload, Is.EqualTo(legacy));
+            Assert.That(isLegacy, Is.True);
+        }
+
+        [Test]
+        public void FileStore_SecondWriteKeepsPreviousSnapshotAsBackup()
+        {
+            Assert.That(CampaignSaveFileStore.TryWrite(savePath, "first", out string reason), Is.True, reason);
+            Assert.That(CampaignSaveFileStore.TryWrite(savePath, "second", out reason), Is.True, reason);
+            Assert.That(CampaignSaveFileStore.TryWrite(savePath, "third", out reason), Is.True, reason);
+
+            CampaignSaveCandidates candidates = CampaignSaveFileStore.ReadCandidates(savePath);
+
+            Assert.That(candidates.Primary, Is.EqualTo("third"));
+            Assert.That(candidates.Backup, Is.EqualTo("second"));
+            Assert.That(File.Exists(savePath + CampaignSaveFileStore.TemporarySuffix), Is.False);
+        }
+
+        [Test]
+        public void FileStore_CorruptPrimaryLeavesReadableBackupAndDeleteRemovesAllCandidates()
+        {
+            string first = CampaignSaveCodec.Encode("{\"CurrentYear\":1}");
+            string second = CampaignSaveCodec.Encode("{\"CurrentYear\":2}");
+            Assert.That(CampaignSaveFileStore.TryWrite(savePath, first, out string reason), Is.True, reason);
+            Assert.That(CampaignSaveFileStore.TryWrite(savePath, second, out reason), Is.True, reason);
+            File.WriteAllText(savePath, "corrupt");
+            File.WriteAllText(savePath + CampaignSaveFileStore.TemporarySuffix, "stale");
+
+            CampaignSaveCandidates candidates = CampaignSaveFileStore.ReadCandidates(savePath);
+
+            Assert.That(CampaignSaveCodec.TryDecode(candidates.Primary, out _, out _, out _), Is.False);
+            Assert.That(CampaignSaveRecovery.TryRestore(candidates, out SettlementInstance restored, out bool usedBackup, out reason), Is.True, reason);
+            Assert.That(usedBackup, Is.True);
+            Assert.That(restored.CurrentYear, Is.EqualTo(1));
+            Assert.That(CampaignSaveFileStore.DeleteAll(savePath), Is.True);
+            Assert.That(CampaignSaveFileStore.HasAnyCandidate(savePath), Is.False);
+            Assert.That(File.Exists(savePath + CampaignSaveFileStore.TemporarySuffix), Is.False);
+        }
+    }
+}

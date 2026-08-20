@@ -32,7 +32,7 @@ namespace Core
             try
             {
                 string savePath = SavePath;
-                string json = JsonUtility.ToJson(data, prettyPrint: true);
+                string json = CampaignSaveCodec.Encode(JsonUtility.ToJson(data, prettyPrint: true));
                 int saveVersion = Interlocked.Increment(ref nextSaveVersion);
                 bool saved = await UniTask.RunOnThreadPool(() => TryWriteSnapshot(savePath, json, saveVersion), cancellationToken: cancellationToken);
                 if (saved)
@@ -55,7 +55,7 @@ namespace Core
             try
             {
                 string savePath = SavePath;
-                string json = JsonUtility.ToJson(data, prettyPrint: true);
+                string json = CampaignSaveCodec.Encode(JsonUtility.ToJson(data, prettyPrint: true));
                 int saveVersion = Interlocked.Increment(ref nextSaveVersion);
                 if (TryWriteSnapshot(savePath, json, saveVersion))
                     Debug.Log($"[SaveLoad] 退出前存档成功 → {savePath}");
@@ -72,7 +72,7 @@ namespace Core
             {
                 if (saveVersion < lastWrittenSaveVersion)
                     return false;
-                System.IO.File.WriteAllText(savePath, json);
+                if (!CampaignSaveFileStore.TryWrite(savePath, json, out string reason)) throw new System.IO.IOException(reason);
                 lastWrittenSaveVersion = saveVersion;
                 return true;
             }
@@ -86,22 +86,25 @@ namespace Core
             try
             {
                 string savePath = SavePath;
-                string json = await UniTask.RunOnThreadPool(() =>
+                CampaignSaveCandidates candidates = await UniTask.RunOnThreadPool(() =>
                     {
                         lock (SaveGate)
-                        {
-                            if (!System.IO.File.Exists(savePath)) return null;
-                            return System.IO.File.ReadAllText(savePath);
-                        }
+                            return CampaignSaveFileStore.ReadCandidates(savePath);
                     },
                     cancellationToken: cancellationToken);
-                if (json == null)
+                if (candidates.Primary == null && candidates.Backup == null)
                 {
                     Debug.Log("[SaveLoad] 无存档文件，返回 null");
                     return null;
                 }
                 await UniTask.SwitchToMainThread(cancellationToken);
-                var data = JsonUtility.FromJson<SettlementInstance>(json);
+                if (!CampaignSaveRecovery.TryRestore(candidates, out SettlementInstance data, out bool usedBackup, out string reason))
+                {
+                    Debug.LogError($"[SaveLoad] 主存档与备份均不可用。{reason}");
+                    return null;
+                }
+                if (usedBackup)
+                    Debug.LogWarning("[SaveLoad] 主存档损坏，已从上一份备份恢复。");
                 Debug.Log($"[SaveLoad] 读档成功 ← {savePath}（年份 {data?.CurrentYear}）");
                 return data;
             }
@@ -124,7 +127,7 @@ namespace Core
             return UniTask.RunOnThreadPool(() =>
             {
                 lock (SaveGate)
-                    return System.IO.File.Exists(savePath);
+                    return CampaignSaveFileStore.HasAnyCandidate(savePath);
             }, cancellationToken: cancellationToken);
         }
 
@@ -132,19 +135,17 @@ namespace Core
         {
             string savePath = SavePath;
             int deleteVersion = Interlocked.Increment(ref nextSaveVersion);
+            lock (SaveGate)
+                lastWrittenSaveVersion = System.Math.Max(lastWrittenSaveVersion, deleteVersion);
             bool deleted = await UniTask.RunOnThreadPool(() =>
             {
                 lock (SaveGate)
-                {
-                    lastWrittenSaveVersion = System.Math.Max(lastWrittenSaveVersion, deleteVersion);
-                    if (!System.IO.File.Exists(savePath)) return false;
-                    System.IO.File.Delete(savePath);
-                    return true;
-                }
+                    return CampaignSaveFileStore.DeleteAll(savePath);
             }, cancellationToken: cancellationToken);
 
             if (deleted)
                 Debug.Log("[SaveLoad] 存档已删除");
         }
+
     }
 }
