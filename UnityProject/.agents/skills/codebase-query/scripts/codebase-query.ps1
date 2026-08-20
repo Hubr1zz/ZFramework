@@ -193,7 +193,7 @@ function Get-SourceFingerprints {
     if (-not [string]::IsNullOrWhiteSpace($script:ResolvedStatePath) -and (Test-Path -LiteralPath $script:ResolvedStatePath)) {
         try {
             $existingState = Get-Content -Raw -LiteralPath $script:ResolvedStatePath -Encoding utf8 | ConvertFrom-Json
-            if ($existingState.schemaVersion -eq 1) {
+            if ($existingState.schemaVersion -eq 2) {
                 foreach ($record in @($existingState.files)) { $existingByPath[$record.path] = $record }
             }
         }
@@ -223,7 +223,7 @@ function Get-SourceFingerprints {
     if (-not [string]::IsNullOrWhiteSpace($script:ResolvedStatePath)) {
         $stateDirectory = Split-Path -Parent $script:ResolvedStatePath
         if (-not (Test-Path -LiteralPath $stateDirectory)) { New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null }
-        $state = [ordered]@{ schemaVersion = 1; files = $fingerprints }
+        $state = [ordered]@{ schemaVersion = 2; files = $fingerprints }
         $temporaryStatePath = "$($script:ResolvedStatePath).tmp.$PID"
         [System.IO.File]::WriteAllText($temporaryStatePath, ($state | ConvertTo-Json -Depth 4 -Compress), [System.Text.UTF8Encoding]::new($false))
         [System.IO.File]::Move($temporaryStatePath, $script:ResolvedStatePath, $true)
