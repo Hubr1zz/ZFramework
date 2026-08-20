@@ -8,8 +8,9 @@ param(
     [string]$Query,
     [string]$Path,
     [string]$Root = (Get-Location).Path,
-    [string]$IndexPath = '.agent-memory/zworkflow/local/code-query-index.json',
+    [string]$IndexPath = '.agents/codebase-query/code-query-index.json',
     [string]$ProgressPath = '.agent-memory/zworkflow/local/code-query-progress.json',
+    [string]$StatePath = '.agent-memory/zworkflow/local/code-query-state.json',
     [string[]]$SourceRoots = @(),
     [string[]]$ExcludeRoots = @(),
     [switch]$IncludeAll,
@@ -20,7 +21,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:IndexVersion = 5
+$script:IndexVersion = 6
 $script:PathComparison = if ($IsWindows) {
     [StringComparison]::OrdinalIgnoreCase
 }
@@ -157,16 +158,9 @@ function Get-SourceFiles {
 }
 
 function Get-SourceSignature {
-    param(
-        [string]$ProjectRoot,
-        [System.IO.FileInfo[]]$Files
-    )
+    param([object[]]$Fingerprints)
 
-    # Include relative paths so a pure rename/move cannot reuse stale locations.
-    $entries = @($Files | ForEach-Object {
-        $relativePath = Convert-ToRelativePath -BasePath $ProjectRoot -TargetPath $_.FullName
-        "$relativePath|$($_.LastWriteTimeUtc.Ticks)|$($_.Length)"
-    } | Sort-Object)
+    $entries = @($Fingerprints | ForEach-Object { "$($_.path)|$($_.sourceHash)" } | Sort-Object)
     $bytes = [Text.Encoding]::UTF8.GetBytes(($entries -join "`n"))
     $sha256 = [Security.Cryptography.SHA256]::Create()
     try {
@@ -175,6 +169,51 @@ function Get-SourceSignature {
     finally {
         $sha256.Dispose()
     }
+}
+
+function Get-SourceFingerprints {
+    param([string]$ProjectRoot, [System.IO.FileInfo[]]$Files)
+
+    $existingByPath = @{}
+    if (-not [string]::IsNullOrWhiteSpace($script:ResolvedStatePath) -and (Test-Path -LiteralPath $script:ResolvedStatePath)) {
+        try {
+            $existingState = Get-Content -Raw -LiteralPath $script:ResolvedStatePath -Encoding utf8 | ConvertFrom-Json
+            if ($existingState.schemaVersion -eq 1) {
+                foreach ($record in @($existingState.files)) { $existingByPath[$record.path] = $record }
+            }
+        }
+        catch {
+            $existingByPath = @{}
+        }
+    }
+
+    $fingerprints = @($Files | ForEach-Object {
+        $relativePath = Convert-ToRelativePath -BasePath $ProjectRoot -TargetPath $_.FullName
+        $existing = if ($existingByPath.ContainsKey($relativePath)) { $existingByPath[$relativePath] } else { $null }
+        $sourceHash = if ($null -ne $existing -and [long]$existing.sourceLength -eq $_.Length -and
+            [long]$existing.sourceWriteTimeUtcTicks -eq $_.LastWriteTimeUtc.Ticks) {
+            $existing.sourceHash
+        }
+        else {
+            (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+        }
+        [pscustomobject]@{
+            path = $relativePath
+            sourceLength = $_.Length
+            sourceWriteTimeUtcTicks = $_.LastWriteTimeUtc.Ticks
+            sourceHash = $sourceHash
+        }
+    })
+
+    if (-not [string]::IsNullOrWhiteSpace($script:ResolvedStatePath)) {
+        $stateDirectory = Split-Path -Parent $script:ResolvedStatePath
+        if (-not (Test-Path -LiteralPath $stateDirectory)) { New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null }
+        $state = [ordered]@{ schemaVersion = 1; files = $fingerprints }
+        $temporaryStatePath = "$($script:ResolvedStatePath).tmp.$PID"
+        [System.IO.File]::WriteAllText($temporaryStatePath, ($state | ConvertTo-Json -Depth 4 -Compress), [System.Text.UTF8Encoding]::new($false))
+        [System.IO.File]::Move($temporaryStatePath, $script:ResolvedStatePath, $true)
+    }
+    return $fingerprints
 }
 
 function Write-CodebaseQueryProgress {
@@ -215,6 +254,7 @@ function New-CodeIndex {
         [System.IO.FileInfo[]]$SourceFiles,
         [string[]]$ConfiguredSourceRoots,
         [string[]]$ConfiguredExcludeRoots,
+        [object[]]$SourceFingerprints,
         [object]$ExistingIndex
     )
 
@@ -230,6 +270,8 @@ function New-CodeIndex {
     if ($null -ne $ExistingIndex -and $ExistingIndex.schemaVersion -eq $script:IndexVersion) {
         foreach ($record in @($ExistingIndex.files)) { $existingByPath[$record.path] = $record }
     }
+    $fingerprintsByPath = @{}
+    foreach ($fingerprint in $SourceFingerprints) { $fingerprintsByPath[$fingerprint.path] = $fingerprint }
 
     $records = [System.Collections.Generic.List[object]]::new()
     $parsedFileCount = 0
@@ -239,16 +281,15 @@ function New-CodeIndex {
         $file = $SourceFiles[$fileIndex]
         $relativePath = Convert-ToRelativePath -BasePath $ProjectRoot -TargetPath $file.FullName
         $existingRecord = if ($existingByPath.ContainsKey($relativePath)) { $existingByPath[$relativePath] } else { $null }
-        if ($null -ne $existingRecord -and
-            [long]$existingRecord.sourceLength -eq $file.Length -and
-            [long]$existingRecord.sourceWriteTimeUtcTicks -eq $file.LastWriteTimeUtc.Ticks) {
+        $sourceHash = $fingerprintsByPath[$relativePath].sourceHash
+        if ($null -ne $existingRecord -and $existingRecord.sourceHash -eq $sourceHash) {
             $records.Add($existingRecord)
             $reusedFileCount++
         }
         else {
             $text = Get-Content -Raw -LiteralPath $file.FullName -Encoding utf8
             $records.Add((New-CSharpFileRecord -Text $text -Path $relativePath -SourceLength $file.Length `
-                -SourceWriteTimeUtcTicks $file.LastWriteTimeUtc.Ticks -KeywordSet $keywordSet))
+                -SourceHash $sourceHash -KeywordSet $keywordSet))
             $parsedFileCount++
         }
         if (($fileIndex + 1) % 25 -eq 0 -or $fileIndex + 1 -eq $SourceFiles.Count) {
@@ -262,14 +303,10 @@ function New-CodeIndex {
     $index = [ordered]@{
         schemaVersion = $script:IndexVersion
         role = 'derived-index'
-        root = $ProjectRoot
-        generatedAtUtc = [DateTime]::UtcNow.ToString('o')
-        sourceSignature = Get-SourceSignature -ProjectRoot $ProjectRoot -Files $SourceFiles
+        sourceSignature = Get-SourceSignature -Fingerprints $SourceFingerprints
         sourceRoots = if (@($ConfiguredSourceRoots).Count -gt 0) { @($ConfiguredSourceRoots) } else { @('Assets') }
         excludeRoots = @($ConfiguredExcludeRoots)
         fileCount = $SourceFiles.Count
-        parsedFileCount = $parsedFileCount
-        reusedFileCount = $reusedFileCount
         typeCount = @($records | ForEach-Object { $_.types }).Count
         methodCount = @($records | ForEach-Object { $_.methods }).Count
         qualifiedTypeCount = $bindingSummary.qualifiedTypeCount
@@ -295,6 +332,8 @@ function New-CodeIndex {
         if (Test-Path -LiteralPath $temporaryIndexPath) { Remove-Item -LiteralPath $temporaryIndexPath -Force }
     }
     Write-CodebaseQueryProgress -Message "complete; parsed=$parsedFileCount reused=$reusedFileCount" -Stage 'complete' -Completed $SourceFiles.Count -Total $SourceFiles.Count
+    $script:LastParsedFileCount = $parsedFileCount
+    $script:LastReusedFileCount = $reusedFileCount
     return [pscustomobject]$index
 }
 
@@ -315,7 +354,8 @@ function Get-FreshIndex {
 
     $sourceFiles = Get-SourceFiles -ProjectRoot $ProjectRoot -ConfiguredSourceRoots $ConfiguredSourceRoots `
         -ConfiguredExcludeRoots $ConfiguredExcludeRoots
-    $signature = Get-SourceSignature -ProjectRoot $ProjectRoot -Files $sourceFiles
+    $sourceFingerprints = Get-SourceFingerprints -ProjectRoot $ProjectRoot -Files $sourceFiles
+    $signature = Get-SourceSignature -Fingerprints $sourceFingerprints
     $expectedSourceRoots = if (@($ConfiguredSourceRoots).Count -gt 0) { @($ConfiguredSourceRoots) } else { @('Assets') }
     $expectedExcludeRoots = @($ConfiguredExcludeRoots)
     $existing = $null
@@ -323,10 +363,11 @@ function Get-FreshIndex {
         try {
             $existing = Read-CodeIndex -ResolvedIndexPath $ResolvedIndexPath
             if (-not $Force -and $existing.schemaVersion -eq $script:IndexVersion -and
-                $existing.root -eq $ProjectRoot -and
                 $existing.sourceSignature -eq $signature -and
                 (@($existing.sourceRoots) -join '|') -eq ($expectedSourceRoots -join '|') -and
                 (@($existing.excludeRoots) -join '|') -eq ($expectedExcludeRoots -join '|')) {
+                $script:LastParsedFileCount = 0
+                $script:LastReusedFileCount = @($existing.files).Count
                 return $existing
             }
         }
@@ -338,7 +379,7 @@ function Get-FreshIndex {
 
     return New-CodeIndex -ProjectRoot $ProjectRoot -ResolvedIndexPath $ResolvedIndexPath `
         -SourceFiles $sourceFiles -ConfiguredSourceRoots $ConfiguredSourceRoots `
-        -ConfiguredExcludeRoots $ConfiguredExcludeRoots -ExistingIndex $existing
+        -ConfiguredExcludeRoots $ConfiguredExcludeRoots -SourceFingerprints $sourceFingerprints -ExistingIndex $existing
 }
 
 function Find-Impact {
@@ -390,7 +431,7 @@ function Write-Result {
     param([object]$Value)
 
     if (-not $Value.PSObject.Properties['engine']) {
-        $Value | Add-Member -NotePropertyName engine -NotePropertyValue 'codebase-query-regex-binding-v5'
+        $Value | Add-Member -NotePropertyName engine -NotePropertyValue 'codebase-query-regex-binding-v6'
     }
     if (-not $Value.PSObject.Properties['schemaVersion']) {
         $Value | Add-Member -NotePropertyName schemaVersion -NotePropertyValue $script:IndexVersion
@@ -412,9 +453,14 @@ else {
 $script:ResolvedProgressPath = if ([string]::IsNullOrWhiteSpace($ProgressPath)) { $null }
 elseif ([System.IO.Path]::IsPathRooted($ProgressPath)) { [System.IO.Path]::GetFullPath($ProgressPath) }
 else { [System.IO.Path]::GetFullPath((Join-Path $projectRoot $ProgressPath)) }
+$script:ResolvedStatePath = if ([string]::IsNullOrWhiteSpace($StatePath)) { $null }
+elseif ([System.IO.Path]::IsPathRooted($StatePath)) { [System.IO.Path]::GetFullPath($StatePath) }
+else { [System.IO.Path]::GetFullPath((Join-Path $projectRoot $StatePath)) }
 $script:ProgressStage = 'scan'
 $script:ProgressCompleted = 0
 $script:ProgressTotal = 0
+$script:LastParsedFileCount = 0
+$script:LastReusedFileCount = 0
 Write-CodebaseQueryProgress -Message 'discovering C# source files' -Stage 'scan' -Completed 0 -Total 0
 
 $index = Get-FreshIndex -ProjectRoot $projectRoot -ResolvedIndexPath $resolvedIndexPath `
@@ -435,10 +481,10 @@ switch ($Command) {
         Write-Result ([pscustomobject]@{
             command = 'build'
             indexPath = Convert-ToRelativePath -BasePath $projectRoot -TargetPath $resolvedIndexPath
-            generatedAtUtc = $index.generatedAtUtc
+            generatedAtUtc = [DateTime]::UtcNow.ToString('o')
             fileCount = $index.fileCount
-            parsedFileCount = $index.parsedFileCount
-            reusedFileCount = $index.reusedFileCount
+            parsedFileCount = $script:LastParsedFileCount
+            reusedFileCount = $script:LastReusedFileCount
             typeCount = @($index.files | ForEach-Object { $_.types }).Count
             methodCount = @($index.files | ForEach-Object { $_.methods }).Count
             qualifiedTypeCount = $index.qualifiedTypeCount
@@ -456,10 +502,10 @@ switch ($Command) {
             command = 'status'
             schemaVersion = $index.schemaVersion
             role = $index.role
-            generatedAtUtc = $index.generatedAtUtc
+            generatedAtUtc = $null
             fileCount = $index.fileCount
-            parsedFileCount = $index.parsedFileCount
-            reusedFileCount = $index.reusedFileCount
+            parsedFileCount = $script:LastParsedFileCount
+            reusedFileCount = $script:LastReusedFileCount
             qualifiedTypeCount = $index.qualifiedTypeCount
             resolvedCallCount = $index.resolvedCallCount
             fresh = $true

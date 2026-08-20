@@ -6,8 +6,9 @@ param(
     [string]$Query,
     [string]$Path,
     [string]$Root = (Get-Location).Path,
-    [string]$IndexPath = '.agent-memory/zworkflow/local/code-query-index.json',
+    [string]$IndexPath = '.agents/codebase-query/code-query-index.json',
     [string]$ProgressPath = '.agent-memory/zworkflow/local/code-query-progress.json',
+    [string]$StatePath = '.agent-memory/zworkflow/local/code-query-state.json',
     [string[]]$SourceRoots = @(),
     [string[]]$ExcludeRoots = @(),
     [switch]$IncludeAll,
@@ -39,6 +40,7 @@ $arguments = @{
     Root = $Root
     IndexPath = $IndexPath
     ProgressPath = $ProgressPath
+    StatePath = $StatePath
     SourceRoots = $SourceRoots
     ExcludeRoots = $ExcludeRoots
     IncludeAll = $IncludeAll
