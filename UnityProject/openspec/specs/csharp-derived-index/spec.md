@@ -13,11 +13,18 @@ title: "C# 派生索引"
 ## Requirements
 
 ### Requirement: Full project-local source coverage
-The system SHALL index every `Assets/**/*.cs` file by default and SHALL keep the derived cache outside Git-tracked project facts.
+The system SHALL index every `Assets/**/*.cs` file by default and SHALL publish a deterministic derived index that can be synchronized by Git without becoming an authoritative project fact.
 
 #### Scenario: Building the default index
 - **WHEN** a build is requested without explicit exclusions
 - **THEN** every C# file under `Assets` is represented exactly once in the index
+
+### Requirement: Portable deterministic publication
+The canonical index SHALL contain only project-relative paths and content-derived source fingerprints, and SHALL exclude machine-local roots, file timestamps, and generation timestamps.
+
+#### Scenario: Two worktrees index the same source revision
+- **WHEN** the canonical index is rebuilt from identical source bytes in different locations
+- **THEN** both worktrees publish byte-identical index files while volatile progress remains local and Git-ignored
 
 ### Requirement: Observable manual build
 The Unity Agent Workbench SHALL provide a manual asynchronous build entry that reports phase progress and remains responsive while `pwsh` executes the public query script.

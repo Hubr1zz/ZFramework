@@ -144,7 +144,7 @@ function New-CSharpFileRecord {
         [string]$Text,
         [string]$Path,
         [long]$SourceLength,
-        [long]$SourceWriteTimeUtcTicks,
+        [string]$SourceHash,
         [hashtable]$KeywordSet
     )
 
@@ -230,7 +230,7 @@ function New-CSharpFileRecord {
     return [pscustomobject]@{
         path = $Path
         sourceLength = $SourceLength
-        sourceWriteTimeUtcTicks = $SourceWriteTimeUtcTicks
+        sourceHash = $SourceHash
         namespaces = $namespaces
         usings = $usings
         aliases = $aliases

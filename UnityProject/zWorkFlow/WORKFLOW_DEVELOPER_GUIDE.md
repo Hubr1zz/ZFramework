@@ -21,7 +21,7 @@
 
 `codebase-query` 是条件安装的共享 skill。Unity 目标在 `Assets` 或显式项目内 source roots 存在 C#，且可执行 PowerShell 7+（`pwsh`）时，setup 从分发包安装完整 skill，不要求 `Assets/Scripts`。索引 v3 在 Windows/macOS 统一使用 UTF-8 与 `/` 相对路径；缺少 `pwsh` 时只有获得用户许可才尝试安装，否则跳过并保留 Agent 原生 `rg`/源码读取路径。
 
-查询脚本默认扫描 `Assets` 下全部 C# 文件，建立命名空间、完整类型、继承、方法、变量类型、receiver 调用和词法回退关系，再原子写入 `.agent-memory/zworkflow/local/code-query-index.json`。每个文件只提取一次紧凑事实；源码签名变化时仅重新提取变化文件，复用其余文件后统一重绑定。类型引用使用标识符集合和哈希表绑定，using alias 解析带循环保护。签名不变时直接读取缓存。索引是可再生成的本地派生物，不进入项目事实、ADR 或 OpenSpec。Unity 工作台“代码索引”页可手动异步构建，并显示进度、文件覆盖率、提取/复用数量、缺失项与调用统计。
+查询脚本默认扫描 `Assets` 下全部 C# 文件，建立命名空间、完整类型、继承、方法、变量类型、receiver 调用和词法回退关系，再原子写入 Git 管理的 `.agents/codebase-query/code-query-index.json`。正式索引只包含项目相对路径和源码内容哈希，同一提交在不同机器或 worktree 中生成字节一致；进度时间等易变状态仍写入 `.agent-memory/zworkflow/local`。每个文件只提取一次紧凑事实；源码签名变化时仅重新提取变化文件，复用其余文件后统一重绑定。类型引用使用标识符集合和哈希表绑定，using alias 解析带循环保护。签名不变时直接读取索引。它仍是可再生成的派生物，不替代项目事实、ADR 或 OpenSpec。Unity 工作台“代码索引”页可手动异步构建，并显示进度、文件覆盖率、提取/复用数量、缺失项与调用统计。
 
 类型绑定只在 receiver 类型唯一且目标类型或项目内基类声明方法时进入 `resolvedCallers`；其他同名命中保留在 `lexicalFallbackFiles`。这能减少误报导致的后续工具调用，但不替代 Roslyn、Unity 序列化资源核验或源码确认。
 
