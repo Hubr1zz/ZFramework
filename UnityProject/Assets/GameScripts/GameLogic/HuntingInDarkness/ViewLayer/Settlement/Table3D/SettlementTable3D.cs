@@ -37,6 +37,10 @@ namespace UI
         [SerializeField] private HunterEquipmentPanel3D hunterEquipmentPanel;
         [SerializeField] private Transform hunterEquipmentPanelAnchor;
 
+        [Header("猎人 3D 休养板")]
+        [SerializeField] private HunterRecoveryPanel3D hunterRecoveryPanel;
+        [SerializeField] private Transform hunterRecoveryPanelAnchor;
+
         [Header("发明 3D 确认板")]
         [SerializeField] private InventionUnlockPanel3D inventionUnlockPanel;
         [SerializeField] private Transform inventionUnlockPanelAnchor;
@@ -62,21 +66,25 @@ namespace UI
         public System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> OnCraftRequested;
         public System.Func<InventionData, UniTask<SettlementInventionCommandResult>> OnInventionUnlockRequested;
         public System.Func<PlayableWorkshopDefinition, UniTask<SettlementWorkshopConstructionResult>> OnWorkshopConstructionRequested;
+        public System.Func<int, HuntingInDarkness.GameCore.Hunters.HunterBodyPart, UniTask<RecoverHunterCommandResult>> OnRecoveryRequested;
 
         // ─── 注入数据 ─────────────────────────────────────────────────────
         private SettlementManager _mgr;
         private PlayableWorkshopCatalog workshopCatalog;
+        private PlayableSettlementContentCatalog settlementContentCatalog;
         private PlayableWorkshopConstructionService workshopConstructionService;
 
         // ─── 初始化 ───────────────────────────────────────────────────────
 
-        public void Init(SettlementManager mgr, PlayableWorkshopCatalog catalog = null)
+        public void Init(SettlementManager mgr, PlayableWorkshopCatalog catalog = null, PlayableSettlementContentCatalog settlementContent = null)
         {
             _mgr = mgr;
             workshopCatalog = catalog;
+            settlementContentCatalog = settlementContent;
             workshopConstructionService = new PlayableWorkshopConstructionService(() => _mgr?.Data);
             EnsureSceneRefs();    // 未连线时程序化搭建四区 + presenter
             EnsureHunterEquipmentPanel();
+            EnsureHunterRecoveryPanel();
             EnsureInventionUnlockPanel();
             EnsureWorkshopConstructionPanel();
             EnsureDepartureLauncher();
@@ -111,7 +119,22 @@ namespace UI
             if (hunterEquipmentPanel == null)
                 hunterEquipmentPanel = HunterEquipmentPanel3D.Create(transform);
             hunterEquipmentPanel.EnsureBuilt();
-            hunterEquipmentPanel.ConfigureCommands(OnEquipRequested, OnUnequipRequested);
+            hunterEquipmentPanel.ConfigureCommands(OnEquipRequested, OnUnequipRequested, ShowHunterRecovery);
+        }
+
+        private void EnsureHunterRecoveryPanel()
+        {
+            if (hunterRecoveryPanel == null)
+                hunterRecoveryPanel = HunterRecoveryPanel3D.Create(transform);
+            hunterRecoveryPanel.EnsureBuilt();
+        }
+
+        private void ShowHunterRecovery(HunterInstance hunter)
+        {
+            if (hunter == null || hunterRecoveryPanel == null) return;
+            hunterEquipmentPanel?.Hide();
+            Vector3 position = hunterRecoveryPanelAnchor != null ? hunterRecoveryPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.1f));
+            hunterRecoveryPanel.Open(hunter, _mgr.Data, settlementContentCatalog, OnRecoveryRequested, position);
         }
 
         private void EnsureInventionUnlockPanel()
@@ -278,6 +301,7 @@ namespace UI
             if (_mgr == null) return;
             FillAllZones();
             hunterEquipmentPanel?.RefreshVisible();
+            hunterRecoveryPanel?.RefreshVisible();
             inventionUnlockPanel?.RefreshVisible();
             workshopConstructionPanel?.RefreshVisible();
         }
@@ -295,6 +319,7 @@ namespace UI
             _resourceZone.RefreshCounts(_mgr);
             _workshopZone.RefreshCards();
             hunterEquipmentPanel?.RefreshVisible();
+            hunterRecoveryPanel?.RefreshVisible();
             inventionUnlockPanel?.RefreshVisible();
             workshopConstructionPanel?.RefreshVisible();
         }

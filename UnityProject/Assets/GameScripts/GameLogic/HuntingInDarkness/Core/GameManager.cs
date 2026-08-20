@@ -664,6 +664,7 @@ namespace Core
                 _settlementTable3D.OnCraftRequested = recipe => settlementActionSession != null ? settlementActionSession.CraftAsync(recipe) : UniTask.FromResult(SettlementCraftCommandResult.Failed("当前不在营地阶段。"));
                 _settlementTable3D.OnInventionUnlockRequested = invention => settlementActionSession != null ? settlementActionSession.UnlockInventionAsync(invention) : UniTask.FromResult(SettlementInventionCommandResult.Failed("当前不在营地阶段。"));
                 _settlementTable3D.OnWorkshopConstructionRequested = definition => settlementActionSession != null ? settlementActionSession.BuildWorkshopAsync(definition) : UniTask.FromResult(SettlementWorkshopConstructionResult.Failed("当前不在营地阶段。"));
+                _settlementTable3D.OnRecoveryRequested = (hunterId, bodyPart) => settlementActionSession != null ? settlementActionSession.RecoverHunterAsync(hunterId, bodyPart) : UniTask.FromResult(RecoverHunterCommandResult.Failed("当前不在营地阶段。"));
 
                 // 点击发明卡（有主动效果时）→ TODO: 展示效果选择面板
                 _settlementTable3D.OnInventionEffectRequested = card =>
@@ -673,7 +674,7 @@ namespace Core
 
                 _settlementTable3D.OnDepartureRequested = squad => RequestHuntDeparture(squad != null ? squad.Where(hunter => hunter != null).Select(hunter => hunter.InstanceId).ToList() : new List<int>());
 
-                _settlementTable3D.Init(_settlementManager, workshopContentCatalog);
+                _settlementTable3D.Init(_settlementManager, workshopContentCatalog, settlementContentCatalog);
             }
         }
 

@@ -70,6 +70,13 @@
       "category": "feature",
       "readiness": "implemented",
       "specPath": "openspec/specs/tabletop-settlement-workshop-construction/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-recovery",
+      "label": "营地桌面猎人休养",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-recovery/spec.md"
     }
   ],
   "edges": [
@@ -180,6 +187,16 @@
       "type": "requires",
       "status": "defined",
       "reason": "建设事务在营地 Runner 内串行提交并触发持久化",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-recovery--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-recovery",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "分部位休养由营地 Runner 校验并提交资源与生命变更",
       "gapId": "",
       "blocksImplementation": false
     }

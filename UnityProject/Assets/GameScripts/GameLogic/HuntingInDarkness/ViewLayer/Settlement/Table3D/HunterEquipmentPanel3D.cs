@@ -4,6 +4,7 @@ using Cards3D;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using TMPro;
@@ -31,6 +32,8 @@ namespace UI
         private IReadOnlyList<ItemData> items = Array.Empty<ItemData>();
         private Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> equipCommand;
         private Func<int, int, UniTask<SettlementEquipmentCommandResult>> unequipCommand;
+        private Action<HunterInstance> recoveryRequested;
+        private GameObject recoveryButton;
         private GameObject previousPageButton;
         private GameObject nextPageButton;
         private int storagePage;
@@ -55,10 +58,11 @@ namespace UI
             Build();
         }
 
-        public void ConfigureCommands(Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> onEquip, Func<int, int, UniTask<SettlementEquipmentCommandResult>> onUnequip)
+        public void ConfigureCommands(Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> onEquip, Func<int, int, UniTask<SettlementEquipmentCommandResult>> onUnequip, Action<HunterInstance> onRecoveryRequested = null)
         {
             equipCommand = onEquip;
             unequipCommand = onUnequip;
+            recoveryRequested = onRecoveryRequested;
         }
 
         public void Show(HunterInstance selectedHunter, SettlementInstance settlementData, IReadOnlyList<ItemData> availableItems, Vector3 worldPosition)
@@ -99,6 +103,7 @@ namespace UI
             equipmentGrid.AddLabel("猎人装备槽");
             previousPageButton = BuildPageButton("PreviousStoragePage", "<", new Vector3(-2.75f, 0.03f, 1.42f), -1);
             nextPageButton = BuildPageButton("NextStoragePage", ">", new Vector3(-0.30f, 0.03f, 1.42f), 1);
+            recoveryButton = BuildRecoveryButton();
             BuildCloseButton();
         }
 
@@ -175,6 +180,29 @@ namespace UI
             return buttonObject;
         }
 
+        private GameObject BuildRecoveryButton()
+        {
+            GameObject buttonObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            buttonObject.name = "RecoveryButton";
+            buttonObject.transform.SetParent(transform, false);
+            buttonObject.transform.localPosition = new Vector3(2.15f, 0.03f, 1.42f);
+            buttonObject.transform.localScale = new Vector3(0.85f, 0.04f, 0.28f);
+            buttonObject.GetComponent<Renderer>().material.color = new Color(0.38f, 0.18f, 0.14f);
+            buttonObject.AddComponent<ClickProxy>().OnClick = () => recoveryRequested?.Invoke(hunter);
+            var labelObject = new GameObject("Label");
+            labelObject.transform.SetParent(buttonObject.transform, false);
+            labelObject.transform.localPosition = new Vector3(0f, 0.6f, 0f);
+            labelObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            labelObject.transform.localScale = new Vector3(1f / 0.85f, 1f / 0.28f, 1f);
+            TextMeshPro label = labelObject.AddComponent<TextMeshPro>();
+            label.text = "营火休养";
+            label.fontSize = 0.095f;
+            label.alignment = TextAlignmentOptions.Center;
+            label.color = new Color(0.95f, 0.84f, 0.76f);
+            label.rectTransform.sizeDelta = new Vector2(0.72f, 0.22f);
+            return buttonObject;
+        }
+
         private void ChangeStoragePage(int direction)
         {
             storagePage += direction;
@@ -185,6 +213,7 @@ namespace UI
         {
             ClearCards();
             statsText.text = BuildStats(hunter);
+            recoveryButton.SetActive(IsWounded(hunter));
             FillStorageCards();
             FillEquipmentCards();
         }
@@ -311,6 +340,14 @@ namespace UI
         private static string BuildStats(HunterInstance hunter)
         {
             return $"年龄 {hunter.Age}  意志 {hunter.Willpower}/{hunter.WillpowerMax}  命运 {hunter.Luck}  压抑 {hunter.Insanity}    力 {hunter.Stats.strength}  准 {hunter.Stats.accuracy}  敏 {hunter.Stats.evasion}  移 {hunter.Stats.movement}  速 {hunter.Stats.speed}    装备 {hunter.Equipment?.Count ?? 0}/{EquipmentRules.MaximumEquipmentCount}";
+        }
+
+        private static bool IsWounded(HunterInstance hunter)
+        {
+            return HunterRecoveryRules.CanRecover(hunter, HunterBodyPart.Head, out _)
+                || HunterRecoveryRules.CanRecover(hunter, HunterBodyPart.Torso, out _)
+                || HunterRecoveryRules.CanRecover(hunter, HunterBodyPart.Arms, out _)
+                || HunterRecoveryRules.CanRecover(hunter, HunterBodyPart.Legs, out _);
         }
     }
 }
