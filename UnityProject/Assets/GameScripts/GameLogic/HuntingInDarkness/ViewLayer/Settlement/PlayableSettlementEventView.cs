@@ -35,6 +35,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private UniTaskCompletionSource<PlayableEventChoiceSelection> choiceSource;
         private UniTaskCompletionSource<PlayableEventCheckDecision> checkSource;
         private UniTaskCompletionSource resultSource;
+        private TabletopBackgroundInputBlocker backgroundInputBlocker;
 
         public bool IsPresenting => prompt != EventPromptKind.None;
         public TabletopEventPanel3D ActivePanel => panel;
@@ -50,9 +51,9 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         {
             BeginPrompt(EventPromptKind.Narrative, gameEvent, actor, null);
             narrativeSource = new UniTaskCompletionSource();
-            PresentNarrative();
             try
             {
+                PresentNarrative();
                 await narrativeSource.Task.AttachExternalCancellation(cancellationToken);
             }
             finally
@@ -66,9 +67,9 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         {
             BeginPrompt(EventPromptKind.Choice, gameEvent, actor, hunters);
             choiceSource = new UniTaskCompletionSource<PlayableEventChoiceSelection>();
-            PresentChoices();
             try
             {
+                PresentChoices();
                 return await choiceSource.Task.AttachExternalCancellation(cancellationToken);
             }
             finally
@@ -83,9 +84,9 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             if (transaction == null) throw new System.ArgumentNullException(nameof(transaction));
             BeginPrompt(EventPromptKind.Check, transaction.GameEvent, transaction.Actor, null);
             checkSource = new UniTaskCompletionSource<PlayableEventCheckDecision>();
-            PresentCheck(transaction);
             try
             {
+                PresentCheck(transaction);
                 return await checkSource.Task.AttachExternalCancellation(cancellationToken);
             }
             finally
@@ -99,9 +100,9 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         {
             BeginPrompt(EventPromptKind.Result, gameEvent, null, null);
             resultSource = new UniTaskCompletionSource();
-            PresentResult(result);
             try
             {
+                PresentResult(result);
                 await resultSource.Task.AttachExternalCancellation(cancellationToken);
             }
             finally
@@ -252,6 +253,15 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             candidateHunters = hunters ?? System.Array.Empty<HunterInstance>();
             EnsureInputOwnerId();
             PlayableHuntInputGuard.Acquire(inputOwnerId);
+            try
+            {
+                backgroundInputBlocker = TabletopBackgroundInputBlocker.Capture();
+            }
+            catch
+            {
+                EndPrompt(nextPrompt);
+                throw;
+            }
         }
 
         private void EndPrompt(EventPromptKind completedPrompt)
@@ -262,6 +272,8 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             currentActor = null;
             candidateHunters = System.Array.Empty<HunterInstance>();
             panel?.Close();
+            backgroundInputBlocker?.Dispose();
+            backgroundInputBlocker = null;
             PlayableHuntInputGuard.Release(inputOwnerId);
         }
 
@@ -307,6 +319,8 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             choiceSource?.TrySetCanceled();
             checkSource?.TrySetCanceled();
             resultSource?.TrySetCanceled();
+            backgroundInputBlocker?.Dispose();
+            backgroundInputBlocker = null;
             PlayableHuntInputGuard.Release(inputOwnerId);
             if (panel != null)
             {

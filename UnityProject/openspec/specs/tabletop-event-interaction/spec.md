@@ -42,11 +42,16 @@ The event presenter SHALL only return the selected option, actor, reroll decisio
 - **THEN** the phase action requests the tabletop random presenter before opening the check-result cards
 
 ### Requirement: Input ownership is released on every exit path
-The presenter SHALL block conflicting hunt-map input while a prompt is active and SHALL release that ownership after completion, cancellation, or destruction.
+The presenter SHALL block conflicting Hunt commands and the pre-existing physical tabletop colliders in either phase while a prompt is active. Event cards created after that background lease SHALL remain interactive. The presenter SHALL release both forms of ownership after completion, cancellation, or destruction.
+
+#### Scenario: A settlement event is awaiting a choice
+- **WHEN** the event presenter opens its physical cards over the settlement table
+- **THEN** existing hunter, resource, workshop, invention, and departure colliders stop receiving pointer input
+- **AND** the event choice cards remain interactive
 
 #### Scenario: A phase session is cancelled while cards are open
 - **WHEN** the prompt cancellation token is triggered
-- **THEN** the cards close, the input guard is released, and no event result is committed by the View
+- **THEN** the cards close, background colliders return to their prior enabled state, the Hunt command guard is released, and no event result is committed by the View
 
 ### Requirement: Malformed option content fails visibly
 Null or unavailable option entries SHALL NOT crash presentation and SHALL NOT become selectable.
