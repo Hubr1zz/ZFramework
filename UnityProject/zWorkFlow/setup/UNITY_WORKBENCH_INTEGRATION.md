@@ -17,7 +17,7 @@
 - 使用项目无关的命名空间、菜单与配置键。
 - 不依赖第三方编辑器插件或运行时程序集。
 - JSON 缺失或损坏时只显示警告，不影响其他功能。
-- 代码索引页必须通过 `pwsh` 子进程异步执行公共 `codebase-query/scripts/run.ps1`，默认覆盖 `Assets` 下全部 C# 文件，并独立核对磁盘文件数、索引文件数、缺失项与异常项；派生缓存继续由 Git 忽略。
+- 代码索引页必须通过 `pwsh` 子进程异步执行公共 `codebase-query/scripts/run.ps1`，默认覆盖 `Assets` 下全部 C# 文件，并独立核对磁盘文件数、索引文件数、缺失项与异常项；正式索引仅含项目相对路径和确定性内容指纹，由 Git 管理，本地 sidecar 与进度快照继续由 Git 忽略。
 - Draft 与正式 Change 的审核问题使用同一表格；非阻塞 warning/info 可逐行填写接受备注并勾选，blocking 行禁止接受。
 - 外部设计文档只允许打开，不允许编辑。
 - 设计来源配置使用 schema v2 `sources[]`，允许添加、替换和移除多个等价路径；每条路径持有稳定唯一 ID，不预先声明规则、内容或美术角色。schema v1 单路径自动迁移为 `primary`。
@@ -46,7 +46,7 @@
 - 顶部工具栏按钮保持 Unity 默认高度；“增量维护 / OpenSpec / 导入报告”三大主入口统一为 40px，各功能内部页签统一为 32px。主入口与页签使用统一横向 Toggle 组，不使用会派生首/中/尾内部样式的 `GUILayout.Toolbar`；每个按钮共享相同 GUIStyle、显式高度和等分宽度。
 - 增量维护卡片字段使用左右两列；导入报告的批次元数据与单条提案审计也使用双列布局。Draft Change 的审核问题与 Dependencies 使用固定宽度的 66%/34% 双栏，展开内容不得把相邻区块挤出窗口。
 - 每条正式 Spec 的递归依赖树、readiness、Verification、缺失依赖和来源。
-- 正式 Spec、Changes 与 Draft Change 的全部/System/Feature/游戏规则分类页签都位于各自左侧列表区；OpenSpec 顶部只保留“正式 Spec / Changes”主切换。正式 Spec 与 Change 左侧条目末端提供小型文件夹图标，通过菜单原位设置条目的文件夹分类；顶部只承担筛选、新建与空分类删除。Changes 使用与正式 Spec 相同的分类/文件夹式左侧导航、右侧详情及可视化 Tasks 进度，左侧条目显示完成百分比；详情操作区分行排列，审核问题改用自适应宽度卡片，所有正文和编辑区按右侧可用宽度换行，不得超出窗口。正式 Change 详情必须列出内部全部 delta Spec，配对 Change 在规则页签中优先显示 Game Rule、在 Feature 页签中优先显示 Feature，但始终保持一个 Change。导入报告的 Draft Change 与正式 Change 对 Review、Dependencies、Tasks、内部 Spec、Proposal、Design 等大区块使用同一折叠组件：整条标题可点击，默认展开，折叠状态按 Change 和区块分开保存于当前窗口会话。Tasks、内部 Spec、Proposal、Design 支持在结构化/分段渲染与 Markdown 编辑之间切换并保存。标题栏使用强调底色、主题色边线、粗体大字号和展开箭头。
+- 正式 Spec、Changes 与 Draft Change 的全部/System/Feature/游戏规则分类页签都位于各自左侧列表区；OpenSpec 顶部只保留“正式 Spec / Changes”主切换。正式 Spec 与 Change 左侧条目末端提供小型文件夹图标，通过菜单原位设置条目的文件夹分类；顶部只承担筛选、新建与空分类删除。Changes 使用与正式 Spec 相同的分类/文件夹式左侧导航、右侧详情及可视化 Tasks 进度，左侧条目显示完成百分比；详情操作区分行排列，审核问题改用自适应宽度卡片，所有正文和编辑区按右侧可用宽度换行，不得超出窗口。Workbench 所有页面及可移植模板的嵌套内容宽度都必须来自当前布局容器，不得用全局视图宽度或带视觉最小值的窗口宽度计算撑大父容器。正式 Change 详情必须列出内部全部 delta Spec，配对 Change 在规则页签中优先显示 Game Rule、在 Feature 页签中优先显示 Feature，但始终保持一个 Change。导入报告的 Draft Change 与正式 Change 对 Review、Dependencies、Tasks、内部 Spec、Proposal、Design 等大区块使用同一折叠组件：整条标题可点击，默认展开，折叠状态按 Change 和区块分开保存于当前窗口会话。Tasks、内部 Spec、Proposal、Design 支持在结构化/分段渲染与 Markdown 编辑之间切换并保存。标题栏使用强调底色、主题色边线、粗体大字号和展开箭头。
 - `change-review.category=paired` 是合法 Change 聚合分类。工作台从其内部 capability review/frontmatter 汇总三类筛选归属，配对 Change 可同时出现在多个分类页签，展示标签为“配对”，不得显示为“未分类”。
 - 设计导入批次只作筛选；capability 按 Draft Change 分组，列表提供与 OpenSpec 一致的全部、System、Feature、游戏规则分类页签，同一 capability 必须原位更新，不生成并行冲突副本。删除操作以整个 Draft Change 为单位确认。
 - 导入批次目录只在至少引用一个实际存在的 Draft Change 时保留。工作台在批准、删除和重新加载时同步中央 Draft 索引与 `draft-refs.json`；最后一个引用消失后安全删除该批次目录，不展示空导入记录。

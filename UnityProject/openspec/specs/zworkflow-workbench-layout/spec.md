@@ -20,11 +20,11 @@ Every nested Workbench panel SHALL size rendered content from its own available 
 - **THEN** detail Markdown, tables, fields, and editors remain within the right-hand viewport without ordinary horizontal scrolling
 
 ### Requirement: Automated layout regression guard
-The project SHALL route zWorkFlow UI maintenance through a project-local skill that provides a data-based layout audit and Unity MCP compilation workflow.
+The project SHALL route zWorkFlow UI maintenance through a project-local skill that provides a data-based, all-page layout audit and Unity MCP compilation workflow.
 
 #### Scenario: A Workbench page is changed
 - **WHEN** an agent optimizes, extends, or refactors Workbench UI
-- **THEN** it reads the project layout skill and runs its audit before completion
+- **THEN** it reads the project layout skill and runs its audit across every Workbench page and portable template before completion
 
 ### Requirement: Project-only maintenance policy
 The zWorkFlow UI maintenance skill SHALL remain outside the portable zWorkFlow distribution and its package manifest.

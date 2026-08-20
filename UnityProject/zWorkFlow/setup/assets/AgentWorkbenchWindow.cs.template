@@ -942,7 +942,7 @@ namespace AgentWorkflow.Editor
                 L("spec.content"),
                 () =>
                 {
-                    var width = Mathf.Max(320, position.width - 330);
+                    var width = CurrentLayoutContentWidth();
                     if (string.Equals(spec.Category, "game-rule", StringComparison.OrdinalIgnoreCase))
                         DrawPairedFormalFeatureLink(spec);
                     DrawLocalizedMarkdown(spec.Path, spec.Content, width);
@@ -2632,7 +2632,7 @@ namespace AgentWorkflow.Editor
                     using (var scroll = new EditorGUILayout.ScrollViewScope(_introductionScroll))
                     {
                         _introductionScroll = scroll.scrollPosition;
-                        DrawMarkdown(markdown, Mathf.Max(320f, position.width - 40f), Path.GetDirectoryName(path));
+                        DrawMarkdown(markdown, CurrentLayoutContentWidth(), Path.GetDirectoryName(path));
                     }
                 }
             }
@@ -2640,6 +2640,12 @@ namespace AgentWorkflow.Editor
             {
                 EditorGUILayout.HelpBox(AgentWorkbenchText.Format("common.readFailed", exception.Message), MessageType.Warning);
             }
+        }
+
+        private static float CurrentLayoutContentWidth(float horizontalChrome = 0f)
+        {
+            var widthProbe = GUILayoutUtility.GetRect(1f, 0f, GUILayout.ExpandWidth(true));
+            return Mathf.Max(1f, widthProbe.width - horizontalChrome);
         }
 
         private string ResolveHumanWorkflowDocument(string fileName)
