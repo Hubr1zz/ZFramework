@@ -38,7 +38,7 @@ namespace HuntingInDarkness.Hunt
         private HuntManager _huntMgr;
         private readonly Dictionary<Vector2Int, GameObject> _tileObjects = new();
         private readonly Dictionary<Vector2Int, Renderer>   _tileRenderers = new();
-        private readonly Dictionary<Vector2Int, GameObject> _resourceMarkers = new();
+        private readonly Dictionary<Vector2Int, List<PlayableHuntResourceMarker3D>> resourceMarkers = new();
         private PlayableHuntSquadPawn3D squadPawn;
         private PlayableHuntMapIntroCamera3D mapIntroCamera;
 
@@ -47,13 +47,14 @@ namespace HuntingInDarkness.Hunt
         public bool TryGetResourcePointPresentationPosition(ResourcePointInstance point, out Vector3 position)
         {
             position = default;
-            if (point == null || _huntMgr == null) return false;
-            foreach (KeyValuePair<Vector2Int, HexTileInstance> pair in _huntMgr.Map)
-            {
-                if (!pair.Value.ResourcePoints.Contains(point) || !_resourceMarkers.TryGetValue(pair.Key, out GameObject marker) || marker == null) continue;
-                position = marker.transform.position + new Vector3(0f, 0.58f, -1.55f);
-                return true;
-            }
+            if (point == null) return false;
+            foreach (List<PlayableHuntResourceMarker3D> markers in resourceMarkers.Values)
+                foreach (PlayableHuntResourceMarker3D marker in markers)
+                    if (marker != null && ReferenceEquals(marker.Point, point))
+                    {
+                        position = marker.PresentationPosition;
+                        return true;
+                    }
             return false;
         }
 
@@ -199,27 +200,31 @@ namespace HuntingInDarkness.Hunt
         public void UpdateResourceMarkers(Vector2Int coord, HexTileInstance tile)
         {
             // 移除旧标记
-            if (_resourceMarkers.TryGetValue(coord, out var old))
+            if (resourceMarkers.TryGetValue(coord, out List<PlayableHuntResourceMarker3D> oldMarkers))
             {
-                Destroy(old);
-                _resourceMarkers.Remove(coord);
+                foreach (PlayableHuntResourceMarker3D oldMarker in oldMarkers)
+                    if (oldMarker != null)
+                    {
+                        oldMarker.gameObject.SetActive(false);
+                        Destroy(oldMarker.gameObject);
+                    }
+                resourceMarkers.Remove(coord);
             }
 
-            int activePoints = tile.ResourcePoints.FindAll(p => !p.IsExhausted).Count;
-            if (activePoints <= 0) return;
+            if (tile?.ResourcePoints == null || !_tileObjects.TryGetValue(coord, out GameObject parent) || parent == null) return;
+            var activePointIndices = new List<int>();
+            for (int pointIndex = 0; pointIndex < tile.ResourcePoints.Count; pointIndex++)
+                if (tile.ResourcePoints[pointIndex]?.IsExhausted == false) activePointIndices.Add(pointIndex);
+            if (activePointIndices.Count == 0) return;
 
-            var parent = _tileObjects[coord];
-            var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            marker.name = "ResourceMarker";
-            marker.transform.SetParent(parent.transform);
-            marker.transform.localPosition = new Vector3(0.5f, 0.28f, 0.35f);
-            marker.transform.localScale    = Vector3.one * 0.35f;
-            marker.GetComponent<Renderer>().material = new Material(Shader.Find("Standard"));
-            marker.GetComponent<Renderer>().material.color = new Color(1f, 0.9f, 0.2f);
-            var clickHandler = marker.AddComponent<ResourceMarkerClickHandler>();
-            clickHandler.Initialize(_huntMgr, coord);
-
-            _resourceMarkers[coord] = marker;
+            var markers = new List<PlayableHuntResourceMarker3D>(activePointIndices.Count);
+            for (int visualIndex = 0; visualIndex < activePointIndices.Count; visualIndex++)
+            {
+                int pointIndex = activePointIndices[visualIndex];
+                if (!PlayableHuntResourceMarkerLayout.TryGetLocalPosition(visualIndex, activePointIndices.Count, 0.48f, out Vector3 localPosition)) continue;
+                markers.Add(PlayableHuntResourceMarker3D.Create(parent.transform, _huntMgr, coord, pointIndex, tile.ResourcePoints[pointIndex], localPosition));
+            }
+            resourceMarkers[coord] = markers;
         }
 
         private void AddBossMarker(Vector2Int coord)
@@ -258,7 +263,7 @@ namespace HuntingInDarkness.Hunt
             }
             _tileObjects.Clear();
             _tileRenderers.Clear();
-            _resourceMarkers.Clear();
+            resourceMarkers.Clear();
             squadPawn = null;
         }
     }
