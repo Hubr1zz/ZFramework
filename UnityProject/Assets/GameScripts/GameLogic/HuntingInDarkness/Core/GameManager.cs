@@ -590,7 +590,6 @@ namespace Core
             _huntMgr.EventInput = playableEventInput;
             _huntMgr.OnEnter(hunters, _settlementManager?.Data.CurrentYear ?? 1);
             DisposeHuntActionSession();
-            huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId, tabletopRandomPresenter);
 
             // 3D 地图可视化
             if (_huntVisualizer == null && huntRoot != null)
@@ -600,6 +599,7 @@ namespace Core
                 _huntVisualizer = visGo.AddComponent<HuntMapVisualizer>();
             }
             _huntVisualizer?.Init(_huntMgr);
+            huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId, tabletopRandomPresenter, _huntVisualizer);
             EnsureHuntRetreatPanel();
 
             // Hunt UI

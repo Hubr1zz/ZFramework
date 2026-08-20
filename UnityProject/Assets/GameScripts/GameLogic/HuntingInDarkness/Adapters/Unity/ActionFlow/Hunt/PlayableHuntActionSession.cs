@@ -19,6 +19,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly string defaultEncounterId;
         private readonly string destinationId;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
+        private readonly IHuntTileInteractionPresenter tileInteractionPresenter;
         private readonly Func<Vector2Int, UniTask> requestHandler;
         private readonly Func<ResourcePointInstance, UniTask<PlayableHarvestTransaction>> prepareHarvestHandler;
         private readonly Func<PlayableHarvestTransaction, UniTask<PlayableHarvestStepResult>> advanceHarvestHandler;
@@ -26,12 +27,13 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly Dictionary<ResourcePointInstance, ReactorEntityHandle> resourcePointHandles = new();
         private int nextResourcePointHandleId;
 
-        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
+        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null)
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.defaultEncounterId = string.IsNullOrWhiteSpace(defaultEncounterId) ? "default" : defaultEncounterId.Trim();
             this.destinationId = destinationId ?? string.Empty;
             this.randomInteractionPresenter = randomInteractionPresenter;
+            this.tileInteractionPresenter = tileInteractionPresenter;
             SessionId = Guid.NewGuid();
             environment = new ActionEnvironment(new ActionEnvironmentConfiguration
             {
@@ -70,7 +72,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             ReactorEntityHandle squad = environment.EntityHandles.GetOrCreate("hunt-squad", "active", "狩猎小队");
             ReactorEntityHandle tile = environment.EntityHandles.GetOrCreate("hunt-tile", $"{coordinate.x},{coordinate.y}", $"地块 {coordinate.x},{coordinate.y}");
             IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("hunt-event", gameEvent != null ? gameEvent.name : "unknown", gameEvent != null ? gameEvent.eventName : "狩猎事件");
-            var action = new InteractHuntTileAction(manager, coordinate, intendedKind, SessionId, defaultEncounterId, destinationId, outbox, squad, tile, ResolveEventEntity, randomInteractionPresenter);
+            var action = new InteractHuntTileAction(manager, coordinate, intendedKind, SessionId, defaultEncounterId, destinationId, outbox, squad, tile, ResolveEventEntity, randomInteractionPresenter, tileInteractionPresenter);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (!outcome.IsSuccess) return string.IsNullOrWhiteSpace(action.Result.Reason) ? HuntTileCommandResult.Failed(outcome.Reason) : action.Result;
             return action.Result;

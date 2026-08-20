@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -18,7 +21,7 @@ namespace HuntingInDarkness.Hunt
     ///
     /// 点击检测：Raycast → 调用 HuntManager.OnTileClicked。
     /// </summary>
-    public class HuntMapVisualizer : MonoBehaviour
+    public class HuntMapVisualizer : MonoBehaviour, IHuntTileInteractionPresenter
     {
         // ─── 颜色配置 ─────────────────────────────────────────────
 
@@ -56,6 +59,20 @@ namespace HuntingInDarkness.Hunt
                         return true;
                     }
             return false;
+        }
+
+        public async UniTask PresentAsync(HuntTileInteractionPresentationRequest request, CancellationToken cancellationToken)
+        {
+            if (request.Kind == HuntTileInteractionKind.Reveal && _tileObjects.TryGetValue(request.Coordinate, out GameObject tileObject) && tileObject != null)
+            {
+                PlayableHexTileCard3D tileCard = tileObject.GetComponent<PlayableHexTileCard3D>();
+                while (tileCard != null && tileCard.isActiveAndEnabled && tileCard.IsFlipping)
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                return;
+            }
+            if (request.Kind == HuntTileInteractionKind.Move)
+                while (squadPawn != null && squadPawn.isActiveAndEnabled && squadPawn.IsMoving)
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
         }
 
         // ─── 初始化 ──────────────────────────────────────────────

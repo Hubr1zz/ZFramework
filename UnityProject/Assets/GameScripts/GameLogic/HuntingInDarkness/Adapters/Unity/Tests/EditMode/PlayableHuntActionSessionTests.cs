@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CardGame.ActionQueue;
@@ -9,12 +10,14 @@ using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Campaign;
+using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
@@ -172,6 +175,70 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task Reveal_WaitsForTilePresentationBeforeStartingEvent()
+        {
+            var presenter = new BlockingTilePresenter();
+            using var rig = new HuntRig(presenter);
+            var input = new BlockingNarrativeInput();
+            rig.Manager.EventInput = input;
+            HexTileInstance target = rig.FirstInteractable;
+
+            UniTask<HuntTileCommandResult> interaction = rig.Session.InteractTileAsync(target.AxialCoord);
+            Task presentationStarted = await Task.WhenAny(presenter.Started.Task, Task.Delay(5000));
+            Assert.That(presentationStarted, Is.SameAs(presenter.Started.Task), "地块表现未在 5 秒内开始");
+
+            Assert.That(target.State, Is.EqualTo(TileState.Revealed));
+            Assert.That(input.Started.Task.IsCompleted, Is.False);
+
+            presenter.Continue.TrySetResult(true);
+            Task eventStarted = await Task.WhenAny(input.Started.Task, Task.Delay(5000));
+            Assert.That(eventStarted, Is.SameAs(input.Started.Task), "地块表现结束后事件未在 5 秒内开始");
+            input.Continue.TrySetResult(true);
+
+            HuntTileCommandResult result = await interaction;
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(presenter.Request.Kind, Is.EqualTo(HuntTileInteractionKind.Reveal));
+            Assert.That(presenter.Request.Coordinate, Is.EqualTo(target.AxialCoord));
+        }
+
+        [Test]
+        public async Task Move_WaitsForSquadPresentationBeforeCompletingCommand()
+        {
+            var presenter = new BlockingTilePresenter(HuntTileInteractionKind.Move);
+            using var rig = new HuntRig(presenter);
+            rig.Manager.EventInput = null;
+            HexTileInstance target = rig.FirstInteractable;
+            await rig.Session.InteractTileAsync(target.AxialCoord);
+
+            UniTask<HuntTileCommandResult> movement = rig.Session.InteractTileAsync(target.AxialCoord);
+            Task presentationStarted = await Task.WhenAny(presenter.Started.Task, Task.Delay(5000));
+            Assert.That(presentationStarted, Is.SameAs(presenter.Started.Task), "小队移动表现未在 5 秒内开始");
+
+            Assert.That(rig.Manager.SquadPosition, Is.EqualTo(target.AxialCoord));
+            Assert.That(movement.Status, Is.EqualTo(UniTaskStatus.Pending));
+
+            presenter.Continue.TrySetResult(true);
+            HuntTileCommandResult result = await movement;
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(presenter.Request.Kind, Is.EqualTo(HuntTileInteractionKind.Move));
+        }
+
+        [Test]
+        public async Task Reveal_PresentationFailureDoesNotRollbackCommittedGameplay()
+        {
+            using var rig = new HuntRig(new FailingTilePresenter());
+            rig.Manager.EventInput = null;
+            HexTileInstance target = rig.FirstInteractable;
+            LogAssert.Expect(LogType.Exception, new Regex("测试表现失败"));
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(target.AxialCoord);
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(target.State, Is.EqualTo(TileState.Revealed));
+            Assert.That(HexMapGenerator.GetNeighbors(target.AxialCoord).Where(rig.Manager.Map.ContainsKey).All(position => rig.Manager.Map[position].State != TileState.Locked), Is.True);
+        }
+
+        [Test]
         public async Task Reveal_SelfReferencingEventCommitsOnceAndStillUnlocksNeighbors()
         {
             using var rig = new HuntRig();
@@ -278,7 +345,7 @@ namespace HuntingInDarkness.Adapter.Tests
             private readonly HexTileData startingTile;
             private readonly HexTileData plainTile;
 
-            public HuntRig()
+            public HuntRig(IHuntTileInteractionPresenter tileInteractionPresenter = null)
             {
                 tileEvent = ScriptableObject.CreateInstance<EventData>();
                 tileEvent.name = "QueuedTileEvent";
@@ -302,7 +369,7 @@ namespace HuntingInDarkness.Adapter.Tests
                     TilePool = { plainTile }
                 };
                 Manager.OnEnter(null);
-                Session = new PlayableHuntActionSession(Manager, "default-boss", "test-destination");
+                Session = new PlayableHuntActionSession(Manager, "default-boss", "test-destination", tileInteractionPresenter: tileInteractionPresenter);
             }
 
             public EventSystem EventSystem { get; }
@@ -338,6 +405,33 @@ namespace HuntingInDarkness.Adapter.Tests
             public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(-1, null));
             public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
             public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
+        }
+
+        private sealed class BlockingTilePresenter : IHuntTileInteractionPresenter
+        {
+            private readonly HuntTileInteractionKind blockedKind;
+
+            public BlockingTilePresenter(HuntTileInteractionKind blockedKind = HuntTileInteractionKind.Reveal)
+            {
+                this.blockedKind = blockedKind;
+            }
+
+            public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            public TaskCompletionSource<bool> Continue { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            public HuntTileInteractionPresentationRequest Request { get; private set; }
+
+            public async UniTask PresentAsync(HuntTileInteractionPresentationRequest request, CancellationToken cancellationToken)
+            {
+                if (request.Kind != blockedKind) return;
+                Request = request;
+                Started.TrySetResult(true);
+                await Continue.Task.AsUniTask().AttachExternalCancellation(cancellationToken);
+            }
+        }
+
+        private sealed class FailingTilePresenter : IHuntTileInteractionPresenter
+        {
+            public UniTask PresentAsync(HuntTileInteractionPresentationRequest request, CancellationToken cancellationToken) => UniTask.FromException(new InvalidOperationException("测试表现失败"));
         }
 
         private sealed class PreventCommitReactor : GameActionReactor<CommitHuntTileInteractionAction>
