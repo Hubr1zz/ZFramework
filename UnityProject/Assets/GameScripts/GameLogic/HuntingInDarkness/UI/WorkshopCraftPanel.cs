@@ -57,8 +57,9 @@ namespace UI
             for (int i = 0; i < n; i++)
             {
                 var card = WorkshopRecipeCard3D.Create(
-                    recipes[i], workshop.OutputSlot, ContentRoot,
+                    recipes[i], workshop.CraftCommand, ContentRoot,
                     new Vector3(startX + i * rowStep, 0f, 0f));
+                card.OnCrafted += OnRecipeCrafted;
                 _recipeCards.Add(card);
             }
 
@@ -72,9 +73,6 @@ namespace UI
 
         public void Close()
         {
-            // 退还各配方卡暂存的素材
-            foreach (var c in _recipeCards)
-                if (c != null) c.ReturnMaterials();
             ClearRecipeCards();
             IsOpen = false;
             Hide();
@@ -83,8 +81,18 @@ namespace UI
         private void ClearRecipeCards()
         {
             foreach (var c in _recipeCards)
-                if (c != null) Destroy(c.gameObject);
+                if (c != null)
+                {
+                    c.OnCrafted -= OnRecipeCrafted;
+                    Destroy(c.gameObject);
+                }
             _recipeCards.Clear();
+        }
+
+        private void OnRecipeCrafted(WorkshopRecipeCard3D card)
+        {
+            if (card?.Recipe == null || _workshop == null) return;
+            Title.text = $"{_workshop.DisplayName} · 已完成 {card.Recipe.recipeName}";
         }
 
         // ─── 关闭按钮 ─────────────────────────────────────────────────────

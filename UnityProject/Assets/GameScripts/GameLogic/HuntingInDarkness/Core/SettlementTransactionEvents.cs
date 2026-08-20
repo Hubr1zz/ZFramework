@@ -6,6 +6,7 @@ namespace Core
         Recruitment,
         Recovery,
         Equipment,
+        Crafting,
         EventReroll,
         EventResolution
     }

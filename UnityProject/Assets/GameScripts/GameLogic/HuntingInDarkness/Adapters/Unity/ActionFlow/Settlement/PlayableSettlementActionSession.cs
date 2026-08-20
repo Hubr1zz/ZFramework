@@ -17,16 +17,18 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly IWeaponTrainingContent weaponTrainingContent;
         private readonly ISettlementCareContent careContent;
         private readonly ISettlementEquipmentContent equipmentContent;
+        private readonly WorkshopSystem workshopSystem;
         private readonly EventSystem eventSystem;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
             this.careContent = careContent ?? new PlayableSettlementCareContentAdapter(null);
             this.equipmentContent = equipmentContent ?? new PlayableSettlementEquipmentContentAdapter(null);
+            this.workshopSystem = workshopSystem;
             this.eventSystem = eventSystem;
             this.randomInteractionPresenter = randomInteractionPresenter;
             EventInput = eventInput;
@@ -190,6 +192,35 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementEquipmentCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public bool CanCraft(CraftRecipe recipe, out string reason)
+        {
+            if (workshopSystem == null)
+            {
+                reason = "营地工坊尚未配置。";
+                return false;
+            }
+            if (!workshopSystem.AllRecipes.Contains(recipe))
+            {
+                reason = "配方不属于当前营地。";
+                return false;
+            }
+            return workshopSystem.CanCraft(recipe, out reason);
+        }
+
+        public async UniTask<SettlementCraftCommandResult> CraftAsync(CraftRecipe recipe)
+        {
+            if (!IsActive) return SettlementCraftCommandResult.Failed("当前不在营地阶段。");
+            if (workshopSystem == null) return SettlementCraftCommandResult.Failed("营地工坊尚未配置。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle workshopEntity = environment.EntityHandles.GetOrCreate("settlement-workshop", string.IsNullOrWhiteSpace(recipe?.requiredWorkshopId) ? "shared" : recipe.requiredWorkshopId, string.IsNullOrWhiteSpace(recipe?.requiredWorkshopId) ? "共享工坊" : recipe.requiredWorkshopId);
+            ReactorEntityHandle recipeEntity = environment.EntityHandles.GetOrCreate("craft-recipe", recipe != null ? recipe.recipeName : "unknown", recipe != null ? recipe.recipeName : "未知配方");
+            var action = new CraftSettlementRecipeAction(settlement, workshopSystem, recipe, outbox, workshopEntity, recipeEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementCraftCommandResult.Failed(outcome.Reason) : action.Result;
         }
 
         public async UniTask<WeaponTrainingCommandResult> TrainWeaponAsync(int hunterId, string masteryId)

@@ -39,6 +39,16 @@
 - **维护时间**: 2026-08-20
 - **维护备注**: 不阻塞本阶段流程；后续统一视觉资源阶段处理。
 
+### [优先级: 中] 工坊建设迁入 3D 桌面与 Settlement ActionQueue
+- **文件**: `ViewLayer/Settlement/PlayableWorkshopConstructionView.cs`、`Adapters/Unity/Settlement/PlayableWorkshopConstructionService.cs`
+- **类型**: 交互一致性 / 流程编排
+- **描述**: 工坊制作已由 3D 工坊卡进入 Settlement ActionQueue，但建设入口仍使用屏幕空间 IMGUI，并直接调用同步 Service 修改营地状态。后续应把可建工坊表现为桌面建筑蓝图卡，由 Adapter 建造 Action 原子消费资源、提交 BuiltWorkshops 并发布事务事实；保留现有 Service 作为规则映射或兼容入口，避免再次出现两套权威提交路径。
+- **来源**: 2026-08-20 营地 3D 工坊制作闭环
+- **状态**: 待处理
+- **维护人**: codex
+- **维护时间**: 2026-08-20
+- **维护备注**: 需要先确认蓝图卡在营地桌面的常驻区域，再做一次完整迁移。
+
 ---
 
 ## 🕐 近期改动模块

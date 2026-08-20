@@ -1,217 +1,138 @@
-using System.Collections.Generic;
 using System.Text;
-using Cards3D;
+using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using TMPro;
 using UnityEngine;
 
 namespace Cards3D
 {
-    /// <summary>
-    /// 工坊配方卡。比标准卡更大，持有一个 CraftRecipe（目标物品 + 所需素材）。
-    /// 卡上有一个「可堆叠素材槽」，玩家把素材卡拖进去暂存：
-    ///   - 素材凑齐配方 → 消耗素材，在工坊产出槽生成产物
-    ///   - 面板关闭 → ReturnMaterials() 把暂存素材退回工坊产出槽
-    /// </summary>
+    /// <summary>工坊配方 3D 卡。展示输入与输出，只把点击转换为营地 ActionQueue 制作命令。</summary>
     public class WorkshopRecipeCard3D : CardView3D
     {
-        // ─── 尺寸（比标准卡大）──────────────────────────────────────────────
         public const float RW = 1.25f;
         public const float RH = 1.80f;
 
-        static readonly Color ColBody  = new(0.26f, 0.22f, 0.18f);
-        static readonly Color ColHover = new(0.36f, 0.30f, 0.24f);
-        static readonly Color ColReady = new(0.20f, 0.40f, 0.22f);
+        private static readonly Color BodyColor = new(0.26f, 0.22f, 0.18f);
+        private static readonly Color HoverColor = new(0.36f, 0.30f, 0.24f);
+        private static readonly Color SuccessColor = new(0.20f, 0.40f, 0.22f);
+        private static readonly Color FailureColor = new(0.44f, 0.18f, 0.16f);
 
-        CraftRecipe _recipe;
-        CardSlot    _outputSlot;   // 工坊产出槽（产物/退还素材落点）
-        CardSlot    _materialSlot; // 本卡的素材暂存槽
+        private CraftRecipe recipe;
+        private System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> craftCommand;
+        private TextMeshPro nameText;
+        private TextMeshPro requirementText;
+        private TextMeshPro hintText;
+        private bool isCrafting;
+        private bool lastCraftSucceeded;
+        private bool lastCraftFailed;
+        private string statusMessage = string.Empty;
 
-        TextMeshPro _nameText;
-        TextMeshPro _reqText;
-        TextMeshPro _hintText;
-
-        public CraftRecipe Recipe => _recipe;
+        public CraftRecipe Recipe => recipe;
         public System.Action<WorkshopRecipeCard3D> OnCrafted;
-
-        public override string DisplayName => _recipe?.recipeName ?? base.DisplayName;
-        protected override CardCategory GetDefaultCategory() => CardCategory.WorkshopRecipe;
-
-        // 比标准卡更大：基类按 Width/Height 自动构建几何
-        public override float Width  => RW;
+        public override string DisplayName => recipe?.recipeName ?? base.DisplayName;
+        public override float Width => RW;
         public override float Height => RH;
 
-        // ─── 工厂 ─────────────────────────────────────────────────────────
+        protected override CardCategory GetDefaultCategory() => CardCategory.WorkshopRecipe;
 
-        public static WorkshopRecipeCard3D Create(
-            CraftRecipe recipe, CardSlot outputSlot, Transform parent, Vector3 localPos = default)
+        public static WorkshopRecipeCard3D Create(CraftRecipe recipe, System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> craftCommand, Transform parent, Vector3 localPos = default)
         {
             var go = new GameObject($"Recipe_{recipe?.recipeName}");
             go.transform.SetParent(parent, false);
             var card = go.AddComponent<WorkshopRecipeCard3D>();
-            card._recipe     = recipe;
-            card._outputSlot = outputSlot;
-            card.InitView(localPos);                 // 基类按 Width/Height(=RW/RH) 建几何
+            card.recipe = recipe;
+            card.craftCommand = craftCommand;
+            card.InitView(localPos);
             card.transform.localPosition = localPos;
-            card.BuildMaterialSlot();
             return card;
         }
 
-        // ─── 文字 ─────────────────────────────────────────────────────────
-
         protected override void BuildTextFields()
         {
-            float ty = CD * 0.5f + 0.003f;
-
-            _nameText = MakeText("Name",
-                new Vector3(0f, ty, RH * 0.40f), 0.13f,
-                TextAlignmentOptions.Center,
-                new Vector2(RW - 0.1f, 0.26f));
-
-            _reqText = MakeText("Req",
-                new Vector3(0f, ty, RH * 0.12f), 0.085f,
-                TextAlignmentOptions.Center,
-                new Vector2(RW - 0.12f, 0.55f));
-
-            _hintText = MakeText("Hint",
-                new Vector3(0f, ty, -RH * 0.46f), 0.075f,
-                TextAlignmentOptions.Center,
-                new Vector2(RW - 0.1f, 0.16f));
+            float textHeight = CD * 0.5f + 0.003f;
+            nameText = MakeText("Name", new Vector3(0f, textHeight, RH * 0.38f), 0.13f, TextAlignmentOptions.Center, new Vector2(RW - 0.1f, 0.30f));
+            requirementText = MakeText("Requirements", new Vector3(0f, textHeight, RH * 0.05f), 0.085f, TextAlignmentOptions.Center, new Vector2(RW - 0.12f, 0.72f));
+            hintText = MakeText("Hint", new Vector3(0f, textHeight, -RH * 0.40f), 0.075f, TextAlignmentOptions.Center, new Vector2(RW - 0.1f, 0.30f));
         }
-
-        // ─── 素材槽（位于卡下半部）──────────────────────────────────────────
-
-        private void BuildMaterialSlot()
-        {
-            _materialSlot = CardSlot.Create(
-                transform, transform.position,
-                CW * 0.85f, CH * 0.55f,
-                stackable: true, CardCategory.Resource);
-            _materialSlot.transform.localPosition = new Vector3(0f, 0.006f, -RH * 0.22f);
-            _materialSlot.StackDir   = StackDirection.StackUp;
-            _materialSlot.Previewable = true;
-            _materialSlot.OnCardPushed += OnMaterialAdded;
-        }
-
-        // ─── 视觉 ─────────────────────────────────────────────────────────
 
         protected override void ApplyVisuals()
         {
-            if (_bodyRenderer == null || _recipe == null) return;
+            if (_bodyRenderer == null || recipe == null) return;
+            _bodyRenderer.material.color = lastCraftSucceeded ? SuccessColor : lastCraftFailed ? FailureColor : IsHovered ? HoverColor : BodyColor;
+            if (nameText == null) return;
 
-            bool ready = IsRecipeSatisfied();
-            _bodyRenderer.material.color = ready ? ColReady : (IsHovered ? ColHover : ColBody);
+            string outputName = recipe.outputItem != null ? recipe.outputItem.itemName : "?";
+            nameText.text = $"{recipe.recipeName}\n→ {outputName} ×{recipe.outputCount}";
+            nameText.color = new Color(0.92f, 0.88f, 0.78f);
+            requirementText.text = "需要:\n" + BuildRequirementText();
+            requirementText.color = new Color(0.78f, 0.74f, 0.66f);
+            if (isCrafting)
+                hintText.text = "制作中…";
+            else if (lastCraftSucceeded)
+                hintText.text = "制作完成 · 可再次点击";
+            else if (lastCraftFailed)
+                hintText.text = string.IsNullOrWhiteSpace(statusMessage) ? "条件不足 · 点击重试" : statusMessage;
+            else
+                hintText.text = "点击卡牌制作";
+            hintText.color = new Color(0.72f, 0.78f, 0.84f);
+        }
 
-            if (_nameText == null) return;
+        protected override void OnMouseDown()
+        {
+            if (isCrafting) return;
+            CraftAsync().Forget();
+        }
 
-            string outName = _recipe.outputItem != null ? _recipe.outputItem.itemName : "?";
-            _nameText.text  = $"{_recipe.recipeName}\n→ {outName} ×{_recipe.outputCount}";
-            _nameText.color = new Color(0.92f, 0.88f, 0.78f);
+        private async UniTaskVoid CraftAsync()
+        {
+            if (craftCommand == null)
+            {
+                lastCraftFailed = true;
+                ApplyVisuals();
+                return;
+            }
 
-            _reqText.text  = "需要:\n" + BuildRequirementText();
-            _reqText.color = new Color(0.78f, 0.74f, 0.66f);
-
-            _hintText.text  = "拖入素材制作";
-            _hintText.color = new Color(0.62f, 0.66f, 0.74f);
+            isCrafting = true;
+            lastCraftSucceeded = false;
+            lastCraftFailed = false;
+            ApplyVisuals();
+            try
+            {
+                SettlementCraftCommandResult result = await craftCommand(recipe);
+                lastCraftSucceeded = result.Succeeded;
+                lastCraftFailed = !result.Succeeded;
+                statusMessage = result.Reason;
+                if (result.Succeeded)
+                    OnCrafted?.Invoke(this);
+            }
+            catch (System.OperationCanceledException)
+            {
+                lastCraftFailed = true;
+                statusMessage = "制作已取消";
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception, this);
+                lastCraftFailed = true;
+                statusMessage = "制作中断";
+            }
+            finally
+            {
+                isCrafting = false;
+                ApplyVisuals();
+            }
         }
 
         private string BuildRequirementText()
         {
-            if (_recipe.ingredients == null || _recipe.ingredients.Count == 0) return "（无）";
-            var have = CountMaterials();
-            var sb = new StringBuilder();
-            foreach (var ing in _recipe.ingredients)
-            {
-                if (ing.item == null) continue;
-                int got = have.TryGetValue(ing.item.itemName, out int v) ? v : 0;
-                sb.Append($"{ing.item.itemName} {got}/{ing.count}\n");
-            }
-            return sb.ToString().TrimEnd();
+            if (recipe.ingredients == null || recipe.ingredients.Count == 0) return "（无）";
+            var text = new StringBuilder();
+            foreach (RecipeIngredient ingredient in recipe.ingredients)
+                if (ingredient?.item != null)
+                    text.Append(ingredient.item.itemName).Append(" ×").Append(ingredient.count).AppendLine();
+            return text.ToString().TrimEnd();
         }
 
-        // ─── 制作逻辑 ─────────────────────────────────────────────────────
-
-        bool _isCrafting;
-
-        private void OnMaterialAdded(CardView3D _)
-        {
-            if (_isCrafting) return; // 防止退还剩余素材时的 OnCardPushed 重入
-            _isCrafting = true;
-            while (IsRecipeSatisfied()) CraftOnce();
-            _isCrafting = false;
-            ApplyVisuals();
-        }
-
-        private Dictionary<string, int> CountMaterials()
-        {
-            var have = new Dictionary<string, int>();
-            if (_materialSlot == null) return have;
-            foreach (var c in _materialSlot.StackCards)
-            {
-                if (c is ResourceCard3D r && r.ResourceName != null)
-                    have[r.ResourceName] = (have.TryGetValue(r.ResourceName, out int v) ? v : 0) + 1;
-            }
-            return have;
-        }
-
-        private bool IsRecipeSatisfied()
-        {
-            if (_recipe?.ingredients == null) return false;
-            var have = CountMaterials();
-            foreach (var ing in _recipe.ingredients)
-            {
-                if (ing.item == null) continue;
-                int got = have.TryGetValue(ing.item.itemName, out int v) ? v : 0;
-                if (got < ing.count) return false;
-            }
-            return true;
-        }
-
-        /// <summary>消耗一份配方所需素材并产出一次（调用方保证已满足）。</summary>
-        private void CraftOnce()
-        {
-            // 需求计数（按名）
-            var need = new Dictionary<string, int>();
-            foreach (var ing in _recipe.ingredients)
-                if (ing.item != null)
-                    need[ing.item.itemName] = (need.TryGetValue(ing.item.itemName, out int v) ? v : 0) + ing.count;
-
-            // 取出全部素材，消耗所需，剩余退回素材槽
-            var all = _materialSlot.TakeAll();
-            var leftovers = new List<CardView3D>();
-            foreach (var c in all)
-            {
-                if (c is ResourceCard3D r && need.TryGetValue(r.ResourceName, out int n) && n > 0)
-                {
-                    need[r.ResourceName] = n - 1;
-                    Destroy(c.gameObject);
-                }
-                else leftovers.Add(c);
-            }
-            foreach (var c in leftovers) _materialSlot.PushCard(c);
-
-            // 在工坊产出槽生成产物
-            if (_outputSlot != null && _recipe.outputItem != null)
-            {
-                var outCard = ResourceCard3D.Create(
-                    _recipe.outputItem.itemName, _recipe.outputCount, _outputSlot.transform.root);
-                _outputSlot.PushCard(outCard);
-            }
-
-            OnCrafted?.Invoke(this);
-        }
-
-        // ─── 关闭面板时退还暂存素材 ─────────────────────────────────────────
-
-        public void ReturnMaterials()
-        {
-            if (_materialSlot == null) return;
-            var all = _materialSlot.TakeAll();
-            foreach (var c in all)
-            {
-                if (_outputSlot != null) _outputSlot.PushCard(c);
-                else Destroy(c.gameObject);
-            }
-        }
     }
 }

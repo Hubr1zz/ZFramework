@@ -493,7 +493,7 @@ namespace Core
         {
             DisposeSettlementActionSession();
             if (_settlementManager?.Data == null) return;
-            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items), tabletopRandomPresenter);
+            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items), tabletopRandomPresenter, _settlementManager.Workshop);
         }
 
         private void DisposeSettlementActionSession()
@@ -619,17 +619,12 @@ namespace Core
 
                 _settlementTable3D.OnEquipRequested = (hunterId, item) => settlementActionSession != null ? settlementActionSession.EquipItemAsync(hunterId, item) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
                 _settlementTable3D.OnUnequipRequested = (hunterId, equipmentInstanceId) => settlementActionSession != null ? settlementActionSession.UnequipItemAsync(hunterId, equipmentInstanceId) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
+                _settlementTable3D.OnCraftRequested = recipe => settlementActionSession != null ? settlementActionSession.CraftAsync(recipe) : UniTask.FromResult(SettlementCraftCommandResult.Failed("当前不在营地阶段。"));
 
                 // 点击发明卡（有主动效果时）→ TODO: 展示效果选择面板
                 _settlementTable3D.OnInventionEffectRequested = card =>
                 {
                     // TODO: 弹出 3D canvas 让玩家选择要触发的效果
-                };
-
-                // 点击工坊卡 → TODO: 展示可制造物品面板
-                _settlementTable3D.OnWorkshopClicked = card =>
-                {
-                    // TODO: 弹出 3D canvas 列出该工坊的可制造物品
                 };
 
                 // 点击出发卡 → 弹出 2D 出发确认窗
@@ -718,6 +713,21 @@ namespace Core
             if (settlementActionSession == null || !settlementActionSession.IsActive)
                 return UniTask.FromResult(WeaponTrainingCommandResult.Failed("仅可在营地阶段训练"));
             return settlementActionSession.TrainWeaponAsync(hunterId, masteryId);
+        }
+
+        public bool CanCraft(CraftRecipe recipe, out string reason)
+        {
+            if (settlementActionSession != null && settlementActionSession.IsActive)
+                return settlementActionSession.CanCraft(recipe, out reason);
+            reason = "仅可在营地阶段制作。";
+            return false;
+        }
+
+        public UniTask<SettlementCraftCommandResult> CraftAsync(CraftRecipe recipe)
+        {
+            if (settlementActionSession == null || !settlementActionSession.IsActive)
+                return UniTask.FromResult(SettlementCraftCommandResult.Failed("仅可在营地阶段制作。"));
+            return settlementActionSession.CraftAsync(recipe);
         }
 
         public bool CanRecruitHunter(out string reason)
@@ -1010,7 +1020,10 @@ namespace Core
             if (CurrentGamePhase != GamePhase.Settlement || settlementActionSession == null) return;
             SaveSettlementProgress();
             _settlementUIManager?.Refresh();
-            _settlementTable3D?.Refresh();
+            if (evt.Kind == SettlementTransactionKind.Crafting)
+                _settlementTable3D?.RefreshCrafting();
+            else
+                _settlementTable3D?.Refresh();
         }
 
         /// <summary>悬浮行动卡 → 高亮其目标/范围格</summary>

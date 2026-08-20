@@ -46,6 +46,7 @@ namespace UI
         public System.Action<List<HunterInstance>> OnDepartureRequested;
         public System.Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> OnEquipRequested;
         public System.Func<int, int, UniTask<SettlementEquipmentCommandResult>> OnUnequipRequested;
+        public System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> OnCraftRequested;
 
         // ─── 注入数据 ─────────────────────────────────────────────────────
         private SettlementManager _mgr;
@@ -70,6 +71,7 @@ namespace UI
             _hunterZone.OnHunterClicked              = ShowHunterEquipment;
             _inventionZone.OnInventionEffectRequested = OnInventionEffectRequested;
             _workshopZone.OnWorkshopClicked          = OnWorkshopClicked;
+            _workshopZone.OnCraftRequested           = OnCraftRequested;
             if (_squadZone != null) _squadZone.OnDepartureRequested = OnDepartureRequested;
         }
 
@@ -97,7 +99,7 @@ namespace UI
         {
             _hunterZone.Fill(_mgr.Data.GetAvailableHunters());
             _resourceZone.Fill(_mgr.Data.Resources);
-            _workshopZone.Fill();
+            _workshopZone.Fill(_mgr.Workshop);
             _inventionZone.Fill(_mgr.Inventions.AllInventions);
         }
 
@@ -224,6 +226,14 @@ namespace UI
         {
             _inventionZone.RefreshCards();
             _workshopZone.RefreshCards();
+        }
+
+        public void RefreshCrafting()
+        {
+            if (_mgr == null) return;
+            _resourceZone.RefreshCounts(_mgr);
+            _workshopZone.RefreshCards();
+            hunterEquipmentPanel?.RefreshVisible();
         }
 
         // ─── EventBus ─────────────────────────────────────────────────────

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Cards3D;
+using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using TMPro;
 using UnityEngine;
@@ -11,7 +13,7 @@ namespace Cards3D
     /// <summary>
     /// 工坊卡。展示工坊名称、图标和描述。
     /// 点击后弹出 3D 制作面板（WorkshopCraftPanel），列出已解锁配方。
-    /// 持有：可生产配方列表 + 一个产出卡槽（产物/退还素材落点）。
+    /// 持有可生产配方列表，制作状态由 Settlement ActionQueue 统一提交。
     /// </summary>
     public class WorkshopCard3D : CardView3D
     {
@@ -26,18 +28,17 @@ namespace Cards3D
         [SerializeField] TextMeshPro    _descText;
         [SerializeField] SpriteRenderer _imageRenderer;
 
-        // ─── 配方 / 产出 ────────────────────────────────────────────────────
+        // ─── 配方 ──────────────────────────────────────────────────────────
         [Header("工坊数据")]
         [SerializeField] List<CraftRecipe> _recipes = new(); // 已解锁的可生产配方
-        [SerializeField] CardSlot          _outputSlot;      // 产出槽（产物/退还素材）
+        private System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> craftCommand;
 
         public WorkshopCraftPanel _panel;
 
         /// <summary>已解锁配方列表。</summary>
         public IReadOnlyList<CraftRecipe> Recipes => _recipes;
 
-        /// <summary>产出卡槽（为空时点击面板会自动在工坊卡旁创建一个堆叠槽）。</summary>
-        public CardSlot OutputSlot => _outputSlot;
+        public System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> CraftCommand => craftCommand;
 
         /// <summary>点击工坊卡时触发（外部可附加逻辑；面板由本卡自行开关）。</summary>
         public System.Action<WorkshopCard3D> OnCraftMenuRequested;
@@ -46,12 +47,12 @@ namespace Cards3D
 
         protected override CardCategory GetDefaultCategory() => CardCategory.Workshop;
 
-        // ─── 配置（程序化创建时注入配方与产出槽）────────────────────────────
+        // ─── 配置 ──────────────────────────────────────────────────────────
 
-        public void Configure(List<CraftRecipe> recipes, CardSlot outputSlot = null)
+        public void Configure(List<CraftRecipe> recipes, System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> craftCommand = null)
         {
             if (recipes != null) _recipes = recipes;
-            if (outputSlot != null) _outputSlot = outputSlot;
+            if (craftCommand != null) this.craftCommand = craftCommand;
         }
 
         // ─── 初始化 ────────────────────────────────────────────────────────
@@ -136,25 +137,12 @@ namespace Cards3D
         {
             if (_panel != null && _panel.IsOpen) { _panel.Close(); return; }
 
-            EnsureOutputSlot();
             if (_panel == null)
                 _panel = WorkshopCraftPanel.Create(transform.root);
 
             // 面板平铺在工坊卡前方（俯视下方）
             Vector3 pos = transform.position + new Vector3(0f, 0.04f, -1.8f);
             _panel.Open(this, pos);
-        }
-
-        private void EnsureOutputSlot()
-        {
-            if (_outputSlot != null) return;
-            // 在工坊卡右侧创建一个堆叠产出槽
-            var pos = transform.position + new Vector3(CW + 0.4f, 0f, 0f);
-            _outputSlot = CardSlot.Create(
-                transform.parent != null ? transform.parent : transform.root,
-                pos, CW + 0.06f, CH + 0.06f,
-                stackable: true, CardCategory.Resource);
-            _outputSlot.StackDir = StackDirection.Right;
         }
 
         public void Refresh() => ApplyVisuals();

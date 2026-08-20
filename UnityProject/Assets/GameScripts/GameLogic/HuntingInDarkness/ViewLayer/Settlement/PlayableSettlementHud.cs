@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
+using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
@@ -315,23 +316,22 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             if (recipe == null) return;
 
             bool unlocked = workshopSystem.IsRecipeUnlocked(recipe);
-            bool canCraft = workshopSystem.CanCraft(recipe, out string reason);
+            bool canCraft = manager.CanCraft(recipe, out string reason);
             string outputName = recipe.outputItem != null ? recipe.outputItem.itemName : "未配置产物";
             GUILayout.BeginVertical(GUI.skin.box);
             GUILayout.Label($"{(unlocked ? "◆" : "◇")} {recipe.recipeName}", sectionStyle);
             GUILayout.Label($"{FormatRecipeCosts(recipe, data)}  →  {outputName} ×{recipe.outputCount}", mutedStyle);
             GUI.enabled = canCraft;
             if (GUILayout.Button(canCraft ? "制造" : reason, GUILayout.Height(34f)))
-            {
-                var output = workshopSystem.TryCraft(recipe);
-                if (output.Count > 0)
-                {
-                    progressionResult = $"制造完成：{outputName} ×{output.Count}";
-                    manager.SaveSettlementProgress();
-                }
-            }
+                CraftAsync(recipe).Forget();
             GUI.enabled = true;
             GUILayout.EndVertical();
+        }
+
+        private async UniTaskVoid CraftAsync(CraftRecipe recipe)
+        {
+            SettlementCraftCommandResult result = await manager.CraftAsync(recipe);
+            progressionResult = result.Succeeded ? $"制造完成：{result.OutputName} ×{result.OutputCount}" : result.Reason;
         }
 
         private void DrawEquipmentStorage(SettlementInstance data)
