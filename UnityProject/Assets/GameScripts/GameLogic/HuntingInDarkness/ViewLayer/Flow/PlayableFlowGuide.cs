@@ -82,9 +82,7 @@ namespace HuntingInDarkness.ViewLayer.Flow
                         manager.TransitionToPhase(GamePhase.Hunt);
                     break;
                 case GamePhase.Hunt:
-                    GUILayout.Label("点击蓝色地块翻开地图。寻找红色的怪物踪迹。", bodyStyle);
-                    if (GUILayout.Button("放弃本次狩猎", GUILayout.Height(34f)))
-                        manager.RetreatFromHunt();
+                    GUILayout.Label("点击蓝色地块翻开地图。需要结束探索时，使用地图边缘的实体回营卡。", bodyStyle);
                     break;
                 case GamePhase.BossFight:
                     if (GUILayout.Button("结束猎人回合", GUILayout.Height(42f)))

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Core;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
@@ -75,34 +74,7 @@ namespace UI.Hunt
             _eventPopupHunt = evtGo.AddComponent<EventPopupHunt>();
             _eventPopupHunt.OnClose = () => evtGo.SetActive(false);
 
-            // 底部操作栏
-            var botGo = NewPanel("BottomBar", new Vector2(0, 0), new Vector2(1, 0.08f));
-            botGo.GetComponent<Image>().color = new Color(0.08f, 0.1f, 0.14f, 0.9f);
-            BuildBottomButtons(botGo.transform);
             topGo.transform.SetAsLastSibling();
-        }
-
-        private void BuildBottomButtons(Transform parent)
-        {
-            var buttons = new (string label, System.Action action)[]
-            {
-                ("撤退（回营地）", OnClickRetreat),
-            };
-
-            float w = 1f / buttons.Length;
-            for (int i = 0; i < buttons.Length; i++)
-            {
-                var (lbl, act) = buttons[i];
-                var bGo = NewPanel($"Btn_{i}", parent,
-                    new Vector2(i * w + 0.01f, 0.1f), new Vector2((i + 1) * w - 0.01f, 0.9f));
-                bGo.GetComponent<Image>().color = i == 1
-                    ? new Color(0.3f, 0.15f, 0.15f, 1f)    // dev button 红色
-                    : new Color(0.2f, 0.22f, 0.28f, 1f);
-                var btn = bGo.AddComponent<Button>();
-                var a = act;
-                btn.onClick.AddListener(() => a());
-                MakeText(bGo, "L", lbl, 12, TextAnchor.MiddleCenter);
-            }
         }
 
         // ─── 刷新 ────────────────────────────────────────────────
@@ -132,22 +104,6 @@ namespace UI.Hunt
         {
             if (e.EventId.StartsWith("tile_reveal:"))
                 Refresh();
-        }
-
-        // ─── 按钮逻辑 ────────────────────────────────────────────
-
-        private void OnClickRetreat()
-        {
-            if (PlayableHuntInputGuard.IsBlocked) return;
-            Debug.Log("[HuntUI] 玩家撤退 → 狩猎完成");
-            GameManager.Instance?.RetreatFromHunt();
-            // GameManager 监听 OnHuntCompleted 回调来切换阶段
-        }
-
-        private void OnClickDevBoss()
-        {
-            Debug.Log("[HuntUI][Dev] 直接进入Boss战");
-            _huntMgr?.OnBossEncounterTriggered?.Invoke();
         }
 
         // ─── uGUI 工厂 ────────────────────────────────────────────

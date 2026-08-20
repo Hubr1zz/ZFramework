@@ -23,6 +23,7 @@ using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.ViewLayer.Tabletop;
+using HuntingInDarkness.ViewLayer.Hunt;
 using SO.Boss.ActionCard;
 using SO.Boss.HitLocation;
 using SO.Combat;
@@ -42,7 +43,7 @@ namespace Core
     /// 管理三个游戏大阶段（Settlement / Hunt / BossFight）的根物体开关，
     /// 以及 Boss决战子系统的初始化与运行。
     /// </summary>
-    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, ICampaignPhaseTransitionHost
+    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, ICampaignPhaseTransitionHost, IPlayableHuntRetreatInput
     {
         // ─── 单例 ─────────────────────────────────────────────────────
         public static GameManager Instance { get; private set; }
@@ -130,6 +131,7 @@ namespace Core
         private HuntManager          _huntMgr;
         private HuntMapVisualizer    _huntVisualizer;
         private HuntUIManager        _huntUI;
+        private HuntRetreatPanel3D huntRetreatPanel;
         private DevModePanel         _devPanel;
         private GameOverScreen       _gameOverScreen;
         /// <summary>狩猎结算记录，由 HuntManager 回调注入，供 TransitionToPhase(Settlement) 消费</summary>
@@ -141,6 +143,8 @@ namespace Core
         private IPlayableEventInput playableEventInput;
         private IPlayableHuntDepartureInput playableHuntDepartureInput;
         private bool huntDepartureInFlight;
+        private bool huntRetreatInFlight;
+        private bool preparedHuntExit;
         [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
         private PlayableSettlementContentCatalog settlementContentCatalog;
 
@@ -589,6 +593,7 @@ namespace Core
                 _huntVisualizer = visGo.AddComponent<HuntMapVisualizer>();
             }
             _huntVisualizer?.Init(_huntMgr);
+            EnsureHuntRetreatPanel();
 
             // Hunt UI
             EnsureHuntUI();
@@ -607,6 +612,15 @@ namespace Core
             uiGo.transform.SetParent(uiParent.transform, false);
             _huntUI = uiGo.AddComponent<HuntUIManager>();
             _huntUI.Init(_huntMgr, _huntVisualizer);
+        }
+
+        private void EnsureHuntRetreatPanel()
+        {
+            if (_huntVisualizer == null)
+                return;
+            if (huntRetreatPanel == null)
+                huntRetreatPanel = HuntRetreatPanel3D.Create(_huntVisualizer.transform);
+            huntRetreatPanel.Initialize(this, _huntMgr);
         }
 
         private void EnsureSettlementUI()
@@ -662,6 +676,7 @@ namespace Core
         public SettlementInstance SettlementData => _settlementManager?.Data;
         public IReadOnlyList<HunterInstance> ActiveHuntHunters => _huntMgr != null ? _huntMgr.ActiveHunters : System.Array.Empty<HunterInstance>();
         public bool IsHuntActionSessionActive => huntActionSession?.IsActive == true;
+        public bool IsHuntActionSessionRunning => huntActionSession?.IsRunning == true;
         public bool IsCampaignActionSessionActive => campaignActionSession?.IsActive == true;
         public bool IsSettlementActionSessionRunning => settlementActionSession?.IsRunning == true;
         public CardGame.ActionQueue.ReactorRegistry SettlementActionReactors => settlementActionSession?.Reactors;
@@ -869,20 +884,69 @@ namespace Core
 
         public void RetreatFromHunt()
         {
-            if (CurrentGamePhase != GamePhase.Hunt) return;
-            if (_huntMgr == null || _settlementManager?.Data == null)
+            RequestRetreatAsync().Forget();
+        }
+
+        public async UniTask<HuntRetreatCommandResult> RequestRetreatAsync()
+        {
+            if (huntRetreatInFlight)
+                return HuntRetreatCommandResult.Failed("回营流程正在处理中。");
+            if (CurrentGamePhase != GamePhase.Hunt || huntActionSession == null || !huntActionSession.IsActive)
+                return HuntRetreatCommandResult.Failed("当前不在有效的狩猎阶段。");
+            if (IsHuntActionSessionRunning)
+                return HuntRetreatCommandResult.Failed("请先完成当前狩猎流程。");
+            if (_huntMgr == null || _settlementManager?.Data == null || _settlementManager.HunterMgmt == null)
+                return HuntRetreatCommandResult.Failed("狩猎结算依赖尚未准备完成。");
+
+            huntRetreatInFlight = true;
+            try
             {
-                TransitionToPhase(GamePhase.Settlement);
-                return;
+                HuntRetreatCommandResult retreat = await huntActionSession.PrepareRetreatAsync(_settlementManager.Data.CurrentYear, this.GetCancellationTokenOnDestroy());
+                if (!retreat.Succeeded)
+                    return retreat;
+
+                preparedHuntExit = true;
+                _pendingHuntRecord = retreat.Record;
+                CampaignPhaseTransitionResult transition = await TransitionToPhaseAsync(GamePhase.Settlement);
+                if (transition.Succeeded)
+                    return retreat;
+
+                preparedHuntExit = false;
+                _pendingHuntRecord = null;
+                return HuntRetreatCommandResult.Failed(transition.Reason);
             }
-            _huntMgr.CompleteHunt(false, _settlementManager.Data);
+            catch (System.OperationCanceledException)
+            {
+                preparedHuntExit = false;
+                _pendingHuntRecord = null;
+                return HuntRetreatCommandResult.Failed("回营流程已取消。");
+            }
+            catch (System.Exception exception)
+            {
+                preparedHuntExit = false;
+                _pendingHuntRecord = null;
+                Debug.LogException(exception);
+                return HuntRetreatCommandResult.Failed("回营结算失败，请保留当前狩猎并重试。");
+            }
+            finally
+            {
+                huntRetreatInFlight = false;
+            }
         }
 
         /// <summary>
         /// 切换游戏大阶段。GameManager 负责 Enable/Disable 对应根物体，
         /// 并触发该阶段的初始化逻辑。
         /// </summary>
-        public void TransitionToPhase(GamePhase newPhase) => TransitionToPhaseAsync(newPhase).Forget();
+        public void TransitionToPhase(GamePhase newPhase)
+        {
+            if (CurrentGamePhase == GamePhase.Hunt && newPhase == GamePhase.Settlement && !preparedHuntExit && _pendingHuntRecord == null)
+            {
+                RequestRetreatAsync().Forget();
+                return;
+            }
+            TransitionToPhaseAsync(newPhase).Forget();
+        }
 
         public UniTask<CampaignPhaseTransitionResult> TransitionToPhaseAsync(GamePhase newPhase)
         {
@@ -949,6 +1013,11 @@ namespace Core
             }
             if (newPhase == _phaseManager.CurrentPhase) return true;
             GamePhase previousPhase = _phaseManager.CurrentPhase;
+            if (previousPhase == GamePhase.Hunt && newPhase == GamePhase.Settlement && !preparedHuntExit && _pendingHuntRecord == null)
+            {
+                reason = "狩猎必须先通过 Hunt Runner 准备回营结算";
+                return false;
+            }
 
             // 先让 FSM 确认切换，再释放旧会话，避免切换被拒绝时留下“旧阶段仍在但会话已销毁”。
             if (!_phaseManager.TransitionTo(newPhase))
@@ -964,7 +1033,11 @@ namespace Core
             if (previousPhase == GamePhase.Settlement)
                 DisposeSettlementActionSession();
             if (previousPhase == GamePhase.Hunt)
+            {
+                if (newPhase == GamePhase.Settlement && preparedHuntExit)
+                    CommitPreparedHuntExit();
                 DisposeHuntActionSession();
+            }
 
             // 进入新阶段的初始化
             switch (newPhase)
@@ -996,6 +1069,13 @@ namespace Core
                     break;
             }
             return true;
+        }
+
+        private void CommitPreparedHuntExit()
+        {
+            _huntMgr.OnExit(_settlementManager.Data);
+            PlayableHunterAdvancementAdapter.ApplyAfterHunt(_huntMgr.ActiveHunters, _settlementManager.HunterMgmt);
+            preparedHuntExit = false;
         }
 
         private void EnterBossFightPhase()

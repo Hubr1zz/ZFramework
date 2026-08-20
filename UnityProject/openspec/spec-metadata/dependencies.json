@@ -49,6 +49,13 @@
       "category": "feature",
       "readiness": "implemented",
       "specPath": "openspec/specs/tabletop-hunt-departure/spec.md"
+    },
+    {
+      "id": "tabletop-hunt-retreat",
+      "label": "3D 狩猎回营结算",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-hunt-retreat/spec.md"
     }
   ],
   "edges": [
@@ -109,6 +116,26 @@
       "type": "requires",
       "status": "defined",
       "reason": "确认后的地区内容与小队交由狩猎阶段初始化消费",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-retreat--requires--hunt-phase-orchestration",
+      "from": "tabletop-hunt-retreat",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "回营快照由当前 Hunt Runner 生成并验证",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-retreat--requires--settlement-phase-orchestration",
+      "from": "tabletop-hunt-retreat",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Campaign 接受切换后由营地消费狩猎记录与转入资源",
       "gapId": "",
       "blocksImplementation": false
     }

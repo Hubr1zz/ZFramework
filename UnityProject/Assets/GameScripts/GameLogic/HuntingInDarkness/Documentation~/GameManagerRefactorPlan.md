@@ -46,6 +46,8 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 - 第 6 步已提前完成安全子项：移除 `GameManager.OnDestroy` 中的全局 `EventBus.Clear()`，并在销毁时清空单例；完全删除兼容单例仍须等待调用方迁移。
 - 跨阶段事件表现已统一为 `IPlayableEventInput` 驱动的世界空间 3D 卡牌面板；Settlement/Hunt Runner 仍分别拥有规则环境与 ActionQueue，物理骰子继续在 Runner 内等待。旧 `EventPopupHunt` 和营地 HUD 事件入口仅保留兼容用途。
 - 营地出猎已改为世界空间猎人卡编队与地区卡选择：View 只暂存玩家意图，Settlement Runner 校验并提交名册，Campaign Runner 完成阶段切换。旧 `SettlementManager.TryDepart`、`DepartureConfirmWindow` 与 `SettlementUIManager.ShowDepartureConfirm` 暂作场景兼容层，确认无序列化引用后再一次性删除。
+- 狩猎主动回营已改为地图边缘实体卡确认：Hunt Runner 只准备结算快照，Campaign Runner 接受切换后才转移采集物、结算成长并把记录交给 Settlement；原 Hunt HUD 与流程引导不再提供绕过 Runner 的屏幕按钮。
+- 通用阶段入口已禁止未经准备的 Hunt → Settlement 直接切换；旧开发面板调用同一入口时会自动改走正式回营请求，避免调试操作静默丢失采集物。
 
 ## 已知剩余风险
 

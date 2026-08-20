@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using CardGame.ActionQueue;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Events;
@@ -48,6 +49,15 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         }
 
         public bool IsActive => !environment.IsDisposed;
+        public bool IsRunning => environment.IsRunning;
+        public bool HasActiveHarvest
+        {
+            get
+            {
+                RemoveFinishedHarvests();
+                return activeHarvests.Count > 0;
+            }
+        }
         public Guid SessionId { get; }
         public ReactorRegistry Reactors => environment.Reactors;
         public ReactionGateRegistry ReactionGates => environment.ReactionGates;
@@ -100,6 +110,23 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? PlayableHarvestStepResult.Failed(outcome.Reason) : action.Result;
         }
 
+        public async UniTask<HuntRetreatCommandResult> PrepareRetreatAsync(int currentYear, CancellationToken cancellationToken = default)
+        {
+            if (!IsActive)
+                return HuntRetreatCommandResult.Failed("狩猎会话已经结束。");
+            if (HasActiveHarvest)
+                return HuntRetreatCommandResult.Failed("请先完成或离开当前资源采集。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle squad = environment.EntityHandles.GetOrCreate("hunt-squad", "active", "狩猎小队");
+            ReactorEntityHandle settlement = environment.EntityHandles.GetOrCreate("settlement", "return-target", "营地");
+            var action = new PrepareHuntRetreatAction(manager, currentYear, outbox, squad, settlement);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            if (outcome.IsSuccess)
+                return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? HuntRetreatCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
         public void Dispose()
         {
             if (manager.RequestTileInteraction == requestHandler)
@@ -113,6 +140,11 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             activeHarvests.Clear();
             resourcePointHandles.Clear();
             environment.Dispose();
+        }
+
+        private void RemoveFinishedHarvests()
+        {
+            activeHarvests.RemoveWhere(transaction => transaction == null || transaction.IsCancelled || transaction.IsCommitted);
         }
 
         private async UniTask RequestTileInteractionAsync(Vector2Int coordinate) => await InteractTileAsync(coordinate);

@@ -324,23 +324,26 @@ namespace HuntingInDarkness.Hunt
         /// </summary>
         public void CompleteHunt(bool bossDefeated, SettlementInstance settlement)
         {
-            // 统计收集资源
+            HuntRecord record = CreateHuntRecord(bossDefeated, settlement.CurrentYear);
+            OnExit(settlement);
+            OnHuntCompleted?.Invoke(record);
+        }
+
+        public HuntRecord CreateHuntRecord(bool bossDefeated, int currentYear)
+        {
             var resourceList = new List<string>();
             foreach (var h in ActiveHunters)
                 foreach (var item in h.Collectibles)
                     resourceList.Add(item.Data.itemName);
 
-            var record = new HuntRecord
+            return new HuntRecord
             {
-                Year             = settlement.CurrentYear,
+                Year             = currentYear,
                 HuntersDeployed  = ActiveHunters.Count,
                 HuntersLost      = ActiveHunters.FindAll(h => !h.IsAlive).Count,
                 BossDefeated     = bossDefeated,
                 CollectedResources = resourceList
             };
-
-            OnExit(settlement);
-            OnHuntCompleted?.Invoke(record);
         }
 
         // ─── 工具 ─────────────────────────────────────────────────
