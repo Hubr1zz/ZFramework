@@ -65,7 +65,7 @@ namespace HuntingInDarkness.ActionFlow.Campaign
         private readonly ICampaignPhaseTransitionHost host;
         private readonly ActionEnvironment environment;
 
-        public PlayableCampaignActionSession(ICampaignPhaseTransitionHost host)
+        public PlayableCampaignActionSession(ICampaignPhaseTransitionHost host, IActionEnvironmentInstallerRegistry installerRegistry = null)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             environment = new ActionEnvironment(new ActionEnvironmentConfiguration
@@ -74,7 +74,7 @@ namespace HuntingInDarkness.ActionFlow.Campaign
                 Kind = ActionEnvironmentKind.Campaign,
                 MaxActionsPerChain = 128,
                 TraceCapacity = 48
-            });
+            }, installerRegistry);
         }
 
         public bool IsActive => !environment.IsDisposed;

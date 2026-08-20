@@ -50,9 +50,10 @@ namespace HuntingInDarkness.ActionFlow
     {
         private readonly CancellationTokenSource lifetimeCancellation = new();
         private readonly ActionQueueEngine engine;
+        private readonly IDisposable installerAttachment;
         private bool disposed;
 
-        public ActionEnvironment(ActionEnvironmentConfiguration configuration)
+        public ActionEnvironment(ActionEnvironmentConfiguration configuration, IActionEnvironmentInstallerRegistry installerRegistry = null)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
             if (configuration.MaxActionsPerChain < 1) throw new ArgumentOutOfRangeException(nameof(configuration.MaxActionsPerChain));
@@ -68,6 +69,18 @@ namespace HuntingInDarkness.ActionFlow
                 LogLevel = configuration.LogLevel,
                 SkipPresentationWaits = configuration.SkipPresentationWaits
             });
+            try
+            {
+                installerAttachment = installerRegistry?.Attach(this);
+            }
+            catch
+            {
+                disposed = true;
+                engine.Dispose();
+                EntityHandles.Dispose();
+                lifetimeCancellation.Dispose();
+                throw;
+            }
         }
 
         public string Name { get; }
@@ -138,6 +151,7 @@ namespace HuntingInDarkness.ActionFlow
         {
             if (disposed) return;
             disposed = true;
+            ReleaseInstallerAttachment();
             try
             {
                 lifetimeCancellation.Cancel();
@@ -152,6 +166,18 @@ namespace HuntingInDarkness.ActionFlow
                 engine.Dispose();
                 EntityHandles.Dispose();
                 lifetimeCancellation.Dispose();
+            }
+        }
+
+        private void ReleaseInstallerAttachment()
+        {
+            try
+            {
+                installerAttachment?.Dispose();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
             }
         }
 

@@ -16,6 +16,13 @@
       "specPath": "openspec/specs/game-manager-orchestration/spec.md"
     },
     {
+      "id": "action-environment-lifecycle",
+      "label": "ActionQueue 全生命周期环境",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/action-environment-lifecycle/spec.md"
+    },
+    {
       "id": "settlement-phase-orchestration",
       "label": "营地阶段编排",
       "category": "architecture",
@@ -129,6 +136,26 @@
     }
   ],
   "edges": [
+    {
+      "id": "action-environment-lifecycle--requires--tengine-startup-lifecycle",
+      "from": "action-environment-lifecycle",
+      "to": "tengine-startup-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "提交后的跨环境事实通过 TEngine GameEvent 兼容门面派发",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "game-manager-orchestration--requires--action-environment-lifecycle",
+      "from": "game-manager-orchestration",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "GameManager 维护 Campaign 环境并在阶段切换时替换功能环境",
+      "gapId": "",
+      "blocksImplementation": false
+    },
     {
       "id": "game-manager-orchestration--requires--tengine-startup-lifecycle",
       "from": "game-manager-orchestration",

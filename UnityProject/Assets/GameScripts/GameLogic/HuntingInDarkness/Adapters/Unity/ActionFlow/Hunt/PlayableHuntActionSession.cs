@@ -27,7 +27,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly Dictionary<ResourcePointInstance, ReactorEntityHandle> resourcePointHandles = new();
         private int nextResourcePointHandleId;
 
-        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null)
+        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, IActionEnvironmentInstallerRegistry installerRegistry = null)
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.defaultEncounterId = string.IsNullOrWhiteSpace(defaultEncounterId) ? "default" : defaultEncounterId.Trim();
@@ -41,7 +41,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 Kind = ActionEnvironmentKind.Hunt,
                 MaxActionsPerChain = 256,
                 TraceCapacity = 48
-            });
+            }, installerRegistry);
             requestHandler = RequestTileInteractionAsync;
             prepareHarvestHandler = PrepareHarvestAsync;
             advanceHarvestHandler = AdvanceHarvestAsync;

@@ -23,7 +23,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
         private readonly Action resetPlayerTurn;
         private readonly ActionEnvironment environment;
 
-        public PlayableCombatActionSession(IGameContext gameContext, IBoardQuery boardQuery, IBoardCommand boardCommand, ActionCardCostService costService, FlipConditionEvaluator flipEvaluator, Func<int, bool> canOwnerAct, Action<int, int> applyTimePointReward, Action resetPlayerTurn)
+        public PlayableCombatActionSession(IGameContext gameContext, IBoardQuery boardQuery, IBoardCommand boardCommand, ActionCardCostService costService, FlipConditionEvaluator flipEvaluator, Func<int, bool> canOwnerAct, Action<int, int> applyTimePointReward, Action resetPlayerTurn, IActionEnvironmentInstallerRegistry installerRegistry = null)
         {
             this.gameContext = gameContext ?? throw new ArgumentNullException(nameof(gameContext));
             this.boardQuery = boardQuery;
@@ -39,7 +39,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
                 Kind = ActionEnvironmentKind.Combat,
                 MaxActionsPerChain = 1024,
                 TraceCapacity = 48
-            });
+            }, installerRegistry);
         }
 
         public bool IsActive => !environment.IsDisposed;

@@ -17,6 +17,7 @@ using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.Combat;
+using HuntingInDarkness.ActionFlow;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Campaign;
@@ -141,6 +142,7 @@ namespace Core
         private PlayableSettlementActionSession settlementActionSession;
         private PlayableHuntActionSession huntActionSession;
         private PlayableCampaignActionSession campaignActionSession;
+        private readonly ActionEnvironmentInstallerRegistry actionEnvironmentInstallers = new();
         private IPlayableEventInput playableEventInput;
         private IPlayableHuntDepartureInput playableHuntDepartureInput;
         private bool huntDepartureInFlight;
@@ -206,7 +208,7 @@ namespace Core
             var startPhase = devMode ? devStartPhase : GamePhase.Settlement;
             _settlementManager = CreateSettlementManager();
             _phaseManager.Start(startPhase);
-            campaignActionSession = new PlayableCampaignActionSession(this);
+            campaignActionSession = new PlayableCampaignActionSession(this, actionEnvironmentInstallers);
 
             if (startPhase == GamePhase.Settlement)
             {
@@ -414,7 +416,8 @@ namespace Core
                     TableHeightOffset = tableHeightOffset,
                     TableScale = tableScale,
                     BossTablePosition = bossTablePosition,
-                    GetSettlementEvents = () => _settlementManager?.Events
+                    GetSettlementEvents = () => _settlementManager?.Events,
+                    ActionEnvironmentInstallers = actionEnvironmentInstallers
                 };
                 _combatSession = new PlayableCombatSession(configuration);
                 _combatSession.PublishReady();
@@ -529,7 +532,7 @@ namespace Core
         {
             DisposeSettlementActionSession();
             if (_settlementManager?.Data == null) return;
-            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items), tabletopRandomPresenter, _settlementManager.Workshop, _settlementManager.Inventions, workshopContentCatalog, PlayableSymptomRuntime.Catalog);
+            settlementActionSession = new PlayableSettlementActionSession(_settlementManager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), _settlementManager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementItemRegistry.Items), tabletopRandomPresenter, _settlementManager.Workshop, _settlementManager.Inventions, workshopContentCatalog, PlayableSymptomRuntime.Catalog, actionEnvironmentInstallers);
         }
 
         private void DisposeSettlementActionSession()
@@ -604,7 +607,7 @@ namespace Core
                 _huntVisualizer = visGo.AddComponent<HuntMapVisualizer>();
             }
             _huntVisualizer?.Init(_huntMgr);
-            huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId, tabletopRandomPresenter, _huntVisualizer);
+            huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId, tabletopRandomPresenter, _huntVisualizer, actionEnvironmentInstallers);
             EnsureHuntRetreatPanel();
 
             // Hunt UI
@@ -698,6 +701,7 @@ namespace Core
         public bool IsHuntActionSessionRunning => huntActionSession?.IsRunning == true;
         public bool IsCampaignActionSessionActive => campaignActionSession?.IsActive == true;
         public bool IsSettlementActionSessionRunning => settlementActionSession?.IsRunning == true;
+        public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers => actionEnvironmentInstallers;
         public CardGame.ActionQueue.ReactorRegistry SettlementActionReactors => settlementActionSession?.Reactors;
         public CardGame.ActionQueue.ReactorRegistry CampaignActionReactors => campaignActionSession?.Reactors;
         public CardGame.ActionQueue.ReactorRegistry HuntActionReactors => huntActionSession?.Reactors;
@@ -1165,6 +1169,7 @@ namespace Core
             DisposeSettlementActionSession();
             DisposeHuntActionSession();
             DisposeCombatSession();
+            actionEnvironmentInstallers.Dispose();
             if (Instance == this)
                 Instance = null;
         }

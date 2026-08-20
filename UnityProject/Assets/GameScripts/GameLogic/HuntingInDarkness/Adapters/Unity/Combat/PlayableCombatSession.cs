@@ -10,6 +10,7 @@ using GameplayBase.Board;
 using GameplayBase.Card.Effect;
 using GameplayBase.CombatSystem;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.ActionFlow;
 using HuntingInDarkness.ActionFlow.Combat;
 using HuntingInDarkness.GameCore.Cards;
 using HuntingInDarkness.GameCore.Combat;
@@ -44,6 +45,7 @@ namespace HuntingInDarkness.Combat
         public float TableScale { get; set; } = 0.15f;
         public Vector3 BossTablePosition { get; set; }
         public Func<EventSystem> GetSettlementEvents { get; set; }
+        public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers { get; set; }
     }
 
     /// <summary>
@@ -334,7 +336,7 @@ namespace HuntingInDarkness.Combat
             foreach (CharacterActionCardInstance card in allCards.Values)
                 flipConditionEvaluator.RegisterCard(card);
             actionCardCostService = new ActionCardCostService(() => timelineManager, () => combatManager?.InputProvider, flipConditionEvaluator, actionCardResources);
-            combatActionSession = new PlayableCombatActionSession(this, boardQuery, boardCommand, actionCardCostService, flipConditionEvaluator, characterId => IsActive && timelineManager != null && timelineManager.CanCharacterAct(characterId, this), (characterId, reward) => timelineManager?.AccumulateTimePoints(characterId, -reward), ProcessOverflow);
+            combatActionSession = new PlayableCombatActionSession(this, boardQuery, boardCommand, actionCardCostService, flipConditionEvaluator, characterId => IsActive && timelineManager != null && timelineManager.CanCharacterAct(characterId, this), (characterId, reward) => timelineManager?.AccumulateTimePoints(characterId, -reward), ProcessOverflow, configuration.ActionEnvironmentInstallers);
             scope.RegisterCleanup(combatActionSession.Dispose);
         }
 
