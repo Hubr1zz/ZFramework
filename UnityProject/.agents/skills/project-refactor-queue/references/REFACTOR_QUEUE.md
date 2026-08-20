@@ -130,14 +130,24 @@
 - **维护备注**: 用户已暂停决战阶段推进，本阶段仅记录；不要局部迁移单个旧方法造成第三套兼容桥。
 
 ### [优先级: 中] 内容表改由 ZFramework 资源模块预加载并注入
-- **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/{PlayableEventTable,PlayableItemTable}.cs`、正式 Bootstrap 组合根
+- **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/{PlayableEventTable,PlayableItemTable,PlayableRecipeTable}.cs`、正式 Bootstrap 组合根
 - **类型**: 资源生命周期 / 依赖注入
-- **描述**: 事件表与物品表已通过 `IContentTableSource<T>` 隔离来源，但默认实现仍同步调用 `Resources.Load<TextAsset>`。当前表体量很小且只在内容装配时读取，不阻塞可玩流程；内容规模扩大后，应由正式 Bootstrap 使用 `GameModule.Resource` 统一预加载并向目录注入表来源，明确加载失败、卸载和热更新边界。不要把各个 `ApplyTo` 逐个改成异步调用，以免形成多套启动时序。
+- **描述**: 事件、物品与配方表已通过 `IContentTableSource<T>` 隔离来源，但默认实现仍同步调用 `Resources.Load<TextAsset>`。当前表体量很小且只在内容装配时读取，不阻塞可玩流程；内容规模扩大后，应由正式 Bootstrap 使用 `GameModule.Resource` 统一预加载并向目录注入表来源，明确加载失败、卸载和热更新边界。不要把各个 `ApplyTo` 逐个改成异步调用，以免形成多套启动时序。
 - **来源**: 2026-08-20 读表物品与跨内容关键词实现审查
 - **状态**: 待处理
 - **维护人**: codex
 - **维护时间**: 2026-08-20
 - **维护备注**: 现有来源接口是后续切换点；应在完整分析战役启动与内容目录生命周期后一次迁移。
+
+### [优先级: 高] 物品库存与装备存档迁移到稳定 ContentId
+- **文件**: `Adapters/Unity/Data/{ItemData,HunterData,SettlementData}.cs`、`Adapters/Unity/Settlement/SettlementEquipmentStorage.cs`、营地资源/制作/装备 Action 与存档迁移器
+- **类型**: 内容身份 / 存档演进
+- **描述**: 读表物品和配方已经使用稳定资产 ID 解析内容，但 `SettlementInstance` 的资源、装备仓库与 `HunterInstance.EquippedItemNames` 仍以可修改的 `itemName` 显示文本作为持久化键。物品改名、本地化或未来允许同名时，旧存档会无法恢复装备并把库存拆成两份。需要先完整分析当前存档版本、事件 targetName、配方成本和所有兼容入口，再为 `ItemData` 增加显式 ContentId，将新存档统一写 ID，并通过旧名称别名表完成一次幂等迁移；不得只改装备或只改新表项。
+- **来源**: 2026-08-20 表驱动配方实现审查
+- **状态**: 待处理
+- **维护人**: codex
+- **维护时间**: 2026-08-20
+- **维护备注**: 大量内容进入表前应优先处理；当前仍禁止同显示名记录，降低但不能消除改名与本地化风险。
 
 ---
 

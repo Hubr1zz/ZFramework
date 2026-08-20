@@ -11,6 +11,11 @@ namespace HuntingInDarkness.Settlement
 
         public static void Extend(IReadOnlyList<ItemData> baseItems, IReadOnlyList<CraftRecipe> baseRecipes, out List<ItemData> allItems, out List<CraftRecipe> allRecipes)
         {
+            Extend(baseItems, baseRecipes, null, out allItems, out allRecipes);
+        }
+
+        public static void Extend(IReadOnlyList<ItemData> baseItems, IReadOnlyList<CraftRecipe> baseRecipes, IReadOnlyList<InventionData> inventions, out List<ItemData> allItems, out List<CraftRecipe> allRecipes)
+        {
             allItems = CopyItems(baseItems);
             allRecipes = CopyRecipes(baseRecipes);
             PlayableSettlementContentExtension[] extensions = Resources.LoadAll<PlayableSettlementContentExtension>(ResourcePath);
@@ -23,6 +28,7 @@ namespace HuntingInDarkness.Settlement
                 AppendRecipes(allRecipes, extension.Recipes);
             }
             AppendItems(allItems, PlayableItemTableRuntime.GetItems());
+            AppendRecipes(allRecipes, PlayableCraftRecipeTableRuntime.GetRecipes(allItems, inventions));
             AppendRecipeItems(allItems, allRecipes);
         }
 

@@ -9,6 +9,18 @@
       "tags": ["Mineral", "Rare"],
       "keywords": ["ritual"],
       "stackLimit": 99
+    },
+    {
+      "id": "salt_ward",
+      "itemName": "盐纹护符",
+      "itemType": "Armor",
+      "description": "用黑盐刻出的随身护符，能在贴近黑暗时维持一道微弱屏障。",
+      "tags": ["Gear", "Sacred", "Rare"],
+      "keywords": ["ritual", "ward"],
+      "armorStats": {
+        "armorBody": 1
+      },
+      "stackLimit": 1
     }
   ]
 }

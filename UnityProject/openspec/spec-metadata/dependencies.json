@@ -149,6 +149,13 @@
       "specPath": "openspec/specs/table-driven-item-keywords/spec.md"
     },
     {
+      "id": "table-driven-crafting-content",
+      "label": "读表配方与事件奖励制造链",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-crafting-content/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -394,6 +401,26 @@
       "type": "requires",
       "status": "defined",
       "reason": "装备名称由营地权威仓库恢复为内容并聚合可查询关键词",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-crafting-content--requires--table-driven-item-keywords",
+      "from": "table-driven-crafting-content",
+      "to": "table-driven-item-keywords",
+      "type": "requires",
+      "status": "defined",
+      "reason": "配方以稳定物品 ID 解析原料和产物，并让制造出的护符进入统一关键词规则",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-crafting-content--requires--tabletop-settlement-workshop-construction",
+      "from": "table-driven-crafting-content",
+      "to": "tabletop-settlement-workshop-construction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "表配方复用现有工坊可用性、3D 配方卡与 Settlement ActionQueue 制作事务",
       "gapId": "",
       "blocksImplementation": false
     },

@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "recipes": [
+    {
+      "id": "carve_salt_ward",
+      "recipeName": "刻制盐纹护符",
+      "ingredients": [
+        {
+          "itemId": "black_salt",
+          "count": 1
+        }
+      ],
+      "outputItemId": "salt_ward",
+      "outputCount": 1,
+      "requiredWorkshopId": ""
+    }
+  ]
+}

@@ -59,7 +59,7 @@ namespace HuntingInDarkness.Settlement
             manager.HunterMgmt.ConfigureDeathInspiration(deathInspirationGrowth, deathInspirationMinimumAge);
             manager.Data.HuntsPerYear = Mathf.Max(1, huntsPerYear);
             manager.Data.HuntsCompletedThisYear = Mathf.Clamp(manager.Data.HuntsCompletedThisYear, 0, manager.Data.HuntsPerYear - 1);
-            PlayableSettlementContentExtensions.Extend(GetKnownItems(), recipes, out List<ItemData> allItems, out List<CraftRecipe> allRecipes);
+            PlayableSettlementContentExtensions.Extend(GetKnownItems(), recipes, inventions, out List<ItemData> allItems, out List<CraftRecipe> allRecipes);
             PlayableSettlementItemRegistry.Configure(allItems);
             PlayableEventTableRuntime.Extend(randomEvents, mainStoryEvents, out List<EventData> allRandomEvents, out List<EventData> allMainStoryEvents);
             manager.Timeline.RandomEventPool = allRandomEvents;
