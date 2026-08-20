@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Settlement;
@@ -224,6 +225,27 @@ namespace HuntingInDarkness.Settlement
         private void ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null)
         {
             if (effect == null) return;
+            if (effect.effectType == EventEffectType.ActivateBloodline)
+            {
+                HunterInstance actor = target ?? eventActor;
+                if (actor == null)
+                {
+                    Debug.LogWarning($"[EventSystem] 无法激活血脉 {effect.targetName}：事件没有猎人执行者");
+                    return;
+                }
+                if (!PlayableBloodlineRuntime.Content.TryGet(effect.targetName, out HunterBloodlineDefinition bloodline))
+                {
+                    Debug.LogWarning($"[EventSystem] 无法激活未注册血脉：{effect.targetName}");
+                    return;
+                }
+                if (!HunterBloodlineRules.TryActivate(actor, bloodline.Id, out string reason))
+                {
+                    Debug.LogWarning($"[EventSystem] 无法激活 {actor.Name} 的血脉：{reason}");
+                    return;
+                }
+                actor.BloodlineName = bloodline.DisplayName;
+                return;
+            }
             if (effect.effectType == EventEffectType.ScheduleEvent)
             {
                 if (delayedEventScheduler == null)

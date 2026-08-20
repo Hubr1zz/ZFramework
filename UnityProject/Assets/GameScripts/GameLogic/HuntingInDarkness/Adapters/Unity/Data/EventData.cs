@@ -84,10 +84,11 @@ namespace HuntingInDarkness.Data
     {
         public EventOptionConditionKind conditionKind;
         public string key = "";
+        public string displayName = "";
         public int value;
         public bool inverted;
 
-        public EventOptionConditionDefinition ToDomain() => new EventOptionConditionDefinition(conditionKind, key, value, inverted);
+        public EventOptionConditionDefinition ToDomain() => new EventOptionConditionDefinition(conditionKind, key, value, inverted, displayName);
     }
 
     [System.Serializable]
@@ -142,6 +143,7 @@ namespace HuntingInDarkness.Data
         UnlockInvention,    // 解锁发明：targetName=稳定发明 ContentId
         TriggerCombat,      // 触发战斗
         AdvanceYear,        // 推进年份
-        ScheduleEvent       // 安排未来事件：targetName=稳定事件ID, value=延迟年数
+        ScheduleEvent,      // 安排未来事件：targetName=稳定事件ID, value=延迟年数
+        ActivateBloodline   // 激活血脉：targetName=稳定血脉ID
     }
 }

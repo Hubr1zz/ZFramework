@@ -43,5 +43,19 @@ namespace HuntingInDarkness.GameCore.Tests
             Assert.That(EventOptionAvailabilityRules.Evaluate(conditions, new HunterState(), null, null, new[] { "wood" }, out reason), Is.False);
             Assert.That(reason, Does.Contain("stone"));
         }
+
+        [Test]
+        public void Evaluate_BloodlineConditionsSeparateIdentityFromActivation()
+        {
+            var hunter = new HunterState { BloodlineId = "stone-listener", BloodlineName = "听石之血" };
+            var hasBloodline = new EventOptionConditionDefinition(EventOptionConditionKind.HasBloodline, "stone-listener", 0, false, "听石之血");
+            var inactiveBloodline = new EventOptionConditionDefinition(EventOptionConditionKind.HasActiveBloodline, "stone-listener", 0, true, "听石之血");
+
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { hasBloodline, inactiveBloodline }, hunter, null, null, out string reason), Is.True, reason);
+            hunter.IsBloodlineActivated = true;
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { hasBloodline, inactiveBloodline }, hunter, null, null, out reason), Is.False);
+            Assert.That(reason, Does.Contain("听石之血"));
+            Assert.That(reason, Does.Not.Contain("stone-listener"));
+        }
     }
 }

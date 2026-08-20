@@ -75,6 +75,34 @@ namespace HuntingInDarkness.Adapter.Tests
             }
         }
 
+        [Test]
+        public void BloodlineEvent_ActivatesOnlyMatchingInactiveHunter()
+        {
+            var settlement = new SettlementInstance();
+            var listener = new HunterInstance(null, 9104) { Name = "听石者", BloodlineId = "stone-listener", BloodlineName = "听石之血" };
+            var dreamer = new HunterInstance(null, 9105) { Name = "梦行者", BloodlineId = "deep-dreamer", BloodlineName = "深梦之血" };
+            settlement.Hunters.Add(listener);
+            settlement.Hunters.Add(dreamer);
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_bloodline_awakening");
+            EventOption option = gameEvent.options.First(item => item.successEffects.Any(effect => effect.effectType == EventEffectType.ActivateBloodline && effect.targetName == "stone-listener"));
+            int optionIndex = gameEvent.options.IndexOf(option);
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+
+            Assert.That(PlayableEventOptionAvailability.GetRequirements(option), Does.Contain("听石之血"));
+            Assert.That(PlayableEventOptionAvailability.GetRequirements(option), Does.Not.Contain("stone-listener"));
+            Assert.That(eventSystem.PrepareChoice(gameEvent, optionIndex, dreamer), Is.Null);
+            PlayableEventChoiceTransaction transaction = eventSystem.PrepareChoice(gameEvent, optionIndex, listener);
+            Assert.That(transaction, Is.Not.Null);
+            Assert.That(listener.IsBloodlineActivated, Is.False);
+
+            EventResolutionResult result = transaction.CommitStandalone().Result;
+
+            Assert.That(result.Success, Is.True);
+            Assert.That(listener.IsBloodlineActivated, Is.True);
+            Assert.That(listener.Traits, Contains.Item("石语者"));
+            Assert.That(eventSystem.PrepareChoice(gameEvent, optionIndex, listener), Is.Null);
+        }
+
         private sealed class FirstRandom : IRandomSource
         {
             public int Next(int minInclusive, int maxExclusive) => minInclusive;

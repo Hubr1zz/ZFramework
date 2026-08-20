@@ -48,6 +48,8 @@ namespace HuntingInDarkness.GameCore.Tests
             Assert.That(HunterBloodlineRules.TryActivate(hunter, "rare", out _), Is.False);
             Assert.That(HunterBloodlineRules.TryActivate(hunter, "common", out string reason), Is.True, reason);
             Assert.That(hunter.IsBloodlineActivated, Is.True);
+            Assert.That(HunterBloodlineRules.TryActivate(hunter, "common", out reason), Is.False);
+            Assert.That(reason, Does.Contain("已经激活"));
         }
 
         private sealed class LastRandom : IRandomSource

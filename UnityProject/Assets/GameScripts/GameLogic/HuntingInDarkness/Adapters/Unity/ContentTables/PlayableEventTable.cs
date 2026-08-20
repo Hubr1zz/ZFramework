@@ -98,6 +98,7 @@ namespace HuntingInDarkness.ContentTables
     public static class PlayableEventTableRuntime
     {
         private const string TablePath = "HuntingInDarkness/Tables/events";
+        private const string BloodlineTablePath = "HuntingInDarkness/Tables/bloodline-events";
         private static List<EventTableRecord> cachedRecords;
         private static List<EventData> cachedEvents;
 
@@ -133,6 +134,7 @@ namespace HuntingInDarkness.ContentTables
             {
                 var source = new JsonEventTableSource(TablePath);
                 cachedRecords = new List<EventTableRecord>(source.Load());
+                cachedRecords.AddRange(new JsonEventTableSource(BloodlineTablePath).Load());
             }
             var knownIds = new HashSet<string>(StringComparer.Ordinal);
             Dictionary<string, EventTableRecord> targetRecords = BuildUniqueTargetRecords(cachedRecords, out HashSet<string> duplicateIds);
@@ -255,7 +257,10 @@ namespace HuntingInDarkness.ContentTables
             foreach (EventOptionConditionTableRecord record in records)
             {
                 if (record == null || !TryParse(record.conditionKind, out EventOptionConditionKind conditionKind)) continue;
-                conditions.Add(new EventOptionCondition { conditionKind = conditionKind, key = record.key ?? string.Empty, value = Mathf.Max(0, record.value), inverted = record.inverted });
+                string displayName = record.key ?? string.Empty;
+                if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && PlayableBloodlineRuntime.Content.TryGet(record.key, out HunterBloodlineDefinition bloodline))
+                    displayName = bloodline.DisplayName;
+                conditions.Add(new EventOptionCondition { conditionKind = conditionKind, key = record.key ?? string.Empty, displayName = displayName, value = Mathf.Max(0, record.value), inverted = record.inverted });
             }
             return conditions;
         }
@@ -267,8 +272,9 @@ namespace HuntingInDarkness.ContentTables
             foreach (EventOptionConditionTableRecord record in records)
             {
                 if (record == null || !TryParse(record.conditionKind, out EventOptionConditionKind conditionKind)) return false;
-                bool requiresKey = conditionKind == EventOptionConditionKind.HasTrait || conditionKind == EventOptionConditionKind.HasAilment || conditionKind == EventOptionConditionKind.MinimumResource || conditionKind == EventOptionConditionKind.HasEquippedItem || conditionKind == EventOptionConditionKind.HasKeyword;
+                bool requiresKey = conditionKind == EventOptionConditionKind.HasTrait || conditionKind == EventOptionConditionKind.HasAilment || conditionKind == EventOptionConditionKind.MinimumResource || conditionKind == EventOptionConditionKind.HasEquippedItem || conditionKind == EventOptionConditionKind.HasKeyword || conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline;
                 if (requiresKey && string.IsNullOrWhiteSpace(record.key)) return false;
+                if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && !PlayableBloodlineRuntime.Content.TryGet(record.key, out _)) return false;
                 if (record.value < 0) return false;
             }
             return true;
@@ -283,6 +289,8 @@ namespace HuntingInDarkness.ContentTables
                 if (record == null || !TryParse(record.effectType, out EventEffectType effectType))
                     return false;
                 if (effectType == EventEffectType.ScheduleEvent && !DelayedEventRules.TryCreatePlan(1, record.value, record.targetName, out _, out _))
+                    return false;
+                if (effectType == EventEffectType.ActivateBloodline && !PlayableBloodlineRuntime.Content.TryGet(record.targetName, out _))
                     return false;
             }
             return true;

@@ -46,9 +46,32 @@ title: "读表猎人血脉"
 
 ### Requirement: Activation remains an explicit extension boundary
 
-GameCore SHALL 提供按稳定 ID 激活血脉的规则入口；具体触发事件、症状、特性或数值效果 SHALL 由后续表内容与 Action/Reactor 接入，不得硬编码在 3D View 中。
+GameCore SHALL 提供按稳定 ID 激活血脉的规则入口；具体触发事件、症状、特性或数值效果 SHALL 由表内容与 Action/Reactor 接入，不得硬编码在 3D View 中。
 
 #### Scenario: 激活请求不匹配
 
 - **WHEN** 请求的血脉 ID 与猎人持有身份不一致
 - **THEN** 激活 SHALL 被拒绝且猎人状态保持不变
+
+### Requirement: Events can gate and activate bloodlines
+
+事件表 SHALL 支持按稳定血脉 ID 判断“持有”与“已激活”状态，并支持 `ActivateBloodline` 效果。条件显示 SHALL 使用玩家可读血脉名，不得暴露技术 ID。
+
+#### Scenario: 匹配的未激活猎人面对血中旧梦
+
+- **WHEN** 玩家为该猎人选择对应的血脉选项
+- **THEN** 事件节点 SHALL 在 Settlement ActionQueue 根中激活血脉、授予配置特性并发布一次事件事务提交
+
+#### Scenario: 猎人血脉不匹配或已经激活
+
+- **WHEN** 3D 事件卡评估血脉选项
+- **THEN** 该选项 SHALL 禁用并显示玩家可读原因，且绕过 View 直接提交也不得改变猎人状态
+
+### Requirement: Bloodline event content is independently extensible
+
+血脉事件 SHALL 位于独立事件表并合并进统一事件内容目录；新增血脉事件不得要求修改既有基础事件记录。
+
+#### Scenario: 营地进入第二年后的随机事件抽取
+
+- **WHEN** “血中旧梦”满足年度与随机池规则
+- **THEN** 它 SHALL 复用现有实体事件卡、猎人选择和结果确认流程

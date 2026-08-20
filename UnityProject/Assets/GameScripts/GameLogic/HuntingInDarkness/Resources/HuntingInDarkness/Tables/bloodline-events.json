@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "random_bloodline_awakening",
+      "eventName": "血中旧梦",
+      "eventType": "Choice",
+      "displayText": "营火熄暗了一瞬。某位猎人的影子没有随火光缩短，反而伸向了更久远的地方。那不是预言，只是一段等待被承认的血中记忆。",
+      "hiddenText": "旧梦已经醒来。它不会替猎人作出选择，却会跟随此后的每一次选择。",
+      "options": [
+        {
+          "optionText": "握住余烬，记住那些已经离开的人",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "余烬没有灼伤手掌。失去的名字化作微弱温度，余烬之血已经苏醒。获得特性“守烬者”。",
+          "successEffects": [
+            { "effectType": "ActivateBloodline", "targetName": "ember-remembered", "value": 0, "description": "激活余烬之血" },
+            { "effectType": "AddTrait", "targetName": "守烬者", "value": 1, "description": "获得特性：守烬者" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasBloodline", "key": "ember-remembered", "value": 0, "inverted": false },
+            { "conditionKind": "HasActiveBloodline", "key": "ember-remembered", "value": 0, "inverted": true }
+          ]
+        },
+        {
+          "optionText": "侧耳贴近石面，听清沉默中的回声",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "石头第一次不再沉默。听石之血已经苏醒。获得特性“石语者”。",
+          "successEffects": [
+            { "effectType": "ActivateBloodline", "targetName": "stone-listener", "value": 0, "description": "激活听石之血" },
+            { "effectType": "AddTrait", "targetName": "石语者", "value": 1, "description": "获得特性：石语者" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasBloodline", "key": "stone-listener", "value": 0, "inverted": false },
+            { "conditionKind": "HasActiveBloodline", "key": "stone-listener", "value": 0, "inverted": true }
+          ]
+        },
+        {
+          "optionText": "闭上眼，让梦先一步走入黑暗",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "你在梦中看见营火尚未照亮的道路。深梦之血已经苏醒。获得特性“先梦者”。",
+          "successEffects": [
+            { "effectType": "ActivateBloodline", "targetName": "deep-dreamer", "value": 0, "description": "激活深梦之血" },
+            { "effectType": "AddTrait", "targetName": "先梦者", "value": 1, "description": "获得特性：先梦者" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasBloodline", "key": "deep-dreamer", "value": 0, "inverted": false },
+            { "conditionKind": "HasActiveBloodline", "key": "deep-dreamer", "value": 0, "inverted": true }
+          ]
+        },
+        {
+          "optionText": "让影子自行退回火光之外",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "没有人强迫旧梦在今夜醒来。影子恢复了原本的长度。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    }
+  ]
+}

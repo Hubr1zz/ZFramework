@@ -17,20 +17,24 @@ namespace HuntingInDarkness.GameCore.Settlement
         HasAilment,
         MinimumResource,
         HasEquippedItem,
-        HasKeyword
+        HasKeyword,
+        HasBloodline,
+        HasActiveBloodline
     }
 
     public readonly struct EventOptionConditionDefinition
     {
         public EventOptionConditionKind Kind { get; }
         public string Key { get; }
+        public string DisplayName { get; }
         public int Value { get; }
         public bool Inverted { get; }
 
-        public EventOptionConditionDefinition(EventOptionConditionKind kind, string key, int value, bool inverted)
+        public EventOptionConditionDefinition(EventOptionConditionKind kind, string key, int value, bool inverted, string displayName = null)
         {
             Kind = kind;
             Key = key ?? string.Empty;
+            DisplayName = string.IsNullOrWhiteSpace(displayName) ? Key : displayName.Trim();
             Value = Math.Max(0, value);
             Inverted = inverted;
         }
@@ -86,6 +90,8 @@ namespace HuntingInDarkness.GameCore.Settlement
                 EventOptionConditionKind.MinimumResource => $"营地拥有 {condition.Key} ×{condition.Value}",
                 EventOptionConditionKind.HasEquippedItem => $"装备“{condition.Key}”",
                 EventOptionConditionKind.HasKeyword => $"拥有关键词“{KeywordRules.Normalize(condition.Key)}”",
+                EventOptionConditionKind.HasBloodline => $"拥有血脉“{condition.DisplayName}”",
+                EventOptionConditionKind.HasActiveBloodline => $"血脉“{condition.DisplayName}”已激活",
                 _ => "满足未知条件"
             };
             return condition.Inverted ? $"不可满足：{requirement}" : $"需要{requirement}";
@@ -117,6 +123,10 @@ namespace HuntingInDarkness.GameCore.Settlement
                     return hunter?.Ailments != null && hunter.Ailments.Contains(condition.Key);
                 case EventOptionConditionKind.HasEquippedItem:
                     return Contains(equippedItems, condition.Key);
+                case EventOptionConditionKind.HasBloodline:
+                    return hunter != null && string.Equals(hunter.BloodlineId, condition.Key, StringComparison.Ordinal);
+                case EventOptionConditionKind.HasActiveBloodline:
+                    return hunter != null && hunter.IsBloodlineActivated && string.Equals(hunter.BloodlineId, condition.Key, StringComparison.Ordinal);
                 default:
                     return false;
             }

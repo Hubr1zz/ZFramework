@@ -109,6 +109,11 @@ namespace HuntingInDarkness.GameCore.Settlement
                 reason = "激活请求与猎人的血脉不匹配。";
                 return false;
             }
+            if (hunter.IsBloodlineActivated)
+            {
+                reason = "猎人的血脉已经激活。";
+                return false;
+            }
 
             hunter.IsBloodlineActivated = true;
             reason = string.Empty;

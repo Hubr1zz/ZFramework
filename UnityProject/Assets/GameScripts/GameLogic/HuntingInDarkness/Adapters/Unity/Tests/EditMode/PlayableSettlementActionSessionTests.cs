@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CardGame.ActionQueue;
@@ -10,6 +11,7 @@ using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
@@ -243,6 +245,42 @@ namespace HuntingInDarkness.Adapter.Tests
                 EventBus.Unsubscribe(handler);
                 UnityEngine.Object.DestroyImmediate(child);
                 UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public async Task ResolveEventsAsync_BloodlineActivationCommitsThroughSettlementRoot()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            HunterInstance hunter = settlement.Hunters[0];
+            hunter.BloodlineId = "stone-listener";
+            hunter.BloodlineName = "听石之血";
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_bloodline_awakening");
+            int optionIndex = gameEvent.options.FindIndex(option => option.successEffects.Any(effect => effect.effectType == EventEffectType.ActivateBloodline && effect.targetName == hunter.BloodlineId));
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            var input = new FixedChoiceInput(optionIndex, hunter);
+            int commitCount = 0;
+            Action<SettlementTransactionCommittedEvent> handler = evt =>
+            {
+                if (evt.Kind == SettlementTransactionKind.EventResolution)
+                    commitCount++;
+            };
+            EventBus.Subscribe(handler);
+            try
+            {
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem, input);
+
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(result.ResolvedCount, Is.EqualTo(1));
+                Assert.That(hunter.IsBloodlineActivated, Is.True);
+                Assert.That(hunter.Traits, Contains.Item("石语者"));
+                Assert.That(commitCount, Is.EqualTo(1));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
             }
         }
 
@@ -562,6 +600,23 @@ namespace HuntingInDarkness.Adapter.Tests
             }
 
             public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(-1, null));
+            public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
+            public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
+        }
+
+        private sealed class FixedChoiceInput : IPlayableEventInput
+        {
+            private readonly int optionIndex;
+            private readonly HunterInstance hunter;
+
+            public FixedChoiceInput(int optionIndex, HunterInstance hunter)
+            {
+                this.optionIndex = optionIndex;
+                this.hunter = hunter;
+            }
+
+            public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(optionIndex, hunter));
             public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
             public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
         }

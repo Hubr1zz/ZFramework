@@ -479,6 +479,16 @@
       "blocksImplementation": false
     },
     {
+      "id": "table-driven-hunter-bloodlines--requires--tabletop-event-interaction",
+      "from": "table-driven-hunter-bloodlines",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "血脉资格与激活结果通过统一3D事件卡展示，并在所属阶段ActionQueue节点内提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
       "id": "tabletop-game-over--requires--game-manager-orchestration",
       "from": "tabletop-game-over",
       "to": "game-manager-orchestration",
