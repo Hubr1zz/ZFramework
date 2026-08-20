@@ -17,6 +17,22 @@ namespace UI.Hunt
         public int ActiveHunterCardCount => hunterCards.Count;
         public string SelectedHunterName => manager?.SelectedHunter?.Name ?? string.Empty;
 
+        public bool TryGetHunterAnchor(int hunterId, out Vector3 anchor)
+        {
+            anchor = default;
+            if (hunterId <= 0 || manager?.ActiveHunters == null) return false;
+            int count = Mathf.Min(hunterCards.Count, manager.ActiveHunters.Count);
+            for (int index = 0; index < count; index++)
+            {
+                HunterInstance hunter = manager.ActiveHunters[index];
+                TabletopEventChoiceCard3D card = hunterCards[index];
+                if (hunter == null || hunter.InstanceId != hunterId || card == null || !card.gameObject.activeInHierarchy) continue;
+                anchor = card.transform.position;
+                return true;
+            }
+            return false;
+        }
+
         public static HuntStatusBoard3D Create(Transform parent)
         {
             var boardObject = new GameObject("HuntStatusBoard3D");

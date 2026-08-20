@@ -22,6 +22,13 @@ Each phase SHALL request tabletop randomness from its own ActionQueue execution 
 ### Requirement: Physical dice use validated authoritative results
 The physical dice presenter SHALL spawn dice at the configured actor or target anchor, wait until their rigid bodies are stable, and return a result matching the request interaction id, count, and side range.
 
+In Hunt, an actor-bound request SHALL resolve the corresponding hunter card on the 3D squad status board before falling back to the aggregate squad pawn. The dice tray SHALL apply a serialized world-space offset so it lands beside, rather than on top of, the referenced physical card.
+
+#### Scenario: A Hunt event checks the selected hunter
+- **WHEN** the event ActionQueue requests a physical roll with that hunter's actor id
+- **THEN** the dice tray appears beside the matching Hunt status card
+- **AND** the squad pawn is used only when no live actor card can be resolved
+
 #### Scenario: A d10 event check completes
 - **WHEN** one physical d10 becomes stable at the event anchor
 - **THEN** the validated face value is supplied to the event transaction as its prepared roll

@@ -146,6 +146,7 @@ namespace Core
         private bool huntRetreatInFlight;
         private bool preparedHuntExit;
         [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
+        [SerializeField] private Vector3 tabletopDiceAnchorOffset = new(0f, 0f, -1.65f);
         private PlayableSettlementContentCatalog settlementContentCatalog;
         private PlayableWorkshopCatalog workshopContentCatalog;
 
@@ -313,7 +314,7 @@ namespace Core
         private Vector3 ResolveTabletopRandomAnchor(TabletopRandomInteractionRequest request)
         {
             int hunterId = int.TryParse(request.ActorId, out int parsedHunterId) ? parsedHunterId : 0;
-            return ResolveTabletopAnchor(hunterId);
+            return ResolveTabletopAnchor(hunterId) + tabletopDiceAnchorOffset;
         }
 
         public Vector3 ResolveTabletopEventAnchor(HunterInstance actor) => ResolveTabletopAnchor(actor?.InstanceId ?? 0);
@@ -324,6 +325,10 @@ namespace Core
                 foreach (HunterCard3D card in settlementRoot.GetComponentsInChildren<HunterCard3D>(true))
                     if (card != null && card.gameObject.activeInHierarchy && card.Hunter != null && card.Hunter.InstanceId == hunterId)
                         return card.transform.position;
+            if (hunterId > 0 && huntRoot != null)
+                foreach (HuntStatusBoard3D board in huntRoot.GetComponentsInChildren<HuntStatusBoard3D>(true))
+                    if (board != null && board.gameObject.activeInHierarchy && board.TryGetHunterAnchor(hunterId, out Vector3 anchor))
+                        return anchor;
             if (CurrentGamePhase == GamePhase.Hunt && _huntVisualizer != null)
                 return _huntVisualizer.TabletopInteractionAnchor.position;
             GameObject phaseRoot = CurrentGamePhase == GamePhase.Hunt ? huntRoot : settlementRoot;
