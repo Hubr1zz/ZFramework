@@ -9,6 +9,7 @@ namespace Core
         Crafting,
         Invention,
         WorkshopConstruction,
+        HunterGrowth,
         EventReroll,
         EventResolution
     }

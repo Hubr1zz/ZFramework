@@ -84,6 +84,13 @@
       "category": "feature",
       "readiness": "implemented",
       "specPath": "openspec/specs/tabletop-settlement-recruitment/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-advancement-ledger",
+      "label": "营地桌面成长训练与年鉴",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-advancement-ledger/spec.md"
     }
   ],
   "edges": [
@@ -214,6 +221,16 @@
       "type": "requires",
       "status": "defined",
       "reason": "候选与命名意图由营地 Runner 串行校验并提交名册、资源及年鉴事实",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-advancement-ledger--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-advancement-ledger",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "成长与训练由营地 Runner 提交，年鉴读取同一营地持久状态",
       "gapId": "",
       "blocksImplementation": false
     }

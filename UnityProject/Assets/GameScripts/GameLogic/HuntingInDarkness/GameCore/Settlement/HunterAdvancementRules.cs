@@ -48,16 +48,39 @@ namespace HuntingInDarkness.GameCore.Settlement
 
         public static bool TrySpendGrowth(HunterState hunter, HunterGrowthChoice choice)
         {
-            if (hunter == null || !hunter.IsAvailable || hunter.UnspentGrowth <= 0) return false;
-            if (choice != HunterGrowthChoice.Courage && choice != HunterGrowthChoice.Understanding) return false;
-            if (choice == HunterGrowthChoice.Courage && hunter.Courage >= MaximumGrowthAttribute) return false;
-            if (choice == HunterGrowthChoice.Understanding && hunter.Understanding >= MaximumGrowthAttribute) return false;
+            if (!CanSpendGrowth(hunter, choice, out _)) return false;
 
             if (choice == HunterGrowthChoice.Courage)
                 hunter.Courage++;
             else
                 hunter.Understanding++;
             hunter.UnspentGrowth--;
+            return true;
+        }
+
+        public static bool CanSpendGrowth(HunterState hunter, HunterGrowthChoice choice, out string reason)
+        {
+            if (hunter == null || !hunter.IsAvailable)
+            {
+                reason = "猎人当前无法分配成长。";
+                return false;
+            }
+            if (hunter.UnspentGrowth <= 0)
+            {
+                reason = "没有待分配的成长点。";
+                return false;
+            }
+            if (choice != HunterGrowthChoice.Courage && choice != HunterGrowthChoice.Understanding)
+            {
+                reason = "成长方向无效。";
+                return false;
+            }
+            if ((choice == HunterGrowthChoice.Courage && hunter.Courage >= MaximumGrowthAttribute) || (choice == HunterGrowthChoice.Understanding && hunter.Understanding >= MaximumGrowthAttribute))
+            {
+                reason = "该成长属性已达到上限。";
+                return false;
+            }
+            reason = string.Empty;
             return true;
         }
     }

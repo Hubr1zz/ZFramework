@@ -33,7 +33,9 @@ namespace UI
         private Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> equipCommand;
         private Func<int, int, UniTask<SettlementEquipmentCommandResult>> unequipCommand;
         private Action<HunterInstance> recoveryRequested;
+        private Action<HunterInstance> advancementRequested;
         private GameObject recoveryButton;
+        private GameObject advancementButton;
         private GameObject previousPageButton;
         private GameObject nextPageButton;
         private int storagePage;
@@ -58,11 +60,12 @@ namespace UI
             Build();
         }
 
-        public void ConfigureCommands(Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> onEquip, Func<int, int, UniTask<SettlementEquipmentCommandResult>> onUnequip, Action<HunterInstance> onRecoveryRequested = null)
+        public void ConfigureCommands(Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> onEquip, Func<int, int, UniTask<SettlementEquipmentCommandResult>> onUnequip, Action<HunterInstance> onRecoveryRequested = null, Action<HunterInstance> onAdvancementRequested = null)
         {
             equipCommand = onEquip;
             unequipCommand = onUnequip;
             recoveryRequested = onRecoveryRequested;
+            advancementRequested = onAdvancementRequested;
         }
 
         public void Show(HunterInstance selectedHunter, SettlementInstance settlementData, IReadOnlyList<ItemData> availableItems, Vector3 worldPosition)
@@ -104,6 +107,7 @@ namespace UI
             previousPageButton = BuildPageButton("PreviousStoragePage", "<", new Vector3(-2.75f, 0.03f, 1.42f), -1);
             nextPageButton = BuildPageButton("NextStoragePage", ">", new Vector3(-0.30f, 0.03f, 1.42f), 1);
             recoveryButton = BuildRecoveryButton();
+            advancementButton = BuildAdvancementButton();
             BuildCloseButton();
         }
 
@@ -203,6 +207,29 @@ namespace UI
             return buttonObject;
         }
 
+        private GameObject BuildAdvancementButton()
+        {
+            GameObject buttonObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            buttonObject.name = "AdvancementButton";
+            buttonObject.transform.SetParent(transform, false);
+            buttonObject.transform.localPosition = new Vector3(1.10f, 0.03f, 1.42f);
+            buttonObject.transform.localScale = new Vector3(0.85f, 0.04f, 0.28f);
+            buttonObject.GetComponent<Renderer>().material.color = new Color(0.18f, 0.30f, 0.40f);
+            buttonObject.AddComponent<ClickProxy>().OnClick = () => advancementRequested?.Invoke(hunter);
+            var labelObject = new GameObject("Label");
+            labelObject.transform.SetParent(buttonObject.transform, false);
+            labelObject.transform.localPosition = new Vector3(0f, 0.6f, 0f);
+            labelObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            labelObject.transform.localScale = new Vector3(1f / 0.85f, 1f / 0.28f, 1f);
+            TextMeshPro label = labelObject.AddComponent<TextMeshPro>();
+            label.text = "成长训练";
+            label.fontSize = 0.095f;
+            label.alignment = TextAlignmentOptions.Center;
+            label.color = new Color(0.82f, 0.90f, 0.98f);
+            label.rectTransform.sizeDelta = new Vector2(0.72f, 0.22f);
+            return buttonObject;
+        }
+
         private void ChangeStoragePage(int direction)
         {
             storagePage += direction;
@@ -214,6 +241,7 @@ namespace UI
             ClearCards();
             statsText.text = BuildStats(hunter);
             recoveryButton.SetActive(IsWounded(hunter));
+            advancementButton.SetActive(hunter.IsAvailable);
             FillStorageCards();
             FillEquipmentCards();
         }

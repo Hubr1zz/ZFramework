@@ -34,13 +34,20 @@ namespace HuntingInDarkness.Settlement
 
         public static List<HunterGrowthMilestoneOutcome> SynchronizeHunter(HunterInstance hunter)
         {
+            List<HunterGrowthMilestoneOutcome> outcomes = ClaimHunterMilestones(hunter);
+            foreach (HunterGrowthMilestoneOutcome outcome in outcomes)
+                EventBus.Publish(new HunterGrowthMilestoneReachedEvent(hunter.InstanceId, hunter.Name, outcome));
+            return outcomes;
+        }
+
+        public static List<HunterGrowthMilestoneOutcome> ClaimHunterMilestones(HunterInstance hunter)
+        {
             var outcomes = new List<HunterGrowthMilestoneOutcome>();
             if (hunter == null || catalog == null) return outcomes;
             foreach (HunterGrowthMilestoneDefinition definition in catalog.GetDefinitions())
             {
                 if (!HunterGrowthMilestoneRules.TryClaim(hunter, definition, out HunterGrowthMilestoneOutcome outcome)) continue;
                 outcomes.Add(outcome);
-                EventBus.Publish(new HunterGrowthMilestoneReachedEvent(hunter.InstanceId, hunter.Name, outcome));
             }
             return outcomes;
         }

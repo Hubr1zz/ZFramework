@@ -158,6 +158,65 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task SpendHunterGrowthAsync_CommitsThroughSettlementRunner()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            HunterInstance hunter = settlement.Hunters[0];
+            hunter.UnspentGrowth = 1;
+            var received = new List<string>();
+            Action<HunterGrowthSpentEvent> growthHandler = evt => received.Add($"growth:{evt.Choice}");
+            Action<SettlementTransactionCommittedEvent> commitHandler = evt => received.Add($"commit:{evt.Kind}");
+            EventBus.Subscribe(growthHandler);
+            EventBus.Subscribe(commitHandler);
+            try
+            {
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent());
+
+                HunterGrowthCommandResult result = await session.SpendHunterGrowthAsync(hunter.InstanceId, HunterGrowthChoice.Courage);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(result.PreviousValue, Is.Zero);
+                Assert.That(result.CurrentValue, Is.EqualTo(1));
+                Assert.That(result.RemainingGrowth, Is.Zero);
+                Assert.That(hunter.Courage, Is.EqualTo(1));
+                Assert.That(received, Is.EqualTo(new[] { "growth:Courage", "commit:HunterGrowth" }));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(growthHandler);
+                EventBus.Unsubscribe(commitHandler);
+            }
+        }
+
+        [Test]
+        public async Task SpendHunterGrowthAsync_PreventedActionLeavesHunterUntouched()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            HunterInstance hunter = settlement.Hunters[0];
+            hunter.UnspentGrowth = 1;
+            int commitCount = 0;
+            Action<SettlementTransactionCommittedEvent> handler = _ => commitCount++;
+            EventBus.Subscribe(handler);
+            try
+            {
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent());
+                session.Reactors.RegisterGlobal(new PreventGrowthReactor());
+
+                HunterGrowthCommandResult result = await session.SpendHunterGrowthAsync(hunter.InstanceId, HunterGrowthChoice.Understanding);
+
+                Assert.That(result.Succeeded, Is.False);
+                Assert.That(result.Reason, Is.EqualTo("成长被营地效果阻止"));
+                Assert.That(hunter.Understanding, Is.Zero);
+                Assert.That(hunter.UnspentGrowth, Is.EqualTo(1));
+                Assert.That(commitCount, Is.Zero);
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
         public async Task ResolveEventsAsync_ResolvesInitialAndChildNodesThroughOneRoot()
         {
             SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
@@ -602,6 +661,16 @@ namespace HuntingInDarkness.Adapter.Tests
             protected override void React(TrainWeaponAction action, ReactionContext context, ReactionResponse response)
             {
                 response.Prevent("训练被营地规则阻止");
+            }
+        }
+
+        private sealed class PreventGrowthReactor : GameActionReactor<SpendHunterGrowthAction>
+        {
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+
+            protected override void React(SpendHunterGrowthAction action, ReactionContext context, ReactionResponse response)
+            {
+                response.Prevent("成长被营地效果阻止");
             }
         }
 

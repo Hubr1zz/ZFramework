@@ -666,6 +666,8 @@ namespace Core
                 _settlementTable3D.OnWorkshopConstructionRequested = definition => settlementActionSession != null ? settlementActionSession.BuildWorkshopAsync(definition) : UniTask.FromResult(SettlementWorkshopConstructionResult.Failed("当前不在营地阶段。"));
                 _settlementTable3D.OnRecoveryRequested = (hunterId, bodyPart) => settlementActionSession != null ? settlementActionSession.RecoverHunterAsync(hunterId, bodyPart) : UniTask.FromResult(RecoverHunterCommandResult.Failed("当前不在营地阶段。"));
                 _settlementTable3D.OnRecruitRequested = (template, requestedName) => settlementActionSession != null ? settlementActionSession.RecruitHunterAsync(template, requestedName) : UniTask.FromResult(RecruitHunterCommandResult.Failed("当前不在营地阶段。"));
+                _settlementTable3D.OnGrowthRequested = (hunterId, choice) => settlementActionSession != null ? settlementActionSession.SpendHunterGrowthAsync(hunterId, choice) : UniTask.FromResult(HunterGrowthCommandResult.Failed("当前不在营地阶段。"));
+                _settlementTable3D.OnWeaponTrainingRequested = (hunterId, masteryId) => settlementActionSession != null ? settlementActionSession.TrainWeaponAsync(hunterId, masteryId) : UniTask.FromResult(WeaponTrainingCommandResult.Failed("当前不在营地阶段。"));
 
                 // 点击发明卡（有主动效果时）→ TODO: 展示效果选择面板
                 _settlementTable3D.OnInventionEffectRequested = card =>
@@ -883,6 +885,13 @@ namespace Core
             if (!PlayableHunterAdvancementAdapter.TrySpendGrowth(_settlementManager?.Data.GetHunter(hunterId), choice)) return false;
             SaveSettlementProgress();
             return true;
+        }
+
+        public UniTask<HunterGrowthCommandResult> SpendHunterGrowthAsync(int hunterId, HunterGrowthChoice choice)
+        {
+            if (settlementActionSession == null || !settlementActionSession.IsActive)
+                return UniTask.FromResult(HunterGrowthCommandResult.Failed("仅可在营地阶段分配成长。"));
+            return settlementActionSession.SpendHunterGrowthAsync(hunterId, choice);
         }
 
         public bool OnRelieveOvertimeCharacter(int targetId)

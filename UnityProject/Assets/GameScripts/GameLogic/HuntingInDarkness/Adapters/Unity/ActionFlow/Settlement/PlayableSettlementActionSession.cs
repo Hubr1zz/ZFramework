@@ -165,6 +165,26 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             return WeaponTrainingRules.CanTrain(hunter.IsAvailable && !hunter.IsDead, settlement.IsInventionUnlocked(weaponTrainingContent.RequiredInventionId), settlement.GetResource(weaponTrainingContent.CostResourceId), weaponTrainingContent.ResourceCost, masteryId, weaponTrainingContent.Experience, out reason);
         }
 
+        public bool CanSpendHunterGrowth(int hunterId, HunterGrowthChoice choice, out string reason)
+        {
+            return HunterAdvancementRules.CanSpendGrowth(settlement.GetHunter(hunterId), choice, out reason);
+        }
+
+        public async UniTask<HunterGrowthCommandResult> SpendHunterGrowthAsync(int hunterId, HunterGrowthChoice choice)
+        {
+            if (!IsActive) return HunterGrowthCommandResult.Failed("当前不在营地阶段。");
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            if (hunter == null) return HunterGrowthCommandResult.Failed("猎人不属于当前营地。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
+            ReactorEntityHandle hunterEntity = environment.EntityHandles.GetOrCreate("hunter", hunter.InstanceId.ToString(), hunter.Name);
+            var action = new SpendHunterGrowthAction(settlement, hunter, choice, outbox, settlementEntity, hunterEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? HunterGrowthCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
         public bool CanEquipItem(int hunterId, ItemData item, out string reason)
         {
             HunterInstance hunter = settlement.GetHunter(hunterId);

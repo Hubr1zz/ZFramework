@@ -3,6 +3,7 @@ using Cards3D;
 using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Settlement;
+using HuntingInDarkness.Combat;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.ViewLayer.Tabletop;
@@ -47,6 +48,16 @@ namespace UI
         [SerializeField] private Vector3 fallbackRecruitmentLauncherPosition = new(-3.25f, 0.03f, -2.65f);
         private RecruitmentLauncherCard3D recruitmentLauncher;
 
+        [Header("猎人 3D 成长训练板")]
+        [SerializeField] private HunterAdvancementPanel3D hunterAdvancementPanel;
+        [SerializeField] private Transform hunterAdvancementPanelAnchor;
+
+        [Header("营地 3D 年鉴")]
+        [SerializeField] private CampLedgerPanel3D campLedgerPanel;
+        [SerializeField] private Transform campLedgerPanelAnchor;
+        [SerializeField] private Vector3 fallbackCampLedgerLauncherPosition = new(0f, 0.03f, -3.35f);
+        private CampLedgerLauncherCard3D campLedgerLauncher;
+
         [Header("发明 3D 确认板")]
         [SerializeField] private InventionUnlockPanel3D inventionUnlockPanel;
         [SerializeField] private Transform inventionUnlockPanelAnchor;
@@ -74,6 +85,8 @@ namespace UI
         public System.Func<PlayableWorkshopDefinition, UniTask<SettlementWorkshopConstructionResult>> OnWorkshopConstructionRequested;
         public System.Func<int, HuntingInDarkness.GameCore.Hunters.HunterBodyPart, UniTask<RecoverHunterCommandResult>> OnRecoveryRequested;
         public System.Func<HunterData, string, UniTask<RecruitHunterCommandResult>> OnRecruitRequested;
+        public System.Func<int, HuntingInDarkness.GameCore.Settlement.HunterGrowthChoice, UniTask<HunterGrowthCommandResult>> OnGrowthRequested;
+        public System.Func<int, string, UniTask<WeaponTrainingCommandResult>> OnWeaponTrainingRequested;
 
         // ─── 注入数据 ─────────────────────────────────────────────────────
         private SettlementManager _mgr;
@@ -94,6 +107,8 @@ namespace UI
             EnsureHunterRecoveryPanel();
             EnsureRecruitmentPanel();
             EnsureRecruitmentLauncher();
+            EnsureHunterAdvancementPanel();
+            EnsureCampLedger();
             EnsureInventionUnlockPanel();
             EnsureWorkshopConstructionPanel();
             EnsureDepartureLauncher();
@@ -128,7 +143,7 @@ namespace UI
             if (hunterEquipmentPanel == null)
                 hunterEquipmentPanel = HunterEquipmentPanel3D.Create(transform);
             hunterEquipmentPanel.EnsureBuilt();
-            hunterEquipmentPanel.ConfigureCommands(OnEquipRequested, OnUnequipRequested, ShowHunterRecovery);
+            hunterEquipmentPanel.ConfigureCommands(OnEquipRequested, OnUnequipRequested, ShowHunterRecovery, ShowHunterAdvancement);
         }
 
         private void EnsureHunterRecoveryPanel()
@@ -160,6 +175,39 @@ namespace UI
             hunterRecoveryPanel?.Hide();
             Vector3 position = recruitmentPanelAnchor != null ? recruitmentPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.0f));
             recruitmentPanel.Open(_mgr.Data, settlementContentCatalog, OnRecruitRequested, position);
+        }
+
+        private void EnsureHunterAdvancementPanel()
+        {
+            if (hunterAdvancementPanel == null)
+                hunterAdvancementPanel = HunterAdvancementPanel3D.Create(transform);
+            hunterAdvancementPanel.EnsureBuilt();
+        }
+
+        private void ShowHunterAdvancement(HunterInstance hunter)
+        {
+            if (hunter == null || hunterAdvancementPanel == null) return;
+            hunterEquipmentPanel?.Hide();
+            Vector3 position = hunterAdvancementPanelAnchor != null ? hunterAdvancementPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.1f));
+            hunterAdvancementPanel.Open(hunter, _mgr.Data, PlayableWeaponMasteryRuntime.Catalog, OnGrowthRequested, OnWeaponTrainingRequested, position);
+        }
+
+        private void EnsureCampLedger()
+        {
+            if (campLedgerPanel == null)
+                campLedgerPanel = CampLedgerPanel3D.Create(transform);
+            campLedgerPanel.EnsureBuilt();
+            if (campLedgerLauncher == null)
+                campLedgerLauncher = CampLedgerLauncherCard3D.Create(transform, fallbackCampLedgerLauncherPosition);
+            campLedgerLauncher.Configure(_mgr.Data);
+            campLedgerLauncher.Clicked = ShowCampLedger;
+        }
+
+        private void ShowCampLedger()
+        {
+            if (campLedgerPanel == null) return;
+            Vector3 position = campLedgerPanelAnchor != null ? campLedgerPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.0f));
+            campLedgerPanel.Open(_mgr.Data, position);
         }
 
         private void ShowHunterRecovery(HunterInstance hunter)
@@ -335,8 +383,7 @@ namespace UI
             FillAllZones();
             hunterEquipmentPanel?.RefreshVisible();
             hunterRecoveryPanel?.RefreshVisible();
-            recruitmentPanel?.RefreshVisible();
-            recruitmentLauncher?.RefreshState();
+            RefreshContextPanels();
             inventionUnlockPanel?.RefreshVisible();
             workshopConstructionPanel?.RefreshVisible();
         }
@@ -346,8 +393,7 @@ namespace UI
         {
             _inventionZone.RefreshCards();
             _workshopZone.RefreshCards();
-            recruitmentPanel?.RefreshVisible();
-            recruitmentLauncher?.RefreshState();
+            RefreshContextPanels();
         }
 
         public void RefreshCrafting()
@@ -357,8 +403,7 @@ namespace UI
             _workshopZone.RefreshCards();
             hunterEquipmentPanel?.RefreshVisible();
             hunterRecoveryPanel?.RefreshVisible();
-            recruitmentPanel?.RefreshVisible();
-            recruitmentLauncher?.RefreshState();
+            RefreshContextPanels();
             inventionUnlockPanel?.RefreshVisible();
             workshopConstructionPanel?.RefreshVisible();
         }
@@ -370,23 +415,29 @@ namespace UI
             // 命中已有卡就地更新；否则整区重填
             if (!_resourceZone.TryUpdateCount(e.ResourceName, e.NewAmount))
                 _resourceZone.Fill(_mgr.Data.Resources);
-            recruitmentPanel?.RefreshVisible();
-            recruitmentLauncher?.RefreshState();
+            RefreshContextPanels();
         }
 
         private void OnRosterChanged(HunterRosterChangedEvent _)
         {
             _hunterZone.Fill(_mgr.Data.GetAvailableHunters());
-            recruitmentPanel?.RefreshVisible();
-            recruitmentLauncher?.RefreshState();
+            RefreshContextPanels();
         }
 
         private void OnYearAdvanced(YearAdvancedEvent _)
         {
             _inventionZone.RefreshCards();
             _workshopZone.RefreshCards();
+            RefreshContextPanels();
+        }
+
+        private void RefreshContextPanels()
+        {
             recruitmentPanel?.RefreshVisible();
             recruitmentLauncher?.RefreshState();
+            hunterAdvancementPanel?.RefreshVisible();
+            campLedgerPanel?.RefreshVisible();
+            campLedgerLauncher?.Configure(_mgr.Data);
         }
 
         // ─── 清理 ─────────────────────────────────────────────────────────
