@@ -2,16 +2,16 @@ using System.Collections.Generic;
 using System.Threading;
 using Core;
 using Cysharp.Threading.Tasks;
-using GameplayBase;
 using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
+using HuntingInDarkness.ViewLayer.Tabletop;
 using UnityEngine;
 
 namespace HuntingInDarkness.ViewLayer.Settlement
 {
-    /// <summary>可玩组合根的事件 View：选择对象、展示判定、重投，再提交唯一结果。</summary>
+    /// <summary>营地与狩猎共用的桌面事件输入端口；只返回玩家决定，不提交规则状态。</summary>
     public sealed class PlayableSettlementEventView : MonoBehaviour, IPlayableEventInput
     {
         private enum EventPromptKind
@@ -23,39 +23,34 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             Result
         }
 
-        private const int WindowId = 68022;
         private static int nextInputOwnerId;
         private GameManager manager;
         private int inputOwnerId;
-        private EventData currentEvent;
-        private GamePhase eventPhase;
-        private HunterInstance currentHunter;
-        private PlayableEventChoiceTransaction transaction;
-        private int pendingOptionIndex = -1;
-        private string resultText;
-        private GUIStyle windowStyle;
-        private GUIStyle titleStyle;
-        private GUIStyle bodyStyle;
-        private GUIStyle resultStyle;
-        private Texture2D windowTexture;
         private EventPromptKind prompt;
+        private EventData currentEvent;
+        private HunterInstance currentActor;
+        private IReadOnlyList<HunterInstance> candidateHunters = System.Array.Empty<HunterInstance>();
+        private TabletopEventPanel3D panel;
         private UniTaskCompletionSource narrativeSource;
         private UniTaskCompletionSource<PlayableEventChoiceSelection> choiceSource;
         private UniTaskCompletionSource<PlayableEventCheckDecision> checkSource;
         private UniTaskCompletionSource resultSource;
 
+        public bool IsPresenting => prompt != EventPromptKind.None;
+        public TabletopEventPanel3D ActivePanel => panel;
+
         public void Initialize(GameManager gameManager)
         {
             manager = gameManager;
-            inputOwnerId = System.Threading.Interlocked.Increment(ref nextInputOwnerId);
-            if (manager != null)
-                manager.SetPlayableEventInput(this);
+            EnsureInputOwnerId();
+            manager?.SetPlayableEventInput(this);
         }
 
         public async UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken)
         {
-            BeginEventPrompt(EventPromptKind.Narrative, gameEvent, actor);
+            BeginPrompt(EventPromptKind.Narrative, gameEvent, actor, null);
             narrativeSource = new UniTaskCompletionSource();
+            PresentNarrative();
             try
             {
                 await narrativeSource.Task.AttachExternalCancellation(cancellationToken);
@@ -63,14 +58,15 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             finally
             {
                 narrativeSource = null;
-                EndEventPrompt(EventPromptKind.Narrative);
+                EndPrompt(EventPromptKind.Narrative);
             }
         }
 
         public async UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken)
         {
-            BeginEventPrompt(EventPromptKind.Choice, gameEvent, actor);
+            BeginPrompt(EventPromptKind.Choice, gameEvent, actor, hunters);
             choiceSource = new UniTaskCompletionSource<PlayableEventChoiceSelection>();
+            PresentChoices();
             try
             {
                 return await choiceSource.Task.AttachExternalCancellation(cancellationToken);
@@ -78,15 +74,16 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             finally
             {
                 choiceSource = null;
-                EndEventPrompt(EventPromptKind.Choice);
+                EndPrompt(EventPromptKind.Choice);
             }
         }
 
-        public async UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction preparedTransaction, CancellationToken cancellationToken)
+        public async UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken)
         {
-            BeginEventPrompt(EventPromptKind.Check, preparedTransaction.GameEvent, preparedTransaction.Actor);
-            transaction = preparedTransaction;
+            if (transaction == null) throw new System.ArgumentNullException(nameof(transaction));
+            BeginPrompt(EventPromptKind.Check, transaction.GameEvent, transaction.Actor, null);
             checkSource = new UniTaskCompletionSource<PlayableEventCheckDecision>();
+            PresentCheck(transaction);
             try
             {
                 return await checkSource.Task.AttachExternalCancellation(cancellationToken);
@@ -94,15 +91,15 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             finally
             {
                 checkSource = null;
-                EndEventPrompt(EventPromptKind.Check);
+                EndPrompt(EventPromptKind.Check);
             }
         }
 
         public async UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken)
         {
-            BeginEventPrompt(EventPromptKind.Result, gameEvent, null);
-            resultText = string.IsNullOrWhiteSpace(result.ResultText) ? (result.Success ? "判定成功。" : "判定失败。") : result.ResultText;
+            BeginPrompt(EventPromptKind.Result, gameEvent, null, null);
             resultSource = new UniTaskCompletionSource();
+            PresentResult(result);
             try
             {
                 await resultSource.Task.AttachExternalCancellation(cancellationToken);
@@ -110,310 +107,171 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             finally
             {
                 resultSource = null;
-                EndEventPrompt(EventPromptKind.Result);
+                EndPrompt(EventPromptKind.Result);
             }
         }
 
-        private void OnGUI()
+        private void PresentNarrative()
         {
-            if (manager == null || manager.CurrentGamePhase != eventPhase) return;
-            if (currentEvent == null && transaction == null && string.IsNullOrEmpty(resultText)) return;
-
-            EnsureStyles();
-            int previousDepth = GUI.depth;
-            GUI.depth = -900;
-            GUI.Button(new Rect(0f, 0f, Screen.width, Screen.height), GUIContent.none, GUIStyle.none);
-            GUI.Window(WindowId, GetWindowRect(), DrawWindow, eventPhase == GamePhase.Hunt ? "狩猎事件" : "营地事件", windowStyle);
-            GUI.depth = previousDepth;
+            string actionLabel = currentEvent.eventType == GameEventType.Combat ? "迎接战斗" : "接受结果";
+            var choices = new[]
+            {
+                new TabletopEventChoicePresentation(actionLabel, "点击实体卡继续事件", true, string.Empty, () => narrativeSource?.TrySetResult())
+            };
+            PresentPanel(currentEvent.eventName, currentEvent.displayText, ActorFooter(currentActor), TabletopEventPrimaryTone.Narrative, choices);
         }
 
-        private Rect GetWindowRect()
+        private void PresentChoices()
         {
-            float width = Mathf.Min(620f, Screen.width - 48f);
-            float height = Mathf.Min(500f, Screen.height - 48f);
-            return new Rect((Screen.width - width) * 0.5f, (Screen.height - height) * 0.5f, width, height);
-        }
-
-        private void DrawWindow(int windowId)
-        {
-            GUILayout.Space(10f);
-            if (!string.IsNullOrEmpty(resultText))
+            var choices = new List<TabletopEventChoicePresentation>();
+            int availableCount = 0;
+            int optionCount = currentEvent.options?.Count ?? 0;
+            for (int index = 0; index < optionCount; index++)
             {
-                DrawCommittedResult();
-                return;
-            }
-            if (pendingOptionIndex >= 0)
-            {
-                DrawHunterSelection();
-                return;
-            }
-            if (transaction != null)
-            {
-                DrawPreparedCheck();
-                return;
-            }
-            DrawEvent();
-        }
-
-        private void DrawEvent()
-        {
-            if (currentEvent == null) return;
-
-            GUILayout.Label(currentEvent.eventName, titleStyle);
-            if (currentHunter != null)
-                GUILayout.Label($"与 {currentHunter.Name} 有关", bodyStyle);
-            GUILayout.Space(12f);
-            GUILayout.Label(currentEvent.displayText, bodyStyle);
-            GUILayout.FlexibleSpace();
-
-            if (currentEvent.eventType == GameEventType.Choice && currentEvent.options != null && currentEvent.options.Count > 0)
-            {
-                int availableOptionCount = 0;
-                for (int index = 0; index < currentEvent.options.Count; index++)
+                int optionIndex = index;
+                EventOption option = currentEvent.options[index];
+                if (option == null)
                 {
-                    int optionIndex = index;
-                    EventOption option = currentEvent.options[index];
-                    string label = option.checkType == CheckType.None ? option.optionText : $"{option.optionText}  【{GetCheckName(option.checkType)}判定 · 目标 {option.checkTarget}】";
-                    string requirements = PlayableEventOptionAvailability.GetRequirements(option);
-                    if (!string.IsNullOrEmpty(requirements)) label += $"\n{requirements}";
-                    bool available = CanPresentOption(option, out string reason);
-                    if (available) availableOptionCount++;
-                    GUI.enabled = available;
-                    float buttonHeight = string.IsNullOrEmpty(requirements) ? 42f : 58f;
-                    if (GUILayout.Button(label, GUILayout.Height(buttonHeight)))
-                        BeginChoice(optionIndex);
-                    GUI.enabled = true;
-                    if (!available)
-                        GUILayout.Label(reason, bodyStyle);
+                    choices.Add(new TabletopEventChoicePresentation($"选项 {index + 1}", "事件数据缺失。", false, "无法选择", null));
+                    continue;
                 }
-                if (availableOptionCount == 0 && GUILayout.Button("没有可行的行动，只能接受沉默", GUILayout.Height(44f)))
-                {
-                    if (prompt == EventPromptKind.Choice)
-                        choiceSource?.TrySetResult(new PlayableEventChoiceSelection(-1, null));
-                    else
-                        ResolveNarrative();
-                }
+                bool available = CanPresentOption(option, out string reason);
+                if (available)
+                    availableCount++;
+                string requirements = PlayableEventOptionAvailability.GetRequirements(option);
+                string body = option.optionText;
+                if (option.checkType != CheckType.None)
+                    body += $"\n\n{GetCheckName(option.checkType)}判定 · 目标 {option.checkTarget}";
+                if (!string.IsNullOrWhiteSpace(requirements))
+                    body += $"\n{requirements}";
+                choices.Add(new TabletopEventChoicePresentation($"选项 {index + 1}", body, available, available ? "点击选择" : reason, () => SelectOption(optionIndex)));
+            }
+            if (availableCount == 0)
+                choices.Add(new TabletopEventChoicePresentation("接受沉默", "当前没有可行行动，按叙事结果继续。", true, string.Empty, () => choiceSource?.TrySetResult(new PlayableEventChoiceSelection(-1, null))));
+            PresentPanel(currentEvent.eventName, currentEvent.displayText, ActorFooter(currentActor), TabletopEventPrimaryTone.Narrative, choices);
+        }
+
+        private void SelectOption(int optionIndex)
+        {
+            if (choiceSource == null || currentEvent.options == null || optionIndex < 0 || optionIndex >= currentEvent.options.Count) return;
+            EventOption option = currentEvent.options[optionIndex];
+            if (option == null) return;
+            if (!CanPresentOption(option, out _)) return;
+            bool needsHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
+            if (currentActor != null || !needsHunter)
+            {
+                choiceSource.TrySetResult(new PlayableEventChoiceSelection(optionIndex, currentActor));
                 return;
             }
-
-            if (GUILayout.Button(currentEvent.eventType == GameEventType.Combat ? "迎接战斗" : "接受结果", GUILayout.Height(44f)))
-                ResolveNarrative();
+            PresentHunterSelection(optionIndex);
         }
 
-        private void DrawHunterSelection()
-        {
-            EventOption option = currentEvent.options[pendingOptionIndex];
-            GUILayout.Label("选择执行判定的猎人", titleStyle);
-            string selectionDescription = option.checkType == CheckType.None ? option.optionText : $"{option.optionText}\n使用 {GetCheckName(option.checkType)}，目标 {option.checkTarget}";
-            GUILayout.Label(selectionDescription, bodyStyle);
-            GUILayout.Space(12f);
-
-            var hunters = eventPhase == GamePhase.Hunt ? manager.ActiveHuntHunters : manager.SettlementData?.GetAvailableHunters();
-            if (hunters == null || hunters.Count == 0)
-            {
-                GUILayout.Label("营地中没有能够执行判定的猎人。", resultStyle);
-            }
-            else
-            {
-                foreach (HunterInstance hunter in hunters)
-                {
-                    bool available = PlayableEventOptionAvailability.CanUse(option, hunter, manager.SettlementData, out string reason);
-                    string label = option.checkType == CheckType.None ? $"{hunter.Name} · 意志 {hunter.Willpower}/{hunter.WillpowerMax}" : $"{hunter.Name} · {GetCheckName(option.checkType)} {GetCheckBonus(hunter, option.checkType)} · 意志 {hunter.Willpower}/{hunter.WillpowerMax}";
-                    if (!available) label += $" · {reason}";
-                    GUI.enabled = available;
-                    if (GUILayout.Button(label, GUILayout.Height(40f)))
-                        PrepareChoice(hunter);
-                    GUI.enabled = true;
-                }
-            }
-
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("返回事件选项", GUILayout.Height(36f)))
-                pendingOptionIndex = -1;
-        }
-
-        private void DrawPreparedCheck()
-        {
-            GUILayout.Label(transaction.GameEvent.eventName, titleStyle);
-            GUILayout.Label(transaction.Option.optionText, bodyStyle);
-            if (transaction.Actor != null)
-                GUILayout.Label($"{transaction.Actor.Name} 使用 {GetCheckName(transaction.Option.checkType)}", bodyStyle);
-            GUILayout.Space(18f);
-            GUILayout.Label($"骰值 {transaction.RollValue} + 属性 {transaction.Bonus} = {transaction.Total}\n目标 {transaction.Target}  →  {(transaction.Success ? "成功" : "失败")}", resultStyle);
-            if (transaction.HasRerolled)
-                GUILayout.Label("已消耗 1 意志重投，并保留较高骰值。", bodyStyle);
-            GUILayout.FlexibleSpace();
-
-            GUI.enabled = transaction.CanReroll;
-            if (GUILayout.Button(transaction.CanReroll ? "消耗 1 意志重投" : "无法继续重投", GUILayout.Height(42f)))
-            {
-                if (prompt == EventPromptKind.Check)
-                    checkSource?.TrySetResult(PlayableEventCheckDecision.Reroll);
-                else
-                    transaction.TryReroll();
-            }
-            GUI.enabled = true;
-            if (GUILayout.Button("接受这个结果", GUILayout.Height(44f)))
-            {
-                if (prompt == EventPromptKind.Check)
-                    checkSource?.TrySetResult(PlayableEventCheckDecision.Accept);
-                else
-                    CommitChoice();
-            }
-        }
-
-        private void DrawCommittedResult()
-        {
-            GUILayout.Label(transaction?.GameEvent.eventName ?? "事件结果", titleStyle);
-            GUILayout.Space(16f);
-            GUILayout.Label(resultText, resultStyle);
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("继续", GUILayout.Height(44f)))
-                ContinueEventChain();
-        }
-
-        private void ShowEvent(EventData gameEvent, HunterInstance hunter)
-        {
-            if (prompt != EventPromptKind.None) return;
-            if (manager == null || manager.CurrentGamePhase != GamePhase.Settlement && manager.CurrentGamePhase != GamePhase.Hunt) return;
-            eventPhase = manager.CurrentGamePhase;
-            if (eventPhase == GamePhase.Hunt)
-                PlayableHuntInputGuard.Acquire(inputOwnerId);
-            currentEvent = gameEvent;
-            currentHunter = hunter;
-            transaction = null;
-            pendingOptionIndex = -1;
-            resultText = string.Empty;
-        }
-
-        private void BeginChoice(int optionIndex)
+        private void PresentHunterSelection(int optionIndex)
         {
             EventOption option = currentEvent.options[optionIndex];
-            if (!CanPresentOption(option, out _)) return;
-            if ((option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option)) && currentHunter == null)
+            var choices = new List<TabletopEventChoicePresentation>();
+            foreach (HunterInstance hunter in candidateHunters)
             {
-                pendingOptionIndex = optionIndex;
-                return;
+                if (hunter == null) continue;
+                HunterInstance selectedHunter = hunter;
+                bool available = PlayableEventOptionAvailability.CanUse(option, hunter, manager.SettlementData, out string reason);
+                string body = option.checkType == CheckType.None
+                    ? $"意志 {hunter.Willpower}/{hunter.WillpowerMax}"
+                    : $"{GetCheckName(option.checkType)} {GetCheckBonus(hunter, option.checkType)}\n意志 {hunter.Willpower}/{hunter.WillpowerMax}";
+                choices.Add(new TabletopEventChoicePresentation(hunter.Name, body, available, available ? "点击派出" : reason, () => choiceSource?.TrySetResult(new PlayableEventChoiceSelection(optionIndex, selectedHunter))));
             }
+            choices.Add(new TabletopEventChoicePresentation("返回", "重新查看事件选项", true, string.Empty, PresentChoices));
+            string bodyText = $"{option.optionText}\n\n选择执行{(option.checkType == CheckType.None ? "行动" : GetCheckName(option.checkType) + "判定")}的猎人。";
+            PresentPanel(currentEvent.eventName, bodyText, "猎人选择", TabletopEventPrimaryTone.Check, choices);
+        }
 
-            pendingOptionIndex = optionIndex;
-            if (prompt == EventPromptKind.Choice)
+        private void PresentCheck(PlayableEventChoiceTransaction transaction)
+        {
+            string body = $"{transaction.Option.optionText}\n\n骰值 {transaction.RollValue} + 属性 {transaction.Bonus} = {transaction.Total}\n目标 {transaction.Target}\n\n{(transaction.Success ? "判定成功" : "判定失败")}";
+            if (transaction.HasRerolled)
+                body += "\n已消耗 1 意志重投并保留较高骰值。";
+            var choices = new List<TabletopEventChoicePresentation>
             {
-                choiceSource?.TrySetResult(new PlayableEventChoiceSelection(optionIndex, currentHunter));
-                return;
-            }
-            PrepareChoice(currentHunter);
+                new("接受结果", "提交当前判定", true, string.Empty, () => checkSource?.TrySetResult(PlayableEventCheckDecision.Accept))
+            };
+            if (transaction.CanReroll)
+                choices.Insert(0, new TabletopEventChoicePresentation("重投", "消耗 1 意志，再次投掷实体骰子", true, string.Empty, () => checkSource?.TrySetResult(PlayableEventCheckDecision.Reroll)));
+            PresentPanel(transaction.GameEvent.eventName, body, ActorFooter(transaction.Actor), transaction.Success ? TabletopEventPrimaryTone.Success : TabletopEventPrimaryTone.Failure, choices);
+        }
+
+        private void PresentResult(EventResolutionResult result)
+        {
+            string body = string.IsNullOrWhiteSpace(result.ResultText) ? result.Success ? "判定成功。" : "判定失败。" : result.ResultText;
+            var choices = new[]
+            {
+                new TabletopEventChoicePresentation("继续", "收起事件卡并推进事件链", true, string.Empty, () => resultSource?.TrySetResult())
+            };
+            PresentPanel(currentEvent?.eventName ?? "事件结果", body, result.RollValue > 0 ? $"最终骰值 {result.RollValue}" : string.Empty, result.Success ? TabletopEventPrimaryTone.Success : TabletopEventPrimaryTone.Failure, choices);
+        }
+
+        private void PresentPanel(string title, string body, string footer, TabletopEventPrimaryTone tone, IReadOnlyList<TabletopEventChoicePresentation> choices)
+        {
+            Transform parent = manager.TabletopPresentationRoot != null ? manager.TabletopPresentationRoot : transform;
+            if (panel == null)
+                panel = TabletopEventPanel3D.Create(parent);
+            else if (panel.transform.parent != parent)
+                panel.transform.SetParent(parent, true);
+            Vector3 anchor = manager.ResolveTabletopEventAnchor(currentActor) + new Vector3(0f, 0.62f, -2.35f);
+            panel.Present(anchor, title, body, footer, tone, choices);
         }
 
         private bool CanPresentOption(EventOption option, out string reason)
         {
-            if (currentHunter != null)
-                return PlayableEventOptionAvailability.CanUse(option, currentHunter, manager.SettlementData, out reason);
-
+            if (option == null)
+            {
+                reason = "事件数据缺失。";
+                return false;
+            }
+            if (currentActor != null)
+                return PlayableEventOptionAvailability.CanUse(option, currentActor, manager.SettlementData, out reason);
             bool needsHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
             if (!needsHunter)
                 return PlayableEventOptionAvailability.CanUse(option, null, manager.SettlementData, out reason);
-
-            var hunters = eventPhase == GamePhase.Hunt ? manager.ActiveHuntHunters : manager.SettlementData?.GetAvailableHunters();
-            if (hunters != null)
-                foreach (HunterInstance hunter in hunters)
-                    if (PlayableEventOptionAvailability.CanUse(option, hunter, manager.SettlementData, out _))
-                    {
-                        reason = string.Empty;
-                        return true;
-                    }
+            foreach (HunterInstance hunter in candidateHunters)
+                if (hunter != null && PlayableEventOptionAvailability.CanUse(option, hunter, manager.SettlementData, out _))
+                {
+                    reason = string.Empty;
+                    return true;
+                }
             reason = "当前没有猎人满足该选项。";
             return false;
         }
 
-        private void PrepareChoice(HunterInstance hunter)
+        private void BeginPrompt(EventPromptKind nextPrompt, EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters)
         {
-            if (prompt == EventPromptKind.Choice)
-            {
-                choiceSource?.TrySetResult(new PlayableEventChoiceSelection(pendingOptionIndex, hunter));
-                return;
-            }
-            transaction = manager.PrepareSettlementChoice(currentEvent, pendingOptionIndex, hunter);
-            pendingOptionIndex = -1;
-            if (transaction == null)
-            {
-                resultText = "这个选项现在无法结算。";
-                return;
-            }
-            if (!transaction.RequiresCheck)
-                CommitChoice();
-        }
-
-        private void CommitChoice()
-        {
-            EventResolutionResult result = transaction.Commit();
-            if (eventPhase == GamePhase.Settlement)
-                manager.SaveSettlementProgress();
-            currentEvent = null;
-            currentHunter = null;
-            resultText = string.IsNullOrWhiteSpace(result.ResultText) ? (result.Success ? "判定成功。" : "判定失败。") : result.ResultText;
-        }
-
-        private void ContinueEventChain()
-        {
-            if (prompt == EventPromptKind.Result)
-            {
-                resultSource?.TrySetResult();
-                return;
-            }
-            PlayableEventChoiceTransaction completed = transaction;
-            transaction = null;
-            resultText = string.Empty;
-            completed?.Continue();
-            ReleaseHuntInputIfIdle();
-        }
-
-        private void ResolveNarrative()
-        {
-            if (prompt == EventPromptKind.Narrative)
-            {
-                narrativeSource?.TrySetResult();
-                return;
-            }
-            EventData resolved = currentEvent;
-            currentEvent = null;
-            currentHunter = null;
-            manager.ResolveSettlementNarrative(resolved);
-            if (eventPhase == GamePhase.Settlement)
-                manager.SaveSettlementProgress();
-            ReleaseHuntInputIfIdle();
-        }
-
-        private void ReleaseHuntInputIfIdle()
-        {
-            if (currentEvent != null || transaction != null || !string.IsNullOrEmpty(resultText)) return;
-            PlayableHuntInputGuard.Release(inputOwnerId);
-        }
-
-        private void BeginEventPrompt(EventPromptKind nextPrompt, EventData gameEvent, HunterInstance actor)
-        {
+            if (manager == null) throw new System.InvalidOperationException("事件 View 尚未初始化。");
             if (prompt != EventPromptKind.None) throw new System.InvalidOperationException("事件输入端口已经在处理另一项请求。");
             prompt = nextPrompt;
-            eventPhase = manager != null ? manager.CurrentGamePhase : GamePhase.Settlement;
-            currentEvent = gameEvent;
-            currentHunter = actor;
-            transaction = null;
-            pendingOptionIndex = -1;
-            resultText = string.Empty;
+            currentEvent = gameEvent ?? throw new System.ArgumentNullException(nameof(gameEvent));
+            currentActor = actor;
+            candidateHunters = hunters ?? System.Array.Empty<HunterInstance>();
+            EnsureInputOwnerId();
             PlayableHuntInputGuard.Acquire(inputOwnerId);
         }
 
-        private void EndEventPrompt(EventPromptKind completedPrompt)
+        private void EndPrompt(EventPromptKind completedPrompt)
         {
             if (prompt != completedPrompt) return;
             prompt = EventPromptKind.None;
             currentEvent = null;
-            currentHunter = null;
-            transaction = null;
-            pendingOptionIndex = -1;
-            resultText = string.Empty;
+            currentActor = null;
+            candidateHunters = System.Array.Empty<HunterInstance>();
+            panel?.Close();
             PlayableHuntInputGuard.Release(inputOwnerId);
         }
+
+        private void EnsureInputOwnerId()
+        {
+            if (inputOwnerId == 0)
+                inputOwnerId = Interlocked.Increment(ref nextInputOwnerId);
+        }
+
+        private static string ActorFooter(HunterInstance actor) => actor != null ? $"关联猎人 · {actor.Name}" : string.Empty;
 
         private static int GetCheckBonus(HunterInstance hunter, CheckType checkType)
         {
@@ -442,53 +300,19 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             };
         }
 
-        private void EnsureStyles()
-        {
-            if (windowStyle != null) return;
-
-            windowTexture = new Texture2D(1, 1);
-            windowTexture.SetPixel(0, 0, new Color(0.025f, 0.018f, 0.015f, 0.985f));
-            windowTexture.Apply();
-            windowStyle = new GUIStyle(GUI.skin.box)
-            {
-                padding = new RectOffset(16, 16, 16, 16),
-                normal = { background = windowTexture }
-            };
-            titleStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 23,
-                fontStyle = FontStyle.Bold,
-                normal = { textColor = new Color(0.96f, 0.76f, 0.36f) }
-            };
-            bodyStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 15,
-                wordWrap = true,
-                normal = { textColor = new Color(0.8f, 0.82f, 0.84f) }
-            };
-            resultStyle = new GUIStyle(GUI.skin.label)
-            {
-                alignment = TextAnchor.MiddleCenter,
-                fontSize = 19,
-                fontStyle = FontStyle.Bold,
-                wordWrap = true,
-                normal = { textColor = Color.white }
-            };
-        }
-
         private void OnDestroy()
         {
+            prompt = EventPromptKind.None;
             narrativeSource?.TrySetCanceled();
             choiceSource?.TrySetCanceled();
             checkSource?.TrySetCanceled();
             resultSource?.TrySetCanceled();
             PlayableHuntInputGuard.Release(inputOwnerId);
-            if (manager != null)
-            {
-                manager.ClearPlayableEventInput(this);
-            }
-            if (windowTexture != null)
-                Destroy(windowTexture);
+            panel?.Close();
+            if (panel != null)
+                Destroy(panel.gameObject);
+            panel = null;
+            manager?.ClearPlayableEventInput(this);
         }
     }
 }

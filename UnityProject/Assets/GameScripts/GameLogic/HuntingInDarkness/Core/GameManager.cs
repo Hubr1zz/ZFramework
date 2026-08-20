@@ -53,6 +53,15 @@ namespace Core
         [SerializeField] private GameObject huntRoot;
         [SerializeField] private GameObject bossFightRoot;
 
+        public Transform TabletopPresentationRoot
+        {
+            get
+            {
+                GameObject phaseRoot = CurrentGamePhase == GamePhase.Hunt ? huntRoot : settlementRoot;
+                return phaseRoot != null ? phaseRoot.transform : transform;
+            }
+        }
+
         [Header("UI 阶段根节点（Canvas 子节点）")]
         [SerializeField] private GameObject uiSettlement;
         [SerializeField] private GameObject uiHunt;
@@ -296,7 +305,15 @@ namespace Core
 
         private Vector3 ResolveTabletopRandomAnchor(TabletopRandomInteractionRequest request)
         {
-            if (int.TryParse(request.ActorId, out int hunterId) && settlementRoot != null)
+            int hunterId = int.TryParse(request.ActorId, out int parsedHunterId) ? parsedHunterId : 0;
+            return ResolveTabletopAnchor(hunterId);
+        }
+
+        public Vector3 ResolveTabletopEventAnchor(HunterInstance actor) => ResolveTabletopAnchor(actor?.InstanceId ?? 0);
+
+        private Vector3 ResolveTabletopAnchor(int hunterId)
+        {
+            if (hunterId > 0 && settlementRoot != null)
                 foreach (HunterCard3D card in settlementRoot.GetComponentsInChildren<HunterCard3D>(true))
                     if (card != null && card.gameObject.activeInHierarchy && card.Hunter != null && card.Hunter.InstanceId == hunterId)
                         return card.transform.position;

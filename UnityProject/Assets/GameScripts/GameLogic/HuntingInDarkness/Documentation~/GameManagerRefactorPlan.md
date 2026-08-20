@@ -44,6 +44,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 - 第 3 步已完成必要底座：`PlayableCampaignActionSession` 提供常驻 Campaign Runner，阶段切换与遭遇开始分别进入 `TransitionCampaignPhaseAction`、`BeginCampaignEncounterAction`；阶段转换事实使用 after-commit 发布，Boss 胜利和 Hunt 遭遇不会再在源 Root 内同步销毁环境。完整 Coordinator 仍需继续迁移阶段进入计划、保存反馈与失败回滚。
 - 第 2、5 步仍待完成；`GameManager` 暂时作为 `ICampaignPhaseTransitionHost` 执行场景根和旧会话装配。招募与休养 View 已改走窄命令外观，内容目录只在启动时注入并转交 Settlement Session，不再由 View Service 直接提交状态。
 - 第 6 步已提前完成安全子项：移除 `GameManager.OnDestroy` 中的全局 `EventBus.Clear()`，并在销毁时清空单例；完全删除兼容单例仍须等待调用方迁移。
+- 跨阶段事件表现已统一为 `IPlayableEventInput` 驱动的世界空间 3D 卡牌面板；Settlement/Hunt Runner 仍分别拥有规则环境与 ActionQueue，物理骰子继续在 Runner 内等待。旧 `EventPopupHunt` 和营地 HUD 事件入口仅保留兼容用途。
 
 ## 已知剩余风险
 
@@ -55,6 +56,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 6. `TriggerCombat` 已使用带 SessionId、来源阶段与 EncounterId 的结构化请求，并由 Campaign Runner 校验、解析和切换；营地年度事件也已迁入 Settlement Runner。旧 `EventSystem` 的共享队列 API 已无生产调用者，但旧类和两套兼容 UI 尚未删除；确认场景引用后应一起收口，避免新内容重新接入双编排入口。
 7. 进入营地的自动保存仍是异步 `.Forget()`，领域切换成功与磁盘失败没有统一结果；后续需要显式保存重试/退出策略，不能把文件 IO 伪装成可回滚领域事务。
 8. 战斗事件目前默认使用当前狩猎小队，或营地全部可用猎人；事件级参与者选择规则尚未定稿。正式出现单挑、护送或临时盟友遭遇时，应让遭遇定义产生显式 Roster Plan，而不是在 `GameManager` 增加名称判断。
+9. `PlayableSettlementEventView` 已承担营地与狩猎共用表现，类名不再准确。未来迁移 View Installer 时应在确认场景序列化引用后一次性改名，避免为了命名洁癖引入多轮兼容迁移。
 
 ## 暂不改动
 
