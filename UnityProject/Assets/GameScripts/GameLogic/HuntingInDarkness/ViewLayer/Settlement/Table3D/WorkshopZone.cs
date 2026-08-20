@@ -84,8 +84,18 @@ namespace UI
             }
         }
 
+        public void CloseCraftPanels(WorkshopCard3D retainedCard = null)
+        {
+            foreach (WorkshopCard3D card in _cards)
+            {
+                if (card == null || card == retainedCard || card._panel == null || !card._panel.IsOpen) continue;
+                card._panel.Close();
+            }
+        }
+
         public void Clear()
         {
+            CloseCraftPanels();
             foreach (var c in _cards)
                 if (c != null) Destroy(c.gameObject);
             _cards.Clear();

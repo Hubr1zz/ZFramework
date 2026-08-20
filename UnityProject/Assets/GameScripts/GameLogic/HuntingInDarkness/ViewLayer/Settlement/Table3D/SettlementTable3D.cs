@@ -131,7 +131,7 @@ namespace UI
             _hunterZone.OnHunterClicked              = ShowHunterEquipment;
             _inventionZone.OnInventionEffectRequested = OnInventionEffectRequested;
             _inventionZone.OnInventionUnlockRequested = ShowInventionUnlock;
-            _workshopZone.OnWorkshopClicked          = OnWorkshopClicked;
+            _workshopZone.OnWorkshopClicked          = ShowWorkshopCrafting;
             _workshopZone.OnCraftRequested           = OnCraftRequested;
             _workshopZone.OnConstructionRequested    = ShowWorkshopConstruction;
             if (_squadZone != null) _squadZone.OnDepartureRequested = OnDepartureRequested;
@@ -177,8 +177,7 @@ namespace UI
         private void ShowRecruitment()
         {
             if (recruitmentPanel == null) return;
-            hunterEquipmentPanel?.Hide();
-            hunterRecoveryPanel?.Hide();
+            HideContextPanels();
             Vector3 position = recruitmentPanelAnchor != null ? recruitmentPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.0f));
             recruitmentPanel.Open(_mgr.Data, settlementContentCatalog, OnRecruitRequested, position);
         }
@@ -193,7 +192,7 @@ namespace UI
         private void ShowHunterAdvancement(HunterInstance hunter)
         {
             if (hunter == null || hunterAdvancementPanel == null) return;
-            hunterEquipmentPanel?.Hide();
+            HideContextPanels();
             Vector3 position = hunterAdvancementPanelAnchor != null ? hunterAdvancementPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.1f));
             hunterAdvancementPanel.Open(hunter, _mgr.Data, PlayableWeaponMasteryRuntime.Catalog, OnGrowthRequested, OnWeaponTrainingRequested, position);
         }
@@ -208,7 +207,7 @@ namespace UI
         private void ShowHunterSymptoms(HunterInstance hunter)
         {
             if (hunter == null || hunterSymptomPanel == null) return;
-            hunterEquipmentPanel?.Hide();
+            HideContextPanels();
             Vector3 position = hunterSymptomPanelAnchor != null ? hunterSymptomPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.0f));
             hunterSymptomPanel.Open(hunter, _mgr.Data, PlayableSymptomRuntime.Catalog, OnSymptomRequested, position);
         }
@@ -227,6 +226,7 @@ namespace UI
         private void ShowCampLedger()
         {
             if (campLedgerPanel == null) return;
+            HideContextPanels();
             Vector3 position = campLedgerPanelAnchor != null ? campLedgerPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.0f));
             campLedgerPanel.Open(_mgr.Data, position);
         }
@@ -234,7 +234,7 @@ namespace UI
         private void ShowHunterRecovery(HunterInstance hunter)
         {
             if (hunter == null || hunterRecoveryPanel == null) return;
-            hunterEquipmentPanel?.Hide();
+            HideContextPanels();
             Vector3 position = hunterRecoveryPanelAnchor != null ? hunterRecoveryPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.1f));
             hunterRecoveryPanel.Open(hunter, _mgr.Data, settlementContentCatalog, OnRecoveryRequested, position);
         }
@@ -253,9 +253,16 @@ namespace UI
             workshopConstructionPanel.EnsureBuilt();
         }
 
+        private void ShowWorkshopCrafting(WorkshopCard3D card)
+        {
+            HideContextPanels(card);
+            OnWorkshopClicked?.Invoke(card);
+        }
+
         private void ShowWorkshopConstruction(WorkshopBlueprintCard3D card)
         {
             if (card?.Definition == null || workshopConstructionPanel == null) return;
+            HideContextPanels();
             Vector3 position = workshopConstructionPanelAnchor != null ? workshopConstructionPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -2.85f));
             workshopConstructionPanel.Open(card.Definition, _mgr.Data, workshopConstructionService, OnWorkshopConstructionRequested, position);
         }
@@ -263,6 +270,7 @@ namespace UI
         private void ShowInventionUnlock(InventionCard3D card)
         {
             if (card?.Data == null || inventionUnlockPanel == null) return;
+            HideContextPanels();
             Vector3 position = inventionUnlockPanelAnchor != null ? inventionUnlockPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -2.85f));
             inventionUnlockPanel.Open(card.Data, _mgr.Inventions, OnInventionUnlockRequested, position);
         }
@@ -275,8 +283,22 @@ namespace UI
                 return;
             }
 
+            HideContextPanels();
             Vector3 position = hunterEquipmentPanelAnchor != null ? hunterEquipmentPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.2f));
             hunterEquipmentPanel.Show(hunter, _mgr.Data, PlayableSettlementItemRegistry.Items, position);
+        }
+
+        private void HideContextPanels(WorkshopCard3D retainedWorkshop = null)
+        {
+            hunterEquipmentPanel?.Hide();
+            hunterRecoveryPanel?.Hide();
+            recruitmentPanel?.Hide();
+            hunterAdvancementPanel?.Hide();
+            hunterSymptomPanel?.Hide();
+            campLedgerPanel?.Hide();
+            inventionUnlockPanel?.Hide();
+            workshopConstructionPanel?.Hide();
+            _workshopZone?.CloseCraftPanels(retainedWorkshop);
         }
 
         private void FillAllZones()
