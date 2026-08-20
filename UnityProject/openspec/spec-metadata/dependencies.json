@@ -514,6 +514,26 @@
       "reason": "跨阶段 GameOver 事实订阅与战役重置由 GameManager 统一协调",
       "gapId": "",
       "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-invention-content--requires--action-environment-lifecycle",
+      "from": "table-driven-invention-content",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "战役发明通过 Installer 注册到匹配阶段 Runner，并随环境释放 Reactor 租约",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-invention-content--requires--hunt-tabletop-harvest",
+      "from": "table-driven-invention-content",
+      "to": "hunt-tabletop-harvest",
+      "type": "requires",
+      "status": "defined",
+      "reason": "植物知识在 BeginHarvestAction 的前置窗口覆盖草药采集概率，并由 3D 采集桌展示最终值",
+      "gapId": "",
+      "blocksImplementation": false
     }
   ]
 }

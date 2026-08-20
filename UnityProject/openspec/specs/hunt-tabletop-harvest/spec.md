@@ -41,6 +41,13 @@ The 3D harvest view SHALL submit prepare and advance commands through `HuntManag
 - **WHEN** the Hunt ActionQueue commits one reveal step
 - **THEN** the matching physical card flips to its hit or miss face and the following card becomes interactable
 
+### Requirement: Effective harvest terms remain player-visible
+The Hunt runner SHALL finalize draw count and hit chance through the `BeginHarvestAction` Reactor window before creating the immutable card plan. The world-space harvest view SHALL read and display the resulting chance from that transaction rather than recomputing rules.
+
+#### Scenario: A campaign invention modifies harvest chance
+- **WHEN** a mastered invention Reactor changes the hit chance before execution
+- **THEN** every card result uses the modified chance and the physical harvest panel displays that effective percentage
+
 ### Requirement: Harvest interaction owns map input
 The tabletop harvest view SHALL block tile, resource-marker, and retreat commands while its physical cards remain open, and SHALL release the guard only when the player dismisses the presentation or the hunt session changes.
 

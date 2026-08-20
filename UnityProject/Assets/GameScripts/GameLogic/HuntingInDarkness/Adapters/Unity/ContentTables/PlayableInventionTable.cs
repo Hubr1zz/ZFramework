@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Content;
+using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 
@@ -26,6 +27,15 @@ namespace HuntingInDarkness.ContentTables
     }
 
     [Serializable]
+    public sealed class InventionActionEffectTableRecord
+    {
+        public string effectId;
+        public string kind;
+        public string targetKeyword;
+        public float value;
+    }
+
+    [Serializable]
     public sealed class InventionTableRecord : IStableContentRecord
     {
         public string id;
@@ -36,6 +46,7 @@ namespace HuntingInDarkness.ContentTables
         public List<string> exclusiveIds = new();
         public string effectDescription;
         public List<InventionEffectTableRecord> effects = new();
+        public List<InventionActionEffectTableRecord> actionEffects = new();
         public string category;
 
         public string Id => id;
@@ -96,6 +107,7 @@ namespace HuntingInDarkness.ContentTables
             public List<string> PrerequisiteIds;
             public List<string> ExclusiveIds;
             public List<InventionPassiveEffect> Effects;
+            public List<InventionActionEffect> ActionEffects;
         }
 
         private static string cachedTableText;
@@ -145,6 +157,7 @@ namespace HuntingInDarkness.ContentTables
             }
 
             RejectModifierIdentityConflicts(validatedById, reportError);
+            RejectActionEffectIdentityConflicts(validatedById, reportError);
             RejectBrokenGraph(validatedById, baseById, reportError);
             Dictionary<string, InventionData> createdById = CreateAssets(records, validatedById, result);
             LinkGraph(validatedById, baseById, createdById);
@@ -201,6 +214,7 @@ namespace HuntingInDarkness.ContentTables
             }
             if (!TryBuildCosts(record, itemById, out List<InventionCost> costs, out error)) return false;
             if (!TryBuildEffects(record, out List<InventionPassiveEffect> effects, out error)) return false;
+            if (!TryBuildActionEffects(record, out List<InventionActionEffect> actionEffects, out error)) return false;
 
             List<string> prerequisiteIds = NormalizeIds(record.prerequisiteIds);
             List<string> exclusiveIds = NormalizeIds(record.exclusiveIds);
@@ -210,7 +224,7 @@ namespace HuntingInDarkness.ContentTables
                 return false;
             }
 
-            validated = new ValidatedRecord { Source = record, Id = id, Name = name, Category = category, Costs = costs, PrerequisiteIds = prerequisiteIds, ExclusiveIds = exclusiveIds, Effects = effects };
+            validated = new ValidatedRecord { Source = record, Id = id, Name = name, Category = category, Costs = costs, PrerequisiteIds = prerequisiteIds, ExclusiveIds = exclusiveIds, Effects = effects, ActionEffects = actionEffects };
             error = string.Empty;
             return true;
         }
@@ -254,6 +268,36 @@ namespace HuntingInDarkness.ContentTables
             return true;
         }
 
+        private static bool TryBuildActionEffects(InventionTableRecord record, out List<InventionActionEffect> effects, out string error)
+        {
+            effects = new List<InventionActionEffect>();
+            error = string.Empty;
+            if (record.actionEffects == null) return true;
+            var effectIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (InventionActionEffectTableRecord effect in record.actionEffects)
+            {
+                string effectId = effect?.effectId?.Trim() ?? string.Empty;
+                string targetKeyword = KeywordRules.Normalize(effect?.targetKeyword);
+                if (effect == null || effectId.Length == 0 || !effectIds.Add(effectId))
+                {
+                    error = $"发明 {record.id} 含空白或重复的 Action 效果 ID：{effectId}";
+                    return false;
+                }
+                if (!Enum.TryParse(effect.kind, true, out InventionActionEffectKind kind) || kind == InventionActionEffectKind.None || !Enum.IsDefined(typeof(InventionActionEffectKind), kind))
+                {
+                    error = $"发明 {record.id} 含无效 Action 效果类型：{effect.kind}";
+                    return false;
+                }
+                if (targetKeyword.Length == 0 || float.IsNaN(effect.value) || float.IsInfinity(effect.value) || effect.value == 0f || effect.value < -1f || effect.value > 1f)
+                {
+                    error = $"发明 {record.id} 的 Action 效果参数无效：{effectId}";
+                    return false;
+                }
+                effects.Add(new InventionActionEffect { effectId = effectId, kind = kind, targetKeyword = targetKeyword, value = effect.value });
+            }
+            return true;
+        }
+
         private static void RejectModifierIdentityConflicts(Dictionary<string, ValidatedRecord> records, Action<string> reportError)
         {
             var owners = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
@@ -280,6 +324,34 @@ namespace HuntingInDarkness.ContentTables
                 if (occurrenceCount <= 1) continue;
                 foreach (string ownerId in pair.Value) rejected.Add(ownerId);
                 reportError?.Invoke($"战役持续修正 ID 冲突：{pair.Key}");
+            }
+            foreach (string id in rejected)
+                records.Remove(id);
+        }
+
+        private static void RejectActionEffectIdentityConflicts(Dictionary<string, ValidatedRecord> records, Action<string> reportError)
+        {
+            var owners = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            foreach (ValidatedRecord record in records.Values)
+                foreach (InventionActionEffect effect in record.ActionEffects)
+                {
+                    if (!owners.TryGetValue(effect.effectId, out HashSet<string> ownerIds))
+                    {
+                        ownerIds = new HashSet<string>(StringComparer.Ordinal);
+                        owners.Add(effect.effectId, ownerIds);
+                    }
+                    ownerIds.Add(record.Id);
+                }
+
+            var rejected = new HashSet<string>(StringComparer.Ordinal);
+            foreach (KeyValuePair<string, HashSet<string>> pair in owners)
+            {
+                int occurrenceCount = 0;
+                foreach (string ownerId in pair.Value)
+                    occurrenceCount += records[ownerId].ActionEffects.FindAll(effect => effect.effectId == pair.Key).Count;
+                if (occurrenceCount <= 1) continue;
+                foreach (string ownerId in pair.Value) rejected.Add(ownerId);
+                reportError?.Invoke($"跨阶段 Action 效果 ID 冲突：{pair.Key}");
             }
             foreach (string id in rejected)
                 records.Remove(id);
@@ -385,6 +457,7 @@ namespace HuntingInDarkness.ContentTables
                 invention.costs = record.Costs;
                 invention.effectDescription = record.Source.effectDescription ?? string.Empty;
                 invention.unlockEffects = record.Effects;
+                invention.actionEffects = record.ActionEffects;
                 invention.category = record.Category;
                 createdById.Add(record.Id, invention);
                 result.Add(invention);

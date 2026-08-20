@@ -38,6 +38,9 @@ namespace HuntingInDarkness.Data
         [Header("解锁时结构化效果")]
         public List<InventionPassiveEffect> unlockEffects = new();
 
+        [Header("跨阶段 Action 效果")]
+        public List<InventionActionEffect> actionEffects = new();
+
         [Header("发明类别")]
         public InventionCategory category = InventionCategory.Basic;
 

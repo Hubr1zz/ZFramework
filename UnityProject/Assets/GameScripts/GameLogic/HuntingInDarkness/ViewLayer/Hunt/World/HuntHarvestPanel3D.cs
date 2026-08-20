@@ -129,6 +129,7 @@ namespace UI.Hunt
                     }
                     if (transaction.CardCount != cards.Count)
                         BuildLayout(transaction.CardCount);
+                    statusText.text = $"采集成功率 {Mathf.RoundToInt((float)transaction.HitChance * 100f)}% · 依次翻开卡牌";
                 }
 
                 PlayableHarvestStepResult result = await manager.AdvanceHarvestAsync(transaction);
@@ -141,7 +142,7 @@ namespace UI.Hunt
                 }
                 if (!result.IsCompleted)
                 {
-                    statusText.text = $"已翻开 {transaction.RevealedCount}/{transaction.CardCount} · 命中 {transaction.RevealedHitCount}";
+                    statusText.text = $"已翻开 {transaction.RevealedCount}/{transaction.CardCount} · 命中 {transaction.RevealedHitCount} · 成功率 {Mathf.RoundToInt((float)transaction.HitChance * 100f)}%";
                     return;
                 }
 

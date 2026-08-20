@@ -47,7 +47,7 @@ namespace HuntingInDarkness.GameCore.Hunt
             var cards = new List<HarvestCardResult>(safeDrawCount);
             for (int i = 0; i < safeDrawCount; i++)
                 cards.Add(new HarvestCardResult(i, random.NextDouble() < safeHitChance));
-            return new HarvestDrawPlan(cards.AsReadOnly());
+            return new HarvestDrawPlan(cards.AsReadOnly(), safeHitChance);
         }
     }
 

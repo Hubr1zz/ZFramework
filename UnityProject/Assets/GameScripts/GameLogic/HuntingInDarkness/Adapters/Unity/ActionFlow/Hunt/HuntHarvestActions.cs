@@ -55,6 +55,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
         public float HitChance { get; private set; } = 0.6f;
         public int DrawCount { get; private set; }
+        public ItemData Resource => point?.Resource;
         public PlayableHarvestTransaction Transaction { get; private set; }
         public IReactorEntity Source { get; }
         public IReactorEntity Target { get; }

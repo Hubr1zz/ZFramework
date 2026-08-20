@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace HuntingInDarkness.GameCore.Hunt
@@ -24,10 +25,12 @@ namespace HuntingInDarkness.GameCore.Hunt
         public IReadOnlyList<HarvestCardResult> Cards => cards;
         public int CardCount => cards.Count;
         public int HitCount { get; }
+        public double HitChance { get; }
 
-        public HarvestDrawPlan(IReadOnlyList<HarvestCardResult> cards)
+        public HarvestDrawPlan(IReadOnlyList<HarvestCardResult> cards, double hitChance = 0d)
         {
             this.cards = cards ?? new HarvestCardResult[0];
+            HitChance = Math.Max(0d, Math.Min(hitChance, 1d));
             int hitCount = 0;
             foreach (HarvestCardResult card in this.cards)
                 if (card.IsHit)

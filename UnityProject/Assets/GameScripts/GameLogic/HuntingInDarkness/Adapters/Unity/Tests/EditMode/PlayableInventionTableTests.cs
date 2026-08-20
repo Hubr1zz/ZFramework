@@ -63,6 +63,40 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Build_MapsActionEffectsAndRejectsDuplicateIdentity()
+        {
+            InventionTableRecord plantKnowledge = CreateRecord("plant-knowledge", "植物知识");
+            plantKnowledge.actionEffects.Add(new InventionActionEffectTableRecord { effectId = "plant:harvest", kind = "ModifyHarvestHitChance", targetKeyword = "Herb", value = 0.1f });
+            InventionTableRecord duplicate = CreateRecord("duplicate", "重复效果");
+            duplicate.actionEffects.Add(new InventionActionEffectTableRecord { effectId = "plant:harvest", kind = "ModifyHarvestHitChance", targetKeyword = "herb", value = 0.2f });
+            var errors = new List<string>();
+
+            List<InventionData> rejected = PlayableInventionTableRuntime.Build(new[] { plantKnowledge, duplicate }, null, null, errors.Add);
+
+            Assert.That(rejected, Is.Empty);
+            Assert.That(errors.Exists(error => error.Contains("Action 效果 ID 冲突")), Is.True);
+
+            List<InventionData> accepted = Track(PlayableInventionTableRuntime.Build(new[] { plantKnowledge }, null));
+            Assert.That(accepted, Has.Count.EqualTo(1));
+            Assert.That(accepted[0].actionEffects, Has.Count.EqualTo(1));
+            Assert.That(accepted[0].actionEffects[0].targetKeyword, Is.EqualTo("herb"));
+            Assert.That(accepted[0].actionEffects[0].value, Is.EqualTo(0.1f));
+        }
+
+        [Test]
+        public void Build_RejectsNonFiniteActionEffectValue()
+        {
+            InventionTableRecord invalid = CreateRecord("invalid", "无效概率");
+            invalid.actionEffects.Add(new InventionActionEffectTableRecord { effectId = "invalid:chance", kind = "ModifyHarvestHitChance", targetKeyword = "herb", value = float.NaN });
+            var errors = new List<string>();
+
+            List<InventionData> inventions = PlayableInventionTableRuntime.Build(new[] { invalid }, null, null, errors.Add);
+
+            Assert.That(inventions, Is.Empty);
+            Assert.That(errors.Exists(error => error.Contains("参数无效")), Is.True);
+        }
+
+        [Test]
         public void Build_RejectsIdentityConflictsBrokenReferencesCyclesAndOverflow()
         {
             ItemData stone = CreateItem("broken_stone", "碎石");

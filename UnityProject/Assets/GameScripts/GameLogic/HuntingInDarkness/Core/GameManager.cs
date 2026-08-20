@@ -22,6 +22,7 @@ using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.ActionFlow.Inventions;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.ViewLayer.Flow;
 using HuntingInDarkness.ViewLayer.Tabletop;
@@ -213,6 +214,7 @@ namespace Core
             // 设置初始阶段。PhaseManager 使用独立命名的 ZFramework FSM。
             var startPhase = devMode ? devStartPhase : GamePhase.Settlement;
             _settlementManager = CreateSettlementManager();
+            actionEnvironmentInstallers.Register(new InventionActionEffectInstaller(() => _settlementManager?.Data, () => _settlementManager?.Inventions?.AllInventions));
             _phaseManager.Start(startPhase);
             campaignActionSession = new PlayableCampaignActionSession(this, actionEnvironmentInstallers);
 

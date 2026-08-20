@@ -2,6 +2,38 @@
   "version": 1,
   "inventions": [
     {
+      "id": "paper-and-pen",
+      "inventionName": "纸和笔",
+      "description": "营地开始记录可重复验证的见闻，不再只依靠口耳相传。",
+      "prerequisiteIds": [],
+      "costs": [
+        { "itemId": "broken_stone", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "解锁知识记录分支。",
+      "category": "Knowledge"
+    },
+    {
+      "id": "plant-knowledge",
+      "inventionName": "植物知识",
+      "description": "被辨认、分类和记录的植物，终于不再全凭运气采摘。",
+      "prerequisiteIds": ["paper-and-pen"],
+      "costs": [
+        { "itemId": "mushroom_flesh", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "采集草药类素材时，翻牌成功率 +10%。",
+      "actionEffects": [
+        {
+          "effectId": "plant-knowledge:herb-harvest-chance",
+          "kind": "ModifyHarvestHitChance",
+          "targetKeyword": "herb",
+          "value": 0.1
+        }
+      ],
+      "category": "Knowledge"
+    },
+    {
       "id": "faith",
       "inventionName": "信仰",
       "description": "营地开始以共同信念对抗漫长黑夜。",

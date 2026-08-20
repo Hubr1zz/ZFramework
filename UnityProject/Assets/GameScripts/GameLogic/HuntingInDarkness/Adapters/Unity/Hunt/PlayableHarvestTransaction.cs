@@ -42,6 +42,7 @@ namespace HuntingInDarkness.Hunt
         private bool isReleased;
 
         public int CardCount => plan.CardCount;
+        public double HitChance => plan.HitChance;
         public int RevealedCount => revealedCount;
         public int RevealedHitCount { get; private set; }
         public ResourcePointInstance Point => point;
