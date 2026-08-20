@@ -106,15 +106,15 @@ namespace HuntingInDarkness.Adapter.Tests
             IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, null);
             CraftRecipe recipe = FindRecipe(recipes, "刻制盐纹护符");
             var settlement = new SettlementInstance();
-            settlement.AddResource("黑盐", 1);
+            settlement.AddResource(recipe.ingredients[0].item, 1);
             var workshop = new WorkshopSystem(settlement, new InventionSystem(settlement)) { AllRecipes = new List<CraftRecipe>(recipes) };
             using var session = new PlayableSettlementActionSession(settlement, new EmptyWeaponTrainingContent(), workshopSystem: workshop);
 
             SettlementCraftCommandResult result = await session.CraftAsync(recipe);
 
             Assert.That(result.Succeeded, Is.True, result.Reason);
-            Assert.That(settlement.GetResource("黑盐"), Is.Zero);
-            Assert.That(settlement.GetStoredEquipment("盐纹护符"), Is.EqualTo(1));
+            Assert.That(settlement.GetResource("black_salt"), Is.Zero);
+            Assert.That(settlement.GetStoredEquipment("salt_ward"), Is.EqualTo(1));
         }
 
         private ItemData CreateItem(string id, string itemName, ItemType itemType)

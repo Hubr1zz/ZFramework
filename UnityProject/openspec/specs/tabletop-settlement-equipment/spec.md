@@ -42,7 +42,7 @@ title: 营地桌面猎人装备
 #### Scenario: Equipment commits
 
 - **WHEN** 装备 Action 成功
-- **THEN** 仓库数量、猎人装备实例与兼容名称列表 SHALL 原子更新，并在提交事实后刷新可见装备桌与持久化边界
+- **THEN** 仓库数量、猎人装备实例与稳定 ContentId 列表 SHALL 原子更新，并在提交事实后刷新可见装备桌与持久化边界
 
 #### Scenario: A reactor or competing request prevents equipment
 
@@ -61,6 +61,8 @@ title: 营地桌面猎人装备
 ### Requirement: Equipment content remains configuration-driven
 
 装备桌 SHALL 从已注册的物品内容和营地存储读取卡牌，不得在 View 中硬编码具体装备；未来读表适配 SHALL 能替换当前内容来源而不改变拖拽命令契约。
+
+持久化和 Action 命令 SHALL 使用稳定 ContentId；显示名 SHALL 只用于 3D 卡牌表现与旧存档别名迁移，内容目录 SHALL 拒绝 ID、显示名或二者交叉产生歧义的注册集合。
 
 #### Scenario: A configured equipment item enters storage
 

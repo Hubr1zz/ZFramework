@@ -280,7 +280,7 @@ namespace UI
             foreach (ItemData item in items)
             {
                 if (item == null || item.itemType == ItemType.Resource) continue;
-                if (settlement.GetStoredEquipment(item.itemName) > 0)
+                if (settlement.GetStoredEquipment(item) > 0)
                     storedItems.Add(item);
             }
 
@@ -295,7 +295,7 @@ namespace UI
             for (int itemIndex = startIndex; itemIndex < endIndex; itemIndex++)
             {
                 ItemData item = storedItems[itemIndex];
-                int count = settlement.GetStoredEquipment(item.itemName);
+                int count = settlement.GetStoredEquipment(item);
                 CardSlot visualSlot = storageGrid.Slots[itemIndex - startIndex];
                 Vector3 localPosition = ContentRoot.InverseTransformPoint(visualSlot.transform.position + Vector3.up * 0.013f);
                 SettlementItemCard3D card = SettlementItemCard3D.Create(item, count, ContentRoot, localPosition);

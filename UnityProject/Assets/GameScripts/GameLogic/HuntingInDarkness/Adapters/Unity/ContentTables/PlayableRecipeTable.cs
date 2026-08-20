@@ -80,8 +80,8 @@ namespace HuntingInDarkness.ContentTables
             var result = new List<CraftRecipe>();
             if (records == null) return result;
 
-            Dictionary<string, ItemData> itemById = BuildAssetIndex(items, "物品", reportError);
-            Dictionary<string, InventionData> inventionById = BuildAssetIndex(inventions, "发明", reportError);
+            Dictionary<string, ItemData> itemById = BuildAssetIndex(items, item => item.ContentId, "物品", reportError);
+            Dictionary<string, InventionData> inventionById = BuildAssetIndex(inventions, invention => invention.name, "发明", reportError);
             Dictionary<string, int> idCounts = Count(records, record => record?.id);
             Dictionary<string, int> nameCounts = Count(records, record => record?.recipeName);
             var reportedDuplicates = new HashSet<string>(StringComparer.Ordinal);
@@ -186,21 +186,21 @@ namespace HuntingInDarkness.ContentTables
             return key.Length > 0 && itemById.TryGetValue(key, out item) && item != null;
         }
 
-        private static Dictionary<string, T> BuildAssetIndex<T>(IReadOnlyList<T> assets, string label, Action<string> reportError) where T : UnityEngine.Object
+        private static Dictionary<string, T> BuildAssetIndex<T>(IReadOnlyList<T> assets, Func<T, string> selectId, string label, Action<string> reportError) where T : UnityEngine.Object
         {
             var result = new Dictionary<string, T>(StringComparer.Ordinal);
             if (assets == null) return result;
             var counts = new Dictionary<string, int>(StringComparer.Ordinal);
             foreach (T asset in assets)
             {
-                string id = asset != null ? asset.name?.Trim() ?? string.Empty : string.Empty;
+                string id = asset != null ? selectId(asset)?.Trim() ?? string.Empty : string.Empty;
                 if (id.Length == 0) continue;
                 counts[id] = counts.TryGetValue(id, out int count) ? count + 1 : 1;
             }
             var reported = new HashSet<string>(StringComparer.Ordinal);
             foreach (T asset in assets)
             {
-                string id = asset != null ? asset.name?.Trim() ?? string.Empty : string.Empty;
+                string id = asset != null ? selectId(asset)?.Trim() ?? string.Empty : string.Empty;
                 if (id.Length == 0) continue;
                 if (counts[id] > 1)
                 {

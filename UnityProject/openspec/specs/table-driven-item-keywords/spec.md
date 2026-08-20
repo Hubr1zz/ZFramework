@@ -31,7 +31,7 @@ Keyword comparison SHALL trim surrounding whitespace, compare case-insensitively
 - **THEN** both sources satisfy the same `HasKeyword: stone` rule
 
 ### Requirement: Event choices query authoritative equipped content
-Conditional event options SHALL derive keywords from the selected hunter's traits, ailments, and equipped item names resolved through the active item registry; the View SHALL only display availability and submit a selection.
+Conditional event options SHALL derive keywords from the selected hunter's traits, ailments, and equipped item ContentIds resolved through the active item registry; legacy display-name aliases MAY be accepted only at migration and compatibility boundaries. The View SHALL only display availability and submit a selection.
 
 #### Scenario: A hunter equips a stone-tagged item
 - **WHEN** a physical event card requires the `stone` keyword

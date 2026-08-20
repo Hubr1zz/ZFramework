@@ -51,7 +51,7 @@ namespace HuntingInDarkness.Settlement
             foreach (var cost in invention.costs)
             {
                 if (cost.resource != null)
-                    _settlement.SpendResource(cost.resource.itemName, cost.count);
+                    _settlement.SpendResource(cost.resource, cost.count);
             }
 
             // 解锁
@@ -123,7 +123,7 @@ namespace HuntingInDarkness.Settlement
             var costs = new List<ResourceCost>();
             foreach (InventionCost cost in invention.costs)
                 if (cost?.resource != null)
-                    costs.Add(new ResourceCost(cost.resource.itemName, cost.count));
+                    costs.Add(new ResourceCost(cost.resource.ContentId, cost.count));
             return new InventionDefinition(
                 invention.inventionName, prerequisites, exclusive, costs);
         }

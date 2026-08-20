@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48324497afd44fb4eaff36be8ad626c2, type: 3}
   m_Name: BrokenStone
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.ItemData
+  contentId: broken_stone
   itemName: "\u788E\u77F3"
   itemType: 0
   description: "\u65AD\u88C2\u96D5\u50CF\u4E0E\u8352\u539F\u4E0A\u6700\u5E38\u89C1\u7684\u77F3\u6599\uFF0C\u53EF\u7528\u4E8E\u8425\u5730\u57FA\u5EFA\u3002"
   tags: 01000000
+  keywords: []
   weaponStats:
     speed: 1
     power: 1

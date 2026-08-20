@@ -26,6 +26,8 @@ namespace HuntingInDarkness.Data
     public class ItemData : ScriptableObject
     {
         [Header("基础")]
+        [SerializeField, Tooltip("稳定内容 ID。写入存档和跨表引用时使用；旧资产为空时暂以资产名兼容。")]
+        private string contentId;
         public string itemName = "新物品";
         public ItemType itemType = ItemType.Resource;
         [TextArea] public string description;
@@ -44,6 +46,18 @@ namespace HuntingInDarkness.Data
 
         [Header("资源数量（堆叠上限）")]
         public int stackLimit = 99;
+
+        public string ContentId
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(contentId)) return contentId.Trim();
+                if (!string.IsNullOrWhiteSpace(name)) return name.Trim();
+                return itemName?.Trim() ?? string.Empty;
+            }
+        }
+
+        public void ConfigureContentId(string value) => contentId = value?.Trim() ?? string.Empty;
 
         /// <summary>是否含有指定词条标签</summary>
         public bool HasTag(ItemTag tag) => tags.Contains(tag);

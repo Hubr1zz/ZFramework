@@ -34,7 +34,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(builtFacts, Is.EqualTo(1));
                 Assert.That(commits, Is.EqualTo(1));
                 foreach (PlayableWorkshopCost cost in context.Definition.Costs)
-                    Assert.That(context.Settlement.GetResource(cost.Item.itemName), Is.EqualTo(1));
+                    Assert.That(context.Settlement.GetResource(cost.Item), Is.EqualTo(1));
             }
             finally
             {
@@ -55,7 +55,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(Array.FindAll(results, result => result.Succeeded).Length, Is.EqualTo(1));
             foreach (PlayableWorkshopCost cost in context.Definition.Costs)
-                Assert.That(context.Settlement.GetResource(cost.Item.itemName), Is.EqualTo(1));
+                Assert.That(context.Settlement.GetResource(cost.Item), Is.EqualTo(1));
         }
 
         [Test]
@@ -71,7 +71,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(result.Reason, Is.EqualTo("测试规则阻止建造"));
             Assert.That(context.Settlement.IsWorkshopBuilt(context.Definition.WorkshopId), Is.False);
             foreach (PlayableWorkshopCost cost in context.Definition.Costs)
-                Assert.That(context.Settlement.GetResource(cost.Item.itemName), Is.EqualTo(2));
+                Assert.That(context.Settlement.GetResource(cost.Item), Is.EqualTo(2));
         }
 
         [Test]
@@ -97,7 +97,7 @@ namespace HuntingInDarkness.Adapter.Tests
             if (definition.RequiredInvention != null)
                 settlement.UnlockInvention(definition.RequiredInvention.inventionName);
             foreach (PlayableWorkshopCost cost in definition.Costs)
-                settlement.AddResource(cost.Item.itemName, 2);
+                settlement.AddResource(cost.Item, 2);
             return new TestContext(settlement, catalog, definition);
         }
 

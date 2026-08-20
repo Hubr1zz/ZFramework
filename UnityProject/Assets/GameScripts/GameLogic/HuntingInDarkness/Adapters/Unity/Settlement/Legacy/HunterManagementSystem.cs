@@ -59,7 +59,7 @@ namespace HuntingInDarkness.Settlement
             if (hunter == null || item == null) return false;
             if (item.itemType == ItemType.Resource) return false;
             hunter.Equipment ??= new List<ItemInstance>();
-            hunter.EquippedItemNames ??= new List<string>();
+            hunter.EquippedItemIds ??= new List<string>();
             if (!PlayableEquipmentRules.CanEquip(hunter, item, out string reason))
             {
                 Debug.Log($"[HunterMgmt] 无法装备：{reason}");
@@ -67,10 +67,10 @@ namespace HuntingInDarkness.Settlement
             }
 
             // 从仓库消耗1件
-            if (!_settlement.SpendStoredEquipment(item.itemName, 1)) return false;
+            if (!_settlement.SpendStoredEquipment(item, 1)) return false;
 
             hunter.Equipment.Add(new ItemInstance(item));
-            hunter.EquippedItemNames.Add(item.itemName);
+            hunter.EquippedItemIds.Add(item.ContentId);
             Debug.Log($"[HunterMgmt] {hunter.Name} 装备：{item.itemName}");
             return true;
         }
@@ -82,14 +82,14 @@ namespace HuntingInDarkness.Settlement
 
             var item = hunter.Equipment[slotIndex];
             if (item?.Data == null) return false;
-            hunter.EquippedItemNames ??= new List<string>();
+            hunter.EquippedItemIds ??= new List<string>();
             hunter.Equipment.RemoveAt(slotIndex);
-            int savedIndex = hunter.EquippedItemNames.IndexOf(item.Data.itemName);
+            int savedIndex = hunter.EquippedItemIds.IndexOf(item.Data.ContentId);
             if (savedIndex >= 0)
-                hunter.EquippedItemNames.RemoveAt(savedIndex);
+                hunter.EquippedItemIds.RemoveAt(savedIndex);
 
             // 返还到仓库
-            _settlement.AddStoredEquipment(item.Data.itemName, 1);
+            _settlement.AddStoredEquipment(item.Data, 1);
             Debug.Log($"[HunterMgmt] {hunter.Name} 卸下：{item.Data.itemName}");
             return true;
         }
@@ -158,11 +158,14 @@ namespace HuntingInDarkness.Settlement
         private void ReturnEquipmentToStorage(HunterInstance hunter)
         {
             if (hunter == null) return;
+            hunter.EquippedItemIds ??= new List<string>();
             hunter.EquippedItemNames ??= new List<string>();
-            foreach (string itemName in hunter.EquippedItemNames)
-                if (!string.IsNullOrEmpty(itemName))
-                    _settlement.AddStoredEquipment(itemName, 1);
+            IReadOnlyList<string> savedItems = hunter.EquippedItemIds.Count > 0 ? hunter.EquippedItemIds : hunter.EquippedItemNames;
+            foreach (string itemId in savedItems)
+                if (!string.IsNullOrEmpty(itemId))
+                    _settlement.AddStoredEquipment(PlayableSettlementItemRegistry.ResolveContentId(itemId), 1);
             hunter.Equipment?.Clear();
+            hunter.EquippedItemIds.Clear();
             hunter.EquippedItemNames.Clear();
         }
 

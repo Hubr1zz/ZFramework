@@ -60,7 +60,7 @@ namespace HuntingInDarkness.Settlement
             var costs = new List<ResourceCost>();
             foreach (PlayableWorkshopCost cost in definition.Costs)
                 if (cost?.Item != null)
-                    costs.Add(new ResourceCost(cost.Item.itemName, cost.Amount));
+                    costs.Add(new ResourceCost(cost.Item.ContentId, cost.Amount));
             string requiredInventionId = definition.RequiredInvention != null ? definition.RequiredInvention.inventionName : string.Empty;
             return new WorkshopConstructionDefinition(definition.WorkshopId, requiredInventionId, costs);
         }

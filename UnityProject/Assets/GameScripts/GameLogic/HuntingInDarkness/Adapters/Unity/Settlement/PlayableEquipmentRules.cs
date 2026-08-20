@@ -26,7 +26,7 @@ namespace HuntingInDarkness.Settlement
             }
 
             int runtimeCount = hunter.Equipment?.Count ?? 0;
-            int savedCount = hunter.EquippedItemNames?.Count ?? 0;
+            int savedCount = Math.Max(hunter.EquippedItemIds?.Count ?? 0, hunter.EquippedItemNames?.Count ?? 0);
             int weaponCount = hunter.Equipment?.FindAll(instance => instance?.Data?.itemType == ItemType.Weapon).Count ?? 0;
             if (!EquipmentRules.CanEquip(Math.Max(runtimeCount, savedCount), weaponCount, item.itemType == ItemType.Weapon, out reason))
                 return false;

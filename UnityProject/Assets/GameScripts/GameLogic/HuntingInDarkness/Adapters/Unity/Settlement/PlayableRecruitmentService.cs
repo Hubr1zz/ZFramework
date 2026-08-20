@@ -60,7 +60,7 @@ namespace HuntingInDarkness.Settlement
                 return false;
             }
 
-            int availableResource = costItem != null ? settlement.GetResource(costItem.itemName) : 0;
+            int availableResource = settlement.GetResource(costItem);
             return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, livingCount, maximumLivingHunters, availableResource, configuredCost, out reason);
         }
 
@@ -82,7 +82,7 @@ namespace HuntingInDarkness.Settlement
             if (!RecruitmentRules.TryNormalizeName(requestedName, existingNames, out string normalizedName, out reason)) return false;
 
             int cost = RecruitmentRules.GetCost(settlement.GetAliveHunters().Count, configuredCost);
-            if (cost > 0 && !settlement.SpendResource(costItem.itemName, cost))
+            if (cost > 0 && !settlement.SpendResource(costItem, cost))
             {
                 reason = "招募所需物资已经发生变化。";
                 return false;
@@ -92,7 +92,7 @@ namespace HuntingInDarkness.Settlement
             if (hunter == null)
             {
                 if (cost > 0)
-                    settlement.AddResource(costItem.itemName, cost);
+                    settlement.AddResource(costItem, cost);
                 reason = "新人没有抵达营地，物资已经返还。";
                 return false;
             }

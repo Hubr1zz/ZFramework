@@ -61,7 +61,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             foreach (InventionCost cost in invention.costs)
             {
                 if (cost?.resource == null || cost.count <= 0) continue;
-                string resourceId = cost.resource.itemName;
+                string resourceId = cost.resource.ContentId;
                 if (settlement.GetResource(resourceId) < GetTotalCost(resourceId)) return Fail($"缺少 {resourceId}。");
             }
 
@@ -80,8 +80,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         {
             var amounts = new Dictionary<string, int>();
             foreach (InventionCost cost in invention.costs)
-                if (cost?.resource != null && cost.count > 0 && !amounts.ContainsKey(cost.resource.itemName))
-                    amounts.Add(cost.resource.itemName, settlement.GetResource(cost.resource.itemName));
+                if (cost?.resource != null && cost.count > 0 && !amounts.ContainsKey(cost.resource.ContentId))
+                    amounts.Add(cost.resource.ContentId, settlement.GetResource(cost.resource));
             return amounts;
         }
 
@@ -89,7 +89,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         {
             int total = 0;
             foreach (InventionCost cost in invention.costs)
-                if (cost?.resource != null && cost.resource.itemName == resourceId && cost.count > 0)
+                if (cost?.resource != null && cost.resource.ContentId == resourceId && cost.count > 0)
                     total += cost.count;
             return total;
         }

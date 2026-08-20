@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48324497afd44fb4eaff36be8ad626c2, type: 3}
   m_Name: StoneTool
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.ItemData
+  contentId: stone_tool
   itemName: "\u77F3\u8D28\u5DE5\u5177"
   itemType: 0
   description: "\u6253\u78E8\u540E\u53EF\u7A33\u5B9A\u5207\u5272\u4E0E\u56FA\u5B9A\u6750\u6599\u7684\u57FA\u7840\u5DE5\u5177\uFF0C\u662F\u8425\u5730\u52A0\u5DE5\u80FD\u529B\u7684\u7B2C\u4E00\u6B65\u3002"
   tags: 0100000007000000
+  keywords: []
   weaponStats:
     speed: 1
     power: 1

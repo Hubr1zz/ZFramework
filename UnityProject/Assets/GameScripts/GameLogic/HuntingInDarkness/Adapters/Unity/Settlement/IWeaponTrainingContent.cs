@@ -22,7 +22,7 @@ namespace HuntingInDarkness.Settlement
         }
 
         public string RequiredInventionId => catalog?.TrainingInventionName ?? string.Empty;
-        public string CostResourceId => catalog?.TrainingCostItem?.itemName ?? string.Empty;
+        public string CostResourceId => catalog?.TrainingCostItem?.ContentId ?? string.Empty;
         public int ResourceCost => catalog?.TrainingCost ?? 0;
         public int Experience => catalog?.TrainingExperience ?? 0;
         public bool TryGetFamily(string masteryId, out WeaponMasteryFamilyDefinition family)

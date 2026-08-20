@@ -9,50 +9,75 @@ namespace HuntingInDarkness.Settlement
     /// <summary>装备仓库的字符串存档 Adapter，避免在 JSON 中直接持有 Unity 资产引用。</summary>
     public static class SettlementEquipmentStorage
     {
-        public static int GetStoredEquipment(this SettlementInstance settlement, string itemName)
+        public static int GetStoredEquipment(this SettlementInstance settlement, string itemId)
         {
-            if (settlement == null || string.IsNullOrEmpty(itemName)) return 0;
+            if (settlement == null || string.IsNullOrEmpty(itemId)) return 0;
             settlement.EquipmentStorage ??= new List<ResourceEntry>();
-            return ResourceRules.Get(settlement.EquipmentStorage, itemName);
+            return ResourceRules.Get(settlement.EquipmentStorage, itemId);
         }
 
-        public static void AddStoredEquipment(this SettlementInstance settlement, string itemName, int amount)
+        public static int GetStoredEquipment(this SettlementInstance settlement, ItemData item) => item == null ? 0 : settlement.GetStoredEquipment(item.ContentId);
+
+        public static void AddStoredEquipment(this SettlementInstance settlement, string itemId, int amount)
         {
-            if (settlement == null || string.IsNullOrEmpty(itemName) || amount <= 0) return;
+            if (settlement == null || string.IsNullOrEmpty(itemId) || amount <= 0) return;
             settlement.EquipmentStorage ??= new List<ResourceEntry>();
-            ResourceRules.Add(settlement.EquipmentStorage, itemName, amount, () => new ResourceEntry());
+            ResourceRules.Add(settlement.EquipmentStorage, itemId, amount, () => new ResourceEntry());
         }
 
-        public static bool SpendStoredEquipment(this SettlementInstance settlement, string itemName, int amount)
+        public static void AddStoredEquipment(this SettlementInstance settlement, ItemData item, int amount)
         {
-            if (settlement == null || string.IsNullOrEmpty(itemName) || amount <= 0) return false;
-            settlement.EquipmentStorage ??= new List<ResourceEntry>();
-            return ResourceRules.Spend(settlement.EquipmentStorage, itemName, amount, () => new ResourceEntry());
+            if (item != null) settlement.AddStoredEquipment(item.ContentId, amount);
         }
+
+        public static bool SpendStoredEquipment(this SettlementInstance settlement, string itemId, int amount)
+        {
+            if (settlement == null || string.IsNullOrEmpty(itemId) || amount <= 0) return false;
+            settlement.EquipmentStorage ??= new List<ResourceEntry>();
+            return ResourceRules.Spend(settlement.EquipmentStorage, itemId, amount, () => new ResourceEntry());
+        }
+
+        public static bool SpendStoredEquipment(this SettlementInstance settlement, ItemData item, int amount) => item != null && settlement.SpendStoredEquipment(item.ContentId, amount);
     }
 
-    /// <summary>由组合根内容目录配置，负责把存档中的物品名恢复为 ItemData。</summary>
+    /// <summary>由组合根内容目录配置，负责稳定 ID、旧名称迁移和运行时 ItemData 恢复。</summary>
     public static class PlayableSettlementItemRegistry
     {
-        private static readonly Dictionary<string, ItemData> itemByName = new();
+        public const int CurrentIdentitySchemaVersion = 1;
+
+        private static readonly Dictionary<string, ItemData> itemById = new(System.StringComparer.Ordinal);
+        private static readonly Dictionary<string, ItemData> itemByLegacyName = new(System.StringComparer.Ordinal);
         private static readonly List<ItemData> registeredItems = new();
 
         public static IReadOnlyList<ItemData> Items => registeredItems;
 
-        public static bool TryGet(string itemName, out ItemData item)
+        public static bool TryGet(string identifier, out ItemData item)
         {
-            return itemByName.TryGetValue(itemName ?? string.Empty, out item);
+            string key = identifier?.Trim() ?? string.Empty;
+            return itemById.TryGetValue(key, out item) || itemByLegacyName.TryGetValue(key, out item);
         }
 
-        public static IReadOnlyCollection<string> CollectKeywords(IReadOnlyCollection<string> equippedItemNames, IReadOnlyCollection<string> traits = null, IReadOnlyCollection<string> ailments = null)
+        public static string ResolveContentId(string identifier) => TryGet(identifier, out ItemData item) ? item.ContentId : identifier?.Trim() ?? string.Empty;
+
+        public static string GetDisplayName(string identifier) => TryGet(identifier, out ItemData item) ? item.itemName : identifier?.Trim() ?? string.Empty;
+
+        public static IReadOnlyCollection<string> CollectAliases(IReadOnlyCollection<string> itemIds, IReadOnlyCollection<string> legacyNames = null)
+        {
+            var aliases = new HashSet<string>(System.StringComparer.Ordinal);
+            AddAliases(aliases, itemIds);
+            AddAliases(aliases, legacyNames);
+            return aliases;
+        }
+
+        public static IReadOnlyCollection<string> CollectKeywords(IReadOnlyCollection<string> equippedItemIds, IReadOnlyCollection<string> traits = null, IReadOnlyCollection<string> ailments = null)
         {
             var keywords = new HashSet<string>(System.StringComparer.Ordinal);
             AddKeywords(keywords, traits);
             AddKeywords(keywords, ailments);
-            if (equippedItemNames == null) return keywords;
-            foreach (string itemName in equippedItemNames)
+            if (equippedItemIds == null) return keywords;
+            foreach (string itemId in equippedItemIds)
             {
-                if (!TryGet(itemName, out ItemData item) || item == null) continue;
+                if (!TryGet(itemId, out ItemData item) || item == null) continue;
                 if (item.tags != null)
                     foreach (ItemTag tag in item.tags)
                         KeywordRules.TryAdd(keywords, tag.ToString());
@@ -64,39 +89,117 @@ namespace HuntingInDarkness.Settlement
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
-            itemByName.Clear();
+            itemById.Clear();
+            itemByLegacyName.Clear();
             registeredItems.Clear();
         }
 
         public static void Configure(IEnumerable<ItemData> items)
         {
-            itemByName.Clear();
+            itemById.Clear();
+            itemByLegacyName.Clear();
             registeredItems.Clear();
             if (items == null) return;
 
-            foreach (var item in items)
+            var candidates = new List<ItemData>();
+            foreach (ItemData item in items)
+                if (item != null && !string.IsNullOrWhiteSpace(item.ContentId) && !string.IsNullOrWhiteSpace(item.itemName))
+                    candidates.Add(item);
+            var idCounts = new Dictionary<string, int>(System.StringComparer.Ordinal);
+            var nameCounts = new Dictionary<string, int>(System.StringComparer.Ordinal);
+            foreach (ItemData item in candidates)
             {
-                if (item == null || string.IsNullOrEmpty(item.itemName) || itemByName.ContainsKey(item.itemName)) continue;
-                itemByName.Add(item.itemName, item);
+                idCounts[item.ContentId] = idCounts.TryGetValue(item.ContentId, out int idCount) ? idCount + 1 : 1;
+                nameCounts[item.itemName] = nameCounts.TryGetValue(item.itemName, out int nameCount) ? nameCount + 1 : 1;
+            }
+            foreach (ItemData item in candidates)
+            {
+                bool crossNamespaceCollision = item.ContentId != item.itemName && (nameCounts.ContainsKey(item.ContentId) || idCounts.ContainsKey(item.itemName));
+                if (idCounts[item.ContentId] != 1 || nameCounts[item.itemName] != 1 || crossNamespaceCollision) continue;
+                itemById.Add(item.ContentId, item);
+                itemByLegacyName.Add(item.itemName, item);
                 registeredItems.Add(item);
             }
+        }
+
+        public static bool MigratePersistentState(SettlementInstance settlement)
+        {
+            if (settlement == null) return false;
+            if (settlement.ItemIdentitySchemaVersion > CurrentIdentitySchemaVersion) return false;
+            settlement.Resources ??= new List<ResourceEntry>();
+            settlement.EquipmentStorage ??= new List<ResourceEntry>();
+            settlement.Hunters ??= new List<HunterInstance>();
+            bool changed = MigrateEntries(settlement.Resources) | MigrateEntries(settlement.EquipmentStorage);
+            foreach (HunterInstance hunter in settlement.Hunters)
+                changed |= MigrateHunterEquipment(hunter);
+            if (settlement.ItemIdentitySchemaVersion < CurrentIdentitySchemaVersion)
+            {
+                settlement.ItemIdentitySchemaVersion = CurrentIdentitySchemaVersion;
+                changed = true;
+            }
+            return changed;
         }
 
         public static void RestoreEquipment(SettlementInstance settlement)
         {
             if (settlement == null) return;
-            settlement.EquipmentStorage ??= new List<ResourceEntry>();
+            MigratePersistentState(settlement);
+            if (settlement.Hunters == null) return;
             foreach (var hunter in settlement.Hunters)
             {
                 if (hunter == null) continue;
-                hunter.EquippedItemNames ??= new List<string>();
                 hunter.Equipment ??= new List<ItemInstance>();
                 hunter.Collectibles ??= new List<ItemInstance>();
                 hunter.Equipment.Clear();
-                foreach (string itemName in hunter.EquippedItemNames)
-                    if (itemByName.TryGetValue(itemName, out var item) && item.itemType != ItemType.Resource)
+                if (hunter.EquippedItemIds == null) continue;
+                foreach (string itemId in hunter.EquippedItemIds)
+                    if (itemById.TryGetValue(itemId, out ItemData item) && item.itemType != ItemType.Resource)
                         hunter.Equipment.Add(new ItemInstance(item));
             }
+        }
+
+        private static bool MigrateEntries(List<ResourceEntry> entries)
+        {
+            if (entries == null) return false;
+            var amounts = new Dictionary<string, long>(System.StringComparer.Ordinal);
+            var order = new List<string>();
+            bool changed = false;
+            foreach (ResourceEntry entry in entries)
+            {
+                if (entry == null) { changed = true; continue; }
+                string original = entry.Key?.Trim() ?? string.Empty;
+                if (original.Length == 0) { changed = true; continue; }
+                string canonical = ResolveContentId(original);
+                if (canonical != original || entry.Value < 0 || amounts.ContainsKey(canonical)) changed = true;
+                if (!amounts.ContainsKey(canonical)) order.Add(canonical);
+                amounts[canonical] = System.Math.Min(int.MaxValue, (amounts.TryGetValue(canonical, out long amount) ? amount : 0L) + System.Math.Max(0, entry.Value));
+            }
+            if (!changed) return false;
+            entries.Clear();
+            foreach (string key in order)
+                entries.Add(new ResourceEntry { Key = key, Value = (int)amounts[key] });
+            return true;
+        }
+
+        private static bool MigrateHunterEquipment(HunterInstance hunter)
+        {
+            if (hunter == null) return false;
+            hunter.EquippedItemIds ??= new List<string>();
+            hunter.EquippedItemNames ??= new List<string>();
+            List<string> source = hunter.EquippedItemIds.Count > 0 ? hunter.EquippedItemIds : hunter.EquippedItemNames;
+            var migrated = new List<string>(source.Count);
+            bool changed = hunter.EquippedItemNames.Count > 0;
+            foreach (string identifier in source)
+            {
+                string canonical = ResolveContentId(identifier);
+                if (canonical.Length == 0) { changed = true; continue; }
+                if (canonical != identifier) changed = true;
+                migrated.Add(canonical);
+            }
+            if (changed || !ReferenceEquals(source, hunter.EquippedItemIds))
+                hunter.EquippedItemIds = migrated;
+            hunter.EquippedItemNames.Clear();
+            return changed;
         }
 
         private static void AddKeywords(ISet<string> target, IReadOnlyCollection<string> source)
@@ -104,6 +207,20 @@ namespace HuntingInDarkness.Settlement
             if (source == null) return;
             foreach (string keyword in source)
                 KeywordRules.TryAdd(target, keyword);
+        }
+
+        private static void AddAliases(ISet<string> target, IReadOnlyCollection<string> source)
+        {
+            if (source == null) return;
+            foreach (string identifier in source)
+            {
+                string original = identifier?.Trim() ?? string.Empty;
+                if (original.Length == 0) continue;
+                target.Add(original);
+                if (!TryGet(original, out ItemData item)) continue;
+                target.Add(item.ContentId);
+                target.Add(item.itemName);
+            }
         }
     }
 }

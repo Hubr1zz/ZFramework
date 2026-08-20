@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48324497afd44fb4eaff36be8ad626c2, type: 3}
   m_Name: StoneSling
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.ItemData
+  contentId: stone_sling
   itemName: "\u7B4B\u8171\u6295\u77F3\u7D22"
   itemType: 1
   description: "\u4EE5\u67D4\u97E7\u5668\u5B98\u7F16\u6210\u7D22\u5E26\uFF0C\u629B\u5C04\u788E\u77F3\u3002\u5A01\u529B\u8F83\u4F4E\uFF0C\u4F46\u80FD\u5728\u66F4\u8FDC\u5904\u5FEB\u901F\u8BD5\u63A2\u602A\u7269\u3002"
   tags: 01000000030000000700000008000000
+  keywords: []
   weaponStats:
     speed: 2
     power: 1

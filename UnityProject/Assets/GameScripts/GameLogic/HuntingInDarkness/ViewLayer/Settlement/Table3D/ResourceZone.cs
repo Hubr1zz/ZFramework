@@ -26,18 +26,19 @@ namespace UI
             foreach (var entry in resources)
             {
                 if (entry.Value <= 0) continue;
-                var card = EntityCreator.CreateResourceCard(entry.Key, entry.Value, transform);
+                string displayName = PlayableSettlementItemRegistry.GetDisplayName(entry.Key);
+                var card = EntityCreator.CreateResourceCard(entry.Key, displayName, entry.Value, transform);
                 _grid.TryPlaceCard(card);
                 _cards.Add(card);
             }
         }
 
         /// <summary>资源数量变化：命中已有卡则就地更新并返回 true，否则返回 false（需整区重填）。</summary>
-        public bool TryUpdateCount(string resourceName, int newAmount)
+        public bool TryUpdateCount(string resourceId, int newAmount)
         {
             foreach (var c in _cards)
             {
-                if (c.ResourceName == resourceName)
+                if (c.ResourceId == resourceId)
                 {
                     c.UpdateCount(newAmount);
                     return true;
@@ -50,7 +51,7 @@ namespace UI
         public void RefreshCounts(SettlementManager mgr)
         {
             foreach (var card in _cards)
-                card.UpdateCount(mgr.Data.GetResource(card.ResourceName));
+                card.UpdateCount(mgr.Data.GetResource(card.ResourceId));
         }
 
         public void Clear()

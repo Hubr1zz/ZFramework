@@ -149,6 +149,7 @@ namespace HuntingInDarkness.ContentTables
 
             item = ScriptableObject.CreateInstance<ItemData>();
             item.name = record.id.Trim();
+            item.ConfigureContentId(record.id);
             item.itemName = record.itemName.Trim();
             item.itemType = itemType;
             item.description = record.description ?? string.Empty;

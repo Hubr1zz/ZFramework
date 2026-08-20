@@ -61,6 +61,7 @@ namespace HuntingInDarkness.Settlement
             manager.Data.HuntsCompletedThisYear = Mathf.Clamp(manager.Data.HuntsCompletedThisYear, 0, manager.Data.HuntsPerYear - 1);
             PlayableSettlementContentExtensions.Extend(GetKnownItems(), recipes, inventions, out List<ItemData> allItems, out List<CraftRecipe> allRecipes);
             PlayableSettlementItemRegistry.Configure(allItems);
+            PlayableSettlementItemRegistry.MigratePersistentState(manager.Data);
             PlayableEventTableRuntime.Extend(randomEvents, mainStoryEvents, out List<EventData> allRandomEvents, out List<EventData> allMainStoryEvents);
             manager.Timeline.RandomEventPool = allRandomEvents;
             manager.Timeline.MainStoryEvents = allMainStoryEvents;
@@ -80,7 +81,7 @@ namespace HuntingInDarkness.Settlement
 
             foreach (var resource in startingResources)
                 if (resource?.Item != null && resource.Amount > 0)
-                    manager.Data.AddResource(resource.Item.itemName, resource.Amount);
+                    manager.Data.AddResource(resource.Item, resource.Amount);
 
             PlayableSettlementItemRegistry.RestoreEquipment(manager.Data);
             PlayableSymptomRuntime.Synchronize(manager.Data);

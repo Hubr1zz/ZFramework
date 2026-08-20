@@ -322,7 +322,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             foreach (var item in PlayableSettlementItemRegistry.Items)
             {
                 if (item == null || item.itemType == ItemType.Resource) continue;
-                int count = data.GetStoredEquipment(item.itemName);
+                int count = data.GetStoredEquipment(item);
                 if (count <= 0) continue;
 
                 hasEquipment = true;
@@ -332,7 +332,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                 foreach (var hunter in data.GetAvailableHunters())
                 {
                     bool canEquip = PlayableEquipmentRules.CanEquip(hunter, item, out string reason);
-                    GUI.enabled = canEquip && data.GetStoredEquipment(item.itemName) > 0;
+                    GUI.enabled = canEquip && data.GetStoredEquipment(item) > 0;
                     if (GUILayout.Button(canEquip ? $"装备给 {hunter.Name}" : $"{hunter.Name}：{reason}", GUILayout.Height(30f)) && manager.SettlementHunters.EquipItem(hunter, item))
                     {
                         progressionResult = $"{hunter.Name} 装备了 {item.itemName}。";
@@ -370,7 +370,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             var labels = new List<string>();
             foreach (var cost in invention.costs)
                 if (cost?.resource != null)
-                    labels.Add($"{cost.resource.itemName} {data.GetResource(cost.resource.itemName)}/{cost.count}");
+                    labels.Add($"{cost.resource.itemName} {data.GetResource(cost.resource)}/{cost.count}");
             return labels.Count > 0 ? string.Join("、", labels) : "无";
         }
 
@@ -381,7 +381,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             var labels = new List<string>();
             foreach (var ingredient in recipe.ingredients)
                 if (ingredient?.item != null)
-                    labels.Add($"{ingredient.item.itemName} {data.GetResource(ingredient.item.itemName)}/{ingredient.count}");
+                    labels.Add($"{ingredient.item.itemName} {data.GetResource(ingredient.item)}/{ingredient.count}");
             return labels.Count > 0 ? string.Join("、", labels) : "无需材料";
         }
 

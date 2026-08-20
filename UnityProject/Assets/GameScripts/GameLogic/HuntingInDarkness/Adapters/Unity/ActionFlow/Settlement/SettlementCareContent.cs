@@ -28,10 +28,10 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         }
 
         public IReadOnlyList<HunterData> RecruitmentTemplates => catalog != null ? catalog.RecruitmentTemplates : emptyTemplates;
-        public string RecruitmentCostResourceId => catalog?.RecruitmentCostItem != null ? catalog.RecruitmentCostItem.itemName : string.Empty;
+        public string RecruitmentCostResourceId => catalog?.RecruitmentCostItem != null ? catalog.RecruitmentCostItem.ContentId : string.Empty;
         public int RecruitmentCost => catalog?.RecruitmentCost ?? 0;
         public int MaximumLivingHunters => catalog?.MaximumLivingHunters ?? 1;
-        public string RecoveryCostResourceId => catalog?.RecoveryCostItem != null ? catalog.RecoveryCostItem.itemName : string.Empty;
+        public string RecoveryCostResourceId => catalog?.RecoveryCostItem != null ? catalog.RecoveryCostItem.ContentId : string.Empty;
         public int RecoveryCost => catalog?.RecoveryCost ?? 0;
         public int RecoveryAmount => catalog?.RecoveryAmount ?? 1;
     }

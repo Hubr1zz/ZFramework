@@ -87,19 +87,19 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             if (!ReferenceEquals(settlement.GetHunter(hunter.InstanceId), hunter)) return Fail("猎人不属于当前营地。");
             if (!content.Contains(item)) return Fail("装备内容尚未配置。");
             if (!PlayableEquipmentRules.CanEquip(hunter, item, out string reason)) return Fail(reason);
-            if (settlement.GetStoredEquipment(item.itemName) <= 0) return Fail("装备仓库中已没有该物品。");
+            if (settlement.GetStoredEquipment(item) <= 0) return Fail("装备仓库中已没有该物品。");
 
             cancellationToken.ThrowIfCancellationRequested();
-            if (!settlement.SpendStoredEquipment(item.itemName, 1)) return Fail("装备仓库已发生变化。");
+            if (!settlement.SpendStoredEquipment(item, 1)) return Fail("装备仓库已发生变化。");
             hunter.Equipment ??= new List<ItemInstance>();
-            hunter.EquippedItemNames ??= new List<string>();
+            hunter.EquippedItemIds ??= new List<string>();
             hunter.Equipment.Add(new ItemInstance(item));
-            hunter.EquippedItemNames.Add(item.itemName);
+            hunter.EquippedItemIds.Add(item.ContentId);
 
-            int storedCount = settlement.GetStoredEquipment(item.itemName);
+            int storedCount = settlement.GetStoredEquipment(item);
             Result = new SettlementEquipmentCommandResult(true, string.Empty, hunter.InstanceId, item.itemName, storedCount);
             eventOutbox.Stage(new HunterEquipmentChangedEvent { HunterId = hunter.InstanceId, ItemName = item.itemName, Equipped = true, StoredCount = storedCount });
-            eventOutbox.Stage(new SettlementTransactionCommittedEvent { TransactionId = $"equip:{hunter.InstanceId}:{item.itemName}", Kind = SettlementTransactionKind.Equipment });
+            eventOutbox.Stage(new SettlementTransactionCommittedEvent { TransactionId = $"equip:{hunter.InstanceId}:{item.ContentId}", Kind = SettlementTransactionKind.Equipment });
             return UniTask.FromResult(ActionOutcome.Success());
         }
 
@@ -140,13 +140,13 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
             cancellationToken.ThrowIfCancellationRequested();
             hunter.Equipment.Remove(item);
-            hunter.EquippedItemNames ??= new List<string>();
-            int savedIndex = hunter.EquippedItemNames.IndexOf(item.Data.itemName);
+            hunter.EquippedItemIds ??= new List<string>();
+            int savedIndex = hunter.EquippedItemIds.IndexOf(item.Data.ContentId);
             if (savedIndex >= 0)
-                hunter.EquippedItemNames.RemoveAt(savedIndex);
-            settlement.AddStoredEquipment(item.Data.itemName, 1);
+                hunter.EquippedItemIds.RemoveAt(savedIndex);
+            settlement.AddStoredEquipment(item.Data, 1);
 
-            int storedCount = settlement.GetStoredEquipment(item.Data.itemName);
+            int storedCount = settlement.GetStoredEquipment(item.Data);
             Result = new SettlementEquipmentCommandResult(true, string.Empty, hunter.InstanceId, item.Data.itemName, storedCount);
             eventOutbox.Stage(new HunterEquipmentChangedEvent { HunterId = hunter.InstanceId, ItemName = item.Data.itemName, Equipped = false, StoredCount = storedCount });
             eventOutbox.Stage(new SettlementTransactionCommittedEvent { TransactionId = $"unequip:{hunter.InstanceId}:{equipmentInstanceId}", Kind = SettlementTransactionKind.Equipment });

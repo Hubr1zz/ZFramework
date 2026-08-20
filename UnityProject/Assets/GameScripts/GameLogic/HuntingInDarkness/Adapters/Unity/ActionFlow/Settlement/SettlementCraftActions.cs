@@ -80,8 +80,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         {
             var amounts = new Dictionary<string, int>();
             foreach (RecipeIngredient ingredient in recipe.ingredients)
-                if (ingredient?.item != null && !amounts.ContainsKey(ingredient.item.itemName))
-                    amounts.Add(ingredient.item.itemName, settlement.GetResource(ingredient.item.itemName));
+                if (ingredient?.item != null && !amounts.ContainsKey(ingredient.item.ContentId))
+                    amounts.Add(ingredient.item.ContentId, settlement.GetResource(ingredient.item));
             return amounts;
         }
 

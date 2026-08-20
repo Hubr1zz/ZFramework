@@ -57,7 +57,7 @@ namespace HuntingInDarkness.Settlement
                 reason = "休养成本尚未配置。";
                 return false;
             }
-            if (settlement.GetResource(costItem.itemName) < configuredCost)
+            if (settlement.GetResource(costItem) < configuredCost)
             {
                 reason = $"缺少 {costItem.itemName}。";
                 return false;
@@ -73,7 +73,7 @@ namespace HuntingInDarkness.Settlement
             if (!CanTreat(hunter, bodyPart, out reason)) return false;
 
             SettlementInstance settlement = settlementProvider();
-            if (configuredCost > 0 && !settlement.SpendResource(costItem.itemName, configuredCost))
+            if (configuredCost > 0 && !settlement.SpendResource(costItem, configuredCost))
             {
                 reason = "休养所需物资已经发生变化。";
                 return false;
@@ -82,7 +82,7 @@ namespace HuntingInDarkness.Settlement
             if (HunterRecoveryRules.TryRecover(hunter, bodyPart, recoveryAmount, out result, out reason)) return true;
 
             if (configuredCost > 0)
-                settlement.AddResource(costItem.itemName, configuredCost);
+                settlement.AddResource(costItem, configuredCost);
             return false;
         }
     }

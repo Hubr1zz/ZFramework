@@ -236,9 +236,10 @@ namespace HuntingInDarkness.Settlement
                 return;
             }
 
+            string targetId = effect.effectType == EventEffectType.AddResource || effect.effectType == EventEffectType.RemoveResource ? PlayableSettlementItemRegistry.ResolveContentId(effect.targetName) : effect.targetName;
             SettlementEffectOutcome outcome = SettlementEffectRules.Apply(
                 ToCoreEffectKind(effect.effectType),
-                effect.targetName,
+                targetId,
                 effect.value,
                 eventActor,
                 target,

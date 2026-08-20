@@ -35,6 +35,7 @@ namespace Cards3D
         }
 
         // ─── 状态 ─────────────────────────────────────────────────────────
+        string _resourceId;
         string _resourceName;
         int    _count;
         bool   _isFaceUp  = true;
@@ -44,13 +45,14 @@ namespace Cards3D
         [SerializeField] TextMeshPro _countText;
         [SerializeField] TextMeshPro _labelText;
 
+        public string ResourceId   => _resourceId;
         public string ResourceName => _resourceName;
         public bool   IsFaceUp     => _isFaceUp;
 
         public override string DisplayName => $"{_resourceName} ×{_count}";
 
         // 同名资源可互相合并成动态卡堆
-        public override string StackKey => _resourceName;
+        public override string StackKey => _resourceId;
 
         protected override CardCategory GetDefaultCategory() => CardCategory.Resource;
         protected override bool         CanHover()           => !_isFlipping;
@@ -59,9 +61,15 @@ namespace Cards3D
 
         public void Init(string resourceName, int count, Vector3 localPos = default)
         {
+            Init(resourceName, resourceName, count, localPos);
+        }
+
+        public void Init(string resourceId, string resourceName, int count, Vector3 localPos = default)
+        {
+            _resourceId     = resourceId;
             _resourceName   = resourceName;
             _count          = count;
-            gameObject.name = $"Res_{resourceName}";
+            gameObject.name = $"Res_{resourceId}";
             InitView(localPos);
         }
 
@@ -70,10 +78,16 @@ namespace Cards3D
         public static ResourceCard3D Create(
             string resourceName, int count, Transform parent, Vector3 localPos = default)
         {
-            var go   = new GameObject($"Res_{resourceName}");
+            return Create(resourceName, resourceName, count, parent, localPos);
+        }
+
+        public static ResourceCard3D Create(
+            string resourceId, string resourceName, int count, Transform parent, Vector3 localPos = default)
+        {
+            var go   = new GameObject($"Res_{resourceId}");
             go.transform.SetParent(parent, false);
             var card = go.AddComponent<ResourceCard3D>();
-            card.Init(resourceName, count, localPos);
+            card.Init(resourceId, resourceName, count, localPos);
             return card;
         }
 
@@ -107,8 +121,8 @@ namespace Cards3D
 
             if (_isFaceUp)
             {
-                var col = GetResourceColor(_resourceName);
-                _bodyRenderer.material.color = IsHovered ? GetHoverColor(_resourceName) : col;
+                var col = GetResourceColor(_resourceId);
+                _bodyRenderer.material.color = IsHovered ? GetHoverColor(_resourceId) : col;
 
                 if (_nameText == null) return;
                 _nameText.color  = new Color(0.10f, 0.08f, 0.06f);

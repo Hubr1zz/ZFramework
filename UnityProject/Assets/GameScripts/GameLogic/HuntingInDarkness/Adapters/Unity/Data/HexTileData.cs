@@ -116,7 +116,7 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class ResourcePointInstance
     {
-        public string ResourceName;  // ItemData.name（存档用）
+        public string ResourceName;  // 采集过程中的玩家可见名称；持久化时改用 Resource.ContentId
 
         [System.NonSerialized]
         public ItemData Resource;

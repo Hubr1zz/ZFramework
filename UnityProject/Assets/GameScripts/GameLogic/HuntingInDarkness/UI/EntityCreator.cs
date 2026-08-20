@@ -99,14 +99,19 @@ namespace UI
         //todo 后期替换为用id查表拿数据
         public static ResourceCard3D CreateResourceCard(string resourceName, int count, Transform parent)
         {
+            return CreateResourceCard(resourceName, resourceName, count, parent);
+        }
+
+        public static ResourceCard3D CreateResourceCard(string resourceId, string resourceName, int count, Transform parent)
+        {
             var prefab = Instance != null ? Instance._resourceCardPrefab : null;
             if (prefab != null)
             {
                 var card = Instantiate(prefab, parent);
-                card.Init(resourceName, count);
+                card.Init(resourceId, resourceName, count);
                 return card;
             }
-            return ResourceCard3D.Create(resourceName, count, parent);
+            return ResourceCard3D.Create(resourceId, resourceName, count, parent);
         }
 
         // ─── 猎人卡 ───────────────────────────────────────────────────────

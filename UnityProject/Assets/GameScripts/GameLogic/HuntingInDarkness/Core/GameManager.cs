@@ -499,20 +499,21 @@ namespace Core
 
             foreach (var (resource, amount) in loot)
             {
-                int oldAmount = _settlementManager.Data.GetResource(resource);
-                _settlementManager.Data.AddResource(resource, amount);
+                string resourceId = PlayableSettlementItemRegistry.ResolveContentId(resource);
+                int oldAmount = _settlementManager.Data.GetResource(resourceId);
+                _settlementManager.Data.AddResource(resourceId, amount);
 
                 if (_pendingHuntRecord != null)
                     for (int i = 0; i < amount; i++)
-                        _pendingHuntRecord.CollectedResources.Add(resource);
+                        _pendingHuntRecord.CollectedResources.Add(resourceId);
 
                 EventBus.Publish(new ResourceChangedEvent
                 {
-                    ResourceName = resource,
+                    ResourceName = resourceId,
                     OldAmount    = oldAmount,
-                    NewAmount    = _settlementManager.Data.GetResource(resource)
+                    NewAmount    = _settlementManager.Data.GetResource(resourceId)
                 });
-                Debug.Log($"[GameManager] Boss战掉落 → {resource} ×{amount}");
+                Debug.Log($"[GameManager] Boss战掉落 → {PlayableSettlementItemRegistry.GetDisplayName(resourceId)} ×{amount}");
             }
         }
 

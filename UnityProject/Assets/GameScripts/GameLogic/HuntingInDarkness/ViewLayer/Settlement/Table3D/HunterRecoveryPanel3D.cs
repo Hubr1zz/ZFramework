@@ -134,7 +134,7 @@ namespace UI
                 reason = "休养成本尚未配置。";
                 return false;
             }
-            if (settlement.GetResource(catalog.RecoveryCostItem.itemName) >= cost) return true;
+            if (settlement.GetResource(catalog.RecoveryCostItem) >= cost) return true;
             reason = $"缺少 {catalog.RecoveryCostItem.itemName}";
             return false;
         }

@@ -30,7 +30,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             SettlementInstance settlement = CreateSettlement(out HunterInstance hunter);
             ItemData item = CreateItem("燧石短刀", ItemType.Weapon);
-            settlement.AddStoredEquipment(item.itemName, 1);
+            settlement.AddStoredEquipment(item, 1);
             var received = new List<string>();
             Action<HunterEquipmentChangedEvent> equipmentHandler = evt => received.Add($"equipment:{evt.Equipped}:{evt.StoredCount}");
             Action<SettlementTransactionCommittedEvent> commitHandler = evt => received.Add($"commit:{evt.Kind}");
@@ -43,10 +43,10 @@ namespace HuntingInDarkness.Adapter.Tests
                 SettlementEquipmentCommandResult result = await session.EquipItemAsync(hunter.InstanceId, item);
 
                 Assert.That(result.Succeeded, Is.True, result.Reason);
-                Assert.That(settlement.GetStoredEquipment(item.itemName), Is.Zero);
+                Assert.That(settlement.GetStoredEquipment(item), Is.Zero);
                 Assert.That(hunter.Equipment, Has.Count.EqualTo(1));
                 Assert.That(hunter.Equipment[0].Data, Is.SameAs(item));
-                Assert.That(hunter.EquippedItemNames, Is.EqualTo(new[] { item.itemName }));
+                Assert.That(hunter.EquippedItemIds, Is.EqualTo(new[] { item.ContentId }));
                 Assert.That(received, Is.EqualTo(new[] { "equipment:True:0", "commit:Equipment" }));
             }
             finally
@@ -61,7 +61,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             SettlementInstance settlement = CreateSettlement(out HunterInstance hunter);
             ItemData item = CreateItem("骨锤", ItemType.Weapon);
-            settlement.AddStoredEquipment(item.itemName, 1);
+            settlement.AddStoredEquipment(item, 1);
             using PlayableSettlementActionSession session = CreateSession(settlement, item);
 
             Task<SettlementEquipmentCommandResult> first = session.EquipItemAsync(hunter.InstanceId, item).AsTask();
@@ -70,7 +70,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(Array.FindAll(results, result => result.Succeeded), Has.Length.EqualTo(1));
             Assert.That(hunter.Equipment, Has.Count.EqualTo(1));
-            Assert.That(settlement.GetStoredEquipment(item.itemName), Is.Zero);
+            Assert.That(settlement.GetStoredEquipment(item), Is.Zero);
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             SettlementInstance settlement = CreateSettlement(out HunterInstance hunter);
             ItemData item = CreateItem("骨针", ItemType.Consumable);
-            settlement.AddStoredEquipment(item.itemName, 1);
+            settlement.AddStoredEquipment(item, 1);
             using PlayableSettlementActionSession session = CreateSession(settlement, item);
             session.Reactors.RegisterGlobal(new PreventEquipReactor());
 
@@ -86,7 +86,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(result.Succeeded, Is.False);
             Assert.That(hunter.Equipment, Is.Empty);
-            Assert.That(settlement.GetStoredEquipment(item.itemName), Is.EqualTo(1));
+            Assert.That(settlement.GetStoredEquipment(item), Is.EqualTo(1));
         }
 
         [Test]
@@ -98,16 +98,16 @@ namespace HuntingInDarkness.Adapter.Tests
             var second = new ItemInstance(item);
             hunter.Equipment.Add(first);
             hunter.Equipment.Add(second);
-            hunter.EquippedItemNames.Add(item.itemName);
-            hunter.EquippedItemNames.Add(item.itemName);
+            hunter.EquippedItemIds.Add(item.ContentId);
+            hunter.EquippedItemIds.Add(item.ContentId);
             using PlayableSettlementActionSession session = CreateSession(settlement, item);
 
             SettlementEquipmentCommandResult result = await session.UnequipItemAsync(hunter.InstanceId, second.InstanceId);
 
             Assert.That(result.Succeeded, Is.True, result.Reason);
             Assert.That(hunter.Equipment, Is.EqualTo(new[] { first }));
-            Assert.That(hunter.EquippedItemNames, Is.EqualTo(new[] { item.itemName }));
-            Assert.That(settlement.GetStoredEquipment(item.itemName), Is.EqualTo(1));
+            Assert.That(hunter.EquippedItemIds, Is.EqualTo(new[] { item.ContentId }));
+            Assert.That(settlement.GetStoredEquipment(item), Is.EqualTo(1));
         }
 
         [Test]
@@ -116,14 +116,14 @@ namespace HuntingInDarkness.Adapter.Tests
             SettlementInstance settlement = CreateSettlement(out HunterInstance hunter);
             ItemData allowed = CreateItem("登记装备", ItemType.Armor);
             ItemData foreign = CreateItem("外来装备", ItemType.Armor);
-            settlement.AddStoredEquipment(foreign.itemName, 1);
+            settlement.AddStoredEquipment(foreign, 1);
             using PlayableSettlementActionSession session = CreateSession(settlement, allowed);
 
             SettlementEquipmentCommandResult result = await session.EquipItemAsync(hunter.InstanceId, foreign);
 
             Assert.That(result.Succeeded, Is.False);
             Assert.That(hunter.Equipment, Is.Empty);
-            Assert.That(settlement.GetStoredEquipment(foreign.itemName), Is.EqualTo(1));
+            Assert.That(settlement.GetStoredEquipment(foreign), Is.EqualTo(1));
         }
 
         private SettlementInstance CreateSettlement(out HunterInstance hunter)

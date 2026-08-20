@@ -15,7 +15,7 @@ namespace HuntingInDarkness.Settlement
                 reason = "训练内容尚未配置";
                 return false;
             }
-            return WeaponTrainingRules.CanTrain(hunter.IsAvailable && !hunter.IsDead, settlement.IsInventionUnlocked(catalog.TrainingInventionName), settlement.GetResource(catalog.TrainingCostItem.itemName), catalog.TrainingCost, masteryId, catalog.TrainingExperience, out reason);
+            return WeaponTrainingRules.CanTrain(hunter.IsAvailable && !hunter.IsDead, settlement.IsInventionUnlocked(catalog.TrainingInventionName), settlement.GetResource(catalog.TrainingCostItem), catalog.TrainingCost, masteryId, catalog.TrainingExperience, out reason);
         }
 
         public static bool TryTrain(SettlementInstance settlement, HunterInstance hunter, string masteryId, out WeaponMasteryGainOutcome outcome, out string reason)
@@ -23,14 +23,14 @@ namespace HuntingInDarkness.Settlement
             outcome = default;
             if (!CanTrain(settlement, hunter, masteryId, out reason)) return false;
             PlayableWeaponMasteryCatalog catalog = PlayableWeaponMasteryRuntime.Catalog;
-            if (!catalog.TryGetFamily(masteryId, out WeaponMasteryFamilyDefinition family) || !settlement.SpendResource(catalog.TrainingCostItem.itemName, catalog.TrainingCost))
+            if (!catalog.TryGetFamily(masteryId, out WeaponMasteryFamilyDefinition family) || !settlement.SpendResource(catalog.TrainingCostItem, catalog.TrainingCost))
             {
                 reason = "训练提交失败";
                 return false;
             }
             if (!WeaponMasteryRules.TryGain(hunter, family, catalog.TrainingExperience, out outcome))
             {
-                settlement.AddResource(catalog.TrainingCostItem.itemName, catalog.TrainingCost);
+                settlement.AddResource(catalog.TrainingCostItem, catalog.TrainingCost);
                 reason = "熟练度已达到上限";
                 return false;
             }

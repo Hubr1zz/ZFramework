@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48324497afd44fb4eaff36be8ad626c2, type: 3}
   m_Name: MushroomFlesh
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.ItemData
+  contentId: mushroom_flesh
   itemName: "\u8611\u83C7\u8089"
   itemType: 0
   description: "\u6F6E\u6E7F\u800C\u6709\u97E7\u6027\u3002\u81F3\u5C11\u5B83\u4E0D\u4F1A\u7ACB\u523B\u6740\u6B7B\u4F60\u3002"
   tags: 04000000
+  keywords: []
   weaponStats:
     speed: 1
     power: 1

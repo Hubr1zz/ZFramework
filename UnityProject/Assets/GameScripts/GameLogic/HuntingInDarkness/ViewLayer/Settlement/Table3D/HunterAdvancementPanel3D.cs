@@ -208,7 +208,7 @@ namespace UI
                 reason = "熟练度已达到上限";
                 return false;
             }
-            return WeaponTrainingRules.CanTrain(hunter.IsAvailable && !hunter.IsDead, settlement.IsInventionUnlocked(catalog.TrainingInventionName), settlement.GetResource(catalog.TrainingCostItem.itemName), catalog.TrainingCost, family.Id, catalog.TrainingExperience, out reason);
+            return WeaponTrainingRules.CanTrain(hunter.IsAvailable && !hunter.IsDead, settlement.IsInventionUnlocked(catalog.TrainingInventionName), settlement.GetResource(catalog.TrainingCostItem), catalog.TrainingCost, family.Id, catalog.TrainingExperience, out reason);
         }
 
         private int GetMasteryValue(string masteryId)

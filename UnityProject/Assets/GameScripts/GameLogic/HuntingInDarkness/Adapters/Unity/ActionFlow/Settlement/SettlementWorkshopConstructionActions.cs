@@ -83,8 +83,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         {
             var amounts = new Dictionary<string, int>();
             foreach (PlayableWorkshopCost cost in definition.Costs)
-                if (cost?.Item != null && !amounts.ContainsKey(cost.Item.itemName))
-                    amounts.Add(cost.Item.itemName, settlement.GetResource(cost.Item.itemName));
+                if (cost?.Item != null && !amounts.ContainsKey(cost.Item.ContentId))
+                    amounts.Add(cost.Item.ContentId, settlement.GetResource(cost.Item));
             return amounts;
         }
 
@@ -94,8 +94,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             foreach (PlayableWorkshopCost cost in definition.Costs)
             {
                 if (cost?.Item == null) continue;
-                totals.TryGetValue(cost.Item.itemName, out int total);
-                totals[cost.Item.itemName] = total + cost.Amount;
+                totals.TryGetValue(cost.Item.ContentId, out int total);
+                totals[cost.Item.ContentId] = total + cost.Amount;
             }
             foreach (KeyValuePair<string, int> total in totals)
                 if (!availableResources.TryGetValue(total.Key, out int available) || available < total.Value)

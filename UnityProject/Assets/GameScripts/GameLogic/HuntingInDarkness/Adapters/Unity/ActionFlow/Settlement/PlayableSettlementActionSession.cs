@@ -247,7 +247,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 reason = "装备内容尚未配置。";
                 return false;
             }
-            if (settlement.GetStoredEquipment(item.itemName) <= 0)
+            if (settlement.GetStoredEquipment(item) <= 0)
             {
                 reason = "装备仓库中已没有该物品。";
                 return false;
@@ -263,7 +263,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle hunterEntity = environment.EntityHandles.GetOrCreate("hunter", hunter.InstanceId.ToString(), hunter.Name);
-            ReactorEntityHandle itemEntity = environment.EntityHandles.GetOrCreate("settlement-item", item != null ? item.itemName : "unknown", item != null ? item.itemName : "未知装备");
+            ReactorEntityHandle itemEntity = environment.EntityHandles.GetOrCreate("settlement-item", item != null ? item.ContentId : "unknown", item != null ? item.itemName : "未知装备");
             var action = new EquipHunterItemAction(settlement, hunter, item, equipmentContent, outbox, itemEntity, hunterEntity);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;

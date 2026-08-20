@@ -139,7 +139,7 @@ namespace HuntingInDarkness.Hunt
             {
                 foreach (var item in h.Collectibles)
                 {
-                    settlement.AddResource(item.Data.itemName, item.Count);
+                    settlement.AddResource(item.Data, item.Count);
                     Debug.Log($"[ResourceSystem] {h.Name} 收集物 {item.Data.itemName} 转入营地");
                 }
                 h.Collectibles.Clear();

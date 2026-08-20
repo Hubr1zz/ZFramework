@@ -32,9 +32,19 @@ title: 战役持久化与恢复
 
 ### Requirement: Continue restores playable runtime state
 
-继续战役 SHALL 恢复年份、资源、发明、工坊、猎人和装备名称，并通过内容目录重建非序列化装备实例后再释放 3D 营地桌面。
+继续战役 SHALL 恢复年份、资源、发明、工坊、猎人和稳定物品 ContentId，并通过内容目录重建非序列化装备实例后再释放 3D 营地桌面；旧版显示名键 SHALL 在内容注册后幂等迁移，未知内容 SHALL 保留而不是静默丢弃。
 
 #### Scenario: A saved hunter has equipment
 
 - **WHEN** 玩家从 3D 开场卡继续已有战役
-- **THEN** 猎人的运行时装备集合 SHALL 与持久化装备名称一致，营地桌面 SHALL 显示恢复后的权威状态
+- **THEN** 猎人的运行时装备集合 SHALL 与持久化装备 ContentId 一致，营地桌面 SHALL 显示恢复后的权威状态
+
+#### Scenario: A legacy save uses display names
+
+- **WHEN** 已注册物品的旧存档以显示名保存资源、仓库或猎人装备
+- **THEN** 加载流程 SHALL 合并并转换为稳定 ContentId、只提升受支持的身份版本，重复执行迁移 SHALL NOT 重复库存或装备实例
+
+#### Scenario: A save contains unknown or future content
+
+- **WHEN** 存档包含当前目录无法解析的物品标识，或身份版本高于当前运行时
+- **THEN** 未知标识 SHALL 保留，未来版本状态 SHALL NOT 被当前运行时降级或重写

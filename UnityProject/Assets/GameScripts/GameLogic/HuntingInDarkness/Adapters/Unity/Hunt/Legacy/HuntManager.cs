@@ -332,7 +332,7 @@ namespace HuntingInDarkness.Hunt
             var resourceList = new List<string>();
             foreach (var h in ActiveHunters)
                 foreach (var item in h.Collectibles)
-                    resourceList.Add(item.Data.itemName);
+                    resourceList.Add(item.Data.ContentId);
 
             return new HuntRecord
             {

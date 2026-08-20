@@ -99,7 +99,7 @@ namespace HuntingInDarkness.Data
         public int  HuntersDeployed;
         public int  HuntersLost;
         public bool BossDefeated;
-        public List<string> CollectedResources = new(); // 资源名列表
+        public List<string> CollectedResources = new(); // 稳定资源 ContentId 列表
     }
 
     // ─── 营地运行时状态 ──────────────────────────────────────────
@@ -107,11 +107,14 @@ namespace HuntingInDarkness.Data
     /// <summary>
     /// 营地运行时状态（完整存档数据）。
     /// 用 JsonUtility 序列化到 Application.persistentDataPath。
-    /// 注意：ItemData 引用用资源名称字符串存档，加载时按名重新查找 SO。
+    /// 注意：ItemData 引用使用稳定 ContentId 存档；旧显示名由内容目录在加载后幂等迁移。
     /// </summary>
     [System.Serializable]
     public class SettlementInstance
     {
+        [Header("内容存档版本")]
+        public int ItemIdentitySchemaVersion;
+
         [Header("时间线")]
         public int CurrentYear = 1;
         public int HuntsCompletedThisYear;
@@ -121,10 +124,10 @@ namespace HuntingInDarkness.Data
         [Header("猎人名单（按 InstanceId 索引）")]
         public List<HunterInstance> Hunters = new();
 
-        [Header("资源存储（资源名 → 数量）")]
+        [Header("资源存储（稳定物品 ID → 数量）")]
         public List<ResourceEntry> Resources = new();
 
-        [Header("装备仓库（物品名 → 数量）")]
+        [Header("装备仓库（稳定物品 ID → 数量）")]
         public List<ResourceEntry> EquipmentStorage = new();
 
         [Header("发明解锁状态（发明名 → 是否解锁）")]
@@ -156,6 +159,13 @@ namespace HuntingInDarkness.Data
         {
             return ResourceRules.Spend(Resources, name, amount, () => new ResourceEntry());
         }
+
+        public int GetResource(ItemData item) => item == null ? 0 : GetResource(item.ContentId);
+        public void AddResource(ItemData item, int amount)
+        {
+            if (item != null) AddResource(item.ContentId, amount);
+        }
+        public bool SpendResource(ItemData item, int amount) => item != null && SpendResource(item.ContentId, amount);
 
         // ─── 发明操作 ─────────────────────────────────────────────
 

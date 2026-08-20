@@ -52,7 +52,7 @@ namespace HuntingInDarkness.Settlement
             foreach (ItemData item in source)
             {
                 if (item == null || string.IsNullOrWhiteSpace(item.itemName)) continue;
-                if (target.Exists(existing => existing != null && existing.itemName == item.itemName)) continue;
+                if (target.Exists(existing => existing != null && (existing.ContentId == item.ContentId || existing.itemName == item.itemName))) continue;
                 target.Add(item);
             }
         }

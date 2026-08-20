@@ -73,7 +73,7 @@ namespace HuntingInDarkness.Settlement
 
             // 消耗原料
             foreach (var ing in recipe.ingredients)
-                if (ing.item != null) _settlement.SpendResource(ing.item.itemName, ing.count);
+                if (ing.item != null) _settlement.SpendResource(ing.item, ing.count);
 
             // 产出物品（加入资源存储）
             var output = new List<ItemInstance>();
@@ -82,9 +82,9 @@ namespace HuntingInDarkness.Settlement
 
             // 资源型产出直接存入仓库
             if (recipe.outputItem.itemType == ItemType.Resource)
-                _settlement.AddResource(recipe.outputItem.itemName, recipe.outputCount);
+                _settlement.AddResource(recipe.outputItem, recipe.outputCount);
             else
-                _settlement.AddStoredEquipment(recipe.outputItem.itemName, recipe.outputCount);
+                _settlement.AddStoredEquipment(recipe.outputItem, recipe.outputCount);
 
             Debug.Log($"[Workshop] 制造完成：{recipe.outputItem.itemName} ×{recipe.outputCount}");
             return output;
@@ -96,13 +96,13 @@ namespace HuntingInDarkness.Settlement
             var ingredients = new List<ResourceCost>();
             foreach (RecipeIngredient ingredient in recipe.ingredients)
                 if (ingredient?.item != null)
-                    ingredients.Add(new ResourceCost(ingredient.item.itemName, ingredient.count));
+                    ingredients.Add(new ResourceCost(ingredient.item.ContentId, ingredient.count));
             return new CraftRecipeDefinition(
                 recipe.recipeName,
                 recipe.requiredInvention != null ? recipe.requiredInvention.inventionName : "",
                 recipe.unlockedByMaterial,
                 ingredients,
-                recipe.outputItem != null ? recipe.outputItem.itemName : "",
+                recipe.outputItem != null ? recipe.outputItem.ContentId : "",
                 recipe.outputCount);
         }
     }

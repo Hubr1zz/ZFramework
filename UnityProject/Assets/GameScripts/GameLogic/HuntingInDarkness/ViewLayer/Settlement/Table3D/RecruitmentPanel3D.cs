@@ -274,7 +274,7 @@ namespace UI
                 reason = "接纳物资尚未配置。";
                 return false;
             }
-            int availableResource = catalog.RecruitmentCostItem != null ? settlement.GetResource(catalog.RecruitmentCostItem.itemName) : 0;
+            int availableResource = settlement.GetResource(catalog.RecruitmentCostItem);
             return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, aliveCount, catalog.MaximumLivingHunters, availableResource, catalog.RecruitmentCost, out reason);
         }
 
