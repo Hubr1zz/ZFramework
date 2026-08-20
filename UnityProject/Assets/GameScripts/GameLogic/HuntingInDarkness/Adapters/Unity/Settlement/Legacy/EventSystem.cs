@@ -253,6 +253,8 @@ namespace HuntingInDarkness.Settlement
                 PlayableSymptomRuntime.SynchronizeHunter(eventActor);
             if (outcome.Handled && (effect.effectType == EventEffectType.AddCourage || effect.effectType == EventEffectType.AddUnderstanding))
                 PlayableGrowthMilestoneRuntime.Synchronize(_settlement);
+            if (outcome.Handled && effect.effectType == EventEffectType.UnlockInvention)
+                SettlementTimelineJournal.RecordInvention(_settlement, effect.targetName, effect.targetName);
 
             if (outcome.ResourceChanged)
             {

@@ -38,11 +38,16 @@ Authoritative unlocking SHALL execute as a root action in the active Settlement 
 - **THEN** resources, invention state, effects, and committed events remain unchanged
 
 ### Requirement: Successful unlocking publishes committed facts
-A successful unlock SHALL publish affected resource changes, one invention-unlocked fact, and one Invention transaction commit after authoritative state has changed.
+A successful unlock SHALL publish affected resource changes, one invention-unlocked fact, and one Invention transaction commit after authoritative state has changed. The same commit SHALL add one idempotent, completed invention entry to the persistent campaign timeline.
 
 #### Scenario: Invention succeeds
 - **WHEN** all current rules pass and the action commits
-- **THEN** resource cards and invention visuals refresh and the settlement save boundary observes the transaction commit
+- **THEN** resource cards, invention visuals, and the 3D annals refresh and the settlement save boundary observes the transaction commit
+
+#### Scenario: An event grants an invention
+
+- **WHEN** a committed event effect unlocks an invention without using the invention board
+- **THEN** the same persistent annals projection SHALL record that invention exactly once
 
 ### Requirement: Invention content remains configuration-driven
 Invention identity, prerequisites, exclusions, costs, presentation, and future structured effects SHALL remain supplied by content data without changing the View command contract.

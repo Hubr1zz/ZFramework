@@ -7,6 +7,7 @@ using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.Combat;
+using UI;
 using UnityEngine;
 
 namespace HuntingInDarkness.ViewLayer.Settlement
@@ -397,7 +398,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                 GUILayout.BeginVertical(GUI.skin.box);
                 GUILayout.Label($"第 {record.Year} 年 · {(record.BossDefeated ? "讨伐成功" : "从黑暗中撤回")}");
                 GUILayout.Label($"出发 {record.HuntersDeployed} 人  ·  失去 {record.HuntersLost} 人", mutedStyle);
-                GUILayout.Label($"带回：{FormatCollectedResources(record.CollectedResources)}", mutedStyle);
+                GUILayout.Label($"带回：{CampLedgerPresentation.FormatResources(record.CollectedResources)}", mutedStyle);
                 GUILayout.EndVertical();
             }
 
@@ -415,25 +416,6 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                 string state = entry.IsCompleted ? "已发生" : "将发生";
                 GUILayout.Label($"第 {entry.Year} 年 · {state} · {(entry.IsMilestone ? "★ " : string.Empty)}{eventName}", GUI.skin.box);
             }
-        }
-
-        private static string FormatCollectedResources(List<string> resources)
-        {
-            if (resources == null || resources.Count == 0) return "无";
-
-            var counts = new Dictionary<string, int>();
-            foreach (string resource in resources)
-            {
-                if (string.IsNullOrEmpty(resource)) continue;
-                counts.TryGetValue(resource, out int count);
-                counts[resource] = count + 1;
-            }
-            if (counts.Count == 0) return "无";
-
-            var labels = new List<string>();
-            foreach (var pair in counts)
-                labels.Add($"{pair.Key} ×{pair.Value}");
-            return string.Join("、", labels);
         }
 
         private void DrawHunters(SettlementInstance data)

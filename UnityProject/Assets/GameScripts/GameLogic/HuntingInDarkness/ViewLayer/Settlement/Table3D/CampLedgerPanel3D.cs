@@ -84,7 +84,8 @@ namespace UI
                     if (entry == null) continue;
                     string eventName = string.IsNullOrWhiteSpace(entry.EventName) ? entry.EventId : entry.EventName;
                     string state = entry.IsCompleted ? "已发生" : "将发生";
-                    entries.Add(new LedgerEntry(entry.Year, entry.IsMilestone ? $"★ {eventName}" : eventName, $"时间线 · {state}", entry.IsCompleted));
+                    string category = entry.EntryType == TimelineEntryType.Invention ? "发明 · 已掌握" : $"时间线 · {state}";
+                    entries.Add(new LedgerEntry(entry.Year, entry.IsMilestone ? $"★ {eventName}" : eventName, category, entry.IsCompleted));
                 }
             }
             if (settlement.HuntHistory != null)
@@ -93,7 +94,7 @@ namespace UI
                 {
                     if (record == null) continue;
                     string outcome = record.BossDefeated ? "讨伐成功" : "从黑暗中归来";
-                    entries.Add(new LedgerEntry(record.Year, outcome, $"狩猎 · 出发 {record.HuntersDeployed} · 损失 {record.HuntersLost} · 带回 {FormatResources(record.CollectedResources)}", true));
+                    entries.Add(new LedgerEntry(record.Year, outcome, $"狩猎 · 出发 {record.HuntersDeployed} · 损失 {record.HuntersLost} · 带回 {CampLedgerPresentation.FormatResources(record.CollectedResources)}", true));
                 }
             }
             entries.Sort((left, right) =>
@@ -197,23 +198,6 @@ namespace UI
             foreach (GameObject entryObject in entryObjects)
                 if (entryObject != null) Destroy(entryObject);
             entryObjects.Clear();
-        }
-
-        private static string FormatResources(IReadOnlyList<string> resources)
-        {
-            if (resources == null || resources.Count == 0) return "无";
-            var counts = new Dictionary<string, int>();
-            foreach (string resource in resources)
-            {
-                if (string.IsNullOrWhiteSpace(resource)) continue;
-                counts.TryGetValue(resource, out int count);
-                counts[resource] = count + 1;
-            }
-            if (counts.Count == 0) return "无";
-            var labels = new List<string>();
-            foreach (KeyValuePair<string, int> pair in counts)
-                labels.Add($"{pair.Key}×{pair.Value}");
-            return string.Join("、", labels);
         }
 
         private readonly struct LedgerEntry

@@ -86,7 +86,8 @@ namespace HuntingInDarkness.Data
         Random,     // 随机抽取
         PlayerAdded, // 玩家行为/发明触发
         RosterChanged, // 猎人退休等名册历史变化
-        Scheduled // 由事件结果动态加入的未来事件
+        Scheduled, // 由事件结果动态加入的未来事件
+        Invention // 已掌握的发明
     }
 
     /// <summary>

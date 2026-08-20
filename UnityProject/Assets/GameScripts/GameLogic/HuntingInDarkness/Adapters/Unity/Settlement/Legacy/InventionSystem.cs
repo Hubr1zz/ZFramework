@@ -60,6 +60,7 @@ namespace HuntingInDarkness.Settlement
 
             // 应用效果
             ApplyEffect(invention);
+            SettlementTimelineJournal.RecordInvention(_settlement, invention.name, invention.inventionName);
 
             return true;
         }

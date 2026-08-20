@@ -35,6 +35,11 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(result.Succeeded, Is.True);
                 Assert.That(context.Settlement.GetResource("碎石"), Is.Zero);
                 Assert.That(context.System.IsUnlocked(context.Invention), Is.True);
+                Assert.That(context.Settlement.Timeline, Has.Count.EqualTo(1));
+                Assert.That(context.Settlement.Timeline[0].EventId, Is.EqualTo("invention:stonecraft"));
+                Assert.That(context.Settlement.Timeline[0].EventName, Is.EqualTo("石工"));
+                Assert.That(context.Settlement.Timeline[0].EntryType, Is.EqualTo(TimelineEntryType.Invention));
+                Assert.That(context.Settlement.Timeline[0].IsCompleted, Is.True);
                 Assert.That(received, Is.EqualTo(new[] { "resource:2>0", "invention:石工", "transaction:Invention" }));
             }
             finally
@@ -60,6 +65,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
                 Assert.That(Array.FindAll(results, result => result.Succeeded).Length, Is.EqualTo(1));
                 Assert.That(context.Settlement.GetResource("碎石"), Is.Zero);
+                Assert.That(context.Settlement.Timeline, Has.Count.EqualTo(1));
             }
             finally
             {
@@ -82,6 +88,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(result.Reason, Is.EqualTo("测试规则阻止发明"));
                 Assert.That(context.Settlement.GetResource("碎石"), Is.EqualTo(2));
                 Assert.That(context.System.IsUnlocked(context.Invention), Is.False);
+                Assert.That(context.Settlement.Timeline, Is.Empty);
             }
             finally
             {
@@ -120,6 +127,7 @@ namespace HuntingInDarkness.Adapter.Tests
             resource.itemName = "碎石";
             resource.itemType = ItemType.Resource;
             InventionData invention = ScriptableObject.CreateInstance<InventionData>();
+            invention.name = "stonecraft";
             invention.inventionName = "石工";
             invention.costs.Add(new InventionCost { resource = resource, count = 1 });
             invention.costs.Add(new InventionCost { resource = resource, count = 1 });
