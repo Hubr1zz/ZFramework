@@ -298,7 +298,7 @@ namespace AgentWorkflow.Editor
             ["main.refactor"] = ("增量维护", "Maintenance"),
             ["main.codeIndex"] = ("代码索引", "Code Index"),
             ["codeIndex.title"] = ("C# 派生索引", "C# Derived Index"),
-            ["codeIndex.summary"] = ("手动构建全部 Assets 下的 C# 结构索引。缓存仅保存在本机，不进入 Git。", "Manually build the C# structure index for every source file under Assets. The cache stays local and is not committed."),
+            ["codeIndex.summary"] = ("手动构建全部 Assets 下的 C# 结构索引。确定性索引进入 Git，本机增量缓存不提交。", "Manually build the C# structure index for every source file under Assets. The deterministic index is committed; local incremental caches are not."),
             ["codeIndex.build"] = ("构建全量索引", "Build Full Index"),
             ["codeIndex.cancel"] = ("取消", "Cancel"),
             ["codeIndex.open"] = ("打开索引文件", "Open Index File"),
