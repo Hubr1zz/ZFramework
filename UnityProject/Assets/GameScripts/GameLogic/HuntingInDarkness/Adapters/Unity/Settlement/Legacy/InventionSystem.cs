@@ -24,7 +24,7 @@ namespace HuntingInDarkness.Settlement
         // ─── 查询 ─────────────────────────────────────────────────
 
         public bool IsUnlocked(InventionData invention)
-            => invention != null && _settlement.IsInventionUnlocked(invention.inventionName);
+            => invention != null && _settlement.IsInventionUnlocked(invention.ContentId);
 
         /// <summary>是否可以解锁（前置已满足 + 未互斥 + 资源足够）</summary>
         public bool CanUnlock(InventionData invention, out string reason)
@@ -55,12 +55,12 @@ namespace HuntingInDarkness.Settlement
             }
 
             // 解锁
-            _settlement.UnlockInvention(invention.inventionName);
+            _settlement.UnlockInvention(invention.ContentId);
             Debug.Log($"[InventionSystem] 解锁发明：{invention.inventionName}");
 
             // 应用效果
             ApplyEffect(invention);
-            SettlementTimelineJournal.RecordInvention(_settlement, invention.name, invention.inventionName);
+            SettlementTimelineJournal.RecordInvention(_settlement, invention.ContentId, invention.inventionName);
 
             return true;
         }
@@ -117,16 +117,16 @@ namespace HuntingInDarkness.Settlement
             if (invention == null) return null;
             var prerequisites = new List<string>();
             foreach (InventionData item in invention.prerequisites)
-                if (item != null) prerequisites.Add(item.inventionName);
+                if (item != null) prerequisites.Add(item.ContentId);
             var exclusive = new List<string>();
             foreach (InventionData item in invention.exclusiveWith)
-                if (item != null) exclusive.Add(item.inventionName);
+                if (item != null) exclusive.Add(item.ContentId);
             var costs = new List<ResourceCost>();
             foreach (InventionCost cost in invention.costs)
                 if (cost?.resource != null)
                     costs.Add(new ResourceCost(cost.resource.ContentId, cost.count));
             return new InventionDefinition(
-                invention.inventionName, prerequisites, exclusive, costs);
+                invention.ContentId, prerequisites, exclusive, costs);
         }
     }
 }

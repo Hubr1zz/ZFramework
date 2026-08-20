@@ -99,7 +99,7 @@ namespace HuntingInDarkness.Settlement
                     ingredients.Add(new ResourceCost(ingredient.item.ContentId, ingredient.count));
             return new CraftRecipeDefinition(
                 recipe.recipeName,
-                recipe.requiredInvention != null ? recipe.requiredInvention.inventionName : "",
+                recipe.requiredInvention != null ? recipe.requiredInvention.ContentId : "",
                 recipe.unlockedByMaterial,
                 ingredients,
                 recipe.outputItem != null ? recipe.outputItem.ContentId : "",

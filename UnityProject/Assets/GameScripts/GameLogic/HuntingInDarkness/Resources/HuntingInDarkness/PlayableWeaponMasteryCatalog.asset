@@ -64,7 +64,7 @@ MonoBehaviour:
       displayName: "\u6295\u77F3\u5927\u5E08"
       threshold: 8
       grantedTrait: "\u6295\u77F3\u5927\u5E08"
-  trainingInventionName: "\u6B66\u5668\u8BAD\u7EC3"
+  trainingInventionId: weapon_training
   trainingCostItem: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
   trainingCost: 1
   trainingExperience: 1

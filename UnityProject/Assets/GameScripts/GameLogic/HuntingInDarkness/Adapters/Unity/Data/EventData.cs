@@ -121,7 +121,7 @@ namespace HuntingInDarkness.Data
     public class EventEffect
     {
         public EventEffectType effectType = EventEffectType.AddResource;
-        public string          targetName = ""; // 资源名/属性名/发明名；TriggerCombat 时为稳定 EncounterId
+        public string          targetName = ""; // 兼容字段；资源/发明等跨内容引用保存稳定 ContentId
         public int             value      = 1;
         [TextArea] public string description = "";
     }
@@ -139,7 +139,7 @@ namespace HuntingInDarkness.Data
         AddTrait,           // 添加特性：targetName=特性名
         AddAilment,         // 添加症状
         KillHunter,         // 猎人死亡判定
-        UnlockInvention,    // 解锁发明：targetName=发明名
+        UnlockInvention,    // 解锁发明：targetName=稳定发明 ContentId
         TriggerCombat,      // 触发战斗
         AdvanceYear,        // 推进年份
         ScheduleEvent       // 安排未来事件：targetName=稳定事件ID, value=延迟年数

@@ -15,7 +15,7 @@ namespace HuntingInDarkness.Settlement
                 reason = "训练内容尚未配置";
                 return false;
             }
-            return WeaponTrainingRules.CanTrain(hunter.IsAvailable && !hunter.IsDead, settlement.IsInventionUnlocked(catalog.TrainingInventionName), settlement.GetResource(catalog.TrainingCostItem), catalog.TrainingCost, masteryId, catalog.TrainingExperience, out reason);
+            return WeaponTrainingRules.CanTrain(hunter.IsAvailable && !hunter.IsDead, settlement.IsInventionUnlocked(catalog.TrainingInventionId), settlement.GetResource(catalog.TrainingCostItem), catalog.TrainingCost, masteryId, catalog.TrainingExperience, out reason);
         }
 
         public static bool TryTrain(SettlementInstance settlement, HunterInstance hunter, string masteryId, out WeaponMasteryGainOutcome outcome, out string reason)

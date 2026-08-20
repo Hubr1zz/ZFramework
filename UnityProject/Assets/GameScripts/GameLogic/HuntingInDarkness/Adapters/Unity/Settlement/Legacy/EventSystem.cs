@@ -236,7 +236,17 @@ namespace HuntingInDarkness.Settlement
                 return;
             }
 
-            string targetId = effect.effectType == EventEffectType.AddResource || effect.effectType == EventEffectType.RemoveResource ? PlayableSettlementItemRegistry.ResolveContentId(effect.targetName) : effect.targetName;
+            string targetId = effect.targetName;
+            InventionData targetInvention = null;
+            if (effect.effectType == EventEffectType.AddResource || effect.effectType == EventEffectType.RemoveResource)
+                targetId = PlayableSettlementItemRegistry.ResolveContentId(effect.targetName);
+            if (effect.effectType == EventEffectType.UnlockInvention && !PlayableSettlementInventionRegistry.TryGet(effect.targetName, out targetInvention))
+            {
+                Debug.LogWarning($"[EventSystem] 无法解锁未注册发明：{effect.targetName}");
+                return;
+            }
+            if (targetInvention != null)
+                targetId = targetInvention.ContentId;
             SettlementEffectOutcome outcome = SettlementEffectRules.Apply(
                 ToCoreEffectKind(effect.effectType),
                 targetId,
@@ -254,7 +264,7 @@ namespace HuntingInDarkness.Settlement
             if (outcome.Handled && (effect.effectType == EventEffectType.AddCourage || effect.effectType == EventEffectType.AddUnderstanding))
                 PlayableGrowthMilestoneRuntime.Synchronize(_settlement);
             if (outcome.Handled && effect.effectType == EventEffectType.UnlockInvention)
-                SettlementTimelineJournal.RecordInvention(_settlement, effect.targetName, effect.targetName);
+                SettlementTimelineJournal.RecordInvention(_settlement, targetInvention.ContentId, targetInvention.inventionName);
 
             if (outcome.ResourceChanged)
             {

@@ -13,7 +13,7 @@ namespace HuntingInDarkness.Adapter.Tests
         public void TryBuild_SpendsResourcesAndPersistsWorkshopFlag()
         {
             var settlement = new SettlementInstance();
-            settlement.UnlockInvention("工具");
+            settlement.UnlockInvention("tools");
             settlement.AddResource("碎石", 2);
             settlement.AddResource("柔软器官", 1);
             ItemData stone = CreateItem("碎石");
@@ -46,7 +46,7 @@ namespace HuntingInDarkness.Adapter.Tests
         public void WorkshopSystem_HidesRecipeUntilRequiredWorkshopExists()
         {
             var settlement = new SettlementInstance();
-            settlement.UnlockInvention("工具");
+            settlement.UnlockInvention("tools");
             ItemData output = CreateItem("韧膜胸甲");
             InventionData invention = CreateInvention("工具");
             var recipe = new CraftRecipe { recipeName = "缝制韧膜胸甲", outputItem = output, requiredInvention = invention, requiredWorkshopId = "armor_workshop" };
@@ -94,6 +94,7 @@ namespace HuntingInDarkness.Adapter.Tests
         private static InventionData CreateInvention(string inventionName)
         {
             InventionData invention = ScriptableObject.CreateInstance<InventionData>();
+            invention.ConfigureContentId("tools");
             invention.inventionName = inventionName;
             return invention;
         }

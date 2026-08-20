@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e159b3c1d6bfcce4082b45e63fc28083, type: 3}
   m_Name: Training
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.InventionData
+  contentId: training
   inventionName: "\u8BAD\u7EC3"
   description: "\u628A\u751F\u5B58\u7ECF\u9A8C\u6574\u7406\u6210\u53EF\u91CD\u590D\u4F20\u6388\u7684\u7EC3\u4E60\u65B9\u6CD5\u3002"
   prerequisites: []

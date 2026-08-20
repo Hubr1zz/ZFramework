@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Data;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace HuntingInDarkness.Combat
 {
@@ -53,13 +54,14 @@ namespace HuntingInDarkness.Combat
     {
         [SerializeField] private List<PlayableWeaponMasteryFamily> families = new();
         [Header("营地训练")]
-        [SerializeField] private string trainingInventionName = "武器训练";
+        [FormerlySerializedAs("trainingInventionName")]
+        [SerializeField] private string trainingInventionId = "weapon_training";
         [SerializeField] private ItemData trainingCostItem;
         [SerializeField, Min(0)] private int trainingCost = 1;
         [SerializeField, Min(1)] private int trainingExperience = 1;
 
         public bool IsConfigured => Validate();
-        public string TrainingInventionName => trainingInventionName;
+        public string TrainingInventionId => trainingInventionId?.Trim() ?? string.Empty;
         public ItemData TrainingCostItem => trainingCostItem;
         public int TrainingCost => Mathf.Max(0, trainingCost);
         public int TrainingExperience => Mathf.Max(1, trainingExperience);
@@ -100,7 +102,7 @@ namespace HuntingInDarkness.Combat
 
         private bool Validate()
         {
-            if (families.Count == 0 || string.IsNullOrWhiteSpace(trainingInventionName) || trainingCostItem == null) return false;
+            if (families.Count == 0 || string.IsNullOrWhiteSpace(trainingInventionId) || trainingCostItem == null) return false;
             var familyIds = new HashSet<string>(StringComparer.Ordinal);
             var weaponNames = new HashSet<string>(StringComparer.Ordinal);
             foreach (PlayableWeaponMasteryFamily family in families)

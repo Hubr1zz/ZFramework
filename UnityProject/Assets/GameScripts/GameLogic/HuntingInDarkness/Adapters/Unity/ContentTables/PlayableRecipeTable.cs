@@ -81,7 +81,7 @@ namespace HuntingInDarkness.ContentTables
             if (records == null) return result;
 
             Dictionary<string, ItemData> itemById = BuildAssetIndex(items, item => item.ContentId, "物品", reportError);
-            Dictionary<string, InventionData> inventionById = BuildAssetIndex(inventions, invention => invention.name, "发明", reportError);
+            Dictionary<string, InventionData> inventionById = BuildAssetIndex(inventions, invention => invention.ContentId, "发明", reportError);
             Dictionary<string, int> idCounts = Count(records, record => record?.id);
             Dictionary<string, int> nameCounts = Count(records, record => record?.recipeName);
             var reportedDuplicates = new HashSet<string>(StringComparer.Ordinal);

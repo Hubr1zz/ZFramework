@@ -95,7 +95,7 @@ namespace HuntingInDarkness.Adapter.Tests
             PlayableWorkshopDefinition definition = catalog.Workshops[0];
             var settlement = new SettlementInstance();
             if (definition.RequiredInvention != null)
-                settlement.UnlockInvention(definition.RequiredInvention.inventionName);
+                settlement.UnlockInvention(definition.RequiredInvention.ContentId);
             foreach (PlayableWorkshopCost cost in definition.Costs)
                 settlement.AddResource(cost.Item, 2);
             return new TestContext(settlement, catalog, definition);

@@ -100,6 +100,31 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Build_ResolvesRequiredInventionByStableContentId()
+        {
+            ItemData salt = CreateItem("black_salt", "黑盐", ItemType.Resource);
+            ItemData ward = CreateItem("salt_ward", "盐纹护符", ItemType.Armor);
+            InventionData tools = ScriptableObject.CreateInstance<InventionData>();
+            tools.name = "ToolsAsset";
+            tools.ConfigureContentId("tools");
+            tools.inventionName = "工具";
+            createdObjects.Add(tools);
+            var record = new CraftRecipeTableRecord
+            {
+                id = "stable-invention-recipe",
+                recipeName = "稳定发明配方",
+                ingredients = new List<RecipeIngredientTableRecord> { new() { itemId = "black_salt" } },
+                outputItemId = "salt_ward",
+                requiredInventionId = "tools"
+            };
+
+            List<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.Build(new[] { record }, new[] { salt, ward }, new[] { tools });
+
+            Assert.That(recipes, Has.Count.EqualTo(1));
+            Assert.That(recipes[0].requiredInvention, Is.SameAs(tools));
+        }
+
+        [Test]
         public async Task RuntimeRecipe_CommitsThroughSettlementActionQueue()
         {
             IReadOnlyList<ItemData> items = PlayableItemTableRuntime.GetItems();

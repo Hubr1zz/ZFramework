@@ -18,6 +18,8 @@ namespace HuntingInDarkness.Data
     public class InventionData : ScriptableObject
     {
         [Header("基础")]
+        [SerializeField, Tooltip("稳定内容 ID。写入存档及跨内容引用时使用；旧资产为空时暂以资产名兼容。")]
+        private string contentId;
         public string inventionName = "新发明";
         [TextArea] public string description;
 
@@ -41,6 +43,19 @@ namespace HuntingInDarkness.Data
 
         [Header("主动效果选项（有多个时点击卡牌弹出选择）")]
         public List<InventionActiveEffect> activeEffects = new();
+
+        public string ContentId
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(contentId)) return contentId.Trim();
+                if (!string.IsNullOrWhiteSpace(name)) return name.Trim();
+                return inventionName?.Trim() ?? string.Empty;
+            }
+        }
+
+        public bool HasExplicitContentId => !string.IsNullOrWhiteSpace(contentId);
+        public void ConfigureContentId(string value) => contentId = value?.Trim() ?? string.Empty;
     }
 
     public enum InventionCategory
@@ -115,6 +130,7 @@ namespace HuntingInDarkness.Data
     {
         [Header("内容存档版本")]
         public int ItemIdentitySchemaVersion;
+        public int InventionIdentitySchemaVersion;
 
         [Header("时间线")]
         public int CurrentYear = 1;
@@ -131,7 +147,7 @@ namespace HuntingInDarkness.Data
         [Header("装备仓库（稳定物品 ID → 数量）")]
         public List<ResourceEntry> EquipmentStorage = new();
 
-        [Header("发明解锁状态（发明名 → 是否解锁）")]
+        [Header("发明解锁状态（稳定发明 ID → 是否解锁）")]
         public List<StringBoolEntry> UnlockedInventions = new();
 
         [Header("已建工坊（稳定工坊 ID → 是否建成）")]
@@ -170,16 +186,24 @@ namespace HuntingInDarkness.Data
 
         // ─── 发明操作 ─────────────────────────────────────────────
 
-        public bool IsInventionUnlocked(string inventionName)
+        public bool IsInventionUnlocked(string inventionId)
         {
-            return UnlockedInventions.Exists(e => e.Key == inventionName && e.Value);
+            string normalizedId = inventionId?.Trim() ?? string.Empty;
+            return normalizedId.Length > 0 && UnlockedInventions != null && UnlockedInventions.Exists(entry => entry != null && entry.Key == normalizedId && entry.Value);
         }
 
-        public void UnlockInvention(string inventionName)
+        public void UnlockInvention(string inventionId)
         {
-            var e = UnlockedInventions.Find(e => e.Key == inventionName);
-            if (e == null) { e = new StringBoolEntry { Key = inventionName }; UnlockedInventions.Add(e); }
-            e.Value = true;
+            string normalizedId = inventionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0) return;
+            UnlockedInventions ??= new List<StringBoolEntry>();
+            StringBoolEntry entry = UnlockedInventions.Find(candidate => candidate != null && candidate.Key == normalizedId);
+            if (entry == null)
+            {
+                entry = new StringBoolEntry { Key = normalizedId };
+                UnlockedInventions.Add(entry);
+            }
+            entry.Value = true;
         }
 
         public bool IsWorkshopBuilt(string workshopId)

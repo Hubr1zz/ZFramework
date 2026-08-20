@@ -228,7 +228,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private void DrawWeaponTraining(SettlementInstance data)
         {
             PlayableWeaponMasteryCatalog catalog = PlayableWeaponMasteryRuntime.Catalog;
-            if (catalog == null || !data.IsInventionUnlocked(catalog.TrainingInventionName)) return;
+            if (catalog == null || !data.IsInventionUnlocked(catalog.TrainingInventionId)) return;
             GUILayout.Space(12f);
             GUILayout.Label("武器训练", sectionStyle);
             GUILayout.Label($"消耗 {catalog.TrainingCostItem.itemName} ×{catalog.TrainingCost}，为一名可出战猎人提升 {catalog.TrainingExperience} 点指定流派熟练度。", mutedStyle);

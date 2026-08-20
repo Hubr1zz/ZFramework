@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e159b3c1d6bfcce4082b45e63fc28083, type: 3}
   m_Name: Tools
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.InventionData
+  contentId: tools
   inventionName: "\u5DE5\u5177"
   description: "\u5C06\u950B\u5229\u7684\u788E\u77F3\u7ED1\u5728\u63E1\u67C4\u4E0A\u3002\u8425\u5730\u7EC8\u4E8E\u80FD\u8FDB\u884C\u7A33\u5B9A\u3001\u53EF\u91CD\u590D\u7684\u52A0\u5DE5\u3002"
   prerequisites: []

@@ -515,7 +515,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             var settlement = new SettlementInstance();
             settlement.Hunters.Add(new HunterInstance(null, 7) { Name = "训练者" });
-            settlement.UnlockInvention("武器训练");
+            settlement.UnlockInvention("weapon_training");
             settlement.AddResource("碎石", resourceAmount);
             return settlement;
         }
@@ -533,7 +533,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             private readonly WeaponMasteryFamilyDefinition family = new("mastery_blade", "刃术", Array.Empty<WeaponMasteryMilestoneDefinition>());
 
-            public string RequiredInventionId => "武器训练";
+            public string RequiredInventionId => "weapon_training";
             public string CostResourceId => "碎石";
             public int ResourceCost => 1;
             public int Experience => 1;

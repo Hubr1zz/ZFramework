@@ -21,7 +21,7 @@ namespace HuntingInDarkness.Adapter.Tests
             TestContext context = CreateContext(2);
             var received = new List<string>();
             Action<ResourceChangedEvent> resourceHandler = evt => received.Add($"resource:{evt.OldAmount}>{evt.NewAmount}");
-            Action<SettlementInventionUnlockedEvent> inventionHandler = evt => received.Add($"invention:{evt.InventionName}");
+            Action<SettlementInventionUnlockedEvent> inventionHandler = evt => received.Add($"invention:{evt.InventionId}:{evt.DisplayName}");
             Action<SettlementTransactionCommittedEvent> transactionHandler = evt => received.Add($"transaction:{evt.Kind}");
             EventBus.Subscribe(resourceHandler);
             EventBus.Subscribe(inventionHandler);
@@ -33,6 +33,8 @@ namespace HuntingInDarkness.Adapter.Tests
                 SettlementInventionCommandResult result = await session.UnlockInventionAsync(context.Invention);
 
                 Assert.That(result.Succeeded, Is.True);
+                Assert.That(result.InventionId, Is.EqualTo("stonecraft"));
+                Assert.That(result.DisplayName, Is.EqualTo("石工"));
                 Assert.That(context.Settlement.GetResource("碎石"), Is.Zero);
                 Assert.That(context.System.IsUnlocked(context.Invention), Is.True);
                 Assert.That(context.Settlement.Timeline, Has.Count.EqualTo(1));
@@ -40,7 +42,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(context.Settlement.Timeline[0].EventName, Is.EqualTo("石工"));
                 Assert.That(context.Settlement.Timeline[0].EntryType, Is.EqualTo(TimelineEntryType.Invention));
                 Assert.That(context.Settlement.Timeline[0].IsCompleted, Is.True);
-                Assert.That(received, Is.EqualTo(new[] { "resource:2>0", "invention:石工", "transaction:Invention" }));
+                Assert.That(received, Is.EqualTo(new[] { "resource:2>0", "invention:stonecraft:石工", "transaction:Invention" }));
             }
             finally
             {
@@ -101,6 +103,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             TestContext context = CreateContext(2);
             InventionData foreign = ScriptableObject.CreateInstance<InventionData>();
+            foreign.ConfigureContentId("foreign_invention");
             foreign.inventionName = "外来发明";
             try
             {
@@ -110,7 +113,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
                 Assert.That(result.Succeeded, Is.False);
                 Assert.That(context.Settlement.GetResource("碎石"), Is.EqualTo(2));
-                Assert.That(context.Settlement.IsInventionUnlocked(foreign.inventionName), Is.False);
+                Assert.That(context.Settlement.IsInventionUnlocked(foreign.ContentId), Is.False);
             }
             finally
             {
@@ -128,6 +131,7 @@ namespace HuntingInDarkness.Adapter.Tests
             resource.itemType = ItemType.Resource;
             InventionData invention = ScriptableObject.CreateInstance<InventionData>();
             invention.name = "stonecraft";
+            invention.ConfigureContentId("stonecraft");
             invention.inventionName = "石工";
             invention.costs.Add(new InventionCost { resource = resource, count = 1 });
             invention.costs.Add(new InventionCost { resource = resource, count = 1 });

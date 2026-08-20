@@ -4,6 +4,7 @@ using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 using UI;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
@@ -15,6 +16,7 @@ namespace HuntingInDarkness.Adapter.Tests
         public void TearDown()
         {
             PlayableSettlementItemRegistry.Configure(null);
+            PlayableSettlementInventionRegistry.Configure(null);
             foreach (Object createdObject in createdObjects)
                 if (createdObject != null)
                     Object.DestroyImmediate(createdObject);
@@ -42,14 +44,34 @@ namespace HuntingInDarkness.Adapter.Tests
         public void EventUnlock_RecordsInventionWithoutViewMutation()
         {
             var settlement = new SettlementInstance { CurrentYear = 3 };
+            InventionData ritual = ScriptableObject.CreateInstance<InventionData>();
+            ritual.name = "Ritual";
+            ritual.ConfigureContentId("ritual");
+            ritual.inventionName = "仪式";
+            createdObjects.Add(ritual);
+            PlayableSettlementInventionRegistry.Configure(new[] { ritual });
             var eventSystem = new EventSystem(settlement, new HuntingInDarkness.GameCore.Foundation.SystemRandomSource(7));
 
-            eventSystem.ApplyEffect(new EventEffect { effectType = EventEffectType.UnlockInvention, targetName = "仪式" }, null);
+            eventSystem.ApplyEffect(new EventEffect { effectType = EventEffectType.UnlockInvention, targetName = "ritual" }, null);
 
-            Assert.That(settlement.IsInventionUnlocked("仪式"), Is.True);
+            Assert.That(settlement.IsInventionUnlocked("ritual"), Is.True);
             Assert.That(settlement.Timeline, Has.Count.EqualTo(1));
-            Assert.That(settlement.Timeline[0].EventId, Is.EqualTo("invention:仪式"));
+            Assert.That(settlement.Timeline[0].EventId, Is.EqualTo("invention:ritual"));
+            Assert.That(settlement.Timeline[0].EventName, Is.EqualTo("仪式"));
             Assert.That(settlement.Timeline[0].EntryType, Is.EqualTo(TimelineEntryType.Invention));
+        }
+
+        [Test]
+        public void EventUnlock_RejectsUnknownInventionWithoutPollutingPersistentState()
+        {
+            var settlement = new SettlementInstance();
+            var eventSystem = new EventSystem(settlement, new HuntingInDarkness.GameCore.Foundation.SystemRandomSource(7));
+            LogAssert.Expect(LogType.Warning, "[EventSystem] 无法解锁未注册发明：unknown_invention");
+
+            eventSystem.ApplyEffect(new EventEffect { effectType = EventEffectType.UnlockInvention, targetName = "unknown_invention" }, null);
+
+            Assert.That(settlement.UnlockedInventions, Is.Empty);
+            Assert.That(settlement.Timeline, Is.Empty);
         }
 
         [Test]

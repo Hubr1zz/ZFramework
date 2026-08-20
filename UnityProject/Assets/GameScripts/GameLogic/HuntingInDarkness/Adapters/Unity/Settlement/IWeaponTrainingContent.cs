@@ -21,7 +21,7 @@ namespace HuntingInDarkness.Settlement
             this.catalog = catalog;
         }
 
-        public string RequiredInventionId => catalog?.TrainingInventionName ?? string.Empty;
+        public string RequiredInventionId => catalog?.TrainingInventionId ?? string.Empty;
         public string CostResourceId => catalog?.TrainingCostItem?.ContentId ?? string.Empty;
         public int ResourceCost => catalog?.TrainingCost ?? 0;
         public int Experience => catalog?.TrainingExperience ?? 0;

@@ -11,23 +11,26 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 {
     public readonly struct SettlementInventionCommandResult
     {
-        public SettlementInventionCommandResult(bool succeeded, string reason, string inventionName)
+        public SettlementInventionCommandResult(bool succeeded, string reason, string inventionId, string displayName)
         {
             Succeeded = succeeded;
             Reason = reason ?? string.Empty;
-            InventionName = inventionName ?? string.Empty;
+            InventionId = inventionId ?? string.Empty;
+            DisplayName = displayName ?? string.Empty;
         }
 
         public bool Succeeded { get; }
         public string Reason { get; }
-        public string InventionName { get; }
+        public string InventionId { get; }
+        public string DisplayName { get; }
 
-        public static SettlementInventionCommandResult Failed(string reason) => new(false, reason, string.Empty);
+        public static SettlementInventionCommandResult Failed(string reason) => new(false, reason, string.Empty, string.Empty);
     }
 
     public struct SettlementInventionUnlockedEvent
     {
-        public string InventionName;
+        public string InventionId;
+        public string DisplayName;
     }
 
     public sealed class UnlockSettlementInventionAction : CommandAction, ISourceAction, ITargetAction
@@ -70,9 +73,9 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
             foreach (KeyValuePair<string, int> previous in previousResources)
                 eventOutbox.Stage(new ResourceChangedEvent { ResourceName = previous.Key, OldAmount = previous.Value, NewAmount = settlement.GetResource(previous.Key) });
-            Result = new SettlementInventionCommandResult(true, string.Empty, invention.inventionName);
-            eventOutbox.Stage(new SettlementInventionUnlockedEvent { InventionName = invention.inventionName });
-            eventOutbox.Stage(new SettlementTransactionCommittedEvent { TransactionId = $"invention:{invention.inventionName}", Kind = SettlementTransactionKind.Invention });
+            Result = new SettlementInventionCommandResult(true, string.Empty, invention.ContentId, invention.inventionName);
+            eventOutbox.Stage(new SettlementInventionUnlockedEvent { InventionId = invention.ContentId, DisplayName = invention.inventionName });
+            eventOutbox.Stage(new SettlementTransactionCommittedEvent { TransactionId = $"invention:{invention.ContentId}", Kind = SettlementTransactionKind.Invention });
             return UniTask.FromResult(ActionOutcome.Success());
         }
 

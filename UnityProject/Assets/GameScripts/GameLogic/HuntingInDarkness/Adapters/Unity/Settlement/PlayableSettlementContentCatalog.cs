@@ -56,16 +56,25 @@ namespace HuntingInDarkness.Settlement
         {
             if (manager == null || !IsConfigured) return false;
 
+            List<InventionData> configuredInventions = inventions.FindAll(invention => invention != null);
+            PlayableSettlementInventionRegistry.Configure(configuredInventions);
+            if (PlayableSettlementInventionRegistry.Inventions.Count != configuredInventions.Count)
+            {
+                Debug.LogError("[SettlementManager] 发明目录包含空白、重复或别名冲突的稳定身份，已拒绝装配。");
+                return false;
+            }
+
             manager.HunterMgmt.ConfigureDeathInspiration(deathInspirationGrowth, deathInspirationMinimumAge);
             manager.Data.HuntsPerYear = Mathf.Max(1, huntsPerYear);
             manager.Data.HuntsCompletedThisYear = Mathf.Clamp(manager.Data.HuntsCompletedThisYear, 0, manager.Data.HuntsPerYear - 1);
             PlayableSettlementContentExtensions.Extend(GetKnownItems(), recipes, inventions, out List<ItemData> allItems, out List<CraftRecipe> allRecipes);
             PlayableSettlementItemRegistry.Configure(allItems);
             PlayableSettlementItemRegistry.MigratePersistentState(manager.Data);
+            PlayableSettlementInventionRegistry.MigratePersistentState(manager.Data);
             PlayableEventTableRuntime.Extend(randomEvents, mainStoryEvents, out List<EventData> allRandomEvents, out List<EventData> allMainStoryEvents);
             manager.Timeline.RandomEventPool = allRandomEvents;
             manager.Timeline.MainStoryEvents = allMainStoryEvents;
-            manager.Inventions.AllInventions = inventions.FindAll(invention => invention != null);
+            manager.Inventions.AllInventions = new List<InventionData>(PlayableSettlementInventionRegistry.Inventions);
             manager.Workshop.AllRecipes = allRecipes;
             if (manager.Data.Hunters.Count > 0)
             {
