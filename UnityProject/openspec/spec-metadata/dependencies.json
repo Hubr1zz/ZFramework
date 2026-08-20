@@ -65,6 +65,13 @@
       "specPath": "openspec/specs/tabletop-hunt-retreat/spec.md"
     },
     {
+      "id": "hunt-tabletop-harvest",
+      "label": "狩猎桌面资源采集",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-tabletop-harvest/spec.md"
+    },
+    {
       "id": "tabletop-settlement-invention",
       "label": "营地桌面发明解锁",
       "category": "feature",
@@ -205,6 +212,16 @@
       "type": "requires",
       "status": "defined",
       "reason": "Campaign 接受切换后由营地消费狩猎记录与转入资源",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-tabletop-harvest--requires--hunt-phase-orchestration",
+      "from": "hunt-tabletop-harvest",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "资源点选择、逐卡揭示与最终收获由 Hunt Runner 串行提交",
       "gapId": "",
       "blocksImplementation": false
     },

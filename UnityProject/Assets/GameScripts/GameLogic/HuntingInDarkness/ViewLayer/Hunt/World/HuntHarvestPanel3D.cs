@@ -147,7 +147,6 @@ namespace UI.Hunt
 
                 int obtainedCount = result.Obtained.Count;
                 statusText.text = obtainedCount > 0 ? $"采集完成 · 获得 {transaction.ResourceName} ×{obtainedCount}" : "采集完成 · 全部落空";
-                ReleaseInputGuard();
             }
             catch (System.OperationCanceledException)
             {

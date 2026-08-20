@@ -27,11 +27,15 @@ The 3D harvest view SHALL submit prepare and advance commands through `HuntManag
 - **THEN** the matching physical card flips to its hit or miss face and the following card becomes interactable
 
 ### Requirement: Harvest interaction owns map input
-The tabletop harvest view SHALL block tile and resource-marker commands while a harvest is unresolved, and SHALL release the guard when the player leaves before the first reveal, completes the harvest, or the hunt session changes.
+The tabletop harvest view SHALL block tile, resource-marker, and retreat commands while its physical cards remain open, and SHALL release the guard only when the player dismisses the presentation or the hunt session changes.
 
 #### Scenario: A partially revealed pool is open
 - **WHEN** at least one card has been revealed but the transaction is not committed
 - **THEN** the player must resolve the remaining cards and cannot abandon the authoritative transaction through the view
+
+#### Scenario: Committed results remain visible
+- **WHEN** the final card result has been committed but the result cards remain on the tabletop
+- **THEN** map movement, another resource point, and retreat input remain blocked until the player selects the physical close card
 
 ### Requirement: Configuration remains bounded
 The view SHALL derive its card count from resource configuration while applying `HarvestDrawPlan.MaximumCardCount`, including a valid confirmation path for an empty material pool.
