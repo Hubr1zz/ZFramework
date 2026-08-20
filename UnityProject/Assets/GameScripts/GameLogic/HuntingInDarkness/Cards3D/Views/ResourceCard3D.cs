@@ -9,7 +9,7 @@ namespace Cards3D
     /// 营地资源卡。显示资源名称和当前数量。
     /// 右键翻面（正面↔背面）；支持拖拽吸附到 CardSlot。
     /// </summary>
-    public class ResourceCard3D : CardView3D
+    public class ResourceCard3D : SlotDraggableCardView3D
     {
         // ─── 颜色 ─────────────────────────────────────────────────────────
         static readonly Color ColFaceDown = new(0.16f, 0.20f, 0.18f);
@@ -39,9 +39,6 @@ namespace Cards3D
         int    _count;
         bool   _isFaceUp  = true;
         bool   _isFlipping;
-
-        CardSlot _hoverSlot;
-        CardSlot _occupiedSlot;
 
         [SerializeField] TextMeshPro _nameText;
         [SerializeField] TextMeshPro _countText;
@@ -175,65 +172,17 @@ namespace Cards3D
             }
         }
 
-        // ─── 拖拽钩子（吸附到 CardSlot） ─────────────────────────────────
+        // ─── 未入槽落点（同种资源合并）─────────────────────────────────
 
-        protected override void OnBeginDrag()
+        protected override bool TryHandleUnslottedDrop()
         {
-            if (_occupiedSlot != null)
-            {
-                _occupiedSlot.ClearCard();
-                _occupiedSlot = null;
-            }
-        }
-
-        protected override void OnDragFrame()
-        {
-            CardSlot nearest     = null;
-            float    nearestDist = 0.55f;
-            foreach (var slot in CardSlot.AllSlots)
-            {
-                float d = new Vector2(
-                    transform.position.x - slot.transform.position.x,
-                    transform.position.z - slot.transform.position.z).magnitude;
-                if (d < nearestDist && slot.CanAccept(this))
-                {
-                    nearest     = slot;
-                    nearestDist = d;
-                }
-            }
-            if (_hoverSlot == nearest) return;
-            _hoverSlot?.SetHighlight(false);
-            _hoverSlot = nearest;
-            _hoverSlot?.SetHighlight(true);
-        }
-
-        protected override void OnEndDrag()
-        {
-            var target = _hoverSlot;
-            if (_hoverSlot != null) _hoverSlot.SetHighlight(false);
-            _hoverSlot = null;
-
-            // 1) 落在合法卡槽 → 入槽
-            if (target != null && target.CanAccept(this))
-            {
-                transform.SetParent(_preDragParent, worldPositionStays: true);
-                target.PlaceCard(this, _preDragParent);
-                _occupiedSlot = target;
-                return;
-            }
-
-            // 2) 拖到另一张同种卡上 → 合并成动态卡堆
             var mate = FindMergeTarget();
-            if (mate != null)
-            {
-                // 若对方在非堆叠槽中，先让它离开原槽
-                if (mate.CurrentSlot != null) mate.CurrentSlot.ClearCard();
-                var slot = CardSlot.CreateDynamicStack(mate);
-                slot.PushCard(this);
-                _occupiedSlot = slot;
-                return;
-            }
-            // 3) 否则：基类把卡送回原位
+            if (mate == null) return false;
+
+            if (mate.CurrentSlot != null) mate.CurrentSlot.ClearCard();
+            CardSlot slot = CardSlot.CreateDynamicStack(mate);
+            slot.PushCard(this);
+            return true;
         }
 
         /// <summary>

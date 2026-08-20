@@ -38,6 +38,9 @@ namespace Cards3D
         [BoxGroup("过滤"), LabelText("允许类别")]
         public CardCategory[] AcceptedCategories = { CardCategory.Any };
 
+        [BoxGroup("交互"), LabelText("允许拖出卡牌")]
+        public bool OccupantsDraggable = true;
+
         // ─── 只读状态 ─────────────────────────────────────────────────────────
         readonly List<CardSlot> _slots = new();
         public IReadOnlyList<CardSlot> Slots => _slots;
@@ -140,6 +143,7 @@ namespace Cards3D
             slot.SlotW              = SlotW;        // 赋属性（此时才安全）
             slot.SlotH              = SlotH;
             slot.AcceptedCategories = AcceptedCategories;
+            slot.AllowOccupantDrag  = OccupantsDraggable;
             slot.Build();                           // 属性齐全后构建视觉
 
             _slots.Add(slot);

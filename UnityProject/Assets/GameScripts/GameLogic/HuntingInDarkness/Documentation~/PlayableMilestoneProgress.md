@@ -458,3 +458,8 @@
 271. 对抗审查发现旧恢复规则接受未定义的 `HunterBodyPart`，会报告治疗成功并扣资源但不修改任何部位；共享 GameCore 规则现显式拒绝非法枚举。姓名规则也拒绝换行与控制字符，避免绕过 View 污染年鉴、存档和 UI。
 272. 两项兼容 Service 已无生产创建者，暂留给旧测试并等待阶段 4 与其他双入口一起删除。`CanRecruit/CanRecover` 仍只计算基础配置，不运行 Reactor Preview；未来设施或装备需要让折扣/扩容反向启用按钮时，应接入 Settlement Preview，而不是在 View 复制 Reactor 逻辑。猎人模板也仍缺少独立稳定内容 ID，读表前不能把资产显示名当长期绑定键。
 273. Unity MCP 聚焦营地照护与共享规则回归 17/17、全量 EditMode 304/304 通过；正式 ZFramework Play Mode 找到唯一运行时 GameManager，控制台 0 error。验证未使用截图、未提交玩家操作，玩家存档哈希保持不变。
+274. 营地表现方向正式收敛为 3D 桌面物件：资源卡与装备卡共享 `SlotDraggableCardView3D` 的拖拽、候选槽高亮、类别过滤、吸附和原位回退；`CardSlot/SlotGrid` 可显式配置卡牌是否允许拖出，避免只读展示槽产生伪交互。
+275. 猎人卡点击现在优先打开铺在营地桌面的 `HunterEquipmentPanel3D`，以 3×3 实体卡槽展示当前装备，并提供 3D 关闭物件；旧 2D 猎人详情只保留为 3D 面板无法建立时的兼容回退。营地 `ItemData` 使用独立 `SettlementItemCard3D` 映射，不再复用战斗测试包的 `EquipmentCardData`。
+276. 新增 `ITabletopRandomInteractionPresenter` 端口，统一物理骰子、抽卡、翻牌与抽鬼牌的可等待生命周期；请求只携带稳定 Actor/Target/Deck ID，不把场景 Transform 泄漏到数据层，结果由表现完成后返回给 ActionQueue。物理骰子实体、稳定检测和各事件 Action 接线将在后续切片实现。
+277. 对抗审查暂时把猎人装备槽设为只读：装备仓库卡与装备/卸下 ActionQueue 事务尚未接通前，不允许玩家产生“卡已放入但权威数据未提交”的假成功。检查同时修复了旧资源拖放的隐藏占位错误：无效落点现在会重新占据原槽，不再只把视觉送回原位却把槽错误标为空。下一步应同时实现仓库 3D 卡区、异步命令结果和面板刷新，不得让 View 直接调用 `HunterManagementSystem`。
+278. 本轮 Roslyn 使用 Unity 现有 GameLogic 编译响应文件完成数据级编译，只有既有未使用事件警告。Unity MCP HTTP Server 已恢复，但 Unity Bridge 未注册任何实例，因而尚未完成 Editor 控制台、EditMode 与 Play Mode 验证；恢复 Bridge 后必须先补齐该门禁，再继续装备事务或物理骰子实现。

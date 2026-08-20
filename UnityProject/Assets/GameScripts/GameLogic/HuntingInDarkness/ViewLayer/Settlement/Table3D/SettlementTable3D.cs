@@ -30,6 +30,10 @@ namespace UI
         [Header("出发小队区（场景预放，无程序化回退）")]
         [SerializeField] private SquadZone _squadZone;
 
+        [Header("猎人 3D 装备板")]
+        [SerializeField] private HunterEquipmentPanel3D hunterEquipmentPanel;
+        [SerializeField] private Transform hunterEquipmentPanelAnchor;
+
         // ─── 点击回调（上层先设置，Init 时下发给对应分区）──────────────────
         public System.Action<HunterInstance>   OnHunterClicked;
         /// <summary>点击发明卡（有主动效果时触发），由外部展示效果选择面板。</summary>
@@ -48,6 +52,7 @@ namespace UI
         {
             _mgr = mgr;
             EnsureSceneRefs();    // 未连线时程序化搭建四区 + presenter
+            EnsureHunterEquipmentPanel();
             WireZoneCallbacks();  // 把上层设的回调下发给分区
             FillAllZones();
 
@@ -58,10 +63,28 @@ namespace UI
 
         private void WireZoneCallbacks()
         {
-            _hunterZone.OnHunterClicked              = OnHunterClicked;
+            _hunterZone.OnHunterClicked              = ShowHunterEquipment;
             _inventionZone.OnInventionEffectRequested = OnInventionEffectRequested;
             _workshopZone.OnWorkshopClicked          = OnWorkshopClicked;
             if (_squadZone != null) _squadZone.OnDepartureRequested = OnDepartureRequested;
+        }
+
+        private void EnsureHunterEquipmentPanel()
+        {
+            if (hunterEquipmentPanel == null)
+                hunterEquipmentPanel = HunterEquipmentPanel3D.Create(transform);
+        }
+
+        private void ShowHunterEquipment(HunterInstance hunter)
+        {
+            if (hunterEquipmentPanel == null)
+            {
+                OnHunterClicked?.Invoke(hunter);
+                return;
+            }
+
+            Vector3 position = hunterEquipmentPanelAnchor != null ? hunterEquipmentPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.2f));
+            hunterEquipmentPanel.Show(hunter, position);
         }
 
         private void FillAllZones()

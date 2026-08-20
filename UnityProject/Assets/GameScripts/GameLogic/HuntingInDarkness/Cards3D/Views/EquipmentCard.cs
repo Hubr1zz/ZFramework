@@ -7,7 +7,7 @@ namespace Cards3D
     /// <summary>
     /// 装备卡3D视图。继承 CardView3D，展示装备名/类型/描述。
     /// </summary>
-    public class EquipmentCard : CardView3D
+    public class EquipmentCard : SlotDraggableCardView3D
     {
         static readonly Color ColCard  = new(0.28f, 0.32f, 0.42f);
         static readonly Color ColHover = new(0.38f, 0.44f, 0.58f);

@@ -48,6 +48,9 @@ namespace Cards3D
         [BoxGroup("过滤"), LabelText("允许类别")]
         public CardCategory[] AcceptedCategories = { CardCategory.Any };
 
+        [BoxGroup("交互"), LabelText("允许拖出卡牌")]
+        public bool AllowOccupantDrag = true;
+
         // ─── 堆叠模式 ────────────────────────────────────────────────────────
 
         [BoxGroup("堆叠"), LabelText("可堆叠"), OnValueChanged("RebuildVisual")]
@@ -312,7 +315,7 @@ namespace Cards3D
 
             OccupantCard     = card;
             card.CurrentSlot = this;
-            card.EnableDrag  = true;
+            card.EnableDrag  = AllowOccupantDrag;
             card.DragStarted += OnCardDragStarted;
 
             // 等比缩放卡牌以填满槽（按该卡自身尺寸计算）
