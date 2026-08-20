@@ -13,6 +13,10 @@ namespace AgentWorkflow.Editor
 {
     public sealed partial class AgentWorkbenchWindow : EditorWindow
     {
+        private const float ChangeListWidth = 270f;
+        private const float ChangePanelGap = 6f;
+        private const float ChangePanelHorizontalChrome = 44f;
+
         private void DrawChangesPanel()
         {
             DrawChangeFolderControls();
@@ -20,7 +24,7 @@ namespace AgentWorkflow.Editor
             var visibleChanges = new List<ChangeEntry>();
             using (new EditorGUILayout.HorizontalScope(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
             {
-                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(270), GUILayout.ExpandHeight(true)))
+                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(ChangeListWidth), GUILayout.ExpandHeight(true)))
                 {
                     DrawChangeCategoryTabs();
                     EditorGUILayout.Space(4);
@@ -43,7 +47,7 @@ namespace AgentWorkflow.Editor
                     EditorGUILayout.EndScrollView();
                 }
 
-                GUILayout.Space(6);
+                GUILayout.Space(ChangePanelGap);
                 using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
                 {
                     _changeDetailScroll.x = 0f;
@@ -404,7 +408,7 @@ namespace AgentWorkflow.Editor
                             "Spec",
                             spec.Path,
                             spec.Content,
-                            Mathf.Max(320, position.width - 360));
+                            ChangeDetailContentWidth());
                     });
             }
 
@@ -417,7 +421,7 @@ namespace AgentWorkflow.Editor
                         "Proposal",
                         Path.Combine(change.Path, "proposal.md"),
                         change.ProposalContent,
-                        Mathf.Max(320, position.width - 360)));
+                        ChangeDetailContentWidth()));
             }
 
             if (!string.IsNullOrWhiteSpace(change.DesignContent))
@@ -429,7 +433,7 @@ namespace AgentWorkflow.Editor
                         "Design",
                         Path.Combine(change.Path, "design.md"),
                         change.DesignContent,
-                        Mathf.Max(320, position.width - 360)));
+                        ChangeDetailContentWidth()));
             }
         }
 
@@ -720,7 +724,7 @@ namespace AgentWorkflow.Editor
                 {
                     if (string.Equals(_editingMarkdownPath, markdownPath, StringComparison.OrdinalIgnoreCase))
                     {
-                        DrawMarkdownEditor(markdownPath, Mathf.Max(320, position.width - 560));
+                        DrawMarkdownEditor(markdownPath, ChangeDetailContentWidth());
                         return;
                     }
                     using (new EditorGUILayout.HorizontalScope())
@@ -743,7 +747,7 @@ namespace AgentWorkflow.Editor
                     : ResolveLocalizedDocument(markdownPath, canonicalMarkdown);
                 if (localized != null && localized.State != LocalizedDocumentState.Authority)
                 {
-                    DrawLocalizedMarkdown(markdownPath, canonicalMarkdown, Mathf.Max(320, position.width - 560));
+                    DrawLocalizedMarkdown(markdownPath, canonicalMarkdown, ChangeDetailContentWidth());
                     return;
                 }
                 foreach (var task in tasks)
@@ -912,7 +916,8 @@ namespace AgentWorkflow.Editor
         {
             const float twoColumnMinimumWidth = 640f;
             const float columnSpacing = 8f;
-            var availableWidth = Mathf.Max(1f, EditorGUIUtility.currentViewWidth - 318f);
+            var widthProbe = GUILayoutUtility.GetRect(1f, 0f, GUILayout.ExpandWidth(true));
+            var availableWidth = Mathf.Max(1f, widthProbe.width);
             var columnCount = availableWidth >= twoColumnMinimumWidth ? 2 : 1;
 
             for (var index = 0; index < fields.Length; index += columnCount)
@@ -934,6 +939,11 @@ namespace AgentWorkflow.Editor
                         new Rect(row.x + columnWidth + columnSpacing, row.y, columnWidth, rowHeight),
                         fields[index + 1]);
             }
+        }
+
+        private float ChangeDetailContentWidth()
+        {
+            return Mathf.Max(1f, position.width - ChangeListWidth - ChangePanelGap - ChangePanelHorizontalChrome);
         }
 
         private bool IsEditingChangeNotes(string path) =>

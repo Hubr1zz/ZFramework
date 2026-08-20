@@ -17,3 +17,7 @@
 生成代码实现设计、修复代码、重构代码或执行任何项目 C# 修改时，必须先读取
 `.agents/skills/zframework-dev/references/CODE-WORKFLOW.md`，完成 L1-L4 分级并按主题加载
 `.agents/skills/zframework-dev/` 的共享参考。工具专属 `.claude/`、`.codex/` 只作为薄入口，不是项目规范权威源。
+
+## 项目专用技能路由
+
+- 修改、优化或重构 zWorkFlow Unity Workbench UI 时，必须先读取 `.agents/skills/zworkflow-ui-maintenance/SKILL.md` 并执行其中的布局审计。该 skill 仅属于当前项目，不得加入 zWorkFlow 移植包。
