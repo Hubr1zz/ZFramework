@@ -44,16 +44,34 @@ namespace HuntingInDarkness.Settlement
             if (!progress.ShouldAdvanceYear)
             {
                 Debug.Log($"[Timeline] 本年狩猎进度 → {_settlement.HuntsCompletedThisYear}/{_settlement.HuntsPerYear}");
+                PublishHuntCompleted(huntRecord, _settlement.HuntsCompletedThisYear, 0);
                 return new List<EventData>();
             }
 
             _settlement.CurrentYear = SettlementTimelineRules.AdvanceYear(_settlement.CurrentYear);
             Debug.Log($"[Timeline] 年份推进 → {_settlement.CurrentYear}");
+            PublishHuntCompleted(huntRecord, Mathf.Max(1, _settlement.HuntsPerYear), _settlement.CurrentYear);
             EventBus.Publish(new YearAdvancedEvent { NewYear = _settlement.CurrentYear });
 
             // 获取该年应触发的事件列表
             var events = GetEventsForYear(_settlement.CurrentYear);
             return events;
+        }
+
+        private void PublishHuntCompleted(HuntRecord huntRecord, int huntsCompletedInYear, int advancedToYear)
+        {
+            EventBus.Publish(new HuntCompletedEvent
+            {
+                CompletedYear = huntRecord?.Year ?? _settlement.CurrentYear,
+                HuntsCompletedInYear = huntsCompletedInYear,
+                HuntsPerYear = Mathf.Max(1, _settlement.HuntsPerYear),
+                TotalHunts = _settlement.HuntHistory.Count,
+                HuntersDeployed = huntRecord?.HuntersDeployed ?? 0,
+                HuntersLost = huntRecord?.HuntersLost ?? 0,
+                CollectedResourceCount = huntRecord?.CollectedResources?.Count ?? 0,
+                BossDefeated = huntRecord?.BossDefeated == true,
+                AdvancedToYear = advancedToYear
+            });
         }
 
         /// <summary>仅推进年份（不记录狩猎，用于测试/跳过）</summary>

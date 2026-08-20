@@ -62,6 +62,11 @@
 - **WHEN** 时间线条目尚未完成
 - **THEN** 年鉴 SHALL 以不同状态显示“将发生”，保留玩家对未来战役的预期
 
+#### Scenario: 狩猎回营但年份尚未推进
+
+- **WHEN** 狩猎记录已经提交且本年仍可继续出猎
+- **THEN** 年鉴入口卡和已打开的年鉴 SHALL 立即显示新的狩猎进度与记录数
+
 ### Requirement: 正常流程不创建旧营地屏幕 HUD
 
 正式 `PlayableGameBootstrap` SHALL 不再实例化 `PlayableSettlementHud`。3D 出发端口 SHALL 在没有旧 HUD 的情况下继续由营地桌面调用。

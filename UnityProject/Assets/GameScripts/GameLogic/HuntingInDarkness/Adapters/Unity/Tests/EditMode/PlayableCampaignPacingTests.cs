@@ -1,3 +1,5 @@
+using System;
+using Core;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -25,6 +27,47 @@ namespace HuntingInDarkness.Tests
             Assert.That(settlement.CurrentYear, Is.EqualTo(2));
             Assert.That(settlement.HuntsCompletedThisYear, Is.Zero);
             Assert.That(settlement.HuntHistory, Has.Count.EqualTo(2));
+        }
+
+        [Test]
+        public void AdvanceYear_PublishesCommittedHuntProgressForEveryReturn()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 1, HuntsPerYear = 2 };
+            var timeline = new TimelineSystem(settlement, new FirstRandom());
+            HuntCompletedEvent received = default;
+            int receivedCount = 0;
+            Action<HuntCompletedEvent> handler = evt =>
+            {
+                received = evt;
+                receivedCount++;
+            };
+            EventBus.Subscribe(handler);
+            try
+            {
+                timeline.AdvanceYear(new HuntRecord { Year = 1, HuntersDeployed = 2, HuntersLost = 1, CollectedResources = { "碎石", "碎石" } });
+
+                Assert.That(receivedCount, Is.EqualTo(1));
+                Assert.That(received.CompletedYear, Is.EqualTo(1));
+                Assert.That(received.HuntsCompletedInYear, Is.EqualTo(1));
+                Assert.That(received.HuntsPerYear, Is.EqualTo(2));
+                Assert.That(received.TotalHunts, Is.EqualTo(1));
+                Assert.That(received.HuntersDeployed, Is.EqualTo(2));
+                Assert.That(received.HuntersLost, Is.EqualTo(1));
+                Assert.That(received.CollectedResourceCount, Is.EqualTo(2));
+                Assert.That(received.AdvancedToYear, Is.Zero);
+
+                timeline.AdvanceYear(new HuntRecord { Year = 1, HuntersDeployed = 1, BossDefeated = true });
+
+                Assert.That(receivedCount, Is.EqualTo(2));
+                Assert.That(received.HuntsCompletedInYear, Is.EqualTo(2));
+                Assert.That(received.TotalHunts, Is.EqualTo(2));
+                Assert.That(received.BossDefeated, Is.True);
+                Assert.That(received.AdvancedToYear, Is.EqualTo(2));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
         }
 
         [Test]

@@ -109,6 +109,16 @@
 - **维护时间**: 2026-08-20
 - **维护备注**: 当前正常退出与旧后台写入竞态已修复；本条只覆盖异常终止和未来字段迁移，不阻塞当前可玩流程。
 
+### [优先级: 中] SettlementTable3D 预置场景装配会跳过初始化
+- **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs`、`Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs`
+- **类型**: 组合根 / 场景装配
+- **描述**: `EnsureSettlementUI` 只在 `_settlementTable3D == null` 时配置命令回调并调用 `Init`；未来若按现有 SerializeField/场景化设计预置该组件，非空引用会直接跳过完整装配，导致分区、ActionQueue 命令和 EventBus 订阅未初始化。应在完整梳理重复初始化与订阅幂等性后，把“创建缺失实例”和“配置并初始化现有实例”拆成两个明确步骤，并以初始化状态防止重复订阅。
+- **来源**: 2026-08-20 狩猎回营年鉴刷新审查
+- **状态**: 待处理
+- **维护人**: codex
+- **维护时间**: 2026-08-20
+- **维护备注**: 当前正式运行路径由 GameManager 程序化创建，尚不触发；待营地桌面场景化时应先处理，避免只修单个回调。
+
 ---
 
 ## 🕐 近期改动模块

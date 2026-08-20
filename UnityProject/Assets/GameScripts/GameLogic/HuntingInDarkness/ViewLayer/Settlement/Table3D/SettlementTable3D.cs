@@ -123,6 +123,7 @@ namespace UI
 
             EventBus.Subscribe<ResourceChangedEvent>(OnResourceChanged);
             EventBus.Subscribe<HunterRosterChangedEvent>(OnRosterChanged);
+            EventBus.Subscribe<HuntCompletedEvent>(OnHuntCompleted);
             EventBus.Subscribe<YearAdvancedEvent>(OnYearAdvanced);
         }
 
@@ -467,6 +468,8 @@ namespace UI
             RefreshContextPanels();
         }
 
+        private void OnHuntCompleted(HuntCompletedEvent _) => RefreshContextPanels();
+
         private void OnYearAdvanced(YearAdvancedEvent _)
         {
             _inventionZone.RefreshCards();
@@ -490,6 +493,7 @@ namespace UI
         {
             EventBus.Unsubscribe<ResourceChangedEvent>(OnResourceChanged);
             EventBus.Unsubscribe<HunterRosterChangedEvent>(OnRosterChanged);
+            EventBus.Unsubscribe<HuntCompletedEvent>(OnHuntCompleted);
             EventBus.Unsubscribe<YearAdvancedEvent>(OnYearAdvanced);
         }
     }

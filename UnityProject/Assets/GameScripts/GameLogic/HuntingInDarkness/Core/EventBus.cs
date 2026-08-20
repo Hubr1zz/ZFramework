@@ -175,8 +175,19 @@ namespace Core
         public int[] HunterIds;
     }
 
-    /// <summary>狩猎阶段结束，结算战利品（狩猎→Boss/营地）</summary>
-    public struct HuntCompletedEvent { }
+    /// <summary>狩猎记录已经写入营地年鉴，供只读表现刷新。</summary>
+    public struct HuntCompletedEvent
+    {
+        public int CompletedYear;
+        public int HuntsCompletedInYear;
+        public int HuntsPerYear;
+        public int TotalHunts;
+        public int HuntersDeployed;
+        public int HuntersLost;
+        public int CollectedResourceCount;
+        public bool BossDefeated;
+        public int AdvancedToYear;
+    }
 
     // ─── Boss决战 ───
 

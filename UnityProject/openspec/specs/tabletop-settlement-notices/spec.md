@@ -13,11 +13,16 @@ title: "3D 营地消息记录"
 ## Requirements
 
 ### Requirement: Settlement notices are world-space cards
-The normal playable flow SHALL present hunter growth milestones, permanent hunter losses, and weapon mastery changes as world-space cards and SHALL NOT create their legacy screen-space toast components.
+The normal playable flow SHALL present hunt completion records, hunter growth milestones, permanent hunter losses, and weapon mastery changes as world-space cards and SHALL NOT create their legacy screen-space toast components.
 
 #### Scenario: A committed progression fact is published
 - **WHEN** the playable game is in Settlement
 - **THEN** one physical notice card and one dismiss card appear on the settlement table
+
+#### Scenario: A Hunt return is committed
+
+- **WHEN** the Timeline stores a Hunt record, including a return that does not advance the year
+- **THEN** a physical notice summarizes deployed hunters, losses, carried materials, and current annual Hunt progress
 
 ### Requirement: Burst feedback preserves commit order
 The notice presenter SHALL queue every supported fact in publication order instead of allowing a later message to overwrite an earlier one.

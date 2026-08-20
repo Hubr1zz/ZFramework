@@ -34,6 +34,7 @@ namespace UI
             EventBus.Subscribe<HunterGrowthMilestoneReachedEvent>(OnGrowthMilestoneReached);
             EventBus.Subscribe<HunterDiedEvent>(OnHunterDied);
             EventBus.Subscribe<WeaponMasteryChangedEvent>(OnWeaponMasteryChanged);
+            EventBus.Subscribe<HuntCompletedEvent>(OnHuntCompleted);
         }
 
         private void Update()
@@ -125,11 +126,21 @@ namespace UI
             Enqueue(new SettlementNotice("武器熟练度成长", body, "经验已经写入猎人记录", TabletopEventPrimaryTone.Success));
         }
 
+        private void OnHuntCompleted(HuntCompletedEvent evt)
+        {
+            string outcome = evt.BossDefeated ? "讨伐成功" : "从黑暗中归来";
+            string body = $"第 {evt.CompletedYear} 年 · {outcome}\n本年狩猎 {evt.HuntsCompletedInYear}/{evt.HuntsPerYear}\n\n出发 {evt.HuntersDeployed} · 损失 {evt.HuntersLost} · 带回 {evt.CollectedResourceCount} 项物资";
+            string footer = evt.AdvancedToYear > 0 ? $"营地进入第 {evt.AdvancedToYear} 年" : $"年鉴现有 {evt.TotalHunts} 条狩猎记录";
+            TabletopEventPrimaryTone tone = evt.HuntersLost > 0 ? TabletopEventPrimaryTone.Failure : TabletopEventPrimaryTone.Success;
+            Enqueue(new SettlementNotice("狩猎记录归档", body, footer, tone));
+        }
+
         private void OnDestroy()
         {
             EventBus.Unsubscribe<HunterGrowthMilestoneReachedEvent>(OnGrowthMilestoneReached);
             EventBus.Unsubscribe<HunterDiedEvent>(OnHunterDied);
             EventBus.Unsubscribe<WeaponMasteryChangedEvent>(OnWeaponMasteryChanged);
+            EventBus.Unsubscribe<HuntCompletedEvent>(OnHuntCompleted);
             if (presentationRoot != null)
                 Destroy(presentationRoot);
         }
