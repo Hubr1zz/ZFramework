@@ -11,6 +11,9 @@ namespace HuntingInDarkness.Adapter.Tests
         private const string CatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/PlayableHuntDestinationCatalog.asset";
         private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
 
+        [TearDown]
+        public void TearDown() => PlayableHuntDestinationRuntime.Configure(null, null);
+
         [Test]
         public void Catalog_ProvidesTwoDistinctAvailableRoutes()
         {
@@ -31,6 +34,33 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(settings, Is.Not.Null);
             Assert.That(settings.HuntDestinations, Is.Not.Null);
             Assert.That(settings.HuntDestinations.IsConfigured, Is.True);
+        }
+
+        [Test]
+        public void CanSelect_ValidatesWithoutMutatingActiveRoute()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableHuntDestination destination = settings.HuntDestinations.GetAvailable(1)[0];
+            PlayableHuntDestinationRuntime.Configure(settings.HuntDestinations, settings.HuntContent);
+
+            bool canSelect = PlayableHuntDestinationRuntime.CanSelect(destination, 1, out string reason);
+
+            Assert.That(canSelect, Is.True, reason);
+            Assert.That(PlayableHuntDestinationRuntime.ActiveDestination, Is.Null);
+        }
+
+        [Test]
+        public void TrySelectForDeparture_NullRouteRestoresFallbackSelection()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableHuntDestination destination = settings.HuntDestinations.GetAvailable(1)[0];
+            PlayableHuntDestinationRuntime.Configure(settings.HuntDestinations, settings.HuntContent);
+            Assert.That(PlayableHuntDestinationRuntime.TrySelect(destination, 1, out string selectReason), Is.True, selectReason);
+
+            bool selectedFallback = PlayableHuntDestinationRuntime.TrySelectForDeparture(null, 1, out string fallbackReason);
+
+            Assert.That(selectedFallback, Is.True, fallbackReason);
+            Assert.That(PlayableHuntDestinationRuntime.ActiveDestination, Is.Null);
         }
     }
 }

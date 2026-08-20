@@ -45,6 +45,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 - 第 2、5 步仍待完成；`GameManager` 暂时作为 `ICampaignPhaseTransitionHost` 执行场景根和旧会话装配。招募与休养 View 已改走窄命令外观，内容目录只在启动时注入并转交 Settlement Session，不再由 View Service 直接提交状态。
 - 第 6 步已提前完成安全子项：移除 `GameManager.OnDestroy` 中的全局 `EventBus.Clear()`，并在销毁时清空单例；完全删除兼容单例仍须等待调用方迁移。
 - 跨阶段事件表现已统一为 `IPlayableEventInput` 驱动的世界空间 3D 卡牌面板；Settlement/Hunt Runner 仍分别拥有规则环境与 ActionQueue，物理骰子继续在 Runner 内等待。旧 `EventPopupHunt` 和营地 HUD 事件入口仅保留兼容用途。
+- 营地出猎已改为世界空间猎人卡编队与地区卡选择：View 只暂存玩家意图，Settlement Runner 校验并提交名册，Campaign Runner 完成阶段切换。旧 `SettlementManager.TryDepart`、`DepartureConfirmWindow` 与 `SettlementUIManager.ShowDepartureConfirm` 暂作场景兼容层，确认无序列化引用后再一次性删除。
 
 ## 已知剩余风险
 
@@ -57,6 +58,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 7. 进入营地的自动保存仍是异步 `.Forget()`，领域切换成功与磁盘失败没有统一结果；后续需要显式保存重试/退出策略，不能把文件 IO 伪装成可回滚领域事务。
 8. 战斗事件目前默认使用当前狩猎小队，或营地全部可用猎人；事件级参与者选择规则尚未定稿。正式出现单挑、护送或临时盟友遭遇时，应让遭遇定义产生显式 Roster Plan，而不是在 `GameManager` 增加名称判断。
 9. `PlayableSettlementEventView` 已承担营地与狩猎共用表现，类名不再准确。未来迁移 View Installer 时应在确认场景序列化引用后一次性改名，避免为了命名洁癖引入多轮兼容迁移。
+10. 出猎目前由 `GameManager` 串联 Settlement 与 Campaign 两个 Runner；目的地在阶段切换失败时会恢复，但已提交名册尚无统一补偿动作。后续跨 Runner 流程继续增加时，应由 `CampaignFlowCoordinator` 提供带补偿的请求对象，不要继续把编排分支堆入 `GameManager`。
 
 ## 暂不改动
 

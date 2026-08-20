@@ -42,6 +42,13 @@
       "category": "system",
       "readiness": "implemented",
       "specPath": "openspec/specs/csharp-derived-index/spec.md"
+    },
+    {
+      "id": "tabletop-hunt-departure",
+      "label": "3D 狩猎远征整备",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-hunt-departure/spec.md"
     }
   ],
   "edges": [
@@ -82,6 +89,26 @@
       "type": "requires",
       "status": "defined",
       "reason": "决战阶段由 GameManager 激活并向营地阶段交接",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-departure--requires--settlement-phase-orchestration",
+      "from": "tabletop-hunt-departure",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "远征名册在营地阶段 Runner 内验证并提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-departure--requires--hunt-phase-orchestration",
+      "from": "tabletop-hunt-departure",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "确认后的地区内容与小队交由狩猎阶段初始化消费",
       "gapId": "",
       "blocksImplementation": false
     }

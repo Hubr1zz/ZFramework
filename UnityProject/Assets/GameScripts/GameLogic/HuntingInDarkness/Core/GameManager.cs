@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using CardTactics.CombatSystem;
 using Cysharp.Threading.Tasks;
 using Config;
@@ -138,6 +139,8 @@ namespace Core
         private PlayableHuntActionSession huntActionSession;
         private PlayableCampaignActionSession campaignActionSession;
         private IPlayableEventInput playableEventInput;
+        private IPlayableHuntDepartureInput playableHuntDepartureInput;
+        private bool huntDepartureInFlight;
         [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
         private PlayableSettlementContentCatalog settlementContentCatalog;
 
@@ -644,9 +647,7 @@ namespace Core
                     // TODO: 弹出 3D canvas 让玩家选择要触发的效果
                 };
 
-                // 点击出发卡 → 弹出 2D 出发确认窗
-                _settlementTable3D.OnDepartureRequested = squad =>
-                    _settlementUIManager?.ShowDepartureConfirm(squad);
+                _settlementTable3D.OnDepartureRequested = squad => RequestHuntDeparture(squad != null ? squad.Where(hunter => hunter != null).Select(hunter => hunter.InstanceId).ToList() : new List<int>());
 
                 _settlementTable3D.Init(_settlementManager);
             }
@@ -662,6 +663,7 @@ namespace Core
         public IReadOnlyList<HunterInstance> ActiveHuntHunters => _huntMgr != null ? _huntMgr.ActiveHunters : System.Array.Empty<HunterInstance>();
         public bool IsHuntActionSessionActive => huntActionSession?.IsActive == true;
         public bool IsCampaignActionSessionActive => campaignActionSession?.IsActive == true;
+        public bool IsSettlementActionSessionRunning => settlementActionSession?.IsRunning == true;
         public CardGame.ActionQueue.ReactorRegistry SettlementActionReactors => settlementActionSession?.Reactors;
         public CardGame.ActionQueue.ReactorRegistry CampaignActionReactors => campaignActionSession?.Reactors;
         public CardGame.ActionQueue.ReactorRegistry HuntActionReactors => huntActionSession?.Reactors;
@@ -690,10 +692,80 @@ namespace Core
                 _huntMgr.EventInput = null;
         }
 
+        public void SetPlayableHuntDepartureInput(IPlayableHuntDepartureInput input) => playableHuntDepartureInput = input;
+
+        public void ClearPlayableHuntDepartureInput(IPlayableHuntDepartureInput input)
+        {
+            if (ReferenceEquals(playableHuntDepartureInput, input))
+                playableHuntDepartureInput = null;
+        }
+
+        public void RequestHuntDeparture(IReadOnlyList<int> hunterIds)
+        {
+            if (playableHuntDepartureInput != null)
+            {
+                playableHuntDepartureInput.RequestDeparture(hunterIds);
+                return;
+            }
+            DepartForHuntAsync(hunterIds).Forget();
+        }
+
+        public UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds) => DepartForHuntAsync(hunterIds, null);
+
+        public async UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds, PlayableHuntDestination destination)
+        {
+            if (huntDepartureInFlight)
+                return SettlementDepartureCommandResult.Failed("出猎流程正在处理中。");
+            if (CurrentGamePhase != GamePhase.Settlement || settlementActionSession == null || !settlementActionSession.IsActive)
+                return SettlementDepartureCommandResult.Failed("当前不在营地阶段。");
+            if (IsSettlementActionSessionRunning)
+                return SettlementDepartureCommandResult.Failed("请先完成当前营地流程。");
+            if (!PlayableHuntDestinationRuntime.CanSelectForDeparture(destination, SettlementData.CurrentYear, out string selectionReason))
+                return SettlementDepartureCommandResult.Failed(selectionReason);
+
+            huntDepartureInFlight = true;
+            PlayableHuntDestination previousDestination = PlayableHuntDestinationRuntime.ActiveDestination;
+            bool selectionApplied = false;
+            CancellationToken cancellationToken = this.GetCancellationTokenOnDestroy();
+            try
+            {
+                SettlementDepartureCommandResult departure = await settlementActionSession.PrepareDepartureAsync(hunterIds, cancellationToken);
+                if (!departure.Succeeded)
+                    return departure;
+                if (!PlayableHuntDestinationRuntime.TrySelectForDeparture(destination, SettlementData.CurrentYear, out selectionReason))
+                    return SettlementDepartureCommandResult.Failed(selectionReason);
+                selectionApplied = true;
+
+                CampaignPhaseTransitionResult transition = await TransitionToPhaseAsync(GamePhase.Hunt);
+                if (!transition.Succeeded)
+                {
+                    PlayableHuntDestinationRuntime.RestoreSelection(previousDestination);
+                    selectionApplied = false;
+                    return SettlementDepartureCommandResult.Failed(transition.Reason);
+                }
+                EventBus.Publish(new HuntDepartedEvent { HunterIds = departure.HunterIds.ToArray() });
+                return departure;
+            }
+            catch (System.OperationCanceledException)
+            {
+                if (selectionApplied)
+                    PlayableHuntDestinationRuntime.RestoreSelection(previousDestination);
+                return SettlementDepartureCommandResult.Failed("出猎流程已取消。");
+            }
+            finally
+            {
+                huntDepartureInFlight = false;
+            }
+        }
+
         public bool TryDepartForHunt(List<int> hunterIds)
         {
-            if (settlementActionSession?.IsRunning == true) return false;
-            return _settlementManager != null && _settlementManager.TryDepart(hunterIds);
+            if (huntDepartureInFlight || IsSettlementActionSessionRunning)
+                return false;
+            if (!DepartureRules.CanDepart(hunterIds, out _))
+                return false;
+            DepartForHuntAsync(hunterIds).Forget();
+            return true;
         }
 
         private void QueueSettlementEvents(IReadOnlyList<EventData> events)

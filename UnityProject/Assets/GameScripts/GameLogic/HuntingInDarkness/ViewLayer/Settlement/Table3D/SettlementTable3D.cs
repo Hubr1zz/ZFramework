@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
+using HuntingInDarkness.ViewLayer.Tabletop;
 using UnityEngine;
 
 namespace UI
@@ -36,6 +37,10 @@ namespace UI
         [SerializeField] private HunterEquipmentPanel3D hunterEquipmentPanel;
         [SerializeField] private Transform hunterEquipmentPanelAnchor;
 
+        [Header("狩猎整备入口")]
+        [SerializeField] private Vector3 fallbackDepartureLauncherPosition = new(3.25f, 0.03f, -2.65f);
+        private TabletopDepartureLauncherCard3D departureLauncher;
+
         // ─── 点击回调（上层先设置，Init 时下发给对应分区）──────────────────
         public System.Action<HunterInstance>   OnHunterClicked;
         /// <summary>点击发明卡（有主动效果时触发），由外部展示效果选择面板。</summary>
@@ -58,6 +63,7 @@ namespace UI
             _mgr = mgr;
             EnsureSceneRefs();    // 未连线时程序化搭建四区 + presenter
             EnsureHunterEquipmentPanel();
+            EnsureDepartureLauncher();
             WireZoneCallbacks();  // 把上层设的回调下发给分区
             FillAllZones();
 
@@ -73,6 +79,13 @@ namespace UI
             _workshopZone.OnWorkshopClicked          = OnWorkshopClicked;
             _workshopZone.OnCraftRequested           = OnCraftRequested;
             if (_squadZone != null) _squadZone.OnDepartureRequested = OnDepartureRequested;
+            if (departureLauncher != null) departureLauncher.Clicked = () => OnDepartureRequested?.Invoke(new List<HunterInstance>());
+        }
+
+        private void EnsureDepartureLauncher()
+        {
+            if (_squadZone != null || departureLauncher != null) return;
+            departureLauncher = TabletopDepartureLauncherCard3D.Create(transform, fallbackDepartureLauncherPosition);
         }
 
         private void EnsureHunterEquipmentPanel()

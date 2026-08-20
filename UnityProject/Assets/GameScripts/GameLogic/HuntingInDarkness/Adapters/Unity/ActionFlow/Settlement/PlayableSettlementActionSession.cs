@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using CardGame.ActionQueue;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Events;
@@ -48,6 +49,21 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         public ReactionGateRegistry ReactionGates => environment.ReactionGates;
         public bool IsRunning => environment.IsRunning;
         public IPlayableEventInput EventInput { get; set; }
+
+        public async UniTask<SettlementDepartureCommandResult> PrepareDepartureAsync(System.Collections.Generic.IReadOnlyList<int> hunterIds, CancellationToken cancellationToken = default)
+        {
+            if (!IsActive)
+                return SettlementDepartureCommandResult.Failed("当前不在营地阶段。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
+            ReactorEntityHandle squadEntity = environment.EntityHandles.GetOrCreate("hunt-squad", SessionId.ToString("N"), "本次狩猎小队");
+            var action = new PrepareSettlementDepartureAction(settlement, hunterIds, outbox, settlementEntity, squadEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            if (outcome.IsSuccess)
+                return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementDepartureCommandResult.Failed(outcome.Reason) : action.Result;
+        }
 
         public bool CanRecruit(out string reason)
         {

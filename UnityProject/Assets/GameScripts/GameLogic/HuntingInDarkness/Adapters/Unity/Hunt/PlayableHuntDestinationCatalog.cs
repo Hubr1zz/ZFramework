@@ -83,22 +83,58 @@ namespace HuntingInDarkness.Hunt
 
         public static bool TrySelect(PlayableHuntDestination destination, int currentYear, out string reason)
         {
+            if (!CanSelect(destination, currentYear, out reason)) return false;
+
+            ActiveDestination = destination;
+            PlayableHuntContentRuntime.Configure(destination.HuntContent);
+            reason = string.Empty;
+            return true;
+        }
+
+        public static bool CanSelect(PlayableHuntDestination destination, int currentYear, out string reason)
+        {
             if (destination == null)
             {
                 reason = "没有选择狩猎目的地。";
                 return false;
             }
             if (!destination.IsAvailable(currentYear, out reason)) return false;
-            if (catalog == null || !ContainsReference(catalog.Destinations, destination))
+            if (catalog != null && ContainsReference(catalog.Destinations, destination))
             {
-                reason = "这个目的地不属于当前战役。";
-                return false;
+                reason = string.Empty;
+                return true;
             }
 
-            ActiveDestination = destination;
-            PlayableHuntContentRuntime.Configure(destination.HuntContent);
+            reason = "这个目的地不属于当前战役。";
+            return false;
+        }
+
+        public static bool CanSelectForDeparture(PlayableHuntDestination destination, int currentYear, out string reason)
+        {
+            if (destination != null) return CanSelect(destination, currentYear, out reason);
             reason = string.Empty;
             return true;
+        }
+
+        public static bool TrySelectForDeparture(PlayableHuntDestination destination, int currentYear, out string reason)
+        {
+            if (destination != null) return TrySelect(destination, currentYear, out reason);
+            RestoreSelection(null);
+            reason = string.Empty;
+            return true;
+        }
+
+        public static void RestoreSelection(PlayableHuntDestination destination)
+        {
+            if (destination != null && catalog != null && ContainsReference(catalog.Destinations, destination))
+            {
+                ActiveDestination = destination;
+                PlayableHuntContentRuntime.Configure(destination.HuntContent);
+                return;
+            }
+
+            ActiveDestination = null;
+            PlayableHuntContentRuntime.Configure(fallbackContent);
         }
 
         public static void ApplyTo(HuntManager manager)
