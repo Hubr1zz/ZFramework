@@ -129,6 +129,16 @@
 - **维护时间**: 2026-08-20
 - **维护备注**: 用户已暂停决战阶段推进，本阶段仅记录；不要局部迁移单个旧方法造成第三套兼容桥。
 
+### [优先级: 中] 内容表改由 ZFramework 资源模块预加载并注入
+- **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/{PlayableEventTable,PlayableItemTable}.cs`、正式 Bootstrap 组合根
+- **类型**: 资源生命周期 / 依赖注入
+- **描述**: 事件表与物品表已通过 `IContentTableSource<T>` 隔离来源，但默认实现仍同步调用 `Resources.Load<TextAsset>`。当前表体量很小且只在内容装配时读取，不阻塞可玩流程；内容规模扩大后，应由正式 Bootstrap 使用 `GameModule.Resource` 统一预加载并向目录注入表来源，明确加载失败、卸载和热更新边界。不要把各个 `ApplyTo` 逐个改成异步调用，以免形成多套启动时序。
+- **来源**: 2026-08-20 读表物品与跨内容关键词实现审查
+- **状态**: 待处理
+- **维护人**: codex
+- **维护时间**: 2026-08-20
+- **维护备注**: 现有来源接口是后续切换点；应在完整分析战役启动与内容目录生命周期后一次迁移。
+
 ---
 
 ## 🕐 近期改动模块

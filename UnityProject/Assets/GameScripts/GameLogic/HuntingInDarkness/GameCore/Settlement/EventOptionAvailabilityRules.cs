@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HuntingInDarkness.GameCore.Foundation;
 
 namespace HuntingInDarkness.GameCore.Settlement
 {
@@ -15,7 +16,8 @@ namespace HuntingInDarkness.GameCore.Settlement
         HasTrait,
         HasAilment,
         MinimumResource,
-        HasEquippedItem
+        HasEquippedItem,
+        HasKeyword
     }
 
     public readonly struct EventOptionConditionDefinition
@@ -43,6 +45,11 @@ namespace HuntingInDarkness.GameCore.Settlement
 
         public static bool Evaluate(IReadOnlyList<EventOptionConditionDefinition> conditions, HunterState hunter, Func<string, int> resourceResolver, IReadOnlyCollection<string> equippedItems, out string reason)
         {
+            return Evaluate(conditions, hunter, resourceResolver, equippedItems, null, out reason);
+        }
+
+        public static bool Evaluate(IReadOnlyList<EventOptionConditionDefinition> conditions, HunterState hunter, Func<string, int> resourceResolver, IReadOnlyCollection<string> equippedItems, IReadOnlyCollection<string> keywords, out string reason)
+        {
             if (conditions == null || conditions.Count == 0)
             {
                 reason = "该选项没有配置可用条件。";
@@ -52,6 +59,8 @@ namespace HuntingInDarkness.GameCore.Settlement
             foreach (EventOptionConditionDefinition condition in conditions)
             {
                 bool passed = Evaluate(condition, hunter, resourceResolver, equippedItems);
+                if (condition.Kind == EventOptionConditionKind.HasKeyword)
+                    passed = KeywordRules.Contains(keywords, condition.Key);
                 if (condition.Inverted) passed = !passed;
                 if (passed) continue;
                 reason = Describe(condition);
@@ -76,6 +85,7 @@ namespace HuntingInDarkness.GameCore.Settlement
                 EventOptionConditionKind.HasAilment => $"拥有症状“{condition.Key}”",
                 EventOptionConditionKind.MinimumResource => $"营地拥有 {condition.Key} ×{condition.Value}",
                 EventOptionConditionKind.HasEquippedItem => $"装备“{condition.Key}”",
+                EventOptionConditionKind.HasKeyword => $"拥有关键词“{KeywordRules.Normalize(condition.Key)}”",
                 _ => "满足未知条件"
             };
             return condition.Inverted ? $"不可满足：{requirement}" : $"需要{requirement}";

@@ -77,6 +77,47 @@
       "maxYear": 0,
       "drawWeight": 1,
       "category": "Scheduled"
+    },
+    {
+      "id": "random_stone_vigil",
+      "eventName": "石缝里的盐光",
+      "eventType": "Choice",
+      "displayText": "营火将熄时，桌边一块旧石忽然渗出细小的黑色盐晶。它们像在躲避火光，沿着石缝缓慢聚拢。",
+      "hiddenText": "并非所有石头都沉默。有些只是等待同类替它开口。",
+      "options": [
+        {
+          "optionText": "让携带石质装备的猎人辨认盐晶的走向",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "装备上的石纹与盐晶彼此呼应。你们收集到一小撮黑盐，猎人也记住了石头传递讯息的方式。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "黑盐", "value": 1, "description": "黑盐 +1" },
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "stone", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "用木片扫开盐晶，避免惊动未知事物",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "盐晶落进灰里，很快失去了微光。至少今夜没有别的东西循迹而来。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Random"
     }
   ]
 }

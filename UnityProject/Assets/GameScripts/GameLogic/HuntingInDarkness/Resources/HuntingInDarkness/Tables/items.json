@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "black_salt",
+      "itemName": "黑盐",
+      "itemType": "Resource",
+      "description": "只会在石缝深处凝结的暗色盐晶，可用于仪式与精细制造。",
+      "tags": ["Mineral", "Rare"],
+      "keywords": ["ritual"],
+      "stackLimit": 99
+    }
+  ]
+}

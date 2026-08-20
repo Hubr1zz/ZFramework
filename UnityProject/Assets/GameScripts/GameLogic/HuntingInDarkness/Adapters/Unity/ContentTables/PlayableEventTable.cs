@@ -267,7 +267,7 @@ namespace HuntingInDarkness.ContentTables
             foreach (EventOptionConditionTableRecord record in records)
             {
                 if (record == null || !TryParse(record.conditionKind, out EventOptionConditionKind conditionKind)) return false;
-                bool requiresKey = conditionKind == EventOptionConditionKind.HasTrait || conditionKind == EventOptionConditionKind.HasAilment || conditionKind == EventOptionConditionKind.MinimumResource || conditionKind == EventOptionConditionKind.HasEquippedItem;
+                bool requiresKey = conditionKind == EventOptionConditionKind.HasTrait || conditionKind == EventOptionConditionKind.HasAilment || conditionKind == EventOptionConditionKind.MinimumResource || conditionKind == EventOptionConditionKind.HasEquippedItem || conditionKind == EventOptionConditionKind.HasKeyword;
                 if (requiresKey && string.IsNullOrWhiteSpace(record.key)) return false;
                 if (record.value < 0) return false;
             }

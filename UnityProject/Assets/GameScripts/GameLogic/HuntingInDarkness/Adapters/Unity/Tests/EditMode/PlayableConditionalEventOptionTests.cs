@@ -42,6 +42,39 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(eventSystem.PrepareChoice(gameEvent, optionIndex, watcher), Is.Not.Null);
         }
 
+        [Test]
+        public void StoneEquipment_UnlocksKeywordEventOption()
+        {
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 9103) { Name = "持石者" };
+            var stoneItem = UnityEngine.ScriptableObject.CreateInstance<ItemData>();
+            stoneItem.itemName = "测试石器";
+            stoneItem.itemType = ItemType.Weapon;
+            stoneItem.tags.Add(ItemTag.Stone);
+            hunter.EquippedItemNames.Add(stoneItem.itemName);
+            settlement.Hunters.Add(hunter);
+
+            try
+            {
+                PlayableSettlementItemRegistry.Configure(new[] { stoneItem });
+                EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_stone_vigil");
+                EventOption option = gameEvent.options.First(item => !item.alwaysAvailable);
+
+                Assert.That(option.conditions[0].conditionKind, Is.EqualTo(EventOptionConditionKind.HasKeyword));
+                Assert.That(PlayableEventOptionAvailability.CanUse(option, hunter, settlement, out string reason), Is.True, reason);
+                PlayableEventChoiceTransaction transaction = new EventSystem(settlement, new FirstRandom()).PrepareChoice(gameEvent, gameEvent.options.IndexOf(option), hunter);
+                Assert.That(transaction, Is.Not.Null);
+                Assert.That(transaction.CommitStandalone().Result.Success, Is.True);
+                Assert.That(settlement.GetResource("黑盐"), Is.EqualTo(1));
+                Assert.That(hunter.Understanding, Is.EqualTo(1));
+            }
+            finally
+            {
+                PlayableSettlementItemRegistry.Configure(null);
+                UnityEngine.Object.DestroyImmediate(stoneItem);
+            }
+        }
+
         private sealed class FirstRandom : IRandomSource
         {
             public int Next(int minInclusive, int maxExclusive) => minInclusive;

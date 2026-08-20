@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 
@@ -38,6 +39,28 @@ namespace HuntingInDarkness.Settlement
 
         public static IReadOnlyList<ItemData> Items => registeredItems;
 
+        public static bool TryGet(string itemName, out ItemData item)
+        {
+            return itemByName.TryGetValue(itemName ?? string.Empty, out item);
+        }
+
+        public static IReadOnlyCollection<string> CollectKeywords(IReadOnlyCollection<string> equippedItemNames, IReadOnlyCollection<string> traits = null, IReadOnlyCollection<string> ailments = null)
+        {
+            var keywords = new HashSet<string>(System.StringComparer.Ordinal);
+            AddKeywords(keywords, traits);
+            AddKeywords(keywords, ailments);
+            if (equippedItemNames == null) return keywords;
+            foreach (string itemName in equippedItemNames)
+            {
+                if (!TryGet(itemName, out ItemData item) || item == null) continue;
+                if (item.tags != null)
+                    foreach (ItemTag tag in item.tags)
+                        KeywordRules.TryAdd(keywords, tag.ToString());
+                AddKeywords(keywords, item.keywords);
+            }
+            return keywords;
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
@@ -74,6 +97,13 @@ namespace HuntingInDarkness.Settlement
                     if (itemByName.TryGetValue(itemName, out var item) && item.itemType != ItemType.Resource)
                         hunter.Equipment.Add(new ItemInstance(item));
             }
+        }
+
+        private static void AddKeywords(ISet<string> target, IReadOnlyCollection<string> source)
+        {
+            if (source == null) return;
+            foreach (string keyword in source)
+                KeywordRules.TryAdd(target, keyword);
         }
     }
 }

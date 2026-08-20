@@ -471,3 +471,7 @@
 284. 症状内化与克服已进入 `PlayableSettlementActionSession`：View 只提交猎人 ID、稳定症状 ID 与选择，Action 在 Settlement Runner 中重新验证内容、年份、意志、胆识与成长，并发布症状事实和统一事务事实；Before Reactor 可阻止或把内化改写为克服。
 285. 猎人装备桌新增“症状”实体入口，分页症状卡展示内化进度，3D 按钮分别说明内化与克服条件；正式 Bootstrap 不再创建旧 `PlayableSymptomGrowthView`。对抗审查同时修复父对象先销毁时 `PlayableSettlementEventView.OnDestroy` 对已销毁 3D 事件板调用 `Close()` 的生命周期异常。
 286. Unity MCP 症状 Action 回归 5/5、全量 EditMode 359/359 通过；正式 ZFramework Play Mode 确认 Settlement 中存在症状板、装备桌入口与命令回调，实际初始猎人的症状卡可打开，旧屏幕症状 View 不存在，退出 Play Mode 控制台 0 error；玩家存档哈希保持不变。首次冷全量运行仍暴露既有 Hunt 事件夹具的顺序抖动，已在重构风险中记录。
+287. 新增可替换的物品表来源与运行时目录扩展，首个表项“黑盐”无需新增 View 或仓库分支即可进入现有资源、制作、装备和 3D 卡牌数据契约；重复稳定 ID 或显示名会整组拒绝，避免加载顺序成为内容权威。
+288. 装备标签、自由关键词、猎人特性与症状现统一为规范化关键词集合。事件选项可通过 `HasKeyword` 查询选中猎人的权威装备内容；旧 `ItemTag.Stone` 与表字符串 `stone` 保持等价，View 只展示可用性和提交选择。
+289. 新增“石之守夜”表驱动事件：装备石类物品的猎人可在既有物理事件卡上解锁选项，效果仍由所属阶段 ActionQueue 和事件事务检查点一次提交。同步 `Resources.Load` 表源已作为 ZFramework 资源预加载迁移点记录，不在本切片局部改写启动时序。
+290. Unity MCP 聚焦关键词、物品表与条件事件回归 12/12 通过；正式 ZFramework Play Mode 数据探针确认 Settlement、黑盐注册和石之守夜事件均有效，控制台 0 error。验证未使用截图、未提交玩家操作。

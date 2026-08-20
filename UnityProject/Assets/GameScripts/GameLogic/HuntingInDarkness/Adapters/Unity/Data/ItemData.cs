@@ -33,6 +33,9 @@ namespace HuntingInDarkness.Data
         [Header("词条标签")]
         public List<ItemTag> tags = new();
 
+        [Tooltip("稳定规则关键词。使用小写短语；旧 ItemTag 会由 Adapter 自动映射为同名关键词。")]
+        public List<string> keywords = new();
+
         [Header("武器属性（itemType = Weapon 时生效）")]
         public WeaponStats weaponStats;
 

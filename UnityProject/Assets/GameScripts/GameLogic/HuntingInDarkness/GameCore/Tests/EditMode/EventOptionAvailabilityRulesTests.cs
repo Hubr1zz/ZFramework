@@ -33,5 +33,15 @@ namespace HuntingInDarkness.GameCore.Tests
             Assert.That(EventOptionAvailabilityRules.Evaluate(conditions, hunter, null, null, out string reason), Is.False);
             Assert.That(reason, Does.Contain("不可"));
         }
+
+        [Test]
+        public void Evaluate_HasKeywordUsesSharedRuleLanguage()
+        {
+            var conditions = new[] { new EventOptionConditionDefinition(EventOptionConditionKind.HasKeyword, "stone", 0, false) };
+
+            Assert.That(EventOptionAvailabilityRules.Evaluate(conditions, new HunterState(), null, null, new[] { "ritual", "stone" }, out string reason), Is.True, reason);
+            Assert.That(EventOptionAvailabilityRules.Evaluate(conditions, new HunterState(), null, null, new[] { "wood" }, out reason), Is.False);
+            Assert.That(reason, Does.Contain("stone"));
+        }
     }
 }

@@ -33,7 +33,8 @@ namespace HuntingInDarkness.Settlement
                 foreach (EventOptionCondition condition in option.conditions)
                     if (condition != null)
                         definitions.Add(condition.ToDomain());
-            return EventOptionAvailabilityRules.Evaluate(definitions, hunter, key => settlement != null ? settlement.GetResource(key) : 0, hunter?.EquippedItemNames, out reason);
+            IReadOnlyCollection<string> keywords = PlayableSettlementItemRegistry.CollectKeywords(hunter?.EquippedItemNames, hunter?.Traits, hunter?.Ailments);
+            return EventOptionAvailabilityRules.Evaluate(definitions, hunter, key => settlement != null ? settlement.GetResource(key) : 0, hunter?.EquippedItemNames, keywords, out reason);
         }
 
         public static string GetRequirements(EventOption option)

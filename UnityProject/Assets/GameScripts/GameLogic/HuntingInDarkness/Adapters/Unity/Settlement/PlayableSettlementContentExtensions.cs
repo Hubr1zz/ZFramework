@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.ContentTables;
 using UnityEngine;
 
 namespace HuntingInDarkness.Settlement
@@ -21,6 +22,7 @@ namespace HuntingInDarkness.Settlement
                 AppendItems(allItems, extension.Items);
                 AppendRecipes(allRecipes, extension.Recipes);
             }
+            AppendItems(allItems, PlayableItemTableRuntime.GetItems());
             AppendRecipeItems(allItems, allRecipes);
         }
 

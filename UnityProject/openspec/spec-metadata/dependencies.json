@@ -128,6 +128,27 @@
       "specPath": "openspec/specs/tabletop-settlement-symptoms/spec.md"
     },
     {
+      "id": "tabletop-event-interaction",
+      "label": "跨阶段桌面事件交互",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-event-interaction/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-equipment",
+      "label": "营地桌面猎人装备",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-equipment/spec.md"
+    },
+    {
+      "id": "table-driven-item-keywords",
+      "label": "读表物品与跨内容关键词",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-item-keywords/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -353,6 +374,26 @@
       "type": "requires",
       "status": "defined",
       "reason": "症状内化与克服由营地 Runner 串行重验并提交长期猎人状态",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-item-keywords--requires--tabletop-event-interaction",
+      "from": "table-driven-item-keywords",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "关键词条件通过共享世界空间事件卡显示并提交玩家选择",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-item-keywords--requires--tabletop-settlement-equipment",
+      "from": "table-driven-item-keywords",
+      "to": "tabletop-settlement-equipment",
+      "type": "requires",
+      "status": "defined",
+      "reason": "装备名称由营地权威仓库恢复为内容并聚合可查询关键词",
       "gapId": "",
       "blocksImplementation": false
     },
