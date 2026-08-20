@@ -12,11 +12,11 @@ namespace HuntingInDarkness.Hunt
         public static GameObject Create(float radius)
         {
             float safeRadius = Mathf.Max(0.1f, radius);
-            var gameObject = new GameObject("HexTile", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider), typeof(PlayableHexTileView));
+            var gameObject = new GameObject("HexTile", typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider), typeof(PlayableHexTileCard3D));
             var mesh = CreateMesh(safeRadius, Thickness);
             gameObject.GetComponent<MeshFilter>().sharedMesh = mesh;
             gameObject.GetComponent<MeshCollider>().sharedMesh = mesh;
-            gameObject.GetComponent<PlayableHexTileView>().Initialize(safeRadius, Thickness);
+            gameObject.GetComponent<PlayableHexTileCard3D>().Initialize(safeRadius, Thickness);
             return gameObject;
         }
 

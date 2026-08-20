@@ -113,7 +113,7 @@ namespace HuntingInDarkness.Hunt
                 c = GetRevealedColor(tile);
 
             rend.material.color = c;
-            _tileObjects[coord].GetComponent<PlayableHexTileView>()?.Present(tile, state);
+            _tileObjects[coord].GetComponent<PlayableHexTileCard3D>()?.Present(tile, state);
 
             // 浮动标记（已翻开且有 Boss 遭遇）
             if (state == TileState.Revealed && tile.HasBossEncounter)

@@ -69,6 +69,26 @@
 - **维护时间**: 2026-08-20
 - **维护备注**: 当前保留只为序列化兼容；不要重新接入正式组合根。
 
+### [优先级: 低] 移除旧六边形地块标签组件
+- **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileFactory.cs`
+- **类型**: 兼容代码 / 职责拆分
+- **描述**: `PlayableHexTileCard3D` 已接管六边形网格、材质释放、正反标签与翻面表现，旧 `PlayableHexTileView` 已无源码调用。后续确认 Scene、Prefab 与外部程序集没有按类型序列化引用后，可删除旧类，并把工厂文件收敛为只负责几何构造。
+- **来源**: 2026-08-20 狩猎地形卡翻面实现审查
+- **状态**: 待处理
+- **维护人**: leonz
+- **维护时间**: 2026-08-20
+- **维护备注**: 本阶段按兼容优先保留，禁止重新接入正式地图组合根。
+
+### [优先级: 中] 隔离 Hunt Action 异步测试夹具的共享状态
+- **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs`
+- **类型**: 测试稳定性 / 共享状态
+- **描述**: 全量 EditMode 冷运行时，三个事件链用例会偶发未收到 EventBus 请求或等待输入超时，但相同用例逐个隔离运行均立即通过。夹具使用全局静态 EventBus 与异步输入门，当前清理边界不足以证明批次顺序无关。后续应统一梳理全套 ActionQueue 测试的静态订阅、未完成任务和 ScriptableObject 销毁边界，再选择夹具级隔离或显式非并行，避免把单个超时机械放大。
+- **来源**: 2026-08-20 狩猎地形卡里程碑全量回归
+- **状态**: 待处理
+- **维护人**: leonz
+- **维护时间**: 2026-08-20
+- **维护备注**: 本次全量 362 项中 3 项失败；三项随后逐个复跑均 1/1 通过，确认不属于地形卡 View 回归，但仍是持续集成风险。
+
 ---
 
 ## 🕐 近期改动模块
