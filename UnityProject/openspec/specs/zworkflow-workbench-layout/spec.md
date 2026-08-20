@@ -19,6 +19,10 @@ Every nested Workbench panel SHALL size rendered content from its own available 
 - **WHEN** the Workbench displays OpenSpec / Changes at `900x600`
 - **THEN** detail Markdown, tables, fields, and editors remain within the right-hand viewport without ordinary horizontal scrolling
 
+#### Scenario: Shared toolbar renders at minimum size
+- **WHEN** the Workbench width is below the single-row toolbar budget
+- **THEN** shared toolbar actions reflow into bounded rows without widening any page viewport
+
 ### Requirement: Automated layout regression guard
 The project SHALL route zWorkFlow UI maintenance through a project-local skill that provides a data-based, all-page layout audit and Unity MCP compilation workflow.
 
