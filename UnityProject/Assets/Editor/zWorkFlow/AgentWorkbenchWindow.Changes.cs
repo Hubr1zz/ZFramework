@@ -15,7 +15,6 @@ namespace AgentWorkflow.Editor
     {
         private const float ChangeListWidth = 270f;
         private const float ChangePanelGap = 6f;
-        private const float ChangePanelHorizontalChrome = 44f;
 
         private void DrawChangesPanel()
         {
@@ -943,7 +942,7 @@ namespace AgentWorkflow.Editor
 
         private float ChangeDetailContentWidth()
         {
-            return Mathf.Max(1f, position.width - ChangeListWidth - ChangePanelGap - ChangePanelHorizontalChrome);
+            return CurrentLayoutContentWidth();
         }
 
         private bool IsEditingChangeNotes(string path) =>

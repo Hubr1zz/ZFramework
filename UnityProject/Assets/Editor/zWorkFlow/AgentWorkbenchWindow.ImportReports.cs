@@ -707,7 +707,7 @@ namespace AgentWorkflow.Editor
                 L("spec.content"),
                 () =>
                 {
-                var width = Mathf.Max(320, position.width - 560);
+                var width = CurrentLayoutContentWidth();
                 DrawEditableMarkdown(
                     L("spec.content"),
                     spec.SpecPath,
@@ -945,7 +945,7 @@ namespace AgentWorkflow.Editor
                 DrawCollapsibleChangeSection(
                     ChangeSectionKey("draft", identity, "design"),
                     "Design",
-                    () => DrawRuleDesignSources(spec, Mathf.Max(320, position.width - 560)));
+                    () => DrawRuleDesignSources(spec, CurrentLayoutContentWidth()));
                 return;
             }
 
@@ -956,7 +956,7 @@ namespace AgentWorkflow.Editor
                     "Proposal",
                     () =>
                     {
-                        var width = Mathf.Max(320, position.width - 560);
+                        var width = CurrentLayoutContentWidth();
                         DrawEditableMarkdown(
                             "Proposal",
                             DraftArtifactPath(spec, "proposal.md"),
@@ -971,7 +971,7 @@ namespace AgentWorkflow.Editor
                     "Design",
                     () =>
                     {
-                        var width = Mathf.Max(320, position.width - 560);
+                        var width = CurrentLayoutContentWidth();
                         DrawEditableMarkdown(
                             "Design",
                             DraftArtifactPath(spec, "design.md"),
@@ -1011,7 +1011,7 @@ namespace AgentWorkflow.Editor
                         L("spec.content"),
                         ruleSpec.SpecPath,
                         ruleSpec.SpecContent,
-                        Mathf.Max(320, position.width - 560));
+                        CurrentLayoutContentWidth());
                 });
         }
 
@@ -1604,7 +1604,7 @@ namespace AgentWorkflow.Editor
                     $"{L("evidence.tooltip")}\nGUID: {value.guid}\n{assetPath}");
                 var height = Mathf.Max(
                     EditorGUIUtility.singleLineHeight,
-                    style.CalcHeight(content, Mathf.Max(180, position.width - 410)));
+                    style.CalcHeight(content, CurrentLayoutContentWidth()));
                 if (GUILayout.Button(content, style, GUILayout.Height(height), GUILayout.ExpandWidth(true)))
                     HighlightEvidence(value, assetPath);
             }
