@@ -46,3 +46,7 @@ The indexer SHALL reuse unchanged per-file extraction facts and SHALL atomically
 #### Scenario: One source file changes
 - **WHEN** the existing index is compatible and one C# file changes
 - **THEN** only that file is re-extracted, all unchanged file facts are reused, and readers never observe a partially written index
+
+#### Scenario: A Windows file monitor briefly holds the destination
+- **WHEN** atomic replacement encounters transient file contention
+- **THEN** the indexer retries for a bounded period and either publishes the complete file or reports failure without leaving a partial canonical index

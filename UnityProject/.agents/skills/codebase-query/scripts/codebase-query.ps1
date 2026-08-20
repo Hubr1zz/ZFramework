@@ -186,6 +186,23 @@ function Get-PortableSourceHash {
     }
 }
 
+function Move-FileReplacingWithRetry {
+    param([string]$SourcePath, [string]$DestinationPath)
+
+    $attempt = 0
+    while ($true) {
+        try {
+            [System.IO.File]::Move($SourcePath, $DestinationPath, $true)
+            return
+        }
+        catch [System.IO.IOException], [System.UnauthorizedAccessException] {
+            $attempt++
+            if ($attempt -ge 5) { throw }
+            [System.Threading.Thread]::Sleep(20 * $attempt)
+        }
+    }
+}
+
 function Get-SourceFingerprints {
     param([string]$ProjectRoot, [System.IO.FileInfo[]]$Files)
 
@@ -226,7 +243,7 @@ function Get-SourceFingerprints {
         $state = [ordered]@{ schemaVersion = 2; files = $fingerprints }
         $temporaryStatePath = "$($script:ResolvedStatePath).tmp.$PID"
         [System.IO.File]::WriteAllText($temporaryStatePath, ($state | ConvertTo-Json -Depth 4 -Compress), [System.Text.UTF8Encoding]::new($false))
-        [System.IO.File]::Move($temporaryStatePath, $script:ResolvedStatePath, $true)
+        Move-FileReplacingWithRetry -SourcePath $temporaryStatePath -DestinationPath $script:ResolvedStatePath
     }
     return $fingerprints
 }
@@ -259,7 +276,7 @@ function Write-CodebaseQueryProgress {
     }
     $temporaryProgressPath = "$($script:ResolvedProgressPath).tmp.$PID"
     [System.IO.File]::WriteAllText($temporaryProgressPath, ($value | ConvertTo-Json -Compress), [System.Text.UTF8Encoding]::new($false))
-    [System.IO.File]::Move($temporaryProgressPath, $script:ResolvedProgressPath, $true)
+    Move-FileReplacingWithRetry -SourcePath $temporaryProgressPath -DestinationPath $script:ResolvedProgressPath
 }
 
 function New-CodeIndex {
@@ -342,7 +359,7 @@ function New-CodeIndex {
             $temporaryIndexPath,
             ($index | ConvertTo-Json -Depth 8 -Compress),
             [System.Text.UTF8Encoding]::new($false))
-        [System.IO.File]::Move($temporaryIndexPath, $ResolvedIndexPath, $true)
+        Move-FileReplacingWithRetry -SourcePath $temporaryIndexPath -DestinationPath $ResolvedIndexPath
     }
     finally {
         if (Test-Path -LiteralPath $temporaryIndexPath) { Remove-Item -LiteralPath $temporaryIndexPath -Force }
