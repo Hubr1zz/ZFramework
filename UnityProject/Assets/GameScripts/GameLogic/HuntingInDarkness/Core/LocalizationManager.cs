@@ -11,6 +11,7 @@ namespace Core
     /// </summary>
     public class LocalizationManager
     {
+        private const string bundledChineseFontResourcePath = "HuntingInDarkness/Fonts/NotoSansSC-Regular";
         public static LocalizationManager Instance { get; private set; }
 
         // ─── 字体 ─────────────────────────────────────────────────────
@@ -23,7 +24,10 @@ namespace Core
         // 初始化入口（由 GameManager 调用）
         // ═══════════════════════════════════════════
 
-        /// <param name="fontAsset">微软雅黑 SDF（须为 Dynamic 模式）</param>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetRuntimeState() => Instance = null;
+
+        /// <param name="fontAsset">可选的项目中文 SDF（须为 Dynamic 模式）；为空时使用随包字体。</param>
         /// <param name="characterSet">zh-cn.txt 等字符列表文件</param>
         /// <param name="localizationTable">可选：key=value 格式的本地化文本文件</param>
         public static void Initialize(
@@ -44,12 +48,13 @@ namespace Core
             TextAsset characterSet,
             TextAsset localizationTable)
         {
-            _primaryFont = fontAsset;
+            _primaryFont = fontAsset != null ? fontAsset : CreateBundledChineseFont();
+            RegisterGlobalFallback(_primaryFont);
 
             if (characterSet != null)
                 PopulateFontAtlas(characterSet.text);
-            else
-                Debug.LogWarning("[LocalizationManager] 未提供字符集文件，动态图集不会预热");
+            else if (_primaryFont == null)
+                Debug.LogWarning("[LocalizationManager] 未配置可用的中文字体，中文文本可能无法显示");
 
             if (localizationTable != null)
                 ParseLocalizationTable(localizationTable.text);
@@ -58,6 +63,38 @@ namespace Core
         // ═══════════════════════════════════════════
         // 字体图集
         // ═══════════════════════════════════════════
+
+        private static TMP_FontAsset CreateBundledChineseFont()
+        {
+            Font sourceFont = Resources.Load<Font>(bundledChineseFontResourcePath);
+            if (sourceFont == null)
+            {
+                Debug.LogWarning($"[LocalizationManager] 未找到内置中文字体 Resources/{bundledChineseFontResourcePath}");
+                return null;
+            }
+
+            TMP_FontAsset fontAsset = TMP_FontAsset.CreateFontAsset(sourceFont);
+            if (fontAsset == null)
+            {
+                Debug.LogWarning("[LocalizationManager] 无法从内置字体创建 TMP 动态字体资源");
+                return null;
+            }
+            fontAsset.name = "NotoSansSC Runtime SDF";
+            return fontAsset;
+        }
+
+        private static void RegisterGlobalFallback(TMP_FontAsset fontAsset)
+        {
+            if (fontAsset == null) return;
+            List<TMP_FontAsset> fallbacks = TMP_Settings.fallbackFontAssets;
+            if (fallbacks == null)
+            {
+                fallbacks = new List<TMP_FontAsset>();
+                TMP_Settings.fallbackFontAssets = fallbacks;
+            }
+            if (!fallbacks.Contains(fontAsset))
+                fallbacks.Add(fontAsset);
+        }
 
         /// <summary>
         /// 将字符集字符串中的所有字符批量注入 TMP 动态图集。

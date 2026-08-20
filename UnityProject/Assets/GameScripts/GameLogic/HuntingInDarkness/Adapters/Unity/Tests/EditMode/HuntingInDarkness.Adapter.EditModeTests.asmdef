@@ -5,7 +5,8 @@
         "GameLogic",
         "HuntingInDarkness.GameCore",
         "UniTask",
-        "ActionQueue.Runtime"
+        "ActionQueue.Runtime",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [
         "Editor"
