@@ -39,9 +39,9 @@ namespace HuntingInDarkness.Hunt
         private readonly Dictionary<Vector2Int, GameObject> _tileObjects = new();
         private readonly Dictionary<Vector2Int, Renderer>   _tileRenderers = new();
         private readonly Dictionary<Vector2Int, GameObject> _resourceMarkers = new();
-        private GameObject _squadToken;
+        private PlayableHuntSquadPawn3D squadPawn;
 
-        public Transform TabletopInteractionAnchor => _squadToken != null ? _squadToken.transform : transform;
+        public Transform TabletopInteractionAnchor => squadPawn != null ? squadPawn.transform : transform;
 
         public bool TryGetResourcePointPresentationPosition(ResourcePointInstance point, out Vector3 position)
         {
@@ -169,17 +169,16 @@ namespace HuntingInDarkness.Hunt
         {
             var worldPos = _huntMgr.TileToWorld(coord) + Vector3.up * 0.3f;
 
-            if (_squadToken == null)
+            if (squadPawn == null)
             {
-                _squadToken = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                _squadToken.name = "SquadToken";
-                _squadToken.transform.SetParent(transform);
-                _squadToken.transform.localScale = Vector3.one * 0.45f;
-                _squadToken.GetComponent<Renderer>().material = new Material(Shader.Find("Standard"));
-                _squadToken.GetComponent<Renderer>().material.color = new Color(1f, 0.85f, 0.2f);
-                // 不需要点击检测（不添加 TileClickHandler）
+                var pawnObject = new GameObject("HuntSquadPawn3D");
+                pawnObject.transform.SetParent(transform, false);
+                squadPawn = pawnObject.AddComponent<PlayableHuntSquadPawn3D>();
+                squadPawn.Initialize(_huntMgr.ActiveHunters.Count);
+                squadPawn.Place(worldPos, true);
+                return;
             }
-            _squadToken.transform.position = worldPos;
+            squadPawn.Place(worldPos, false);
         }
 
         // ─── 资源点标记 ───────────────────────────────────────────
@@ -239,11 +238,15 @@ namespace HuntingInDarkness.Hunt
             if (_huntMgr != null && _huntMgr.OnResourcePointHarvested == OnResourcePointHarvested)
                 _huntMgr.OnResourcePointHarvested = null;
             foreach (var go in _tileObjects.Values) if (go != null) Destroy(go);
-            if (_squadToken != null) Destroy(_squadToken);
+            if (squadPawn != null)
+            {
+                squadPawn.gameObject.SetActive(false);
+                Destroy(squadPawn.gameObject);
+            }
             _tileObjects.Clear();
             _tileRenderers.Clear();
             _resourceMarkers.Clear();
-            _squadToken = null;
+            squadPawn = null;
         }
     }
 }
