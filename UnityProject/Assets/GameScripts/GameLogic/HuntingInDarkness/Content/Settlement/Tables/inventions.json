@@ -25,8 +25,10 @@
       "effectDescription": "全体可出战猎人的意志点上限 +1。",
       "effects": [
         {
+          "lifetime": "Campaign",
+          "modifierId": "ritual:willpower-maximum",
           "kind": "ModifyWillpowerMaximum",
-          "target": "AvailableHunters",
+          "target": "AllLivingAndFutureHunters",
           "value": 1
         }
       ],

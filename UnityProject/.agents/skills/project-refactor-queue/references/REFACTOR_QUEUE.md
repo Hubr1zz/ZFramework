@@ -34,7 +34,7 @@
 - **类型**: 架构边界 / 事件扩展性
 - **描述**: `OnResourcePointClicked` 等公开 `Action` 字段由 View 直接覆盖，当前只能安全容纳一个订阅者；后续加入事件覆盖、教程注入或多个 3D Presenter 时容易互相替换。应在完整梳理 Hunt 命令与已提交事实后，将输入请求收口为明确 Command Port，将多消费者刷新迁入 ActionQueue outbox + EventBus 的类型化已提交事件；迁移期间保留兼容桥，不并存两套权威写入路径。
 - **来源**: 2026-08-20 狩猎 3D 状态桌实现审查
-- **状态**: 待处理
+- **状态**: 已处理
 - **维护人**: codex
 - **维护时间**: 2026-08-20
 - **维护备注**: 影响后续功能覆盖与流程注入；需要结合 Hunt runner/reactor 宏观职责一次性设计，暂不做局部反复重构。
@@ -157,7 +157,7 @@
 - **状态**: 待处理
 - **维护人**: codex
 - **维护时间**: 2026-08-20
-- **维护备注**: 与一次性 `unlockEffects` 分开设计，避免将永久规则和不可逆状态变更混为一种效果。
+- **维护备注**: 2026-08-20 已完成：Campaign 效果以稳定 ModifierId、来源、配置值、Reactor 实效值和覆盖标记持久化；解锁前由独立 Child Action 准备，提交后幂等投影至当前猎人，招募时投影至未来猎人。旧 schema 只播种贡献标记以避免重复加值，重复来源在读表阶段整组拒绝。后续新效果种类继续扩展纯规则映射，不由 View 补值。
 
 ### [优先级: 高] 物品库存与装备存档迁移到稳定 ContentId
 - **文件**: `Adapters/Unity/Data/{ItemData,HunterData,SettlementData}.cs`、`Adapters/Unity/Settlement/SettlementEquipmentStorage.cs`、营地资源/制作/装备 Action 与存档迁移器

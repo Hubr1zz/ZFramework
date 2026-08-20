@@ -89,6 +89,7 @@ namespace HuntingInDarkness.GameCore.Settlement
         public List<string> PermanentInjuryIds = new List<string>();
         public List<HunterSymptomState> SymptomStates = new List<HunterSymptomState>();
         public List<string> ClaimedGrowthMilestoneIds = new List<string>();
+        public List<SettlementModifierContribution> SettlementModifierContributions = new List<SettlementModifierContribution>();
         public int SurvivalCards = 1;
         public int DeathCards;
 
@@ -162,7 +163,40 @@ namespace HuntingInDarkness.GameCore.Settlement
     public enum InventionEffectTarget
     {
         AvailableHunters,
-        AliveHunters
+        AliveHunters,
+        AllLivingAndFutureHunters
+    }
+
+    public enum InventionEffectLifetime
+    {
+        Unlock,
+        Campaign
+    }
+
+    public enum SettlementModifierSourceKind
+    {
+        Invention
+    }
+
+    [Serializable]
+    public sealed class SettlementModifierState
+    {
+        public string ModifierId;
+        public SettlementModifierSourceKind SourceKind;
+        public string SourceId;
+        public InventionEffectKind Kind;
+        public InventionEffectTarget Target;
+        public int ConfiguredValue;
+        public int Value;
+        public bool HasValueOverride;
+    }
+
+    [Serializable]
+    public sealed class SettlementModifierContribution
+    {
+        public string ModifierId;
+        public InventionEffectKind Kind;
+        public int Value;
     }
 
     public sealed class CraftRecipeDefinition

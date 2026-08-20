@@ -126,7 +126,7 @@ namespace HuntingInDarkness.GameCore.Settlement
         public static bool IsEligible(HunterState hunter, InventionEffectTarget target)
         {
             if (hunter == null || hunter.IsDead) return false;
-            return target == InventionEffectTarget.AliveHunters || target == InventionEffectTarget.AvailableHunters && hunter.IsAvailable;
+            return target == InventionEffectTarget.AliveHunters || target == InventionEffectTarget.AllLivingAndFutureHunters || target == InventionEffectTarget.AvailableHunters && hunter.IsAvailable;
         }
 
         public static bool TryApply(HunterState hunter, InventionEffectKind kind, int value, out int previousValue, out int currentValue)

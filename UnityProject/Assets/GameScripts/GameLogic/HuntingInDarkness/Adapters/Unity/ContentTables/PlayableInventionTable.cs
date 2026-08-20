@@ -18,6 +18,8 @@ namespace HuntingInDarkness.ContentTables
     [Serializable]
     public sealed class InventionEffectTableRecord
     {
+        public string lifetime;
+        public string modifierId;
         public string kind;
         public string target;
         public int value = 1;
@@ -142,6 +144,7 @@ namespace HuntingInDarkness.ContentTables
                 validatedById.Add(validated.Id, validated);
             }
 
+            RejectModifierIdentityConflicts(validatedById, reportError);
             RejectBrokenGraph(validatedById, baseById, reportError);
             Dictionary<string, InventionData> createdById = CreateAssets(records, validatedById, result);
             LinkGraph(validatedById, baseById, createdById);
@@ -219,6 +222,12 @@ namespace HuntingInDarkness.ContentTables
             if (record.effects == null) return true;
             foreach (InventionEffectTableRecord effect in record.effects)
             {
+                string lifetimeText = string.IsNullOrWhiteSpace(effect?.lifetime) ? nameof(InventionEffectLifetime.Unlock) : effect.lifetime;
+                if (!Enum.TryParse(lifetimeText, true, out InventionEffectLifetime lifetime) || !Enum.IsDefined(typeof(InventionEffectLifetime), lifetime))
+                {
+                    error = $"发明 {record.id} 含无效效果周期：{effect?.lifetime}";
+                    return false;
+                }
                 if (effect == null || !Enum.TryParse(effect.kind, true, out InventionEffectKind kind) || kind == InventionEffectKind.None || !Enum.IsDefined(typeof(InventionEffectKind), kind))
                 {
                     error = $"发明 {record.id} 含无效效果类型：{effect?.kind}";
@@ -234,9 +243,46 @@ namespace HuntingInDarkness.ContentTables
                     error = $"发明 {record.id} 的效果数值不能为 0。";
                     return false;
                 }
-                effects.Add(new InventionPassiveEffect { kind = kind, target = target, value = effect.value });
+                string modifierId = effect.modifierId?.Trim() ?? string.Empty;
+                if (lifetime == InventionEffectLifetime.Campaign && (modifierId.Length == 0 || target != InventionEffectTarget.AllLivingAndFutureHunters))
+                {
+                    error = $"发明 {record.id} 的战役效果必须配置稳定 modifierId，并以 AllLivingAndFutureHunters 为目标。";
+                    return false;
+                }
+                effects.Add(new InventionPassiveEffect { lifetime = lifetime, modifierId = modifierId, kind = kind, target = target, value = effect.value });
             }
             return true;
+        }
+
+        private static void RejectModifierIdentityConflicts(Dictionary<string, ValidatedRecord> records, Action<string> reportError)
+        {
+            var owners = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            foreach (ValidatedRecord record in records.Values)
+            {
+                foreach (InventionPassiveEffect effect in record.Effects)
+                {
+                    if (effect.lifetime != InventionEffectLifetime.Campaign) continue;
+                    if (!owners.TryGetValue(effect.modifierId, out HashSet<string> ownerIds))
+                    {
+                        ownerIds = new HashSet<string>(StringComparer.Ordinal);
+                        owners.Add(effect.modifierId, ownerIds);
+                    }
+                    ownerIds.Add(record.Id);
+                }
+            }
+
+            var rejected = new HashSet<string>(StringComparer.Ordinal);
+            foreach (KeyValuePair<string, HashSet<string>> pair in owners)
+            {
+                int occurrenceCount = 0;
+                foreach (string ownerId in pair.Value)
+                    occurrenceCount += records[ownerId].Effects.FindAll(effect => effect.lifetime == InventionEffectLifetime.Campaign && effect.modifierId == pair.Key).Count;
+                if (occurrenceCount <= 1) continue;
+                foreach (string ownerId in pair.Value) rejected.Add(ownerId);
+                reportError?.Invoke($"战役持续修正 ID 冲突：{pair.Key}");
+            }
+            foreach (string id in rejected)
+                records.Remove(id);
         }
 
         private static bool TryBuildCosts(InventionTableRecord record, IReadOnlyDictionary<string, ItemData> itemById, out List<InventionCost> costs, out string error)

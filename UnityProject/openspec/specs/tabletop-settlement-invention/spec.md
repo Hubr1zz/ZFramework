@@ -61,6 +61,25 @@ Invention identity, prerequisites, exclusions, costs, presentation, and future s
 - **WHEN** an invention is renamed or localized while retaining its ContentId
 - **THEN** saved mastery, prerequisites, recipes, workshops, training, events, ActionQueue entities, transaction IDs, and annals continue to address the same invention
 
+### Requirement: Campaign effects persist as stable modifier sources
+An invention effect marked Campaign SHALL use a globally unique stable ModifierId and SHALL persist source invention, configured value, effective value, override state, kind, and target. Its projection SHALL be idempotent for current and future living hunters.
+
+#### Scenario: A reactor changes a campaign effect
+- **WHEN** a BeforeExecution reactor changes the prepared effective value
+- **THEN** the unlock transaction persists that value and applies the same value to current hunters and hunters recruited later
+
+#### Scenario: A reactor prevents campaign effect preparation
+- **WHEN** any campaign modifier child action is prevented before commit
+- **THEN** no resource, unlock flag, timeline entry, modifier source, or hunter attribute changes
+
+#### Scenario: Legacy save already contains the old one-time bonus
+- **WHEN** an unlocked invention is migrated from a modifier schema before version 1
+- **THEN** the runtime seeds per-hunter contribution markers without applying the configured value again
+
+#### Scenario: Modifier identities collide
+- **WHEN** two configured campaign effects declare the same ModifierId
+- **THEN** all owning invention records and graph dependants fail closed during table assembly
+
 ### Requirement: Legacy invention identity migrates before gameplay
 After the invention catalog is registered, old unlocked flags and invention annals using a display name or prior asset name SHALL migrate idempotently to stable ContentId. Unknown external identifiers SHALL be preserved, and a save with a future identity schema SHALL NOT be downgraded or rewritten.
 

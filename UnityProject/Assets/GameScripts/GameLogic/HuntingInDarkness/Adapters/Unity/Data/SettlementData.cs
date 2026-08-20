@@ -80,6 +80,10 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public sealed class InventionPassiveEffect
     {
+        [Tooltip("Unlock 只在掌握瞬间结算；Campaign 作为持续来源投影到当前及未来猎人。")]
+        public InventionEffectLifetime lifetime;
+        [Tooltip("Campaign 效果必填的稳定修正 ID；内容重排或改名时保持不变。")]
+        public string modifierId;
         public InventionEffectKind kind;
         public InventionEffectTarget target = InventionEffectTarget.AvailableHunters;
         public int value = 1;
@@ -142,6 +146,7 @@ namespace HuntingInDarkness.Data
         [Header("内容存档版本")]
         public int ItemIdentitySchemaVersion;
         public int InventionIdentitySchemaVersion;
+        public int SettlementModifierSchemaVersion;
 
         [Header("时间线")]
         public int CurrentYear = 1;
@@ -160,6 +165,9 @@ namespace HuntingInDarkness.Data
 
         [Header("发明解锁状态（稳定发明 ID → 是否解锁）")]
         public List<StringBoolEntry> UnlockedInventions = new();
+
+        [Header("战役持续修正（稳定 ModifierId → 实际生效值）")]
+        public List<SettlementModifierState> ActiveModifiers = new();
 
         [Header("已建工坊（稳定工坊 ID → 是否建成）")]
         public List<StringBoolEntry> BuiltWorkshops = new();

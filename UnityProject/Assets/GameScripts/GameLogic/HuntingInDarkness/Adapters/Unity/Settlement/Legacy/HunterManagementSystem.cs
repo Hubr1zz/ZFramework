@@ -37,6 +37,11 @@ namespace HuntingInDarkness.Settlement
         {
             var hunter = new HunterInstance(template, HunterIdentityRules.NextAvailableId(_settlement.Hunters));
             if (!string.IsNullOrEmpty(customName)) hunter.Name = customName;
+            if (!PlayableSettlementModifierRuntime.TryReconcileHunter(_settlement, hunter, out string reason))
+            {
+                Debug.LogError($"[HunterMgmt] 招募失败：{reason}");
+                return null;
+            }
             _settlement.Hunters.Add(hunter);
             Debug.Log($"[HunterMgmt] 招募猎人：{hunter.Name}（ID={hunter.InstanceId}）");
             EventBus.Publish(new HunterRosterChangedEvent());
@@ -48,6 +53,11 @@ namespace HuntingInDarkness.Settlement
         {
             var hunter = new HunterInstance(template, HunterIdentityRules.NextAvailableId(_settlement.Hunters));
             hunter.Name = name;
+            if (!PlayableSettlementModifierRuntime.TryReconcileHunter(_settlement, hunter, out string reason))
+            {
+                Debug.LogError($"[HunterMgmt] 无法添加初始猎人：{reason}");
+                return;
+            }
             _settlement.Hunters.Add(hunter);
         }
 

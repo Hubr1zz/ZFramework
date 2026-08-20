@@ -178,6 +178,58 @@ namespace HuntingInDarkness.Adapter.Tests
             }
         }
 
+        [Test]
+        public async Task UnlockInventionAsync_CampaignEffectPersistsReactorValueForFutureHunter()
+        {
+            TestContext context = CreateContext(2);
+            var existing = new HunterInstance(null, 31) { WillpowerMax = 2, Willpower = 2 };
+            context.Settlement.Hunters.Add(existing);
+            context.Invention.unlockEffects.Add(new InventionPassiveEffect { lifetime = InventionEffectLifetime.Campaign, modifierId = "stonecraft:willpower", kind = InventionEffectKind.ModifyWillpowerMaximum, target = InventionEffectTarget.AllLivingAndFutureHunters, value = 1 });
+            try
+            {
+                using var session = new PlayableSettlementActionSession(context.Settlement, new EmptyWeaponTrainingContent(), inventionSystem: context.System);
+                session.Reactors.RegisterGlobal(new DoubleCampaignModifierReactor());
+
+                SettlementInventionCommandResult result = await session.UnlockInventionAsync(context.Invention);
+                var future = new HunterInstance(null, 32) { WillpowerMax = 2, Willpower = 2 };
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(existing.WillpowerMax, Is.EqualTo(4));
+                Assert.That(context.Settlement.ActiveModifiers[0].Value, Is.EqualTo(2));
+                Assert.That(context.Settlement.ActiveModifiers[0].HasValueOverride, Is.True);
+                Assert.That(PlayableSettlementModifierRuntime.TryReconcileHunter(context.Settlement, future, out string reason), Is.True, reason);
+                Assert.That(future.WillpowerMax, Is.EqualTo(4));
+            }
+            finally
+            {
+                context.Dispose();
+            }
+        }
+
+        [Test]
+        public async Task UnlockInventionAsync_PreventedCampaignEffectLeavesTransactionUntouched()
+        {
+            TestContext context = CreateContext(2);
+            context.Invention.unlockEffects.Add(new InventionPassiveEffect { lifetime = InventionEffectLifetime.Campaign, modifierId = "stonecraft:willpower", kind = InventionEffectKind.ModifyWillpowerMaximum, target = InventionEffectTarget.AllLivingAndFutureHunters, value = 1 });
+            try
+            {
+                using var session = new PlayableSettlementActionSession(context.Settlement, new EmptyWeaponTrainingContent(), inventionSystem: context.System);
+                session.Reactors.RegisterGlobal(new PreventCampaignModifierReactor());
+
+                SettlementInventionCommandResult result = await session.UnlockInventionAsync(context.Invention);
+
+                Assert.That(result.Succeeded, Is.False);
+                Assert.That(context.Settlement.GetResource("碎石"), Is.EqualTo(2));
+                Assert.That(context.Settlement.IsInventionUnlocked("stonecraft"), Is.False);
+                Assert.That(context.Settlement.ActiveModifiers, Is.Empty);
+                Assert.That(context.Settlement.Timeline, Is.Empty);
+            }
+            finally
+            {
+                context.Dispose();
+            }
+        }
+
         private static TestContext CreateContext(int resourceAmount)
         {
             var settlement = new SettlementInstance();
@@ -223,6 +275,18 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
             protected override void React(UnlockSettlementInventionAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试规则阻止发明");
+        }
+
+        private sealed class DoubleCampaignModifierReactor : GameActionReactor<PrepareSettlementInventionModifierAction>
+        {
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+            protected override void React(PrepareSettlementInventionModifierAction action, ReactionContext context, ReactionResponse response) => action.SetValue(2);
+        }
+
+        private sealed class PreventCampaignModifierReactor : GameActionReactor<PrepareSettlementInventionModifierAction>
+        {
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+            protected override void React(PrepareSettlementInventionModifierAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试阻止持续效果");
         }
 
         private sealed class ModifyAndPreventHunterEffectReactor : GameActionReactor<ApplySettlementInventionEffectAction>

@@ -41,7 +41,14 @@ namespace HuntingInDarkness.Settlement
         /// <summary>尝试解锁发明。返回是否成功。</summary>
         public bool TryUnlock(InventionData invention)
         {
+            var modifiers = new List<SettlementModifierState>();
+            if (!PlayableSettlementModifierRuntime.TryCreateInventionModifiers(invention, modifiers, out string reason) || !PlayableSettlementModifierRuntime.TryCreateRegistrationPlan(_settlement, modifiers, out SettlementModifierRegistrationPlan plan, out reason))
+            {
+                Debug.LogWarning($"[InventionSystem] 无法准备持续效果：{reason}");
+                return false;
+            }
             if (!TryCommitUnlock(invention)) return false;
+            PlayableSettlementModifierRuntime.ApplyRegistrationPlan(_settlement, plan);
             ApplyLegacyEffect(invention);
             return true;
         }
@@ -79,9 +86,12 @@ namespace HuntingInDarkness.Settlement
             if (invention.unlockEffects != null && invention.unlockEffects.Count > 0)
             {
                 foreach (InventionPassiveEffect effect in invention.unlockEffects)
+                {
+                    if (effect == null || effect.lifetime != InventionEffectLifetime.Unlock) continue;
                     foreach (HunterInstance hunter in _settlement.Hunters)
                         if (InventionEffectRules.IsEligible(hunter, effect.target))
                             InventionEffectRules.TryApply(hunter, effect.kind, effect.value, out _, out _);
+                }
                 return;
             }
 

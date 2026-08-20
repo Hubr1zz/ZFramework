@@ -75,6 +75,7 @@ namespace HuntingInDarkness.Settlement
             manager.Timeline.RandomEventPool = allRandomEvents;
             manager.Timeline.MainStoryEvents = allMainStoryEvents;
             manager.Inventions.AllInventions = new List<InventionData>(PlayableSettlementInventionRegistry.Inventions);
+            if (!PlayableSettlementModifierRuntime.Synchronize(manager.Data, manager.Inventions.AllInventions, message => Debug.LogError($"[SettlementManager] {message}"))) return false;
             manager.Workshop.AllRecipes = allRecipes;
             if (manager.Data.Hunters.Count > 0)
             {

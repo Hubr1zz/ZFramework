@@ -264,7 +264,11 @@ namespace HuntingInDarkness.Settlement
             if (outcome.Handled && (effect.effectType == EventEffectType.AddCourage || effect.effectType == EventEffectType.AddUnderstanding))
                 PlayableGrowthMilestoneRuntime.Synchronize(_settlement);
             if (outcome.Handled && effect.effectType == EventEffectType.UnlockInvention)
+            {
                 SettlementTimelineJournal.RecordInvention(_settlement, targetInvention.ContentId, targetInvention.inventionName);
+                if (!PlayableSettlementModifierRuntime.Synchronize(_settlement, PlayableSettlementInventionRegistry.Inventions, message => Debug.LogError($"[EventSystem] {message}")))
+                    Debug.LogError($"[EventSystem] 发明 {targetInvention.ContentId} 的持续效果同步失败。");
+            }
 
             if (outcome.ResourceChanged)
             {

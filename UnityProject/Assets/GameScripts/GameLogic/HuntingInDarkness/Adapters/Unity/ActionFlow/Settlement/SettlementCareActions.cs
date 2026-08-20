@@ -110,6 +110,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
             var hunter = new HunterInstance(template, HunterIdentityRules.NextAvailableId(settlement.Hunters)) { Name = normalizedName };
             PlayableSymptomRuntime.SynchronizeHunter(hunter);
+            if (!PlayableSettlementModifierRuntime.TryReconcileHunter(settlement, hunter, out reason)) return Fail(reason);
             var annal = new AnnalEntry
             {
                 Year = settlement.CurrentYear,
