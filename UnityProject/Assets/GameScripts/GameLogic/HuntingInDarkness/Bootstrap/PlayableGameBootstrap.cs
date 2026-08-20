@@ -96,11 +96,8 @@ namespace HuntingInDarkness.Bootstrap
             if (settings.HideFrameworkDebugger && TEngine.Debugger.Instance != null)
                 TEngine.Debugger.Instance.ActiveWindow = false;
 
-            if (settings.ShowStartMenu)
-                gameObject.AddComponent<PlayableStartMenu>().Initialize(manager, settings.GameTitle, settings.TitleTagline);
-
-            if (settings.ShowFlowGuide)
-                gameObject.AddComponent<PlayableFlowGuide>().Initialize(manager, settings);
+            if (settings.ShowStartMenu || settings.ShowFlowGuide && settings.ShowOpeningNarrative)
+                gameObject.AddComponent<PlayableOpeningSequence3D>().Initialize(manager, settings);
 
             if (settings.ShowSettlementHud)
             {

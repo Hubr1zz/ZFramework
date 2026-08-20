@@ -44,6 +44,13 @@
       "specPath": "openspec/specs/csharp-derived-index/spec.md"
     },
     {
+      "id": "tabletop-opening-sequence",
+      "label": "3D 桌面开场序列",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-opening-sequence/spec.md"
+    },
+    {
       "id": "tabletop-hunt-departure",
       "label": "3D 狩猎远征整备",
       "category": "feature",
@@ -138,6 +145,26 @@
       "type": "requires",
       "status": "defined",
       "reason": "决战阶段由 GameManager 激活并向营地阶段交接",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-opening-sequence--requires--tengine-startup-lifecycle",
+      "from": "tabletop-opening-sequence",
+      "to": "tengine-startup-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "ZFramework 启动完成后由可游玩组合根创建世界空间战役入口",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-opening-sequence--requires--settlement-phase-orchestration",
+      "from": "tabletop-opening-sequence",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "开场序列暂时遮蔽营地表现，并在结束后恢复已经等待输入的营地流程",
       "gapId": "",
       "blocksImplementation": false
     },
