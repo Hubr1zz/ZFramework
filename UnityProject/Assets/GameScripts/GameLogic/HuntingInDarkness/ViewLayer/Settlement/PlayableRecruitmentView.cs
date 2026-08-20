@@ -56,7 +56,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             bool canRecruit = manager.CanRecruitHunter(out string reason);
             int cost = GetCurrentCost();
             string costLabel = cost == 0 ? "免费援助" : $"{GetCostItemName()} ×{cost}";
-            bool campEmpty = manager.SettlementData.GetAvailableHunters().Count == 0;
+            bool campEmpty = manager.SettlementData.GetAliveHunters().Count == 0;
             string label = campEmpty ? $"营火将熄灭 · 呼唤幸存者（{costLabel}）" : $"营火招募（{costLabel}）";
             var buttonRect = new Rect((Screen.width - 300f) * 0.5f, 18f, 300f, 38f);
 
@@ -166,7 +166,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             }
         }
 
-        private int GetCurrentCost() => RecruitmentRules.GetCost(manager?.SettlementData?.GetAvailableHunters().Count ?? 0, catalog?.RecruitmentCost ?? 0);
+        private int GetCurrentCost() => RecruitmentRules.GetCost(manager?.SettlementData?.GetAliveHunters().Count ?? 0, catalog?.RecruitmentCost ?? 0);
 
         private string GetCostItemName() => catalog?.RecruitmentCostItem != null ? catalog.RecruitmentCostItem.itemName : "未配置物资";
 

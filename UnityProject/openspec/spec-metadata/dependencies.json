@@ -77,6 +77,13 @@
       "category": "feature",
       "readiness": "implemented",
       "specPath": "openspec/specs/tabletop-settlement-recovery/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-recruitment",
+      "label": "营地桌面猎人招募",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-recruitment/spec.md"
     }
   ],
   "edges": [
@@ -197,6 +204,16 @@
       "type": "requires",
       "status": "defined",
       "reason": "分部位休养由营地 Runner 校验并提交资源与生命变更",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-recruitment--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-recruitment",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "候选与命名意图由营地 Runner 串行校验并提交名册、资源及年鉴事实",
       "gapId": "",
       "blocksImplementation": false
     }

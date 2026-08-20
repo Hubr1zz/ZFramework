@@ -79,6 +79,32 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task RecruitHunterAsync_RetiredLivingHunterStillCountsTowardCapacity()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 2 };
+            settlement.Hunters.Add(new HunterInstance(null, 100) { Name = "守火者" });
+            settlement.Hunters.Add(new HunterInstance(null, 101) { Name = "退休者", Availability = HunterAvailabilityState.Retired });
+            settlement.AddResource("口粮", 1);
+            HunterData template = CreateTemplate("流浪者");
+            try
+            {
+                using var session = CreateSession(settlement, template, recruitmentCost: 1, maximumLivingHunters: 2);
+
+                Assert.That(session.CanRecruit(out string reason), Is.False);
+                Assert.That(reason, Does.Contain("没有容纳"));
+                RecruitHunterCommandResult result = await session.RecruitHunterAsync(template, "越界者");
+
+                Assert.That(result.Succeeded, Is.False);
+                Assert.That(settlement.Hunters, Has.Count.EqualTo(2));
+                Assert.That(settlement.GetResource("口粮"), Is.EqualTo(1));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(template);
+            }
+        }
+
+        [Test]
         public async Task RecruitHunterAsync_ForeignTemplateDoesNotSpendOrChangeRoster()
         {
             var settlement = new SettlementInstance { CurrentYear = 2 };

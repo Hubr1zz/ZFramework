@@ -97,10 +97,10 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             cancellationToken.ThrowIfCancellationRequested();
             if (template == null || !ContainsTemplate(template)) return Fail("请选择一名愿意靠近营火的陌生人。");
 
-            int availableCount = settlement.GetAvailableHunters().Count;
+            int livingCount = settlement.GetAliveHunters().Count;
             if (ResourceCost > 0 && string.IsNullOrWhiteSpace(costResourceId)) return Fail("招募成本尚未配置。");
             int availableResource = string.IsNullOrWhiteSpace(costResourceId) ? 0 : settlement.GetResource(costResourceId);
-            if (!RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, availableCount, MaximumLivingHunters, availableResource, ResourceCost, out string reason)) return Fail(reason);
+            if (!RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, livingCount, MaximumLivingHunters, availableResource, ResourceCost, out string reason)) return Fail(reason);
 
             var existingNames = new List<string>();
             foreach (HunterInstance existingHunter in settlement.Hunters)

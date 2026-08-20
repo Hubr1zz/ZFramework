@@ -41,6 +41,12 @@ namespace UI
         [SerializeField] private HunterRecoveryPanel3D hunterRecoveryPanel;
         [SerializeField] private Transform hunterRecoveryPanelAnchor;
 
+        [Header("营火 3D 招募板")]
+        [SerializeField] private RecruitmentPanel3D recruitmentPanel;
+        [SerializeField] private Transform recruitmentPanelAnchor;
+        [SerializeField] private Vector3 fallbackRecruitmentLauncherPosition = new(-3.25f, 0.03f, -2.65f);
+        private RecruitmentLauncherCard3D recruitmentLauncher;
+
         [Header("发明 3D 确认板")]
         [SerializeField] private InventionUnlockPanel3D inventionUnlockPanel;
         [SerializeField] private Transform inventionUnlockPanelAnchor;
@@ -67,6 +73,7 @@ namespace UI
         public System.Func<InventionData, UniTask<SettlementInventionCommandResult>> OnInventionUnlockRequested;
         public System.Func<PlayableWorkshopDefinition, UniTask<SettlementWorkshopConstructionResult>> OnWorkshopConstructionRequested;
         public System.Func<int, HuntingInDarkness.GameCore.Hunters.HunterBodyPart, UniTask<RecoverHunterCommandResult>> OnRecoveryRequested;
+        public System.Func<HunterData, string, UniTask<RecruitHunterCommandResult>> OnRecruitRequested;
 
         // ─── 注入数据 ─────────────────────────────────────────────────────
         private SettlementManager _mgr;
@@ -85,6 +92,8 @@ namespace UI
             EnsureSceneRefs();    // 未连线时程序化搭建四区 + presenter
             EnsureHunterEquipmentPanel();
             EnsureHunterRecoveryPanel();
+            EnsureRecruitmentPanel();
+            EnsureRecruitmentLauncher();
             EnsureInventionUnlockPanel();
             EnsureWorkshopConstructionPanel();
             EnsureDepartureLauncher();
@@ -127,6 +136,30 @@ namespace UI
             if (hunterRecoveryPanel == null)
                 hunterRecoveryPanel = HunterRecoveryPanel3D.Create(transform);
             hunterRecoveryPanel.EnsureBuilt();
+        }
+
+        private void EnsureRecruitmentPanel()
+        {
+            if (recruitmentPanel == null)
+                recruitmentPanel = RecruitmentPanel3D.Create(transform);
+            recruitmentPanel.EnsureBuilt();
+        }
+
+        private void EnsureRecruitmentLauncher()
+        {
+            if (recruitmentLauncher == null)
+                recruitmentLauncher = RecruitmentLauncherCard3D.Create(transform, fallbackRecruitmentLauncherPosition);
+            recruitmentLauncher.Configure(_mgr.Data, settlementContentCatalog);
+            recruitmentLauncher.Clicked = ShowRecruitment;
+        }
+
+        private void ShowRecruitment()
+        {
+            if (recruitmentPanel == null) return;
+            hunterEquipmentPanel?.Hide();
+            hunterRecoveryPanel?.Hide();
+            Vector3 position = recruitmentPanelAnchor != null ? recruitmentPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.0f));
+            recruitmentPanel.Open(_mgr.Data, settlementContentCatalog, OnRecruitRequested, position);
         }
 
         private void ShowHunterRecovery(HunterInstance hunter)
@@ -302,6 +335,8 @@ namespace UI
             FillAllZones();
             hunterEquipmentPanel?.RefreshVisible();
             hunterRecoveryPanel?.RefreshVisible();
+            recruitmentPanel?.RefreshVisible();
+            recruitmentLauncher?.RefreshState();
             inventionUnlockPanel?.RefreshVisible();
             workshopConstructionPanel?.RefreshVisible();
         }
@@ -311,6 +346,8 @@ namespace UI
         {
             _inventionZone.RefreshCards();
             _workshopZone.RefreshCards();
+            recruitmentPanel?.RefreshVisible();
+            recruitmentLauncher?.RefreshState();
         }
 
         public void RefreshCrafting()
@@ -320,6 +357,8 @@ namespace UI
             _workshopZone.RefreshCards();
             hunterEquipmentPanel?.RefreshVisible();
             hunterRecoveryPanel?.RefreshVisible();
+            recruitmentPanel?.RefreshVisible();
+            recruitmentLauncher?.RefreshState();
             inventionUnlockPanel?.RefreshVisible();
             workshopConstructionPanel?.RefreshVisible();
         }
@@ -331,15 +370,23 @@ namespace UI
             // 命中已有卡就地更新；否则整区重填
             if (!_resourceZone.TryUpdateCount(e.ResourceName, e.NewAmount))
                 _resourceZone.Fill(_mgr.Data.Resources);
+            recruitmentPanel?.RefreshVisible();
+            recruitmentLauncher?.RefreshState();
         }
 
         private void OnRosterChanged(HunterRosterChangedEvent _)
-            => _hunterZone.Fill(_mgr.Data.GetAvailableHunters());
+        {
+            _hunterZone.Fill(_mgr.Data.GetAvailableHunters());
+            recruitmentPanel?.RefreshVisible();
+            recruitmentLauncher?.RefreshState();
+        }
 
         private void OnYearAdvanced(YearAdvancedEvent _)
         {
             _inventionZone.RefreshCards();
             _workshopZone.RefreshCards();
+            recruitmentPanel?.RefreshVisible();
+            recruitmentLauncher?.RefreshState();
         }
 
         // ─── 清理 ─────────────────────────────────────────────────────────

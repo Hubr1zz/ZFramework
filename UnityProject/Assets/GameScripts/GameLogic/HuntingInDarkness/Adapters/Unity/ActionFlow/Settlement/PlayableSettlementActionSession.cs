@@ -86,15 +86,15 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 return false;
             }
 
-            int availableCount = settlement.GetAvailableHunters().Count;
-            int resourceCost = RecruitmentRules.GetCost(availableCount, careContent.RecruitmentCost);
+            int livingCount = settlement.GetAliveHunters().Count;
+            int resourceCost = RecruitmentRules.GetCost(livingCount, careContent.RecruitmentCost);
             if (resourceCost > 0 && string.IsNullOrWhiteSpace(careContent.RecruitmentCostResourceId))
             {
                 reason = "招募成本尚未配置。";
                 return false;
             }
             int availableResource = string.IsNullOrWhiteSpace(careContent.RecruitmentCostResourceId) ? 0 : settlement.GetResource(careContent.RecruitmentCostResourceId);
-            return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, availableCount, careContent.MaximumLivingHunters, availableResource, careContent.RecruitmentCost, out reason);
+            return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, livingCount, careContent.MaximumLivingHunters, availableResource, careContent.RecruitmentCost, out reason);
         }
 
         public async UniTask<RecruitHunterCommandResult> RecruitHunterAsync(HunterData template, string requestedName)
@@ -104,7 +104,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
             ReactorEntityHandle recruitEntity = environment.EntityHandles.GetOrCreate("recruitment-template", template != null ? template.name : "unknown", template != null ? template.hunterName : "未知猎人模板");
-            int resourceCost = RecruitmentRules.GetCost(settlement.GetAvailableHunters().Count, careContent.RecruitmentCost);
+            int resourceCost = RecruitmentRules.GetCost(settlement.GetAliveHunters().Count, careContent.RecruitmentCost);
             var action = new RecruitHunterAction(settlement, template, requestedName, careContent.RecruitmentTemplates, careContent.RecruitmentCostResourceId, resourceCost, careContent.MaximumLivingHunters, outbox, settlementEntity, recruitEntity);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;

@@ -35,7 +35,7 @@ namespace HuntingInDarkness.Settlement
         public int GetCurrentCost()
         {
             SettlementInstance settlement = settlementProvider?.Invoke();
-            return RecruitmentRules.GetCost(settlement?.GetAvailableHunters().Count ?? 0, configuredCost);
+            return RecruitmentRules.GetCost(settlement?.GetAliveHunters().Count ?? 0, configuredCost);
         }
 
         public bool CanRecruit(out string reason)
@@ -52,8 +52,8 @@ namespace HuntingInDarkness.Settlement
                 return false;
             }
 
-            int availableCount = settlement.GetAvailableHunters().Count;
-            int cost = RecruitmentRules.GetCost(availableCount, configuredCost);
+            int livingCount = settlement.GetAliveHunters().Count;
+            int cost = RecruitmentRules.GetCost(livingCount, configuredCost);
             if (cost > 0 && costItem == null)
             {
                 reason = "招募成本尚未配置。";
@@ -61,7 +61,7 @@ namespace HuntingInDarkness.Settlement
             }
 
             int availableResource = costItem != null ? settlement.GetResource(costItem.itemName) : 0;
-            return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, availableCount, maximumLivingHunters, availableResource, configuredCost, out reason);
+            return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, livingCount, maximumLivingHunters, availableResource, configuredCost, out reason);
         }
 
         public bool TryRecruit(HunterData template, string requestedName, out HunterInstance hunter, out string reason)
@@ -81,7 +81,7 @@ namespace HuntingInDarkness.Settlement
                     existingNames.Add(existingHunter.Name);
             if (!RecruitmentRules.TryNormalizeName(requestedName, existingNames, out string normalizedName, out reason)) return false;
 
-            int cost = RecruitmentRules.GetCost(settlement.GetAvailableHunters().Count, configuredCost);
+            int cost = RecruitmentRules.GetCost(settlement.GetAliveHunters().Count, configuredCost);
             if (cost > 0 && !settlement.SpendResource(costItem.itemName, cost))
             {
                 reason = "招募所需物资已经发生变化。";
