@@ -14,13 +14,16 @@ namespace HuntingInDarkness.Hunt
         [SerializeField] private Color labelColor = new(0.96f, 0.89f, 0.67f);
 
         private readonly List<Material> generatedMaterials = new();
+        private HuntManager manager;
         private Renderer resourceRenderer;
         private TextMeshPro label;
         private Color resourceColor;
+        private bool isAvailableForHarvest;
         private bool isBuilt;
 
         public ResourcePointInstance Point { get; private set; }
         public int PointIndex { get; private set; }
+        public bool IsAvailableForHarvest => isAvailableForHarvest;
         public Vector3 PresentationPosition => transform.position + new Vector3(0f, 0.58f, -1.55f);
 
         public static PlayableHuntResourceMarker3D Create(Transform parent, HuntManager manager, Vector2Int tileCoordinate, int pointIndex, ResourcePointInstance point, Vector3 localPosition)
@@ -35,14 +38,24 @@ namespace HuntingInDarkness.Hunt
 
         public void Present(HuntManager manager, Vector2Int tileCoordinate, int pointIndex, ResourcePointInstance point)
         {
+            this.manager = manager;
             Point = point;
             PointIndex = pointIndex;
             EnsureBuilt();
             GetComponent<ResourceMarkerClickHandler>().Initialize(manager, tileCoordinate, pointIndex);
             string displayName = string.IsNullOrWhiteSpace(point?.ResourceName) ? "未知资源" : point.ResourceName;
             resourceColor = CreateResourceColor(displayName);
-            resourceRenderer.sharedMaterial.color = resourceColor;
-            label.text = $"{displayName}\n抽取 {Mathf.Max(0, point?.DrawCount ?? 0)}";
+            RefreshAvailability();
+        }
+
+        public void RefreshAvailability()
+        {
+            if (!isBuilt) return;
+            isAvailableForHarvest = manager != null && manager.IsHarvestablePoint(Point);
+            string displayName = string.IsNullOrWhiteSpace(Point?.ResourceName) ? "未知资源" : Point.ResourceName;
+            label.text = isAvailableForHarvest ? $"{displayName}\n点击采集 · 抽取 {Mathf.Max(0, Point?.DrawCount ?? 0)}" : $"{displayName}\n先移动到此处";
+            transform.localScale = Vector3.one;
+            PresentBaseColor();
         }
 
         private void EnsureBuilt()
@@ -86,7 +99,7 @@ namespace HuntingInDarkness.Hunt
             if (primitiveCollider != null)
             {
                 primitiveCollider.enabled = false;
-                Destroy(primitiveCollider);
+                DestroyGeneratedObject(primitiveCollider);
             }
             Renderer renderer = primitive.GetComponent<Renderer>();
             if (sharedMaterial != null)
@@ -111,26 +124,44 @@ namespace HuntingInDarkness.Hunt
             return Color.HSVToRGB(hash % 360 / 360f, 0.42f, 0.78f);
         }
 
-        private void OnMouseEnter()
+        public void SetHovered(bool hovered)
         {
-            if (GetComponentInParent<PlayableHexTileCard3D>()?.IsFlipping == true)
+            if (!hovered)
+            {
+                transform.localScale = Vector3.one;
+                PresentBaseColor();
                 return;
+            }
+            if (!isAvailableForHarvest || PlayableHuntInputGuard.IsBlocked) return;
+            if (GetComponentInParent<PlayableHexTileCard3D>()?.IsFlipping == true) return;
             transform.localScale = Vector3.one * hoverScale;
             resourceRenderer.sharedMaterial.color = Color.Lerp(resourceColor, Color.white, 0.22f);
         }
 
-        private void OnMouseExit()
+        private void OnMouseEnter() => SetHovered(true);
+
+        private void OnMouseExit() => SetHovered(false);
+
+        private void PresentBaseColor()
         {
-            transform.localScale = Vector3.one;
-            if (resourceRenderer != null)
-                resourceRenderer.sharedMaterial.color = resourceColor;
+            if (resourceRenderer == null) return;
+            resourceRenderer.sharedMaterial.color = isAvailableForHarvest ? resourceColor : Color.Lerp(resourceColor, baseColor, 0.58f);
         }
 
         private void OnDestroy()
         {
             foreach (Material material in generatedMaterials)
-                if (material != null) Destroy(material);
+                DestroyGeneratedObject(material);
             generatedMaterials.Clear();
+        }
+
+        private static void DestroyGeneratedObject(Object target)
+        {
+            if (target == null) return;
+            if (Application.isPlaying)
+                Destroy(target);
+            else
+                DestroyImmediate(target);
         }
     }
 }

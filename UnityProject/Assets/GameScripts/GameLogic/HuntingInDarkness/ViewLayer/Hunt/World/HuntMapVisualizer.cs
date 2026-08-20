@@ -182,6 +182,9 @@ namespace HuntingInDarkness.Hunt
         private void OnSquadMoved(Vector2Int newPos)
         {
             PlaceSquadToken(newPos);
+            foreach (List<PlayableHuntResourceMarker3D> markers in resourceMarkers.Values)
+                foreach (PlayableHuntResourceMarker3D marker in markers)
+                    marker?.RefreshAvailability();
         }
 
         private void OnResourcePointHarvested(ResourcePointInstance point)

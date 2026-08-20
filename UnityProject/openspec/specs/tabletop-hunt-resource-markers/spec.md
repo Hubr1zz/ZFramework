@@ -34,6 +34,17 @@ Each marker SHALL pass its committed tile coordinate and original resource-point
 - **WHEN** the marker index resolves to an exhausted or missing point
 - **THEN** the existing Hunt command validation rejects the interaction without opening a harvest transaction
 
+### Requirement: Pawns communicate travel availability
+Every visible resource pawn SHALL derive its availability from the authoritative HuntManager position rule. A pawn outside the squad's current tile SHALL remain visible but SHALL use a subdued physical state, display a travel hint, and SHALL NOT produce the harvest hover affordance. The map View SHALL refresh these states when the committed squad position changes.
+
+#### Scenario: A revealed resource is on another tile
+- **WHEN** the resource pawn is visible before the squad arrives
+- **THEN** its label instructs the player to move there and pointing at it does not highlight it as harvestable
+
+#### Scenario: The squad reaches the resource tile
+- **WHEN** the Hunt ActionQueue commits movement onto that tile
+- **THEN** the pawn changes to a harvest instruction and pointing at it highlights the physical piece
+
 ### Requirement: Markers respect terrain-card presentation state
 Resource markers SHALL remain children of their owning physical terrain card and SHALL reject pointer commands while that card is flipping.
 
