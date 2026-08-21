@@ -191,6 +191,13 @@
       "specPath": "openspec/specs/event-driven-hunter-death/spec.md"
     },
     {
+      "id": "table-driven-event-chains",
+      "label": "读表事件分支与事件链",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-event-chains/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -626,6 +633,26 @@
       "type": "requires",
       "status": "defined",
       "reason": "主动效果的年度使用次数随 SettlementInstance 保存，并在跨年或读档后继续重验",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-event-chains--requires--tabletop-event-interaction",
+      "from": "table-driven-event-chains",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "表中解析出的直接分支复用营地与狩猎共享的世界空间事件节点",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-event-chains--requires--action-environment-lifecycle",
+      "from": "table-driven-event-chains",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "直接后续由所属阶段 Runner 在同一有限因果链中串行调度并去重",
       "gapId": "",
       "blocksImplementation": false
     }

@@ -38,8 +38,10 @@ namespace HuntingInDarkness.ContentTables
         public string checkInstruction;
         public string successText;
         public List<EventEffectTableRecord> successEffects = new();
+        public List<string> successChainIds = new();
         public string failText;
         public List<EventEffectTableRecord> failEffects = new();
+        public List<string> failChainIds = new();
         public bool alwaysAvailable = true;
         public List<EventOptionConditionTableRecord> conditions = new();
     }
@@ -54,6 +56,7 @@ namespace HuntingInDarkness.ContentTables
         public string hiddenText;
         public List<EventOptionTableRecord> options = new();
         public List<EventEffectTableRecord> immediateEffects = new();
+        public List<string> chainedEventIds = new();
         public int minYear = 1;
         public int maxYear = 99;
         public int drawWeight = 1;
@@ -135,7 +138,6 @@ namespace HuntingInDarkness.ContentTables
             if (cachedEvents != null && cachedEvents.TrueForAll(gameEvent => gameEvent != null))
                 return cachedEvents;
 
-            cachedEvents = new List<EventData>();
             if (cachedRecords == null)
             {
                 var source = new JsonEventTableSource(TablePath);
@@ -143,8 +145,12 @@ namespace HuntingInDarkness.ContentTables
                 cachedRecords.AddRange(new JsonEventTableSource(BloodlineTablePath).Load());
                 cachedRecords.AddRange(new JsonEventTableSource(CardInteractionTablePath).Load());
             }
+            cachedEvents = new List<EventData>();
             var knownIds = new HashSet<string>(StringComparer.Ordinal);
-            Dictionary<string, EventTableRecord> targetRecords = BuildUniqueTargetRecords(cachedRecords, out HashSet<string> duplicateIds);
+            HashSet<string> duplicateIds = FindDuplicateIds(cachedRecords);
+            var validRecords = new Dictionary<string, EventTableRecord>(StringComparer.Ordinal);
+            var eventsById = new Dictionary<string, EventData>(StringComparer.Ordinal);
+            var orderedIds = new List<string>();
             var reportedDuplicateIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (EventTableRecord record in cachedRecords)
             {
@@ -154,16 +160,21 @@ namespace HuntingInDarkness.ContentTables
                         Debug.LogError($"[ContentTable] 事件表存在重复 id：{record.id}");
                     continue;
                 }
-                if (!ValidateScheduleReferences(record, targetRecords, out string referenceError))
-                {
-                    Debug.LogError($"[ContentTable] {referenceError}");
-                    continue;
-                }
                 if (!TryCreateEvent(record, knownIds, out EventData gameEvent, out string error))
                 {
                     Debug.LogError($"[ContentTable] {error}");
                     continue;
                 }
+                validRecords.Add(record.id, record);
+                eventsById.Add(record.id, gameEvent);
+                orderedIds.Add(record.id);
+            }
+
+            RemoveRecordsWithInvalidReferences(orderedIds, validRecords, eventsById);
+            foreach (string eventId in orderedIds)
+            {
+                if (!eventsById.TryGetValue(eventId, out EventData gameEvent)) continue;
+                BindEventChains(gameEvent, validRecords[eventId], eventsById);
                 cachedEvents.Add(gameEvent);
             }
             return cachedEvents;
@@ -331,26 +342,54 @@ namespace HuntingInDarkness.ContentTables
             return true;
         }
 
-        private static Dictionary<string, EventTableRecord> BuildUniqueTargetRecords(IReadOnlyList<EventTableRecord> records, out HashSet<string> duplicateIds)
+        private static HashSet<string> FindDuplicateIds(IReadOnlyList<EventTableRecord> records)
         {
-            var result = new Dictionary<string, EventTableRecord>(StringComparer.Ordinal);
-            duplicateIds = new HashSet<string>(StringComparer.Ordinal);
+            var knownIds = new HashSet<string>(StringComparer.Ordinal);
+            var duplicateIds = new HashSet<string>(StringComparer.Ordinal);
             if (records == null)
-                return result;
+                return duplicateIds;
 
             foreach (EventTableRecord record in records)
             {
                 if (record == null || string.IsNullOrWhiteSpace(record.id))
                     continue;
-                if (!result.TryAdd(record.id, record))
+                if (!knownIds.Add(record.id))
                     duplicateIds.Add(record.id);
             }
-            foreach (string duplicateId in duplicateIds)
-                result.Remove(duplicateId);
-            return result;
+            return duplicateIds;
         }
 
-        private static bool ValidateScheduleReferences(EventTableRecord source, IReadOnlyDictionary<string, EventTableRecord> targetRecords, out string error)
+        private static void RemoveRecordsWithInvalidReferences(IReadOnlyList<string> orderedIds, Dictionary<string, EventTableRecord> validRecords, Dictionary<string, EventData> eventsById)
+        {
+            bool removedAny;
+            do
+            {
+                removedAny = false;
+                foreach (string eventId in orderedIds)
+                {
+                    if (!validRecords.TryGetValue(eventId, out EventTableRecord record)) continue;
+                    if (ValidateReferences(record, validRecords, out string error)) continue;
+                    Debug.LogError($"[ContentTable] {error}");
+                    validRecords.Remove(eventId);
+                    if (eventsById.Remove(eventId, out EventData invalidEvent))
+                        DestroyTransientEvent(invalidEvent);
+                    removedAny = true;
+                }
+            } while (removedAny);
+        }
+
+        private static void DestroyTransientEvent(EventData gameEvent)
+        {
+            if (gameEvent == null) return;
+            if (Application.isPlaying)
+            {
+                UnityEngine.Object.Destroy(gameEvent);
+                return;
+            }
+            UnityEngine.Object.DestroyImmediate(gameEvent);
+        }
+
+        private static bool ValidateReferences(EventTableRecord source, IReadOnlyDictionary<string, EventTableRecord> targetRecords, out string error)
         {
             error = string.Empty;
             if (source == null)
@@ -366,7 +405,55 @@ namespace HuntingInDarkness.ContentTables
                     return false;
                 }
             }
+            if (!ValidateChainReferences(source.id, "事件结束", source.chainedEventIds, targetRecords, out error))
+                return false;
+            if (source.options == null)
+                return true;
+            for (int optionIndex = 0; optionIndex < source.options.Count; optionIndex++)
+            {
+                EventOptionTableRecord option = source.options[optionIndex];
+                if (option == null) continue;
+                if (!ValidateChainReferences(source.id, $"选项 {optionIndex + 1} 成功", option.successChainIds, targetRecords, out error))
+                    return false;
+                if (!ValidateChainReferences(source.id, $"选项 {optionIndex + 1} 失败", option.failChainIds, targetRecords, out error))
+                    return false;
+            }
             return true;
+        }
+
+        private static bool ValidateChainReferences(string sourceId, string branchName, IReadOnlyList<string> targetIds, IReadOnlyDictionary<string, EventTableRecord> targetRecords, out string error)
+        {
+            error = string.Empty;
+            if (targetIds == null)
+                return true;
+            foreach (string targetId in targetIds)
+            {
+                if (!string.IsNullOrWhiteSpace(targetId) && targetRecords.TryGetValue(targetId, out EventTableRecord target) && TryParse(target.category, out EventCategory category) && category == EventCategory.Triggered) continue;
+                error = $"事件 {sourceId} 的{branchName}分支引用不存在、重复、无效或不是 Triggered 类别：{targetId}";
+                return false;
+            }
+            return true;
+        }
+
+        private static void BindEventChains(EventData gameEvent, EventTableRecord record, IReadOnlyDictionary<string, EventData> eventsById)
+        {
+            gameEvent.chainedEvents = ResolveEventChain(record.chainedEventIds, eventsById);
+            for (int optionIndex = 0; optionIndex < gameEvent.options.Count; optionIndex++)
+            {
+                EventOptionTableRecord optionRecord = record.options[optionIndex];
+                gameEvent.options[optionIndex].successChain = ResolveEventChain(optionRecord.successChainIds, eventsById);
+                gameEvent.options[optionIndex].failChain = ResolveEventChain(optionRecord.failChainIds, eventsById);
+            }
+        }
+
+        private static List<EventData> ResolveEventChain(IReadOnlyList<string> targetIds, IReadOnlyDictionary<string, EventData> eventsById)
+        {
+            var result = new List<EventData>();
+            if (targetIds == null)
+                return result;
+            foreach (string targetId in targetIds)
+                result.Add(eventsById[targetId]);
+            return result;
         }
 
         private static IEnumerable<EventEffectTableRecord> EnumerateEffects(EventTableRecord record)

@@ -19,6 +19,17 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(option.conditions, Has.Count.EqualTo(1));
             Assert.That(option.conditions[0].conditionKind, Is.EqualTo(EventOptionConditionKind.HasTrait));
             Assert.That(option.conditions[0].key, Is.EqualTo("守望者"));
+            Assert.That(option.successChain.Select(item => item.name), Is.EqualTo(new[] { "triggered_face_safe_path" }));
+            Assert.That(option.successChain.Single().category, Is.EqualTo(EventCategory.Triggered));
+        }
+
+        [Test]
+        public void TableContent_ResolvesEventLevelChainByStableId()
+        {
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "main_face_echo");
+
+            Assert.That(gameEvent.chainedEvents.Select(item => item.name), Is.EqualTo(new[] { "triggered_face_memory" }));
+            Assert.That(gameEvent.chainedEvents.Single().category, Is.EqualTo(EventCategory.Triggered));
         }
 
         [Test]

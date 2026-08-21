@@ -49,6 +49,7 @@
             { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" },
             { "effectType": "ScheduleEvent", "targetName": "main_face_echo", "value": 2, "description": "两年后，石脸将再次产生变化" }
           ],
+          "successChainIds": ["triggered_face_safe_path"],
           "failText": "",
           "failEffects": [],
           "alwaysAvailable": false,
@@ -73,10 +74,37 @@
       "immediateEffects": [
         { "effectType": "AddResource", "targetName": "碎石", "value": 2, "description": "碎石 +2" }
       ],
+      "chainedEventIds": ["triggered_face_memory"],
       "minYear": 1,
       "maxYear": 0,
       "drawWeight": 1,
       "category": "Scheduled"
+    },
+    {
+      "id": "triggered_face_safe_path",
+      "eventName": "石脸所望之处",
+      "eventType": "Narrative",
+      "displayText": "守望者沿着石脸朝向的黑暗走出很远，在碎石间找到了一条不会吞没脚步声的窄路。",
+      "hiddenText": "这条路暂时没有通向答案，却让营地第一次拥有了可以辨认的归途。",
+      "options": [],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Triggered"
+    },
+    {
+      "id": "triggered_face_memory",
+      "eventName": "未说完的话",
+      "eventType": "Narrative",
+      "displayText": "温热的石片在众人手中逐渐冷却，表面留下了一道朝向营火之外的细痕。",
+      "hiddenText": "你们把它收进年鉴旁的石匣。即使无人理解，营地仍会记得石脸曾经睁眼。",
+      "options": [],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Triggered"
     },
     {
       "id": "random_stone_vigil",
