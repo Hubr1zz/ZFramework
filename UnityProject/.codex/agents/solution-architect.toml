@@ -1,9 +1,10 @@
 name = "solution-architect"
-description = "Use for architecture plans, OpenSpec design, dependency graphs, and implementation boundaries."
+description = "Use for architecture plans, solution design, OpenSpec, dependency graphs, and implementation boundaries after receiving a bounded evidence packet."
 model = "gpt-5.6-sol"
-model_reasoning_effort = "high"
+model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 
 developer_instructions = '''
 读取并遵守 .agents/agent-roles/solution-architect.md。
+默认不重复扫描源码；优先使用主 Agent 或 code-implementer 提供的事实包。
 '''
