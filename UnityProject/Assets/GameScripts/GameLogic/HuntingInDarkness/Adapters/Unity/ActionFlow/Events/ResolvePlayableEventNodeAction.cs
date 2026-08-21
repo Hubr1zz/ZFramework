@@ -41,8 +41,9 @@ namespace HuntingInDarkness.ActionFlow.Events
         private readonly ActionEventOutbox eventOutbox;
         private readonly Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
+        private readonly IPlayableEventResourceCommand resourceCommand;
 
-        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
+        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IPlayableEventResourceCommand resourceCommand = null)
         {
             this.eventSystem = eventSystem ?? throw new ArgumentNullException(nameof(eventSystem));
             this.eventInput = eventInput;
@@ -52,6 +53,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
             this.stageCommitCheckpoint = stageCommitCheckpoint;
             this.randomInteractionPresenter = randomInteractionPresenter;
+            this.resourceCommand = resourceCommand;
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
         }
@@ -73,7 +75,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             {
                 if (eventInput != null)
                     await eventInput.ConfirmNarrativeAsync(gameEvent, defaultActor, cancellationToken);
-                PlayableEventNodeCommitResult narrativeResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor);
+                PlayableEventNodeCommitResult narrativeResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor, resourceCommand);
                 ChainedEvents = narrativeResult.ChainedEvents;
                 EncounterIds = narrativeResult.EncounterIds;
                 PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor);
@@ -93,7 +95,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             }
             if (transaction == null)
             {
-                PlayableEventNodeCommitResult fallbackResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor);
+                PlayableEventNodeCommitResult fallbackResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor, resourceCommand);
                 ChainedEvents = fallbackResult.ChainedEvents;
                 EncounterIds = fallbackResult.EncounterIds;
                 PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor);
@@ -125,7 +127,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             EventOption option = gameEvent.options[selection.OptionIndex];
             if (!PlayableEventOptionAvailability.CanUse(option, selection.Actor, eventSystem.Settlement, out _)) return null;
             int? rollValue = option.checkType != CheckType.None && randomInteractionPresenter != null ? await ResolveTabletopCheckAsync(option, selection.Actor, "initial", cancellationToken) : null;
-            return eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor, rollValue);
+            return eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor, rollValue, resourceCommand);
         }
 
         private async UniTask<int> ResolveTabletopCheckAsync(EventOption option, HunterInstance actor, string step, CancellationToken cancellationToken)

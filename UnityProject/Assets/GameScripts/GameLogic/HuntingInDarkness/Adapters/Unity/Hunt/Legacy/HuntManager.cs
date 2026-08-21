@@ -25,6 +25,7 @@ namespace HuntingInDarkness.Hunt
         public HuntEventSystem   HuntEvents    { get; private set; }
         private readonly EventSystem _eventSystem;
         internal EventSystem EventSystem => _eventSystem;
+        internal IPlayableEventResourceCommand EventResourceCommand { get; }
         public IPlayableEventInput EventInput { get; set; }
 
         // ─── 地图状态 ─────────────────────────────────────────────
@@ -80,6 +81,7 @@ namespace HuntingInDarkness.Hunt
             MapGen       = new HexMapGenerator(_rng, mapRadius: 3);
             Resources    = new ResourceSystem(_rng);
             HuntEvents   = new HuntEventSystem(_rng);
+            EventResourceCommand = new HuntEventResourceCommand(this);
             PlayableHuntContentRuntime.ApplyTo(this);
         }
 
@@ -214,18 +216,18 @@ namespace HuntingInDarkness.Hunt
         private IReadOnlyList<EventData> ResolveEventImmediately(EventData gameEvent)
         {
             if (gameEvent.eventType != GameEventType.Choice || gameEvent.options == null || gameEvent.options.Count == 0)
-                return _eventSystem.ResolveNarrativeStandalone(gameEvent, SelectedHunter);
+                return _eventSystem.ResolveNarrativeStandalone(gameEvent, SelectedHunter, EventResourceCommand);
             for (int optionIndex = 0; optionIndex < gameEvent.options.Count; optionIndex++)
             {
                 HunterInstance actor = FindAvailableEventActor(gameEvent.options[optionIndex]);
-                PlayableEventChoiceTransaction transaction = _eventSystem.PrepareChoice(gameEvent, optionIndex, actor);
+                PlayableEventChoiceTransaction transaction = _eventSystem.PrepareChoice(gameEvent, optionIndex, actor, resourceCommand: EventResourceCommand);
                 if (transaction != null)
                 {
                     PlayableEventCommitResult result = transaction.CommitStandalone();
                     return result.EncounterIds.Count > 0 ? System.Array.Empty<EventData>() : result.ChainedEvents;
                 }
             }
-            return _eventSystem.ResolveNarrativeStandalone(gameEvent, SelectedHunter);
+            return _eventSystem.ResolveNarrativeStandalone(gameEvent, SelectedHunter, EventResourceCommand);
         }
 
         private HunterInstance FindAvailableEventActor(EventOption option)
@@ -332,7 +334,8 @@ namespace HuntingInDarkness.Hunt
             var resourceList = new List<string>();
             foreach (var h in ActiveHunters)
                 foreach (var item in h.Collectibles)
-                    resourceList.Add(item.Data.ContentId);
+                    for (int count = 0; item?.Data != null && count < item.Count; count++)
+                        resourceList.Add(item.Data.ContentId);
 
             return new HuntRecord
             {

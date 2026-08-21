@@ -147,8 +147,8 @@ namespace HuntingInDarkness.Adapter.Tests
             EventData chainedEvent = ScriptableObject.CreateInstance<EventData>();
             chainedEvent.name = "QueuedTileEventChild";
             chainedEvent.eventName = "后续事件";
-            chainedEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = "test-resource", value = 1 });
-            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = "test-resource", value = 1 });
+            chainedEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = rig.Resource.ContentId, value = 1 });
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = rig.Resource.ContentId, value = 1 });
             rig.TileEvent.chainedEvents.Add(chainedEvent);
             var input = new BlockingNarrativeInput();
             rig.Manager.EventInput = input;
@@ -162,7 +162,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(target.State, Is.EqualTo(TileState.Revealed));
             Assert.That(lockedNeighbors.All(tile => tile.State == TileState.Locked), Is.True);
-            Assert.That(rig.Settlement.GetResource("test-resource"), Is.Zero);
+            Assert.That(rig.Settlement.GetResource(rig.Resource), Is.Zero);
 
             input.Continue.TrySetResult(true);
             HuntTileCommandResult result = await interaction;
@@ -170,7 +170,14 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(result.Succeeded, Is.True);
             Assert.That(input.PresentationCount, Is.EqualTo(2));
             Assert.That(lockedNeighbors.All(tile => tile.State == TileState.Interactable), Is.True);
-            Assert.That(rig.Settlement.GetResource("test-resource"), Is.EqualTo(2));
+            Assert.That(rig.Settlement.GetResource(rig.Resource), Is.Zero);
+            Assert.That(rig.Hunter.Collectibles.Sum(item => item.Count), Is.EqualTo(2));
+            Assert.That(rig.Manager.CreateHuntRecord(false, 1).CollectedResources, Has.Count.EqualTo(2));
+
+            rig.Manager.OnExit(rig.Settlement);
+
+            Assert.That(rig.Hunter.Collectibles, Is.Empty);
+            Assert.That(rig.Settlement.GetResource(rig.Resource), Is.EqualTo(2));
             UnityEngine.Object.DestroyImmediate(chainedEvent);
         }
 
@@ -242,7 +249,7 @@ namespace HuntingInDarkness.Adapter.Tests
         public async Task Reveal_SelfReferencingEventCommitsOnceAndStillUnlocksNeighbors()
         {
             using var rig = new HuntRig();
-            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = "cycle-resource", value = 1 });
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = rig.Resource.ContentId, value = 1 });
             rig.TileEvent.chainedEvents.Add(rig.TileEvent);
             HexTileInstance target = rig.FirstInteractable;
             int preventedCount = 0;
@@ -253,7 +260,8 @@ namespace HuntingInDarkness.Adapter.Tests
                 HuntTileCommandResult result = await rig.Session.InteractTileAsync(target.AxialCoord);
 
                 Assert.That(result.Succeeded, Is.True);
-                Assert.That(rig.Settlement.GetResource("cycle-resource"), Is.EqualTo(1));
+                Assert.That(rig.Settlement.GetResource(rig.Resource), Is.Zero);
+                Assert.That(rig.Hunter.Collectibles.Sum(item => item.Count), Is.EqualTo(1));
                 Assert.That(preventedCount, Is.EqualTo(1));
                 Assert.That(HexMapGenerator.GetNeighbors(target.AxialCoord).Where(rig.Manager.Map.ContainsKey).All(position => rig.Manager.Map[position].State != TileState.Locked), Is.True);
             }
@@ -261,6 +269,71 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 EventBus.Unsubscribe(handler);
             }
+        }
+
+        [Test]
+        public async Task HuntEventResourceRemoval_IsAtomicAndNeverSpendsSettlementInventory()
+        {
+            using var rig = new HuntRig();
+            rig.Settlement.AddResource(rig.Resource, 5);
+            rig.Hunter.Collectibles.Add(new ItemInstance(rig.Resource));
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.RemoveResource, targetName = rig.Resource.ContentId, value = 2 });
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+            Assert.That(result.Succeeded, Is.True);
+            Assert.That(rig.Hunter.Collectibles.Sum(item => item.Count), Is.EqualTo(1));
+            Assert.That(rig.Settlement.GetResource(rig.Resource), Is.EqualTo(5));
+        }
+
+        [Test]
+        public async Task HuntEventResourceReward_PublishesHuntScopedFactOnly()
+        {
+            using var rig = new HuntRig();
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = rig.Resource.ContentId, value = 2 });
+            int huntFactCount = 0;
+            int settlementFactCount = 0;
+            PlayableEventResourceChangedEvent received = default;
+            Action<PlayableEventResourceChangedEvent> huntHandler = evt =>
+            {
+                huntFactCount++;
+                received = evt;
+            };
+            Action<ResourceChangedEvent> settlementHandler = _ => settlementFactCount++;
+            EventBus.Subscribe(huntHandler);
+            EventBus.Subscribe(settlementHandler);
+            try
+            {
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(huntFactCount, Is.EqualTo(1));
+                Assert.That(settlementFactCount, Is.Zero);
+                Assert.That(received.Scope, Is.EqualTo(PlayableEventResourceScope.HuntCollectibles));
+                Assert.That(received.ResourceId, Is.EqualTo(rig.Resource.ContentId));
+                Assert.That(received.OldAmount, Is.Zero);
+                Assert.That(received.NewAmount, Is.EqualTo(2));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(huntHandler);
+                EventBus.Unsubscribe(settlementHandler);
+            }
+        }
+
+        [Test]
+        public void HuntEventResourceReward_RejectsCountOverflowWithoutMutation()
+        {
+            using var rig = new HuntRig();
+            rig.Hunter.Collectibles.Add(new ItemInstance(rig.Resource, int.MaxValue));
+            var command = new HuntEventResourceCommand(rig.Manager);
+
+            bool applied = command.TryApply(EventEffectType.AddResource, rig.Resource.ContentId, 1, rig.Hunter, out _, out string reason);
+
+            Assert.That(applied, Is.False);
+            Assert.That(reason, Does.Contain("数量范围"));
+            Assert.That(rig.Hunter.Collectibles, Has.Count.EqualTo(1));
+            Assert.That(rig.Hunter.Collectibles[0].Count, Is.EqualTo(int.MaxValue));
         }
 
         [Test]
@@ -344,9 +417,24 @@ namespace HuntingInDarkness.Adapter.Tests
             private readonly EventData tileEvent;
             private readonly HexTileData startingTile;
             private readonly HexTileData plainTile;
+            private readonly HunterData hunterTemplate;
+            private readonly ItemData resource;
+            private readonly List<ItemData> previousItems;
 
             public HuntRig(IHuntTileInteractionPresenter tileInteractionPresenter = null)
             {
+                previousItems = PlayableSettlementItemRegistry.Items.ToList();
+                resource = ScriptableObject.CreateInstance<ItemData>();
+                resource.name = "test_hunt_resource";
+                resource.ConfigureContentId("test_hunt_resource");
+                resource.itemName = "测试资源";
+                resource.itemType = ItemType.Resource;
+                var configuredItems = new List<ItemData>(previousItems) { resource };
+                PlayableSettlementItemRegistry.Configure(configuredItems);
+                hunterTemplate = ScriptableObject.CreateInstance<HunterData>();
+                hunterTemplate.name = "TestHuntActor";
+                hunterTemplate.hunterName = "测试猎人";
+                Hunter = new HunterInstance(hunterTemplate);
                 tileEvent = ScriptableObject.CreateInstance<EventData>();
                 tileEvent.name = "QueuedTileEvent";
                 tileEvent.eventName = "队列地块事件";
@@ -368,13 +456,15 @@ namespace HuntingInDarkness.Adapter.Tests
                     StartingTileConfig = startingTile,
                     TilePool = { plainTile }
                 };
-                Manager.OnEnter(null);
+                Manager.OnEnter(new List<HunterInstance> { Hunter });
                 Session = new PlayableHuntActionSession(Manager, "default-boss", "test-destination", tileInteractionPresenter: tileInteractionPresenter);
             }
 
             public EventSystem EventSystem { get; }
             public SettlementInstance Settlement { get; }
             public EventData TileEvent => tileEvent;
+            public HunterInstance Hunter { get; }
+            public ItemData Resource => resource;
             public HuntManager Manager { get; }
             public PlayableHuntActionSession Session { get; }
             public HexTileInstance FirstInteractable => Manager.Map.Values.First(tile => tile.State == TileState.Interactable);
@@ -382,6 +472,9 @@ namespace HuntingInDarkness.Adapter.Tests
             public void Dispose()
             {
                 Session.Dispose();
+                PlayableSettlementItemRegistry.Configure(previousItems);
+                UnityEngine.Object.DestroyImmediate(resource);
+                UnityEngine.Object.DestroyImmediate(hunterTemplate);
                 UnityEngine.Object.DestroyImmediate(plainTile);
                 UnityEngine.Object.DestroyImmediate(startingTile);
                 UnityEngine.Object.DestroyImmediate(tileEvent);

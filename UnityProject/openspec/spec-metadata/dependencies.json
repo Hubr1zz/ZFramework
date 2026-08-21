@@ -205,6 +205,13 @@
       "specPath": "openspec/specs/table-driven-hunt-events/spec.md"
     },
     {
+      "id": "hunt-event-resource-staging",
+      "label": "狩猎事件资源暂存与回营提交",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-event-resource-staging/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -690,6 +697,46 @@
       "type": "requires",
       "status": "defined",
       "reason": "物理骰与抽牌判定通过统一 3D 桌面随机交互接口表现",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-event-resource-staging--requires--table-driven-hunt-events",
+      "from": "hunt-event-resource-staging",
+      "to": "table-driven-hunt-events",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Hunt 类别表事件通过阶段资源端口获得或失去携带物",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-event-resource-staging--requires--hunt-phase-orchestration",
+      "from": "hunt-event-resource-staging",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Hunt Runner 为共享事件节点注入当前狩猎的资源命令与小队上下文",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-event-resource-staging--requires--tabletop-hunt-retreat",
+      "from": "hunt-event-resource-staging",
+      "to": "tabletop-hunt-retreat",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件奖励与采集物共同经过正式回营快照和 Campaign 接受后的转入边界",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-event-resource-staging--requires--campaign-persistence",
+      "from": "hunt-event-resource-staging",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "接受回营后转入的稳定资源 ID 与狩猎记录进入权威营地存档",
       "gapId": "",
       "blocksImplementation": false
     }

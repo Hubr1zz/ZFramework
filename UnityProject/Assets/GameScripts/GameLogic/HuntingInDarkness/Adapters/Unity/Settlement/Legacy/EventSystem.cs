@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
@@ -92,19 +93,19 @@ namespace HuntingInDarkness.Settlement
         }
 
         /// <summary>结算单个叙事节点并返回后续节点，不触碰共享事件队列。</summary>
-        public IReadOnlyList<EventData> ResolveNarrativeStandalone(EventData gameEvent, HunterInstance actor = null)
+        public IReadOnlyList<EventData> ResolveNarrativeStandalone(EventData gameEvent, HunterInstance actor = null, IPlayableEventResourceCommand resourceCommand = null)
         {
-            PlayableEventNodeCommitResult result = ResolveNarrativeNode(gameEvent, actor, false);
+            PlayableEventNodeCommitResult result = ResolveNarrativeNode(gameEvent, actor, false, resourceCommand);
             return result.EncounterIds.Count > 0 ? System.Array.Empty<EventData>() : result.ChainedEvents;
         }
 
         /// <summary>结算单个节点并捕获跨环境遭遇请求，避免 Action 流程依赖全局字符串事件。</summary>
-        public PlayableEventNodeCommitResult ResolveNarrativeNodeStandalone(EventData gameEvent, HunterInstance actor = null)
+        public PlayableEventNodeCommitResult ResolveNarrativeNodeStandalone(EventData gameEvent, HunterInstance actor = null, IPlayableEventResourceCommand resourceCommand = null)
         {
-            return ResolveNarrativeNode(gameEvent, actor, true);
+            return ResolveNarrativeNode(gameEvent, actor, true, resourceCommand);
         }
 
-        private PlayableEventNodeCommitResult ResolveNarrativeNode(EventData gameEvent, HunterInstance actor, bool captureEncounterRequests)
+        private PlayableEventNodeCommitResult ResolveNarrativeNode(EventData gameEvent, HunterInstance actor, bool captureEncounterRequests, IPlayableEventResourceCommand resourceCommand = null)
         {
             if (gameEvent == null) return new PlayableEventNodeCommitResult(System.Array.Empty<EventData>(), System.Array.Empty<string>());
             var encounterIds = new List<string>();
@@ -112,7 +113,7 @@ namespace HuntingInDarkness.Settlement
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (gameEvent.immediateEffects != null)
                 foreach (EventEffect effect in gameEvent.immediateEffects)
-                    ApplyEffect(effect, actor, actor, encounterIds);
+                    ApplyEffect(effect, actor, actor, encounterIds, resourceCommand);
             if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (!captureEncounterRequests)
@@ -238,7 +239,7 @@ namespace HuntingInDarkness.Settlement
             ApplyEffect(effect, target, _selectedHunter ?? target);
         }
 
-        private void ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null)
+        private void ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null, IPlayableEventResourceCommand resourceCommand = null)
         {
             if (effect == null) return;
             if (effect.effectType == EventEffectType.ActivateBloodline)
@@ -288,6 +289,27 @@ namespace HuntingInDarkness.Settlement
                 }
                 if (!hunterDeathCommand.TryKill(actor, effect.targetName, effect.description, out string reason))
                     Debug.LogWarning($"[EventSystem] 无法结算 {actor.Name} 的死亡：{reason}");
+                return;
+            }
+
+            if (resourceCommand != null && (effect.effectType == EventEffectType.AddResource || effect.effectType == EventEffectType.RemoveResource))
+            {
+                string resourceId = PlayableSettlementItemRegistry.ResolveContentId(effect.targetName);
+                if (!resourceCommand.TryApply(effect.effectType, resourceId, effect.value, eventActor ?? target, out PlayableEventResourceChange change, out string reason))
+                {
+                    Debug.LogWarning($"[EventSystem] 无法结算阶段资源效果 {resourceId}：{reason}");
+                    return;
+                }
+                if (change.Changed)
+                {
+                    EventBus.Publish(new PlayableEventResourceChangedEvent
+                    {
+                        Scope = change.Scope,
+                        ResourceId = change.ResourceId,
+                        OldAmount = change.OldAmount,
+                        NewAmount = change.NewAmount
+                    });
+                }
                 return;
             }
 

@@ -223,7 +223,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             }
             if (pendingEvents.Count == 0) return null;
             HuntingInDarkness.Data.EventData nextEvent = pendingEvents.Dequeue();
-            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, manager.SelectedHunter, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter);
+            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, manager.SelectedHunter, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand);
             return currentEntry;
         }
 

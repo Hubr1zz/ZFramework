@@ -53,6 +53,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 - 猎人成长、武器训练与营地年鉴已迁入 3D 桌面：成长分配新增 Settlement Action 与 Reactor 边界，流派训练复用配置目录和既有训练 Action，年鉴分页展示时间线与狩猎历史；正式 Bootstrap 不再创建旧 `PlayableSettlementHud`，3D 出发端口独立运行。
 - 症状内化与克服已迁入 3D 猎人桌面：症状卡只提交稳定猎人/症状 ID 与选择，Settlement Action 在执行时重新验证并发布统一事务事实；正式 Bootstrap 不再创建旧屏幕症状窗口。
 - 通用阶段入口已禁止未经准备的 Hunt → Settlement 直接切换；旧开发面板调用同一入口时会自动改走正式回营请求，避免调试操作静默丢失采集物。
+- 共享事件节点新增阶段资源命令端口：营地事件继续写权威库存，狩猎事件只改写猎人 `Collectibles`，并在 Campaign 接受回营后统一转入库存；`GameManager` 不再需要按事件 ID 分流资源奖励。
 
 ## 已知剩余风险
 
@@ -72,6 +73,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 14. `GameManager.TrySpendHunterGrowth` 与 `PlayableHunterAdvancementAdapter.TrySpendGrowth` 仍保留同步兼容入口，旧 HUD 类也仍在源码中；正常组合根已不再调用它们。确认没有场景序列化与外部工具引用后，应连同旧 HUD 一次性删除，避免新代码重新接入非 ActionQueue 旁路。
 15. `PlayableSymptomGrowthService` 与 `PlayableSymptomGrowthView` 仍保留源码兼容，正式组合根已不再创建；旧 Service 仍能绕过 Runner 直接修改猎人。确认没有场景序列化或外部工具引用后应一次删除，避免读表扩展重新形成双提交入口。
 16. 全量 EditMode 在 Play Mode/重编译后的首次运行中，既有 `PlayableHuntActionSessionTests` 偶发出现事件输入未启动；同一夹具立即独立复跑 9/9、随后全量 358/358 通过，说明测试仍依赖未显式重置的静态或异步环境。后续应定位共享状态并在夹具 SetUp/TearDown 中隔离，不能靠重跑作为长期门禁。
+17. `EventSystem` 的效果列表仍按顺序直接提交，单个效果失败只记录警告，不能撤销前序效果。大量复合事件进入内容表前，应抽出可预检的 `EventEffectPlan`，明确“允许部分成功”与“必须原子提交”两类策略，并把提交结果交还所属阶段 Root；不要让 View 或 `GameManager` 做补偿。
 
 ## 暂不改动
 
