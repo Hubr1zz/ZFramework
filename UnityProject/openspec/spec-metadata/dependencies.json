@@ -219,6 +219,13 @@
       "specPath": "openspec/specs/tabletop-hunt-squad-status/spec.md"
     },
     {
+      "id": "hunt-squad-action-availability",
+      "label": "狩猎小队行动资格与失能交接",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-squad-action-availability/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -774,6 +781,46 @@
       "type": "requires",
       "status": "defined",
       "reason": "猎人卡与回营确认复用同一只读携带物摘要，保证探索与结算预览一致",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-squad-action-availability--requires--hunt-phase-orchestration",
+      "from": "hunt-squad-action-availability",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "地图、采集和回营命令从同一 Hunt 会话读取当前部署猎人的存活资格",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-squad-action-availability--requires--event-driven-hunter-death",
+      "from": "hunt-squad-action-availability",
+      "to": "event-driven-hunter-death",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件死亡提交后重新选择存活行动者，并在最终成员失去后关闭探索命令",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-squad-action-availability--requires--hunt-tabletop-harvest",
+      "from": "hunt-squad-action-availability",
+      "to": "hunt-tabletop-harvest",
+      "type": "requires",
+      "status": "defined",
+      "reason": "采集最终提交重验猎人存活状态，失败时释放资源点预约并允许关闭实体卡",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-squad-action-availability--requires--tabletop-hunt-retreat",
+      "from": "hunt-squad-action-availability",
+      "to": "tabletop-hunt-retreat",
+      "type": "requires",
+      "status": "defined",
+      "reason": "远征失去全部行动者后禁止继续探索，但保留正式回营结算边界",
       "gapId": "",
       "blocksImplementation": false
     }

@@ -49,6 +49,7 @@ namespace HuntingInDarkness.Hunt
         public string ResourceName => point.ResourceName;
         public int HunterId => hunter?.InstanceId ?? -1;
         public string HunterName => hunter?.Name ?? "?";
+        public bool HunterIsAlive => hunter != null && hunter.IsAlive;
         public bool CanReveal => !IsCommitted && !IsCancelled && revealedCount < plan.CardCount;
         public bool IsComplete => revealedCount >= plan.CardCount;
         public bool IsCommitted { get; private set; }
@@ -86,6 +87,11 @@ namespace HuntingInDarkness.Hunt
                 throw new InvalidOperationException("All harvest cards must be revealed before commit.");
             if (point.IsExhausted)
                 throw new InvalidOperationException("The resource point was exhausted by another harvest.");
+            if (!HunterIsAlive)
+            {
+                Abandon();
+                throw new InvalidOperationException("A lost hunter cannot commit a harvest transaction.");
+            }
 
             for (int i = 0; i < plan.HitCount; i++)
             {

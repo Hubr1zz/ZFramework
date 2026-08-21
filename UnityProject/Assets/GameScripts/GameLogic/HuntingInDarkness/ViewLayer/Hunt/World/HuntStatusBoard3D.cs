@@ -87,6 +87,15 @@ namespace UI.Hunt
         {
             if (summaryCard == null)
                 return;
+            if (!manager.HasLivingHunter)
+            {
+                summaryCard.Present(
+                    "远征队失去行动能力",
+                    "当前没有可继续探索或采集的猎人。\n\n本次狩猎只能结束，无法再翻开或移动地块。",
+                    "使用地图左侧的实体回营卡结算本次远征",
+                    TabletopEventPrimaryTone.Failure);
+                return;
+            }
             int revealedCount = manager.Map?.Values.Count(tile => tile.State == TileState.Revealed) ?? 0;
             int tileCount = manager.Map?.Count ?? 0;
             summaryCard.Present(

@@ -101,6 +101,19 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void PrepareHarvest_RejectsLostHunterWithoutReservingPoint()
+        {
+            var system = new ResourceSystem(new SequenceRandom(0.1));
+            var point = CreatePoint(1);
+            var lostHunter = new HunterInstance(null, 3) { IsAlive = false };
+
+            Assert.IsNull(system.PrepareHarvest(point, lostHunter));
+            PlayableHarvestTransaction available = system.PrepareHarvest(point, new HunterInstance(null, 4));
+            Assert.IsNotNull(available);
+            available.Cancel();
+        }
+
+        [Test]
         public void CommitHarvest_RejectsTransactionFromAnotherResourceSystem()
         {
             var firstSystem = new ResourceSystem(new SequenceRandom(0.1));

@@ -176,9 +176,18 @@ namespace UI.Hunt
                 {
                     if (result.HasRevealedCard)
                         RevealCard(result.RevealedCard);
-                    _harvestBtn.interactable = true;
-                    _closeBtn.interactable = transaction.RevealedCount == 0;
-                    harvestButtonText.text = transaction.IsComplete ? "重试提交" : "重试翻牌";
+                    if (transaction.IsCancelled)
+                    {
+                        _harvestBtn.interactable = false;
+                        _closeBtn.interactable = true;
+                        harvestButtonText.text = "采集已结束";
+                    }
+                    else
+                    {
+                        _harvestBtn.interactable = true;
+                        _closeBtn.interactable = transaction.RevealedCount == 0;
+                        harvestButtonText.text = transaction.IsComplete ? "重试提交" : "重试翻牌";
+                    }
                     _resultText.text = string.IsNullOrWhiteSpace(result.Reason) ? "采集未完成，请重试。" : result.Reason;
                     return;
                 }
@@ -225,7 +234,7 @@ namespace UI.Hunt
 
         private void Close()
         {
-            if (transaction != null && !transaction.IsCommitted && !transaction.Cancel()) return;
+            if (transaction != null && !transaction.IsCommitted && !transaction.IsCancelled && !transaction.Cancel()) return;
             ReleaseInputGuard();
             OnClose?.Invoke();
         }

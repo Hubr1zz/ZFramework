@@ -231,6 +231,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
         private void StageCommitCheckpoint(PlayableEventCommitCheckpoint checkpoint)
         {
+            manager.EnsureSelectedHunterAvailable();
             eventOutbox.Stage(new HuntEventNodeCommittedEvent
             {
                 Coordinate = commit.Coordinate,

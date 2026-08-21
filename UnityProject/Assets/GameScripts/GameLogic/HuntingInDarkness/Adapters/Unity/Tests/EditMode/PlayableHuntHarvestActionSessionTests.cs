@@ -137,6 +137,38 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task PrepareHarvestAsync_RejectsLostSelectedHunterWithoutReservingPoint()
+        {
+            using var rig = new HuntRig(drawCount: 1);
+            rig.Hunter.IsAlive = false;
+
+            PlayableHarvestTransaction result = await rig.Session.PrepareHarvestAsync(rig.Point);
+
+            Assert.That(result, Is.Null);
+            Assert.That(rig.Point.IsExhausted, Is.False);
+            Assert.That(rig.Manager.SelectedHunter, Is.Null);
+        }
+
+        [Test]
+        public async Task AdvanceHarvestAsync_HunterLostMidHarvestReleasesReservationAndEndsTransaction()
+        {
+            using var rig = new HuntRig(drawCount: 2);
+            PlayableHarvestTransaction transaction = await rig.Session.PrepareHarvestAsync(rig.Point);
+            PlayableHarvestStepResult first = await rig.Session.AdvanceHarvestAsync(transaction);
+            rig.Hunter.IsAlive = false;
+
+            PlayableHarvestStepResult result = await rig.Session.AdvanceHarvestAsync(transaction);
+
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Reason, Does.Contain("失去行动能力"));
+            Assert.That(transaction.IsCancelled, Is.True);
+            Assert.That(rig.Session.HasActiveHarvest, Is.False);
+            Assert.That(rig.Point.IsExhausted, Is.False);
+            Assert.That(rig.Hunter.Collectibles, Is.Empty);
+        }
+
+        [Test]
         public async Task PrepareHarvestAsync_RequiresSquadPresenceOnResourceTile()
         {
             using var rig = new HuntRig(drawCount: 1);

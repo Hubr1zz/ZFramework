@@ -66,7 +66,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
             if (!manager.IsHarvestablePoint(point)) return UniTask.FromResult(ActionOutcome.Failure("资源点不可采集"));
-            if (hunter == null) return UniTask.FromResult(ActionOutcome.Failure("没有执行采集的猎人"));
+            if (hunter == null || !hunter.IsAlive) return UniTask.FromResult(ActionOutcome.Failure("没有可执行采集的存活猎人"));
             Transaction = manager.Resources.PrepareHarvest(point, hunter, HitChance, DrawCount);
             if (Transaction == null) return UniTask.FromResult(ActionOutcome.Failure("资源点已被占用或状态已经改变"));
             eventOutbox.Stage(new HarvestPreparedEvent
@@ -208,6 +208,11 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
             if (transaction == null || !transaction.IsComplete || transaction.IsCommitted) return UniTask.FromResult(ActionOutcome.Failure("采集事务尚未达到提交条件"));
+            if (!transaction.HunterIsAlive)
+            {
+                transaction.Abandon();
+                return UniTask.FromResult(ActionOutcome.Failure("执行采集的猎人已失去行动能力，资源点预约已释放"));
+            }
             try
             {
                 Obtained = manager.Resources.CommitHarvest(transaction);

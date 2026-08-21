@@ -141,6 +141,46 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task InteractTileAsync_AllHuntersLostRejectsFurtherExploration()
+        {
+            using var rig = new HuntRig();
+            HexTileInstance target = rig.FirstInteractable;
+            rig.Manager.ActiveHunters.Insert(0, null);
+            rig.Hunter.IsAlive = false;
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(target.AxialCoord);
+            HuntRetreatCommandResult retreat = await rig.Session.PrepareRetreatAsync(1);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(target.State, Is.EqualTo(TileState.Interactable));
+            Assert.That(rig.Manager.SelectedHunter, Is.Null);
+            Assert.That(retreat.Succeeded, Is.True);
+        }
+
+        [Test]
+        public async Task EventCommit_SelectedHunterLostPromotesLivingSquadMemberBeforeFact()
+        {
+            using var rig = new HuntRig(includeSurvivor: true, hunterDeathCommand: new DirectHunterDeathCommand());
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.KillHunter, targetName = "test_event", description = "测试死亡" });
+            HunterInstance selectedWhenPublished = null;
+            Action<HuntEventNodeCommittedEvent> handler = _ => selectedWhenPublished = rig.Manager.SelectedHunter;
+            EventBus.Subscribe(handler);
+            try
+            {
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(rig.Hunter.IsAlive, Is.False);
+                Assert.That(rig.Manager.SelectedHunter, Is.SameAs(rig.Survivor));
+                Assert.That(selectedWhenPublished, Is.SameAs(rig.Survivor));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
         public async Task Reveal_WaitsForEntireEventChainBeforeUnlockingNeighbors()
         {
             using var rig = new HuntRig();
@@ -421,7 +461,7 @@ namespace HuntingInDarkness.Adapter.Tests
             private readonly ItemData resource;
             private readonly List<ItemData> previousItems;
 
-            public HuntRig(IHuntTileInteractionPresenter tileInteractionPresenter = null)
+            public HuntRig(IHuntTileInteractionPresenter tileInteractionPresenter = null, bool includeSurvivor = false, IHunterDeathCommand hunterDeathCommand = null)
             {
                 previousItems = PlayableSettlementItemRegistry.Items.ToList();
                 resource = ScriptableObject.CreateInstance<ItemData>();
@@ -435,6 +475,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 hunterTemplate.name = "TestHuntActor";
                 hunterTemplate.hunterName = "测试猎人";
                 Hunter = new HunterInstance(hunterTemplate);
+                Survivor = includeSurvivor ? new HunterInstance(hunterTemplate) { Name = "后备猎人" } : null;
                 tileEvent = ScriptableObject.CreateInstance<EventData>();
                 tileEvent.name = "QueuedTileEvent";
                 tileEvent.eventName = "队列地块事件";
@@ -450,13 +491,18 @@ namespace HuntingInDarkness.Adapter.Tests
                 plainTile.tileName = "测试地块";
                 plainTile.tileRevealEvent = tileEvent;
                 Settlement = new SettlementInstance();
-                EventSystem = new EventSystem(Settlement, new FirstRandom());
+                if (includeSurvivor)
+                {
+                    Settlement.Hunters.Add(Hunter);
+                    Settlement.Hunters.Add(Survivor);
+                }
+                EventSystem = new EventSystem(Settlement, new FirstRandom(), hunterDeathCommand: hunterDeathCommand);
                 Manager = new HuntManager(EventSystem, seed: 17)
                 {
                     StartingTileConfig = startingTile,
                     TilePool = { plainTile }
                 };
-                Manager.OnEnter(new List<HunterInstance> { Hunter });
+                Manager.OnEnter(includeSurvivor ? new List<HunterInstance> { Hunter, Survivor } : new List<HunterInstance> { Hunter });
                 Session = new PlayableHuntActionSession(Manager, "default-boss", "test-destination", tileInteractionPresenter: tileInteractionPresenter);
             }
 
@@ -464,6 +510,7 @@ namespace HuntingInDarkness.Adapter.Tests
             public SettlementInstance Settlement { get; }
             public EventData TileEvent => tileEvent;
             public HunterInstance Hunter { get; }
+            public HunterInstance Survivor { get; }
             public ItemData Resource => resource;
             public HuntManager Manager { get; }
             public PlayableHuntActionSession Session { get; }
@@ -543,6 +590,17 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             public int Next(int minInclusive, int maxExclusive) => minInclusive;
             public double NextDouble() => 0d;
+        }
+
+        private sealed class DirectHunterDeathCommand : IHunterDeathCommand
+        {
+            public bool TryKill(HunterInstance hunter, string causeId, string causeText, out string reason)
+            {
+                reason = string.Empty;
+                if (hunter == null || !hunter.IsAlive) return false;
+                hunter.IsAlive = false;
+                return true;
+            }
         }
     }
 }

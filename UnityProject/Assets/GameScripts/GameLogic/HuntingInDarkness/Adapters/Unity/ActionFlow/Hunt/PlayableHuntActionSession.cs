@@ -83,8 +83,9 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         {
             if (!IsActive || point == null) return null;
             var outbox = new ActionEventOutbox();
-            HunterInstance selectedHunter = manager.SelectedHunter;
-            ReactorEntityHandle hunter = GetHunterHandle(selectedHunter?.InstanceId ?? -1, selectedHunter?.Name);
+            HunterInstance selectedHunter = manager.EnsureSelectedHunterAvailable();
+            if (selectedHunter == null) return null;
+            ReactorEntityHandle hunter = GetHunterHandle(selectedHunter.InstanceId, selectedHunter.Name);
             ReactorEntityHandle resourcePoint = GetResourcePointHandle(point);
             var action = new BeginHarvestAction(manager, point, selectedHunter, outbox, hunter, resourcePoint);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
@@ -107,7 +108,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             ReactorEntityHandle resourcePoint = GetResourcePointHandle(transaction.Point);
             var action = new AdvanceHarvestAction(manager, transaction, outbox, hunter, resourcePoint);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
-            if (transaction.IsCommitted)
+            if (transaction.IsCommitted || transaction.IsCancelled)
                 activeHarvests.Remove(transaction);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? PlayableHarvestStepResult.Failed(outcome.Reason) : action.Result;

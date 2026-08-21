@@ -91,7 +91,7 @@ namespace HuntingInDarkness.Hunt
 
         public PlayableHarvestTransaction PrepareHarvest(ResourcePointInstance point, HunterInstance hunter, float hitChance = 0.6f, int? drawCount = null)
         {
-            if (point == null || point.IsExhausted || point.Resource == null) return null;
+            if (hunter == null || !hunter.IsAlive || point == null || point.IsExhausted || point.Resource == null) return null;
             if (!pendingHarvests.Add(point)) return null;
 
             try

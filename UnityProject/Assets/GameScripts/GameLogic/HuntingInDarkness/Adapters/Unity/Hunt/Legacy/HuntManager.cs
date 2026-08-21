@@ -39,6 +39,7 @@ namespace HuntingInDarkness.Hunt
 
         public List<HunterInstance>  ActiveHunters   { get; private set; } = new();
         public HunterInstance        SelectedHunter  { get; private set; }
+        public bool HasLivingHunter => PlayableHuntSquadAvailability.HasLivingHunter(ActiveHunters);
 
         // ─── 配置（运行时注入）────────────────────────────────────
 
@@ -91,7 +92,7 @@ namespace HuntingInDarkness.Hunt
         public void OnEnter(List<HunterInstance> hunters, int currentYear = 1)
         {
             ActiveHunters  = hunters ?? new List<HunterInstance>();
-            SelectedHunter = ActiveHunters.Count > 0 ? ActiveHunters[0] : null;
+            SelectedHunter = PlayableHuntSquadAvailability.ResolveSelectedHunter(ActiveHunters, null);
             _navigation.Reset();
             HuntEvents.ResetSession(currentYear);
 
@@ -163,7 +164,7 @@ namespace HuntingInDarkness.Hunt
         public bool TryCommitTileInteraction(Vector2Int coordinate, HuntTileInteractionKind intendedKind, out HuntTileInteractionCommit commit)
         {
             commit = default;
-            if (PlayableHuntInputGuard.IsBlocked || !Map.TryGetValue(coordinate, out HexTileInstance tile)) return false;
+            if (PlayableHuntInputGuard.IsBlocked || EnsureSelectedHunterAvailable() == null || !Map.TryGetValue(coordinate, out HexTileInstance tile)) return false;
             if (intendedKind == HuntTileInteractionKind.Reveal && tile.State == TileState.Interactable)
             {
                 if (!MapGen.RevealTileDeferred(Map, coordinate, revealed => Resources.SpawnResourcePoints(revealed))) return false;
@@ -252,6 +253,7 @@ namespace HuntingInDarkness.Hunt
         public void OnResourcePointSelected(Vector2Int tileCoord, int pointIndex)
         {
             if (PlayableHuntInputGuard.IsBlocked) return;
+            if (EnsureSelectedHunterAvailable() == null) return;
             if (!Map.TryGetValue(tileCoord, out var tile)) return;
             if (pointIndex < 0 || pointIndex >= tile.ResourcePoints.Count) return;
 
@@ -263,6 +265,7 @@ namespace HuntingInDarkness.Hunt
 
         public bool IsHarvestablePoint(ResourcePointInstance point)
         {
+            if (!HasLivingHunter) return false;
             if (point == null || point.IsExhausted || point.Resource == null) return false;
             if (!Map.TryGetValue(SquadPosition, out HexTileInstance squadTile)) return false;
             return squadTile.State == TileState.Revealed && squadTile.ResourcePoints.Contains(point);
@@ -271,12 +274,16 @@ namespace HuntingInDarkness.Hunt
         /// <summary>执行采集（由 UI 确认后调用）</summary>
         public List<ItemInstance> ExecuteHarvest(ResourcePointInstance point)
         {
+            if (EnsureSelectedHunterAvailable() == null) return new List<ItemInstance>();
             var obtained = Resources.Harvest(point, SelectedHunter);
             OnResourcePointHarvested?.Invoke(point);
             return obtained;
         }
 
-        public PlayableHarvestTransaction PrepareHarvest(ResourcePointInstance point) => Resources.PrepareHarvest(point, SelectedHunter);
+        public PlayableHarvestTransaction PrepareHarvest(ResourcePointInstance point)
+        {
+            return EnsureSelectedHunterAvailable() != null ? Resources.PrepareHarvest(point, SelectedHunter) : null;
+        }
 
         public UniTask<PlayableHarvestTransaction> PrepareHarvestAsync(ResourcePointInstance point)
         {
@@ -289,6 +296,11 @@ namespace HuntingInDarkness.Hunt
             if (RequestAdvanceHarvest != null) return RequestAdvanceHarvest(transaction);
             if (transaction == null) return UniTask.FromResult(PlayableHarvestStepResult.Failed("采集事务不存在"));
             if (transaction.IsCancelled) return UniTask.FromResult(PlayableHarvestStepResult.Failed("采集事务已经取消"));
+            if (!transaction.HunterIsAlive)
+            {
+                transaction.Abandon();
+                return UniTask.FromResult(PlayableHarvestStepResult.Failed("执行采集的猎人已失去行动能力，资源点预约已释放"));
+            }
             if (!transaction.CanReveal && !transaction.IsComplete) return UniTask.FromResult(PlayableHarvestStepResult.Failed("采集事务不可推进"));
             HarvestCardResult? revealedCard = transaction.CanReveal ? transaction.RevealNext() : null;
             if (transaction.CanReveal) return UniTask.FromResult(PlayableHarvestStepResult.Revealed(revealedCard.Value));
@@ -332,16 +344,25 @@ namespace HuntingInDarkness.Hunt
         public HuntRecord CreateHuntRecord(bool bossDefeated, int currentYear)
         {
             var resourceList = new List<string>();
+            int huntersDeployed = 0;
+            int huntersLost = 0;
             foreach (var h in ActiveHunters)
+            {
+                if (h == null)
+                    continue;
+                huntersDeployed++;
+                if (!h.IsAlive)
+                    huntersLost++;
                 foreach (var item in h.Collectibles)
                     for (int count = 0; item?.Data != null && count < item.Count; count++)
                         resourceList.Add(item.Data.ContentId);
+            }
 
             return new HuntRecord
             {
                 Year             = currentYear,
-                HuntersDeployed  = ActiveHunters.Count,
-                HuntersLost      = ActiveHunters.FindAll(h => !h.IsAlive).Count,
+                HuntersDeployed  = huntersDeployed,
+                HuntersLost      = huntersLost,
                 BossDefeated     = bossDefeated,
                 CollectedResources = resourceList
             };
@@ -356,7 +377,15 @@ namespace HuntingInDarkness.Hunt
 
         public void SelectHunter(int hunterId)
         {
-            SelectedHunter = ActiveHunters.Find(h => h.InstanceId == hunterId);
+            HunterInstance selected = ActiveHunters.Find(hunter => hunter != null && hunter.InstanceId == hunterId && hunter.IsAlive);
+            if (selected != null)
+                SelectedHunter = selected;
+        }
+
+        internal HunterInstance EnsureSelectedHunterAvailable()
+        {
+            SelectedHunter = PlayableHuntSquadAvailability.ResolveSelectedHunter(ActiveHunters, SelectedHunter);
+            return SelectedHunter;
         }
 
         public HexTileInstance GetTile(Vector2Int coord)

@@ -104,7 +104,7 @@ namespace UI.Hunt
 
         private void HandleControlCardClicked()
         {
-            if ((cards.Count == 0 && transaction == null) || (transaction?.IsComplete == true && !transaction.IsCommitted))
+            if ((cards.Count == 0 && transaction == null) || (transaction?.IsComplete == true && !transaction.IsCommitted && !transaction.IsCancelled))
             {
                 AdvanceAsync().Forget();
                 return;
@@ -187,9 +187,14 @@ namespace UI.Hunt
         private void PresentCloseCard()
         {
             if (closeCard == null) return;
-            bool canRetryCommit = !operationRunning && transaction?.IsComplete == true && !transaction.IsCommitted;
-            bool canClose = !operationRunning && (transaction == null || transaction.IsCommitted || transaction.RevealedCount == 0);
-            string label = transaction?.IsCommitted == true ? "收起卡牌" : canRetryCommit ? "重试提交" : cards.Count == 0 && transaction == null ? "确认空素材池" : canClose ? "离开资源点" : "请翻完剩余卡牌";
+            bool canRetryCommit = !operationRunning && transaction?.IsComplete == true && !transaction.IsCommitted && !transaction.IsCancelled;
+            bool canClose = !operationRunning && (transaction == null || transaction.IsCommitted || transaction.IsCancelled || transaction.RevealedCount == 0);
+            string label = "请翻完剩余卡牌";
+            if (transaction?.IsCommitted == true) label = "收起卡牌";
+            else if (transaction?.IsCancelled == true) label = "结束采集";
+            else if (canRetryCommit) label = "重试提交";
+            else if (cards.Count == 0 && transaction == null) label = "确认空素材池";
+            else if (canClose) label = "离开资源点";
             closeCard.Present(label, canClose || canRetryCommit);
         }
 
