@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
+using HuntingInDarkness.ViewLayer.Hunt;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using UnityEngine;
 
@@ -101,8 +102,8 @@ namespace UI.Hunt
                 return;
             bool selected = ReferenceEquals(manager.SelectedHunter, hunter);
             bool available = hunter.IsAlive;
-            int collectibleCount = hunter.Collectibles?.Sum(item => item?.Count ?? 0) ?? 0;
-            string body = $"头 {hunter.HP.head}/{hunter.MaxHP.head}  躯 {hunter.HP.body}/{hunter.MaxHP.body}\n臂 {hunter.HP.arms}/{hunter.MaxHP.arms}  腿 {hunter.HP.legs}/{hunter.MaxHP.legs}\n意志 {hunter.Willpower}/{hunter.WillpowerMax} · 携带 {collectibleCount}";
+            HuntCollectiblePresentation collectibles = HuntCollectiblePresentation.Create(hunter.Collectibles);
+            string body = $"头 {hunter.HP.head}/{hunter.MaxHP.head}  躯 {hunter.HP.body}/{hunter.MaxHP.body}\n臂 {hunter.HP.arms}/{hunter.MaxHP.arms}  腿 {hunter.HP.legs}/{hunter.MaxHP.legs}\n意志 {hunter.Willpower}/{hunter.WillpowerMax}\n携带 {collectibles.TotalCount} · {collectibles.Summary}";
             string status = !available ? "已失去行动能力" : selected ? "当前行动猎人" : "点击选为行动猎人";
             card.Present(hunter.Name, body, available, status, card.Clicked);
         }

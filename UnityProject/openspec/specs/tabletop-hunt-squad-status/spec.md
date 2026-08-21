@@ -27,11 +27,24 @@ Each living hunter card SHALL submit its hunter identity through `HuntManager.Se
 - **THEN** `SelectedHunter` changes and the cards refresh their selected state
 
 ### Requirement: Cards reflect committed Hunt state
-The status board SHALL refresh from Hunt ActionQueue committed tile and harvest events and SHALL show current body-part health, willpower, and carried-resource count.
+The status board SHALL refresh from Hunt ActionQueue committed tile, harvest, and event-node facts and SHALL show current body-part health, willpower, carried-resource count, and a bounded material breakdown.
 
 #### Scenario: A Hunt action commits
 - **WHEN** tile interaction or harvest state is committed
 - **THEN** summary progress and hunter card values are refreshed from authoritative Hunt state
+
+#### Scenario: A Hunt event changes the acting hunter
+- **WHEN** a Hunt event node commits resource, willpower, injury, or death effects
+- **THEN** the world-space hunter cards refresh after the commit checkpoint
+- **AND** the player does not need to perform another map action to see the new state
+
+### Requirement: Carried-resource summaries share one read model
+Hunter cards and the retreat confirmation SHALL derive totals and material labels from the same read-only collectible projection. The projection SHALL aggregate stacked instances by stable item identity, ignore invalid entries, and bound visible labels without changing authoritative Hunt data.
+
+#### Scenario: Multiple stacks and material kinds are carried
+- **WHEN** the status board or retreat confirmation is presented
+- **THEN** both views show the same aggregate carried count
+- **AND** the visible material labels are compact while omitted kinds remain represented by an additional-kind count
 
 ### Requirement: Harvest remains physical on the normal map
 The normal 3D Hunt path SHALL open physical harvest cards even when a resource marker presentation position is temporarily unavailable, using the map interaction anchor as a bounded fallback.

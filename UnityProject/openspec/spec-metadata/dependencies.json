@@ -212,6 +212,13 @@
       "specPath": "openspec/specs/hunt-event-resource-staging/spec.md"
     },
     {
+      "id": "tabletop-hunt-squad-status",
+      "label": "3D 狩猎小队状态桌",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-hunt-squad-status/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -737,6 +744,36 @@
       "type": "requires",
       "status": "defined",
       "reason": "接受回营后转入的稳定资源 ID 与狩猎记录进入权威营地存档",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-squad-status--requires--hunt-phase-orchestration",
+      "from": "tabletop-hunt-squad-status",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "状态桌只读取 Hunt Runner 已提交的小队、地图与猎人权威状态",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-squad-status--requires--hunt-event-resource-staging",
+      "from": "tabletop-hunt-squad-status",
+      "to": "hunt-event-resource-staging",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件节点提交后以同一携带物投影刷新猎人卡的素材总数与摘要",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-squad-status--requires--tabletop-hunt-retreat",
+      "from": "tabletop-hunt-squad-status",
+      "to": "tabletop-hunt-retreat",
+      "type": "requires",
+      "status": "defined",
+      "reason": "猎人卡与回营确认复用同一只读携带物摘要，保证探索与结算预览一致",
       "gapId": "",
       "blocksImplementation": false
     }

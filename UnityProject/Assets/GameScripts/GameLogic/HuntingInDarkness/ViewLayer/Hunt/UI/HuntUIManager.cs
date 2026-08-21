@@ -51,6 +51,7 @@ namespace UI.Hunt
             EventBus.Subscribe<GameEventTriggeredEvent>(OnGameEvent);
             EventBus.Subscribe<HuntTileInteractionCommittedEvent>(OnTileInteractionCommitted);
             EventBus.Subscribe<HarvestCommittedEvent>(OnHarvestCommitted);
+            EventBus.Subscribe<HuntEventNodeCommittedEvent>(OnHuntEventNodeCommitted);
             _initialized = true;
         }
 
@@ -133,6 +134,8 @@ namespace UI.Hunt
 
         private void OnHarvestCommitted(HarvestCommittedEvent _) => Refresh();
 
+        private void OnHuntEventNodeCommitted(HuntEventNodeCommittedEvent _) => Refresh();
+
         // ─── uGUI 工厂 ────────────────────────────────────────────
 
         private GameObject NewPanel(string name, Vector2 aMin, Vector2 aMax)
@@ -176,6 +179,7 @@ namespace UI.Hunt
             EventBus.Unsubscribe<GameEventTriggeredEvent>(OnGameEvent);
             EventBus.Unsubscribe<HuntTileInteractionCommittedEvent>(OnTileInteractionCommitted);
             EventBus.Unsubscribe<HarvestCommittedEvent>(OnHarvestCommitted);
+            EventBus.Unsubscribe<HuntEventNodeCommittedEvent>(OnHuntEventNodeCommitted);
             if (statusBoard3D != null)
                 Destroy(statusBoard3D.gameObject);
             if (harvestPanel3D != null)

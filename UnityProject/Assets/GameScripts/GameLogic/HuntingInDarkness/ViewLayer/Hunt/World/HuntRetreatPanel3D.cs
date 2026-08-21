@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.Hunt;
+using HuntingInDarkness.Data;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using UnityEngine;
 
@@ -73,10 +74,10 @@ namespace HuntingInDarkness.ViewLayer.Hunt
             transform.localPosition = GetLauncherPosition();
             int hunterCount = manager.ActiveHunters?.Count ?? 0;
             int lostCount = manager.ActiveHunters?.Count(hunter => hunter == null || !hunter.IsAlive) ?? 0;
-            int resourceCount = manager.ActiveHunters?.Where(hunter => hunter != null).Sum(hunter => hunter.Collectibles?.Sum(item => item?.Count ?? 0) ?? 0) ?? 0;
+            HuntCollectiblePresentation collectibles = HuntCollectiblePresentation.Create(manager.ActiveHunters?.Where(hunter => hunter != null).SelectMany(hunter => hunter.Collectibles ?? Enumerable.Empty<ItemInstance>()));
             TabletopEventPrimaryCard3D primary = TabletopEventPrimaryCard3D.Create(transform);
             primary.MoveTo(new Vector3(0f, 0f, 1.75f));
-            primary.Present("返回营地？", $"出发猎人 · {hunterCount}\n失去猎人 · {lostCount}\n携带素材 · {resourceCount}\n\n回营后将结算收获并推进营地流程。", string.IsNullOrWhiteSpace(status) ? "确认前仍可继续探索" : status, string.IsNullOrWhiteSpace(status) ? TabletopEventPrimaryTone.Narrative : TabletopEventPrimaryTone.Failure);
+            primary.Present("返回营地？", $"出发猎人 · {hunterCount}\n失去猎人 · {lostCount}\n携带素材 · {collectibles.TotalCount}\n{collectibles.Summary}\n\n回营后将结算收获并推进营地流程。", string.IsNullOrWhiteSpace(status) ? "确认前仍可继续探索" : status, string.IsNullOrWhiteSpace(status) ? TabletopEventPrimaryTone.Narrative : TabletopEventPrimaryTone.Failure);
 
             TabletopEventChoiceCard3D confirm = TabletopEventChoiceCard3D.Create(transform, new Vector3(-0.82f, 0f, -0.55f));
             confirm.Present("结算并回营", "将采集物转入营地，结束本次狩猎。", !requestInFlight, requestInFlight ? "正在结算" : "点击确认", ConfirmAsync);
