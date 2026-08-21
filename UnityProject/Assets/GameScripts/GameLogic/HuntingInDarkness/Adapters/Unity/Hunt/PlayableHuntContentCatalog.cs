@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using UnityEngine;
 
@@ -22,7 +23,7 @@ namespace HuntingInDarkness.Hunt
             if (manager == null || !IsConfigured) return;
             manager.StartingTileConfig = startingTile;
             manager.TilePool = tilePool.FindAll(tile => tile != null);
-            manager.HuntEvents.HuntEventPool = eventPool.FindAll(gameEvent => gameEvent != null);
+            manager.HuntEvents.HuntEventPool = PlayableEventTableRuntime.ExtendHunt(eventPool);
         }
     }
 

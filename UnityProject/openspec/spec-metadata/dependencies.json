@@ -198,6 +198,13 @@
       "specPath": "openspec/specs/table-driven-event-chains/spec.md"
     },
     {
+      "id": "table-driven-hunt-events",
+      "label": "读表狩猎事件内容",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-hunt-events/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -653,6 +660,36 @@
       "type": "requires",
       "status": "defined",
       "reason": "直接后续由所属阶段 Runner 在同一有限因果链中串行调度并去重",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunt-events--requires--table-driven-event-chains",
+      "from": "table-driven-hunt-events",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "狩猎表内容复用统一稳定 ID、分支引用装配与因果链去重规则",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunt-events--requires--hunt-phase-orchestration",
+      "from": "table-driven-hunt-events",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "表事件由当前 Hunt Runner 选择、等待桌面输入并串行提交效果",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunt-events--requires--tabletop-random-interaction",
+      "from": "table-driven-hunt-events",
+      "to": "tabletop-random-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "物理骰与抽牌判定通过统一 3D 桌面随机交互接口表现",
       "gapId": "",
       "blocksImplementation": false
     }

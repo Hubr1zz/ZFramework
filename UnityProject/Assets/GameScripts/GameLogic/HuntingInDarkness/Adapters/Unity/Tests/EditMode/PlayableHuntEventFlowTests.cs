@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Hunt;
@@ -24,6 +26,39 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(marsh, Is.Not.Null);
             AssertHuntEventPool(outskirts.EventPool);
             AssertHuntEventPool(marsh.EventPool);
+        }
+
+        [Test]
+        public void TableContent_ProvidesSharedHuntEventsWithTabletopChecks()
+        {
+            List<EventData> events = PlayableEventTableRuntime.GetEvents().Where(gameEvent => gameEvent.category == EventCategory.Hunt).ToList();
+
+            Assert.That(events, Has.Count.GreaterThanOrEqualTo(3));
+            Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.checkPresentation == EventCheckPresentationKind.PhysicalDice)), Is.True);
+            Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.checkPresentation == EventCheckPresentationKind.DrawCards)), Is.True);
+        }
+
+        [Test]
+        public void ExtendHunt_MergesRouteContentAndOverridesByStableId()
+        {
+            EventData routeEvent = CreateEvent("hunt_echoing_tracks");
+            EventData settlementEvent = CreateEvent("settlement-only");
+            settlementEvent.category = EventCategory.Settlement;
+
+            try
+            {
+                List<EventData> merged = PlayableEventTableRuntime.ExtendHunt(new[] { routeEvent, settlementEvent });
+
+                Assert.That(merged.Count(gameEvent => gameEvent.name == "hunt_echoing_tracks"), Is.EqualTo(1));
+                Assert.That(merged.Single(gameEvent => gameEvent.name == "hunt_echoing_tracks"), Is.Not.SameAs(routeEvent));
+                Assert.That(merged.Contains(settlementEvent), Is.False);
+                Assert.That(merged.TrueForAll(gameEvent => gameEvent.category == EventCategory.Hunt), Is.True);
+            }
+            finally
+            {
+                Object.DestroyImmediate(routeEvent);
+                Object.DestroyImmediate(settlementEvent);
+            }
         }
 
         [Test]

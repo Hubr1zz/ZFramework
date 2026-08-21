@@ -108,6 +108,7 @@ namespace HuntingInDarkness.ContentTables
         private const string TablePath = "HuntingInDarkness/Tables/events";
         private const string BloodlineTablePath = "HuntingInDarkness/Tables/bloodline-events";
         private const string CardInteractionTablePath = "HuntingInDarkness/Tables/card-interaction-events";
+        private const string HuntTablePath = "HuntingInDarkness/Tables/hunt-events";
         private static List<EventTableRecord> cachedRecords;
         private static List<EventData> cachedEvents;
 
@@ -133,6 +134,28 @@ namespace HuntingInDarkness.ContentTables
             }
         }
 
+        public static List<EventData> ExtendHunt(IReadOnlyList<EventData> baseEvents)
+        {
+            var result = new List<EventData>();
+            var knownIds = new HashSet<string>(StringComparer.Ordinal);
+            if (baseEvents != null)
+            {
+                foreach (EventData baseEvent in baseEvents)
+                {
+                    if (baseEvent == null || baseEvent.category != EventCategory.Hunt || string.IsNullOrWhiteSpace(baseEvent.name) || !knownIds.Add(baseEvent.name)) continue;
+                    result.Add(baseEvent);
+                }
+            }
+            foreach (EventData tableEvent in GetEvents())
+            {
+                if (tableEvent.category != EventCategory.Hunt) continue;
+                result.RemoveAll(gameEvent => gameEvent.name == tableEvent.name);
+                knownIds.Add(tableEvent.name);
+                result.Add(tableEvent);
+            }
+            return result;
+        }
+
         public static IReadOnlyList<EventData> GetEvents()
         {
             if (cachedEvents != null && cachedEvents.TrueForAll(gameEvent => gameEvent != null))
@@ -144,6 +167,7 @@ namespace HuntingInDarkness.ContentTables
                 cachedRecords = new List<EventTableRecord>(source.Load());
                 cachedRecords.AddRange(new JsonEventTableSource(BloodlineTablePath).Load());
                 cachedRecords.AddRange(new JsonEventTableSource(CardInteractionTablePath).Load());
+                cachedRecords.AddRange(new JsonEventTableSource(HuntTablePath).Load());
             }
             cachedEvents = new List<EventData>();
             var knownIds = new HashSet<string>(StringComparer.Ordinal);

@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "hunt_echoing_tracks",
+      "eventName": "回声足迹",
+      "eventType": "Choice",
+      "displayText": "前方的石面上出现了一串新鲜足迹。每一步落下后，远处都会传回多出一次的回声。",
+      "hiddenText": "足迹并不属于你们认识的生物，但回声暴露了附近较安全的落脚点。",
+      "options": [
+        {
+          "optionText": "沿回声间隙快速穿过",
+          "checkType": "Evasion",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在带队猎人旁投掷一枚 d10",
+          "successText": "你们抢在下一轮回声前穿过了石坡，并从裂缝中带走一份黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "回声追上了脚步。带队猎人强迫自己继续前进，压抑 +1。",
+          "failEffects": [
+            { "effectType": "AddInsanity", "targetName": "selected", "value": 1, "description": "压抑 +1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "绕开足迹，保留体力",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "你们放弃了捷径，但没有惊动留下足迹的东西。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_buried_cache",
+      "eventName": "埋藏的行囊",
+      "eventType": "Choice",
+      "displayText": "一只用筋腱缠紧的旧行囊半埋在灰土里，周围没有尸骨，只有几张朝下盖住的硬纸牌。",
+      "hiddenText": "牌面记录着陌生猎人的路线，其中一张仍指向可用的补给。",
+      "options": [
+        {
+          "optionText": "抽一张路线牌寻找补给",
+          "checkType": "Luck",
+          "checkTarget": 6,
+          "checkPresentation": "DrawCards",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "hunt-route-omens",
+          "checkInstruction": "从行囊旁的路线牌堆抽取一张牌",
+          "successText": "牌上的凹痕指向一块松动的石板，你们找到两份碎石。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" }
+          ],
+          "failText": "牌下只有一团仍在蠕动的黑灰。翻牌者立刻松手，却仍感到意志被削弱。",
+          "failEffects": [
+            { "effectType": "RemoveWillpower", "targetName": "selected", "value": 1, "description": "意志 -1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "不碰纸牌，检查行囊外层",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "行囊已经腐烂，但绳结的编法被猎人记了下来。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_cold_spore_bloom",
+      "eventName": "冷孢花",
+      "eventType": "Choice",
+      "displayText": "一簇苍白菌盖在没有风的地方依次张开，冷光像呼吸一样在它们之间传递。",
+      "hiddenText": "孢子短暂照亮了前路，也让吸入它的人看见并不存在的同行者。",
+      "options": [
+        {
+          "optionText": "屏住呼吸采下菌盖",
+          "checkType": "Strength",
+          "checkTarget": 5,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 6,
+          "checkInstruction": "在采集者旁投掷一枚 d6",
+          "successText": "菌盖完整脱落，冷光熄灭前照出了一份可用材料。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "柔软器官", "value": 1, "description": "柔软器官 +1" }
+          ],
+          "failText": "孢子钻入口鼻，采集者看见黑暗中多出一个自己。压抑 +1。",
+          "failEffects": [
+            { "effectType": "AddInsanity", "targetName": "selected", "value": 1, "description": "压抑 +1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "等待菌盖自行闭合后离开",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "冷光逐渐消失，你们没有带走材料，也没有吸入孢子。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    }
+  ]
+}
