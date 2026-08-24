@@ -56,7 +56,8 @@ namespace HuntingInDarkness.Hunt
                 {
                     AxialCoord = ToUnity(pair.Key),
                     Config = config,
-                    ConfigName = config != null ? config.name : ""
+                    ConfigName = config != null ? config.name : "",
+                    ConfigId = config != null ? config.ContentId : string.Empty
                 };
                 instance.AttachDomainState(pair.Value);
                 result[instance.AxialCoord] = instance;
@@ -120,7 +121,7 @@ namespace HuntingInDarkness.Hunt
 
         private static HuntTileDefinition ToDefinition(HexTileData data) =>
             new HuntTileDefinition(
-                data.name,
+                data.ContentId,
                 data.spawnWeight,
                 data.spawnInGroup,
                 data.groupSize,

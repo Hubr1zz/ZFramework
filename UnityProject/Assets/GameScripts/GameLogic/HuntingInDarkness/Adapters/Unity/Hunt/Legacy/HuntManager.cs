@@ -50,7 +50,7 @@ namespace HuntingInDarkness.Hunt
         public PlayableHuntNoiseResolution LastNoiseResolution { get; private set; }
         public int CurrentYear { get; private set; } = 1;
 
-        private readonly IRandomSource _rng;
+        private readonly StatefulRandomSource _rng;
 
         // ─── 回调（由 GameManager / HuntUIManager 注入）───────────
 
@@ -81,7 +81,7 @@ namespace HuntingInDarkness.Hunt
 
         public HuntManager(EventSystem sharedEventSystem, int seed = 0)
         {
-            _rng         = seed != 0 ? new SystemRandomSource(seed) : new SystemRandomSource();
+            _rng         = new StatefulRandomSource(seed != 0 ? seed : System.Environment.TickCount);
             _eventSystem = sharedEventSystem;
             MapGen       = new HexMapGenerator(_rng, mapRadius: 3);
             Resources    = new ResourceSystem(_rng);
@@ -109,6 +109,35 @@ namespace HuntingInDarkness.Hunt
             // 通知 UI 初始化
             foreach (var kv in Map)
                 OnTileStateChanged?.Invoke(kv.Key, kv.Value.State);
+        }
+
+        public StatefulRandomState CaptureRandomState() => _rng.ExportState();
+
+        public bool TryRestore(PlayableHuntRuntimeState state, out string reason)
+        {
+            if (state == null || state.Year <= 0 || state.Hunters == null || state.Hunters.Count == 0 || state.Map == null || state.Map.Count == 0)
+            {
+                reason = "活动狩猎恢复载荷不完整。";
+                return false;
+            }
+            if (!state.Map.ContainsKey(state.SquadPosition))
+            {
+                reason = "活动狩猎的小队位置不在地图中。";
+                return false;
+            }
+
+            ActiveHunters = state.Hunters;
+            SelectedHunter = ActiveHunters.Find(hunter => hunter != null && hunter.InstanceId == state.SelectedHunterId && hunter.IsAlive);
+            SelectedHunter = PlayableHuntSquadAvailability.ResolveSelectedHunter(ActiveHunters, SelectedHunter);
+            CurrentYear = state.Year;
+            LastNoiseResolution = default;
+            Map = state.Map;
+            _navigation.Reset();
+            _navigation.MoveTo(ToCore(state.SquadPosition));
+            _rng.RestoreState(state.RandomState);
+            HuntEvents.ResetSession(CurrentYear);
+            reason = string.Empty;
+            return true;
         }
 
         /// <summary>离开狩猎阶段（Boss死亡或主动撤退）</summary>

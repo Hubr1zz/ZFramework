@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d25335dd52dca34c810d641f9fe498b, type: 3}
   m_Name: StartingCamp
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.HexTileData
+  contentId: starting_camp
   tileName: "\u65E0\u706B\u8425\u5730"
   tileType: 6
   description: "\u730E\u4EBA\u4ECE\u8FD9\u91CC\u8E0F\u5165\u77F3\u68EE\u6797\u3002\u4F59\u70EC\u65E0\u6CD5\u7167\u4EAE\u66F4\u8FDC\u7684\u9053\u8DEF\u3002"

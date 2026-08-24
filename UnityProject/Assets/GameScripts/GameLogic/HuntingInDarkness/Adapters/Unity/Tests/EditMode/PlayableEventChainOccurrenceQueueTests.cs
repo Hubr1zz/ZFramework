@@ -64,6 +64,16 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Constructor_RestoresNextRootSequenceWithoutReusingCommittedRoots()
+        {
+            var queue = new PlayableEventChainOccurrenceQueue(64, committedSequences: new[] { -1, -2 }, nextRootSequence: -3);
+
+            Assert.That(queue.TryScheduleRoot("root", "root", 2, 7, out PlayableEventChainOccurrence occurrence), Is.True);
+            Assert.That(occurrence.Sequence, Is.EqualTo(-3));
+            Assert.That(queue.NextRootSequence, Is.EqualTo(-4));
+        }
+
+        [Test]
         public void SettlementAdapter_RoundTripsSchemaOneCheckpointThroughJsonUtility()
         {
             var settlement = new SettlementInstance();

@@ -149,8 +149,11 @@ namespace Core
         private IPlayableHuntDepartureInput playableHuntDepartureInput;
         private bool huntDepartureInFlight;
         private bool huntRetreatInFlight;
+        private bool encounterCheckpointRollbackFailed;
         private bool huntReturnRecoveryInFlight;
         private bool preparedHuntExit;
+        private string activeExpeditionId;
+        private string stableCampaignPayload;
         [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
         [SerializeField] private TabletopCardInteractionPresenter tabletopCardPresenter;
         [SerializeField] private Vector3 tabletopDiceAnchorOffset = new(0f, 0f, -1.65f);
@@ -588,73 +591,181 @@ namespace Core
             }
             try
             {
-                // 创建/重用 HuntManager
-                if (_huntMgr == null)
-                {
-                    var sharedEventSys = _settlementManager?.Events
-                        ?? new HuntingInDarkness.Settlement.EventSystem(
-                               new HuntingInDarkness.Data.SettlementInstance(),
-                               new HuntingInDarkness.GameCore.Foundation.SystemRandomSource());
-                    _huntMgr = new HuntManager(sharedEventSys);
-                    _huntMgr.OnBossEncounterTriggered = () =>
-                    {
-                        if (huntActionSession == null) return;
-                        var request = new CampaignEncounterRequest(huntActionSession.SessionId, PlayableEncounterRuntime.DefaultEncounterId, CampaignEncounterSourceKind.HuntBossTile, GamePhase.Hunt, _huntMgr.SquadPosition, string.Empty, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId);
-                        BeginEncounterAsync(request).Forget();
-                    };
-                    _huntMgr.OnHuntCompleted = (record) =>
-                    {
-                        if (_settlementManager?.HunterMgmt == null)
-                            throw new System.InvalidOperationException("营地猎人管理器未初始化，无法提交狩猎成长。");
-                        PlayableHunterAdvancementAdapter.ApplyAfterHunt(_huntMgr.ActiveHunters, _settlementManager.HunterMgmt);
-                        // 将记录交给 TransitionToPhase(Settlement) 消费，避免双重调用 OnEnter
-                        _pendingHuntRecord = record;
-                        TransitionToPhase(GamePhase.Settlement);
-                    };
-                }
-
+                EnsureHuntManager();
                 PlayableHuntDestinationRuntime.ApplyTo(_huntMgr);
                 _huntMgr.EventInput = playableEventInput;
                 _huntMgr.OnEnter(hunters, _settlementManager?.Data.CurrentYear ?? 1);
                 DisposeHuntActionSession();
-
-                // 3D 地图表现失败时降级为无表现运行，不破坏已经就绪的权威 Hunt runtime。
-                try
+                activeExpeditionId = System.Guid.NewGuid().ToString("N");
+                if (!TryStartHuntPresentationAndSession(null, out reason))
                 {
-                    if (_huntVisualizer == null && huntRoot != null)
-                    {
-                        var visGo = new GameObject("HuntMapVisualizer");
-                        visGo.transform.SetParent(huntRoot.transform);
-                        _huntVisualizer = visGo.AddComponent<HuntMapVisualizer>();
-                    }
-                    _huntVisualizer?.Init(_huntMgr);
-                }
-                catch (System.Exception exception)
-                {
+                    activeExpeditionId = string.Empty;
                     CleanupHuntPresentation();
-                    Debug.LogWarning($"[GameManager] 狩猎地图表现初始化失败，已降级继续：{exception.Message}");
+                    return false;
                 }
-                huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId, tabletopInteractionRouter, _huntVisualizer, actionEnvironmentInstallers);
-                try
-                {
-                    EnsureHuntRetreatPanel();
-                    EnsureHuntUI();
-                }
-                catch (System.Exception exception)
-                {
-                    CleanupHuntPresentation(false);
-                    Debug.LogWarning($"[GameManager] 狩猎交互表现初始化失败，已保留 ActionSession：{exception.Message}");
-                }
-                reason = string.Empty;
+                OnHuntCheckpointCommitted();
                 return true;
             }
             catch (System.Exception exception)
             {
                 DisposeHuntActionSession();
                 CleanupHuntPresentation();
+                activeExpeditionId = string.Empty;
                 reason = $"狩猎运行环境初始化失败：{exception.Message}";
                 return false;
             }
+        }
+
+        private void EnsureHuntManager()
+        {
+            if (_huntMgr != null) return;
+            _huntMgr = CreateHuntManager(_settlementManager);
+        }
+
+        private HuntManager CreateHuntManager(SettlementManager settlementManager)
+        {
+            var sharedEventSystem = settlementManager?.Events ?? new HuntingInDarkness.Settlement.EventSystem(new SettlementInstance(), new HuntingInDarkness.GameCore.Foundation.SystemRandomSource());
+            var manager = new HuntManager(sharedEventSystem);
+            manager.OnBossEncounterTriggered = () =>
+            {
+                if (huntActionSession == null) return;
+                var request = new CampaignEncounterRequest(huntActionSession.SessionId, PlayableEncounterRuntime.DefaultEncounterId, CampaignEncounterSourceKind.HuntBossTile, GamePhase.Hunt, _huntMgr.SquadPosition, string.Empty, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId);
+                BeginEncounterAsync(request).Forget();
+            };
+            manager.OnHuntCompleted = record =>
+            {
+                if (_settlementManager?.HunterMgmt == null) throw new System.InvalidOperationException("营地猎人管理器未初始化，无法提交狩猎成长。");
+                PlayableHunterAdvancementAdapter.ApplyAfterHunt(_huntMgr.ActiveHunters, _settlementManager.HunterMgmt);
+                _pendingHuntRecord = record;
+                TransitionToPhase(GamePhase.Settlement);
+            };
+            return manager;
+        }
+
+        private bool TryStartHuntPresentationAndSession(PlayableHuntEventOccurrenceStore restoredOccurrences, out string reason)
+        {
+            try
+            {
+                if (_huntVisualizer == null && huntRoot != null)
+                {
+                    var visualizerObject = new GameObject("HuntMapVisualizer");
+                    visualizerObject.transform.SetParent(huntRoot.transform);
+                    _huntVisualizer = visualizerObject.AddComponent<HuntMapVisualizer>();
+                }
+                _huntVisualizer?.Init(_huntMgr);
+            }
+            catch (System.Exception exception)
+            {
+                CleanupHuntPresentation();
+                Debug.LogWarning($"[GameManager] 狩猎地图表现初始化失败，已降级继续：{exception.Message}");
+            }
+            try
+            {
+                huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId, tabletopInteractionRouter, _huntVisualizer, actionEnvironmentInstallers, restoredOccurrences, OnHuntCheckpointCommitted);
+            }
+            catch (System.Exception exception)
+            {
+                reason = $"狩猎 ActionSession 初始化失败：{exception.Message}";
+                return false;
+            }
+            try
+            {
+                EnsureHuntRetreatPanel();
+                EnsureHuntUI();
+            }
+            catch (System.Exception exception)
+            {
+                CleanupHuntPresentation(false);
+                Debug.LogWarning($"[GameManager] 狩猎交互表现初始化失败，已保留 ActionSession：{exception.Message}");
+            }
+            reason = string.Empty;
+            return true;
+        }
+
+        private bool TryRestoreActiveHunt(CampaignSnapshot campaign, out string reason)
+        {
+            reason = string.Empty;
+            ActiveHuntSnapshot active = campaign?.ActiveHunt;
+            if (active == null)
+            {
+                reason = "存档不包含活动狩猎快照。";
+                return false;
+            }
+            if (active.EncounterHandoffPending)
+            {
+                reason = $"存档停留在尚未支持恢复的遭遇交接：{active.EncounterId}";
+                return false;
+            }
+            string previousDestinationId = PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId ?? string.Empty;
+            if (!PlayableHuntDestinationRuntime.TryRestoreSelection(active.DestinationId, out reason)) return false;
+            SettlementManager previousSettlementManager = _settlementManager;
+            HuntManager previousHuntManager = _huntMgr;
+            GamePhase previousPhase = CurrentGamePhase;
+            SettlementManager candidateSettlementManager = CreateSettlementManager();
+            candidateSettlementManager.InjectData(campaign.Settlement);
+            HuntManager candidateHuntManager = CreateHuntManager(candidateSettlementManager);
+            PlayableHuntDestinationRuntime.ApplyTo(candidateHuntManager);
+            candidateHuntManager.EventInput = playableEventInput;
+            if (!ActiveHuntSnapshotAdapter.TryRestore(campaign, candidateHuntManager, out PlayableHuntRuntimeState runtimeState, out PlayableHuntEventOccurrenceStore restoredOccurrences, out reason))
+            {
+                RestoreHuntDestination(previousDestinationId);
+                return false;
+            }
+            if (!candidateHuntManager.TryRestore(runtimeState, out reason))
+            {
+                RestoreHuntDestination(previousDestinationId);
+                return false;
+            }
+            if (CurrentGamePhase != GamePhase.Hunt && !_phaseManager.TransitionTo(GamePhase.Hunt))
+            {
+                reason = "无法切换到活动狩猎恢复阶段。";
+                RestoreHuntDestination(previousDestinationId);
+                return false;
+            }
+            PlayableSettlementActionSession previousSettlementSession = settlementActionSession;
+            PlayableHuntActionSession previousHuntSession = huntActionSession;
+            settlementActionSession = null;
+            huntActionSession = null;
+            _settlementManager = candidateSettlementManager;
+            _huntMgr = candidateHuntManager;
+            settlementEventRestoreProjection = new SettlementEventRestoreProjection(campaign.Settlement, candidateSettlementManager.Timeline.ResolveEvent);
+            activeExpeditionId = active.ExpeditionId;
+            if (TryStartHuntPresentationAndSession(restoredOccurrences, out reason))
+            {
+                previousSettlementSession?.Dispose();
+                previousHuntSession?.Dispose();
+                SaveLoadSystem.TryCreatePayload(campaign, out stableCampaignPayload, out _);
+                return true;
+            }
+
+            DisposeHuntActionSession();
+            if (CurrentGamePhase == GamePhase.Hunt)
+                _phaseManager.TransitionTo(previousPhase);
+            _settlementManager = previousSettlementManager;
+            _huntMgr = previousHuntManager;
+            settlementActionSession = previousSettlementSession;
+            huntActionSession = previousHuntSession;
+            RestoreHuntDestination(previousDestinationId);
+            if (previousPhase == GamePhase.Hunt && previousHuntManager != null)
+            {
+                _huntVisualizer?.Init(previousHuntManager);
+                EnsureHuntRetreatPanel();
+                EnsureHuntUI();
+            }
+            else if (previousPhase == GamePhase.Settlement)
+            {
+                CleanupHuntPresentation();
+                EnsureSettlementUI();
+            }
+            return false;
+        }
+
+        private static void RestoreHuntDestination(string destinationId)
+        {
+            if (string.IsNullOrWhiteSpace(destinationId))
+                PlayableHuntDestinationRuntime.RestoreSelection(null);
+            else
+                PlayableHuntDestinationRuntime.TryRestoreSelection(destinationId, out _);
         }
 
         private void CleanupHuntPresentation(bool includeVisualizer = true)
@@ -939,7 +1050,7 @@ namespace Core
                 if (settlement == null)
                     return SettlementHuntReturnCommandResult.Failed("营地数据已失效，回营记录仍保留在存档中。");
                 CancellationToken cancellationToken = this.GetCancellationTokenOnDestroy();
-                if (!await SaveLoadSystem.TrySaveAsync(settlement, cancellationToken))
+                if (!await TrySaveCampaignAsync(false, cancellationToken))
                     return SettlementHuntReturnCommandResult.Failed("回营结果尚未可靠保存，已保留待恢复记录。");
 
                 SettlementEventRestoreProjection projection = null;
@@ -959,7 +1070,7 @@ namespace Core
                 if (!PlayableCampaignLoopContract.TryClearAppliedReturnCheckpoint(settlement, record, out string checkpointReason))
                     return SettlementHuntReturnCommandResult.Failed(checkpointReason);
                 _pendingHuntRecord = null;
-                if (!await SaveLoadSystem.TrySaveAsync(settlement, cancellationToken))
+                if (!await TrySaveCampaignAsync(false, cancellationToken))
                 {
                     _pendingHuntRecord = record;
                     settlement.PendingHuntReturn = record;
@@ -1182,7 +1293,7 @@ namespace Core
 
                 _pendingHuntRecord = retreat.Record;
                 _settlementManager.Data.PendingHuntReturn = retreat.Record;
-                if (!await SaveLoadSystem.TrySaveAsync(_settlementManager.Data, this.GetCancellationTokenOnDestroy()))
+                if (!await TrySaveCampaignAsync(false, this.GetCancellationTokenOnDestroy()))
                 {
                     _settlementManager.Data.PendingHuntReturn = null;
                     _pendingHuntRecord = null;
@@ -1198,7 +1309,7 @@ namespace Core
                 preparedHuntExit = false;
                 _pendingHuntRecord = null;
                 _settlementManager.Data.PendingHuntReturn = null;
-                if (!await SaveLoadSystem.TrySaveAsync(_settlementManager.Data, this.GetCancellationTokenOnDestroy()))
+                if (!await TrySaveCampaignAsync(true, this.GetCancellationTokenOnDestroy()))
                 {
                     preparedHuntExit = true;
                     _pendingHuntRecord = retreat.Record;
@@ -1264,6 +1375,7 @@ namespace Core
 
         private bool TryBeginEncounter(CampaignEncounterRequest request, out string reason)
         {
+            encounterCheckpointRollbackFailed = false;
             if (CurrentGamePhase != request.SourcePhase)
             {
                 reason = "遭遇请求的来源阶段已经结束";
@@ -1281,6 +1393,19 @@ namespace Core
                 return false;
             }
             if (!PlayableEncounterRuntime.TryCreateSetup(request.EncounterId, out BattleSetup setup, out reason)) return false;
+            bool huntEncounter = request.SourceKind is CampaignEncounterSourceKind.HuntBossTile or CampaignEncounterSourceKind.HuntEvent;
+            string previousStablePayload = stableCampaignPayload;
+            if (huntEncounter)
+            {
+                if (!TryCreateEncounterHandoffPayload(request.EncounterId, out string handoffPayload, out string normalHuntPayload, out reason)) return false;
+                if (string.IsNullOrWhiteSpace(previousStablePayload)) previousStablePayload = normalHuntPayload;
+                if (!SaveLoadSystem.TrySavePayloadImmediate(handoffPayload))
+                {
+                    reason = "无法建立可靠的遭遇交接检查点。";
+                    return false;
+                }
+                stableCampaignPayload = handoffPayload;
+            }
 
             BattleSetup previousSetup = _pendingSetup;
             IReadOnlyList<HunterInstance> previousHunters = pendingEncounterHunters;
@@ -1289,7 +1414,37 @@ namespace Core
             if (TryApplyPhaseTransition(GamePhase.BossFight, out reason)) return true;
             _pendingSetup = previousSetup;
             pendingEncounterHunters = previousHunters;
+            if (huntEncounter)
+            {
+                if (SaveLoadSystem.TrySavePayloadImmediate(previousStablePayload))
+                    stableCampaignPayload = previousStablePayload;
+                else
+                {
+                    encounterCheckpointRollbackFailed = true;
+                    reason = "遭遇阶段切换失败，且交接检查点尚未安全撤销；请直接重试遭遇。";
+                    return false;
+                }
+            }
             return false;
+        }
+
+        private bool TryCreateEncounterHandoffPayload(string encounterId, out string payload, out string normalHuntPayload, out string reason)
+        {
+            string destinationId = PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId ?? string.Empty;
+            if (!ActiveHuntSnapshotAdapter.TryCapture(_settlementManager?.Data, _huntMgr, huntActionSession, activeExpeditionId, destinationId, out CampaignSnapshot snapshot, out reason, true))
+            {
+                payload = string.Empty;
+                normalHuntPayload = string.Empty;
+                return false;
+            }
+            if (!SaveLoadSystem.TryCreatePayload(snapshot, out normalHuntPayload, out reason))
+            {
+                payload = string.Empty;
+                return false;
+            }
+            snapshot.ActiveHunt.EncounterHandoffPending = true;
+            snapshot.ActiveHunt.EncounterId = encounterId?.Trim() ?? string.Empty;
+            return SaveLoadSystem.TryCreatePayload(snapshot, out payload, out reason);
         }
 
         private bool TryApplyPhaseTransition(GamePhase newPhase, out string reason)
@@ -1375,7 +1530,7 @@ namespace Core
                     else
                     {
                         QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
-                        SaveLoadSystem.SaveAsync(_settlementManager.Data, this.GetCancellationTokenOnDestroy()).Forget();
+                        SaveCampaignAsync(false).Forget();
                     }
                     break;
 
@@ -1394,6 +1549,7 @@ namespace Core
         private void CommitPreparedHuntExit()
         {
             preparedHuntExit = false;
+            activeExpeditionId = null;
         }
 
         private void EnterBossFightPhase()
@@ -1437,7 +1593,12 @@ namespace Core
         {
             if (_settlementManager?.Data == null)
                 return;
-            SaveLoadSystem.SaveImmediate(_settlementManager.Data);
+            if (CurrentGamePhase == GamePhase.Settlement)
+                TryCaptureCampaignPayload(false, out _, out _);
+            else if (CurrentGamePhase == GamePhase.Hunt && huntActionSession?.IsRunning != true)
+                TryCaptureCampaignPayload(true, out _, out _);
+            if (!string.IsNullOrWhiteSpace(stableCampaignPayload))
+                SaveLoadSystem.SavePayloadImmediate(stableCampaignPayload);
         }
 
         private void OnDestroy()
@@ -1512,14 +1673,14 @@ namespace Core
             }
             catch (System.Exception exception)
             {
-                if ((request.SourceKind is CampaignEncounterSourceKind.HuntEvent or CampaignEncounterSourceKind.HuntBossTile) && huntActionSession?.SessionId == request.SourceSessionId)
+                if (!encounterCheckpointRollbackFailed && (request.SourceKind is CampaignEncounterSourceKind.HuntEvent or CampaignEncounterSourceKind.HuntBossTile) && huntActionSession?.SessionId == request.SourceSessionId)
                     huntActionSession.ReleaseEncounterHandoffLock();
                 Debug.LogException(exception);
                 return;
             }
             if (!result.Succeeded)
             {
-                if ((request.SourceKind is CampaignEncounterSourceKind.HuntEvent or CampaignEncounterSourceKind.HuntBossTile) && huntActionSession?.SessionId == request.SourceSessionId)
+                if (!encounterCheckpointRollbackFailed && (request.SourceKind is CampaignEncounterSourceKind.HuntEvent or CampaignEncounterSourceKind.HuntBossTile) && huntActionSession?.SessionId == request.SourceSessionId)
                     huntActionSession.ReleaseEncounterHandoffLock();
                 Debug.LogWarning($"[GameManager] 无法开始遭遇 {request.EncounterId}：{result.Reason}");
             }
@@ -1586,6 +1747,11 @@ namespace Core
                 SaveLoadSystem.DeleteSaveAsync(this.GetCancellationTokenOnDestroy()).Forget();
                 // 重置 SettlementManager，重新初始化
                 DisposeSettlementActionSession();
+                DisposeHuntActionSession();
+                CleanupHuntPresentation();
+                _huntMgr = null;
+                activeExpeditionId = string.Empty;
+                stableCampaignPayload = string.Empty;
                 settlementEventRestoreProjection = null;
                 _settlementManager = CreateSettlementManager();
                 _settlementManager.EnsureStartingConditions();
@@ -1650,6 +1816,48 @@ namespace Core
             _settlementTable3D?.Refresh();
         }
 
+        private void OnHuntCheckpointCommitted()
+        {
+            if (CurrentGamePhase != GamePhase.Hunt || huntActionSession?.IsActive != true || huntActionSession.IsRunning) return;
+            if (!TryCaptureCampaignPayload(true, out string payload, out string reason))
+            {
+                Debug.LogError($"[GameManager] 无法冻结活动狩猎检查点：{reason}");
+                return;
+            }
+            SaveLoadSystem.TrySavePayloadAsync(payload, this.GetCancellationTokenOnDestroy()).Forget();
+        }
+
+        private async UniTask SaveCampaignAsync(bool includeActiveHunt)
+        {
+            await TrySaveCampaignAsync(includeActiveHunt, this.GetCancellationTokenOnDestroy());
+        }
+
+        private async UniTask<bool> TrySaveCampaignAsync(bool includeActiveHunt, CancellationToken cancellationToken)
+        {
+            if (!TryCaptureCampaignPayload(includeActiveHunt, out string payload, out string reason))
+            {
+                Debug.LogError($"[GameManager] 无法冻结战役存档：{reason}");
+                return false;
+            }
+            return await SaveLoadSystem.TrySavePayloadAsync(payload, cancellationToken);
+        }
+
+        private bool TryCaptureCampaignPayload(bool includeActiveHunt, out string payload, out string reason)
+        {
+            payload = string.Empty;
+            CampaignSnapshot snapshot;
+            if (includeActiveHunt)
+            {
+                string destinationId = PlayableHuntDestinationRuntime.ActiveDestination?.DestinationId ?? string.Empty;
+                if (!ActiveHuntSnapshotAdapter.TryCapture(_settlementManager?.Data, _huntMgr, huntActionSession, activeExpeditionId, destinationId, out snapshot, out reason)) return false;
+            }
+            else
+                snapshot = ActiveHuntSnapshotAdapter.CaptureSettlement(_settlementManager?.Data);
+            if (!SaveLoadSystem.TryCreatePayload(snapshot, out payload, out reason)) return false;
+            stableCampaignPayload = payload;
+            return true;
+        }
+
         /// <summary>手动保存（开发者）</summary>
         public void DevSave()
         {
@@ -1658,9 +1866,7 @@ namespace Core
                 Debug.LogWarning("[GameManager] DevSave: 无数据可保存");
                 return;
             }
-            SaveLoadSystem.SaveAsync(
-                _settlementManager.Data,
-                this.GetCancellationTokenOnDestroy()).Forget();
+            SaveCampaignAsync(CurrentGamePhase == GamePhase.Hunt).Forget();
         }
 
         /// <summary>手动读档（开发者）</summary>
@@ -1671,15 +1877,31 @@ namespace Core
 
         private async UniTaskVoid DevLoadAsync()
         {
-            var data = await SaveLoadSystem.LoadAsync(this.GetCancellationTokenOnDestroy());
+            CampaignSnapshot snapshot = await SaveLoadSystem.LoadAsync(this.GetCancellationTokenOnDestroy());
+            SettlementInstance data = snapshot?.Settlement;
             if (data == null)
             {
                 Debug.LogWarning("[GameManager] DevLoad: 无存档文件");
                 SettlementProgressLoadCompleted?.Invoke(false);
                 return;
             }
+            if (snapshot.HasActiveHunt)
+            {
+                bool huntRestored = TryRestoreActiveHunt(snapshot, out string huntRestoreReason);
+                if (!huntRestored)
+                    Debug.LogError($"[GameManager] 活动狩猎恢复失败，已保留原存档：{huntRestoreReason}");
+                SettlementProgressLoadCompleted?.Invoke(huntRestored);
+                return;
+            }
+            if (CurrentGamePhase == GamePhase.Hunt)
+            {
+                DisposeHuntActionSession();
+                CleanupHuntPresentation();
+                _phaseManager.TransitionTo(GamePhase.Settlement);
+            }
             _settlementManager ??= CreateSettlementManager();
             _settlementManager.InjectData(data);
+            _huntMgr = null;
             settlementEventRestoreProjection = new SettlementEventRestoreProjection(data, _settlementManager.Timeline.ResolveEvent);
             if (CurrentGamePhase == GamePhase.Settlement)
                 StartSettlementActionSession();

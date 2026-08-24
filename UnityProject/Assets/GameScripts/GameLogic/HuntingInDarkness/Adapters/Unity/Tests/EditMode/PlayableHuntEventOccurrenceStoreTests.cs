@@ -74,6 +74,24 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void CaptureAndRestore_PreservesPendingIdentityCoordinateAndNextRootSequence()
+        {
+            var source = new PlayableHuntEventOccurrenceStore();
+            EventData first = CreateEvent("restore-first");
+            EventData second = CreateEvent("restore-second");
+            Assert.That(source.TryScheduleRoot(first, new Vector2Int(2, -1), 4, 101, out PlayableHuntEventOccurrence original), Is.True);
+            PlayableHuntEventOccurrenceStoreState state = source.CaptureState();
+
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(state, id => id == first.ContentId ? first : id == second.ContentId ? second : null, out PlayableHuntEventOccurrenceStore restored, out string reason), Is.True, reason);
+            Assert.That(restored.TryGetNextPending(out PlayableHuntEventOccurrence pending), Is.True);
+            Assert.That(pending.Sequence, Is.EqualTo(original.Sequence));
+            Assert.That(pending.EventId, Is.EqualTo(first.ContentId));
+            Assert.That(pending.Coordinate, Is.EqualTo(new Vector2Int(2, -1)));
+            Assert.That(restored.TryScheduleRoot(second, Vector2Int.zero, 4, 101, out PlayableHuntEventOccurrence next), Is.True);
+            Assert.That(next.Sequence, Is.EqualTo(-2));
+        }
+
+        [Test]
         public void Commit_ReportsOverflowOnceAndAllowsAcceptedOccurrencesToDrain()
         {
             var store = new PlayableHuntEventOccurrenceStore();

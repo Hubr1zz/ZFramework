@@ -25,18 +25,21 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly Func<PlayableHarvestTransaction, UniTask<PlayableHarvestStepResult>> advanceHarvestHandler;
         private readonly HashSet<PlayableHarvestTransaction> activeHarvests = new();
         private readonly Dictionary<ResourcePointInstance, ReactorEntityHandle> resourcePointHandles = new();
-        private readonly PlayableHuntEventOccurrenceStore occurrenceStore = new();
+        private readonly PlayableHuntEventOccurrenceStore occurrenceStore;
+        private readonly Action checkpointCommitted;
         private int nextResourcePointHandleId;
         private bool returnCheckpointLocked;
         private bool gameplayLocked;
 
-        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, IActionEnvironmentInstallerRegistry installerRegistry = null)
+        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, IActionEnvironmentInstallerRegistry installerRegistry = null, PlayableHuntEventOccurrenceStore restoredOccurrenceStore = null, Action checkpointCommitted = null)
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.defaultEncounterId = string.IsNullOrWhiteSpace(defaultEncounterId) ? "default" : defaultEncounterId.Trim();
             this.destinationId = destinationId ?? string.Empty;
             this.randomInteractionPresenter = randomInteractionPresenter;
             this.tileInteractionPresenter = tileInteractionPresenter;
+            occurrenceStore = restoredOccurrenceStore ?? new PlayableHuntEventOccurrenceStore();
+            this.checkpointCommitted = checkpointCommitted;
             SessionId = Guid.NewGuid();
             environment = new ActionEnvironment(new ActionEnvironmentConfiguration
             {
@@ -68,6 +71,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public Guid SessionId { get; }
         public ReactorRegistry Reactors => environment.Reactors;
         public ReactionGateRegistry ReactionGates => environment.ReactionGates;
+        public PlayableHuntEventOccurrenceStoreState CaptureOccurrenceState() => occurrenceStore.CaptureState();
 
         public async UniTask<HuntTileCommandResult> InteractTileAsync(Vector2Int coordinate)
         {
@@ -83,6 +87,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("hunt-event", gameEvent != null ? gameEvent.ContentId : "unknown", gameEvent != null ? gameEvent.eventName : "狩猎事件");
             var action = new InteractHuntTileAction(manager, coordinate, intendedKind, SessionId, defaultEncounterId, destinationId, outbox, squad, tile, ResolveEventEntity, randomInteractionPresenter, tileInteractionPresenter, occurrenceStore, LockEncounterHandoff);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
+            if (action.Result.Commit.IsCommitted)
+                checkpointCommitted?.Invoke();
             if (!outcome.IsSuccess) return string.IsNullOrWhiteSpace(action.Result.Reason) ? HuntTileCommandResult.Failed(outcome.Reason) : action.Result;
             return action.Result;
         }
@@ -121,6 +127,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (transaction.IsCommitted || transaction.IsCancelled)
                 activeHarvests.Remove(transaction);
+            if (transaction.IsCommitted)
+                checkpointCommitted?.Invoke();
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? PlayableHarvestStepResult.Failed(outcome.Reason) : action.Result;
         }
@@ -179,6 +187,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 var syntheticCommit = new HuntTileInteractionCommit(HuntTileInteractionKind.None, pending.Coordinate, null, null);
                 var action = new ResolveHuntTileEventAction(manager, syntheticCommit, default, outbox, encounterAccumulator, squad, tile, ResolveEventEntity, randomInteractionPresenter, occurrenceStore, pending, true, LockEncounterHandoff);
                 ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+                if (action.HasCommittedCheckpoint || !occurrenceStore.ContainsPendingSequence(pending.Sequence))
+                    checkpointCommitted?.Invoke();
                 if (!outcome.IsSuccess || action.EncounterRequested) return false;
             }
             return true;

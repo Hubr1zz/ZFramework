@@ -51,6 +51,54 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Recovery_WrapsLegacySettlementAsSettlementOnlyCampaign()
+        {
+            string legacy = CampaignSaveCodec.Encode("{\"CurrentYear\":4}");
+            var candidates = new CampaignSaveCandidates(legacy, null);
+
+            Assert.That(CampaignSaveRecovery.TryRestore(candidates, out CampaignSnapshot restored, out bool usedBackup, out string reason), Is.True, reason);
+            Assert.That(usedBackup, Is.False);
+            Assert.That(restored.CampaignSchemaVersion, Is.EqualTo(CampaignSnapshot.CurrentSchemaVersion));
+            Assert.That(restored.Settlement.CurrentYear, Is.EqualTo(4));
+            Assert.That(restored.ActiveHunt, Is.Null);
+        }
+
+        [Test]
+        public void CampaignPayload_RejectsActiveHuntAndPendingReturnTogether()
+        {
+            var settlement = new SettlementInstance { PendingHuntReturn = new HuntRecord { RecordId = "pending", Year = 2 } };
+            var snapshot = new CampaignSnapshot { Settlement = settlement, HasActiveHuntState = true, ActiveHunt = new ActiveHuntSnapshot { ExpeditionId = "expedition" } };
+
+            Assert.That(SaveLoadSystem.TryCreatePayload(snapshot, out _, out string reason), Is.False);
+            Assert.That(reason, Does.Contain("不能同时"));
+        }
+
+        [Test]
+        public void CampaignPayload_FreezesSettlementBeforeLiveStateChanges()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 3 };
+            var snapshot = new CampaignSnapshot { Settlement = settlement };
+
+            Assert.That(SaveLoadSystem.TryCreatePayload(snapshot, out string payload, out string reason), Is.True, reason);
+            settlement.CurrentYear = 9;
+            CampaignSnapshot restored = JsonUtility.FromJson<CampaignSnapshot>(payload);
+
+            Assert.That(restored.Settlement.CurrentYear, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void Recovery_DoesNotTurnSettlementOnlyNullsIntoActiveRecords()
+        {
+            CampaignSnapshot snapshot = ActiveHuntSnapshotAdapter.CaptureSettlement(new SettlementInstance { CurrentYear = 5 });
+            Assert.That(SaveLoadSystem.TryCreatePayload(snapshot, out string payload, out string reason), Is.True, reason);
+
+            Assert.That(CampaignSaveRecovery.TryRestore(new CampaignSaveCandidates(CampaignSaveCodec.Encode(payload), null), out CampaignSnapshot restored, out _, out reason), Is.True, reason);
+            Assert.That(restored.HasActiveHunt, Is.False);
+            Assert.That(restored.ActiveHunt, Is.Null);
+            Assert.That(restored.Settlement.PendingHuntReturn, Is.Null);
+        }
+
+        [Test]
         public void SettlementJson_PersistsInventionActiveEffectUsage()
         {
             var settlement = new SettlementInstance();
@@ -103,9 +151,9 @@ namespace HuntingInDarkness.Adapter.Tests
             CampaignSaveCandidates candidates = CampaignSaveFileStore.ReadCandidates(savePath);
 
             Assert.That(CampaignSaveCodec.TryDecode(candidates.Primary, out _, out _, out _), Is.False);
-            Assert.That(CampaignSaveRecovery.TryRestore(candidates, out SettlementInstance restored, out bool usedBackup, out reason), Is.True, reason);
+            Assert.That(CampaignSaveRecovery.TryRestore(candidates, out CampaignSnapshot restored, out bool usedBackup, out reason), Is.True, reason);
             Assert.That(usedBackup, Is.True);
-            Assert.That(restored.CurrentYear, Is.EqualTo(1));
+            Assert.That(restored.Settlement.CurrentYear, Is.EqualTo(1));
             Assert.That(CampaignSaveFileStore.DeleteAll(savePath), Is.True);
             Assert.That(CampaignSaveFileStore.HasAnyCandidate(savePath), Is.False);
             Assert.That(File.Exists(savePath + CampaignSaveFileStore.TemporarySuffix), Is.False);

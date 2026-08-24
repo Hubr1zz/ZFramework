@@ -223,7 +223,7 @@ namespace Core
 
     public static class CampaignSaveRecovery
     {
-        public static bool TryRestore(CampaignSaveCandidates candidates, out SettlementInstance data, out bool usedBackup, out string reason)
+        public static bool TryRestore(CampaignSaveCandidates candidates, out CampaignSnapshot data, out bool usedBackup, out string reason)
         {
             usedBackup = false;
             if (TryDeserialize(candidates.Primary, out data, out string primaryReason))
@@ -241,7 +241,7 @@ namespace Core
             return false;
         }
 
-        private static bool TryDeserialize(string content, out SettlementInstance data, out string reason)
+        private static bool TryDeserialize(string content, out CampaignSnapshot data, out string reason)
         {
             data = null;
             if (content == null)
@@ -252,8 +252,21 @@ namespace Core
             if (!CampaignSaveCodec.TryDecode(content, out string payload, out _, out reason)) return false;
             try
             {
-                data = JsonUtility.FromJson<SettlementInstance>(payload);
-                if (data != null) return true;
+                if (payload.Contains("\"CampaignSchemaVersion\"", StringComparison.Ordinal))
+                {
+                    data = JsonUtility.FromJson<CampaignSnapshot>(payload);
+                    NormalizeEmptyReferenceRecords(data);
+                    if (data?.Settlement != null && data.CampaignSchemaVersion > 0 && data.CampaignSchemaVersion <= CampaignSnapshot.CurrentSchemaVersion) return true;
+                    reason = "战役快照版本或营地状态无效。";
+                    return false;
+                }
+                SettlementInstance legacySettlement = JsonUtility.FromJson<SettlementInstance>(payload);
+                if (legacySettlement != null)
+                {
+                    data = new CampaignSnapshot { Settlement = legacySettlement };
+                    NormalizeEmptyReferenceRecords(data);
+                    return true;
+                }
                 reason = "存档状态为空。";
                 return false;
             }
@@ -262,6 +275,14 @@ namespace Core
                 reason = $"存档状态无法解析：{exception.Message}";
                 return false;
             }
+        }
+
+        private static void NormalizeEmptyReferenceRecords(CampaignSnapshot data)
+        {
+            if (data?.Settlement?.PendingHuntReturn != null && string.IsNullOrWhiteSpace(data.Settlement.PendingHuntReturn.RecordId))
+                data.Settlement.PendingHuntReturn = null;
+            if (data != null && !data.HasActiveHuntState)
+                data.ActiveHunt = null;
         }
     }
 }

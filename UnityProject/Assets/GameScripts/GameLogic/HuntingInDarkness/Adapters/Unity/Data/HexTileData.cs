@@ -50,6 +50,8 @@ namespace HuntingInDarkness.Data
     public class HexTileData : ScriptableObject
     {
         [Header("基础")]
+        [SerializeField, Tooltip("稳定内容 ID。地图快照与读表引用使用；旧资产为空时暂以资产名兼容。")]
+        private string contentId;
         public string   tileName = "新地块";
         public TileType tileType = TileType.Plains;
         [TextArea] public string description;
@@ -71,6 +73,19 @@ namespace HuntingInDarkness.Data
         [Header("怪物遭遇（翻开时的Boss遭遇概率，0=无）")]
         public int bossEncounterWeight = 0;
         public string bossEncounterId = "";
+
+        public string ContentId
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(contentId)) return contentId.Trim();
+                if (!string.IsNullOrWhiteSpace(name)) return name.Trim();
+                return tileName?.Trim() ?? string.Empty;
+            }
+        }
+
+        public bool HasExplicitContentId => !string.IsNullOrWhiteSpace(contentId);
+        public void ConfigureContentId(string value) => contentId = value?.Trim() ?? string.Empty;
     }
 
     // ─── 地块运行时实例 ──────────────────────────────────────────
@@ -80,7 +95,8 @@ namespace HuntingInDarkness.Data
     public class HexTileInstance
     {
         public Vector2Int AxialCoord;
-        public string     ConfigName;   // HexTileData.name（存档用）
+        public string     ConfigName;   // 旧存档资产名兼容
+        public string     ConfigId;     // 稳定 HexTileData.ContentId
 
         [System.NonSerialized]
         public HexTileData Config;

@@ -49,11 +49,12 @@ namespace HuntingInDarkness.ActionFlow.Events
         private int nextRootSequence = -1;
         private string diagnostic;
 
-        public PlayableEventChainOccurrenceQueue(int maxPendingOccurrences, int nextSequence = 1, IEnumerable<int> committedSequences = null, IEnumerable<PlayableEventChainOccurrence> pendingOccurrences = null, string diagnostic = null)
+        public PlayableEventChainOccurrenceQueue(int maxPendingOccurrences, int nextSequence = 1, IEnumerable<int> committedSequences = null, IEnumerable<PlayableEventChainOccurrence> pendingOccurrences = null, string diagnostic = null, int nextRootSequence = -1)
         {
             if (maxPendingOccurrences <= 0) throw new ArgumentOutOfRangeException(nameof(maxPendingOccurrences));
             this.maxPendingOccurrences = maxPendingOccurrences;
             this.nextSequence = Math.Max(1, nextSequence);
+            this.nextRootSequence = Math.Min(-1, nextRootSequence);
             this.diagnostic = diagnostic ?? string.Empty;
             if (committedSequences != null)
                 foreach (int sequence in committedSequences)
@@ -71,6 +72,7 @@ namespace HuntingInDarkness.ActionFlow.Events
         }
 
         public int NextSequence => nextSequence;
+        public int NextRootSequence => nextRootSequence;
         public IReadOnlyList<int> CommittedSequences => committedSequences;
         public IReadOnlyList<PlayableEventChainOccurrence> PendingOccurrences => pendingOccurrences;
         public string Diagnostic => diagnostic;

@@ -57,6 +57,19 @@ namespace HuntingInDarkness.Hunt
                     result.Add(destination);
             return result;
         }
+
+        public bool TryGetById(string destinationId, out PlayableHuntDestination result)
+        {
+            string normalizedId = destinationId?.Trim() ?? string.Empty;
+            foreach (PlayableHuntDestination destination in destinations)
+                if (destination != null && string.Equals(destination.DestinationId, normalizedId, StringComparison.Ordinal))
+                {
+                    result = destination;
+                    return true;
+                }
+            result = null;
+            return false;
+        }
     }
 
     /// <summary>保存当前一次狩猎的路线选择，并把所选 Unity 内容映射给既有 Hunt Adapter。</summary>
@@ -149,6 +162,25 @@ namespace HuntingInDarkness.Hunt
 
             ActiveDestination = null;
             PlayableHuntContentRuntime.Configure(fallbackContent);
+        }
+
+        public static bool TryRestoreSelection(string destinationId, out string reason)
+        {
+            string normalizedId = destinationId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0)
+            {
+                RestoreSelection(null);
+                reason = fallbackContent != null ? string.Empty : "默认狩猎内容尚未配置。";
+                return fallbackContent != null;
+            }
+            if (catalog == null || !catalog.TryGetById(normalizedId, out PlayableHuntDestination destination))
+            {
+                reason = $"狩猎目的地内容缺失：{normalizedId}";
+                return false;
+            }
+            RestoreSelection(destination);
+            reason = string.Empty;
+            return true;
         }
 
         public static void ApplyTo(HuntManager manager)

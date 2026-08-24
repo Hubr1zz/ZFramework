@@ -254,6 +254,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private bool selectionScheduled;
         private bool failure;
         private string failureReason;
+        public bool HasCommittedCheckpoint { get; private set; }
         private readonly bool stageEncounterAfterCommit;
         private readonly Action lockEncounterHandoff;
         private readonly List<PlayableEventEffectResult> effectResults = new();
@@ -348,6 +349,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
         private void StageCommitCheckpoint(PlayableEventCommitCheckpoint checkpoint)
         {
+            HasCommittedCheckpoint = true;
             manager.EnsureSelectedHunterAvailable();
             if (checkpoint.Kind == PlayableEventCommitKind.Resolution)
             {

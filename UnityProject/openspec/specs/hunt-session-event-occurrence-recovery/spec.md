@@ -60,12 +60,12 @@ Hunt occurrence store SHALL 限制待办数量。单次提交超过上限或序�
 - **WHEN** Campaign Runner 拒绝当前 Hunt session 的遭遇请求
 - **THEN** Hunt session SHALL 释放交接锁并允许玩家继续
 
-### Requirement: Recovery scope is session-local
+### Requirement: Recovery ownership follows the active Hunt snapshot
 
-本能力 SHALL NOT 把 Hunt occurrence 写入 Settlement 存档，也 SHALL NOT 声称跨进程或跨遭遇恢复。完整耐久恢复 SHALL 等待包含地图、小队、携带物、随机上下文与 session identity 的 active-Hunt snapshot。
+Hunt session 存活时 occurrence store SHALL 由该 session 独占；普通进程重启时 SHALL 通过活动狩猎快照恢复地图、小队、携带物、随机上下文与 occurrence。当前遭遇交接销毁 session 后仍 SHALL NOT 声称可跨 BossFight 续接。
 
 #### Scenario: Hunt transitions to the current BossFight lifecycle
 
 - **WHEN** GameManager 销毁来源 Hunt session
-- **THEN** 该 session 的 occurrence store 随所有者释放
-- **AND** 当前版本不得宣称可以在战斗后或重启后续接该事件链
+- **THEN** 该 session 的运行时 occurrence store 随所有者释放
+- **AND** 当前版本不得宣称可以在战斗后续接该事件链

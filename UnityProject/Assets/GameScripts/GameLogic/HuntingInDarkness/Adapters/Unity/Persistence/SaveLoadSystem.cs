@@ -25,21 +25,30 @@ namespace Core
         // ─── 存档 ─────────────────────────────────────────────────
 
         public static async UniTask SaveAsync(
-            SettlementInstance data,
+            CampaignSnapshot snapshot,
             CancellationToken cancellationToken = default)
         {
-            await TrySaveAsync(data, cancellationToken);
+            await TrySaveAsync(snapshot, cancellationToken);
         }
 
-        public static async UniTask<bool> TrySaveAsync(SettlementInstance data, CancellationToken cancellationToken = default)
+        public static async UniTask<bool> TrySaveAsync(CampaignSnapshot snapshot, CancellationToken cancellationToken = default)
         {
-            if (data == null)
+            if (!TryCreatePayload(snapshot, out string payload, out string reason))
+            {
+                Debug.LogError($"[SaveLoad] 拒绝无效战役快照：{reason}");
                 return false;
+            }
+            return await TrySavePayloadAsync(payload, cancellationToken);
+        }
+
+        public static async UniTask<bool> TrySavePayloadAsync(string payload, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(payload)) return false;
             try
             {
                 string savePath = SavePath;
                 int saveVersion = Interlocked.Increment(ref nextSaveVersion);
-                string json = CampaignSaveCodec.Encode(JsonUtility.ToJson(data, prettyPrint: true));
+                string json = CampaignSaveCodec.Encode(payload);
                 bool saved = await UniTask.RunOnThreadPool(() => TryWriteSnapshot(savePath, json, saveVersion), cancellationToken: cancellationToken);
                 if (saved)
                     Debug.Log($"[SaveLoad] 存档成功 → {savePath}");
@@ -57,22 +66,40 @@ namespace Core
             }
         }
 
-        public static void SaveImmediate(SettlementInstance data)
+        public static void SaveImmediate(CampaignSnapshot snapshot)
         {
-            if (data == null)
+            if (!TryCreatePayload(snapshot, out string payload, out string reason))
+            {
+                Debug.LogError($"[SaveLoad] 退出前拒绝无效战役快照：{reason}");
                 return;
+            }
+            SavePayloadImmediate(payload);
+        }
+
+        public static void SavePayloadImmediate(string payload)
+        {
+            TrySavePayloadImmediate(payload);
+        }
+
+        public static bool TrySavePayloadImmediate(string payload)
+        {
+            if (string.IsNullOrWhiteSpace(payload)) return false;
             try
             {
                 string savePath = SavePath;
                 int saveVersion = Interlocked.Increment(ref nextSaveVersion);
-                string json = CampaignSaveCodec.Encode(JsonUtility.ToJson(data, prettyPrint: true));
+                string json = CampaignSaveCodec.Encode(payload);
                 if (TryWriteSnapshot(savePath, json, saveVersion))
+                {
                     Debug.Log($"[SaveLoad] 退出前存档成功 → {savePath}");
+                    return true;
+                }
             }
             catch (System.Exception ex)
             {
                 Debug.LogError($"[SaveLoad] 退出前存档失败: {ex.Message}");
             }
+            return false;
         }
 
         private static bool TryWriteSnapshot(string savePath, string json, int saveVersion)
@@ -89,7 +116,7 @@ namespace Core
 
         // ─── 读档 ─────────────────────────────────────────────────
 
-        public static async UniTask<SettlementInstance> LoadAsync(
+        public static async UniTask<CampaignSnapshot> LoadAsync(
             CancellationToken cancellationToken = default)
         {
             try
@@ -107,15 +134,15 @@ namespace Core
                     return null;
                 }
                 await UniTask.SwitchToMainThread(cancellationToken);
-                if (!CampaignSaveRecovery.TryRestore(candidates, out SettlementInstance data, out bool usedBackup, out string reason))
+                if (!CampaignSaveRecovery.TryRestore(candidates, out CampaignSnapshot snapshot, out bool usedBackup, out string reason))
                 {
                     Debug.LogError($"[SaveLoad] 主存档与备份均不可用。{reason}");
                     return null;
                 }
                 if (usedBackup)
                     Debug.LogWarning("[SaveLoad] 主存档损坏，已从上一份备份恢复。");
-                Debug.Log($"[SaveLoad] 读档成功 ← {savePath}（年份 {data?.CurrentYear}）");
-                return data;
+                Debug.Log($"[SaveLoad] 读档成功 ← {savePath}（年份 {snapshot?.Settlement?.CurrentYear}，阶段 {(snapshot?.HasActiveHunt == true ? "Hunt" : "Settlement")}）");
+                return snapshot;
             }
             catch (System.OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -154,6 +181,24 @@ namespace Core
 
             if (deleted)
                 Debug.Log("[SaveLoad] 存档已删除");
+        }
+
+        public static bool TryCreatePayload(CampaignSnapshot snapshot, out string payload, out string reason)
+        {
+            payload = string.Empty;
+            if (snapshot?.Settlement == null || snapshot.CampaignSchemaVersion <= 0 || snapshot.CampaignSchemaVersion > CampaignSnapshot.CurrentSchemaVersion)
+            {
+                reason = "战役快照版本或营地数据无效。";
+                return false;
+            }
+            if (snapshot.HasActiveHunt && snapshot.Settlement.PendingHuntReturn != null)
+            {
+                reason = "活动狩猎与待结算回营记录不能同时保存。";
+                return false;
+            }
+            payload = JsonUtility.ToJson(snapshot, prettyPrint: true);
+            reason = string.Empty;
+            return !string.IsNullOrWhiteSpace(payload);
         }
 
     }

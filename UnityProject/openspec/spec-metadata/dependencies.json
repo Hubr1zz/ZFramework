@@ -212,6 +212,13 @@
       "specPath": "openspec/specs/hunt-session-event-occurrence-recovery/spec.md"
     },
     {
+      "id": "active-hunt-persistence",
+      "label": "活动狩猎检查点与恢复",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/active-hunt-persistence/spec.md"
+    },
+    {
       "id": "settlement-timeline-event-identity",
       "label": "营地时间线事件稳定身份",
       "category": "feature",
@@ -1284,6 +1291,46 @@
       "type": "requires",
       "status": "defined",
       "reason": "PendingHuntReturn 在应用与清理两个保存边界间保持可恢复",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "active-hunt-persistence--requires--campaign-persistence",
+      "from": "active-hunt-persistence",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "复用校验封套、备份恢复与原子文件替换保存战役阶段快照",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "active-hunt-persistence--requires--hunt-phase-orchestration",
+      "from": "active-hunt-persistence",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Hunt Runner 的已提交 Action 边界定义可冻结检查点",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "active-hunt-persistence--requires--hunt-session-event-occurrence-recovery",
+      "from": "active-hunt-persistence",
+      "to": "hunt-session-event-occurrence-recovery",
+      "type": "requires",
+      "status": "defined",
+      "reason": "活动快照持久化并恢复当前 Hunt session 的 occurrence store",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-year-loop--requires--active-hunt-persistence",
+      "from": "campaign-year-loop",
+      "to": "active-hunt-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "正常狩猎进程重启与回营交接保持唯一权威状态",
       "gapId": "",
       "blocksImplementation": false
     }

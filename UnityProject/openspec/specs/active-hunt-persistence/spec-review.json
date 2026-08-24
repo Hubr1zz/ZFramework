@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 3,
+  "capability": "active-hunt-persistence",
+  "title": "活动狩猎检查点与恢复",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "战役存档已显式区分营地与活动狩猎；普通 Hunt 的地图、编队、坐标、携带物、事件 occurrence 与版本化随机状态可从已提交 Action 检查点恢复，回营记录与活动狩猎保持互斥。",
+    "evidence": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignSaveStorageTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/StatefulRandomSourceTests.cs"
+    ],
+    "differences": [
+      "当前遭遇/BossFight 生命周期仍会销毁 Hunt session；存档以 fail-closed 交接标记阻止复活旧 Hunt，但不承诺战斗结束后回到原事件链。",
+      "恢复验证使用生产 DTO、Adapter、HuntManager 与 ActionSession 的 EditMode 组合测试；完整场景 GameManager PlayMode 重启测试留作后续增强。"
+    ],
+    "verifiedAt": "2026-08-24T04:44:00-07:00",
+    "codeEvidence": [
+      {
+        "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
+        "line": 1,
+        "fileHash": "233bba2b8be26074ea22b6a83618370efd3c7e800f5502773181b2d93baaf34b",
+        "status": "verified",
+        "checkedAt": "2026-08-24T04:44:00-07:00",
+        "feature": "定义显式阶段战役快照，验证并恢复活动狩猎地图、编队、携带物、事件与随机状态。"
+      },
+      {
+        "guid": "551fe81197a6ca545a686a0c536f2646",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+        "line": 1,
+        "fileHash": "3a95af93a6af7d7224863741c2af6dd874ea67eb058ad3ec6b00ff1d5af34ee0",
+        "status": "verified",
+        "checkedAt": "2026-08-24T04:44:00-07:00",
+        "feature": "在 Hunt Action 提交、退出、读档和回营两阶段交接处维护最近完整战役载荷。"
+      },
+      {
+        "guid": "6dce6ba7b65af9c42821b85a0555ac17",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
+        "line": 1,
+        "fileHash": "dba1fb57ad08e13e0c6a5f8ae7820ab706e14f754aed3823cef562176d1597c4",
+        "status": "verified",
+        "checkedAt": "2026-08-24T04:44:00-07:00",
+        "feature": "应用已验证运行态并恢复确定性随机源与导航位置。"
+      },
+      {
+        "guid": "4ba73e89b3fe5ba4088fc947dc1e9f63",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
+        "line": 1,
+        "fileHash": "cd8ebed94c00ef1a9b5a19b074c03853b0e6d59047bfde858338ee330fea2dde",
+        "status": "verified",
+        "checkedAt": "2026-08-24T04:44:00-07:00",
+        "feature": "在地块、采集与 occurrence 提交完成后通知权威检查点，并连续排空可恢复事件。"
+      },
+      {
+        "guid": "a61a5c63f2764aa98fb12323a8c94f3a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
+        "line": 1,
+        "fileHash": "d7dbc7cfc13164caf1df7b423d3575162b59187333ed3ce1a64fdef88f62b466",
+        "status": "verified",
+        "checkedAt": "2026-08-24T04:44:00-07:00",
+        "feature": "组合验证 JSON 封套往返后地图、编队、位置、随机状态与空 occurrence 的恢复。"
+      }
+    ]
+  },
+  "implementationOutline": [
+    "CampaignSnapshot 以 HasActiveHuntState 显式声明阶段，恢复入口归一化 JsonUtility 产生的默认空引用记录。",
+    "ActiveHuntSnapshotAdapter 只从空闲 Hunt session 捕获稳定身份数据，恢复时先解析目录和临时投影，再提交运行时携带物。",
+    "HuntManager 使用版本固定的 StatefulRandomSource，恢复地图、导航、选中猎人与随机状态。",
+    "PlayableHuntActionSession 在提交边界通知 GameManager 冻结载荷，并把全部可恢复 sibling occurrence 排空。",
+    "回营先保存 PendingHuntReturn 的 Settlement 快照；失败回滚仅在活动狩猎载荷保存成功后解除锁。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "campaign-persistence",
+    "hunt-phase-orchestration",
+    "hunt-session-event-occurrence-recovery"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs:1"
+  ]
+}
