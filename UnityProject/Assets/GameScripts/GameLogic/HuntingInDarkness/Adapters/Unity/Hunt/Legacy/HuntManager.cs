@@ -282,6 +282,9 @@ namespace HuntingInDarkness.Hunt
         {
             HuntRecord record = CreateHuntRecord(bossDefeated, settlement.CurrentYear);
             OnExit(settlement);
+            // 旧 Boss/战败路径已经在 OnExit 完成资源转移，本阶段只交给 Settlement 提交历史/年份。
+            record.ReturnSchemaVersion = 0;
+            record.ParticipantHunterIds.Clear();
             OnHuntCompleted?.Invoke(record);
         }
 
@@ -290,12 +293,15 @@ namespace HuntingInDarkness.Hunt
             var resourceList = new List<string>();
             int huntersDeployed = 0;
             int huntersLost = 0;
+            var participantIds = new List<int>();
             foreach (var h in ActiveHunters)
             {
                 if (h == null)
                     continue;
                 huntersDeployed++;
-                if (!h.IsAlive)
+                if (!participantIds.Contains(h.InstanceId))
+                    participantIds.Add(h.InstanceId);
+                if (h.IsDead)
                     huntersLost++;
                 foreach (var item in h.Collectibles)
                     for (int count = 0; item?.Data != null && count < item.Count; count++)
@@ -305,10 +311,12 @@ namespace HuntingInDarkness.Hunt
             return new HuntRecord
             {
                 RecordId         = Guid.NewGuid().ToString("N"),
+                ReturnSchemaVersion = HuntRecord.CurrentReturnSchemaVersion,
                 Year             = currentYear,
                 HuntersDeployed  = huntersDeployed,
                 HuntersLost      = huntersLost,
                 BossDefeated     = bossDefeated,
+                ParticipantHunterIds = participantIds,
                 CollectedResources = resourceList
             };
         }

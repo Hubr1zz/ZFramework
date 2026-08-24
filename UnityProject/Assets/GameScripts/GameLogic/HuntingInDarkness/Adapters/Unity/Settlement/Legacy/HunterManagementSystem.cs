@@ -164,7 +164,7 @@ namespace HuntingInDarkness.Settlement
         }
 
         /// <summary>提交规则层已经判定的退休，归还装备并保留猎人历史。</summary>
-        public void CompleteRetirement(HunterInstance hunter)
+        public void CompleteRetirement(HunterInstance hunter, bool publishEvent = true)
         {
             if (hunter == null || !hunter.IsAlive || hunter.Availability != HunterAvailabilityState.Retired)
                 return;
@@ -183,7 +183,8 @@ namespace HuntingInDarkness.Settlement
                 IsCompleted = true,
                 EntryType = TimelineEntryType.RosterChanged
             });
-            EventBus.Publish(new HunterRosterChangedEvent());
+            if (publishEvent)
+                EventBus.Publish(new HunterRosterChangedEvent());
         }
 
         // ─── 统计 ─────────────────────────────────────────────────

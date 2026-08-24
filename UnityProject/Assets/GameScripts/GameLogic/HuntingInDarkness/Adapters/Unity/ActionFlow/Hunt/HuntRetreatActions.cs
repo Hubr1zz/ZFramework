@@ -11,6 +11,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 {
     public interface IPlayableHuntRetreatInput
     {
+        bool IsReturnCheckpointLocked { get; }
         UniTask<HuntRetreatCommandResult> RequestRetreatAsync();
     }
 
@@ -88,11 +89,14 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         {
             return new HuntRecord
             {
+                RecordId = source.RecordId,
+                ReturnSchemaVersion = source.ReturnSchemaVersion,
                 Year = source.Year,
                 HuntersDeployed = source.HuntersDeployed,
                 HuntersLost = source.HuntersLost,
                 BossDefeated = source.BossDefeated,
-                CollectedResources = new List<string>(source.CollectedResources)
+                ParticipantHunterIds = source.ParticipantHunterIds != null ? new List<int>(source.ParticipantHunterIds) : new List<int>(),
+                CollectedResources = source.CollectedResources != null ? new List<string>(source.CollectedResources) : new List<string>()
             };
         }
     }

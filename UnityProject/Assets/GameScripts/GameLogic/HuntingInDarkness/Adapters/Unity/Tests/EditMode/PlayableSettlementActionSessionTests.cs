@@ -83,6 +83,121 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task ApplyHuntReturnAsync_CurrentSchemaCommitsResourcesGrowthAndClearsCollectibles()
+        {
+            var item = ScriptableObject.CreateInstance<ItemData>();
+            item.itemName = "石材";
+            item.ConfigureContentId("resource.stone");
+            item.stackLimit = 5;
+            var hunter = new HunterInstance(null, 71) { Name = "回营猎人" };
+            hunter.Collectibles.Add(new ItemInstance(item));
+            var settlement = new SettlementInstance { CurrentYear = 2 };
+            settlement.Hunters.Add(hunter);
+            settlement.AddResource("resource.stone", 10);
+            PlayableSettlementItemRegistry.Configure(new[] { item });
+            try
+            {
+                var record = new HuntRecord
+                {
+                    RecordId = "current-return",
+                    ReturnSchemaVersion = HuntRecord.CurrentReturnSchemaVersion,
+                    Year = 2,
+                    HuntersDeployed = 1,
+                    HuntersLost = 0,
+                    ParticipantHunterIds = new List<int> { hunter.InstanceId },
+                    CollectedResources = new List<string> { "resource.stone" }
+                };
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent());
+
+                SettlementHuntReturnCommandResult result = await session.ApplyHuntReturnAsync(record);
+                SettlementHuntReturnCommandResult duplicate = await session.ApplyHuntReturnAsync(record);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(duplicate.Succeeded, Is.True, duplicate.Reason);
+                Assert.That(duplicate.Applied, Is.False);
+                Assert.That(settlement.GetResource("resource.stone"), Is.EqualTo(11));
+                Assert.That(hunter.Age, Is.EqualTo(2));
+                Assert.That(hunter.Collectibles, Is.Empty);
+                Assert.That(settlement.CurrentYear, Is.EqualTo(3));
+                Assert.That(settlement.HuntHistory, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                PlayableSettlementItemRegistry.Configure(Array.Empty<ItemData>());
+                UnityEngine.Object.DestroyImmediate(item);
+            }
+        }
+
+        [Test]
+        public async Task ApplyHuntReturnAsync_AdvancesSurvivorAndSkipsDeadParticipantExactlyOnce()
+        {
+            var retiringHunter = new HunterInstance(null, 73) { Name = "退休猎人", Age = HunterAdvancementRules.MaximumAge };
+            var deadHunter = new HunterInstance(null, 74) { Name = "阵亡猎人", Age = 4, IsAlive = false };
+            var settlement = new SettlementInstance { CurrentYear = 2 };
+            settlement.Hunters.Add(retiringHunter);
+            settlement.Hunters.Add(deadHunter);
+            var record = new HuntRecord
+            {
+                RecordId = "survivor-return",
+                ReturnSchemaVersion = HuntRecord.CurrentReturnSchemaVersion,
+                Year = 2,
+                HuntersDeployed = 2,
+                HuntersLost = 1,
+                ParticipantHunterIds = new List<int> { retiringHunter.InstanceId, deadHunter.InstanceId }
+            };
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent());
+
+            SettlementHuntReturnCommandResult result = await session.ApplyHuntReturnAsync(record);
+            SettlementHuntReturnCommandResult duplicate = await session.ApplyHuntReturnAsync(record);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(duplicate.Applied, Is.False);
+            Assert.That(retiringHunter.Availability, Is.EqualTo(HunterAvailabilityState.Retired));
+            Assert.That(retiringHunter.Age, Is.EqualTo(HunterAdvancementRules.MaximumAge));
+            Assert.That(deadHunter.Age, Is.EqualTo(4));
+            Assert.That(settlement.HuntHistory, Has.Count.EqualTo(1));
+        }
+
+        [Test]
+        public async Task ApplyHuntReturnAsync_PendingCheckpointUsesRecordResourcesAfterReload()
+        {
+            var item = ScriptableObject.CreateInstance<ItemData>();
+            item.itemName = "草药";
+            item.ConfigureContentId("resource.herb");
+            item.stackLimit = 5;
+            var hunter = new HunterInstance(null, 72) { Name = "恢复猎人" };
+            var settlement = new SettlementInstance { CurrentYear = 2 };
+            settlement.Hunters.Add(hunter);
+            PlayableSettlementItemRegistry.Configure(new[] { item });
+            try
+            {
+                var record = new HuntRecord
+                {
+                    RecordId = "pending-return",
+                    ReturnSchemaVersion = HuntRecord.CurrentReturnSchemaVersion,
+                    Year = 2,
+                    HuntersDeployed = 1,
+                    ParticipantHunterIds = new List<int> { hunter.InstanceId },
+                    CollectedResources = new List<string> { "resource.herb" }
+                };
+                settlement.PendingHuntReturn = record;
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent());
+
+                SettlementHuntReturnCommandResult result = await session.ApplyHuntReturnAsync(record);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(settlement.GetResource("resource.herb"), Is.EqualTo(1));
+                Assert.That(hunter.Age, Is.EqualTo(2));
+                Assert.That(settlement.HuntHistory, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                PlayableSettlementItemRegistry.Configure(Array.Empty<ItemData>());
+                UnityEngine.Object.DestroyImmediate(item);
+            }
+        }
+
+        [Test]
         public async Task TrainWeaponAsync_SuccessCommitsStateThenPublishesFactsInOrder()
         {
             SettlementInstance settlement = CreateSettlement(resourceAmount: 2);

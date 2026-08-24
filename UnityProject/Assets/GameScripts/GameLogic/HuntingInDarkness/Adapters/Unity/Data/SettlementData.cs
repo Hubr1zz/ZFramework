@@ -160,12 +160,16 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class HuntRecord
     {
+        public const int CurrentReturnSchemaVersion = 1;
         [Tooltip("稳定的本次远征实例 ID；旧存档为空时保持兼容，不自动伪造身份。")]
         public string RecordId;
+        [Tooltip("主动回营结果协议版本；0 表示旧流程已经转移资源/成长的兼容记录。")]
+        public int ReturnSchemaVersion;
         public int  Year;
         public int  HuntersDeployed;
         public int  HuntersLost;
         public bool BossDefeated;
+        public List<int> ParticipantHunterIds = new();
         public List<string> CollectedResources = new(); // 稳定资源 ContentId 列表
     }
 

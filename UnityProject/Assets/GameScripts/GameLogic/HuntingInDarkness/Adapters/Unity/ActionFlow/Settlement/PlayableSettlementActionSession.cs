@@ -28,10 +28,11 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly EventSystem eventSystem;
         private readonly Func<string, EventData> resolveEvent;
         private readonly TimelineSystem timelineSystem;
+        private readonly HunterManagementSystem hunterManagement;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null, Func<string, EventData> resolveEvent = null, TimelineSystem timeline = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null, Func<string, EventData> resolveEvent = null, TimelineSystem timeline = null, HunterManagementSystem hunterManagement = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
@@ -45,6 +46,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             this.eventSystem = eventSystem;
             this.resolveEvent = resolveEvent;
             timelineSystem = timeline ?? new TimelineSystem(settlement, new SystemRandomSource());
+            this.hunterManagement = hunterManagement ?? new HunterManagementSystem(settlement, new SystemRandomSource());
             this.randomInteractionPresenter = randomInteractionPresenter;
             EventInput = eventInput;
             SessionId = Guid.NewGuid();
@@ -87,7 +89,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
             ReactorEntityHandle huntEntity = environment.EntityHandles.GetOrCreate("hunt-return", huntRecord.RecordId ?? "legacy", "远征归来");
-            var action = new ApplySettlementHuntReturnAction(timelineSystem, huntRecord, outbox, settlementEntity, huntEntity);
+            var action = new ApplySettlementHuntReturnAction(timelineSystem, huntRecord, outbox, settlement, hunterManagement, settlementEntity, huntEntity);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementHuntReturnCommandResult.Failed(outcome.Reason) : action.Result;

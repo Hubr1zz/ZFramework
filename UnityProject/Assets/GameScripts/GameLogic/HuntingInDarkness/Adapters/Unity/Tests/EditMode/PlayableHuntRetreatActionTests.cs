@@ -34,6 +34,9 @@ namespace HuntingInDarkness.Adapter.Tests
 
                 Assert.That(result.Succeeded, Is.True);
                 Assert.That(result.Record.Year, Is.EqualTo(3));
+                Assert.That(result.Record.RecordId, Is.Not.Empty);
+                Assert.That(result.Record.ReturnSchemaVersion, Is.EqualTo(HuntRecord.CurrentReturnSchemaVersion));
+                Assert.That(result.Record.ParticipantHunterIds, Is.EqualTo(new[] { 7101, 7102 }));
                 Assert.That(result.Record.HuntersDeployed, Is.EqualTo(2));
                 Assert.That(result.Record.HuntersLost, Is.EqualTo(1));
                 Assert.That(result.Record.CollectedResources, Is.EqualTo(new[] { "暗石" }));

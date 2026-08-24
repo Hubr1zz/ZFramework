@@ -28,23 +28,32 @@ namespace Core
             SettlementInstance data,
             CancellationToken cancellationToken = default)
         {
-            if (data == null) return;
+            await TrySaveAsync(data, cancellationToken);
+        }
+
+        public static async UniTask<bool> TrySaveAsync(SettlementInstance data, CancellationToken cancellationToken = default)
+        {
+            if (data == null)
+                return false;
             try
             {
                 string savePath = SavePath;
-                string json = CampaignSaveCodec.Encode(JsonUtility.ToJson(data, prettyPrint: true));
                 int saveVersion = Interlocked.Increment(ref nextSaveVersion);
+                string json = CampaignSaveCodec.Encode(JsonUtility.ToJson(data, prettyPrint: true));
                 bool saved = await UniTask.RunOnThreadPool(() => TryWriteSnapshot(savePath, json, saveVersion), cancellationToken: cancellationToken);
                 if (saved)
                     Debug.Log($"[SaveLoad] 存档成功 → {savePath}");
+                return saved;
             }
             catch (System.OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // Owning Unity object was destroyed; cancellation is expected during teardown.
+                return false;
             }
             catch (System.Exception ex)
             {
                 Debug.LogError($"[SaveLoad] 存档失败: {ex.Message}");
+                return false;
             }
         }
 
@@ -55,8 +64,8 @@ namespace Core
             try
             {
                 string savePath = SavePath;
-                string json = CampaignSaveCodec.Encode(JsonUtility.ToJson(data, prettyPrint: true));
                 int saveVersion = Interlocked.Increment(ref nextSaveVersion);
+                string json = CampaignSaveCodec.Encode(JsonUtility.ToJson(data, prettyPrint: true));
                 if (TryWriteSnapshot(savePath, json, saveVersion))
                     Debug.Log($"[SaveLoad] 退出前存档成功 → {savePath}");
             }
@@ -71,7 +80,7 @@ namespace Core
             lock (SaveGate)
             {
                 if (saveVersion < lastWrittenSaveVersion)
-                    return false;
+                    return true;
                 if (!CampaignSaveFileStore.TryWrite(savePath, json, out string reason)) throw new System.IO.IOException(reason);
                 lastWrittenSaveVersion = saveVersion;
                 return true;

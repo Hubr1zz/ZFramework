@@ -53,7 +53,7 @@ namespace HuntingInDarkness.ViewLayer.Hunt
 
         public void RequestClose()
         {
-            if (requestInFlight)
+            if (requestInFlight || input?.IsReturnCheckpointLocked == true)
                 return;
             PresentLauncher();
         }
@@ -82,7 +82,8 @@ namespace HuntingInDarkness.ViewLayer.Hunt
             TabletopEventChoiceCard3D confirm = TabletopEventChoiceCard3D.Create(transform, new Vector3(-0.82f, 0f, -0.55f));
             confirm.Present("结算并回营", "将采集物转入营地，结束本次狩猎。", !requestInFlight, requestInFlight ? "正在结算" : "点击确认", ConfirmAsync);
             TabletopEventChoiceCard3D cancel = TabletopEventChoiceCard3D.Create(transform, new Vector3(0.82f, 0f, -0.55f));
-            cancel.Present("继续探索", "收起回营卡，保留当前狩猎进度。", !requestInFlight, string.Empty, RequestClose);
+            bool canContinue = !requestInFlight && input?.IsReturnCheckpointLocked != true;
+            cancel.Present("继续探索", "收起回营卡，保留当前狩猎进度。", canContinue, canContinue ? string.Empty : "检查点已锁定", RequestClose);
         }
 
         private void ConfirmAsync()
@@ -96,7 +97,16 @@ namespace HuntingInDarkness.ViewLayer.Hunt
         {
             requestInFlight = true;
             PresentConfirmation("正在等待狩猎与战役流程提交……");
-            HuntRetreatCommandResult result = await input.RequestRetreatAsync();
+            HuntRetreatCommandResult result;
+            try
+            {
+                result = await input.RequestRetreatAsync();
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception);
+                result = HuntRetreatCommandResult.Failed("回营流程异常，请重试。");
+            }
             if (this == null)
                 return;
 

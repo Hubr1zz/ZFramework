@@ -706,6 +706,7 @@ namespace Core
         public IReadOnlyList<HunterInstance> ActiveHuntHunters => _huntMgr != null ? _huntMgr.ActiveHunters : System.Array.Empty<HunterInstance>();
         public bool IsHuntActionSessionActive => huntActionSession?.IsActive == true;
         public bool IsHuntActionSessionRunning => huntActionSession?.IsRunning == true;
+        bool IPlayableHuntRetreatInput.IsReturnCheckpointLocked => huntActionSession?.IsReturnCheckpointLocked == true;
         public bool IsCampaignActionSessionActive => campaignActionSession?.IsActive == true;
         public bool IsSettlementActionSessionRunning => settlementActionSession?.IsRunning == true;
         public bool IsSettlementEventRestoreReady => settlementEventRestoreProjection == null || settlementEventRestoreProjection.IsReady;
@@ -873,38 +874,51 @@ namespace Core
             catch (System.Exception exception)
             {
                 Debug.LogError($"[GameManager] 远征归来结算异常：{exception}");
-                if (_settlementManager?.Data != null)
-                    SaveLoadSystem.SaveAsync(_settlementManager.Data, this.GetCancellationTokenOnDestroy()).Forget();
                 return SettlementHuntReturnCommandResult.Failed("回营结算异常，已保留待恢复记录。");
             }
             if (!result.Succeeded)
             {
                 Debug.LogError($"[GameManager] 远征归来结算失败：{result.Reason}");
-                if (_settlementManager?.Data != null)
-                    SaveLoadSystem.SaveAsync(_settlementManager.Data, this.GetCancellationTokenOnDestroy()).Forget();
                 return result;
             }
             if (ReferenceEquals(session, settlementActionSession))
             {
-                if (queueAnnualEvents && _settlementManager?.Data != null)
+                SettlementInstance settlement = _settlementManager?.Data;
+                if (settlement == null)
+                    return SettlementHuntReturnCommandResult.Failed("营地数据已失效，回营记录仍保留在存档中。");
+                CancellationToken cancellationToken = this.GetCancellationTokenOnDestroy();
+                if (!await SaveLoadSystem.TrySaveAsync(settlement, cancellationToken))
+                    return SettlementHuntReturnCommandResult.Failed("回营结果尚未可靠保存，已保留待恢复记录。");
+
+                SettlementEventRestoreProjection projection = null;
+                SettlementEventRestorePlan restorePlan = default;
+                if (queueAnnualEvents)
                 {
-                    var projection = new SettlementEventRestoreProjection(_settlementManager.Data, _settlementManager.Timeline.ResolveEvent);
-                    settlementEventRestoreProjection = projection;
-                    SettlementEventRestorePlan restorePlan = projection.Prepare();
+                    projection = new SettlementEventRestoreProjection(settlement, _settlementManager.Timeline.ResolveEvent);
+                    restorePlan = projection.Prepare();
                     if (!restorePlan.Succeeded)
                     {
+                        settlementEventRestoreProjection = projection;
                         Debug.LogError($"[GameManager] 回营年度事件投影失败：{restorePlan.FailureReason}");
-                        SaveLoadSystem.SaveAsync(_settlementManager.Data, this.GetCancellationTokenOnDestroy()).Forget();
                         return SettlementHuntReturnCommandResult.Failed(restorePlan.FailureReason);
                     }
+                }
+
+                _pendingHuntRecord = null;
+                settlement.PendingHuntReturn = null;
+                if (!await SaveLoadSystem.TrySaveAsync(settlement, cancellationToken))
+                {
+                    _pendingHuntRecord = record;
+                    settlement.PendingHuntReturn = record;
+                    return SettlementHuntReturnCommandResult.Failed("回营检查点尚未清除，请重试后再出猎。");
+                }
+
+                if (queueAnnualEvents)
+                {
+                    settlementEventRestoreProjection = projection;
                     QueueSettlementEvents(restorePlan.Events, projection, restorePlan.ChainId, restorePlan.Occurrences);
                 }
-                _pendingHuntRecord = null;
-                if (_settlementManager?.Data != null)
-                    _settlementManager.Data.PendingHuntReturn = null;
             }
-            if (_settlementManager?.Data != null)
-                SaveLoadSystem.SaveAsync(_settlementManager.Data, this.GetCancellationTokenOnDestroy()).Forget();
             return result;
         }
 
@@ -1084,11 +1098,32 @@ namespace Core
                 if (!retreat.Succeeded)
                     return retreat;
 
-                preparedHuntExit = true;
                 _pendingHuntRecord = retreat.Record;
+                _settlementManager.Data.PendingHuntReturn = retreat.Record;
+                if (!await SaveLoadSystem.TrySaveAsync(_settlementManager.Data, this.GetCancellationTokenOnDestroy()))
+                {
+                    _settlementManager.Data.PendingHuntReturn = null;
+                    _pendingHuntRecord = null;
+                    return HuntRetreatCommandResult.Failed("无法建立可靠的回营检查点，请留在狩猎阶段重试。");
+                }
+
+                huntActionSession.SetReturnCheckpointLock(true);
+                preparedHuntExit = true;
                 CampaignPhaseTransitionResult transition = await TransitionToPhaseAsync(GamePhase.Settlement);
                 if (transition.Succeeded)
                     return retreat;
+
+                preparedHuntExit = false;
+                _pendingHuntRecord = null;
+                _settlementManager.Data.PendingHuntReturn = null;
+                if (!await SaveLoadSystem.TrySaveAsync(_settlementManager.Data, this.GetCancellationTokenOnDestroy()))
+                {
+                    preparedHuntExit = true;
+                    _pendingHuntRecord = retreat.Record;
+                    _settlementManager.Data.PendingHuntReturn = retreat.Record;
+                    return HuntRetreatCommandResult.Failed("阶段切换被拒绝，且回营检查点尚未安全撤销；请直接重试回营。");
+                }
+                huntActionSession.SetReturnCheckpointLock(false);
                 return HuntRetreatCommandResult.Failed(transition.Reason);
             }
             catch (System.OperationCanceledException)
@@ -1260,13 +1295,6 @@ namespace Core
 
         private void CommitPreparedHuntExit()
         {
-            _huntMgr.OnExit(_settlementManager.Data);
-            PlayableHunterAdvancementAdapter.ApplyAfterHunt(_huntMgr.ActiveHunters, _settlementManager.HunterMgmt);
-            if (_pendingHuntRecord != null)
-            {
-                _settlementManager.Data.PendingHuntReturn = _pendingHuntRecord;
-                SaveLoadSystem.SaveAsync(_settlementManager.Data, this.GetCancellationTokenOnDestroy()).Forget();
-            }
             preparedHuntExit = false;
         }
 

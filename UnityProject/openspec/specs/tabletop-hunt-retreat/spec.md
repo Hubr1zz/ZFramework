@@ -49,15 +49,15 @@ Retreat preparation SHALL reject a harvest transaction that can still resolve, b
 - **THEN** the stale transaction does not prevent retreat
 
 ### Requirement: Campaign acceptance gates authoritative exit settlement
-The orchestration boundary SHALL request Hunt-to-Settlement through the Campaign ActionQueue and SHALL transfer collectibles and apply hunter advancement only after the phase machine accepts that transition.
+The orchestration boundary SHALL request Hunt-to-Settlement through the Campaign ActionQueue and SHALL durably checkpoint the prepared stable return before releasing Hunt. Resource transfer and hunter advancement SHALL occur only in the Settlement return root.
 
 #### Scenario: Campaign transition is rejected
 - **WHEN** Hunt preparation succeeds but the Campaign transition does not commit
-- **THEN** the game remains in Hunt, collected items remain on the hunters, and the prepared completion record remains available for an idempotent transition retry
+- **THEN** the game remains in Hunt and SHALL either durably remove the unused checkpoint before exploration resumes or retain a locked checkpoint that only permits an idempotent transition retry
 
 #### Scenario: Campaign transition succeeds
 - **WHEN** both Runner operations commit
-- **THEN** collectibles transfer exactly once, hunter advancement is applied, Hunt is disposed, and the completion record becomes a persisted pending Settlement handoff
+- **THEN** Hunt is disposed only after its complete return record is durable, and the Settlement root transfers recorded collectibles and advances surviving participants exactly once
 
 ### Requirement: Every accepted return advances exactly one year
 The Settlement ActionQueue SHALL consume each stable completion record at most once, advance the campaign from year N to N+1, and materialize the annual Timeline entries for N+1 before publishing committed facts. Annual pacing SHALL NOT depend on a configurable hunts-per-year quota.

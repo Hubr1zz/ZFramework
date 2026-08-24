@@ -71,17 +71,17 @@ title: 战役持久化与恢复
 
 ### Requirement: Hunt return handoff survives process interruption
 
-Campaign acceptance SHALL persist the stable pending HuntRecord after resource transfer and before Settlement consumption. Successful first application or idempotent replay SHALL clear and save the checkpoint; failed application SHALL retain it and gate departure.
+Campaign orchestration SHALL persist the complete stable PendingHuntReturn before leaving Hunt or applying resources and hunter advancement. Settlement SHALL save the applied authoritative state while the checkpoint remains present, then clear and save it; failed preparation, application, or persistence SHALL retain the last durable recovery boundary and gate departure.
 
 #### Scenario: The process exits before Settlement applies the return
 
 - **WHEN** the latest valid snapshot contains PendingHuntReturn but not its HuntHistory record
-- **THEN** continue SHALL submit that record to the Settlement runner, advance exactly one year, and restore the resulting annual Timeline through the ordinary event projection
+- **THEN** continue SHALL submit that record to the Settlement runner, apply recorded resources and surviving-participant advancement exactly once, advance exactly one year, and restore the resulting annual Timeline through the ordinary event projection
 
 #### Scenario: The clear-checkpoint save is retried
 
 - **WHEN** a stable pending record is already present in HuntHistory
-- **THEN** recovery SHALL treat it as already applied, clear PendingHuntReturn, and persist that cleared state without advancing or drawing again
+- **THEN** recovery SHALL treat the complete return outcome as already applied, clear PendingHuntReturn, and persist that cleared state without adding resources, advancing hunters or drawing again
 
 ### Requirement: Legacy hunt quota progress migrates once
 

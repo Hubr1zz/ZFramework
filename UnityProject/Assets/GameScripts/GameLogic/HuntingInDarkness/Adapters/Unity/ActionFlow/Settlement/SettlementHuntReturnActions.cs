@@ -5,6 +5,7 @@ using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 
 namespace HuntingInDarkness.ActionFlow.Settlement
@@ -27,18 +28,27 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         public static SettlementHuntReturnCommandResult Failed(string reason) => new(false, false, reason, Array.Empty<EventData>());
     }
 
-    /// <summary>在 Settlement Runner 的单个 root 内提交远征记录、年份和年度 Timeline。</summary>
+    /// <summary>在 Settlement Runner 的单个 root 内提交远征记录、资源、猎人成长、年份和年度 Timeline。</summary>
     public sealed class ApplySettlementHuntReturnAction : CommandAction, ISourceAction, ITargetAction
     {
         private readonly TimelineSystem timeline;
         private readonly HuntRecord huntRecord;
         private readonly ActionEventOutbox eventOutbox;
+        private readonly SettlementInstance settlement;
+        private readonly HunterManagementSystem hunterManagement;
 
         public ApplySettlementHuntReturnAction(TimelineSystem timeline, HuntRecord huntRecord, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+            : this(timeline, huntRecord, eventOutbox, null, null, source, target)
+        {
+        }
+
+        public ApplySettlementHuntReturnAction(TimelineSystem timeline, HuntRecord huntRecord, ActionEventOutbox eventOutbox, SettlementInstance settlement, HunterManagementSystem hunterManagement, IReactorEntity source, IReactorEntity target)
         {
             this.timeline = timeline ?? throw new ArgumentNullException(nameof(timeline));
             this.huntRecord = huntRecord ?? throw new ArgumentNullException(nameof(huntRecord));
             this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
+            this.settlement = settlement;
+            this.hunterManagement = hunterManagement;
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
         }
@@ -50,34 +60,122 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (string.IsNullOrWhiteSpace(huntRecord.RecordId))
+            bool alreadyApplied = timeline.HasAppliedHuntRecord(huntRecord);
+            if (!HuntReturnRules.TryCreatePlan(CreateInput(), timeline.CurrentYear, BuildParticipantStates(), BuildResourceStates(), alreadyApplied, out HuntReturnPlan plan, out string reason))
+                return Fail(reason);
+            if (plan.IsAlreadyApplied)
             {
-                Result = SettlementHuntReturnCommandResult.Failed("远征归来记录缺少稳定 ID。");
-                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+                Result = new SettlementHuntReturnCommandResult(true, false, string.Empty, Array.Empty<EventData>());
+                return UniTask.FromResult(ActionOutcome.Success());
             }
-            bool applied = !timeline.HasAppliedHuntRecord(huntRecord);
-            if (applied && huntRecord.Year != timeline.CurrentYear)
+            if (!plan.IsLegacyCompatibility && (settlement == null || hunterManagement == null))
+                return Fail("当前远征归来缺少 Settlement 提交环境。");
+
+            if (!plan.IsLegacyCompatibility)
             {
-                Result = SettlementHuntReturnCommandResult.Failed($"远征归来年份 {huntRecord.Year} 与营地当前年份 {timeline.CurrentYear} 不一致。");
-                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+                ApplyResourceGrants(plan.ResourceGrants);
+                ClearCollectibles();
+                PlayableHunterAdvancementAdapter.ApplyAfterHunt(ResolveParticipants(plan), hunterManagement, eventOutbox);
             }
+
             IReadOnlyList<EventData> events = timeline.AdvanceYear(huntRecord);
-            Result = new SettlementHuntReturnCommandResult(true, applied, string.Empty, events);
-            if (applied)
+            Result = new SettlementHuntReturnCommandResult(true, true, string.Empty, events);
+            eventOutbox.StageAfterCommit(new HuntCompletedEvent
             {
-                eventOutbox.StageAfterCommit(new HuntCompletedEvent
-                {
-                    CompletedYear = huntRecord.Year,
-                    TotalHunts = timeline.TotalHunts,
-                    HuntersDeployed = huntRecord.HuntersDeployed,
-                    HuntersLost = huntRecord.HuntersLost,
-                    CollectedResourceCount = huntRecord.CollectedResources?.Count ?? 0,
-                    BossDefeated = huntRecord.BossDefeated,
-                    AdvancedToYear = timeline.CurrentYear
-                });
-                eventOutbox.StageAfterCommit(new YearAdvancedEvent { NewYear = timeline.CurrentYear });
-            }
+                CompletedYear = huntRecord.Year,
+                TotalHunts = timeline.TotalHunts,
+                HuntersDeployed = huntRecord.HuntersDeployed,
+                HuntersLost = huntRecord.HuntersLost,
+                CollectedResourceCount = plan.CollectedResourceCount,
+                BossDefeated = huntRecord.BossDefeated,
+                AdvancedToYear = timeline.CurrentYear
+            });
+            eventOutbox.StageAfterCommit(new YearAdvancedEvent { NewYear = timeline.CurrentYear });
             return UniTask.FromResult(ActionOutcome.Success());
+        }
+
+        private HuntReturnInput CreateInput()
+        {
+            var resourceIds = new List<string>();
+            if (huntRecord.CollectedResources != null)
+                foreach (string resourceId in huntRecord.CollectedResources)
+                    resourceIds.Add(PlayableSettlementItemRegistry.ResolveContentId(resourceId));
+            return new HuntReturnInput(huntRecord.RecordId, huntRecord.ReturnSchemaVersion, huntRecord.Year, huntRecord.HuntersDeployed, huntRecord.HuntersLost, huntRecord.ParticipantHunterIds, resourceIds);
+        }
+
+        private List<HuntReturnParticipantState> BuildParticipantStates()
+        {
+            if (settlement == null || huntRecord.ParticipantHunterIds == null) return new List<HuntReturnParticipantState>();
+            var states = new List<HuntReturnParticipantState>();
+            foreach (int hunterId in huntRecord.ParticipantHunterIds)
+            {
+                HunterInstance hunter = settlement.GetHunter(hunterId);
+                if (hunter != null)
+                    states.Add(new HuntReturnParticipantState(hunter.InstanceId, !hunter.IsDead, hunter.Availability, hunter.Age));
+            }
+            return states;
+        }
+
+        private List<HuntReturnResourceState> BuildResourceStates()
+        {
+            var states = new List<HuntReturnResourceState>();
+            if (settlement == null || huntRecord.CollectedResources == null || huntRecord.CollectedResources.Count == 0) return states;
+            var collectedCounts = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (string rawId in huntRecord.CollectedResources)
+            {
+                string resourceId = PlayableSettlementItemRegistry.ResolveContentId(rawId);
+                if (!PlayableSettlementItemRegistry.TryGet(resourceId, out ItemData item) || item == null || item.itemType != ItemType.Resource)
+                    continue;
+                collectedCounts[resourceId] = collectedCounts.TryGetValue(resourceId, out int count) ? count + 1 : 1;
+            }
+            foreach (KeyValuePair<string, int> collected in collectedCounts)
+            {
+                string resourceId = collected.Key;
+                if (!PlayableSettlementItemRegistry.TryGet(resourceId, out ItemData item) || item == null) continue;
+                bool alreadyAdded = false;
+                foreach (HuntReturnResourceState state in states)
+                    if (state.ResourceId == resourceId) { alreadyAdded = true; break; }
+                if (!alreadyAdded)
+                    states.Add(new HuntReturnResourceState(resourceId, settlement.GetResource(resourceId)));
+            }
+            return states;
+        }
+
+        private List<HunterInstance> ResolveParticipants(HuntReturnPlan plan)
+        {
+            var hunters = new List<HunterInstance>();
+            foreach (HuntReturnParticipantPlan participant in plan.ParticipantPlans)
+            {
+                if (!participant.ShouldAdvance)
+                    continue;
+                HunterInstance hunter = settlement.GetHunter(participant.HunterId);
+                if (hunter != null)
+                    hunters.Add(hunter);
+            }
+            return hunters;
+        }
+
+        private void ApplyResourceGrants(IReadOnlyList<HuntReturnResourceGrant> grants)
+        {
+            foreach (HuntReturnResourceGrant grant in grants)
+            {
+                int oldAmount = settlement.GetResource(grant.ResourceId);
+                settlement.AddResource(grant.ResourceId, grant.Amount);
+                eventOutbox.Stage(new ResourceChangedEvent { ResourceName = grant.ResourceId, OldAmount = oldAmount, NewAmount = settlement.GetResource(grant.ResourceId) });
+            }
+        }
+
+        private void ClearCollectibles()
+        {
+            if (huntRecord.ParticipantHunterIds == null) return;
+            foreach (int hunterId in huntRecord.ParticipantHunterIds)
+                settlement.GetHunter(hunterId)?.Collectibles?.Clear();
+        }
+
+        private UniTask<ActionOutcome> Fail(string reason)
+        {
+            Result = SettlementHuntReturnCommandResult.Failed(reason);
+            return UniTask.FromResult(ActionOutcome.Failure(reason));
         }
     }
 }

@@ -158,6 +158,28 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task ReturnCheckpointLockRejectsExplorationAndHarvestUntilReleased()
+        {
+            using var rig = new HuntRig();
+            HexTileInstance target = rig.FirstInteractable;
+            var resourcePoint = new ResourcePointInstance { Resource = rig.Resource, ResourceName = rig.Resource.itemName };
+            rig.Session.SetReturnCheckpointLock(true);
+
+            HuntTileCommandResult lockedTile = await rig.Session.InteractTileAsync(target.AxialCoord);
+            PlayableHarvestTransaction lockedHarvest = await rig.Session.PrepareHarvestAsync(resourcePoint);
+
+            Assert.That(lockedTile.Succeeded, Is.False);
+            Assert.That(lockedHarvest, Is.Null);
+            Assert.That(target.State, Is.EqualTo(TileState.Interactable));
+            Assert.That(rig.Session.IsReturnCheckpointLocked, Is.True);
+
+            rig.Session.SetReturnCheckpointLock(false);
+            HuntTileCommandResult releasedTile = await rig.Session.InteractTileAsync(target.AxialCoord);
+
+            Assert.That(releasedTile.Succeeded, Is.True, releasedTile.Reason);
+        }
+
+        [Test]
         public async Task EventCommit_SelectedHunterLostPromotesLivingSquadMemberBeforeFact()
         {
             using var rig = new HuntRig(includeSurvivor: true, hunterDeathCommand: new DirectHunterDeathCommand());

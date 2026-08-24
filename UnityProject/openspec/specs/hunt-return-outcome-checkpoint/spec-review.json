@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 3,
+  "capability": "hunt-return-outcome-checkpoint",
+  "title": "狩猎归来结果检查点",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "稳定回营记录、纯规则预检、Settlement ActionQueue 权威提交、三段持久化与幂等恢复已经由 GameCore 和 Adapter EditMode 回归覆盖。",
+    "evidence": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/HuntReturnRulesTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntRetreatActionTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs"
+    ],
+    "differences": [],
+    "verifiedAt": "2026-08-24T00:59:33-07:00",
+    "codeEvidence": [
+      {
+        "guid": "37059c04b6daeb0469902c0c4e2064fb",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HuntReturnRules.cs",
+        "line": 1
+      },
+      {
+        "guid": "5cb50ad3443a70f45af1ce3608fd42be",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs",
+        "line": 31
+      },
+      {
+        "guid": "551fe81197a6ca545a686a0c536f2646",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+        "line": 866
+      },
+      {
+        "guid": "4ba73e89b3fe5ba4088fc947dc1e9f63",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
+        "line": 54
+      }
+    ]
+  },
+  "implementationOutline": [
+    "Hunt Runner 将稳定参战者与资源身份冻结为版本化 HuntRecord，并在退出前持久化 pending。",
+    "GameCore 在任何状态变更前生成只读 HuntReturnPlan，拒绝未知身份、重复参与者、伤亡不一致与资源溢出。",
+    "Settlement root 按计划提交资源、存活参战者成长或退休、历史、年份和年度 Timeline，再通过 outbox 发布事实。",
+    "GameManager 保存已应用且 pending 尚在的状态，清除 pending 后再次保存；恢复以 HuntHistory.RecordId 幂等收敛。",
+    "若阶段拒绝后的检查点无法持久化撤销，Hunt Runner 锁定地图与采集命令，3D 回营卡只开放原记录重试。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "hunt-phase-orchestration",
+    "settlement-phase-orchestration",
+    "action-environment-lifecycle",
+    "campaign-persistence"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HuntReturnRules.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs:31",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:866",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs:54"
+  ]
+}

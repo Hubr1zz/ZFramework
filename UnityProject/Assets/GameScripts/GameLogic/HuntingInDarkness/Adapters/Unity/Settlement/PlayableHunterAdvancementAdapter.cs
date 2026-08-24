@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core;
+using HuntingInDarkness.ActionFlow;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
@@ -36,6 +37,37 @@ namespace HuntingInDarkness.Settlement
                 Debug.Log($"[HunterAdvancement] {hunter.Name} 年龄 {outcome.PreviousAge} → {outcome.CurrentAge}，获得 1 点待分配成长");
                 EventBus.Publish(new HunterAdvancedEvent { HunterId = hunter.InstanceId, Age = hunter.Age, ReachedMilestone = outcome.ReachedMilestone });
             }
+            return outcomes;
+        }
+
+        /// <summary>在 Settlement root 内暂存成长/退休事件，避免归来提交过程中直接发布全局事件。</summary>
+        public static List<HunterAdvancementOutcome> ApplyAfterHunt(IEnumerable<HunterInstance> hunters, HunterManagementSystem management, ActionEventOutbox eventOutbox)
+        {
+            if (management == null) throw new ArgumentNullException(nameof(management));
+            if (eventOutbox == null) throw new ArgumentNullException(nameof(eventOutbox));
+
+            var outcomes = new List<HunterAdvancementOutcome>();
+            if (hunters == null) return outcomes;
+            var processedIds = new HashSet<int>();
+            bool rosterChanged = false;
+            foreach (HunterInstance hunter in hunters)
+            {
+                if (hunter == null || !processedIds.Add(hunter.InstanceId)) continue;
+                HunterAdvancementOutcome outcome = HunterAdvancementRules.AdvanceAfterHunt(hunter);
+                if (outcome.Retired)
+                {
+                    outcomes.Add(outcome);
+                    management.CompleteRetirement(hunter, false);
+                    eventOutbox.Stage(new HunterRetiredEvent { HunterId = hunter.InstanceId, Age = hunter.Age });
+                    rosterChanged = true;
+                    continue;
+                }
+                if (!outcome.Advanced) continue;
+                outcomes.Add(outcome);
+                eventOutbox.Stage(new HunterAdvancedEvent { HunterId = hunter.InstanceId, Age = hunter.Age, ReachedMilestone = outcome.ReachedMilestone });
+            }
+            if (rosterChanged)
+                eventOutbox.Stage(new HunterRosterChangedEvent());
             return outcomes;
         }
 

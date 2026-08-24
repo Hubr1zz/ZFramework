@@ -245,6 +245,13 @@
       "category": "feature",
       "readiness": "implemented",
       "specPath": "openspec/specs/hunt-noise-risk-deck/spec.md"
+    },
+    {
+      "id": "hunt-return-outcome-checkpoint",
+      "label": "狩猎归来结果检查点",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-return-outcome-checkpoint/spec.md"
     }
   ],
   "edges": [
@@ -414,7 +421,57 @@
       "to": "campaign-persistence",
       "type": "requires",
       "status": "defined",
-      "reason": "跨 Runner 的归来记录必须在资源转移后持久化，并在 Settlement 幂等消费前保持恢复门禁",
+      "reason": "跨 Runner 的完整归来记录必须在离开 Hunt 和修改营地结果前持久化",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-retreat--requires--hunt-return-outcome-checkpoint",
+      "from": "tabletop-hunt-retreat",
+      "to": "hunt-return-outcome-checkpoint",
+      "type": "requires",
+      "status": "defined",
+      "reason": "实体回营确认生成的稳定记录由可恢复的归来结果检查点消费",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-return-outcome-checkpoint--requires--hunt-phase-orchestration",
+      "from": "hunt-return-outcome-checkpoint",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "当前 Hunt Runner 冻结参战者、伤亡和资源稳定身份",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-return-outcome-checkpoint--requires--settlement-phase-orchestration",
+      "from": "hunt-return-outcome-checkpoint",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "资源、成长、历史和年份由 Settlement Runner 的单一 root 权威提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-return-outcome-checkpoint--requires--action-environment-lifecycle",
+      "from": "hunt-return-outcome-checkpoint",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "完整预检、串行提交与提交后 EventBus outbox 复用阶段 Action 环境",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-return-outcome-checkpoint--requires--campaign-persistence",
+      "from": "hunt-return-outcome-checkpoint",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "pending、已应用结果和清除检查点通过顺序化快照跨进程收敛",
       "gapId": "",
       "blocksImplementation": false
     },
