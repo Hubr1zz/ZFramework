@@ -18,16 +18,18 @@ namespace HuntingInDarkness.ActionFlow.Events
 
     public readonly struct PlayableEventCommitCheckpoint
     {
-        public PlayableEventCommitCheckpoint(PlayableEventCommitKind kind, string eventId, int actorId)
+        public PlayableEventCommitCheckpoint(PlayableEventCommitKind kind, string eventId, int actorId, IReadOnlyList<string> chainedEventIds = null)
         {
             Kind = kind;
             EventId = eventId ?? string.Empty;
             ActorId = actorId;
+            ChainedEventIds = chainedEventIds ?? Array.Empty<string>();
         }
 
         public PlayableEventCommitKind Kind { get; }
         public string EventId { get; }
         public int ActorId { get; }
+        public IReadOnlyList<string> ChainedEventIds { get; }
     }
 
     /// <summary>跨阶段复用的单事件节点；阶段 Runner 只注入提交事实，不复制选择、重投与效果流程。</summary>
@@ -80,7 +82,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                 ChainedEvents = narrativeResult.ChainedEvents;
                 EncounterIds = narrativeResult.EncounterIds;
                 EffectResults = narrativeResult.EffectResults;
-                PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor);
+                PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor, ChainedEvents);
                 return ActionOutcome.Success();
             }
 
@@ -101,7 +103,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                 ChainedEvents = fallbackResult.ChainedEvents;
                 EncounterIds = fallbackResult.EncounterIds;
                 EffectResults = fallbackResult.EffectResults;
-                PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor);
+                PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor, ChainedEvents);
                 return ActionOutcome.Success();
             }
 
@@ -119,7 +121,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             ChainedEvents = campaignEnded ? System.Array.Empty<EventData>() : result.ChainedEvents;
             EncounterIds = campaignEnded ? System.Array.Empty<string>() : result.EncounterIds;
             EffectResults = result.EffectResults;
-            PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, transaction.Actor);
+            PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, transaction.Actor, ChainedEvents);
             if (eventInput != null && !campaignEnded)
                 await eventInput.ConfirmResultAsync(gameEvent, result.Result, cancellationToken);
             return ActionOutcome.Success();
@@ -191,9 +193,16 @@ namespace HuntingInDarkness.ActionFlow.Events
             return false;
         }
 
-        private void PublishCommitCheckpoint(PlayableEventCommitKind kind, HunterInstance actor)
+        private void PublishCommitCheckpoint(PlayableEventCommitKind kind, HunterInstance actor, IReadOnlyList<EventData> chainedEvents = null)
         {
-            stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.name, actor?.InstanceId ?? 0));
+            var chainedEventIds = new List<string>();
+            if (chainedEvents != null)
+                foreach (EventData chainedEvent in chainedEvents)
+                {
+                    string eventId = chainedEvent?.name?.Trim() ?? string.Empty;
+                    if (eventId.Length > 0) chainedEventIds.Add(eventId);
+                }
+            stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.name, actor?.InstanceId ?? 0, chainedEventIds));
             eventOutbox.PublishCheckpoint();
         }
     }

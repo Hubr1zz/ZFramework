@@ -12,10 +12,16 @@ namespace HuntingInDarkness.ActionFlow.Events
     public sealed class PlayableEventChainGuard
     {
         private readonly HashSet<EventData> scheduledEvents = new();
+        private readonly HashSet<string> scheduledOccurrenceKeys = new();
 
         public bool TrySchedule(EventData gameEvent)
         {
             return gameEvent != null && scheduledEvents.Add(gameEvent);
+        }
+
+        public bool TrySchedule(EventData gameEvent, string occurrenceKey)
+        {
+            return gameEvent != null && !string.IsNullOrWhiteSpace(occurrenceKey) && scheduledOccurrenceKeys.Add(occurrenceKey.Trim());
         }
     }
 }

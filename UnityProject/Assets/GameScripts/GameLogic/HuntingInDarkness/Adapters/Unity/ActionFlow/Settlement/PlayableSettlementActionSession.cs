@@ -408,7 +408,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? WeaponTrainingCommandResult.Failed(outcome.Reason) : action.Result;
         }
 
-        public async UniTask<SettlementEventCommandResult> ResolveEventsAsync(System.Collections.Generic.IReadOnlyList<EventData> events)
+        public async UniTask<SettlementEventCommandResult> ResolveEventsAsync(System.Collections.Generic.IReadOnlyList<EventData> events, string restoredChainId = null, System.Collections.Generic.IReadOnlyList<SettlementEventChainOccurrence> restoredOccurrences = null)
         {
             if (!IsActive) return SettlementEventCommandResult.Failed("当前不在营地阶段", 0);
             if (eventSystem == null) return SettlementEventCommandResult.Failed("营地事件系统尚未配置", 0);
@@ -418,7 +418,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
             ReactorEntityHandle chainEntity = environment.EntityHandles.GetOrCreate("settlement-event-chain", SessionId.ToString("N"), "营地事件链");
             IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("settlement-event", gameEvent != null ? gameEvent.name : "unknown", gameEvent != null ? gameEvent.eventName : "营地事件");
-            var action = new ResolveSettlementEventChainAction(eventSystem, EventInput, events, SessionId, outbox, settlementEntity, chainEntity, ResolveEventEntity, randomInteractionPresenter);
+            var action = new ResolveSettlementEventChainAction(eventSystem, EventInput, events, SessionId, outbox, settlementEntity, chainEntity, ResolveEventEntity, randomInteractionPresenter, restoredChainId, restoredOccurrences);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementEventCommandResult.Failed(outcome.Reason, action.Result.ResolvedCount) : action.Result;

@@ -119,6 +119,31 @@ namespace HuntingInDarkness.Data
         public TimelineEntryType EntryType = TimelineEntryType.Random;
     }
 
+    /// <summary>
+    /// 已提交事件节点留下的最小持久化链检查点。
+    /// 只保存稳定内容 ID 和顺序，不保存 ScriptableObject、效果快照或运行时引用。
+    /// </summary>
+    [System.Serializable]
+    public sealed class SettlementEventChainCheckpoint
+    {
+        public int SchemaVersion = 1;
+        public string ChainId;
+        public int NextSequence = 1;
+        public string Diagnostic;
+        public List<int> CommittedSequences = new();
+        public List<SettlementEventChainOccurrence> PendingOccurrences = new();
+    }
+
+    [System.Serializable]
+    public sealed class SettlementEventChainOccurrence
+    {
+        public int Sequence;
+        public string EventId;
+        public string EventName;
+        public int Year;
+        public int ActorId;
+    }
+
     public enum TimelineEntryType
     {
         MainStory,  // 主线强制触发
@@ -152,6 +177,7 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class SettlementInstance
     {
+        public const int MaxPendingEventChainOccurrences = 64;
         [Header("内容存档版本")]
         public int ItemIdentitySchemaVersion;
         public int InventionIdentitySchemaVersion;
@@ -187,6 +213,9 @@ namespace HuntingInDarkness.Data
         [Header("Timeline")]
         public List<AnnalEntry> Timeline = new();
         public List<HuntRecord>    HuntHistory = new();
+
+        [Header("事件链恢复检查点")]
+        public List<SettlementEventChainCheckpoint> PendingEventChains = new();
 
         [Header("本年出发的猎人（狩猎阶段用）")]
         public List<int> DepartingHunterIds = new();
@@ -259,6 +288,75 @@ namespace HuntingInDarkness.Data
         public HunterInstance GetHunter(int id) => Hunters.Find(h => h.InstanceId == id);
         public List<HunterInstance> GetAliveHunters() => Hunters.FindAll(h => h.IsAlive);
         public List<HunterInstance> GetAvailableHunters() => Hunters.FindAll(h => h.IsAvailable);
+
+        public bool HasPendingEventChainOccurrences => PendingEventChains != null && PendingEventChains.Exists(chain => chain != null && chain.PendingOccurrences != null && chain.PendingOccurrences.Count > 0);
+
+        public IReadOnlyList<SettlementEventChainOccurrence> GetPendingEventChainOccurrences(string chainId)
+        {
+            string normalizedChainId = chainId?.Trim() ?? string.Empty;
+            SettlementEventChainCheckpoint checkpoint = PendingEventChains?.Find(candidate => candidate != null && candidate.ChainId == normalizedChainId);
+            if (checkpoint?.PendingOccurrences == null) return System.Array.Empty<SettlementEventChainOccurrence>();
+            return checkpoint.PendingOccurrences;
+        }
+
+        public string GetEventChainDiagnostic(string chainId)
+        {
+            string normalizedChainId = chainId?.Trim() ?? string.Empty;
+            return PendingEventChains?.Find(candidate => candidate != null && candidate.ChainId == normalizedChainId)?.Diagnostic ?? string.Empty;
+        }
+
+        /// <summary>在同一同步提交边界中消费当前 occurrence，并追加直接子 occurrence。</summary>
+        public IReadOnlyList<SettlementEventChainOccurrence> CommitEventChainOccurrence(string chainId, int completedSequence, IReadOnlyList<string> childEventIds, int year, int actorId)
+        {
+            string normalizedChainId = chainId?.Trim() ?? string.Empty;
+            if (normalizedChainId.Length == 0) return System.Array.Empty<SettlementEventChainOccurrence>();
+            PendingEventChains ??= new List<SettlementEventChainCheckpoint>();
+            SettlementEventChainCheckpoint checkpoint = PendingEventChains.Find(candidate => candidate != null && candidate.ChainId == normalizedChainId);
+            bool hasChildren = childEventIds != null && childEventIds.Count > 0;
+            if (checkpoint == null)
+            {
+                if (!hasChildren) return System.Array.Empty<SettlementEventChainOccurrence>();
+                checkpoint = new SettlementEventChainCheckpoint { ChainId = normalizedChainId };
+                PendingEventChains.Add(checkpoint);
+            }
+
+            checkpoint.CommittedSequences ??= new List<int>();
+            checkpoint.PendingOccurrences ??= new List<SettlementEventChainOccurrence>();
+            var appendedOccurrences = new List<SettlementEventChainOccurrence>();
+            if (!checkpoint.CommittedSequences.Contains(completedSequence))
+            {
+                checkpoint.CommittedSequences.Add(completedSequence);
+                checkpoint.PendingOccurrences.RemoveAll(occurrence => occurrence != null && occurrence.Sequence == completedSequence);
+                if (hasChildren)
+                    foreach (string childEventId in childEventIds)
+                    {
+                        if (checkpoint.PendingOccurrences.Count >= MaxPendingEventChainOccurrences)
+                        {
+                            checkpoint.Diagnostic = $"事件链检查点超过待恢复 occurrence 上限 {MaxPendingEventChainOccurrences}。";
+                            break;
+                        }
+                        string normalizedEventId = childEventId?.Trim() ?? string.Empty;
+                        if (normalizedEventId.Length == 0) continue;
+                        var occurrence = new SettlementEventChainOccurrence
+                        {
+                            Sequence = checkpoint.NextSequence++,
+                            EventId = normalizedEventId,
+                            EventName = normalizedEventId,
+                            Year = year,
+                            ActorId = actorId
+                        };
+                        checkpoint.PendingOccurrences.Add(occurrence);
+                        appendedOccurrences.Add(occurrence);
+                    }
+            }
+
+            if (checkpoint.PendingOccurrences.Count == 0)
+            {
+                PendingEventChains.Remove(checkpoint);
+                return System.Array.Empty<SettlementEventChainOccurrence>();
+            }
+            return appendedOccurrences;
+        }
     }
 
     // ─── 序列化辅助（JsonUtility 不支持 Dictionary） ────────────

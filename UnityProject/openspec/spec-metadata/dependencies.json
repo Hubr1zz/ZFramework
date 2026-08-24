@@ -712,6 +712,16 @@
       "blocksImplementation": false
     },
     {
+      "id": "table-driven-event-chains--requires--campaign-persistence",
+      "from": "table-driven-event-chains",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "已提交父事件产生的直接子 occurrence 通过稳定链检查点跨取消、异常与读档继续",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
       "id": "table-driven-hunt-events--requires--table-driven-event-chains",
       "from": "table-driven-hunt-events",
       "to": "table-driven-event-chains",

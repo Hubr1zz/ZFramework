@@ -7,23 +7,28 @@ namespace HuntingInDarkness.Settlement
     /// <summary>读档后把未完成年鉴事件投影到营地 ActionQueue 的一次性计划。</summary>
     public readonly struct SettlementEventRestorePlan
     {
-        private SettlementEventRestorePlan(bool succeeded, IReadOnlyList<EventData> events, string failureReason, bool alreadyInProgress)
+        private SettlementEventRestorePlan(bool succeeded, IReadOnlyList<EventData> events, string failureReason, bool alreadyInProgress, string chainId, IReadOnlyList<SettlementEventChainOccurrence> occurrences)
         {
             Succeeded = succeeded;
             Events = events ?? Array.Empty<EventData>();
             FailureReason = failureReason ?? string.Empty;
             AlreadyInProgress = alreadyInProgress;
+            ChainId = chainId ?? string.Empty;
+            Occurrences = occurrences ?? Array.Empty<SettlementEventChainOccurrence>();
         }
 
         public bool Succeeded { get; }
         public IReadOnlyList<EventData> Events { get; }
         public string FailureReason { get; }
         public bool AlreadyInProgress { get; }
+        public string ChainId { get; }
+        public IReadOnlyList<SettlementEventChainOccurrence> Occurrences { get; }
         public bool HasPendingEvents => Events.Count > 0;
 
-        public static SettlementEventRestorePlan Success(IReadOnlyList<EventData> events) => new(true, events, string.Empty, false);
-        public static SettlementEventRestorePlan InProgress() => new(true, Array.Empty<EventData>(), string.Empty, true);
-        public static SettlementEventRestorePlan Failed(string reason) => new(false, Array.Empty<EventData>(), reason, false);
+        public static SettlementEventRestorePlan Success(IReadOnlyList<EventData> events) => new(true, events, string.Empty, false, string.Empty, Array.Empty<SettlementEventChainOccurrence>());
+        public static SettlementEventRestorePlan Success(IReadOnlyList<EventData> events, string chainId, IReadOnlyList<SettlementEventChainOccurrence> occurrences) => new(true, events, string.Empty, false, chainId, occurrences);
+        public static SettlementEventRestorePlan InProgress() => new(true, Array.Empty<EventData>(), string.Empty, true, string.Empty, Array.Empty<SettlementEventChainOccurrence>());
+        public static SettlementEventRestorePlan Failed(string reason) => new(false, Array.Empty<EventData>(), reason, false, string.Empty, Array.Empty<SettlementEventChainOccurrence>());
     }
 
     /// <summary>
@@ -37,6 +42,7 @@ namespace HuntingInDarkness.Settlement
         private Func<string, EventData> resolveEvent;
         private bool restoreInProgress;
         private bool ready = true;
+        private bool retryableFailure;
         private string failureReason = string.Empty;
 
         public SettlementEventRestoreProjection(SettlementInstance settlement, Func<string, EventData> resolveEvent)
@@ -55,15 +61,43 @@ namespace HuntingInDarkness.Settlement
             projectedEntries.Clear();
             restoreInProgress = false;
             ready = true;
+            retryableFailure = false;
             failureReason = string.Empty;
         }
 
         public SettlementEventRestorePlan Prepare()
         {
             if (restoreInProgress) return SettlementEventRestorePlan.InProgress();
-            if (!ready) return SettlementEventRestorePlan.Failed(failureReason);
+            if (!ready && !retryableFailure) return SettlementEventRestorePlan.Failed(failureReason);
+            if (retryableFailure)
+            {
+                ready = true;
+                retryableFailure = false;
+                failureReason = string.Empty;
+            }
             if (settlement == null) return Reject("营地存档为空，无法恢复未完成事件。");
             if (resolveEvent == null) return Reject("营地事件内容解析器尚未配置。");
+
+            SettlementEventChainCheckpoint checkpoint = settlement.PendingEventChains?.Find(candidate => candidate != null && candidate.PendingOccurrences != null && candidate.PendingOccurrences.Count > 0);
+            if (checkpoint != null)
+            {
+                if (string.IsNullOrWhiteSpace(checkpoint.ChainId)) return Reject("事件链检查点缺少稳定链 ID。");
+                if (!string.IsNullOrWhiteSpace(checkpoint.Diagnostic)) return Reject(checkpoint.Diagnostic);
+                var checkpointOccurrences = new List<SettlementEventChainOccurrence>(checkpoint.PendingOccurrences);
+                checkpointOccurrences.Sort((left, right) => left.Sequence.CompareTo(right.Sequence));
+                var checkpointEvents = new List<EventData>(checkpointOccurrences.Count);
+                foreach (SettlementEventChainOccurrence occurrence in checkpointOccurrences)
+                {
+                    if (occurrence == null || string.IsNullOrWhiteSpace(occurrence.EventId)) return Reject("事件链检查点包含缺少事件 ID 的 occurrence。");
+                    EventData gameEvent = resolveEvent(occurrence.EventId);
+                    if (gameEvent == null) return Reject($"找不到事件链检查点内容：{occurrence.EventId}");
+                    checkpointEvents.Add(gameEvent);
+                }
+                restoreInProgress = true;
+                ready = false;
+                failureReason = string.Empty;
+                return SettlementEventRestorePlan.Success(checkpointEvents, checkpoint.ChainId, checkpointOccurrences);
+            }
 
             var events = new List<EventData>();
             var newEntries = new List<AnnalEntry>();
@@ -95,8 +129,18 @@ namespace HuntingInDarkness.Settlement
             if (!succeeded)
             {
                 ready = false;
+                retryableFailure = true;
                 failureReason = "未完成营地事件恢复失败，已保持出猎门禁。";
-                RemoveUncompletedProjection();
+                projectedEntries.Clear();
+                return false;
+            }
+
+            if (settlement != null && settlement.HasPendingEventChainOccurrences)
+            {
+                ready = false;
+                retryableFailure = true;
+                failureReason = string.Empty;
+                projectedEntries.Clear();
                 return false;
             }
 
@@ -104,11 +148,13 @@ namespace HuntingInDarkness.Settlement
                 if (entry != null && !entry.IsCompleted)
                 {
                     ready = false;
+                    retryableFailure = true;
                     failureReason = $"营地事件恢复后仍有未完成年鉴条目：{entry.EventId}";
                     return false;
                 }
 
             ready = true;
+            retryableFailure = false;
             failureReason = string.Empty;
             return true;
         }
@@ -117,6 +163,7 @@ namespace HuntingInDarkness.Settlement
         {
             restoreInProgress = false;
             ready = false;
+            retryableFailure = false;
             failureReason = string.IsNullOrWhiteSpace(reason) ? "营地事件恢复失败，已保持出猎门禁。" : reason.Trim();
         }
 

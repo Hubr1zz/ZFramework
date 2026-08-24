@@ -29,12 +29,17 @@ An event record whose scheduled or direct-chain target is blank, duplicated, mis
 - **AND** an actionable content-table error identifies the broken reference
 
 ### Requirement: Existing phase runners remain authoritative
-Resolved table chains SHALL run through the existing Settlement or Hunt event root. Each runtime event instance SHALL be scheduled at most once in one causal chain, including cyclic or converging table references.
+Resolved table chains SHALL run through the existing Settlement or Hunt event root. Each scheduled occurrence SHALL have chain-local identity independent of EventId, so repeated content references remain distinct while one occurrence cannot commit twice. Cyclic branches and children exceeding the configured pending-occurrence limit SHALL stop before entering the runtime queue; limit failures SHALL remain diagnosable from the persistent checkpoint.
 
 #### Scenario: Two branches converge on the same child event
 - **WHEN** the owning ActionQueue collects subsequent nodes
-- **THEN** the child resolves no more than once in that root
+- **THEN** each configured occurrence resolves once in stable order
 - **AND** the View continues to provide input without mutating event state
+
+#### Scenario: A branch cycles or exceeds the pending limit
+- **WHEN** the owning ActionQueue commits the parent occurrence
+- **THEN** rejected children SHALL NOT continue only in memory
+- **AND** the runner SHALL publish a cycle diagnostic or retain an overflow diagnostic in the checkpoint
 
 ### Requirement: Direct chains and delayed events remain distinct
 Direct chain IDs SHALL enqueue the next node in the current event root. `ScheduleEvent` SHALL continue to write a future timeline entry and SHALL require a `Scheduled` target.

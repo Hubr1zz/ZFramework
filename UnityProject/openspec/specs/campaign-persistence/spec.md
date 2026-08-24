@@ -69,6 +69,30 @@ title: 战役持久化与恢复
 - **WHEN** 未完成 Timeline 条目缺少稳定事件 ID，或当前内容目录无法解析该 ID
 - **THEN** 加载流程 SHALL 报告可诊断失败并保持出猎门禁，且 SHALL NOT 静默完成、删除或跳过该条目
 
+### Requirement: Committed event chains remain recoverable
+
+事件节点的效果、Timeline 完成状态与直接子 occurrence SHALL 在同一同步状态边界内提交，并在发布保存通知前完成。检查点 SHALL 使用稳定事件 ID、链 ID 与 occurrence 序号，不序列化运行时资产引用；结果确认或后续节点失败 SHALL NOT 丢失已提交父节点产生的子链。
+
+#### Scenario: Result confirmation fails after the parent commits
+
+- **WHEN** 父事件效果已经提交并产生直接子事件，但结果确认表现取消或抛出异常
+- **THEN** 父效果 SHALL NOT 重放，子 occurrence SHALL 保留在存档检查点并可在下一次恢复中继续
+
+#### Scenario: A child occurrence completes before another child fails
+
+- **WHEN** 同一链中前一个 occurrence 已完成而后一个 occurrence 暂时失败
+- **THEN** 已完成 occurrence SHALL 从检查点按其独立序号消费，未完成 occurrence SHALL 保留且重试时不得重复前序效果
+
+#### Scenario: A save contains multiple independent chains
+
+- **WHEN** 加载后的存档包含多个合法的营地事件链检查点
+- **THEN** Settlement Runner SHALL 按检查点顺序逐链恢复，并在最后一条完成前保持流程门禁
+
+#### Scenario: A checkpoint references unavailable or overflowed content
+
+- **WHEN** 恢复时稳定事件 ID 无法由当前内容目录解析，或检查点带有溢出诊断
+- **THEN** 加载流程 SHALL 保留原始检查点、报告可诊断失败并保持流程门禁，且 SHALL NOT 静默删除或执行未持久化的分支
+
 ### Requirement: Save replacement preserves a recoverable snapshot
 
 每次保存 SHALL 先把带 schemaVersion 与内容校验值的完整封套写入同目录临时文件并刷盘，再替换正式文件；已有正式文件 SHALL 保留为上一份备份。版本门禁 SHALL 覆盖异步保存、立即保存与删除。

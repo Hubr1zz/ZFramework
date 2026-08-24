@@ -239,6 +239,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(result.ResolvedCount, Is.EqualTo(2));
                 Assert.That(settlement.GetResource("碎石"), Is.EqualTo(3));
                 Assert.That(committed, Is.EqualTo(new[] { SettlementTransactionKind.EventResolution, SettlementTransactionKind.EventResolution }));
+                Assert.That(settlement.HasPendingEventChainOccurrences, Is.False);
             }
             finally
             {
@@ -246,6 +247,121 @@ namespace HuntingInDarkness.Adapter.Tests
                 UnityEngine.Object.DestroyImmediate(child);
                 UnityEngine.Object.DestroyImmediate(root);
             }
+        }
+
+        [Test]
+        public async Task ResolveEventsAsync_PersistsAndResolvesTwoSameIdOccurrencesIndependently()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            EventData child = CreateNarrativeEvent("same-child", "碎石", 1);
+            EventData root = CreateNarrativeEvent("same-root", "碎石", 1);
+            root.chainedEvents.Add(child);
+            root.chainedEvents.Add(child);
+
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem);
+            SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { root });
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(result.ResolvedCount, Is.EqualTo(3));
+            Assert.That(settlement.GetResource("碎石"), Is.EqualTo(3));
+            Assert.That(settlement.HasPendingEventChainOccurrences, Is.False);
+        }
+
+        [Test]
+        public async Task ResolveEventsAsync_PersistsChildrenFromMultipleInitialRoots()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            EventData firstChild = CreateNarrativeEvent("first-root-child", "first-root-resource", 1);
+            EventData secondChild = CreateNarrativeEvent("second-root-child", "second-root-resource", 1);
+            EventData firstRoot = CreateNarrativeEvent("first-root", "first-root-resource", 1);
+            EventData secondRoot = CreateNarrativeEvent("second-root", "second-root-resource", 1);
+            firstRoot.chainedEvents.Add(firstChild);
+            secondRoot.chainedEvents.Add(secondChild);
+
+            try
+            {
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem);
+
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { firstRoot, secondRoot });
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(result.ResolvedCount, Is.EqualTo(4));
+                Assert.That(settlement.GetResource("first-root-resource"), Is.EqualTo(2));
+                Assert.That(settlement.GetResource("second-root-resource"), Is.EqualTo(2));
+                Assert.That(settlement.HasPendingEventChainOccurrences, Is.False);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(firstChild);
+                UnityEngine.Object.DestroyImmediate(secondChild);
+                UnityEngine.Object.DestroyImmediate(firstRoot);
+                UnityEngine.Object.DestroyImmediate(secondRoot);
+            }
+        }
+
+        [Test]
+        public async Task ResolveEventsAsync_DoesNotExecuteChildrenRejectedByCheckpointLimit()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            EventData root = ScriptableObject.CreateInstance<EventData>();
+            root.name = "overflow-root";
+            root.eventName = root.name;
+            var children = new List<EventData>();
+            for (int index = 0; index < SettlementInstance.MaxPendingEventChainOccurrences + 1; index++)
+            {
+                EventData child = CreateNarrativeEvent($"overflow-child-{index}", $"overflow-resource-{index}", 1);
+                children.Add(child);
+                root.chainedEvents.Add(child);
+            }
+
+            try
+            {
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem);
+
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { root });
+
+                Assert.That(result.Succeeded, Is.False);
+                Assert.That(result.Reason, Does.Contain("上限"));
+                Assert.That(result.ResolvedCount, Is.EqualTo(1));
+                Assert.That(settlement.GetResource("overflow-resource-0"), Is.Zero);
+                Assert.That(settlement.GetResource("overflow-resource-63"), Is.Zero);
+                Assert.That(settlement.GetResource("overflow-resource-64"), Is.Zero);
+                Assert.That(settlement.HasPendingEventChainOccurrences, Is.True);
+                Assert.That(settlement.PendingEventChains, Has.Count.EqualTo(1));
+                Assert.That(settlement.PendingEventChains[0].PendingOccurrences, Has.Count.EqualTo(SettlementInstance.MaxPendingEventChainOccurrences));
+                Assert.That(settlement.PendingEventChains[0].Diagnostic, Does.Contain("上限"));
+                Assert.That(settlement.PendingEventChains[0].PendingOccurrences[^1].EventId, Is.EqualTo("overflow-child-63"));
+            }
+            finally
+            {
+                foreach (EventData child in children)
+                    UnityEngine.Object.DestroyImmediate(child);
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public async Task ResolveEventsAsync_ResultConfirmationFailureKeepsChildCheckpoint()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            HunterInstance hunter = settlement.Hunters[0];
+            EventData child = CreateNarrativeEvent("confirm-child", "碎石", 2);
+            EventData root = ScriptableObject.CreateInstance<EventData>();
+            root.name = "confirm-root";
+            root.eventType = GameEventType.Choice;
+            root.options.Add(new EventOption { optionText = "确认", successChain = new List<EventData> { child } });
+            var input = new ThrowingResultConfirmationInput(hunter);
+
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem, input);
+            SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { root });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(settlement.HasPendingEventChainOccurrences, Is.True);
+            Assert.That(settlement.PendingEventChains[0].PendingOccurrences[0].EventId, Is.EqualTo("confirm-child"));
         }
 
         [Test]
@@ -752,6 +868,21 @@ namespace HuntingInDarkness.Adapter.Tests
                 ResultConfirmationCount++;
                 return UniTask.CompletedTask;
             }
+        }
+
+        private sealed class ThrowingResultConfirmationInput : IPlayableEventInput
+        {
+            private readonly HunterInstance hunter;
+
+            public ThrowingResultConfirmationInput(HunterInstance hunter)
+            {
+                this.hunter = hunter;
+            }
+
+            public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(0, hunter));
+            public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
+            public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.FromException(new InvalidOperationException("测试确认失败"));
         }
 
         private sealed class RerollThenBlockInput : IPlayableEventInput
