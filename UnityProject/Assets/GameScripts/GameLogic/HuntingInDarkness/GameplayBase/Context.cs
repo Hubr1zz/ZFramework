@@ -43,7 +43,8 @@ namespace GameplayBase
         public IGameContext    GameContext;
         public IBoardQuery     BoardQuery;
         public IBoardCommand   BoardCommand;
-        public ActionQueue     ActionQueue;
+        [System.Obsolete("Compatibility-only combat card queue. New effects receive the active CardGame.ActionQueue execution context.")]
+        public ActionQueue ActionQueue;
     }
     
     public class FlipConditionContext

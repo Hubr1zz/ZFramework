@@ -6,7 +6,7 @@
 
 ## 目标与依赖方向
 
-全部玩法及可复用规则采用单向依赖：
+存在对应职责时，玩法及可复用规则采用以下单向依赖：
 
 ```text
 ViewLayer (输入、动画、3D/uGUI)
@@ -21,7 +21,7 @@ GameCore (纯 C# 规则、状态、端口)
 默认 `Assembly-CSharp` 中的项目类型。该约束是编译边界，不是命名约定。
 
 依赖只能向下：ViewLayer 可以调用 Adapters 和 GameCore；Adapters 可以调用
-GameCore；GameCore 不知道 Unity、ViewLayer、ScriptableObject、EventBus 或 UniTask。
+GameCore；GameCore 不知道 Unity、ViewLayer、ScriptableObject、EventBus 或 UniTask。三层是职责边界，不是每个功能必须凑齐的目录模板：只有独立领域状态/规则、Unity 或外部桥接、表现输入三类职责真实存在时才拆出完整三层；局部 DTO、纯函数或单一边界归入最低且真实的 owner，不创建空壳层、镜像模型或只做转发的冗余类型。
 
 ## 当前模块
 
@@ -47,8 +47,10 @@ GameCore；GameCore 不知道 Unity、ViewLayer、ScriptableObject、EventBus �
 
 ## Unity 装配与配置边界
 
-- 新玩法先确定一个高内聚的 GameCore 规则/状态 owner，再由 Unity 适配器装配；不要以“能挂在物体上”为理由新增 `MonoBehaviour`。
-- `MonoBehaviour` 只用于必须依赖 Unity 生命周期、场景身份、序列化引用或表现输入的边界。优先接入现有 `GameManager`、系统 Manager、presenter 或其他组合根；只有独立生命周期或独立场景身份成立时才新增可挂载组件。
+- 新玩法先确定一个高内聚的 GameCore 规则/状态 owner，再由 Unity 适配器装配；如果功能只有单一职责，直接放入该 owner，不为满足三层形式新增转发层。不要以“能挂在物体上”为理由新增 `MonoBehaviour`。
+- 运行生命周期优先由 ZFramework 的 Singleton System/Module/Procedure 持有。`MonoBehaviour` 只用于必须依赖 Unity 生命周期、场景身份、序列化引用或表现输入的边界；组合根保持轻薄，只转发 Unity 回调并装配 plain runtime/system，不持有跨阶段业务规则。
+- `CardGame.ActionQueue` 只编排会改变权威游戏状态、产生随机或玩家选择结果、发布游戏性事实，或允许 Reactor 覆盖/注入的游戏性 Action。纯布局、Hover、按钮视觉和动画不进入队列；游戏性 Action 可以等待 Presenter 完成，但表现步骤本身没有可被 Reactor 单独拦截的 Action 身份。
+- 旧 `HuntingInDarkness.GameCore.Cards.ActionQueue` 仅是战斗卡牌兼容层；不得承载新功能。后续以一次完整迁移把其调用方接入正式 `CardGame.ActionQueue` 环境，迁移完成前不做零碎扩张。
 - 同一玩法的可调参数集中到少量 ScriptableObject，再一次性映射为 GameCore `Definition` / `Profile`；避免多个对象各自暴露一部分关联参数。场景引用只暴露必须由开发者选择具体实例的对象。
 - Prefab/场景负责稳定结构和布局，代码负责数据绑定与规则执行。设计文档必须区分自动构造内容与人工 Inspector/场景操作，避免让开发者重复挂载可由组合根创建的对象。
 

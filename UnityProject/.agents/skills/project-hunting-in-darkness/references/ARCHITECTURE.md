@@ -1,6 +1,6 @@
 # Hunting in Darkness — 架构文档
 
-> 最后更新：M5 打磨阶段（M0–M4 全部完成）
+> 本文保留旧场景与命名空间映射，不能作为新生命周期设计的权威。当前迁移目标以 `project-gamecore/references/GAMECORE.md` 为准：ZFramework Singleton System 持有跨阶段 runtime/lifecycle，`GameManager` 逐步收缩为 Unity 组合根与序列化/View 边界。较大拆分只进行一次完整职责分析后实施。
 
 > 规则层 / Unity 适配层 / 表现层的当前边界与扩展规范见 `.agents/skills/project-gamecore/references/GAMECORE.md`。
 
@@ -10,7 +10,7 @@
 
 ```
 MainScene
-├── GameManager                ← 持久单例 MonoBehaviour，持有 PhaseManager 和所有子系统
+├── GameManager                ← 迁移期兼容组合根；目标仅转发 Unity 生命周期并装配 ZFramework System
 ├── SettlementRoot             ← 营地建设阶段的3D内容根节点（默认 active）
 ├── HuntRoot                   ← 狩猎阶段的3D内容根节点（默认 inactive）
 ├── BossFightRoot              ← Boss决战阶段的3D内容根节点（默认 inactive）
@@ -63,10 +63,10 @@ Settlement（下一年）
 
 ## 核心类职责
 
-### `GameManager` (MonoBehaviour, 单例)
-- **持有**：PhaseManager, SettlementManager, HuntManager, 及全部 Boss决战子系统
-- **负责**：阶段根物体 Enable/Disable，阶段间数据传递，调用各阶段 OnEnter/OnExit
-- **不负责**：具体游戏逻辑（委托给各阶段 Manager）
+### `GameManager`（迁移期 MonoBehaviour 组合根）
+- **当前兼容职责**：PhaseManager、阶段 Manager、序列化场景引用和阶段根物体切换。
+- **目标职责**：仅转发 Unity 回调、持有 Inspector 引用并装配 ZFramework System/runtime host。
+- **迁移规则**：持久化、阶段状态机、Action session 与跨阶段业务规则必须一次性按宏观职责迁出；在正式拆分前不继续向 GameManager 增加新业务职责，也不做反复的局部微重构。
 
 ### `PhaseManager` (纯 C#)
 - 维护 `GamePhase` 状态机（Settlement / Hunt / BossFight）

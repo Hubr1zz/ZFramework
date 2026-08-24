@@ -31,7 +31,8 @@ namespace Core
             _execute(queue);
     }
 
-    /// <summary>Adapter runner that owns asynchronous waits while GameCore owns queue state.</summary>
+    /// <summary>Compatibility-only runner for legacy combat cards. New gameplay uses ActionEnvironment.</summary>
+    [Obsolete("Compatibility-only combat card runner. New gameplay must use ActionEnvironment.")]
     public sealed class ActionQueueRunner
     {
         public async UniTask<ActionQueueStatus> RunAsync(ActionQueue queue)

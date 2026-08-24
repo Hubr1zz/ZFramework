@@ -26,8 +26,10 @@ namespace HuntingInDarkness.GameCore.Cards
     }
 
     /// <summary>
-    /// Deterministic queue state. Execution and asynchronous waits are owned by adapters.
+    /// Compatibility-only deterministic queue for the legacy combat card adapter.
+    /// New gameplay flows must use CardGame.ActionQueue through an ActionEnvironment.
     /// </summary>
+    [Obsolete("Compatibility-only combat card queue. New gameplay must use CardGame.ActionQueue through ActionEnvironment.")]
     public sealed class ActionQueue
     {
         private readonly LinkedList<IActionQueueAction> _pending =
