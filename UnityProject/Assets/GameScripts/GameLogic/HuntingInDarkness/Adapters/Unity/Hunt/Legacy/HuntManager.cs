@@ -112,7 +112,7 @@ namespace HuntingInDarkness.Hunt
 
         // ─── 构造 ────────────────────────────────────────────────
 
-        public HuntManager(EventSystem sharedEventSystem, int seed = 0)
+        public HuntManager(EventSystem sharedEventSystem, int seed = 0, bool bindInitialContent = true)
         {
             _rng         = new StatefulRandomSource(seed != 0 ? seed : System.Environment.TickCount);
             _eventSystem = sharedEventSystem;
@@ -120,7 +120,7 @@ namespace HuntingInDarkness.Hunt
             Resources    = new ResourceSystem(_rng);
             HuntEvents   = new HuntEventSystem(_rng);
             EventResourceCommand = new HuntEventResourceCommand(this);
-            PlayableHuntContentRuntime.ApplyTo(this);
+            if (bindInitialContent) PlayableHuntContentRuntime.ApplyTo(this);
         }
 
         /// <summary>原子绑定一个冻结的狩猎内容世代；旧的公开配置属性仍保留给兼容入口。</summary>

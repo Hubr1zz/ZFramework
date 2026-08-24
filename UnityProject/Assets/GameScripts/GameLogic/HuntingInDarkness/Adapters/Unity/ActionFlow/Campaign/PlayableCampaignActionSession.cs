@@ -4,6 +4,7 @@ using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
+using HuntingInDarkness.Hunt;
 
 namespace HuntingInDarkness.ActionFlow.Campaign
 {
@@ -12,6 +13,44 @@ namespace HuntingInDarkness.ActionFlow.Campaign
         GamePhase CurrentPhase { get; }
         bool TryApplyPhaseTransition(GamePhase targetPhase, out string reason);
         bool TryBeginEncounter(CampaignEncounterRequest request, out string reason);
+    }
+
+    public interface ICampaignPhaseTransitionRequestHost
+    {
+        bool TryApplyPhaseTransition(CampaignPhaseTransitionRequest request, out string reason);
+    }
+
+    public readonly struct CampaignHuntEntryContext
+    {
+        public CampaignHuntEntryContext(PlayableHuntRoutePlan routePlan, int year, string departurePreparationToken)
+        {
+            RoutePlan = routePlan;
+            Year = year;
+            DeparturePreparationToken = departurePreparationToken?.Trim() ?? string.Empty;
+        }
+
+        public PlayableHuntRoutePlan RoutePlan { get; }
+        public int Year { get; }
+        public string DeparturePreparationToken { get; }
+        public string DestinationId => RoutePlan?.DestinationId ?? string.Empty;
+        public string ContentBundleId => RoutePlan?.ContentBundleId ?? string.Empty;
+        public bool IsValid => RoutePlan?.IsUsable == true && Year > 0 && DeparturePreparationToken.Length > 0;
+    }
+
+    public readonly struct CampaignPhaseTransitionRequest
+    {
+        public CampaignPhaseTransitionRequest(GamePhase targetPhase, CampaignHuntEntryContext huntContext)
+        {
+            TargetPhase = targetPhase;
+            HuntContext = huntContext;
+        }
+
+        public GamePhase TargetPhase { get; }
+        public CampaignHuntEntryContext HuntContext { get; }
+        public bool HasHuntContext => HuntContext.RoutePlan != null;
+        public bool IsValid => TargetPhase == GamePhase.Hunt ? !HasHuntContext || HuntContext.IsValid : !HasHuntContext;
+        public static CampaignPhaseTransitionRequest ForPhase(GamePhase targetPhase) => new(targetPhase, default);
+        public static CampaignPhaseTransitionRequest ForHunt(CampaignHuntEntryContext context) => new(GamePhase.Hunt, context);
     }
 
     public readonly struct CampaignPhaseTransitionResult
@@ -83,12 +122,15 @@ namespace HuntingInDarkness.ActionFlow.Campaign
         public ReactionGateRegistry ReactionGates => environment.ReactionGates;
 
         public async UniTask<CampaignPhaseTransitionResult> TransitionAsync(GamePhase targetPhase, CancellationToken cancellationToken = default)
+            => await TransitionAsync(CampaignPhaseTransitionRequest.ForPhase(targetPhase), cancellationToken);
+
+        public async UniTask<CampaignPhaseTransitionResult> TransitionAsync(CampaignPhaseTransitionRequest request, CancellationToken cancellationToken = default)
         {
             if (!IsActive) return CampaignPhaseTransitionResult.Failed(host.CurrentPhase, "战役流程已经结束");
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle campaign = environment.EntityHandles.GetOrCreate("campaign", "active", "当前战役");
-            ReactorEntityHandle phase = environment.EntityHandles.GetOrCreate("game-phase", targetPhase.ToString(), targetPhase.ToString());
-            var action = new TransitionCampaignPhaseAction(host, targetPhase, outbox, campaign, phase);
+            ReactorEntityHandle phase = environment.EntityHandles.GetOrCreate("game-phase", request.TargetPhase.ToString(), request.TargetPhase.ToString());
+            var action = new TransitionCampaignPhaseAction(host, request, outbox, campaign, phase);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
             if (outcome.IsSuccess) return action.Result;
             return CampaignPhaseTransitionResult.Failed(host.CurrentPhase, string.IsNullOrWhiteSpace(action.Result.Reason) ? outcome.Reason : action.Result.Reason);
@@ -154,19 +196,25 @@ namespace HuntingInDarkness.ActionFlow.Campaign
     public sealed class TransitionCampaignPhaseAction : CommandAction, ISourceAction, ITargetAction
     {
         private readonly ICampaignPhaseTransitionHost host;
-        private readonly GamePhase targetPhase;
+        private readonly CampaignPhaseTransitionRequest request;
         private readonly ActionEventOutbox eventOutbox;
 
         public TransitionCampaignPhaseAction(ICampaignPhaseTransitionHost host, GamePhase targetPhase, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+            : this(host, CampaignPhaseTransitionRequest.ForPhase(targetPhase), eventOutbox, source, target)
+        {
+        }
+
+        public TransitionCampaignPhaseAction(ICampaignPhaseTransitionHost host, CampaignPhaseTransitionRequest request, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
-            this.targetPhase = targetPhase;
+            this.request = request;
             this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
         }
 
-        public GamePhase TargetPhase => targetPhase;
+        public GamePhase TargetPhase => request.TargetPhase;
+        public CampaignPhaseTransitionRequest Request => request;
         public CampaignPhaseTransitionResult Result { get; private set; }
         public IReactorEntity Source { get; }
         public IReactorEntity Target { get; }
@@ -175,12 +223,38 @@ namespace HuntingInDarkness.ActionFlow.Campaign
         {
             cancellationToken.ThrowIfCancellationRequested();
             GamePhase previousPhase = host.CurrentPhase;
-            if (previousPhase == targetPhase)
+            if (!request.IsValid)
+            {
+                Result = CampaignPhaseTransitionResult.Failed(previousPhase, "战役阶段切换请求与狩猎上下文不匹配。");
+                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+            }
+            if (previousPhase == GamePhase.Hunt && request.TargetPhase == GamePhase.Hunt && request.HasHuntContext)
+            {
+                Result = CampaignPhaseTransitionResult.Failed(previousPhase, "活动狩猎不能通过同阶段请求替换路线。");
+                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+            }
+            if (request.TargetPhase == GamePhase.Hunt && request.HasHuntContext && previousPhase != GamePhase.Settlement)
+            {
+                Result = CampaignPhaseTransitionResult.Failed(previousPhase, "只有营地阶段可以提交狩猎入场请求。");
+                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+            }
+            if (previousPhase == request.TargetPhase)
             {
                 Result = new CampaignPhaseTransitionResult(true, false, previousPhase, previousPhase, string.Empty);
                 return UniTask.FromResult(ActionOutcome.Success());
             }
-            if (!host.TryApplyPhaseTransition(targetPhase, out string reason))
+            if (request.TargetPhase == GamePhase.Hunt && !request.HasHuntContext)
+            {
+                Result = CampaignPhaseTransitionResult.Failed(previousPhase, "进入狩猎阶段必须携带已准备的路线上下文。");
+                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+            }
+            if (request.HasHuntContext && host is not ICampaignPhaseTransitionRequestHost)
+            {
+                Result = CampaignPhaseTransitionResult.Failed(previousPhase, "阶段 Host 不支持狩猎入场上下文。");
+                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+            }
+            bool applied = host is ICampaignPhaseTransitionRequestHost requestHost ? requestHost.TryApplyPhaseTransition(request, out string reason) : host.TryApplyPhaseTransition(request.TargetPhase, out reason);
+            if (!applied)
             {
                 Result = CampaignPhaseTransitionResult.Failed(host.CurrentPhase, reason);
                 return UniTask.FromResult(ActionOutcome.Failure(reason));

@@ -85,4 +85,4 @@ HuntManager SHALL 通过 `TryBindContent` 全量验证并一次提交 StartingTi
 
 ## Known Boundary
 
-本阶段完成启动期 Hunt 内容世代、依赖租约、Manager 原子绑定和正常回营后的 Manager 换代。`PlayableHuntDestinationRuntime.ActiveDestination` 仍是兼容选择门面；出发事务尚未把 RoutePlan 作为 `HuntEntryContext` 载荷传递，活动狩猎存档也仍只保存 DestinationId、尚未校验 ContentBundleId。下一阶段 SHALL 让 Campaign transition 与 active-hunt restore 从候选 Bundle 解析并持有精确 RoutePlan；在此之前不得宣称活动 Hunt 已支持跨内容版本恢复。
+本阶段完成启动期 Hunt 内容世代、依赖租约、Manager 原子绑定和正常回营后的 Manager 换代。正常出发已经由 `hunt-route-entry-context` 以精确 RoutePlan 驱动；活动狩猎存档仍只保存 DestinationId、尚未校验 ContentBundleId。在持久化 schema 完成前不得宣称活动 Hunt 已支持跨内容版本恢复。

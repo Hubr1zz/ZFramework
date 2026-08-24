@@ -329,6 +329,13 @@
       "category": "architecture",
       "readiness": "implemented",
       "specPath": "openspec/specs/hunt-content-bundle-lifecycle/spec.md"
+    },
+    {
+      "id": "hunt-route-entry-context",
+      "label": "狩猎路线入场上下文",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-route-entry-context/spec.md"
     }
   ],
   "edges": [
@@ -1489,6 +1496,46 @@
       "type": "requires",
       "status": "defined",
       "reason": "正常狩猎进程重启与回营交接保持唯一权威状态",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-route-entry-context--requires--hunt-content-bundle-lifecycle",
+      "from": "hunt-route-entry-context",
+      "to": "hunt-content-bundle-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "出发上下文携带当前战役内容世代拥有的精确冻结 RoutePlan",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-route-entry-context--requires--action-environment-lifecycle",
+      "from": "hunt-route-entry-context",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Campaign Runner 串行执行并允许 Reactor 观察或阻止完整入场请求",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-route-entry-context--requires--game-manager-orchestration",
+      "from": "hunt-route-entry-context",
+      "to": "game-manager-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "组合根负责重新验证令牌与 Bundle 身份，并原子发布或回滚 Hunt 运行图",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-route-entry-context--requires--campaign-year-loop",
+      "from": "hunt-route-entry-context",
+      "to": "campaign-year-loop",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地出发准备提供当前年份、唯一编队与一次性准备令牌",
       "gapId": "",
       "blocksImplementation": false
     }

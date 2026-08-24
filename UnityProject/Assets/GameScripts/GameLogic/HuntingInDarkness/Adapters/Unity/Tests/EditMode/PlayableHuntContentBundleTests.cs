@@ -1,5 +1,10 @@
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
+using CardGame.ActionQueue;
+using Core;
+using GameplayBase;
+using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Hunt;
@@ -101,6 +106,51 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(reason, Does.Contain("计划外资源"));
         }
 
+        [Test]
+        public async Task CampaignRequest_PreservesRouteIdentityAndReactorPreventionLeavesHostUntouched()
+        {
+            EventData dangerEvent = CreateHuntEvent("hunt:danger");
+            PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:start", TileType.Starting, 1), new List<HexTileData> { CreateTile("tile:plain", TileType.Plains, 1) }, new List<EventData> { dangerEvent }, CreateNoiseProfile(dangerEvent));
+            Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.True, reason);
+            var context = new CampaignHuntEntryContext(bundle.DefaultRoute, 3, "departure-token");
+            CampaignPhaseTransitionRequest request = CampaignPhaseTransitionRequest.ForHunt(context);
+            var host = new RecordingRequestHost();
+            using var session = new PlayableCampaignActionSession(host);
+            var reactor = new PreventExactRouteReactor(bundle.DefaultRoute);
+            System.IDisposable prevention = session.Reactors.RegisterGlobal(reactor);
+
+            CampaignPhaseTransitionResult prevented = await session.TransitionAsync(request);
+
+            Assert.That(prevented.Succeeded, Is.False);
+            Assert.That(reactor.ObservedRoute, Is.SameAs(bundle.DefaultRoute));
+            Assert.That(host.RequestCount, Is.Zero);
+
+            prevention.Dispose();
+            CampaignPhaseTransitionResult committed = await session.TransitionAsync(request);
+
+            Assert.That(committed.Succeeded && committed.Changed, Is.True);
+            Assert.That(host.RequestCount, Is.EqualTo(1));
+            Assert.That(host.LastRequest.HuntContext.RoutePlan, Is.SameAs(bundle.DefaultRoute));
+
+            var bossHost = new RecordingRequestHost(GamePhase.BossFight);
+            using var bossSession = new PlayableCampaignActionSession(bossHost);
+            CampaignPhaseTransitionResult invalidSource = await bossSession.TransitionAsync(request);
+
+            Assert.That(invalidSource.Succeeded, Is.False);
+            Assert.That(invalidSource.Reason, Does.Contain("营地阶段"));
+            Assert.That(bossHost.CurrentPhase, Is.EqualTo(GamePhase.BossFight));
+            Assert.That(bossHost.RequestCount, Is.Zero);
+
+            var legacyHost = new RecordingLegacyHost();
+            using var legacySession = new PlayableCampaignActionSession(legacyHost);
+            CampaignPhaseTransitionResult unsupportedHost = await legacySession.TransitionAsync(request);
+
+            Assert.That(unsupportedHost.Succeeded, Is.False);
+            Assert.That(unsupportedHost.Reason, Does.Contain("不支持狩猎入场上下文"));
+            Assert.That(legacyHost.CurrentPhase, Is.EqualTo(GamePhase.Settlement));
+            Assert.That(legacyHost.RequestCount, Is.Zero);
+        }
+
         private bool TryCreateBundle(PlayableHuntContentCatalog catalog, IReadOnlyList<PlayableHuntDestination> destinations, out string reason)
         {
             return PlayableHuntContentBundle.TryCreateSnapshot(catalog, destinations, out bundle, out reason);
@@ -165,5 +215,77 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         private static void SetPrivateField(object target, string fieldName, object value) => target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
+
+        private sealed class RecordingRequestHost : ICampaignPhaseTransitionHost, ICampaignPhaseTransitionRequestHost
+        {
+            public RecordingRequestHost(GamePhase currentPhase = GamePhase.Settlement)
+            {
+                CurrentPhase = currentPhase;
+            }
+
+            public GamePhase CurrentPhase { get; private set; }
+            public int RequestCount { get; private set; }
+            public CampaignPhaseTransitionRequest LastRequest { get; private set; }
+
+            public bool TryApplyPhaseTransition(CampaignPhaseTransitionRequest request, out string reason)
+            {
+                RequestCount++;
+                LastRequest = request;
+                CurrentPhase = request.TargetPhase;
+                reason = string.Empty;
+                return true;
+            }
+
+            public bool TryApplyPhaseTransition(GamePhase targetPhase, out string reason)
+            {
+                reason = "不应使用旧阶段入口";
+                return false;
+            }
+
+            public bool TryBeginEncounter(CampaignEncounterRequest request, out string reason)
+            {
+                reason = string.Empty;
+                return false;
+            }
+        }
+
+        private sealed class PreventExactRouteReactor : GameActionReactor<TransitionCampaignPhaseAction>
+        {
+            private readonly PlayableHuntRoutePlan expectedRoute;
+
+            public PreventExactRouteReactor(PlayableHuntRoutePlan expectedRoute)
+            {
+                this.expectedRoute = expectedRoute;
+            }
+
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+            public PlayableHuntRoutePlan ObservedRoute { get; private set; }
+
+            protected override void React(TransitionCampaignPhaseAction action, ReactionContext context, ReactionResponse response)
+            {
+                ObservedRoute = action.Request.HuntContext.RoutePlan;
+                if (ReferenceEquals(ObservedRoute, expectedRoute)) response.Prevent("测试阻止精确路线");
+            }
+        }
+
+        private sealed class RecordingLegacyHost : ICampaignPhaseTransitionHost
+        {
+            public GamePhase CurrentPhase { get; private set; } = GamePhase.Settlement;
+            public int RequestCount { get; private set; }
+
+            public bool TryApplyPhaseTransition(GamePhase targetPhase, out string reason)
+            {
+                RequestCount++;
+                CurrentPhase = targetPhase;
+                reason = string.Empty;
+                return true;
+            }
+
+            public bool TryBeginEncounter(CampaignEncounterRequest request, out string reason)
+            {
+                reason = string.Empty;
+                return false;
+            }
+        }
     }
 }

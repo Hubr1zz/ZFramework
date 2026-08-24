@@ -24,16 +24,16 @@ namespace HuntingInDarkness.Adapter.Tests
             EventBus.Subscribe(handler);
             try
             {
-                Task<CampaignPhaseTransitionResult> hunt = session.TransitionAsync(GamePhase.Hunt).AsTask();
                 Task<CampaignPhaseTransitionResult> combat = session.TransitionAsync(GamePhase.BossFight).AsTask();
+                Task<CampaignPhaseTransitionResult> settlement = session.TransitionAsync(GamePhase.Settlement).AsTask();
 
-                CampaignPhaseTransitionResult huntResult = await hunt;
                 CampaignPhaseTransitionResult combatResult = await combat;
+                CampaignPhaseTransitionResult settlementResult = await settlement;
 
-                Assert.That(huntResult.Succeeded && huntResult.Changed, Is.True);
                 Assert.That(combatResult.Succeeded && combatResult.Changed, Is.True);
-                Assert.That(host.AppliedPhases, Is.EqualTo(new[] { GamePhase.Hunt, GamePhase.BossFight }));
-                Assert.That(received, Is.EqualTo(new[] { GamePhase.Hunt, GamePhase.BossFight }));
+                Assert.That(settlementResult.Succeeded && settlementResult.Changed, Is.True);
+                Assert.That(host.AppliedPhases, Is.EqualTo(new[] { GamePhase.BossFight, GamePhase.Settlement }));
+                Assert.That(received, Is.EqualTo(new[] { GamePhase.BossFight, GamePhase.Settlement }));
             }
             finally
             {
@@ -53,6 +53,19 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(result.Succeeded, Is.False);
             Assert.That(result.Reason, Is.EqualTo("测试规则阻止远征"));
             Assert.That(host.CurrentPhase, Is.EqualTo(GamePhase.Settlement));
+            Assert.That(host.AppliedPhases, Is.Empty);
+        }
+
+        [Test]
+        public async Task SettlementToHunt_WithoutPreparedContextIsRejectedBeforeHost()
+        {
+            var host = new RecordingHost(GamePhase.Settlement);
+            using var session = new PlayableCampaignActionSession(host);
+
+            CampaignPhaseTransitionResult result = await session.TransitionAsync(GamePhase.Hunt);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Reason, Does.Contain("路线上下文"));
             Assert.That(host.AppliedPhases, Is.Empty);
         }
 

@@ -221,6 +221,31 @@ namespace HuntingInDarkness.Hunt
             return true;
         }
 
+        public static bool TryResolveRouteForDeparture(PlayableHuntDestination destination, int currentYear, out PlayableHuntRoutePlan route, out string reason)
+        {
+            route = null;
+            if (!CanSelectForDeparture(destination, currentYear, out reason)) return false;
+            if (contentBundle == null)
+            {
+                reason = "狩猎内容 Bundle 尚未安装。";
+                return false;
+            }
+            return contentBundle.TryResolveRoute(destination?.DestinationId, currentYear, out route, out reason);
+        }
+
+        internal static bool TryCommitRoute(PlayableHuntRoutePlan route, out string reason)
+        {
+            if (route?.IsUsable != true || contentBundle == null || !ReferenceEquals(contentBundle, PlayableHuntContentRuntime.CurrentBundle) || !contentBundle.Owns(route))
+            {
+                reason = "不能提交已经失效或不属于当前内容 Bundle 的狩猎路线。";
+                return false;
+            }
+            activePlan = route;
+            ActiveDestination = route.Destination;
+            reason = string.Empty;
+            return true;
+        }
+
         public static void RestoreSelection(PlayableHuntDestination destination)
         {
             if (destination != null && catalog != null && ContainsReference(catalog.Destinations, destination))
