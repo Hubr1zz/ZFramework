@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Reflection;
 using HuntingInDarkness.Bootstrap;
+using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.Hunt;
 using NUnit.Framework;
 using UnityEditor;
@@ -35,6 +38,30 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(settings, Is.Not.Null);
             Assert.That(settings.HuntDestinations, Is.Not.Null);
             Assert.That(settings.HuntDestinations.IsConfigured, Is.True);
+        }
+
+        [Test]
+        public void AvailableRoutes_ProvidePlayableNoiseProfiles()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            HunterData template = ScriptableObject.CreateInstance<HunterData>();
+            try
+            {
+                var hunters = new[] { new HunterInstance(template) };
+                Assert.That(settings.HuntContent.NoiseProfile.IsConfigured, Is.True, "fallback hunt content");
+                Assert.That(settings.HuntContent.NoiseProfile.GetEligibleDangerEvents(1), Is.Not.Empty, "fallback hunt content");
+                foreach (PlayableHuntDestination destination in settings.HuntDestinations.GetAvailable(1))
+                {
+                    Assert.That(destination.HuntContent.NoiseProfile.IsConfigured, Is.True, destination.DestinationId);
+                    Assert.That(destination.HuntContent.NoiseProfile.TryCreatePlan(hunters, out NoiseCheckPlan plan), Is.True, destination.DestinationId);
+                    Assert.That(plan.DangerCardCount, Is.EqualTo(1), destination.DestinationId);
+                    Assert.That(destination.HuntContent.NoiseProfile.GetEligibleDangerEvents(1), Is.Not.Empty, destination.DestinationId);
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(template);
+            }
         }
 
         [Test]
@@ -87,6 +114,86 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 Object.DestroyImmediate(emptyCatalog);
             }
+        }
+
+        [TestCase(2, 0, 1)]
+        [TestCase(1, 1, 2)]
+        public void CanSelectForDeparture_NullRouteRejectsFallbackWithoutYearEligibleDangerEvent(int minimumYear, int maximumYear, int currentYear)
+        {
+            PlayableHuntDestinationCatalog emptyCatalog = ScriptableObject.CreateInstance<PlayableHuntDestinationCatalog>();
+            PlayableHuntContentCatalog fallback = CreateFallbackContent(minimumYear, maximumYear, out List<Object> createdObjects, out _, out _);
+            try
+            {
+                PlayableHuntDestinationRuntime.Configure(emptyCatalog, fallback);
+
+                bool canSelect = PlayableHuntDestinationRuntime.CanSelectForDeparture(null, currentYear, out string reason);
+
+                Assert.That(canSelect, Is.False);
+                Assert.That(reason, Does.Contain("没有可用危险事件"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(emptyCatalog);
+                foreach (Object createdObject in createdObjects)
+                    Object.DestroyImmediate(createdObject);
+            }
+        }
+
+        [Test]
+        public void NoiseProfile_RequiresExplicitWeightedHuntEventIdentity()
+        {
+            PlayableHuntContentCatalog fallback = CreateFallbackContent(1, 0, out List<Object> createdObjects, out EventData dangerEvent, out _);
+            try
+            {
+                dangerEvent.category = EventCategory.Settlement;
+                Assert.That(fallback.IsConfigured, Is.False, "非 Hunt 事件不能进入噪音牌堆");
+
+                dangerEvent.category = EventCategory.Hunt;
+                dangerEvent.drawWeight = 0;
+                Assert.That(fallback.IsConfigured, Is.False, "零权重事件不能进入噪音牌堆");
+
+                dangerEvent.drawWeight = 1;
+                dangerEvent.ConfigureContentId(string.Empty);
+                Assert.That(fallback.IsConfigured, Is.False, "Unity 资产名回退不能冒充稳定事件 ID");
+            }
+            finally
+            {
+                foreach (Object createdObject in createdObjects)
+                    Object.DestroyImmediate(createdObject);
+            }
+        }
+
+        private static PlayableHuntContentCatalog CreateFallbackContent(int minimumYear, int maximumYear, out List<Object> createdObjects, out EventData dangerEvent, out PlayableHuntNoiseProfile profile)
+        {
+            PlayableHuntContentCatalog content = ScriptableObject.CreateInstance<PlayableHuntContentCatalog>();
+            HexTileData startingTile = ScriptableObject.CreateInstance<HexTileData>();
+            HexTileData plainTile = ScriptableObject.CreateInstance<HexTileData>();
+            dangerEvent = ScriptableObject.CreateInstance<EventData>();
+            dangerEvent.name = "FallbackRiskEventAsset";
+            dangerEvent.ConfigureContentId("fallback_risk_event");
+            dangerEvent.eventName = "默认风险事件";
+            dangerEvent.category = EventCategory.Hunt;
+            dangerEvent.minYear = minimumYear;
+            dangerEvent.maxYear = maximumYear;
+            dangerEvent.drawWeight = 1;
+            profile = new PlayableHuntNoiseProfile();
+            SetPrivateField(profile, "profileId", "fallback-test");
+            SetPrivateField(profile, "deckSize", 10);
+            SetPrivateField(profile, "baseNoisePerHunter", 1);
+            SetPrivateField(profile, "maxDangerCards", 8);
+            SetPrivateField(profile, "dangerEvents", new List<EventData> { dangerEvent });
+            SetPrivateField(content, "startingTile", startingTile);
+            SetPrivateField(content, "tilePool", new List<HexTileData> { plainTile });
+            SetPrivateField(content, "noiseProfile", profile);
+            createdObjects = new List<Object> { content, startingTile, plainTile, dangerEvent };
+            return content;
+        }
+
+        private static void SetPrivateField(object target, string fieldName, object value)
+        {
+            FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null, fieldName);
+            field.SetValue(target, value);
         }
     }
 }

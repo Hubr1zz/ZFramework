@@ -75,7 +75,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             PlayableHuntDestination active = PlayableHuntDestinationRuntime.ActiveDestination;
             int activeIndex = availableDestinations.IndexOf(active);
             selectedDestinationIndex = activeIndex >= 0 ? activeIndex : 0;
-            panel.PresentDestinations(GetPanelAnchor(), availableDestinations, selectedDestinationIndex, string.Empty, ConfirmDeparture, ReturnToSquad, Close);
+            panel.PresentDestinations(GetPanelAnchor(), availableDestinations, ResolvePendingHunters(), selectedDestinationIndex, string.Empty, ConfirmDeparture, ReturnToSquad, Close);
         }
 
         private void ConfirmDeparture(PlayableHuntDestination destination)
@@ -114,7 +114,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                 ReturnToSquad();
                 return;
             }
-            panel.PresentDestinations(GetPanelAnchor(), availableDestinations, selectedDestinationIndex, reason, ConfirmDeparture, ReturnToSquad, Close);
+            panel.PresentDestinations(GetPanelAnchor(), availableDestinations, ResolvePendingHunters(), selectedDestinationIndex, reason, ConfirmDeparture, ReturnToSquad, Close);
         }
 
         private void ReturnToSquad()
@@ -122,6 +122,19 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             if (manager?.SettlementData == null || manager.CurrentGamePhase != GamePhase.Settlement)
                 return;
             panel.PresentSquad(GetPanelAnchor(), manager.SettlementData.GetAvailableHunters(), pendingHunterIds, OpenDestinations, Close);
+        }
+
+        private List<HunterInstance> ResolvePendingHunters()
+        {
+            var hunters = new List<HunterInstance>();
+            if (manager?.SettlementData == null) return hunters;
+            foreach (int hunterId in pendingHunterIds)
+            {
+                HunterInstance hunter = manager.SettlementData.GetHunter(hunterId);
+                if (hunter?.IsAvailable == true)
+                    hunters.Add(hunter);
+            }
+            return hunters;
         }
 
         private void EnsurePanel()

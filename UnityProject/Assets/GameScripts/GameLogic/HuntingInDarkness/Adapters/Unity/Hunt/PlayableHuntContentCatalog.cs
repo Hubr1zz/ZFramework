@@ -14,9 +14,27 @@ namespace HuntingInDarkness.Hunt
         [SerializeField] private HexTileData startingTile;
         [SerializeField] private List<HexTileData> tilePool = new();
         [SerializeField] private List<EventData> eventPool = new();
+        [SerializeField] private PlayableHuntNoiseProfile noiseProfile = new();
 
-        public bool IsConfigured => startingTile != null && tilePool.Exists(tile => tile != null);
+        public bool IsConfigured => startingTile != null && tilePool.Exists(tile => tile != null) && noiseProfile?.IsConfigured == true;
         public IReadOnlyList<EventData> EventPool => eventPool;
+        public PlayableHuntNoiseProfile NoiseProfile => noiseProfile;
+
+        public bool IsAvailableForYear(int currentYear, out string reason)
+        {
+            if (!IsConfigured)
+            {
+                reason = "狩猎内容或噪音风险牌堆尚未配置。";
+                return false;
+            }
+            if (noiseProfile.GetEligibleDangerEvents(currentYear).Count == 0)
+            {
+                reason = $"噪音风险牌堆在第 {Mathf.Max(1, currentYear)} 年没有可用危险事件。";
+                return false;
+            }
+            reason = string.Empty;
+            return true;
+        }
 
         public void ApplyTo(HuntManager manager)
         {
@@ -24,6 +42,7 @@ namespace HuntingInDarkness.Hunt
             manager.StartingTileConfig = startingTile;
             manager.TilePool = tilePool.FindAll(tile => tile != null);
             manager.HuntEvents.HuntEventPool = PlayableEventTableRuntime.ExtendHunt(eventPool);
+            manager.NoiseProfile = noiseProfile?.IsConfigured == true ? noiseProfile : null;
         }
     }
 

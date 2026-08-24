@@ -27,9 +27,13 @@ namespace HuntingInDarkness.Hunt
 
         public bool IsAvailable(int currentYear, out string reason)
         {
-            if (huntContent == null || !huntContent.IsConfigured)
+            if (huntContent == null)
             {
                 reason = "这个目的地尚未准备好。";
+                return false;
+            }
+            if (!huntContent.IsAvailableForYear(currentYear, out reason))
+            {
                 return false;
             }
 
@@ -117,9 +121,12 @@ namespace HuntingInDarkness.Hunt
                 reason = "请选择狩猎目的地。";
                 return false;
             }
-
-            reason = string.Empty;
-            return true;
+            if (fallbackContent == null)
+            {
+                reason = "默认狩猎内容尚未配置。";
+                return false;
+            }
+            return fallbackContent.IsAvailableForYear(currentYear, out reason);
         }
 
         public static bool TrySelectForDeparture(PlayableHuntDestination destination, int currentYear, out string reason)

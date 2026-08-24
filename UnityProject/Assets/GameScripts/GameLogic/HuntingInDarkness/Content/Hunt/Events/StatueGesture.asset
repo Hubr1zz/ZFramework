@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2471a7f4f41d4e74f85c7f31dc58d1a5, type: 3}
   m_Name: StatueGesture
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.EventData
+  contentId: hunt_statue_gesture
   eventName: "\u77F3\u50CF\u7684\u6307\u5411"
   eventType: 1
   displayText: "\u4E00\u5C0A\u65AD\u81C2\u77F3\u50CF\u7684\u624B\u6307\u671D\u5411\u5730\u4E0B\u3002\u98CE\u6BCF\u6B21\u505C\u4E0B\uFF0C\u90A3\u6839\u624B\u6307\u90FD\u4F1A\u6BD4\u4E4B\u524D\u66F4\u4F4E\u4E00\u70B9\u3002"

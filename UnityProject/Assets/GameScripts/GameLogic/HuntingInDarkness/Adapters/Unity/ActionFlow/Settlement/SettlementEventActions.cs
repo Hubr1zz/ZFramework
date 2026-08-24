@@ -186,12 +186,12 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 if (chainedEvent == null) continue;
                 if (ContainsAncestor(ancestors, chainedEvent))
                 {
-                    eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = chainedEvent.name });
+                    eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = chainedEvent.ContentId });
                     continue;
                 }
                 if (occurrenceIndex >= lastCommittedChildren.Count) break;
                 SettlementEventChainOccurrence occurrence = lastCommittedChildren[occurrenceIndex];
-                string eventId = chainedEvent.name?.Trim() ?? string.Empty;
+                string eventId = chainedEvent.ContentId;
                 if (!string.Equals(eventId, occurrence.EventId, StringComparison.Ordinal)) continue;
                 TryEnqueue(chainedEvent, occurrence.Sequence, ancestors);
                 occurrenceIndex++;
@@ -204,7 +204,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             if (gameEvent == null) return;
             if (ancestors != null && ContainsAncestor(ancestors, gameEvent))
             {
-                eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = gameEvent.name });
+                eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = gameEvent.ContentId });
                 return;
             }
 
@@ -216,7 +216,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 pendingEvents.Enqueue(new PendingEventWork(gameEvent, persistenceSequence, ancestors));
                 return;
             }
-            eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = gameEvent.name });
+            eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = gameEvent.ContentId });
         }
 
         private static bool ContainsAncestor(IReadOnlyCollection<EventData> ancestors, EventData gameEvent)

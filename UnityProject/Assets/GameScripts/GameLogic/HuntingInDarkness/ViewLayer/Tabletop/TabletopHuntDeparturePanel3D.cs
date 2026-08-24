@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Cards3D;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 using UnityEngine;
@@ -13,6 +14,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         private const string HunterDropScope = "hunt-departure-squad";
         private readonly List<HuntDepartureHunterCard3D> hunterCards = new();
         private readonly List<PlayableHuntDestination> destinations = new();
+        private readonly List<HunterInstance> squadHunters = new();
         private SlotGrid rosterGrid;
         private SlotGrid squadGrid;
         private TabletopEventChoiceCard3D continueCard;
@@ -76,7 +78,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             RefreshSquadActionCard();
         }
 
-        public void PresentDestinations(Vector3 worldPosition, IReadOnlyList<PlayableHuntDestination> availableDestinations, int selectedIndex, string status, System.Action<PlayableHuntDestination> onConfirmed, System.Action onBack, System.Action onCancelled)
+        public void PresentDestinations(Vector3 worldPosition, IReadOnlyList<PlayableHuntDestination> availableDestinations, IReadOnlyList<HunterInstance> selectedHunters, int selectedIndex, string status, System.Action<PlayableHuntDestination> onConfirmed, System.Action onBack, System.Action onCancelled)
         {
             ClearContent();
             transform.position = worldPosition;
@@ -90,6 +92,10 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 foreach (PlayableHuntDestination destination in availableDestinations)
                     if (destination != null)
                         destinations.Add(destination);
+            if (selectedHunters != null)
+                foreach (HunterInstance hunter in selectedHunters)
+                    if (hunter != null)
+                        squadHunters.Add(hunter);
             selectedDestinationIndex = destinations.Count == 0 ? -1 : Mathf.Clamp(selectedIndex, 0, destinations.Count - 1);
             BuildDestinationCards();
         }
@@ -149,6 +155,9 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 PlayableHuntDestination destination = destinations[index];
                 bool selected = index == selectedDestinationIndex;
                 string body = $"{destination.Description}\n\n常见收获 · {destination.ResourceHint}\n风险 · {destination.DangerHint}";
+                PlayableHuntNoiseProfile noiseProfile = destination.HuntContent != null ? destination.HuntContent.NoiseProfile : null;
+                if (noiseProfile != null && noiseProfile.TryCreatePlan(squadHunters, out NoiseCheckPlan plan))
+                    body += $"\n预计基础风险 · {plan.DangerCardCount}/{plan.DeckSize} 张危险牌（噪音 {plan.NoiseScore}；效果在抽牌前结算）";
                 cards.Add(new TabletopEventChoicePresentation(destination.DisplayName, body, true, selected ? "◆ 已选择" : "◇ 点击选择", () => SelectDestination(destinationIndex)));
             }
 
@@ -194,6 +203,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             continueCard = null;
             hunterCards.Clear();
             destinations.Clear();
+            squadHunters.Clear();
             squadConfirmed = null;
             destinationConfirmed = null;
             destinationBack = null;
@@ -204,6 +214,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         {
             hunterCards.Clear();
             destinations.Clear();
+            squadHunters.Clear();
         }
     }
 }

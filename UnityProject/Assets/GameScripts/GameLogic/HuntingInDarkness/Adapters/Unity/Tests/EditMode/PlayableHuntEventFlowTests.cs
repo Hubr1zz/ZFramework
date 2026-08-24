@@ -62,7 +62,7 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void RevealNonBoss_WithGuaranteedRoll_SelectsConfiguredEvent()
+        public void RevealNonBoss_WithoutExplicitEvent_DoesNotRollHiddenProbability()
         {
             EventData gameEvent = CreateEvent("GuaranteedHuntEvent");
             var huntEvents = new HuntEventSystem(new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
@@ -71,7 +71,7 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 EventData selected = huntEvents.SelectTileRevealEvent(new HexTileInstance { State = TileState.Revealed });
 
-                Assert.That(selected, Is.SameAs(gameEvent));
+                Assert.That(selected, Is.Null);
             }
             finally
             {
@@ -101,7 +101,7 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void MoveEvent_ChecksEachTileOncePerSession()
+        public void MoveEvent_DoesNotRollHiddenProbability()
         {
             EventData gameEvent = CreateEvent("OncePerTileEvent");
             var huntEvents = new HuntEventSystem(new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
@@ -109,11 +109,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
             try
             {
-                Assert.That(huntEvents.SelectSquadMoveEvent(tile), Is.SameAs(gameEvent));
                 Assert.That(huntEvents.SelectSquadMoveEvent(tile), Is.Null);
-
-                huntEvents.ResetSession();
-                Assert.That(huntEvents.SelectSquadMoveEvent(tile), Is.SameAs(gameEvent));
             }
             finally
             {
@@ -122,27 +118,23 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void EventPool_RespectsConfiguredYearRange()
+        public void ExplicitRevealEvent_IsReturnedWithoutPoolRoll()
         {
             EventData gameEvent = CreateEvent("FutureHuntEvent");
             gameEvent.minYear = 2;
             gameEvent.maxYear = 3;
             var huntEvents = new HuntEventSystem(new FirstRandom()) { HuntEventPool = new List<EventData> { gameEvent } };
-            var tile = new HexTileInstance { State = TileState.Revealed };
+            HexTileData config = ScriptableObject.CreateInstance<HexTileData>();
+            config.tileRevealEvent = gameEvent;
+            var tile = new HexTileInstance { State = TileState.Revealed, Config = config };
 
             try
             {
-                huntEvents.ResetSession(1);
-                Assert.That(huntEvents.SelectTileRevealEvent(tile), Is.Null);
-
-                huntEvents.ResetSession(2);
                 Assert.That(huntEvents.SelectTileRevealEvent(tile), Is.SameAs(gameEvent));
-
-                huntEvents.ResetSession(4);
-                Assert.That(huntEvents.SelectTileRevealEvent(tile), Is.Null);
             }
             finally
             {
+                Object.DestroyImmediate(config);
                 Object.DestroyImmediate(gameEvent);
             }
         }

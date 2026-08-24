@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.ViewLayer.Hunt;
 using HuntingInDarkness.ViewLayer.Tabletop;
@@ -98,9 +99,15 @@ namespace UI.Hunt
             }
             int revealedCount = manager.Map?.Values.Count(tile => tile.State == TileState.Revealed) ?? 0;
             int tileCount = manager.Map?.Count ?? 0;
+            string noiseSummary = string.Empty;
+            if (manager.NoiseProfile != null && manager.NoiseProfile.TryCreatePlan(manager.ActiveHunters, out NoiseCheckPlan noisePlan))
+                noiseSummary = $"\n当前基础风险 · {noisePlan.DangerCardCount}/{noisePlan.DeckSize} 张危险牌";
+            PlayableHuntNoiseResolution lastNoise = manager.LastNoiseResolution;
+            if (lastNoise.IsResolved)
+                noiseSummary += lastNoise.IsDanger ? $"\n上次抽牌 · 危险（{lastNoise.EventDisplayName}）" : "\n上次抽牌 · 安静";
             summaryCard.Present(
                 PlayableHuntDestinationRuntime.ActiveDisplayName,
-                $"小队位置 · {manager.SquadPosition.x}, {manager.SquadPosition.y}\n已探索 · {revealedCount}/{tileCount}\n\n点击蓝色地块翻开地图。\n点击猎人卡指定事件与采集的行动者。",
+                $"小队位置 · {manager.SquadPosition.x}, {manager.SquadPosition.y}\n已探索 · {revealedCount}/{tileCount}{noiseSummary}\n\n点击蓝色地块翻开地图。\n点击猎人卡指定事件与采集的行动者。",
                 "地图左侧的实体回营卡可结束探索",
                 TabletopEventPrimaryTone.Check);
         }

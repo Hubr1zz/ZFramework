@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2471a7f4f41d4e74f85c7f31dc58d1a5, type: 3}
   m_Name: FungalWhisper
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.EventData
+  contentId: hunt_fungal_whisper
   eventName: "\u5B62\u5B50\u96FE\u4E2D\u7684\u811A\u6B65"
   eventType: 1
   displayText: "\u5BC6\u96C6\u83CC\u76D6\u5728\u8EAB\u540E\u4F9D\u6B21\u51F9\u9677\uFF0C\u50CF\u6709\u4E00\u652F\u770B\u4E0D\u89C1\u7684\u961F\u4F0D\u6B63\u8E29\u7740\u4F60\u4EEC\u7684\u811A\u5370\u3002\u5B62\u5B50\u96FE\u8D8A\u6765\u8D8A\u6D53\u3002"

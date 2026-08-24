@@ -240,6 +240,7 @@ namespace HuntingInDarkness.ContentTables
 
             gameEvent = ScriptableObject.CreateInstance<EventData>();
             gameEvent.name = record.id;
+            gameEvent.ConfigureContentId(record.id);
             gameEvent.eventName = record.eventName;
             gameEvent.eventType = eventType;
             gameEvent.displayText = record.displayText ?? string.Empty;

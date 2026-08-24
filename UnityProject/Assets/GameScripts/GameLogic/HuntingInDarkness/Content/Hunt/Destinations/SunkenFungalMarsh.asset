@@ -21,3 +21,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cbb01204deae5a240b4f33db920cfcd5, type: 2}
   - {fileID: 11400000, guid: f600f4dcd03e7ec4da31eded0485b94e, type: 2}
   - {fileID: 11400000, guid: e059e7c381dfffb4a9d049bd71002371, type: 2}
+  noiseProfile:
+    profileId: fungal-marsh-risk
+    deckSize: 10
+    baseNoisePerHunter: 1
+    maxDangerCards: 8
+    dangerEvents:
+    - {fileID: 11400000, guid: cbb01204deae5a240b4f33db920cfcd5, type: 2}
+    - {fileID: 11400000, guid: f600f4dcd03e7ec4da31eded0485b94e, type: 2}
+    - {fileID: 11400000, guid: e059e7c381dfffb4a9d049bd71002371, type: 2}

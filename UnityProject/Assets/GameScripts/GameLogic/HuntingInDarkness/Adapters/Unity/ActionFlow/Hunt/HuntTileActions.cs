@@ -15,22 +15,24 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 {
     public readonly struct HuntTileCommandResult
     {
-        private HuntTileCommandResult(bool succeeded, string reason, HuntTileInteractionCommit commit, PlayableEventEffectBatchResult effectResults)
+        private HuntTileCommandResult(bool succeeded, string reason, HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, PlayableEventEffectBatchResult effectResults)
         {
             Succeeded = succeeded;
             Reason = reason;
             Commit = commit;
+            NoiseResolution = noiseResolution;
             EffectResults = effectResults;
         }
 
         public bool Succeeded { get; }
         public string Reason { get; }
         public HuntTileInteractionCommit Commit { get; }
+        public PlayableHuntNoiseResolution NoiseResolution { get; }
         public PlayableEventEffectBatchResult EffectResults { get; }
         public int FailedEffectCount => EffectResults.FailedCount;
-        public static HuntTileCommandResult Success(HuntTileInteractionCommit commit) => Success(commit, PlayableEventEffectBatchResult.Empty);
-        public static HuntTileCommandResult Success(HuntTileInteractionCommit commit, PlayableEventEffectBatchResult effectResults) => new(true, string.Empty, commit, effectResults);
-        public static HuntTileCommandResult Failed(string reason) => new(false, reason, default, PlayableEventEffectBatchResult.Empty);
+        public static HuntTileCommandResult Success(HuntTileInteractionCommit commit) => Success(commit, default, PlayableEventEffectBatchResult.Empty);
+        public static HuntTileCommandResult Success(HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, PlayableEventEffectBatchResult effectResults) => new(true, string.Empty, commit, noiseResolution, effectResults);
+        public static HuntTileCommandResult Failed(string reason) => new(false, reason, default, default, PlayableEventEffectBatchResult.Empty);
     }
 
     public struct HuntTileInteractionCommittedEvent
@@ -60,11 +62,15 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly IHuntTileInteractionPresenter tileInteractionPresenter;
+        private readonly Guid huntSessionId;
+        private readonly string destinationId;
+        private PrepareHuntNoiseAction noiseAction;
         private CommitHuntTileInteractionAction commitAction;
         private ResolveHuntTileEventAction eventAction;
         private bool presentationScheduled;
         private bool eventScheduled;
         private bool finalizeScheduled;
+        private bool noiseScheduled;
 
         public InteractHuntTileAction(HuntManager manager, Vector2Int coordinate, HuntTileInteractionKind intendedKind, Guid huntSessionId, string defaultEncounterId, string destinationId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null)
         {
@@ -75,6 +81,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             this.resolveEventEntity = resolveEventEntity ?? throw new ArgumentNullException(nameof(resolveEventEntity));
             this.randomInteractionPresenter = randomInteractionPresenter;
             this.tileInteractionPresenter = tileInteractionPresenter;
+            this.huntSessionId = huntSessionId;
+            this.destinationId = destinationId ?? string.Empty;
             encounterAccumulator = new HuntEncounterAccumulator(huntSessionId, defaultEncounterId, destinationId);
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
@@ -86,9 +94,16 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
         protected override GameAction GetNextChild(CompositeExecutionContext context)
         {
-            if (context.CompletedCount == 0)
+            if (!noiseScheduled)
             {
-                commitAction = new CommitHuntTileInteractionAction(manager, coordinate, intendedKind, eventOutbox, encounterAccumulator, Source, Target);
+                noiseScheduled = true;
+                noiseAction = new PrepareHuntNoiseAction(manager, coordinate, intendedKind, huntSessionId, destinationId, randomInteractionPresenter, Source, Target);
+                return noiseAction;
+            }
+            if (commitAction == null)
+            {
+                if (!context.LastOutcome.IsSuccess) return null;
+                commitAction = new CommitHuntTileInteractionAction(manager, coordinate, intendedKind, noiseAction.Resolution, eventOutbox, encounterAccumulator, Source, Target);
                 return commitAction;
             }
             if (!commitAction.IsCommitted) return null;
@@ -100,7 +115,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             if (!eventScheduled)
             {
                 eventScheduled = true;
-                eventAction = new ResolveHuntTileEventAction(manager, commitAction.Commit, eventOutbox, encounterAccumulator, Source, Target, resolveEventEntity, randomInteractionPresenter);
+                eventAction = new ResolveHuntTileEventAction(manager, commitAction.Commit, noiseAction.Resolution, eventOutbox, encounterAccumulator, Source, Target, resolveEventEntity, randomInteractionPresenter);
                 return eventAction;
             }
             if (!finalizeScheduled)
@@ -119,7 +134,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 Result = HuntTileCommandResult.Failed(reason);
                 return ActionOutcome.Failure(reason);
             }
-            Result = HuntTileCommandResult.Success(commitAction.Commit, eventAction?.EffectResults ?? PlayableEventEffectBatchResult.Empty);
+            Result = HuntTileCommandResult.Success(commitAction.Commit, noiseAction?.Resolution ?? default, eventAction?.EffectResults ?? PlayableEventEffectBatchResult.Empty);
             if (encounterAccumulator.HasRequest)
                 eventOutbox.StageAfterCommit(new CampaignEncounterRequestedEvent { Request = encounterAccumulator.Request });
             return ActionOutcome.Success();
@@ -131,14 +146,16 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly HuntManager manager;
         private readonly Vector2Int coordinate;
         private readonly HuntTileInteractionKind intendedKind;
+        private readonly PlayableHuntNoiseResolution noiseResolution;
         private readonly ActionEventOutbox eventOutbox;
         private readonly HuntEncounterAccumulator encounterAccumulator;
 
-        internal CommitHuntTileInteractionAction(HuntManager manager, Vector2Int coordinate, HuntTileInteractionKind intendedKind, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target)
+        internal CommitHuntTileInteractionAction(HuntManager manager, Vector2Int coordinate, HuntTileInteractionKind intendedKind, PlayableHuntNoiseResolution noiseResolution, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target)
         {
             this.manager = manager;
             this.coordinate = coordinate;
             this.intendedKind = intendedKind;
+            this.noiseResolution = noiseResolution;
             this.eventOutbox = eventOutbox;
             this.encounterAccumulator = encounterAccumulator;
             Source = source;
@@ -165,6 +182,21 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 ResourcePointCount = commit.Tile.ResourcePoints.Count,
                 BossEncounter = commit.BossEncounter
             });
+            if (noiseResolution.IsResolved)
+            {
+                manager.CommitNoiseResolution(noiseResolution);
+                eventOutbox.Stage(new HuntNoiseResolvedEvent
+                {
+                    InteractionId = noiseResolution.InteractionId,
+                    DestinationId = noiseResolution.DestinationId,
+                    Coordinate = coordinate,
+                    NoiseScore = noiseResolution.Plan.NoiseScore,
+                    DangerCardCount = noiseResolution.Plan.DangerCardCount,
+                    DeckSize = noiseResolution.Plan.DeckSize,
+                    IsDanger = noiseResolution.IsDanger,
+                    EventId = noiseResolution.EventId
+                });
+            }
             if (commit.Kind == HuntTileInteractionKind.Reveal)
                 eventOutbox.Stage(new GameEventTriggeredEvent { EventId = $"tile_reveal:{coordinate.x},{coordinate.y}" });
             eventOutbox.PublishCheckpoint();
@@ -177,6 +209,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
     {
         private readonly HuntManager manager;
         private readonly HuntTileInteractionCommit commit;
+        private readonly PlayableHuntNoiseResolution noiseResolution;
         private readonly ActionEventOutbox eventOutbox;
         private readonly HuntEncounterAccumulator encounterAccumulator;
         private readonly Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity;
@@ -188,10 +221,11 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private bool selectionCollected;
         private readonly List<PlayableEventEffectResult> effectResults = new();
 
-        internal ResolveHuntTileEventAction(HuntManager manager, HuntTileInteractionCommit commit, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
+        internal ResolveHuntTileEventAction(HuntManager manager, HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
         {
             this.manager = manager;
             this.commit = commit;
+            this.noiseResolution = noiseResolution;
             this.eventOutbox = eventOutbox;
             this.encounterAccumulator = encounterAccumulator;
             this.resolveEventEntity = resolveEventEntity;
@@ -208,7 +242,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         {
             if (context.CompletedCount == 0)
             {
-                selectAction = new SelectHuntTileEventAction(manager, commit, Source, Target);
+                selectAction = new SelectHuntTileEventAction(manager, commit, noiseResolution, Source, Target);
                 return selectAction;
             }
             if (!selectionCollected)
@@ -258,7 +292,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 pendingEvents.Enqueue(gameEvent);
                 return;
             }
-            eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = gameEvent.name });
+            eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = gameEvent.ContentId });
         }
     }
 
@@ -266,11 +300,13 @@ namespace HuntingInDarkness.ActionFlow.Hunt
     {
         private readonly HuntManager manager;
         private readonly HuntTileInteractionCommit commit;
+        private readonly PlayableHuntNoiseResolution noiseResolution;
 
-        internal SelectHuntTileEventAction(HuntManager manager, HuntTileInteractionCommit commit, IReactorEntity source, IReactorEntity target)
+        internal SelectHuntTileEventAction(HuntManager manager, HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, IReactorEntity source, IReactorEntity target)
         {
             this.manager = manager;
             this.commit = commit;
+            this.noiseResolution = noiseResolution;
             Source = source;
             Target = target;
         }
@@ -281,7 +317,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
         protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
-            SelectedEvent = manager.SelectTileInteractionEvent(commit);
+            SelectedEvent = manager.SelectTileInteractionEvent(commit, noiseResolution);
             return UniTask.FromResult(ActionOutcome.Success());
         }
     }

@@ -44,6 +44,8 @@ namespace HuntingInDarkness.Data
     public class EventData : ScriptableObject
     {
         [Header("基础")]
+        [SerializeField, Tooltip("稳定事件 ID。事件表、噪音配置与已提交事实使用；旧资产为空时暂以资产名兼容。")]
+        private string contentId;
         public string    eventName = "新事件";
         public GameEventType eventType = GameEventType.Narrative;
 
@@ -74,6 +76,10 @@ namespace HuntingInDarkness.Data
 
         [Header("类别")]
         public EventCategory category = EventCategory.Random;
+
+        public string ContentId => !string.IsNullOrWhiteSpace(contentId) ? contentId.Trim() : name?.Trim() ?? string.Empty;
+        public bool HasExplicitContentId => !string.IsNullOrWhiteSpace(contentId);
+        public void ConfigureContentId(string value) => contentId = value?.Trim() ?? string.Empty;
     }
 
     public enum EventCategory

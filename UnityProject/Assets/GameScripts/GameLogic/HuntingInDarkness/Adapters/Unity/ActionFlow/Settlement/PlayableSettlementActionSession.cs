@@ -375,7 +375,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 reason = "主动效果不属于该发明。";
                 return false;
             }
-            bool eventAvailable = gameEvent != null && gameEvent.category == EventCategory.Triggered && string.Equals(gameEvent.name, effect.eventId, StringComparison.Ordinal);
+            bool eventAvailable = gameEvent != null && gameEvent.category == EventCategory.Triggered && string.Equals(gameEvent.ContentId, effect.eventId, StringComparison.Ordinal);
             return InventionActiveEffectRules.CanActivate(inventionSystem.IsUnlocked(invention), settlement.CurrentYear, effect.effectId, effect.eventId, effect.maxUsesPerYear, settlement.InventionActiveEffectUses, eventAvailable, out reason);
         }
 
@@ -388,7 +388,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
             ReactorEntityHandle inventionEntity = environment.EntityHandles.GetOrCreate("settlement-invention", invention != null ? invention.ContentId : "unknown", invention != null ? invention.inventionName : "未知发明");
-            IReactorEntity ResolveEventEntity(EventData candidate) => environment.EntityHandles.GetOrCreate("settlement-event", candidate != null ? candidate.name : "unknown", candidate != null ? candidate.eventName : "营地事件");
+            IReactorEntity ResolveEventEntity(EventData candidate) => environment.EntityHandles.GetOrCreate("settlement-event", candidate != null ? candidate.ContentId : "unknown", candidate != null ? candidate.eventName : "营地事件");
             var action = new ActivateSettlementInventionEffectAction(settlement, inventionSystem, invention, effect, gameEvent, eventSystem, EventInput, SessionId, outbox, settlementEntity, inventionEntity, ResolveEventEntity, randomInteractionPresenter);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
@@ -434,7 +434,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
             ReactorEntityHandle chainEntity = environment.EntityHandles.GetOrCreate("settlement-event-chain", SessionId.ToString("N"), "营地事件链");
-            IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("settlement-event", gameEvent != null ? gameEvent.name : "unknown", gameEvent != null ? gameEvent.eventName : "营地事件");
+            IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("settlement-event", gameEvent != null ? gameEvent.ContentId : "unknown", gameEvent != null ? gameEvent.eventName : "营地事件");
             var action = new ResolveSettlementEventChainAction(eventSystem, EventInput, events, SessionId, outbox, settlementEntity, chainEntity, ResolveEventEntity, randomInteractionPresenter, restoredChainId, restoredOccurrences);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;

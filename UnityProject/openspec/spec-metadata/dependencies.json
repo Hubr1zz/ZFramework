@@ -238,6 +238,13 @@
       "category": "feature",
       "readiness": "implemented",
       "specPath": "openspec/specs/tabletop-game-over/spec.md"
+    },
+    {
+      "id": "hunt-noise-risk-deck",
+      "label": "狩猎噪音风险牌堆",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-noise-risk-deck/spec.md"
     }
   ],
   "edges": [
@@ -908,6 +915,46 @@
       "type": "requires",
       "status": "defined",
       "reason": "狩猎地块事件命令显式返回阶段资源拒绝等效果结果",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-noise-risk-deck--requires--hunt-phase-orchestration",
+      "from": "hunt-noise-risk-deck",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "普通地块噪音判定、地图提交与危险事件解析由当前 Hunt Runner 串行拥有",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-noise-risk-deck--requires--action-environment-lifecycle",
+      "from": "hunt-noise-risk-deck",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Reactor 修正、提交检查点与 EventBus outbox 事实复用全生命周期 Action 环境",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-noise-risk-deck--requires--tabletop-random-interaction",
+      "from": "hunt-noise-risk-deck",
+      "to": "tabletop-random-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "噪音风险在地图提交前通过共享世界空间 3D 抽牌端口等待并校验",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-noise-risk-deck--requires--table-driven-hunt-events",
+      "from": "hunt-noise-risk-deck",
+      "to": "table-driven-hunt-events",
+      "type": "requires",
+      "status": "defined",
+      "reason": "危险牌从冻结的年度可用狩猎事件池按稳定 ID 与内容权重选择事件",
       "gapId": "",
       "blocksImplementation": false
     }

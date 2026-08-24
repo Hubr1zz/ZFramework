@@ -131,7 +131,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 reason = "主动效果不属于该发明。";
                 return false;
             }
-            bool eventAvailable = gameEvent != null && gameEvent.category == EventCategory.Triggered && string.Equals(gameEvent.name, effect.eventId, StringComparison.Ordinal);
+            bool eventAvailable = gameEvent != null && gameEvent.category == EventCategory.Triggered && string.Equals(gameEvent.ContentId, effect.eventId, StringComparison.Ordinal);
             return InventionActiveEffectRules.CanActivate(inventionSystem.IsUnlocked(invention), settlement.CurrentYear, effect.effectId, effect.eventId, effect.maxUsesPerYear, settlement.InventionActiveEffectUses, eventAvailable, out reason);
         }
 

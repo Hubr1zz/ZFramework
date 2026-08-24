@@ -46,6 +46,9 @@ namespace HuntingInDarkness.Hunt
 
         public List<HexTileData> TilePool           { get; set; } = new();
         public HexTileData       StartingTileConfig  { get; set; }
+        public PlayableHuntNoiseProfile NoiseProfile { get; set; }
+        public PlayableHuntNoiseResolution LastNoiseResolution { get; private set; }
+        public int CurrentYear { get; private set; } = 1;
 
         private readonly IRandomSource _rng;
 
@@ -94,8 +97,10 @@ namespace HuntingInDarkness.Hunt
         {
             ActiveHunters  = hunters ?? new List<HunterInstance>();
             SelectedHunter = PlayableHuntSquadAvailability.ResolveSelectedHunter(ActiveHunters, null);
+            CurrentYear = Math.Max(1, currentYear);
+            LastNoiseResolution = default;
             _navigation.Reset();
-            HuntEvents.ResetSession(currentYear);
+            HuntEvents.ResetSession(CurrentYear);
 
             Map = MapGen.GenerateMap(TilePool, StartingTileConfig);
 
@@ -125,41 +130,12 @@ namespace HuntingInDarkness.Hunt
         public void OnTileClicked(Vector2Int coord)
         {
             if (PlayableHuntInputGuard.IsBlocked) return;
-            if (RequestTileInteraction != null)
+            if (RequestTileInteraction == null)
             {
-                RequestTileInteraction(coord).Forget();
+                Debug.LogError("[HuntManager] Hunt ActionSession 未安装，拒绝绕过 ActionQueue 的地图写入。");
                 return;
             }
-            if (!Map.TryGetValue(coord, out var tile)) return;
-
-            if (tile.State == TileState.Interactable)
-            {
-                RevealTile(coord);
-            }
-            else if (tile.State == TileState.Revealed)
-            {
-                if (IsAdjacentToSquad(coord))
-                    MoveSquad(coord);
-            }
-        }
-
-        private void RevealTile(Vector2Int coord)
-        {
-            if (!TryCommitTileInteraction(coord, HuntTileInteractionKind.Reveal, out HuntTileInteractionCommit commit)) return;
-            ResolveTileInteractionEventImmediately(commit);
-            FinalizeTileInteraction(commit);
-            if (commit.BossEncounter)
-                NotifyBossEncounter(commit);
-            EventBus.Publish(new GameEventTriggeredEvent { EventId = $"tile_reveal:{coord.x},{coord.y}" });
-        }
-
-        private void MoveSquad(Vector2Int target)
-        {
-            if (!TryCommitTileInteraction(target, HuntTileInteractionKind.Move, out HuntTileInteractionCommit commit)) return;
-            ResolveTileInteractionEventImmediately(commit);
-            FinalizeTileInteraction(commit);
-            if (commit.BossEncounter)
-                NotifyBossEncounter(commit);
+            RequestTileInteraction(coord).Forget();
         }
 
         public bool TryCommitTileInteraction(Vector2Int coordinate, HuntTileInteractionKind intendedKind, out HuntTileInteractionCommit commit)
@@ -183,12 +159,21 @@ namespace HuntingInDarkness.Hunt
             return true;
         }
 
-        internal EventData SelectTileInteractionEvent(HuntTileInteractionCommit commit)
+        internal EventData SelectTileInteractionEvent(HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution = default)
         {
             if (!commit.IsCommitted) return null;
             if (commit.Kind == HuntTileInteractionKind.Reveal)
-                return HuntEvents.SelectTileRevealEvent(commit.Tile);
+            {
+                EventData configuredEvent = HuntEvents.SelectTileRevealEvent(commit.Tile);
+                return configuredEvent != null ? configuredEvent : noiseResolution.SelectedEvent;
+            }
             return commit.Kind == HuntTileInteractionKind.Move ? HuntEvents.SelectSquadMoveEvent(commit.Tile) : null;
+        }
+
+        internal void CommitNoiseResolution(PlayableHuntNoiseResolution resolution)
+        {
+            if (resolution.IsResolved)
+                LastNoiseResolution = resolution;
         }
 
         internal void FinalizeTileInteraction(HuntTileInteractionCommit commit)
@@ -197,48 +182,6 @@ namespace HuntingInDarkness.Hunt
             List<Vector2Int> newlyInteractable = MapGen.UnlockNeighbors(Map, commit.Coordinate);
             foreach (Vector2Int neighbor in newlyInteractable)
                 OnTileStateChanged?.Invoke(neighbor, TileState.Interactable);
-        }
-
-        private void ResolveTileInteractionEventImmediately(HuntTileInteractionCommit commit)
-        {
-            EventData gameEvent = SelectTileInteractionEvent(commit);
-            var pending = new Queue<EventData>();
-            if (gameEvent != null)
-                pending.Enqueue(gameEvent);
-            while (pending.Count > 0)
-            {
-                EventData current = pending.Dequeue();
-                IReadOnlyList<EventData> chain = ResolveEventImmediately(current);
-                foreach (EventData chained in chain)
-                    if (chained != null)
-                        pending.Enqueue(chained);
-            }
-        }
-
-        private IReadOnlyList<EventData> ResolveEventImmediately(EventData gameEvent)
-        {
-            if (gameEvent.eventType != GameEventType.Choice || gameEvent.options == null || gameEvent.options.Count == 0)
-                return _eventSystem.ResolveNarrativeStandalone(gameEvent, SelectedHunter, EventResourceCommand);
-            for (int optionIndex = 0; optionIndex < gameEvent.options.Count; optionIndex++)
-            {
-                HunterInstance actor = FindAvailableEventActor(gameEvent.options[optionIndex]);
-                PlayableEventChoiceTransaction transaction = _eventSystem.PrepareChoice(gameEvent, optionIndex, actor, resourceCommand: EventResourceCommand);
-                if (transaction != null)
-                {
-                    PlayableEventCommitResult result = transaction.CommitStandalone();
-                    return result.EncounterIds.Count > 0 ? System.Array.Empty<EventData>() : result.ChainedEvents;
-                }
-            }
-            return _eventSystem.ResolveNarrativeStandalone(gameEvent, SelectedHunter, EventResourceCommand);
-        }
-
-        private HunterInstance FindAvailableEventActor(EventOption option)
-        {
-            if (PlayableEventOptionAvailability.CanUse(option, SelectedHunter, _eventSystem.Settlement, out _)) return SelectedHunter;
-            foreach (HunterInstance hunter in ActiveHunters)
-                if (PlayableEventOptionAvailability.CanUse(option, hunter, _eventSystem.Settlement, out _))
-                    return hunter;
-            return null;
         }
 
         internal void NotifyBossEncounter(HuntTileInteractionCommit commit)

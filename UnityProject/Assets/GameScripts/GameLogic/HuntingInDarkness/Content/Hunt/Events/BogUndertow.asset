@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2471a7f4f41d4e74f85c7f31dc58d1a5, type: 3}
   m_Name: BogUndertow
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.EventData
+  contentId: hunt_bog_undertow
   eventName: "\u6C34\u4E0B\u7684\u7275\u5F15"
   eventType: 1
   displayText: "\u6D51\u6C34\u7A81\u7136\u7F20\u4F4F\u9886\u961F\u7684\u5C0F\u817F\u3002\u90A3\u4E0D\u662F\u6C34\u8349\uFF0C\u800C\u662F\u4E00\u622A\u4ECD\u5728\u7F13\u6162\u6536\u7F29\u7684\u900F\u660E\u7EC4\u7EC7\u3002"

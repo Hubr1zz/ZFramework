@@ -63,7 +63,7 @@ namespace HuntingInDarkness.ActionFlow.Events
         public IReadOnlyList<EventData> ChainedEvents { get; private set; } = Array.Empty<EventData>();
         public IReadOnlyList<string> EncounterIds { get; private set; } = Array.Empty<string>();
         public PlayableEventEffectBatchResult EffectResults { get; private set; } = PlayableEventEffectBatchResult.Empty;
-        public string EventId => gameEvent.name;
+        public string EventId => gameEvent.ContentId;
         public EventData GameEvent => gameEvent;
         public HunterInstance DefaultActor => defaultActor;
         public IReadOnlyList<HunterInstance> CandidateHunters => hunters;
@@ -72,7 +72,7 @@ namespace HuntingInDarkness.ActionFlow.Events
 
         protected override async UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
-            eventOutbox.Stage(new GameEventTriggeredEvent { EventId = gameEvent.name });
+            eventOutbox.Stage(new GameEventTriggeredEvent { EventId = gameEvent.ContentId });
             eventOutbox.PublishCheckpoint();
             if (gameEvent.eventType != GameEventType.Choice || gameEvent.options == null || gameEvent.options.Count == 0)
             {
@@ -147,7 +147,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                 _ => TabletopRandomInteractionKind.PhysicalDice
             };
             string instruction = string.IsNullOrWhiteSpace(option.checkInstruction) ? DefaultInstruction(kind) : option.checkInstruction;
-            var request = new TabletopRandomInteractionRequest($"event:{gameEvent.name}:{actorId}:{step}:{Guid.NewGuid():N}", kind, actorId, gameEvent.name, option.checkCount, option.checkSides, option.checkDeckId, instruction);
+            var request = new TabletopRandomInteractionRequest($"event:{gameEvent.ContentId}:{actorId}:{step}:{Guid.NewGuid():N}", kind, actorId, gameEvent.ContentId, option.checkCount, option.checkSides, option.checkDeckId, instruction);
             TabletopRandomInteractionResult result = await randomInteractionPresenter.PresentAsync(request, cancellationToken);
             if (result.Cancelled)
                 throw new OperationCanceledException("玩家取消了桌面随机交互。", cancellationToken);
@@ -199,10 +199,10 @@ namespace HuntingInDarkness.ActionFlow.Events
             if (chainedEvents != null)
                 foreach (EventData chainedEvent in chainedEvents)
                 {
-                    string eventId = chainedEvent?.name?.Trim() ?? string.Empty;
+                    string eventId = chainedEvent?.ContentId ?? string.Empty;
                     if (eventId.Length > 0) chainedEventIds.Add(eventId);
                 }
-            stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.name, actor?.InstanceId ?? 0, chainedEventIds));
+            stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.ContentId, actor?.InstanceId ?? 0, chainedEventIds));
             eventOutbox.PublishCheckpoint();
         }
     }

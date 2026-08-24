@@ -47,6 +47,12 @@ namespace HuntingInDarkness.Data
         [Header("资源数量（堆叠上限）")]
         public int stackLimit = 99;
 
+        [Header("狩猎")]
+        [SerializeField, Min(0), Tooltip("装备后为每次普通地块揭露增加的队伍噪音；资源与旧内容默认为 0。")]
+        private int huntNoise;
+
+        public int HuntNoise => Mathf.Max(0, huntNoise);
+
         public string ContentId
         {
             get

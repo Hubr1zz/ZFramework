@@ -18,4 +18,18 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3b4f4c30524ac7e49bad8e75e6464058, type: 2}
   - {fileID: 11400000, guid: d10b94c768943144aa9e3bd93bdd5eab, type: 2}
   - {fileID: 11400000, guid: 7fbc75f252af6694ea5e7a9465553adc, type: 2}
-  eventPool: []
+  eventPool:
+  - {fileID: 11400000, guid: 18edb8645e68c0a459bc28562e0c3519, type: 2}
+  - {fileID: 11400000, guid: e059e7c381dfffb4a9d049bd71002371, type: 2}
+  - {fileID: 11400000, guid: cbb01204deae5a240b4f33db920cfcd5, type: 2}
+  - {fileID: 11400000, guid: f600f4dcd03e7ec4da31eded0485b94e, type: 2}
+  noiseProfile:
+    profileId: fallback-wilds-risk
+    deckSize: 10
+    baseNoisePerHunter: 1
+    maxDangerCards: 8
+    dangerEvents:
+    - {fileID: 11400000, guid: 18edb8645e68c0a459bc28562e0c3519, type: 2}
+    - {fileID: 11400000, guid: e059e7c381dfffb4a9d049bd71002371, type: 2}
+    - {fileID: 11400000, guid: cbb01204deae5a240b4f33db920cfcd5, type: 2}
+    - {fileID: 11400000, guid: f600f4dcd03e7ec4da31eded0485b94e, type: 2}

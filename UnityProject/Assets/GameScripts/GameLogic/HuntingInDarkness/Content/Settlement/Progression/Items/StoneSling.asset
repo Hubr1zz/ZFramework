@@ -30,3 +30,4 @@ MonoBehaviour:
     armorArms: 0
     armorLegs: 0
   stackLimit: 1
+  huntNoise: 1
