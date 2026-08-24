@@ -75,6 +75,8 @@ namespace HuntingInDarkness.ContentTables
             return Build(new JsonCraftRecipeTableSource(TablePath).Load(), items, inventions, message => Debug.LogError($"[ContentTable] {message}"));
         }
 
+        internal static List<CraftRecipe> BuildTable(IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> inventions, Action<string> reportError) => Build(new JsonCraftRecipeTableSource(TablePath).Load(), items, inventions, reportError);
+
         public static List<CraftRecipe> Build(IReadOnlyList<CraftRecipeTableRecord> records, IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> inventions = null, Action<string> reportError = null)
         {
             var result = new List<CraftRecipe>();

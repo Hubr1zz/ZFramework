@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Hunt;
+using HuntingInDarkness.Settlement;
 using UnityEngine;
 
 namespace HuntingInDarkness.Bootstrap
@@ -53,50 +54,69 @@ namespace HuntingInDarkness.Bootstrap
             PlayableCampaignRuntimeSnapshot runtimeSnapshot = null;
             PlayableEventTableGeneration stagedGeneration = null;
             PlayableEventTableGeneration previousGeneration = null;
+            PlayableSettlementContentPlan stagedSettlementPlan = null;
+            PlayableSettlementContentPlan previousSettlementPlan = null;
             bool generationPublished = false;
+            bool settlementPlanPublished = false;
             try
             {
                 runtimeSnapshot = new PlayableCampaignRuntimeSnapshot();
                 stagedGeneration = PlayableEventTableRuntime.PrepareGeneration(candidate.Symptoms, PlayableBloodlineRuntime.Content);
                 if (stagedGeneration.HasErrors)
-                    return FailAndRollback(report, "candidate.events.invalid", stagedGeneration.Diagnostic, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished);
+                    return FailAndRollback(report, "candidate.events.invalid", stagedGeneration.Diagnostic, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
                 ThrowIfInstallationFailureRequested("after-event-prepare");
-                if (!candidate.TryInstallBindings(out string reason))
+                if (!candidate.TryPrepareSettlementPlan(stagedGeneration.Events, out string reason))
+                    return FailAndRollback(report, "candidate.settlement.invalid", reason, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
+                stagedSettlementPlan = candidate.SettlementPlan;
+                ThrowIfInstallationFailureRequested("after-settlement-prepare");
+                if (!candidate.TryInstallBindings(out reason))
                 {
-                    return FailAndRollback(report, "candidate.install", reason, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished);
+                    return FailAndRollback(report, "candidate.install", reason, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
                 }
                 ThrowIfInstallationFailureRequested("after-runtime-bindings");
                 previousGeneration = PlayableEventTableRuntime.SwapGeneration(stagedGeneration);
                 generationPublished = true;
                 ThrowIfInstallationFailureRequested("after-event-publish");
+                previousSettlementPlan = PlayableSettlementContentRuntime.CurrentPlan;
+                PlayableSettlementContentRuntime.SwapPlan(stagedSettlementPlan);
+                settlementPlanPublished = true;
+                ThrowIfInstallationFailureRequested("after-settlement-publish");
                 if (!candidate.TryValidateInstalledContent(out reason))
                 {
-                    return FailAndRollback(report, "candidate.install", reason, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished);
+                    return FailAndRollback(report, "candidate.install", reason, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
                 }
                 ThrowIfInstallationFailureRequested("after-settlement-projection");
                 candidate.MarkInstalled();
                 installedCandidate = candidate;
                 try
                 {
+                    PlayableSettlementContentRuntime.RetirePlan(previousSettlementPlan);
+                }
+                catch (System.Exception planRetirementException)
+                {
+                    Debug.LogWarning($"[PlayableBootstrap] 旧营地内容世代回收失败，当前候选仍保持已提交：{planRetirementException.Message}");
+                }
+                try
+                {
                     PlayableEventTableRuntime.RetireGeneration(previousGeneration);
                 }
-                catch (System.Exception retirementException)
+                catch (System.Exception eventRetirementException)
                 {
-                    Debug.LogWarning($"[PlayableBootstrap] 旧事件内容世代回收失败，当前候选仍保持已提交：{retirementException.Message}");
+                    Debug.LogWarning($"[PlayableBootstrap] 旧事件内容世代回收失败，当前候选仍保持已提交：{eventRetirementException.Message}");
                 }
                 return true;
             }
             catch (System.Exception exception)
             {
-                return FailAndRollback(report, "candidate.install.exception", exception.Message, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished);
+                return FailAndRollback(report, "candidate.install.exception", exception.Message, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
             }
         }
 
-        private static bool FailAndRollback(PlayableContentDiagnosticReport report, string code, string reason, PlayableCampaignRuntimeSnapshot runtimeSnapshot, PlayableEventTableGeneration stagedGeneration, PlayableEventTableGeneration previousGeneration, bool generationPublished)
+        private static bool FailAndRollback(PlayableContentDiagnosticReport report, string code, string reason, PlayableCampaignContentCandidate candidate, PlayableCampaignRuntimeSnapshot runtimeSnapshot, PlayableEventTableGeneration stagedGeneration, PlayableEventTableGeneration previousGeneration, bool generationPublished, PlayableSettlementContentPlan stagedSettlementPlan, PlayableSettlementContentPlan previousSettlementPlan, bool settlementPlanPublished)
         {
             try
             {
-                Rollback(runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished);
+                Rollback(candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
                 report.AddError(code, reason);
             }
             catch (System.Exception rollbackException)
@@ -107,16 +127,46 @@ namespace HuntingInDarkness.Bootstrap
             return false;
         }
 
-        private static void Rollback(PlayableCampaignRuntimeSnapshot runtimeSnapshot, PlayableEventTableGeneration stagedGeneration, PlayableEventTableGeneration previousGeneration, bool generationPublished)
+        private static void Rollback(PlayableCampaignContentCandidate candidate, PlayableCampaignRuntimeSnapshot runtimeSnapshot, PlayableEventTableGeneration stagedGeneration, PlayableEventTableGeneration previousGeneration, bool generationPublished, PlayableSettlementContentPlan stagedSettlementPlan, PlayableSettlementContentPlan previousSettlementPlan, bool settlementPlanPublished)
         {
-            runtimeSnapshot?.Restore();
-            if (generationPublished)
+            System.Exception firstException = null;
+            bool stagedPlanIsCurrent = ReferenceEquals(PlayableSettlementContentRuntime.CurrentPlan, stagedSettlementPlan);
+            PlayableSettlementContentPlan rejectedPlan = null;
+            try
             {
-                PlayableEventTableGeneration rejectedGeneration = PlayableEventTableRuntime.SwapGeneration(previousGeneration);
-                PlayableEventTableRuntime.RetireGeneration(rejectedGeneration);
-                return;
+                rejectedPlan = settlementPlanPublished || stagedPlanIsCurrent ? PlayableSettlementContentRuntime.SwapPlan(previousSettlementPlan) : stagedSettlementPlan;
             }
-            PlayableEventTableRuntime.RetireGeneration(stagedGeneration);
+            catch (System.Exception exception)
+            {
+                firstException ??= exception;
+            }
+            candidate?.ReleaseSettlementPlan(stagedSettlementPlan);
+            try
+            {
+                if (!ReferenceEquals(PlayableSettlementContentRuntime.CurrentPlan, rejectedPlan)) PlayableSettlementContentRuntime.RetirePlan(rejectedPlan);
+            }
+            catch (System.Exception exception)
+            {
+                firstException ??= exception;
+            }
+            try
+            {
+                PlayableEventTableGeneration rejectedGeneration = generationPublished ? PlayableEventTableRuntime.SwapGeneration(previousGeneration) : stagedGeneration;
+                PlayableEventTableRuntime.RetireGeneration(rejectedGeneration);
+            }
+            catch (System.Exception exception)
+            {
+                firstException ??= exception;
+            }
+            try
+            {
+                runtimeSnapshot?.Restore();
+            }
+            catch (System.Exception exception)
+            {
+                firstException ??= exception;
+            }
+            if (firstException != null) throw firstException;
         }
 
         private static void ThrowIfInstallationFailureRequested(string stage)

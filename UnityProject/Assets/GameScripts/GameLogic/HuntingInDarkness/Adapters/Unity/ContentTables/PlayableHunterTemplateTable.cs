@@ -101,8 +101,14 @@ namespace HuntingInDarkness.ContentTables
 
         public static bool Extend(IReadOnlyList<HunterData> baseStarting, IReadOnlyList<HunterData> baseRecruitment, IReadOnlyList<ItemData> items, TextAsset tableAsset, out List<HunterData> allStarting, out List<HunterData> allRecruitment, Action<string> reportError = null)
         {
+            return Extend(baseStarting, baseRecruitment, items, tableAsset, out allStarting, out allRecruitment, out _, reportError);
+        }
+
+        internal static bool Extend(IReadOnlyList<HunterData> baseStarting, IReadOnlyList<HunterData> baseRecruitment, IReadOnlyList<ItemData> items, TextAsset tableAsset, out List<HunterData> allStarting, out List<HunterData> allRecruitment, out List<HunterData> generatedTemplates, Action<string> reportError = null)
+        {
             allStarting = Copy(baseStarting);
             allRecruitment = Copy(baseRecruitment);
+            generatedTemplates = new List<HunterData>();
             if (!ValidateBaseIdentities(allStarting, allRecruitment, reportError)) return false;
 
             List<HunterTemplateTableEntry> entries = Build(new JsonHunterTemplateTableSource(TablePath, tableAsset).Load(), items, reportError);
@@ -112,6 +118,7 @@ namespace HuntingInDarkness.ContentTables
             foreach (HunterTemplateTableEntry entry in entries)
             {
                 HunterData template = entry.Template;
+                generatedTemplates.Add(template);
                 if (identities.TryGetValue(template.ContentId, out HunterData idOwner) && !ReferenceEquals(idOwner, template) || identities.TryGetValue(template.hunterName, out HunterData nameOwner) && !ReferenceEquals(nameOwner, template))
                 {
                     reportError?.Invoke($"猎人模板表与现有目录身份冲突：{template.ContentId}/{template.hunterName}");

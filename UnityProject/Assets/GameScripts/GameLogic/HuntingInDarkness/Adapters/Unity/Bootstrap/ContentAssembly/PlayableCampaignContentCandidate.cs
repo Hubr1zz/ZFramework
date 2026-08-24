@@ -5,6 +5,7 @@ using HuntingInDarkness.Combat;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
+using HuntingInDarkness.Data;
 
 namespace HuntingInDarkness.Bootstrap
 {
@@ -12,6 +13,7 @@ namespace HuntingInDarkness.Bootstrap
     public sealed class PlayableCampaignContentCandidate
     {
         private bool installed;
+        internal PlayableSettlementContentPlan SettlementPlan { get; private set; }
 
         internal PlayableCampaignContentCandidate(PlayableBootstrapSettings settings)
         {
@@ -65,7 +67,7 @@ namespace HuntingInDarkness.Bootstrap
 
             PlayableHuntContentRuntime.Configure(DefaultHuntContent);
             PlayableHuntDestinationRuntime.Configure(HuntDestinations, DefaultHuntContent);
-            PlayableSettlementContentRuntime.Configure(SettlementContent);
+            PlayableSettlementContentRuntime.ConfigureForInstallation(SettlementContent);
             PlayableHunterCombatAdapter.Configure(CombatEquipment);
             PlayableSurvivalEventRuntime.Configure(SurvivalEvents);
             PlayablePermanentInjuryRuntime.Configure(PermanentInjuries);
@@ -77,14 +79,36 @@ namespace HuntingInDarkness.Bootstrap
             return true;
         }
 
+        internal bool TryPrepareSettlementPlan(IReadOnlyList<EventData> events, out string reason)
+        {
+            if (installed || SettlementPlan != null)
+            {
+                reason = "营地内容候选已经准备或安装。";
+                return false;
+            }
+            bool prepared = SettlementContent.TryPreparePlan(events, out PlayableSettlementContentPlan plan, out reason);
+            SettlementPlan = plan;
+            return prepared;
+        }
+
+        internal void ReleaseSettlementPlan(PlayableSettlementContentPlan plan)
+        {
+            if (ReferenceEquals(SettlementPlan, plan)) SettlementPlan = null;
+        }
+
         internal void MarkInstalled() => installed = true;
 
         internal bool TryValidateInstalledContent(out string reason)
         {
-            var settlementProbe = new SettlementManager(1979);
-            if (!SettlementContent.ApplyTo(settlementProbe))
+            if (SettlementPlan == null || !ReferenceEquals(PlayableSettlementContentRuntime.CurrentPlan, SettlementPlan))
             {
-                reason = "营地内容、稳定身份或跨表引用预检失败。";
+                reason = "营地内容计划尚未发布。";
+                return false;
+            }
+            var settlementProbe = new SettlementManager(1979);
+            if (!SettlementPlan.TryApplyTo(settlementProbe, out reason))
+            {
+                reason = $"营地内容投影预检失败：{reason}";
                 return false;
             }
             if (settlementProbe.Data.Hunters.Count == 0)

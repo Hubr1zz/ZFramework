@@ -25,7 +25,7 @@ namespace HuntingInDarkness.Bootstrap
 
         public void Restore()
         {
-            PlayableSettlementContentRuntime.Configure(settlementContent);
+            PlayableSettlementContentRuntime.ConfigureForInstallation(settlementContent);
             PlayableHunterCombatAdapter.RestoreState(hunterCombat);
             PlayableSurvivalEventRuntime.Configure(survivalEvents);
             PlayablePermanentInjuryRuntime.Configure(permanentInjuries);

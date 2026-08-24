@@ -315,6 +315,13 @@
       "category": "architecture",
       "readiness": "implemented",
       "specPath": "openspec/specs/campaign-content-preflight-assembly/spec.md"
+    },
+    {
+      "id": "settlement-content-plan-lifecycle",
+      "label": "营地内容计划生命周期",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/settlement-content-plan-lifecycle/spec.md"
     }
   ],
   "edges": [
@@ -355,6 +362,66 @@
       "type": "requires",
       "status": "defined",
       "reason": "正式事件缓存只在 GameManager 激活前的同步组合根门禁内重建",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--campaign-content-preflight-assembly",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "campaign-content-preflight-assembly",
+      "type": "requires",
+      "status": "defined",
+      "reason": "战役安装事务负责暂存、发布、回滚并退役完整营地内容计划",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--campaign-content-cache-lifecycle",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "campaign-content-cache-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地计划引用同批事件世代并在事件对象仍有效时完成发布或回滚",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--table-driven-item-keywords",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "table-driven-item-keywords",
+      "type": "requires",
+      "status": "defined",
+      "reason": "计划拥有表生成物品并以稳定 ID 解析配方、事件与猎人装备",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--table-driven-invention-content",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "table-driven-invention-content",
+      "type": "requires",
+      "status": "defined",
+      "reason": "计划冻结发明图、成本、主动事件与配方解锁引用",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--table-driven-hunter-templates",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "table-driven-hunter-templates",
+      "type": "requires",
+      "status": "defined",
+      "reason": "计划拥有表生成猎人模板并向开局与招募流程提供同一对象身份",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--table-driven-event-chains",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地计划冻结同一事件世代及其稳定 ID 分支引用，避免跨世代对象混用",
       "gapId": "",
       "blocksImplementation": false
     },

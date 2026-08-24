@@ -10,21 +10,21 @@
     "evidence": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventTableCacheLifecycleTests.cs",
       "Unity CLI targeted: 5/5 passed",
-      "Unity CLI EditMode: 602/602 passed"
+      "Unity CLI EditMode: 606/606 passed"
     ],
     "differences": [
       "PlayMode 的 Object.Destroy 在帧末完成；正式重建被限制在无活动消费者的启动门禁，因此不承诺同步销毁。",
-      "其他表生成的 transient Item/Invention/Hunter 将由后续不可变 SettlementContentPlan 统一纳入候选所有权。"
+      "其他表生成的 transient Item/Invention/Hunter 已由 SettlementContentPlan 纳入所有权；PlayMode 销毁时序仍受帧末语义约束。"
     ],
-    "verifiedAt": "2026-08-24T06:23:04-07:00",
+    "verifiedAt": "2026-08-24T06:56:31-07:00",
     "codeEvidence": [
       {
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
         "line": 1,
-        "fileHash": "3dda7a08bd1069f511354f6873ddac912a0f3f9f290fce9d2e618570dfd80adc",
+        "fileHash": "8b4208dc0a0e17cac68949417876a24a4b6371caec23508396c73c42816289fe",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:23:04-07:00",
+        "checkedAt": "2026-08-24T06:56:31-07:00",
         "feature": "暂存、验证、交换并回收事件对象世代；失败重建保持已发布对象身份。"
       },
       {

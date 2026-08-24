@@ -78,4 +78,4 @@ title: "战役内容启动预检装配"
 
 ## Known Boundary
 
-当前事务已覆盖兼容 Runtime 引用、战斗映射缓存、三个营地稳定身份 Registry 与事件世代的恢复。`PlayableSettlementContentCatalog.ApplyTo` 仍同时承担表生成、Registry 发布和 Manager 投影；其他表生成的 transient Item/Invention/Hunter 对象尚未收敛为可复用的不可变 `SettlementContentPlan`，这是下一阶段的集中重构边界。
+当前事务已覆盖兼容 Runtime 引用、战斗映射缓存、事件世代与不可变 `SettlementContentPlan` 的恢复；表生成的 Item/Invention/Hunter 已由 Plan 统一拥有。三个静态 Registry 仍是可独立配置的兼容门面，普通读档也尚未全部迁移为 candidate-manager 验证后整体替换，这是下一阶段边界。

@@ -35,7 +35,6 @@ namespace HuntingInDarkness.Settlement
         [SerializeField] private ItemData recruitmentCostItem;
         [SerializeField, Min(0)] private int recruitmentCost = 1;
         [SerializeField, Min(1)] private int maximumLivingHunters = 6;
-        [NonSerialized] private List<HunterData> resolvedRecruitmentTemplates;
 
         [Header("营火休养")]
         [SerializeField] private ItemData recoveryCostItem;
@@ -47,7 +46,7 @@ namespace HuntingInDarkness.Settlement
         [SerializeField, Min(1)] private int deathInspirationMinimumAge = 2;
 
         public bool IsConfigured => startingHunters != null && startingHunters.Exists(hunter => hunter != null) || hunterTable != null;
-        public IReadOnlyList<HunterData> RecruitmentTemplates => resolvedRecruitmentTemplates ?? recruitmentTemplates;
+        public IReadOnlyList<HunterData> RecruitmentTemplates => PlayableSettlementContentRuntime.TryGetPlan(this, out PlayableSettlementContentPlan plan) ? plan.RecruitmentTemplates : recruitmentTemplates;
         public ItemData RecruitmentCostItem => recruitmentCostItem;
         public int RecruitmentCost => Mathf.Max(0, recruitmentCost);
         public int MaximumLivingHunters => Mathf.Max(1, maximumLivingHunters);
@@ -57,100 +56,65 @@ namespace HuntingInDarkness.Settlement
 
         public bool ApplyTo(SettlementManager manager)
         {
-            resolvedRecruitmentTemplates = null;
             if (manager == null || !IsConfigured) return false;
-
-            PlayableSettlementContentExtensions.Extend(GetKnownItems(), recipes, inventions, inventionTable, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions);
-            if (!PlayableHunterTemplateTableRuntime.Extend(startingHunters, recruitmentTemplates, allItems, hunterTable, out List<HunterData> allStartingHunters, out List<HunterData> allRecruitmentTemplates, message => Debug.LogError($"[SettlementManager] {message}"))) return false;
-            if (allStartingHunters.Count == 0)
+            if (PlayableSettlementContentRuntime.TryGetPlan(this, out PlayableSettlementContentPlan activePlan)) return activePlan.TryApplyTo(manager, out _);
+            if (PlayableSettlementContentRuntime.CurrentPlan != null)
             {
-                Debug.LogError("[SettlementManager] 猎人内容未提供任何有效初始模板，已拒绝装配。");
+                Debug.LogError("[SettlementManager] 已发布的营地内容属于另一目录，兼容 ApplyTo 不允许替换活动战役世代。");
                 return false;
             }
-            resolvedRecruitmentTemplates = allRecruitmentTemplates;
-            PlayableSettlementInventionRegistry.Configure(allInventions);
-            if (PlayableSettlementInventionRegistry.Inventions.Count != allInventions.Count)
+            if (!TryPreparePlan(PlayableEventTableRuntime.GetEvents(), out PlayableSettlementContentPlan replacement, out string reason))
             {
-                Debug.LogError("[SettlementManager] 发明目录包含空白、重复或别名冲突的稳定身份，已拒绝装配。");
+                Debug.LogError($"[SettlementManager] {reason}");
                 return false;
             }
-
-            manager.HunterMgmt.ConfigureDeathInspiration(deathInspirationGrowth, deathInspirationMinimumAge);
-            PlayableSettlementItemRegistry.Configure(allItems);
-            PlayableSettlementItemRegistry.MigratePersistentState(manager.Data);
-            PlayableSettlementInventionRegistry.MigratePersistentState(manager.Data);
-            PlayableEventTableRuntime.Extend(randomEvents, mainStoryEvents, out List<EventData> allRandomEvents, out List<EventData> allMainStoryEvents);
-            var allEvents = new List<EventData>(allRandomEvents);
-            allEvents.AddRange(allMainStoryEvents);
-            PlayableSettlementEventRegistry.Configure(allEvents);
-            if (!PlayableSettlementEventRegistry.IsValid)
+            PlayableSettlementContentPlan previous = PlayableSettlementContentRuntime.SwapPlan(replacement);
+            if (replacement.TryApplyTo(manager, out reason))
             {
-                Debug.LogError($"[SettlementManager] {PlayableSettlementEventRegistry.Diagnostic}");
-                return false;
-            }
-            if (!PlayableSettlementEventRegistry.MigratePersistentState(manager.Data) && manager.Data.TimelineEventIdentitySchemaVersion > PlayableSettlementEventRegistry.CurrentIdentitySchemaVersion)
-            {
-                Debug.LogError($"[SettlementManager] {manager.Data.TimelineEventIdentityMigrationDiagnostic}");
-                return false;
-            }
-            manager.Timeline.RandomEventPool = allRandomEvents;
-            manager.Timeline.MainStoryEvents = allMainStoryEvents;
-            MigrateCampaignPacing(manager);
-            manager.Inventions.AllInventions = new List<InventionData>(PlayableSettlementInventionRegistry.Inventions);
-            if (!PlayableSettlementModifierRuntime.Synchronize(manager.Data, manager.Inventions.AllInventions, message => Debug.LogError($"[SettlementManager] {message}"))) return false;
-            manager.Workshop.AllRecipes = allRecipes;
-            if (manager.Data.Hunters.Count > 0)
-            {
-                PlayableBloodlineRuntime.Synchronize(manager.Data);
-                PlayableSettlementItemRegistry.RestoreEquipment(manager.Data);
-                PlayableSymptomRuntime.Synchronize(manager.Data);
-                PlayableGrowthMilestoneRuntime.Synchronize(manager.Data);
+                PlayableSettlementContentRuntime.RetirePlan(previous);
                 return true;
             }
-
-            foreach (var hunter in allStartingHunters)
-                if (hunter != null)
-                    manager.HunterMgmt.AddStartingHunter(hunter.hunterName, hunter);
-
-            foreach (var resource in startingResources)
-                if (resource?.Item != null && resource.Amount > 0)
-                    manager.Data.AddResource(resource.Item, resource.Amount);
-
-            PlayableSettlementItemRegistry.RestoreEquipment(manager.Data);
-            PlayableBloodlineRuntime.Synchronize(manager.Data);
-            PlayableSymptomRuntime.Synchronize(manager.Data);
-            PlayableGrowthMilestoneRuntime.Synchronize(manager.Data);
-            Debug.Log($"[SettlementManager] 已从内容目录创建 {manager.Data.Hunters.Count} 名初始猎人。");
-            return manager.Data.Hunters.Count > 0;
+            PlayableSettlementContentPlan rejected = PlayableSettlementContentRuntime.SwapPlan(previous);
+            PlayableSettlementContentRuntime.RetirePlan(rejected);
+            Debug.LogError($"[SettlementManager] {reason}");
+            return false;
         }
 
-        private static void MigrateCampaignPacing(SettlementManager manager)
+        internal bool TryPreparePlan(IReadOnlyList<EventData> tableEvents, out PlayableSettlementContentPlan plan, out string reason)
         {
-            SettlementInstance data = manager.Data;
-            if (data.CampaignPacingSchemaVersion >= SettlementInstance.CurrentCampaignPacingSchemaVersion)
+            plan = null;
+            reason = string.Empty;
+            if (!IsConfigured)
             {
-                data.NormalizeLegacyHuntProgress();
-                return;
+                reason = "营地内容目录未配置。";
+                return false;
             }
-
-            int legacyQuota = data.HuntsPerYear;
-            int completed = data.HuntsCompletedThisYear;
-            if (legacyQuota < 1 || legacyQuota > SettlementInstance.MaxLegacyHuntsPerYear || completed < 0 || completed >= legacyQuota)
+            var errors = new List<string>();
+            using var ownership = new PlayableSettlementContentOwnership();
+            try
             {
-                data.CampaignPacingMigrationDiagnostic = $"旧年度狩猎进度无效：{completed}/{legacyQuota}，已安全归一化且未猜测年份。";
-                data.NormalizeLegacyHuntProgress();
-                data.CampaignPacingSchemaVersion = SettlementInstance.CurrentCampaignPacingSchemaVersion;
-                return;
+                PlayableSettlementContentExtensions.Prepare(GetKnownItems(), recipes, inventions, inventionTable, tableEvents, ownership, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions, errors.Add);
+                bool huntersValid = PlayableHunterTemplateTableRuntime.Extend(startingHunters, recruitmentTemplates, allItems, hunterTable, out List<HunterData> allStartingHunters, out List<HunterData> allRecruitmentTemplates, out List<HunterData> generatedHunters, errors.Add);
+                ownership.OwnRange(generatedHunters);
+                PlayableEventTableRuntime.Extend(randomEvents, mainStoryEvents, tableEvents, out List<EventData> allRandomEvents, out List<EventData> allMainStoryEvents);
+                var allEvents = new List<EventData>(allRandomEvents);
+                allEvents.AddRange(allMainStoryEvents);
+                if (!PlayableSettlementContentPlan.ValidateContent(allItems, allInventions, allRecipes, allEvents, out string validationReason)) errors.Add(validationReason);
+                if (!huntersValid || allStartingHunters.Count == 0) errors.Add("猎人内容未提供任何有效初始模板。");
+                if (errors.Count > 0)
+                {
+                    reason = string.Join("；", errors);
+                    return false;
+                }
+                plan = new PlayableSettlementContentPlan(this, allItems, allInventions, allRecipes, allRandomEvents, allMainStoryEvents, allStartingHunters, allRecruitmentTemplates, startingResources, ownership.Objects, deathInspirationGrowth, deathInspirationMinimumAge);
+                ownership.Transfer();
+                return true;
             }
-
-            for (int index = 0; index < completed; index++)
+            catch (Exception exception)
             {
-                data.CurrentYear = SettlementTimelineRules.AdvanceYear(data.CurrentYear);
-                manager.Timeline.GetEventsForYear(data.CurrentYear);
+                reason = $"营地内容计划构建异常：{exception.Message}";
+                return false;
             }
-            data.CampaignPacingMigrationDiagnostic = string.Empty;
-            data.NormalizeLegacyHuntProgress();
-            data.CampaignPacingSchemaVersion = SettlementInstance.CurrentCampaignPacingSchemaVersion;
         }
 
         private List<ItemData> GetKnownItems()
@@ -186,22 +150,62 @@ namespace HuntingInDarkness.Settlement
     public static class PlayableSettlementContentRuntime
     {
         private static PlayableSettlementContentCatalog catalog;
+        private static PlayableSettlementContentPlan currentPlan;
         public static PlayableSettlementContentCatalog Catalog => catalog;
+        internal static PlayableSettlementContentPlan CurrentPlan => currentPlan;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
             catalog = null;
+            PlayableSettlementContentPlan retired = SwapPlan(null);
+            RetirePlan(retired);
         }
 
         public static void Configure(PlayableSettlementContentCatalog contentCatalog)
         {
+            PlayableSettlementContentPlan retired = SwapPlan(null);
             catalog = contentCatalog;
+            RetirePlan(retired);
         }
+
+        internal static void ConfigureForInstallation(PlayableSettlementContentCatalog contentCatalog) => catalog = contentCatalog;
 
         public static bool TryApplyTo(SettlementManager manager)
         {
+            if (currentPlan != null && !currentPlan.IsRetired) return currentPlan.TryApplyTo(manager, out _);
             return catalog != null && catalog.ApplyTo(manager);
+        }
+
+        internal static bool TryGetPlan(PlayableSettlementContentCatalog sourceCatalog, out PlayableSettlementContentPlan plan)
+        {
+            plan = currentPlan;
+            return plan != null && !plan.IsRetired && ReferenceEquals(plan.SourceCatalog, sourceCatalog);
+        }
+
+        internal static PlayableSettlementContentPlan SwapPlan(PlayableSettlementContentPlan replacement)
+        {
+            PlayableSettlementContentPlan previous = currentPlan;
+            currentPlan = replacement;
+            PlayableSettlementItemRegistry.Configure(replacement?.Items);
+            PlayableSettlementInventionRegistry.Configure(replacement?.Inventions);
+            if (replacement == null)
+            {
+                PlayableSettlementEventRegistry.Configure(null);
+                return previous;
+            }
+            var events = new List<EventData>(replacement.RandomEvents);
+            events.AddRange(replacement.MainStoryEvents);
+            PlayableSettlementEventRegistry.Configure(events);
+            if (PlayableSettlementItemRegistry.Items.Count != replacement.Items.Count || PlayableSettlementInventionRegistry.Inventions.Count != replacement.Inventions.Count || !PlayableSettlementEventRegistry.IsValid)
+                throw new InvalidOperationException("营地内容计划与兼容 Registry 的稳定身份投影不一致。");
+            return previous;
+        }
+
+        internal static void RetirePlan(PlayableSettlementContentPlan plan)
+        {
+            if (plan == null || ReferenceEquals(plan, currentPlan)) return;
+            plan.Dispose();
         }
     }
 }

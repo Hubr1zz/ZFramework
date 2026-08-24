@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 3,
+  "capability": "settlement-content-plan-lifecycle",
+  "title": "营地内容计划生命周期",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "启动事务将 Item、Invention、Recipe、Hunter 与 Settlement Event 冻结为单一战役计划；计划拥有表生成 transient 对象，失败时回滚，重复营地投影复用同一对象身份。",
+    "evidence": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
+      "Unity CLI targeted: 11/11 and 4/4 passed",
+      "Unity CLI EditMode: 606/606 passed",
+      "C# derived index: 974/974, 100% coverage",
+      "zWorkFlow: 7/7 passed"
+    ],
+    "differences": [
+      "静态 Registry 的公开 Configure 仍是兼容入口，尚未完全收敛为只读计划门面。",
+      "正式 SettlementManager 注入仍直接修改活体管理器；modifier 失败时尚未通过候选管理器实现整体原子交换。"
+    ],
+    "verifiedAt": "2026-08-24T06:56:31-07:00",
+    "codeEvidence": [
+      {
+        "guid": "76ee8c16e7264fc89ae0566031980a8a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
+        "line": 1,
+        "fileHash": "0d6ddedac7e3eb6dfb3d01594f9048f41ac6313b12baddc07d4696afe89dcd7f",
+        "status": "verified",
+        "checkedAt": "2026-08-24T06:56:31-07:00",
+        "feature": "冻结跨表对象图、验证稳定引用、投影营地状态并拥有 transient Unity 对象生命周期。"
+      },
+      {
+        "guid": "89da669e4924d43409fe89475adc272b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
+        "line": 1,
+        "fileHash": "60ce08d8a06f418bc2c627be0c12e7c6095c86abd46c8840c2eee58f20531840",
+        "status": "verified",
+        "checkedAt": "2026-08-24T06:56:31-07:00",
+        "feature": "无副作用准备计划，并由 Runtime 原子发布、恢复和退役计划。"
+      },
+      {
+        "guid": "e720a0551a464b15a2f65f1e82fc4a4a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs",
+        "line": 1,
+        "fileHash": "68a62b6d2894fe56181a77d9fe7427080df49675a980c334fb4023962c53e96f",
+        "status": "verified",
+        "checkedAt": "2026-08-24T06:56:31-07:00",
+        "feature": "暂存、发布并在失败时尽力逆序回滚营地计划与事件世代。"
+      },
+      {
+        "guid": "48324497afd44fb4eaff36be8ad626c2",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/ItemData.cs",
+        "line": 1,
+        "fileHash": "fde29b7da3a519fa02aa669180442656b4a7a089eab73274350fd361da7de1d4",
+        "status": "verified",
+        "checkedAt": "2026-08-24T06:56:31-07:00",
+        "feature": "区分显式稳定 ContentId 与运行时回退名称，阻止不稳定表身份进入正式计划。"
+      },
+      {
+        "guid": "176f9d6f63af40d9b3ee3e7e9b5f6ee5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
+        "line": 1,
+        "fileHash": "506a9599945d5ee58d60ef9c371d2f028bb42c2a7c43f0e6b52da4f0d345296c",
+        "status": "verified",
+        "checkedAt": "2026-08-24T06:56:31-07:00",
+        "feature": "验证发布身份复用、失败清理、外部资产保留、未来 Schema 拒绝与回滚。"
+      },
+      {
+        "guid": "fe099c7b81392504dbdb631b0d972301",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
+        "line": 1,
+        "fileHash": "2055b3c6d0201edd045c37853198fc7a5678c4d0a70185e3d660f2df7a41ecb6",
+        "status": "verified",
+        "checkedAt": "2026-08-24T06:56:31-07:00",
+        "feature": "验证缺少显式稳定 ID 的表物品无法进入战役计划。"
+      }
+    ]
+  },
+  "implementationOutline": [
+    "Catalog 在启动事务内读取各表并构建冻结的 PlayableSettlementContentPlan。",
+    "Plan 在任何正式 Runtime 变更前校验 Schema、稳定 ID、跨表引用和发明依赖环。",
+    "Assembler 将事件世代与营地计划作为同一候选发布；异常时恢复旧计划和旧 Registry。",
+    "Plan 仅拥有表生成的 ItemData、InventionData 与 HunterData，退役时不销毁外部资产。",
+    "正式和隔离 Settlement 投影都消费同一计划，避免重复读表和对象身份漂移。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "campaign-content-preflight-assembly",
+    "campaign-content-cache-lifecycle",
+    "table-driven-item-keywords",
+    "table-driven-invention-content",
+    "table-driven-hunter-templates",
+    "table-driven-event-chains"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs:1"
+  ]
+}

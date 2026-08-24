@@ -11,6 +11,9 @@ namespace HuntingInDarkness.Tests
 {
     public sealed class PlayableCampaignPacingTests
     {
+        [TearDown]
+        public void TearDown() => PlayableSettlementContentRuntime.Configure(null);
+
         [Test]
         public void AdvanceYear_AdvancesExactlyOnceForEveryAcceptedReturn()
         {

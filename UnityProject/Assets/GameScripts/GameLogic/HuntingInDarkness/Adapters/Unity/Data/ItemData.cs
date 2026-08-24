@@ -63,6 +63,7 @@ namespace HuntingInDarkness.Data
             }
         }
 
+        public bool HasExplicitContentId => !string.IsNullOrWhiteSpace(contentId);
         public void ConfigureContentId(string value) => contentId = value?.Trim() ?? string.Empty;
 
         /// <summary>是否含有指定词条标签</summary>

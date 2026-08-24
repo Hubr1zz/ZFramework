@@ -148,6 +148,12 @@ namespace HuntingInDarkness.ContentTables
             return cachedInventions;
         }
 
+        internal static List<InventionData> BuildTable(TextAsset tableAsset, IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> baseInventions, IReadOnlyList<EventData> events, Action<string> reportError)
+        {
+            if (tableAsset == null) return new List<InventionData>();
+            return Build(new JsonInventionTableSource(tableAsset).Load(), items, baseInventions, reportError, BuildEventIds(events));
+        }
+
         public static List<InventionData> Build(IReadOnlyList<InventionTableRecord> records, IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> baseInventions = null, Action<string> reportError = null, IReadOnlyCollection<string> eventIds = null)
         {
             var result = new List<InventionData>();

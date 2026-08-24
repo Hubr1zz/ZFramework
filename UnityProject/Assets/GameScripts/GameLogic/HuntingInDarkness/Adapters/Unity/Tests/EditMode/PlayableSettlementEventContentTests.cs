@@ -11,6 +11,9 @@ namespace HuntingInDarkness.Adapter.Tests
     {
         private const string CatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/PlayableSettlementContentCatalog.asset";
 
+        [TearDown]
+        public void TearDown() => PlayableSettlementContentRuntime.Configure(null);
+
         [Test]
         public void Timeline_WithAlternatives_DoesNotRepeatMostRecentRandomEvent()
         {

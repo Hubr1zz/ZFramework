@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Reflection;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using NUnit.Framework;
 using UnityEngine;
+using HuntingInDarkness.Settlement;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
@@ -72,6 +74,23 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(item.itemName, Is.EqualTo("黑盐"));
             Assert.That(item.itemType, Is.EqualTo(ItemType.Resource));
             Assert.That(item.keywords, Does.Contain("ritual"));
+        }
+
+        [Test]
+        public void SettlementPlan_RejectsItemWithoutExplicitStableId()
+        {
+            ItemData item = ScriptableObject.CreateInstance<ItemData>();
+            item.name = "legacy_fallback";
+            item.itemName = "旧物品";
+            createdItems.Add(item);
+            System.Type planType = typeof(PlayableSettlementContentCatalog).Assembly.GetType("HuntingInDarkness.Settlement.PlayableSettlementContentPlan");
+            MethodInfo validateMethod = planType.GetMethod("ValidateContent", BindingFlags.Static | BindingFlags.NonPublic);
+            object[] arguments = { new List<ItemData> { item }, new List<InventionData>(), new List<CraftRecipe>(), new List<EventData>(), null };
+
+            bool valid = (bool)validateMethod.Invoke(null, arguments);
+
+            Assert.That(valid, Is.False);
+            Assert.That((string)arguments[4], Does.Contain("显式稳定 ContentId"));
         }
 
         private List<ItemData> Build(params ItemTableRecord[] records)

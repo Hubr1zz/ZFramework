@@ -39,6 +39,30 @@ namespace HuntingInDarkness.Settlement
             AppendRecipeItems(allItems, allRecipes);
         }
 
+        internal static void Prepare(IReadOnlyList<ItemData> baseItems, IReadOnlyList<CraftRecipe> baseRecipes, IReadOnlyList<InventionData> baseInventions, TextAsset inventionTable, IReadOnlyList<EventData> events, PlayableSettlementContentOwnership ownership, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions, System.Action<string> reportError)
+        {
+            allItems = CopyItems(baseItems);
+            allRecipes = CopyRecipes(baseRecipes);
+            allInventions = CopyInventions(baseInventions);
+            PlayableSettlementContentExtension[] extensions = Resources.LoadAll<PlayableSettlementContentExtension>(ResourcePath);
+            System.Array.Sort(extensions, (left, right) => string.CompareOrdinal(left.name, right.name));
+            foreach (PlayableSettlementContentExtension extension in extensions)
+            {
+                if (extension == null) continue;
+                AppendItems(allItems, extension.Items);
+                AppendRecipes(allRecipes, extension.Recipes);
+            }
+
+            List<ItemData> generatedItems = PlayableItemTableRuntime.BuildTable(reportError);
+            ownership.OwnRange(generatedItems);
+            AppendItems(allItems, generatedItems);
+            List<InventionData> generatedInventions = PlayableInventionTableRuntime.BuildTable(inventionTable, allItems, baseInventions, events, reportError);
+            ownership.OwnRange(generatedInventions);
+            AppendInventions(allInventions, generatedInventions);
+            AppendRecipes(allRecipes, PlayableCraftRecipeTableRuntime.BuildTable(allItems, allInventions, reportError));
+            AppendRecipeItems(allItems, allRecipes);
+        }
+
         private static List<ItemData> CopyItems(IReadOnlyList<ItemData> source)
         {
             var result = new List<ItemData>();

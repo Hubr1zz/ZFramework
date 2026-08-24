@@ -216,9 +216,14 @@ namespace HuntingInDarkness.ContentTables
 
         public static void Extend(IReadOnlyList<EventData> baseRandomEvents, IReadOnlyList<EventData> baseMainStoryEvents, out List<EventData> randomEvents, out List<EventData> mainStoryEvents)
         {
+            Extend(baseRandomEvents, baseMainStoryEvents, GetEvents(), out randomEvents, out mainStoryEvents);
+        }
+
+        internal static void Extend(IReadOnlyList<EventData> baseRandomEvents, IReadOnlyList<EventData> baseMainStoryEvents, IReadOnlyList<EventData> tableEvents, out List<EventData> randomEvents, out List<EventData> mainStoryEvents)
+        {
             randomEvents = CopyValid(baseRandomEvents);
             mainStoryEvents = CopyValid(baseMainStoryEvents);
-            foreach (EventData tableEvent in GetEvents())
+            foreach (EventData tableEvent in tableEvents ?? Array.Empty<EventData>())
             {
                 randomEvents.RemoveAll(gameEvent => gameEvent.name == tableEvent.name);
                 mainStoryEvents.RemoveAll(gameEvent => gameEvent.name == tableEvent.name);

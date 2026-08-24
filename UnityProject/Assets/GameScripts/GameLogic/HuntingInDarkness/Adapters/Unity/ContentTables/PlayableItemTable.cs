@@ -98,6 +98,8 @@ namespace HuntingInDarkness.ContentTables
             return cachedItems;
         }
 
+        internal static List<ItemData> BuildTable(Action<string> reportError) => Build(new JsonItemTableSource(TablePath).Load(), reportError);
+
         public static List<ItemData> Build(IReadOnlyList<ItemTableRecord> records, Action<string> reportError = null)
         {
             var result = new List<ItemData>();
