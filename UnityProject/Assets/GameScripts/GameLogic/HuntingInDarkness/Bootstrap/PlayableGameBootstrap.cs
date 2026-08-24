@@ -89,6 +89,7 @@ namespace HuntingInDarkness.Bootstrap
             manager.ConfigureForStandaloneTest(defaultBattleSetup, settings.InitialPhase, settings.CellSize);
             manager.ConfigureSettlementContent(settings.SettlementContent);
             manager.ConfigureWorkshopContent(settings.WorkshopContent);
+            EnsureRequiredWorldSpacePorts(gameObject, manager, settings);
             managerObject.SetActive(true);
 
             var mainCamera = Camera.main;
@@ -101,8 +102,6 @@ namespace HuntingInDarkness.Bootstrap
 
             if (settings.ShowStartMenu || settings.ShowFlowGuide && settings.ShowOpeningNarrative)
                 gameObject.AddComponent<PlayableOpeningSequence3D>().Initialize(manager, settings);
-
-            EnsureRequiredWorldSpacePorts(gameObject, manager, settings);
 
             Debug.Log("[PlayableGameBootstrap] 可游玩流程已接入 ZFramework 启动场景。", this);
         }

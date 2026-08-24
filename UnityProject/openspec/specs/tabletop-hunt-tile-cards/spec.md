@@ -47,3 +47,14 @@ The terrain card SHALL remain presentable when a revealed tile has no configured
 #### Scenario: A revealed tile has no config
 - **WHEN** the View receives a revealed tile with missing configuration
 - **THEN** the front uses a neutral unknown-terrain label and the flip completes without an exception
+
+### Requirement: Encounter markers are idempotent presentation state
+The Hunt map View SHALL maintain at most one Boss encounter marker for each coordinate and SHALL remove its marker when that tile no longer qualifies for presentation.
+
+#### Scenario: A revealed Boss tile is refreshed repeatedly
+- **WHEN** the same authoritative tile state is presented more than once
+- **THEN** the tile contains exactly one Boss marker
+
+#### Scenario: A coordinate is rebuilt without a visible Boss encounter
+- **WHEN** the View presents that coordinate as hidden or without a Boss encounter
+- **THEN** its previous Boss marker is removed without changing gameplay state

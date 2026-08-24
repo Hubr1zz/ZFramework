@@ -26,9 +26,15 @@ The normal playable bootstrap SHALL present continue, new campaign, overwrite co
 ### Requirement: Opening presentation owns the visible tabletop
 The opening sequence SHALL hide the active phase presentation root until the player loads a campaign or completes the opening narrative.
 
+The playable bootstrap SHALL install the world-space event input before activating `GameManager`, so an initial settlement event can suspend for physical-card input instead of selecting an option automatically.
+
 #### Scenario: A settlement event is already waiting for input
 - **WHEN** the opening sequence is visible
 - **THEN** the settlement ActionQueue may remain suspended, but its cards and the settlement table are not simultaneously visible or interactable
+
+#### Scenario: The initial settlement event starts on the first frame
+- **WHEN** `GameManager` enters Settlement and queues the first annual event
+- **THEN** a world-space event input already exists and the event waits for the player's physical-card decision
 
 #### Scenario: The opening sequence completes
 - **WHEN** a save loads successfully or the player accepts the opening narrative

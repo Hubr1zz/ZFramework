@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 3,
+  "capability": "tabletop-hunt-tile-cards",
+  "title": "3D 狩猎地形卡翻面",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "地形卡继续消费权威地图状态；Boss encounter 标记改为按坐标维护的幂等 View 投影，重复刷新不会持续创建球体。",
+    "evidence": [
+      "Unity CLI EditMode: 588/588 passed",
+      "HuntMapVisualizer bossMarkers lifecycle inspection"
+    ],
+    "differences": [
+      "Boss 标记只属于当前 Hunt View，不保存为独立规则状态；本阶段未推进 BossFight 或 Showdown 玩法。"
+    ],
+    "verifiedAt": "2026-08-24T05:11:33-07:00",
+    "codeEvidence": [
+      {
+        "guid": "e438b7e087c13ce4ca8653a1701f8f0a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
+        "line": 1,
+        "fileHash": "40bf9ca7175ecf2d927c2cc8c49dbd770688b71b93998fdac12f165f118ec859",
+        "status": "verified",
+        "checkedAt": "2026-08-24T05:11:33-07:00",
+        "feature": "按地块坐标创建、复用和移除 BossMarker，并在地图 View 清理时释放索引。"
+      }
+    ]
+  },
+  "implementationOutline": [
+    "HuntMapVisualizer 在每次地块状态投影时统一调用 UpdateBossMarker。",
+    "已存在的坐标标记直接复用；不再显示时先失活并销毁。",
+    "ClearVisuals 先失活旧地块再延迟销毁，并同步清空标记索引，避免重复 Init 的同帧交互与渲染重叠。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "hunt-map-generation",
+    "hunt-map-presentation-queue"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs:1"
+  ]
+}

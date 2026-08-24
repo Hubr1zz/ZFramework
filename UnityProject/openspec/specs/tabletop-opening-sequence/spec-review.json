@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 3,
+  "capability": "tabletop-opening-sequence",
+  "title": "3D 桌面开场序列",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "正式组合根会在激活 GameManager 前安装世界空间事件与出猎输入；首次营地事件即使在首帧启动，也会等待实体卡输入而不是走无输入自动选择。",
+    "evidence": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorldSpacePortInstallerTests.cs",
+      "Unity CLI EditMode: 588/588 passed"
+    ],
+    "differences": [
+      "验证覆盖 inactive GameManager 的端口注册与完整 EditMode 套件；真实场景首帧 PlayMode 自动化留作后续组合根 smoke。"
+    ],
+    "verifiedAt": "2026-08-24T05:11:33-07:00",
+    "codeEvidence": [
+      {
+        "guid": "3036f45e4a7fd284caf46b4750249551",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs",
+        "line": 1,
+        "fileHash": "6b6f81a075eb3048a1b40c9ca5b4642ae5c0318f535fc95dce5c227f22601d54",
+        "status": "verified",
+        "checkedAt": "2026-08-24T05:11:33-07:00",
+        "feature": "在 GameManager 激活和首批 Settlement Action 入队前安装必需的世界空间输入端口。"
+      },
+      {
+        "guid": "71235a96b1d644968d2d3c3bf1c6b6fc",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorldSpacePortInstallerTests.cs",
+        "line": 1,
+        "fileHash": "8802e46c0c8b595354544d89c3a0d69d68b96cf206b6910712830834e47bfa19",
+        "status": "verified",
+        "checkedAt": "2026-08-24T05:11:33-07:00",
+        "feature": "验证 inactive GameManager 可幂等取得唯一事件和出猎端口。"
+      }
+    ]
+  },
+  "implementationOutline": [
+    "PlayableGameBootstrap 先完成设置和世界空间端口注入，再激活 GameManager。",
+    "PlayableSettlementEventView 继续作为 IPlayableEventInput，仅返回玩家选择，不提交规则状态。",
+    "开场序列可隐藏已等待输入的营地表现，完成后恢复当前阶段桌面。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "tengine-startup-lifecycle",
+    "game-manager-orchestration",
+    "tabletop-event-interaction"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs:1"
+  ]
+}

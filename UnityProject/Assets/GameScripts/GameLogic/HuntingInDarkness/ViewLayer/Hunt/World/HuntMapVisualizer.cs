@@ -41,6 +41,7 @@ namespace HuntingInDarkness.Hunt
         private HuntManager _huntMgr;
         private readonly Dictionary<Vector2Int, GameObject> _tileObjects = new();
         private readonly Dictionary<Vector2Int, Renderer>   _tileRenderers = new();
+        private readonly Dictionary<Vector2Int, GameObject> bossMarkers = new();
         private readonly Dictionary<Vector2Int, List<PlayableHuntResourceMarker3D>> resourceMarkers = new();
         private PlayableHuntSquadPawn3D squadPawn;
         private PlayableHuntMapIntroCamera3D mapIntroCamera;
@@ -146,9 +147,7 @@ namespace HuntingInDarkness.Hunt
             rend.material.color = c;
             _tileObjects[coord].GetComponent<PlayableHexTileCard3D>()?.Present(tile, state);
 
-            // 浮动标记（已翻开且有 Boss 遭遇）
-            if (state == TileState.Revealed && tile.HasBossEncounter)
-                AddBossMarker(coord);
+            UpdateBossMarker(coord, state == TileState.Revealed && tile.HasBossEncounter);
 
             // 资源点标记
             if (state == TileState.Revealed && tile.ResourcePoints.Count > 0)
@@ -247,10 +246,19 @@ namespace HuntingInDarkness.Hunt
             resourceMarkers[coord] = markers;
         }
 
-        private void AddBossMarker(Vector2Int coord)
+        private void UpdateBossMarker(Vector2Int coord, bool visible)
         {
-            var parent = _tileObjects[coord];
-            var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            if (!visible)
+            {
+                if (!bossMarkers.Remove(coord, out GameObject existingMarker) || existingMarker == null) return;
+                existingMarker.SetActive(false);
+                Destroy(existingMarker);
+                return;
+            }
+            if (bossMarkers.TryGetValue(coord, out GameObject marker) && marker != null) return;
+            if (!_tileObjects.TryGetValue(coord, out GameObject parent) || parent == null) return;
+
+            marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             marker.name = "BossMarker";
             marker.transform.SetParent(parent.transform);
             marker.transform.localPosition = new Vector3(0f, 0.32f, 0f);
@@ -258,6 +266,7 @@ namespace HuntingInDarkness.Hunt
             marker.GetComponent<Renderer>().material = new Material(Shader.Find("Standard"));
             marker.GetComponent<Renderer>().material.color = BossMarkerColor;
             Destroy(marker.GetComponent<Collider>());
+            bossMarkers[coord] = marker;
         }
 
         // ─── 清理 ─────────────────────────────────────────────────
@@ -275,7 +284,12 @@ namespace HuntingInDarkness.Hunt
                 _huntMgr.OnSquadMoved = null;
             if (_huntMgr != null && _huntMgr.OnResourcePointHarvested == OnResourcePointHarvested)
                 _huntMgr.OnResourcePointHarvested = null;
-            foreach (var go in _tileObjects.Values) if (go != null) Destroy(go);
+            foreach (GameObject tileObject in _tileObjects.Values)
+                if (tileObject != null)
+                {
+                    tileObject.SetActive(false);
+                    Destroy(tileObject);
+                }
             if (squadPawn != null)
             {
                 squadPawn.gameObject.SetActive(false);
@@ -283,6 +297,7 @@ namespace HuntingInDarkness.Hunt
             }
             _tileObjects.Clear();
             _tileRenderers.Clear();
+            bossMarkers.Clear();
             resourceMarkers.Clear();
             squadPawn = null;
         }
