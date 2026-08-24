@@ -12,7 +12,7 @@ namespace HuntingInDarkness.ActionFlow.Events
 
     public readonly struct PlayableEventEffectResult
     {
-        public PlayableEventEffectResult(int effectIndex, EventEffect effect, PlayableEventEffectStatus status, string reason, string eventId = "")
+        public PlayableEventEffectResult(int effectIndex, EventEffect effect, PlayableEventEffectStatus status, string reason, string eventId = "", string resolvedTargetId = "", int targetActorId = 0, bool stateChanged = false)
         {
             EventId = eventId ?? string.Empty;
             EffectIndex = effectIndex;
@@ -20,6 +20,9 @@ namespace HuntingInDarkness.ActionFlow.Events
             TargetName = effect?.targetName ?? string.Empty;
             Status = status;
             Reason = reason ?? string.Empty;
+            ResolvedTargetId = resolvedTargetId ?? string.Empty;
+            TargetActorId = targetActorId;
+            StateChanged = stateChanged;
         }
 
         public string EventId { get; }
@@ -28,6 +31,9 @@ namespace HuntingInDarkness.ActionFlow.Events
         public string TargetName { get; }
         public PlayableEventEffectStatus Status { get; }
         public string Reason { get; }
+        public string ResolvedTargetId { get; }
+        public int TargetActorId { get; }
+        public bool StateChanged { get; }
         public bool Succeeded => Status == PlayableEventEffectStatus.Applied;
     }
 
@@ -57,5 +63,14 @@ namespace HuntingInDarkness.ActionFlow.Events
         public int FailedCount { get; }
         public bool HasFailures => FailedCount > 0;
         public bool Succeeded => FailedCount == 0;
+    }
+
+    public struct HunterSymptomAcquiredEvent
+    {
+        public string SourceEventId;
+        public int EffectIndex;
+        public int HunterId;
+        public string SymptomId;
+        public string SymptomName;
     }
 }

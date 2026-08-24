@@ -114,7 +114,7 @@ namespace HuntingInDarkness.Settlement
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (gameEvent.immediateEffects != null)
                 for (int effectIndex = 0; effectIndex < gameEvent.immediateEffects.Count; effectIndex++)
-                    effectResults.Add(ApplyEffect(gameEvent.immediateEffects[effectIndex], actor, actor, encounterIds, resourceCommand, effectIndex, gameEvent.name));
+                    effectResults.Add(ApplyEffect(gameEvent.immediateEffects[effectIndex], actor, actor, encounterIds, resourceCommand, effectIndex, gameEvent.ContentId));
             if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (!captureEncounterRequests)
@@ -167,7 +167,7 @@ namespace HuntingInDarkness.Settlement
                 RecordEncounter(evt.combatEncounterId, encounterIds);
             if (effects != null)
                 for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
-                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, null, effectIndex, evt.name));
+                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, null, effectIndex, evt.ContentId));
             if (evt.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(evt.combatEncounterId, encounterIds);
             bool campaignEnded = _settlement.GetAliveHunters().Count == 0;
@@ -283,6 +283,15 @@ namespace HuntingInDarkness.Settlement
                     return FailedEffect(effectIndex, effect, reason, eventId);
                 return SucceededEffect(effectIndex, effect, eventId);
             }
+            if (effect.effectType == EventEffectType.AddAilment)
+            {
+                HunterInstance actor = target ?? eventActor;
+                if (actor == null || !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))
+                    return FailedEffect(effectIndex, effect, "事件没有属于当前营地的猎人执行者。", eventId);
+                if (!PlayableSymptomRuntime.TryAcquire(actor, effect.targetName, out SymptomDefinition definition, out bool added, out string reason))
+                    return FailedEffect(effectIndex, effect, reason, eventId);
+                return SucceededEffect(effectIndex, effect, eventId, definition.Id, actor.InstanceId, added);
+            }
 
             if (resourceCommand != null && (effect.effectType == EventEffectType.AddResource || effect.effectType == EventEffectType.RemoveResource))
             {
@@ -322,8 +331,6 @@ namespace HuntingInDarkness.Settlement
                 _settlement.SpendResource,
                 _settlement.UnlockInvention);
 
-            if (outcome.Handled && effect.effectType == EventEffectType.AddAilment)
-                PlayableSymptomRuntime.SynchronizeHunter(eventActor);
             if (outcome.Handled && (effect.effectType == EventEffectType.AddCourage || effect.effectType == EventEffectType.AddUnderstanding))
                 PlayableGrowthMilestoneRuntime.Synchronize(_settlement);
             if (outcome.Handled && effect.effectType == EventEffectType.UnlockInvention)
@@ -353,6 +360,8 @@ namespace HuntingInDarkness.Settlement
         }
 
         private static PlayableEventEffectResult SucceededEffect(int effectIndex, EventEffect effect, string eventId) => new(effectIndex, effect, PlayableEventEffectStatus.Applied, string.Empty, eventId);
+
+        private static PlayableEventEffectResult SucceededEffect(int effectIndex, EventEffect effect, string eventId, string resolvedTargetId, int targetActorId, bool stateChanged) => new(effectIndex, effect, PlayableEventEffectStatus.Applied, string.Empty, eventId, resolvedTargetId, targetActorId, stateChanged);
 
         private static PlayableEventEffectResult FailedEffect(int effectIndex, EventEffect effect, string reason, string eventId) => new(effectIndex, effect, PlayableEventEffectStatus.Failed, reason, eventId);
 

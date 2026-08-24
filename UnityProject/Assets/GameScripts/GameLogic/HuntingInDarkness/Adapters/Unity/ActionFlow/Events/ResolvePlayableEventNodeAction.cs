@@ -6,6 +6,7 @@ using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 
 namespace HuntingInDarkness.ActionFlow.Events
@@ -195,6 +196,8 @@ namespace HuntingInDarkness.ActionFlow.Events
 
         private void PublishCommitCheckpoint(PlayableEventCommitKind kind, HunterInstance actor, IReadOnlyList<EventData> chainedEvents = null)
         {
+            if (kind == PlayableEventCommitKind.Resolution)
+                StageSymptomFacts();
             var chainedEventIds = new List<string>();
             if (chainedEvents != null)
                 foreach (EventData chainedEvent in chainedEvents)
@@ -204,6 +207,16 @@ namespace HuntingInDarkness.ActionFlow.Events
                 }
             stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.ContentId, actor?.InstanceId ?? 0, chainedEventIds));
             eventOutbox.PublishCheckpoint();
+        }
+
+        private void StageSymptomFacts()
+        {
+            foreach (PlayableEventEffectResult effect in EffectResults.Effects)
+            {
+                if (!effect.Succeeded || !effect.StateChanged || effect.EffectType != EventEffectType.AddAilment || effect.TargetActorId <= 0 || string.IsNullOrWhiteSpace(effect.ResolvedTargetId)) continue;
+                string symptomName = PlayableSymptomRuntime.Catalog != null && PlayableSymptomRuntime.Catalog.TryGetById(effect.ResolvedTargetId, out SymptomDefinition definition) ? definition.DisplayName : string.Empty;
+                eventOutbox.Stage(new HunterSymptomAcquiredEvent { SourceEventId = effect.EventId, EffectIndex = effect.EffectIndex, HunterId = effect.TargetActorId, SymptomId = effect.ResolvedTargetId, SymptomName = symptomName });
+            }
         }
     }
 }

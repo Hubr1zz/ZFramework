@@ -127,7 +127,7 @@ namespace HuntingInDarkness.Settlement
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (effects != null)
                 for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
-                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, resourceCommand, effectIndex, gameEvent.name));
+                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, resourceCommand, effectIndex, gameEvent.ContentId));
             if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             bool campaignEnded = _settlement.GetAliveHunters().Count == 0;

@@ -52,3 +52,13 @@ Settlement ActionQueue SHALL 在执行时重新核对猎人归属、症状内容
 - **WHEN** `PlayableGameBootstrap` 建立可游玩营地桌面
 - **THEN** 症状 SHALL 只通过猎人装备桌的世界空间入口与症状板呈现
 - **AND** 不得创建旧 `PlayableSymptomGrowthView`
+
+### Requirement: 症状板读取事件写入的同一权威状态
+
+事件获得、旧存档迁移、内化与克服 SHALL 共用猎人的稳定症状状态；兼容用旧症状名称只作为显示投影，不得成为第二份规则状态。
+
+#### Scenario: 事件为猎人添加症状
+
+- **WHEN** 所属阶段事件节点提交一个新的稳定症状状态
+- **THEN** 下一次刷新猎人装备桌时 SHALL 出现该症状的世界空间入口与卡牌
+- **AND** 无需额外同步到独立 UI 状态

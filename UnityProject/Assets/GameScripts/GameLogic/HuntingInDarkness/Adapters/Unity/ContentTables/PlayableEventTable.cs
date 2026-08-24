@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Content;
 using HuntingInDarkness.GameCore.Settlement;
+using HuntingInDarkness.Settlement;
 using UnityEngine;
 
 namespace HuntingInDarkness.ContentTables
@@ -111,12 +112,14 @@ namespace HuntingInDarkness.ContentTables
         private const string HuntTablePath = "HuntingInDarkness/Tables/hunt-events";
         private static List<EventTableRecord> cachedRecords;
         private static List<EventData> cachedEvents;
+        private static PlayableSymptomCatalog cachedSymptomCatalog;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
             cachedRecords = null;
             cachedEvents = null;
+            cachedSymptomCatalog = null;
         }
 
         public static void Extend(IReadOnlyList<EventData> baseRandomEvents, IReadOnlyList<EventData> baseMainStoryEvents, out List<EventData> randomEvents, out List<EventData> mainStoryEvents)
@@ -158,7 +161,7 @@ namespace HuntingInDarkness.ContentTables
 
         public static IReadOnlyList<EventData> GetEvents()
         {
-            if (cachedEvents != null && cachedEvents.TrueForAll(gameEvent => gameEvent != null))
+            if (cachedEvents != null && cachedEvents.TrueForAll(gameEvent => gameEvent != null) && ReferenceEquals(cachedSymptomCatalog, PlayableSymptomRuntime.Catalog))
                 return cachedEvents;
 
             if (cachedRecords == null)
@@ -201,6 +204,7 @@ namespace HuntingInDarkness.ContentTables
                 BindEventChains(gameEvent, validRecords[eventId], eventsById);
                 cachedEvents.Add(gameEvent);
             }
+            cachedSymptomCatalog = PlayableSymptomRuntime.Catalog;
             return cachedEvents;
         }
 
@@ -349,6 +353,8 @@ namespace HuntingInDarkness.ContentTables
                 if (effectType == EventEffectType.ScheduleEvent && !DelayedEventRules.TryCreatePlan(1, record.value, record.targetName, out _, out _))
                     return false;
                 if (effectType == EventEffectType.ActivateBloodline && !PlayableBloodlineRuntime.Content.TryGet(record.targetName, out _))
+                    return false;
+                if (effectType == EventEffectType.AddAilment && (PlayableSymptomRuntime.Catalog == null || !PlayableSymptomRuntime.Catalog.TryGetById(record.targetName, out _)))
                     return false;
                 if (effectType == EventEffectType.KillHunter && (!allowHunterDeath || !IsValidHunterDeathCauseId(record.targetName)))
                     return false;

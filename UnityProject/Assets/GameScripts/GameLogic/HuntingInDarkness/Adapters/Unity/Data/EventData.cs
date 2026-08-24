@@ -144,7 +144,7 @@ namespace HuntingInDarkness.Data
     public class EventEffect
     {
         public EventEffectType effectType = EventEffectType.AddResource;
-        public string          targetName = ""; // 兼容字段；资源/发明等跨内容引用保存稳定 ContentId
+        public string          targetName = ""; // 兼容字段；AddAilment 等跨内容引用保存稳定 ContentId，显示名仅用于旧内容迁移
         public int             value      = 1;
         [TextArea] public string description = "";
     }

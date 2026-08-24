@@ -24,13 +24,17 @@ MonoBehaviour:
     successText: "\u4F60\u4EEC\u8D76\u5728\u96FE\u5899\u5408\u62E2\u524D\u51B2\u4E86\u51FA\u53BB\u3002"
     successEffects: []
     successChain: []
-    failText: "\u96FE\u4E2D\u7684\u811A\u6B65\u8FFD\u4E86\u5F88\u4E45\u3002\u538B\u6291
-      +1\u3002"
+    failText: "\u96FE\u4E2D\u7684\u811A\u6B65\u8FFD\u4E86\u5F88\u4E45\uFF0C\u9ED1\u6697\u4ECE\u6B64\u7559\u5728\u4E86\u5FC3\u91CC\u3002\u538B\u6291
+      +1\uFF0C\u83B7\u5F97\u75C7\u72B6\u201C\u80C6\u602F\u201D\u3002"
     failEffects:
     - effectType: 5
       targetName: selected
       value: 1
       description: "\u538B\u6291 +1"
+    - effectType: 9
+      targetName: symptom_cowardice
+      value: 1
+      description: "\u83B7\u5F97\u75C7\u72B6\u201C\u80C6\u602F\u201D"
     failChain: []
     alwaysAvailable: 1
   - optionText: "\u505C\u4E0B\u8FA8\u8BA4\u83CC\u4E1D\u7684\u751F\u957F\u65B9\u5411"

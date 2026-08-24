@@ -233,6 +233,13 @@
       "specPath": "openspec/specs/event-effect-resolution-reporting/spec.md"
     },
     {
+      "id": "event-driven-hunter-symptom-acquisition",
+      "label": "事件驱动猎人症状获得",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/event-driven-hunter-symptom-acquisition/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -1012,6 +1019,46 @@
       "type": "requires",
       "status": "defined",
       "reason": "危险牌从冻结的年度可用狩猎事件池按稳定 ID 与内容权重选择事件",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-symptom-acquisition--requires--event-effect-resolution-reporting",
+      "from": "event-driven-hunter-symptom-acquisition",
+      "to": "event-effect-resolution-reporting",
+      "type": "requires",
+      "status": "defined",
+      "reason": "症状效果通过有序效果结果暴露稳定目标、猎人和幂等状态变化",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-symptom-acquisition--requires--table-driven-hunt-events",
+      "from": "event-driven-hunter-symptom-acquisition",
+      "to": "table-driven-hunt-events",
+      "type": "requires",
+      "status": "defined",
+      "reason": "狩猎事件表以稳定症状 ID 配置获得效果并在装配时校验",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-symptom-acquisition--requires--tabletop-settlement-symptoms",
+      "from": "event-driven-hunter-symptom-acquisition",
+      "to": "tabletop-settlement-symptoms",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件写入的权威症状状态由现有猎人卡与世界空间症状板呈现和成长",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-symptom-acquisition--requires--tabletop-event-interaction",
+      "from": "event-driven-hunter-symptom-acquisition",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地与狩猎复用统一世界空间事件选择、随机表现和结果确认流程",
       "gapId": "",
       "blocksImplementation": false
     }
