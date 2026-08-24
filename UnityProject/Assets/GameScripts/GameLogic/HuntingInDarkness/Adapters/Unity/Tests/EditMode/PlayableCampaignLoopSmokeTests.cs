@@ -94,6 +94,22 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void DevelopmentRosterRequiresOneToFourAvailableHunters()
+        {
+            var settlement = new SettlementInstance();
+            Assert.That(PlayableCampaignLoopContract.TryResolveDevelopmentRoster(settlement, out _, out _), Is.False);
+
+            for (int index = 0; index < DepartureRules.MaximumHunters; index++)
+                settlement.Hunters.Add(new HunterInstance(null, 5200 + index) { Name = $"开发猎人 {index}", IsAlive = true });
+            Assert.That(PlayableCampaignLoopContract.TryResolveDevelopmentRoster(settlement, out List<HunterInstance> validRoster, out string reason), Is.True, reason);
+            Assert.That(validRoster, Has.Count.EqualTo(DepartureRules.MaximumHunters));
+
+            settlement.Hunters.Add(new HunterInstance(null, 5299) { Name = "超额猎人", IsAlive = true });
+            Assert.That(PlayableCampaignLoopContract.TryResolveDevelopmentRoster(settlement, out List<HunterInstance> oversizedRoster, out _), Is.False);
+            Assert.That(oversizedRoster, Is.Empty);
+        }
+
+        [Test]
         public void ReturnCheckpointRejectsDifferentRecordWithoutClearingState()
         {
             var pending = new HuntRecord { RecordId = "pending", Year = 1 };

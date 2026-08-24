@@ -6,36 +6,37 @@
   "readiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "营地编队准备、狩猎进入、撤退回营、年度结算和下一年再次出发已由生产 Runner 与原子入口契约组成闭环；权威入口拒绝陈旧或非法编队，初始化失败会回滚并保留可重试状态。",
+    "summary": "营地编队准备、狩猎进入、撤退回营、年度结算和下一年再次出发已由生产 Runner 与原子入口契约组成闭环；权威入口及开发回退均拒绝不可玩编队，初始化失败会回滚并保留可重试状态。",
     "evidence": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignLoopSmokeTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementDepartureActionTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntRetreatActionTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs"
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
+      "Unity CLI EditMode: 598/598 passed"
     ],
     "differences": [
       "当前闭环验证使用生产协调契约与真实 Settlement/Hunt Runner 的 EditMode 组合 smoke；完整 GameManager 场景级 PlayMode 端到端测试可在场景依赖稳定后补充。",
-      "显式 devStartPhase=Hunt 仍允许开发启动时回退到全部可用猎人，但运行期 Settlement 到 Hunt 的权威转换不允许该回退。"
+      "显式 devStartPhase=Hunt 仅在当前存在 1 至 4 名可用猎人时允许开发回退；运行期 Settlement 到 Hunt 的权威转换不允许该回退。"
     ],
-    "verifiedAt": "2026-08-24T04:15:00-07:00",
+    "verifiedAt": "2026-08-24T06:00:29-07:00",
     "codeEvidence": [
       {
         "guid": "245d7a41004f432faff9c725577de9ab",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignLoopContract.cs",
         "line": 1,
-        "fileHash": "4955aad908530048d52d76c35f2c12169adae8fc76995339b1d74280d2d7e1b5",
+        "fileHash": "ca64c6785d9ed19db1786020d35dd9aa0a306a8c97eb696ba9643e36b66d9efd",
         "status": "verified",
-        "checkedAt": "2026-08-24T04:15:00-07:00",
-        "feature": "以一次性运行期令牌验证、冻结、提交或回滚出猎编队，并按稳定回营记录清理检查点。"
+        "checkedAt": "2026-08-24T06:00:29-07:00",
+        "feature": "以一次性运行期令牌验证、冻结、提交或回滚出猎编队，校验开发回退规模，并按稳定回营记录清理检查点。"
       },
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "05c4ac68851582bc8a0c71dbbaefa66e42219f2917f88b3a736870607669b539",
+        "fileHash": "15b28676a090081420665dfdf7c50e08113293b8ca337eb9c10aecfcff6a90d8",
         "status": "verified",
-        "checkedAt": "2026-08-24T04:15:00-07:00",
-        "feature": "把权威编队契约接入阶段转换、失败回滚、开发启动和回营两阶段保存。"
+        "checkedAt": "2026-08-24T06:00:29-07:00",
+        "feature": "把权威编队契约接入阶段转换、失败回滚、受限开发启动和回营两阶段保存。"
       },
       {
         "guid": "93a36191e033ff6478260769df9c7a0c",
@@ -43,7 +44,7 @@
         "line": 1,
         "fileHash": "b997d4659b46766b4dea1d09d60a3c5315e679ace45f37f50472e8fd7ee6a3fd",
         "status": "verified",
-        "checkedAt": "2026-08-24T04:15:00-07:00",
+        "checkedAt": "2026-08-24T06:00:29-07:00",
         "feature": "营地 Runner 在准备事实提交时生成当前年份的一次性出猎授权。"
       },
       {
@@ -52,17 +53,17 @@
         "line": 1,
         "fileHash": "fddecbf91c534fe6e6b5db863fa0abc60ce2ee03826f2e7c7b171b24208d15c6",
         "status": "verified",
-        "checkedAt": "2026-08-24T04:15:00-07:00",
+        "checkedAt": "2026-08-24T06:00:29-07:00",
         "feature": "持久化准备年份与令牌身份，同时将本次进程授权保持为非序列化状态，阻止读档复用旧编队。"
       },
       {
         "guid": "8c7fe80a3b654b11bf50bef8a1277b28",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignLoopSmokeTests.cs",
         "line": 1,
-        "fileHash": "f435de8216696c7f9223c10fac010b779ce500ff780aa29a5270ab9668385e0d",
+        "fileHash": "4a46279d75971dd34d765f90286ceab78c15e5964eec44ae4b64154cb8f4fa3f",
         "status": "verified",
-        "checkedAt": "2026-08-24T04:15:00-07:00",
-        "feature": "覆盖完整年度循环、非法编队、错误记录、初始化失败回滚与读档陈旧令牌。"
+        "checkedAt": "2026-08-24T06:00:29-07:00",
+        "feature": "覆盖完整年度循环、非法编队、开发回退边界、错误记录、初始化失败回滚与读档陈旧令牌。"
       }
     ]
   },

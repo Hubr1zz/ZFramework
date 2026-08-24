@@ -42,12 +42,18 @@ Settlement Runner SHALL 为名册提交当前年份、持久 preparation token �
 
 ### Requirement: Development Hunt boot is an explicit exception
 
-仅 devStartPhase 直接启动 Hunt、且未经过 Settlement 到 Hunt 转换时，组合根 MAY 使用全部可用猎人作为开发回退。该回退 SHALL NOT 放宽正式运行时转换门禁。
+仅 devStartPhase 直接启动 Hunt、且未经过 Settlement 到 Hunt 转换时，组合根 MAY 使用全部可用猎人作为开发回退。开发回退仍 SHALL 满足 1 至 4 名当前可用猎人的基础编队规则；该回退 SHALL NOT 放宽正式运行时转换门禁。
 
 #### Scenario: The developer starts directly in Hunt
 
 - **WHEN** devStartPhase 被明确配置为 Hunt 且没有已提交名册
-- **THEN** Hunt MAY 使用当前全部可用猎人启动
+- **THEN** Hunt MAY 使用当前 1 至 4 名可用猎人启动
+
+#### Scenario: Development fallback roster is empty or oversized
+
+- **WHEN** devStartPhase 被明确配置为 Hunt，但当前可用猎人为 0 名或超过 4 名
+- **THEN** 开发回退 SHALL 拒绝创建不可玩的 Hunt runtime
+- **AND** 组合根 SHALL 回到 Settlement
 
 #### Scenario: Development Hunt runtime initialization fails
 

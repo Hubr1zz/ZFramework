@@ -587,7 +587,7 @@ namespace Core
                     reason = rosterReason;
                     return false;
                 }
-                hunters = _settlementManager?.Data.GetAvailableHunters() ?? new List<HunterInstance>();
+                if (!PlayableCampaignLoopContract.TryResolveDevelopmentRoster(_settlementManager?.Data, out hunters, out reason)) return false;
             }
             try
             {

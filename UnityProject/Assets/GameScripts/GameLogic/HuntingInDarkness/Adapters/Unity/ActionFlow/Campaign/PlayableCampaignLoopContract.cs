@@ -61,6 +61,18 @@ namespace HuntingInDarkness.ActionFlow.Campaign
             return true;
         }
 
+        public static bool TryResolveDevelopmentRoster(SettlementInstance settlement, out List<HunterInstance> hunters, out string reason)
+        {
+            hunters = settlement?.GetAvailableHunters() ?? new List<HunterInstance>();
+            var hunterIds = new List<int>(hunters.Count);
+            foreach (HunterInstance hunter in hunters)
+                if (hunter != null)
+                    hunterIds.Add(hunter.InstanceId);
+            if (DepartureRules.CanDepart(hunterIds, out reason)) return true;
+            hunters.Clear();
+            return false;
+        }
+
         internal static void CommitDepartureRoster(SettlementInstance settlement, IReadOnlyList<int> hunterIds)
         {
             if (settlement == null) throw new ArgumentNullException(nameof(settlement));
