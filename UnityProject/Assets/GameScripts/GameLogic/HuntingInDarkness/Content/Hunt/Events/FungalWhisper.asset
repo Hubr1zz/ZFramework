@@ -44,7 +44,7 @@ MonoBehaviour:
       \xD71\u3002"
     successEffects:
     - effectType: 0
-      targetName: "\u8611\u83C7\u8089"
+      targetName: mushroom_flesh
       value: 1
       description: "\u8611\u83C7\u8089 +1"
     successChain: []

@@ -15,7 +15,7 @@ MonoBehaviour:
   tileName: "\u8611\u83C7\u6797"
   tileType: 1
   description: "\u80A5\u539A\u7684\u83CC\u76D6\u6324\u6EE1\u9634\u6E7F\u5730\u9762\uFF0C\u8E29\u4E0B\u53BB\u65F6\u4F1A\u53D1\u51FA\u8FD1\u4F3C\u53F9\u606F\u7684\u58F0\u97F3\u3002"
-  tileRevealEvent: {fileID: 0}
+  tileRevealEvent: {fileID: 11400000, guid: cbb01204deae5a240b4f33db920cfcd5, type: 2}
   tileRule: "\u9002\u5408\u53D6\u5F97\u98DF\u6750\uFF0C\u4F46\u5BC6\u96C6\u83CC\u4E1D\u4F1A\u906E\u6321\u89C6\u91CE\u3002"
   spawnWeight: 3
   spawnInGroup: 0

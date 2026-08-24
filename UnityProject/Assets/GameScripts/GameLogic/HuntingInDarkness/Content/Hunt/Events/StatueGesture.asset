@@ -25,7 +25,7 @@ MonoBehaviour:
       \xD71\u3002"
     successEffects:
     - effectType: 0
-      targetName: "\u788E\u77F3"
+      targetName: broken_stone
       value: 1
       description: "\u788E\u77F3 +1"
     successChain: []

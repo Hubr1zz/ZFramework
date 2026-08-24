@@ -240,6 +240,13 @@
       "specPath": "openspec/specs/event-driven-hunter-symptom-acquisition/spec.md"
     },
     {
+      "id": "hunt-tile-reveal-events",
+      "label": "狩猎地块揭示事件",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-tile-reveal-events/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -1059,6 +1066,46 @@
       "type": "requires",
       "status": "defined",
       "reason": "营地与狩猎复用统一世界空间事件选择、随机表现和结果确认流程",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-tile-reveal-events--requires--hunt-phase-orchestration",
+      "from": "hunt-tile-reveal-events",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "地块翻牌提交、专属事件结算与相邻地块解锁由当前 Hunt Runner 串行拥有",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-tile-reveal-events--requires--tabletop-event-interaction",
+      "from": "hunt-tile-reveal-events",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "专属地块事件复用世界空间事件选择与实体随机交互端口",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-tile-reveal-events--requires--hunt-noise-risk-deck",
+      "from": "hunt-tile-reveal-events",
+      "to": "hunt-noise-risk-deck",
+      "type": "requires",
+      "status": "defined",
+      "reason": "显式地块事件与普通地块噪音牌堆互斥选择，保证两种生产内容入口同时存在",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-tile-reveal-events--requires--hunt-event-resource-staging",
+      "from": "hunt-tile-reveal-events",
+      "to": "hunt-event-resource-staging",
+      "type": "requires",
+      "status": "defined",
+      "reason": "地块事件资源奖励使用稳定物品 ID 并在正式回营前暂存为远征携带物",
       "gapId": "",
       "blocksImplementation": false
     }
