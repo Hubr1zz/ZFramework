@@ -51,6 +51,19 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Constructor_PreservesExhaustedSequenceFromMaximumPendingOccurrence()
+        {
+            var pending = new[] { new PlayableEventChainOccurrence(int.MaxValue, "existing", "existing", 1, 1) };
+            var queue = new PlayableEventChainOccurrenceQueue(64, pendingOccurrences: pending);
+
+            PlayableEventChainCommitResult result = queue.Commit(-1, new[] { "child" }, 2, 7);
+
+            Assert.That(result.AppendedOccurrences, Is.Empty);
+            Assert.That(result.Diagnostic, Does.Contain("序号"));
+            Assert.That(queue.PendingOccurrences, Has.Count.EqualTo(1));
+        }
+
+        [Test]
         public void SettlementAdapter_RoundTripsSchemaOneCheckpointThroughJsonUtility()
         {
             var settlement = new SettlementInstance();

@@ -19,18 +19,20 @@ namespace HuntingInDarkness.ActionFlow.Events
 
     public readonly struct PlayableEventCommitCheckpoint
     {
-        public PlayableEventCommitCheckpoint(PlayableEventCommitKind kind, string eventId, int actorId, IReadOnlyList<string> chainedEventIds = null)
+        public PlayableEventCommitCheckpoint(PlayableEventCommitKind kind, string eventId, int actorId, IReadOnlyList<string> chainedEventIds = null, IReadOnlyList<EventData> chainedEvents = null)
         {
             Kind = kind;
             EventId = eventId ?? string.Empty;
             ActorId = actorId;
             ChainedEventIds = chainedEventIds ?? Array.Empty<string>();
+            ChainedEvents = chainedEvents ?? Array.Empty<EventData>();
         }
 
         public PlayableEventCommitKind Kind { get; }
         public string EventId { get; }
         public int ActorId { get; }
         public IReadOnlyList<string> ChainedEventIds { get; }
+        public IReadOnlyList<EventData> ChainedEvents { get; }
     }
 
     /// <summary>跨阶段复用的单事件节点；阶段 Runner 只注入提交事实，不复制选择、重投与效果流程。</summary>
@@ -72,6 +74,22 @@ namespace HuntingInDarkness.ActionFlow.Events
         public IReactorEntity Target { get; }
 
         protected override async UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await ExecuteCoreAsync(context, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                return ActionOutcome.Failure(string.IsNullOrWhiteSpace(exception.Message) ? "事件节点执行失败" : exception.Message);
+            }
+        }
+
+        private async UniTask<ActionOutcome> ExecuteCoreAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
             eventOutbox.Stage(new GameEventTriggeredEvent { EventId = gameEvent.ContentId });
             eventOutbox.PublishCheckpoint();
@@ -205,7 +223,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                     string eventId = chainedEvent?.ContentId ?? string.Empty;
                     if (eventId.Length > 0) chainedEventIds.Add(eventId);
                 }
-            stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.ContentId, actor?.InstanceId ?? 0, chainedEventIds));
+            stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.ContentId, actor?.InstanceId ?? 0, chainedEventIds, chainedEvents));
             eventOutbox.PublishCheckpoint();
         }
 

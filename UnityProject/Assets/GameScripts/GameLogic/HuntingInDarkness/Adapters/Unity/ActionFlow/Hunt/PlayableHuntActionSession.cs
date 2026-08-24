@@ -25,8 +25,10 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly Func<PlayableHarvestTransaction, UniTask<PlayableHarvestStepResult>> advanceHarvestHandler;
         private readonly HashSet<PlayableHarvestTransaction> activeHarvests = new();
         private readonly Dictionary<ResourcePointInstance, ReactorEntityHandle> resourcePointHandles = new();
+        private readonly PlayableHuntEventOccurrenceStore occurrenceStore = new();
         private int nextResourcePointHandleId;
         private bool returnCheckpointLocked;
+        private bool gameplayLocked;
 
         public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, IActionEnvironmentInstallerRegistry installerRegistry = null)
         {
@@ -54,6 +56,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public bool IsActive => !environment.IsDisposed;
         public bool IsRunning => environment.IsRunning;
         public bool IsReturnCheckpointLocked => returnCheckpointLocked;
+        public bool HasPendingEventOccurrences => occurrenceStore.HasPendingOccurrences;
         public bool HasActiveHarvest
         {
             get
@@ -69,6 +72,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public async UniTask<HuntTileCommandResult> InteractTileAsync(Vector2Int coordinate)
         {
             if (!IsActive) return HuntTileCommandResult.Failed("狩猎会话已经结束");
+            if (gameplayLocked) return HuntTileCommandResult.Failed("遭遇事件正在等待交接，当前狩猎操作已暂停");
+            if (!await ResumePendingEventsAsync()) return HuntTileCommandResult.Failed("请先完成待恢复的狩猎事件");
             if (returnCheckpointLocked) return HuntTileCommandResult.Failed("回营检查点已锁定，请直接重试回营");
             if (HasActiveHarvest) return HuntTileCommandResult.Failed("请先完成或离开当前资源采集");
             HuntTileInteractionKind intendedKind = GetIntendedKind(coordinate);
@@ -76,7 +81,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             ReactorEntityHandle squad = environment.EntityHandles.GetOrCreate("hunt-squad", "active", "狩猎小队");
             ReactorEntityHandle tile = environment.EntityHandles.GetOrCreate("hunt-tile", $"{coordinate.x},{coordinate.y}", $"地块 {coordinate.x},{coordinate.y}");
             IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("hunt-event", gameEvent != null ? gameEvent.ContentId : "unknown", gameEvent != null ? gameEvent.eventName : "狩猎事件");
-            var action = new InteractHuntTileAction(manager, coordinate, intendedKind, SessionId, defaultEncounterId, destinationId, outbox, squad, tile, ResolveEventEntity, randomInteractionPresenter, tileInteractionPresenter);
+            var action = new InteractHuntTileAction(manager, coordinate, intendedKind, SessionId, defaultEncounterId, destinationId, outbox, squad, tile, ResolveEventEntity, randomInteractionPresenter, tileInteractionPresenter, occurrenceStore, LockEncounterHandoff);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (!outcome.IsSuccess) return string.IsNullOrWhiteSpace(action.Result.Reason) ? HuntTileCommandResult.Failed(outcome.Reason) : action.Result;
             return action.Result;
@@ -84,7 +89,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
         public async UniTask<PlayableHarvestTransaction> PrepareHarvestAsync(ResourcePointInstance point)
         {
-            if (!IsActive || returnCheckpointLocked || point == null) return null;
+            if (!IsActive || gameplayLocked || !await ResumePendingEventsAsync() || returnCheckpointLocked || point == null) return null;
             var outbox = new ActionEventOutbox();
             HunterInstance selectedHunter = manager.EnsureSelectedHunterAvailable();
             if (selectedHunter == null) return null;
@@ -105,6 +110,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public async UniTask<PlayableHarvestStepResult> AdvanceHarvestAsync(PlayableHarvestTransaction transaction)
         {
             if (!IsActive) return PlayableHarvestStepResult.Failed("狩猎会话已经结束");
+            if (gameplayLocked) return PlayableHarvestStepResult.Failed("遭遇事件正在等待交接，当前狩猎操作已暂停");
+            if (!await ResumePendingEventsAsync()) return PlayableHarvestStepResult.Failed("请先完成待恢复的狩猎事件");
             if (returnCheckpointLocked) return PlayableHarvestStepResult.Failed("回营检查点已锁定，请直接重试回营");
             if (transaction == null || !activeHarvests.Contains(transaction)) return PlayableHarvestStepResult.Failed("采集事务不属于当前狩猎会话");
             var outbox = new ActionEventOutbox();
@@ -122,6 +129,10 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         {
             if (!IsActive)
                 return HuntRetreatCommandResult.Failed("狩猎会话已经结束。");
+            if (gameplayLocked)
+                return HuntRetreatCommandResult.Failed("遭遇事件正在等待交接，当前狩猎操作已暂停。");
+            if (!await ResumePendingEventsAsync(cancellationToken))
+                return HuntRetreatCommandResult.Failed("请先完成待恢复的狩猎事件。");
             if (returnCheckpointLocked)
                 return HuntRetreatCommandResult.Failed("回营检查点已锁定，请复用原记录重试阶段切换。");
             if (HasActiveHarvest)
@@ -138,6 +149,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         }
 
         public void SetReturnCheckpointLock(bool locked) => returnCheckpointLocked = locked;
+        public void ReleaseEncounterHandoffLock() => gameplayLocked = false;
 
         public void Dispose()
         {
@@ -153,6 +165,26 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             resourcePointHandles.Clear();
             environment.Dispose();
         }
+
+        private async UniTask<bool> ResumePendingEventsAsync(CancellationToken cancellationToken = default)
+        {
+            while (occurrenceStore.HasPendingOccurrences)
+            {
+                if (!occurrenceStore.TryGetNextPending(out PlayableHuntEventOccurrence pending)) return false;
+                var outbox = new ActionEventOutbox();
+                ReactorEntityHandle squad = environment.EntityHandles.GetOrCreate("hunt-squad", "active", "狩猎小队");
+                ReactorEntityHandle tile = environment.EntityHandles.GetOrCreate("hunt-tile", $"{pending.Coordinate.x},{pending.Coordinate.y}", $"地块 {pending.Coordinate.x},{pending.Coordinate.y}");
+                IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("hunt-event", gameEvent != null ? gameEvent.ContentId : "unknown", gameEvent != null ? gameEvent.eventName : "狩猎事件");
+                var encounterAccumulator = new HuntEncounterAccumulator(SessionId, defaultEncounterId, destinationId);
+                var syntheticCommit = new HuntTileInteractionCommit(HuntTileInteractionKind.None, pending.Coordinate, null, null);
+                var action = new ResolveHuntTileEventAction(manager, syntheticCommit, default, outbox, encounterAccumulator, squad, tile, ResolveEventEntity, randomInteractionPresenter, occurrenceStore, pending, true, LockEncounterHandoff);
+                ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+                if (!outcome.IsSuccess || action.EncounterRequested) return false;
+            }
+            return true;
+        }
+
+        private void LockEncounterHandoff() => gameplayLocked = true;
 
         private void RemoveFinishedHarvests()
         {

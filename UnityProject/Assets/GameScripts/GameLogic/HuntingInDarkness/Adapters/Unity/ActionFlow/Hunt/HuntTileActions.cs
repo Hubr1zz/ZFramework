@@ -9,19 +9,21 @@ using HuntingInDarkness.Settlement;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Presentation;
+using HuntingInDarkness.Data;
 using UnityEngine;
 
 namespace HuntingInDarkness.ActionFlow.Hunt
 {
     public readonly struct HuntTileCommandResult
     {
-        private HuntTileCommandResult(bool succeeded, string reason, HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, PlayableEventEffectBatchResult effectResults)
+        private HuntTileCommandResult(bool succeeded, string reason, HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, PlayableEventEffectBatchResult effectResults, bool encounterRequested = false)
         {
             Succeeded = succeeded;
-            Reason = reason;
+            Reason = reason ?? string.Empty;
             Commit = commit;
             NoiseResolution = noiseResolution;
             EffectResults = effectResults;
+            EncounterRequested = encounterRequested;
         }
 
         public bool Succeeded { get; }
@@ -29,10 +31,12 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public HuntTileInteractionCommit Commit { get; }
         public PlayableHuntNoiseResolution NoiseResolution { get; }
         public PlayableEventEffectBatchResult EffectResults { get; }
+        public bool EncounterRequested { get; }
         public int FailedEffectCount => EffectResults.FailedCount;
         public static HuntTileCommandResult Success(HuntTileInteractionCommit commit) => Success(commit, default, PlayableEventEffectBatchResult.Empty);
-        public static HuntTileCommandResult Success(HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, PlayableEventEffectBatchResult effectResults) => new(true, string.Empty, commit, noiseResolution, effectResults);
+        public static HuntTileCommandResult Success(HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, PlayableEventEffectBatchResult effectResults, bool encounterRequested = false) => new(true, string.Empty, commit, noiseResolution, effectResults, encounterRequested);
         public static HuntTileCommandResult Failed(string reason) => new(false, reason, default, default, PlayableEventEffectBatchResult.Empty);
+        public static HuntTileCommandResult Failed(string reason, HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, PlayableEventEffectBatchResult effectResults) => new(false, reason, commit, noiseResolution, effectResults);
     }
 
     public struct HuntTileInteractionCommittedEvent
@@ -51,6 +55,13 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public PlayableEventCommitKind Kind;
     }
 
+    public struct HuntEventChainTruncatedEvent
+    {
+        public string SourceEventId;
+        public int PreventedChildCount;
+        public string Reason;
+    }
+
     /// <summary>一次地图点击的完整因果链：权威状态提交后，再进入可覆盖的地块事件窗口。</summary>
     public sealed class InteractHuntTileAction : CompositeGameAction, ISourceAction, ITargetAction
     {
@@ -62,6 +73,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly IHuntTileInteractionPresenter tileInteractionPresenter;
+        private readonly PlayableHuntEventOccurrenceStore occurrenceStore;
+        private readonly Action lockEncounterHandoff;
         private readonly Guid huntSessionId;
         private readonly string destinationId;
         private PrepareHuntNoiseAction noiseAction;
@@ -71,8 +84,10 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private bool eventScheduled;
         private bool finalizeScheduled;
         private bool noiseScheduled;
+        private bool eventFailed;
+        private string eventFailureReason;
 
-        public InteractHuntTileAction(HuntManager manager, Vector2Int coordinate, HuntTileInteractionKind intendedKind, Guid huntSessionId, string defaultEncounterId, string destinationId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null)
+        public InteractHuntTileAction(HuntManager manager, Vector2Int coordinate, HuntTileInteractionKind intendedKind, Guid huntSessionId, string defaultEncounterId, string destinationId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, PlayableHuntEventOccurrenceStore occurrenceStore = null, Action lockEncounterHandoff = null)
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.coordinate = coordinate;
@@ -81,6 +96,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             this.resolveEventEntity = resolveEventEntity ?? throw new ArgumentNullException(nameof(resolveEventEntity));
             this.randomInteractionPresenter = randomInteractionPresenter;
             this.tileInteractionPresenter = tileInteractionPresenter;
+            this.occurrenceStore = occurrenceStore ?? new PlayableHuntEventOccurrenceStore();
+            this.lockEncounterHandoff = lockEncounterHandoff;
             this.huntSessionId = huntSessionId;
             this.destinationId = destinationId ?? string.Empty;
             encounterAccumulator = new HuntEncounterAccumulator(huntSessionId, defaultEncounterId, destinationId);
@@ -115,8 +132,13 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             if (!eventScheduled)
             {
                 eventScheduled = true;
-                eventAction = new ResolveHuntTileEventAction(manager, commitAction.Commit, noiseAction.Resolution, eventOutbox, encounterAccumulator, Source, Target, resolveEventEntity, randomInteractionPresenter);
+                eventAction = new ResolveHuntTileEventAction(manager, commitAction.Commit, noiseAction.Resolution, eventOutbox, encounterAccumulator, Source, Target, resolveEventEntity, randomInteractionPresenter, occurrenceStore, lockEncounterHandoff: lockEncounterHandoff);
                 return eventAction;
+            }
+            if (!finalizeScheduled && eventAction != null && !context.LastOutcome.IsSuccess)
+            {
+                eventFailed = true;
+                eventFailureReason = context.LastOutcome.Reason;
             }
             if (!finalizeScheduled)
             {
@@ -134,9 +156,18 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 Result = HuntTileCommandResult.Failed(reason);
                 return ActionOutcome.Failure(reason);
             }
-            Result = HuntTileCommandResult.Success(commitAction.Commit, noiseAction?.Resolution ?? default, eventAction?.EffectResults ?? PlayableEventEffectBatchResult.Empty);
+            if (eventFailed)
+            {
+                string reason = string.IsNullOrWhiteSpace(eventFailureReason) ? "地块事件未完成" : eventFailureReason;
+                Result = HuntTileCommandResult.Failed(reason, commitAction.Commit, noiseAction?.Resolution ?? default, eventAction?.EffectResults ?? PlayableEventEffectBatchResult.Empty);
+                return ActionOutcome.Failure(reason);
+            }
+            Result = HuntTileCommandResult.Success(commitAction.Commit, noiseAction?.Resolution ?? default, eventAction?.EffectResults ?? PlayableEventEffectBatchResult.Empty, eventAction?.EncounterRequested == true || encounterAccumulator.HasRequest);
             if (encounterAccumulator.HasRequest)
+            {
+                lockEncounterHandoff?.Invoke();
                 eventOutbox.StageAfterCommit(new CampaignEncounterRequestedEvent { Request = encounterAccumulator.Request });
+            }
             return ActionOutcome.Success();
         }
     }
@@ -214,14 +245,20 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly HuntEncounterAccumulator encounterAccumulator;
         private readonly Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
-        private readonly Queue<HuntingInDarkness.Data.EventData> pendingEvents = new();
-        private readonly PlayableEventChainGuard chainGuard = new();
+        private readonly PlayableHuntEventOccurrenceStore occurrenceStore;
+        private readonly Queue<PlayableHuntEventOccurrence> pendingOccurrences = new();
         private SelectHuntTileEventAction selectAction;
         private ResolvePlayableEventNodeAction currentEntry;
+        private PlayableHuntEventOccurrence currentOccurrence;
         private bool selectionCollected;
+        private bool selectionScheduled;
+        private bool failure;
+        private string failureReason;
+        private readonly bool stageEncounterAfterCommit;
+        private readonly Action lockEncounterHandoff;
         private readonly List<PlayableEventEffectResult> effectResults = new();
 
-        internal ResolveHuntTileEventAction(HuntManager manager, HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
+        internal ResolveHuntTileEventAction(HuntManager manager, HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, PlayableHuntEventOccurrenceStore occurrenceStore = null, PlayableHuntEventOccurrence initialOccurrence = null, bool stageEncounterAfterCommit = false, Action lockEncounterHandoff = null)
         {
             this.manager = manager;
             this.commit = commit;
@@ -230,51 +267,108 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             this.encounterAccumulator = encounterAccumulator;
             this.resolveEventEntity = resolveEventEntity;
             this.randomInteractionPresenter = randomInteractionPresenter;
+            this.occurrenceStore = occurrenceStore ?? new PlayableHuntEventOccurrenceStore();
+            this.stageEncounterAfterCommit = stageEncounterAfterCommit;
+            this.lockEncounterHandoff = lockEncounterHandoff;
             Source = source;
             Target = target;
+            if (initialOccurrence != null)
+            {
+                selectionScheduled = true;
+                pendingOccurrences.Enqueue(initialOccurrence);
+            }
         }
 
         public HuntTileInteractionCommit Commit => commit;
         public PlayableEventEffectBatchResult EffectResults => new(effectResults);
+        public bool EncounterRequested => encounterAccumulator.HasRequest;
         public IReactorEntity Source { get; }
         public IReactorEntity Target { get; }
         protected override GameAction GetNextChild(CompositeExecutionContext context)
         {
-            if (context.CompletedCount == 0)
+            if (!selectionScheduled && pendingOccurrences.Count == 0)
             {
+                selectionScheduled = true;
                 selectAction = new SelectHuntTileEventAction(manager, commit, noiseResolution, Source, Target);
                 return selectAction;
             }
-            if (!selectionCollected)
+            if (selectAction != null && !selectionCollected)
             {
                 selectionCollected = true;
-                TryEnqueue(selectAction.SelectedEvent);
+                if (!occurrenceStore.TryScheduleRoot(selectAction.SelectedEvent, commit.Coordinate, manager.CurrentYear, manager.EnsureSelectedHunterAvailable()?.InstanceId ?? 0, out PlayableHuntEventOccurrence rootOccurrence))
+                {
+                    if (selectAction.SelectedEvent != null)
+                        eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = selectAction.SelectedEvent.ContentId });
+                }
+                else
+                    pendingOccurrences.Enqueue(rootOccurrence);
             }
             else if (currentEntry != null)
             {
+                if (!context.LastOutcome.IsSuccess)
+                {
+                    failure = true;
+                    failureReason = context.LastOutcome.Reason;
+                    currentEntry = null;
+                    return null;
+                }
                 effectResults.AddRange(currentEntry.EffectResults.Effects);
                 foreach (string encounterId in currentEntry.EncounterIds)
                     encounterAccumulator.TryAdd(encounterId, CampaignEncounterSourceKind.HuntEvent, commit.Coordinate, currentEntry.EventId);
                 if (encounterAccumulator.HasRequest)
                 {
+                    pendingOccurrences.Clear();
                     currentEntry = null;
                     return null;
                 }
-                foreach (HuntingInDarkness.Data.EventData chained in currentEntry.ChainedEvents)
-                    TryEnqueue(chained);
                 currentEntry = null;
             }
-            if (pendingEvents.Count == 0) return null;
-            HuntingInDarkness.Data.EventData nextEvent = pendingEvents.Dequeue();
-            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, manager.SelectedHunter, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand);
+            if (failure || pendingOccurrences.Count == 0) return null;
+            currentOccurrence = pendingOccurrences.Dequeue();
+            HuntingInDarkness.Data.EventData nextEvent = currentOccurrence.Event;
+            HunterInstance occurrenceActor = ResolveOccurrenceActor(currentOccurrence.Occurrence.ActorId);
+            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, occurrenceActor, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand);
             return currentEntry;
         }
 
-        protected override ActionOutcome Resolve(CompositeExecutionContext context) => ActionOutcome.Success();
+        protected override ActionOutcome Resolve(CompositeExecutionContext context)
+        {
+            if (!failure)
+            {
+                if (stageEncounterAfterCommit && encounterAccumulator.HasRequest)
+                {
+                    lockEncounterHandoff?.Invoke();
+                    eventOutbox.StageAfterCommit(new CampaignEncounterRequestedEvent { Request = encounterAccumulator.Request });
+                }
+                return ActionOutcome.Success();
+            }
+            string reason = string.IsNullOrWhiteSpace(failureReason) ? "狩猎事件未完成" : failureReason;
+            return ActionOutcome.Failure(reason);
+        }
 
         private void StageCommitCheckpoint(PlayableEventCommitCheckpoint checkpoint)
         {
             manager.EnsureSelectedHunterAvailable();
+            if (checkpoint.Kind == PlayableEventCommitKind.Resolution)
+            {
+                PlayableHuntEventOccurrenceCommitResult commitResult = occurrenceStore.Commit(currentOccurrence, checkpoint.ChainedEvents, manager.CurrentYear, checkpoint.ActorId);
+                foreach (string preventedEventId in commitResult.PreventedEventIds)
+                    eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = preventedEventId });
+                if (!commitResult.Succeeded)
+                {
+                    failure = true;
+                    failureReason = commitResult.Diagnostic;
+                }
+                else
+                {
+                    if (!string.IsNullOrWhiteSpace(commitResult.Diagnostic))
+                        eventOutbox.Stage(new HuntEventChainTruncatedEvent { SourceEventId = checkpoint.EventId, PreventedChildCount = commitResult.TruncatedChildCount, Reason = commitResult.Diagnostic });
+                    if (!encounterAccumulator.HasRequest)
+                        foreach (PlayableHuntEventOccurrence child in commitResult.AppendedOccurrences)
+                            pendingOccurrences.Enqueue(child);
+                }
+            }
+            if (failure) return;
             eventOutbox.Stage(new HuntEventNodeCommittedEvent
             {
                 Coordinate = commit.Coordinate,
@@ -284,15 +378,13 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             });
         }
 
-        private void TryEnqueue(HuntingInDarkness.Data.EventData gameEvent)
+        private HunterInstance ResolveOccurrenceActor(int actorId)
         {
-            if (gameEvent == null) return;
-            if (chainGuard.TrySchedule(gameEvent))
-            {
-                pendingEvents.Enqueue(gameEvent);
-                return;
-            }
-            eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = gameEvent.ContentId });
+            if (actorId > 0)
+                foreach (HunterInstance hunter in manager.ActiveHunters)
+                    if (hunter != null && hunter.InstanceId == actorId && hunter.IsAlive)
+                        return hunter;
+            return manager.EnsureSelectedHunterAvailable();
         }
     }
 

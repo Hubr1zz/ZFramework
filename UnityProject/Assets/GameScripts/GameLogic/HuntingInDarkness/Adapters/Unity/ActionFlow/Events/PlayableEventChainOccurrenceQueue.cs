@@ -46,6 +46,7 @@ namespace HuntingInDarkness.ActionFlow.Events
         private readonly HashSet<int> committedSequenceSet = new();
         private readonly List<PlayableEventChainOccurrence> pendingOccurrences = new();
         private int nextSequence;
+        private int nextRootSequence = -1;
         private string diagnostic;
 
         public PlayableEventChainOccurrenceQueue(int maxPendingOccurrences, int nextSequence = 1, IEnumerable<int> committedSequences = null, IEnumerable<PlayableEventChainOccurrence> pendingOccurrences = null, string diagnostic = null)
@@ -60,9 +61,12 @@ namespace HuntingInDarkness.ActionFlow.Events
             if (pendingOccurrences != null)
                 foreach (PlayableEventChainOccurrence occurrence in pendingOccurrences)
                 {
-                    if (occurrence.Sequence <= 0 || committedSequenceSet.Contains(occurrence.Sequence) || this.pendingOccurrences.Exists(candidate => candidate.Sequence == occurrence.Sequence)) continue;
+                    if (occurrence.Sequence == 0 || committedSequenceSet.Contains(occurrence.Sequence) || this.pendingOccurrences.Exists(candidate => candidate.Sequence == occurrence.Sequence)) continue;
                     this.pendingOccurrences.Add(occurrence);
-                    this.nextSequence = Math.Max(this.nextSequence, occurrence.Sequence + 1);
+                    if (occurrence.Sequence > 0)
+                        this.nextSequence = occurrence.Sequence == int.MaxValue || this.nextSequence == int.MaxValue ? int.MaxValue : Math.Max(this.nextSequence, occurrence.Sequence + 1);
+                    else
+                        this.nextRootSequence = occurrence.Sequence == int.MinValue ? int.MinValue : Math.Min(this.nextRootSequence, occurrence.Sequence - 1);
                 }
         }
 
@@ -71,6 +75,36 @@ namespace HuntingInDarkness.ActionFlow.Events
         public IReadOnlyList<PlayableEventChainOccurrence> PendingOccurrences => pendingOccurrences;
         public string Diagnostic => diagnostic;
         public bool HasPendingOccurrences => pendingOccurrences.Count > 0;
+
+        /// <summary>为当前 Action 根分配受限的负序号；正序号只保留给 commit 产生的 child occurrence。</summary>
+        public bool TryScheduleRoot(string eventId, string eventName, int year, int actorId, out PlayableEventChainOccurrence occurrence)
+        {
+            occurrence = default;
+            if (nextRootSequence == int.MinValue)
+            {
+                diagnostic = "事件链检查点根 occurrence 序号已耗尽。";
+                return false;
+            }
+            int sequence = nextRootSequence;
+            if (!TrySchedule(sequence, eventId, eventName, year, actorId, out occurrence)) return false;
+            nextRootSequence--;
+            return true;
+        }
+
+        public bool TrySchedule(int sequence, string eventId, string eventName, int year, int actorId, out PlayableEventChainOccurrence occurrence)
+        {
+            occurrence = default;
+            string normalizedEventId = eventId?.Trim() ?? string.Empty;
+            if (sequence == 0 || normalizedEventId.Length == 0 || committedSequenceSet.Contains(sequence) || pendingOccurrences.Exists(candidate => candidate.Sequence == sequence)) return false;
+            if (pendingOccurrences.Count >= maxPendingOccurrences)
+            {
+                diagnostic = $"事件链检查点超过待恢复 occurrence 上限 {maxPendingOccurrences}。";
+                return false;
+            }
+            occurrence = new PlayableEventChainOccurrence(sequence, normalizedEventId, eventName, year, actorId);
+            pendingOccurrences.Add(occurrence);
+            return true;
+        }
 
         public PlayableEventChainCommitResult Commit(int completedSequence, IReadOnlyList<string> childEventIds, int year, int actorId)
         {

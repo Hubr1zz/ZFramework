@@ -1407,9 +1407,24 @@ namespace Core
 
         private async UniTaskVoid BeginCampaignEncounterAsync(CampaignEncounterRequest request)
         {
-            CampaignEncounterStartResult result = await BeginEncounterAsync(request);
+            CampaignEncounterStartResult result;
+            try
+            {
+                result = await BeginEncounterAsync(request);
+            }
+            catch (System.Exception exception)
+            {
+                if ((request.SourceKind is CampaignEncounterSourceKind.HuntEvent or CampaignEncounterSourceKind.HuntBossTile) && huntActionSession?.SessionId == request.SourceSessionId)
+                    huntActionSession.ReleaseEncounterHandoffLock();
+                Debug.LogException(exception);
+                return;
+            }
             if (!result.Succeeded)
+            {
+                if ((request.SourceKind is CampaignEncounterSourceKind.HuntEvent or CampaignEncounterSourceKind.HuntBossTile) && huntActionSession?.SessionId == request.SourceSessionId)
+                    huntActionSession.ReleaseEncounterHandoffLock();
                 Debug.LogWarning($"[GameManager] 无法开始遭遇 {request.EncounterId}：{result.Reason}");
+            }
         }
 
         private void OnSettlementTransactionCommitted(SettlementTransactionCommittedEvent evt)

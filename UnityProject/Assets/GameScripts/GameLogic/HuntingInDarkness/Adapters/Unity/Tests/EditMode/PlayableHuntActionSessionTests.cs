@@ -79,7 +79,7 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public async Task EventReactor_PreventionKeepsRevealAndSkipsTileEvent()
+        public async Task EventReactor_PreventionKeepsRevealAndPreservesPendingOccurrence()
         {
             using var rig = new HuntRig();
             HexTileInstance target = rig.FirstInteractable;
@@ -95,14 +95,23 @@ namespace HuntingInDarkness.Adapter.Tests
             EventBus.Subscribe(committedHandler);
             try
             {
-                rig.Session.Reactors.RegisterGlobal(new PreventEventNodeReactor());
+                IDisposable prevention = rig.Session.Reactors.RegisterGlobal(new PreventEventNodeReactor());
 
                 HuntTileCommandResult result = await rig.Session.InteractTileAsync(target.AxialCoord);
 
-                Assert.That(result.Succeeded, Is.True);
+                Assert.That(result.Succeeded, Is.False);
                 Assert.That(target.State, Is.EqualTo(TileState.Revealed));
                 Assert.That(triggeredCount, Is.Zero);
                 Assert.That(committedCount, Is.Zero);
+                Assert.That(rig.Session.HasPendingEventOccurrences, Is.True);
+
+                prevention.Dispose();
+                HuntTileCommandResult resumed = await rig.Session.InteractTileAsync(target.AxialCoord);
+
+                Assert.That(resumed.Succeeded, Is.True, resumed.Reason);
+                Assert.That(rig.Session.HasPendingEventOccurrences, Is.False);
+                Assert.That(triggeredCount, Is.EqualTo(1));
+                Assert.That(committedCount, Is.EqualTo(1));
             }
             finally
             {
@@ -440,6 +449,14 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(received.SourceContextId, Is.EqualTo("test-destination"));
                 Assert.That(neighborsUnlockedWhenPublished, Is.True);
                 Assert.That(rig.Settlement.GetResource("should-not-apply"), Is.Zero);
+
+                HuntTileCommandResult blocked = await rig.Session.InteractTileAsync(target.AxialCoord);
+                Assert.That(blocked.Succeeded, Is.False);
+                Assert.That(blocked.Reason, Does.Contain("遭遇事件"));
+
+                rig.Session.ReleaseEncounterHandoffLock();
+                HuntTileCommandResult resumed = await rig.Session.InteractTileAsync(target.AxialCoord);
+                Assert.That(resumed.Succeeded, Is.True, resumed.Reason);
             }
             finally
             {

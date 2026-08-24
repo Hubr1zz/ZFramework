@@ -205,6 +205,13 @@
       "specPath": "openspec/specs/event-occurrence-checkpoint-core/spec.md"
     },
     {
+      "id": "hunt-session-event-occurrence-recovery",
+      "label": "狩猎会话事件链恢复",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-session-event-occurrence-recovery/spec.md"
+    },
+    {
       "id": "table-driven-hunt-events",
       "label": "读表狩猎事件内容",
       "category": "feature",
@@ -1143,6 +1150,46 @@
       "type": "requires",
       "status": "defined",
       "reason": "Settlement Adapter 保持现有 Schema 1 DTO 与存档字段，Hunt 耐久恢复等待完整 active-Hunt snapshot",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-session-event-occurrence-recovery--requires--event-occurrence-checkpoint-core",
+      "from": "hunt-session-event-occurrence-recovery",
+      "to": "event-occurrence-checkpoint-core",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Hunt store 复用 occurrence Sequence、稳定内容身份与有界提交算法",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-session-event-occurrence-recovery--requires--hunt-phase-orchestration",
+      "from": "hunt-session-event-occurrence-recovery",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "待办事件、玩法门禁和遭遇交接锁由单次 Hunt Runner 生命周期拥有",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-session-event-occurrence-recovery--requires--tabletop-event-interaction",
+      "from": "hunt-session-event-occurrence-recovery",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "恢复节点继续使用世界空间选择、随机交互与结果确认端口",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-session-event-occurrence-recovery--requires--table-driven-event-chains",
+      "from": "hunt-session-event-occurrence-recovery",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "待恢复 children 来自事件表配置的有序直接分支",
       "gapId": "",
       "blocksImplementation": false
     }

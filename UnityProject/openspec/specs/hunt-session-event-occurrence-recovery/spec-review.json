@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 3,
+  "capability": "hunt-session-event-occurrence-recovery",
+  "title": "狩猎会话事件链恢复",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "Hunt session 已覆盖 pre-commit 保留、post-commit 子链续接、重复 sibling、稳定 ActorId、祖先循环、容量截断与遭遇交接门禁。",
+    "evidence": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventChainOccurrenceQueueTests.cs"
+    ],
+    "differences": [
+      "当前 active Hunt 没有完整持久化快照；遭遇成功会销毁来源 Hunt session，因此仅保证同会话恢复。"
+    ],
+    "verifiedAt": "2026-08-24T03:05:00-07:00",
+    "codeEvidence": [
+      {
+        "guid": "3b94f2b91c9d4f1ba72fe3ffb4dd1ea6",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
+        "line": 1,
+        "fileHash": "f9f02748ed6758024dedc3e3dbb04a5b8b92c7a06a905ca8d8454bd676f4f38c",
+        "status": "verified",
+        "checkedAt": "2026-08-24T03:05:00-07:00",
+        "feature": "维护狩猎会话内 occurrence、稳定祖先身份、冻结行动者和有界子链提交。"
+      },
+      {
+        "guid": "4ba73e89b3fe5ba4088fc947dc1e9f63",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
+        "line": 1,
+        "fileHash": "f8fd5d1ec1630c7ca837fecae2fba3c4c42b96493c52fe82a54659015427bba4",
+        "status": "verified",
+        "checkedAt": "2026-08-24T03:05:00-07:00",
+        "feature": "在新地块、采集或回营命令前排空待恢复事件，并管理遭遇交接锁。"
+      },
+      {
+        "guid": "9c726607d6f6843489ac06114f3cc299",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
+        "line": 1,
+        "fileHash": "cfbfe7e3dfc112fa86e7c9acdce2a7cd938cfa1bf0db7071ed58562ad68476a1",
+        "status": "verified",
+        "checkedAt": "2026-08-24T03:05:00-07:00",
+        "feature": "在事件节点提交检查点消费父 occurrence、登记子 occurrence并发布提交或截断事实。"
+      },
+      {
+        "guid": "d94d370a430db9b41b025aedfeb3a471",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+        "line": 1,
+        "fileHash": "09d6f5134ae79b8776dc485a58a92352cb8fc07c9fe3e086f1a3e52b365ff206",
+        "status": "verified",
+        "checkedAt": "2026-08-24T03:05:00-07:00",
+        "feature": "复用跨阶段事件节点，并在结果确认前暴露直接子 EventData 的同步提交检查点。"
+      }
+    ]
+  },
+  "implementationOutline": [
+    "Hunt session 在节点执行前登记 root occurrence，并在节点提交回调中同步消费父节点与追加直接子节点。",
+    "恢复循环按 Sequence 排空待办，同 ID sibling 保持独立，ActorId 与 ContentId 祖先链随 occurrence 冻结。",
+    "节点提交后表现失败只保留 children；Reactor 在提交前阻止则 parent 保持 pending。",
+    "遭遇请求发布前锁定 session，Campaign 启动失败按 SourceSessionId 解锁；成功时遵循当前阶段销毁边界。",
+    "超过 64 个待办时提交有界前缀并发布截断事实，不重放已生效父节点。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "event-occurrence-checkpoint-core",
+    "hunt-phase-orchestration",
+    "tabletop-event-interaction",
+    "table-driven-event-chains"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs:1"
+  ]
+}
