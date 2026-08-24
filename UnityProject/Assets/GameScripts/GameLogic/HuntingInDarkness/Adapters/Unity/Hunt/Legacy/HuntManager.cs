@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core;
 using Cysharp.Threading.Tasks;
@@ -360,6 +361,7 @@ namespace HuntingInDarkness.Hunt
 
             return new HuntRecord
             {
+                RecordId         = Guid.NewGuid().ToString("N"),
                 Year             = currentYear,
                 HuntersDeployed  = huntersDeployed,
                 HuntersLost      = huntersLost,

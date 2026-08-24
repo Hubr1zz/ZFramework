@@ -8,6 +8,7 @@ using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
+using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Settlement;
 
 namespace HuntingInDarkness.ActionFlow.Settlement
@@ -26,10 +27,11 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly PlayableWorkshopConstructionService workshopConstructionService;
         private readonly EventSystem eventSystem;
         private readonly Func<string, EventData> resolveEvent;
+        private readonly TimelineSystem timelineSystem;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null, Func<string, EventData> resolveEvent = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null, Func<string, EventData> resolveEvent = null, TimelineSystem timeline = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
@@ -42,6 +44,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             workshopConstructionService = new PlayableWorkshopConstructionService(() => this.settlement);
             this.eventSystem = eventSystem;
             this.resolveEvent = resolveEvent;
+            timelineSystem = timeline ?? new TimelineSystem(settlement, new SystemRandomSource());
             this.randomInteractionPresenter = randomInteractionPresenter;
             EventInput = eventInput;
             SessionId = Guid.NewGuid();
@@ -74,6 +77,20 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             if (outcome.IsSuccess)
                 return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementDepartureCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public async UniTask<SettlementHuntReturnCommandResult> ApplyHuntReturnAsync(HuntRecord huntRecord, CancellationToken cancellationToken = default)
+        {
+            if (!IsActive) return SettlementHuntReturnCommandResult.Failed("当前不在营地阶段。");
+            if (huntRecord == null) return SettlementHuntReturnCommandResult.Failed("狩猎记录为空。");
+
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
+            ReactorEntityHandle huntEntity = environment.EntityHandles.GetOrCreate("hunt-return", huntRecord.RecordId ?? "legacy", "远征归来");
+            var action = new ApplySettlementHuntReturnAction(timelineSystem, huntRecord, outbox, settlementEntity, huntEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementHuntReturnCommandResult.Failed(outcome.Reason) : action.Result;
         }
 
         public bool CanRecruit(out string reason)

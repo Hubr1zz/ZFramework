@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89da669e4924d43409fe89475adc272b, type: 3}
   m_Name: PlayableSettlementContentCatalog
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Settlement.PlayableSettlementContentCatalog
-  huntsPerYear: 2
   startingHunters:
   - {fileID: 11400000, guid: b3a9e5377fb8e154d8b81f41dafa08cc, type: 2}
   - {fileID: 11400000, guid: 3a1d1dbb74a2b504dace801c04d51657, type: 2}

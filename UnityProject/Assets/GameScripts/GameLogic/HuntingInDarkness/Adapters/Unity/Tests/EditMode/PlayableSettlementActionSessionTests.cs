@@ -23,6 +23,66 @@ namespace HuntingInDarkness.Adapter.Tests
     public sealed class PlayableSettlementActionSessionTests
     {
         [Test]
+        public async Task ApplyHuntReturnAsync_CommitsHistoryAndYearInsideSettlementRunner()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 5, HuntsPerYear = 2 };
+            var timeline = new TimelineSystem(settlement, new FirstRandom());
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), timeline: timeline);
+            var record = new HuntRecord { RecordId = "runner-hunt", Year = 5 };
+            bool factObservedCommittedState = false;
+            int factCount = 0;
+            Action<HuntCompletedEvent> handler = evt =>
+            {
+                factCount++;
+                factObservedCommittedState = evt.AdvancedToYear == 6 && settlement.CurrentYear == 6 && settlement.HuntHistory.Count == 1;
+            };
+            EventBus.Subscribe(handler);
+
+            try
+            {
+                SettlementHuntReturnCommandResult result = await session.ApplyHuntReturnAsync(record);
+                SettlementHuntReturnCommandResult duplicate = await session.ApplyHuntReturnAsync(new HuntRecord { RecordId = "runner-hunt", Year = 5 });
+
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(duplicate.Succeeded, Is.True);
+                Assert.That(factObservedCommittedState, Is.True);
+                Assert.That(factCount, Is.EqualTo(1));
+                Assert.That(settlement.CurrentYear, Is.EqualTo(6));
+                Assert.That(settlement.HuntHistory, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
+        public async Task ApplyHuntReturnAsync_RejectsRecordWithoutStableId()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 5 };
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent());
+
+            SettlementHuntReturnCommandResult result = await session.ApplyHuntReturnAsync(new HuntRecord { Year = 5 });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(settlement.CurrentYear, Is.EqualTo(5));
+            Assert.That(settlement.HuntHistory, Is.Empty);
+        }
+
+        [Test]
+        public async Task ApplyHuntReturnAsync_RejectsDifferentRecordFromPastYear()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 6 };
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent());
+
+            SettlementHuntReturnCommandResult result = await session.ApplyHuntReturnAsync(new HuntRecord { RecordId = "stale-return", Year = 5 });
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(settlement.CurrentYear, Is.EqualTo(6));
+            Assert.That(settlement.HuntHistory, Is.Empty);
+        }
+
+        [Test]
         public async Task TrainWeaponAsync_SuccessCommitsStateThenPublishesFactsInOrder()
         {
             SettlementInstance settlement = CreateSettlement(resourceAmount: 2);

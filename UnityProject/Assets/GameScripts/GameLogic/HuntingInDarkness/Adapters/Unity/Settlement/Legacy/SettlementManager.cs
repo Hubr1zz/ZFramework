@@ -52,22 +52,10 @@ namespace HuntingInDarkness.Settlement
         // ─── 生命周期 ────────────────────────────────────────────
 
         /// <summary>进入营地阶段（狩猎结算后调用）</summary>
-        public IReadOnlyList<EventData> OnEnter(HuntRecord huntRecord = null)
+        public IReadOnlyList<EventData> OnEnter()
         {
             Debug.Log($"[SettlementManager] 进入营地阶段 — 年份 {Data.CurrentYear}");
-
-            List<EventData> yearEvents;
-            if (huntRecord != null)
-            {
-                // 收集物已由 HuntManager 转入资源存储
-                yearEvents = Timeline.AdvanceYear(huntRecord);
-            }
-            else
-            {
-                yearEvents = Timeline.GetEventsForYear(Data.CurrentYear);
-            }
-
-            return yearEvents;
+            return Timeline.GetEventsForYear(Data.CurrentYear);
         }
 
         /// <summary>离开营地阶段</summary>

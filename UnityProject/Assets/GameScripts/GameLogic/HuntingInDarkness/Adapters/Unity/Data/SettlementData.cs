@@ -160,6 +160,8 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class HuntRecord
     {
+        [Tooltip("稳定的本次远征实例 ID；旧存档为空时保持兼容，不自动伪造身份。")]
+        public string RecordId;
         public int  Year;
         public int  HuntersDeployed;
         public int  HuntersLost;
@@ -177,6 +179,8 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class SettlementInstance
     {
+        public const int CurrentCampaignPacingSchemaVersion = 1;
+        public const int MaxLegacyHuntsPerYear = 8;
         public const int MaxPendingEventChainOccurrences = 64;
         [Header("内容存档版本")]
         public int ItemIdentitySchemaVersion;
@@ -187,6 +191,8 @@ namespace HuntingInDarkness.Data
         public int CurrentYear = 1;
         public int HuntsCompletedThisYear;
         public int HuntsPerYear = 2;
+        public int CampaignPacingSchemaVersion;
+        public string CampaignPacingMigrationDiagnostic;
         public int LastRecruitmentYear;
 
         [Header("猎人名单（按 InstanceId 索引）")]
@@ -213,12 +219,39 @@ namespace HuntingInDarkness.Data
         [Header("Timeline")]
         public List<AnnalEntry> Timeline = new();
         public List<HuntRecord>    HuntHistory = new();
+        [Header("待完成的远征归来结算")]
+        public HuntRecord PendingHuntReturn;
 
         [Header("事件链恢复检查点")]
         public List<SettlementEventChainCheckpoint> PendingEventChains = new();
 
         [Header("本年出发的猎人（狩猎阶段用）")]
         public List<int> DepartingHunterIds = new();
+
+        /// <summary>
+        /// 旧存档仍带有按年配额字段。它们只作为兼容数据保留，生产规则统一为一次归来推进一年。
+        /// </summary>
+        public void NormalizeLegacyHuntProgress()
+        {
+            HuntsCompletedThisYear = 0;
+            HuntsPerYear = 1;
+        }
+
+        public bool HasHuntRecord(string recordId)
+        {
+            string normalizedId = recordId?.Trim() ?? string.Empty;
+            return normalizedId.Length > 0 && HuntHistory != null && HuntHistory.Exists(record => record != null && string.Equals(record.RecordId?.Trim(), normalizedId, System.StringComparison.Ordinal));
+        }
+
+        public bool TryAppendHuntRecord(HuntRecord record)
+        {
+            if (record == null) return false;
+            HuntHistory ??= new List<HuntRecord>();
+            string recordId = record.RecordId?.Trim() ?? string.Empty;
+            if (recordId.Length == 0 || HuntHistory.Exists(existing => existing != null && string.Equals(existing.RecordId?.Trim(), recordId, System.StringComparison.Ordinal))) return false;
+            HuntHistory.Add(record);
+            return true;
+        }
 
         // ─── 资源操作 ─────────────────────────────────────────────
 

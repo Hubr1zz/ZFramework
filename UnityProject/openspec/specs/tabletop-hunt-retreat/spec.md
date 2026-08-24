@@ -53,11 +53,26 @@ The orchestration boundary SHALL request Hunt-to-Settlement through the Campaign
 
 #### Scenario: Campaign transition is rejected
 - **WHEN** Hunt preparation succeeds but the Campaign transition does not commit
-- **THEN** the game remains in Hunt, collected items remain on the hunters, and the pending completion record is discarded
+- **THEN** the game remains in Hunt, collected items remain on the hunters, and the prepared completion record remains available for an idempotent transition retry
 
 #### Scenario: Campaign transition succeeds
 - **WHEN** both Runner operations commit
-- **THEN** collectibles transfer exactly once, hunter advancement is applied, Hunt is disposed, and Settlement consumes one completion record
+- **THEN** collectibles transfer exactly once, hunter advancement is applied, Hunt is disposed, and the completion record becomes a persisted pending Settlement handoff
+
+### Requirement: Every accepted return advances exactly one year
+The Settlement ActionQueue SHALL consume each stable completion record at most once, advance the campaign from year N to N+1, and materialize the annual Timeline entries for N+1 before publishing committed facts. Annual pacing SHALL NOT depend on a configurable hunts-per-year quota.
+
+#### Scenario: A new completion record reaches Settlement
+- **WHEN** the pending record has a stable ID that is absent from HuntHistory
+- **THEN** one Settlement root appends the record, advances exactly one year, and creates at most one random annual Timeline slot for the new year
+
+#### Scenario: The same completion record is replayed
+- **WHEN** transition retry or load recovery submits an already-applied stable record ID
+- **THEN** Settlement reports an idempotent success without advancing the year, duplicating HuntHistory, or drawing another annual event
+
+#### Scenario: Annual event materialization is interrupted
+- **WHEN** an annual Timeline slot already exists for the target year but the return record is still pending
+- **THEN** retry reuses that slot and completes the year transition without drawing a replacement
 
 ### Requirement: Duplicate return requests are serialized
 The orchestration boundary SHALL reject duplicate return requests while a return handoff is already in progress or another Hunt action chain is running.

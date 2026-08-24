@@ -20,14 +20,23 @@ The project SHALL enter Settlement through GameManager and activate the Settleme
 - **THEN** GameManager activates Settlement roots, invokes SettlementManager entry, and refreshes the configured Settlement presentation
 
 ### Requirement: Settlement entry owns the save boundary
-The project SHALL persist settlement state after the Settlement entry lifecycle has completed.
+The project SHALL submit a pending hunt return through the active Settlement ActionQueue before ordinary annual-event projection, then persist the committed Settlement state.
 
 #### Scenario: Completing Settlement entry
 - **WHEN** SettlementManager has received any pending hunt record
-- **THEN** GameManager saves the resulting settlement state through the persistence adapter
+- **THEN** the Settlement runner commits HuntHistory, the next year and its Timeline entries as one ordered root, clears the pending handoff, and GameManager requests a save
+
+#### Scenario: Return settlement cannot complete
+- **WHEN** the Settlement runner rejects, cancels, or throws while applying the pending record
+- **THEN** the pending handoff remains persisted and every Hunt departure entry remains gated for a bounded retry
 
 ### Requirement: Loaded event state is projected before departure
-Loading a campaign in Settlement SHALL rebuild pending event execution from persisted Timeline references through the active Settlement runner. The load path SHALL remain distinct from normal phase entry and SHALL NOT invoke year advancement or event generation.
+Loading a campaign in Settlement SHALL first recover a persisted pending hunt return through the active Settlement runner, then rebuild pending event execution once from persisted Timeline references. A load without a pending return SHALL NOT invoke year advancement or event generation.
+
+#### Scenario: Continue restores an interrupted return handoff
+- **WHEN** loaded Settlement data contains a pending stable hunt return
+- **THEN** GameManager applies it idempotently without directly queueing its returned events, then projects the resulting incomplete Timeline exactly once
+- **AND** departure remains gated until both operations succeed
 
 #### Scenario: Continue restores an unresolved event chain
 - **WHEN** loaded Settlement data contains one or more unresolved event entries

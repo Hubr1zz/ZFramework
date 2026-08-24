@@ -436,26 +436,7 @@ namespace HuntingInDarkness.GameCore.Settlement
 
     public static class SettlementTimelineRules
     {
-        public readonly struct HuntProgress
-        {
-            public int HuntsCompletedThisYear { get; }
-            public bool ShouldAdvanceYear { get; }
-
-            public HuntProgress(int huntsCompletedThisYear, bool shouldAdvanceYear)
-            {
-                HuntsCompletedThisYear = huntsCompletedThisYear;
-                ShouldAdvanceYear = shouldAdvanceYear;
-            }
-        }
-
         public static int AdvanceYear(int currentYear) => currentYear + 1;
-
-        public static HuntProgress CompleteHunt(int huntsCompletedThisYear, int huntsPerYear)
-        {
-            int requiredHunts = System.Math.Max(1, huntsPerYear);
-            int completedHunts = System.Math.Max(0, huntsCompletedThisYear) + 1;
-            return completedHunts >= requiredHunts ? new HuntProgress(0, true) : new HuntProgress(completedHunts, false);
-        }
 
         public static bool IsAvailableForYear(int year, int minimumYear, int maximumYear) =>
             year >= minimumYear && (maximumYear <= 0 || year <= maximumYear);

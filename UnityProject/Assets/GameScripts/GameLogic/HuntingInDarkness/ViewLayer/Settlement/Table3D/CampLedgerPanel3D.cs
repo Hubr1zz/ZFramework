@@ -64,7 +64,8 @@ namespace UI
             ClearEntries();
             BuildEntries();
             Title.text = $"无火营地年鉴 · 第 {settlement.CurrentYear} 年";
-            summaryText.text = $"本年狩猎 {settlement.HuntsCompletedThisYear}/{Mathf.Max(1, settlement.HuntsPerYear)}　总狩猎 {settlement.HuntHistory?.Count ?? 0}　时间线 {settlement.Timeline?.Count ?? 0}　存活猎人 {settlement.GetAliveHunters().Count}";
+            int lastHuntYear = settlement.HuntHistory != null && settlement.HuntHistory.Count > 0 ? settlement.HuntHistory[settlement.HuntHistory.Count - 1]?.Year ?? 0 : 0;
+            summaryText.text = $"上次远征 {lastHuntYear} → 新年 {settlement.CurrentYear}　总远征 {settlement.HuntHistory?.Count ?? 0}　时间线 {settlement.Timeline?.Count ?? 0}　存活猎人 {settlement.GetAliveHunters().Count}";
             int pageCount = Mathf.Max(1, Mathf.CeilToInt((float)entries.Count / EntriesPerPage));
             pageIndex = Mathf.Clamp(pageIndex, 0, pageCount - 1);
             pageText.text = entries.Count == 0 ? "尚无年鉴记录" : $"第 {pageIndex + 1}/{pageCount} 页 · 共 {entries.Count} 条";

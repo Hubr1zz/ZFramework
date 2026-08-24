@@ -69,6 +69,34 @@ title: 战役持久化与恢复
 - **WHEN** 未完成 Timeline 条目缺少稳定事件 ID，或当前内容目录无法解析该 ID
 - **THEN** 加载流程 SHALL 报告可诊断失败并保持出猎门禁，且 SHALL NOT 静默完成、删除或跳过该条目
 
+### Requirement: Hunt return handoff survives process interruption
+
+Campaign acceptance SHALL persist the stable pending HuntRecord after resource transfer and before Settlement consumption. Successful first application or idempotent replay SHALL clear and save the checkpoint; failed application SHALL retain it and gate departure.
+
+#### Scenario: The process exits before Settlement applies the return
+
+- **WHEN** the latest valid snapshot contains PendingHuntReturn but not its HuntHistory record
+- **THEN** continue SHALL submit that record to the Settlement runner, advance exactly one year, and restore the resulting annual Timeline through the ordinary event projection
+
+#### Scenario: The clear-checkpoint save is retried
+
+- **WHEN** a stable pending record is already present in HuntHistory
+- **THEN** recovery SHALL treat it as already applied, clear PendingHuntReturn, and persist that cleared state without advancing or drawing again
+
+### Requirement: Legacy hunt quota progress migrates once
+
+Campaign loading SHALL treat HuntsCompletedThisYear and HuntsPerYear only as schema-versioned migration input. Each valid historical completion SHALL advance one intermediate year and ensure its annual Timeline slot; invalid progress SHALL be normalized with a diagnostic rather than guessed.
+
+#### Scenario: A valid legacy save contains one unconverted completion
+
+- **WHEN** schema version is old, CurrentYear is Y, and legacy progress is 1 within a valid quota
+- **THEN** migration SHALL produce year Y+1, normalize legacy counters, and mark the current pacing schema so repeated catalog application does not advance again
+
+#### Scenario: Legacy progress is invalid
+
+- **WHEN** the quota is non-positive, unreasonably large, or completion count is outside its valid range
+- **THEN** migration SHALL keep CurrentYear unchanged, normalize the obsolete counters, and preserve an actionable diagnostic
+
 ### Requirement: Committed event chains remain recoverable
 
 事件节点的效果、Timeline 完成状态与直接子 occurrence SHALL 在同一同步状态边界内提交，并在发布保存通知前完成。检查点 SHALL 使用稳定事件 ID、链 ID 与 occurrence 序号，不序列化运行时资产引用；结果确认或后续节点失败 SHALL NOT 丢失已提交父节点产生的子链。

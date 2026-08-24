@@ -402,6 +402,16 @@
       "blocksImplementation": false
     },
     {
+      "id": "tabletop-hunt-retreat--requires--campaign-persistence",
+      "from": "tabletop-hunt-retreat",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "跨 Runner 的归来记录必须在资源转移后持久化，并在 Settlement 幂等消费前保持恢复门禁",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
       "id": "hunt-tabletop-harvest--requires--hunt-phase-orchestration",
       "from": "hunt-tabletop-harvest",
       "to": "hunt-phase-orchestration",

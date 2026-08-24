@@ -21,8 +21,8 @@ The normal playable flow SHALL present hunt completion records, hunter growth mi
 
 #### Scenario: A Hunt return is committed
 
-- **WHEN** the Timeline stores a Hunt record, including a return that does not advance the year
-- **THEN** a physical notice summarizes deployed hunters, losses, carried materials, and current annual Hunt progress
+- **WHEN** the Settlement runner stores a Hunt record and advances exactly one year
+- **THEN** a physical notice summarizes deployed hunters, losses, carried materials, and the committed completed-year to current-year transition without an annual Hunt quota
 
 ### Requirement: Burst feedback preserves commit order
 The notice presenter SHALL queue every supported fact in publication order instead of allowing a later message to overwrite an earlier one.

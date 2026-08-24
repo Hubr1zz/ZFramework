@@ -179,8 +179,6 @@ namespace Core
     public struct HuntCompletedEvent
     {
         public int CompletedYear;
-        public int HuntsCompletedInYear;
-        public int HuntsPerYear;
         public int TotalHunts;
         public int HuntersDeployed;
         public int HuntersLost;

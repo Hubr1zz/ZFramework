@@ -67,7 +67,8 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             var area = new Rect(Screen.width - width - 16f, 16f, width, Screen.height - 32f);
             GUILayout.BeginArea(area, panelStyle);
             GUILayout.Label($"第 {data.CurrentYear} 年 · 无火营地", titleStyle);
-            GUILayout.Label($"本年狩猎 {data.HuntsCompletedThisYear}/{Mathf.Max(1, data.HuntsPerYear)}  ·  总计 {data.HuntHistory.Count} 次  ·  年鉴 {data.Timeline.Count} 条", mutedStyle);
+            int lastHuntYear = data.HuntHistory.Count > 0 ? data.HuntHistory[data.HuntHistory.Count - 1]?.Year ?? 0 : 0;
+            GUILayout.Label($"上次远征 {lastHuntYear} → 新年 {data.CurrentYear}  ·  总计 {data.HuntHistory.Count} 次  ·  年鉴 {data.Timeline.Count} 条", mutedStyle);
             DrawPageTabs();
             GUILayout.Space(10f);
 

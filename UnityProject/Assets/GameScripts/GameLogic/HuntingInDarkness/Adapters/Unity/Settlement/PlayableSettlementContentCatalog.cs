@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.ContentTables;
+using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 
 namespace HuntingInDarkness.Settlement
@@ -20,7 +21,6 @@ namespace HuntingInDarkness.Settlement
     [CreateAssetMenu(fileName = "PlayableSettlementContentCatalog", menuName = "Hunting in Darkness/Settlement Content Catalog")]
     public sealed class PlayableSettlementContentCatalog : ScriptableObject
     {
-        [SerializeField, Min(1)] private int huntsPerYear = 2;
         [SerializeField] private List<HunterData> startingHunters = new();
         [SerializeField] private TextAsset hunterTable;
         [SerializeField] private List<StartingResourceDefinition> startingResources = new();
@@ -76,14 +76,13 @@ namespace HuntingInDarkness.Settlement
             }
 
             manager.HunterMgmt.ConfigureDeathInspiration(deathInspirationGrowth, deathInspirationMinimumAge);
-            manager.Data.HuntsPerYear = Mathf.Max(1, huntsPerYear);
-            manager.Data.HuntsCompletedThisYear = Mathf.Clamp(manager.Data.HuntsCompletedThisYear, 0, manager.Data.HuntsPerYear - 1);
             PlayableSettlementItemRegistry.Configure(allItems);
             PlayableSettlementItemRegistry.MigratePersistentState(manager.Data);
             PlayableSettlementInventionRegistry.MigratePersistentState(manager.Data);
             PlayableEventTableRuntime.Extend(randomEvents, mainStoryEvents, out List<EventData> allRandomEvents, out List<EventData> allMainStoryEvents);
             manager.Timeline.RandomEventPool = allRandomEvents;
             manager.Timeline.MainStoryEvents = allMainStoryEvents;
+            MigrateCampaignPacing(manager);
             manager.Inventions.AllInventions = new List<InventionData>(PlayableSettlementInventionRegistry.Inventions);
             if (!PlayableSettlementModifierRuntime.Synchronize(manager.Data, manager.Inventions.AllInventions, message => Debug.LogError($"[SettlementManager] {message}"))) return false;
             manager.Workshop.AllRecipes = allRecipes;
@@ -110,6 +109,35 @@ namespace HuntingInDarkness.Settlement
             PlayableGrowthMilestoneRuntime.Synchronize(manager.Data);
             Debug.Log($"[SettlementManager] 已从内容目录创建 {manager.Data.Hunters.Count} 名初始猎人。");
             return manager.Data.Hunters.Count > 0;
+        }
+
+        private static void MigrateCampaignPacing(SettlementManager manager)
+        {
+            SettlementInstance data = manager.Data;
+            if (data.CampaignPacingSchemaVersion >= SettlementInstance.CurrentCampaignPacingSchemaVersion)
+            {
+                data.NormalizeLegacyHuntProgress();
+                return;
+            }
+
+            int legacyQuota = data.HuntsPerYear;
+            int completed = data.HuntsCompletedThisYear;
+            if (legacyQuota < 1 || legacyQuota > SettlementInstance.MaxLegacyHuntsPerYear || completed < 0 || completed >= legacyQuota)
+            {
+                data.CampaignPacingMigrationDiagnostic = $"旧年度狩猎进度无效：{completed}/{legacyQuota}，已安全归一化且未猜测年份。";
+                data.NormalizeLegacyHuntProgress();
+                data.CampaignPacingSchemaVersion = SettlementInstance.CurrentCampaignPacingSchemaVersion;
+                return;
+            }
+
+            for (int index = 0; index < completed; index++)
+            {
+                data.CurrentYear = SettlementTimelineRules.AdvanceYear(data.CurrentYear);
+                manager.Timeline.GetEventsForYear(data.CurrentYear);
+            }
+            data.CampaignPacingMigrationDiagnostic = string.Empty;
+            data.NormalizeLegacyHuntProgress();
+            data.CampaignPacingSchemaVersion = SettlementInstance.CurrentCampaignPacingSchemaVersion;
         }
 
         private List<ItemData> GetKnownItems()

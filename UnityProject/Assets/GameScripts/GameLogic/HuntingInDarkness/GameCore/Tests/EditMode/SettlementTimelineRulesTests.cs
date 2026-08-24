@@ -19,18 +19,6 @@ namespace HuntingInDarkness.GameCore.Tests
         }
 
         [Test]
-        public void CompleteHunt_ResetsProgressOnlyWhenQuotaIsReached()
-        {
-            SettlementTimelineRules.HuntProgress first = SettlementTimelineRules.CompleteHunt(0, 2);
-            SettlementTimelineRules.HuntProgress second = SettlementTimelineRules.CompleteHunt(first.HuntsCompletedThisYear, 2);
-
-            Assert.That(first.HuntsCompletedThisYear, Is.EqualTo(1));
-            Assert.That(first.ShouldAdvanceYear, Is.False);
-            Assert.That(second.HuntsCompletedThisYear, Is.Zero);
-            Assert.That(second.ShouldAdvanceYear, Is.True);
-        }
-
-        [Test]
         public void AddResourceEffect_ReportsBeforeAndAfterAmounts()
         {
             int amount = 1;

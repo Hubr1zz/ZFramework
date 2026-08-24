@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Core;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Combat;
 using HuntingInDarkness.GameCore.Foundation;
@@ -22,6 +21,8 @@ namespace HuntingInDarkness.Settlement
         // 所有可用的事件模板（运行时加载，由 SettlementManager 注入）
         public List<EventData> RandomEventPool  { get; set; } = new();
         public List<EventData> MainStoryEvents  { get; set; } = new();
+        public int CurrentYear => _settlement.CurrentYear;
+        public int TotalHunts => _settlement.HuntHistory?.Count ?? 0;
 
         public TimelineSystem(SettlementInstance settlement, IRandomSource rng)
         {
@@ -36,52 +37,18 @@ namespace HuntingInDarkness.Settlement
         /// </summary>
         public List<EventData> AdvanceYear(HuntRecord huntRecord)
         {
-            // 记录本次狩猎
-            _settlement.HuntHistory.Add(huntRecord);
+            if (huntRecord == null || string.IsNullOrWhiteSpace(huntRecord.RecordId) || HasAppliedHuntRecord(huntRecord) || huntRecord.Year != _settlement.CurrentYear) return new List<EventData>();
 
-            SettlementTimelineRules.HuntProgress progress = SettlementTimelineRules.CompleteHunt(_settlement.HuntsCompletedThisYear, _settlement.HuntsPerYear);
-            _settlement.HuntsCompletedThisYear = progress.HuntsCompletedThisYear;
-            if (!progress.ShouldAdvanceYear)
-            {
-                Debug.Log($"[Timeline] 本年狩猎进度 → {_settlement.HuntsCompletedThisYear}/{_settlement.HuntsPerYear}");
-                PublishHuntCompleted(huntRecord, _settlement.HuntsCompletedThisYear, 0);
-                return new List<EventData>();
-            }
-
-            _settlement.CurrentYear = SettlementTimelineRules.AdvanceYear(_settlement.CurrentYear);
-            Debug.Log($"[Timeline] 年份推进 → {_settlement.CurrentYear}");
-            PublishHuntCompleted(huntRecord, Mathf.Max(1, _settlement.HuntsPerYear), _settlement.CurrentYear);
-            EventBus.Publish(new YearAdvancedEvent { NewYear = _settlement.CurrentYear });
-
-            // 获取该年应触发的事件列表
-            var events = GetEventsForYear(_settlement.CurrentYear);
+            int nextYear = SettlementTimelineRules.AdvanceYear(_settlement.CurrentYear);
+            var events = GetEventsForYear(nextYear);
+            if (!_settlement.TryAppendHuntRecord(huntRecord)) return new List<EventData>();
+            _settlement.HuntsCompletedThisYear = 0;
+            _settlement.CurrentYear = nextYear;
+            Debug.Log($"[Timeline] 年份推进 → {nextYear}");
             return events;
         }
 
-        private void PublishHuntCompleted(HuntRecord huntRecord, int huntsCompletedInYear, int advancedToYear)
-        {
-            EventBus.Publish(new HuntCompletedEvent
-            {
-                CompletedYear = huntRecord?.Year ?? _settlement.CurrentYear,
-                HuntsCompletedInYear = huntsCompletedInYear,
-                HuntsPerYear = Mathf.Max(1, _settlement.HuntsPerYear),
-                TotalHunts = _settlement.HuntHistory.Count,
-                HuntersDeployed = huntRecord?.HuntersDeployed ?? 0,
-                HuntersLost = huntRecord?.HuntersLost ?? 0,
-                CollectedResourceCount = huntRecord?.CollectedResources?.Count ?? 0,
-                BossDefeated = huntRecord?.BossDefeated == true,
-                AdvancedToYear = advancedToYear
-            });
-        }
-
-        /// <summary>仅推进年份（不记录狩猎，用于测试/跳过）</summary>
-        public List<EventData> AdvanceYearOnly()
-        {
-            _settlement.HuntsCompletedThisYear = 0;
-            _settlement.CurrentYear = SettlementTimelineRules.AdvanceYear(_settlement.CurrentYear);
-            EventBus.Publish(new YearAdvancedEvent { NewYear = _settlement.CurrentYear });
-            return GetEventsForYear(_settlement.CurrentYear);
-        }
+        public bool HasAppliedHuntRecord(HuntRecord huntRecord) => huntRecord != null && _settlement.HasHuntRecord(huntRecord.RecordId);
 
         // ─── 事件调度 ────────────────────────────────────────────
 
@@ -109,6 +76,7 @@ namespace HuntingInDarkness.Settlement
             }
 
             // 随机事件：抽取1张
+            if (_settlement.Timeline.Exists(entry => entry != null && entry.Year == year && entry.EntryType == TimelineEntryType.Random)) return result;
             var available = GetAvailableRandomEvents(year);
             string mostRecentEventId = _settlement.Timeline.FindLast(entry => entry.EntryType == TimelineEntryType.Random)?.EventId;
             bool hasAlternative = available.Exists(gameEvent => !string.Equals(gameEvent.name, mostRecentEventId, System.StringComparison.Ordinal));

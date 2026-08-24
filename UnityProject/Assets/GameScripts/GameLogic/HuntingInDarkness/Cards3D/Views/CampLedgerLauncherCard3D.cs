@@ -46,7 +46,13 @@ namespace Cards3D
             if (titleText == null) return;
             titleText.text = "营地年鉴";
             yearText.text = settlement != null ? $"第 {settlement.CurrentYear} 年" : "尚未启封";
-            countText.text = settlement != null ? $"狩猎 {settlement.HuntsCompletedThisYear}/{Mathf.Max(1, settlement.HuntsPerYear)}\n记录 {(settlement.Timeline?.Count ?? 0) + (settlement.HuntHistory?.Count ?? 0)}" : "点击查看";
+            countText.text = settlement != null ? $"远征 {GetLastHuntYear(settlement)} → {settlement.CurrentYear}\n记录 {(settlement.Timeline?.Count ?? 0) + (settlement.HuntHistory?.Count ?? 0)}" : "点击查看";
+        }
+
+        private static int GetLastHuntYear(SettlementInstance data)
+        {
+            if (data.HuntHistory == null || data.HuntHistory.Count == 0) return 0;
+            return data.HuntHistory[data.HuntHistory.Count - 1]?.Year ?? 0;
         }
 
         protected override void OnMouseDown() => Clicked?.Invoke();
