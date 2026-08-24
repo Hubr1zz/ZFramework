@@ -79,14 +79,14 @@ namespace HuntingInDarkness.Bootstrap
             return true;
         }
 
-        internal bool TryPrepareSettlementPlan(IReadOnlyList<EventData> events, out string reason)
+        internal bool TryPrepareSettlementPlan(PlayableEventTableGeneration eventGeneration, out string reason)
         {
             if (installed || SettlementPlan != null)
             {
                 reason = "营地内容候选已经准备或安装。";
                 return false;
             }
-            bool prepared = SettlementContent.TryPreparePlan(events, out PlayableSettlementContentPlan plan, out reason);
+            bool prepared = SettlementContent.TryPreparePlan(eventGeneration, out PlayableSettlementContentPlan plan, out reason);
             SettlementPlan = plan;
             return prepared;
         }

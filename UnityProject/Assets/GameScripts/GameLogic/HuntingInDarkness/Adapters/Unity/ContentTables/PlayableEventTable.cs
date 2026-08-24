@@ -188,12 +188,19 @@ namespace HuntingInDarkness.ContentTables
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
-            ClearCache();
+            PlayableEventTableGeneration retired = SwapGeneration(null);
+            RetireGeneration(retired);
+            cachedRecords = null;
         }
 
         /// <summary>清理由事件表运行时创建的事件对象；不会触碰外部资产。</summary>
         public static void ClearCache()
         {
+            if (PlayableSettlementContentRuntime.IsEventGenerationLeased(currentGeneration))
+            {
+                Debug.LogError("[PlayableEventTable] 活动营地内容计划仍在使用当前事件世代，拒绝清理缓存。");
+                return;
+            }
             PlayableEventTableGeneration retired = SwapGeneration(null);
             RetireGeneration(retired);
             cachedRecords = null;
@@ -202,6 +209,11 @@ namespace HuntingInDarkness.ContentTables
         /// <summary>在正式内容装配边界重建事件表缓存。</summary>
         public static IReadOnlyList<EventData> Rebuild()
         {
+            if (PlayableSettlementContentRuntime.IsEventGenerationLeased(currentGeneration))
+            {
+                Debug.LogError("[PlayableEventTable] 活动营地内容计划仍在使用当前事件世代，拒绝重建缓存。");
+                return currentGeneration.Events;
+            }
             IReadOnlyList<EventTableRecord> retryRecords = currentGeneration != null && currentGeneration.HasErrors ? currentGeneration.Records : null;
             PlayableEventTableGeneration replacement = BuildGeneration(PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, retryRecords, true);
             if (replacement.HasErrors)
@@ -266,6 +278,7 @@ namespace HuntingInDarkness.ContentTables
         }
 
         internal static PlayableEventTableGeneration PrepareGeneration(PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent) => BuildGeneration(symptomCatalog, bloodlineContent, null, true);
+        internal static PlayableEventTableGeneration CurrentGeneration => currentGeneration;
 
         internal static PlayableEventTableGeneration SwapGeneration(PlayableEventTableGeneration replacement)
         {

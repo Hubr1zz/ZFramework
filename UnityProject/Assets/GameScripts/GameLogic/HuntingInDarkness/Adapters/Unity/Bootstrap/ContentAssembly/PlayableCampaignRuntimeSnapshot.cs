@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using HuntingInDarkness.Combat;
-using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 
@@ -19,9 +17,7 @@ namespace HuntingInDarkness.Bootstrap
         private readonly PlayableGrowthMilestoneCatalog growthMilestones = PlayableGrowthMilestoneRuntime.Catalog;
         private readonly PlayableWeaponMasteryCatalog weaponMastery = PlayableWeaponMasteryRuntime.Catalog;
         private readonly PlayableEncounterRuntime.RuntimeState encounter = PlayableEncounterRuntime.CaptureState();
-        private readonly List<ItemData> items = new(PlayableSettlementItemRegistry.Items);
-        private readonly List<InventionData> inventions = new(PlayableSettlementInventionRegistry.Inventions);
-        private readonly PlayableSettlementEventRegistry.RuntimeState settlementEvents = PlayableSettlementEventRegistry.CaptureState();
+        private readonly PlayableSettlementRegistryBundle settlementRegistryBundle = PlayableSettlementContentRuntime.CaptureLegacyRegistryBundle();
 
         public void Restore()
         {
@@ -33,9 +29,7 @@ namespace HuntingInDarkness.Bootstrap
             PlayableGrowthMilestoneRuntime.Configure(growthMilestones);
             PlayableWeaponMasteryRuntime.Configure(weaponMastery);
             PlayableEncounterRuntime.RestoreState(encounter);
-            PlayableSettlementItemRegistry.Configure(items);
-            PlayableSettlementInventionRegistry.Configure(inventions);
-            PlayableSettlementEventRegistry.RestoreState(settlementEvents);
+            PlayableSettlementContentRuntime.RestoreLegacyRegistryBundle(settlementRegistryBundle);
             PlayableHuntDestinationRuntime.RestoreState(huntDestination);
             PlayableHuntContentRuntime.Configure(huntContent);
         }

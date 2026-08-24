@@ -45,16 +45,11 @@ namespace HuntingInDarkness.Settlement
     {
         public const int CurrentIdentitySchemaVersion = 1;
 
-        private static readonly Dictionary<string, ItemData> itemById = new(System.StringComparer.Ordinal);
-        private static readonly Dictionary<string, ItemData> itemByLegacyName = new(System.StringComparer.Ordinal);
-        private static readonly List<ItemData> registeredItems = new();
-
-        public static IReadOnlyList<ItemData> Items => registeredItems;
+        public static IReadOnlyList<ItemData> Items => PlayableSettlementContentRuntime.Items;
 
         public static bool TryGet(string identifier, out ItemData item)
         {
-            string key = identifier?.Trim() ?? string.Empty;
-            return itemById.TryGetValue(key, out item) || itemByLegacyName.TryGetValue(key, out item);
+            return PlayableSettlementContentRuntime.RegistryBundle.TryGetItem(identifier, out item);
         }
 
         public static string ResolveContentId(string identifier) => TryGet(identifier, out ItemData item) ? item.ContentId : identifier?.Trim() ?? string.Empty;
@@ -86,41 +81,7 @@ namespace HuntingInDarkness.Settlement
             return keywords;
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetRuntimeState()
-        {
-            itemById.Clear();
-            itemByLegacyName.Clear();
-            registeredItems.Clear();
-        }
-
-        public static void Configure(IEnumerable<ItemData> items)
-        {
-            itemById.Clear();
-            itemByLegacyName.Clear();
-            registeredItems.Clear();
-            if (items == null) return;
-
-            var candidates = new List<ItemData>();
-            foreach (ItemData item in items)
-                if (item != null && !string.IsNullOrWhiteSpace(item.ContentId) && !string.IsNullOrWhiteSpace(item.itemName))
-                    candidates.Add(item);
-            var idCounts = new Dictionary<string, int>(System.StringComparer.Ordinal);
-            var nameCounts = new Dictionary<string, int>(System.StringComparer.Ordinal);
-            foreach (ItemData item in candidates)
-            {
-                idCounts[item.ContentId] = idCounts.TryGetValue(item.ContentId, out int idCount) ? idCount + 1 : 1;
-                nameCounts[item.itemName] = nameCounts.TryGetValue(item.itemName, out int nameCount) ? nameCount + 1 : 1;
-            }
-            foreach (ItemData item in candidates)
-            {
-                bool crossNamespaceCollision = item.ContentId != item.itemName && (nameCounts.ContainsKey(item.ContentId) || idCounts.ContainsKey(item.itemName));
-                if (idCounts[item.ContentId] != 1 || nameCounts[item.itemName] != 1 || crossNamespaceCollision) continue;
-                itemById.Add(item.ContentId, item);
-                itemByLegacyName.Add(item.itemName, item);
-                registeredItems.Add(item);
-            }
-        }
+        public static void Configure(IEnumerable<ItemData> items) => PlayableSettlementContentRuntime.ConfigureLegacyItems(items);
 
         public static bool MigratePersistentState(SettlementInstance settlement)
         {
@@ -153,7 +114,7 @@ namespace HuntingInDarkness.Settlement
                 hunter.Equipment.Clear();
                 if (hunter.EquippedItemIds == null) continue;
                 foreach (string itemId in hunter.EquippedItemIds)
-                    if (itemById.TryGetValue(itemId, out ItemData item) && item.itemType != ItemType.Resource)
+                    if (TryGet(itemId, out ItemData item) && item.itemType != ItemType.Resource)
                         hunter.Equipment.Add(new ItemInstance(item));
             }
         }

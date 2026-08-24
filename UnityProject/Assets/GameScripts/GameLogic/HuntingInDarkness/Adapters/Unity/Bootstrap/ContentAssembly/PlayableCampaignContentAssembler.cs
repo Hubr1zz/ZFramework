@@ -65,7 +65,7 @@ namespace HuntingInDarkness.Bootstrap
                 if (stagedGeneration.HasErrors)
                     return FailAndRollback(report, "candidate.events.invalid", stagedGeneration.Diagnostic, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
                 ThrowIfInstallationFailureRequested("after-event-prepare");
-                if (!candidate.TryPrepareSettlementPlan(stagedGeneration.Events, out string reason))
+                if (!candidate.TryPrepareSettlementPlan(stagedGeneration, out string reason))
                     return FailAndRollback(report, "candidate.settlement.invalid", reason, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
                 stagedSettlementPlan = candidate.SettlementPlan;
                 ThrowIfInstallationFailureRequested("after-settlement-prepare");

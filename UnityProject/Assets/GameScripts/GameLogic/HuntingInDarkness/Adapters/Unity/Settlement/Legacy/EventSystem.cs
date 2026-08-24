@@ -336,7 +336,7 @@ namespace HuntingInDarkness.Settlement
             if (outcome.Handled && effect.effectType == EventEffectType.UnlockInvention)
             {
                 SettlementTimelineJournal.RecordInvention(_settlement, targetInvention.ContentId, targetInvention.inventionName);
-                if (!PlayableSettlementModifierRuntime.Synchronize(_settlement, PlayableSettlementInventionRegistry.Inventions, message => Debug.LogError($"[EventSystem] {message}")))
+                if (!PlayableSettlementModifierRuntime.Synchronize(_settlement, PlayableSettlementContentRuntime.Inventions, message => Debug.LogError($"[EventSystem] {message}")))
                     Debug.LogError($"[EventSystem] 发明 {targetInvention.ContentId} 的持续效果同步失败。");
             }
 

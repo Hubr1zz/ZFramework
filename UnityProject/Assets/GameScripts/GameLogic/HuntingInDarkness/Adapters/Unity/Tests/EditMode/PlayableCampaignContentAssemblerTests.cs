@@ -8,6 +8,7 @@ using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
@@ -309,6 +310,57 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(manager.Data.CampaignPacingSchemaVersion, Is.EqualTo(SettlementInstance.CurrentCampaignPacingSchemaVersion + 1));
             Assert.That(manager.Data.Hunters, Is.Empty);
             Assert.That(manager.Timeline.RandomEventPool, Is.Empty);
+        }
+
+        [Test]
+        public void PublishedPlan_RejectsIndependentRegistryReconfigurationWithoutDrift()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSymptomRuntime.Configure(settings.Symptoms);
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
+            IReadOnlyList<ItemData> items = PlayableSettlementContentRuntime.Items;
+            IReadOnlyList<InventionData> inventions = PlayableSettlementContentRuntime.Inventions;
+            IReadOnlyList<EventData> events = PlayableSettlementContentRuntime.Events;
+
+            Assert.Throws<System.InvalidOperationException>(() => PlayableSettlementItemRegistry.Configure(null));
+            Assert.Throws<System.InvalidOperationException>(() => PlayableSettlementInventionRegistry.Configure(null));
+            Assert.Throws<System.InvalidOperationException>(() => PlayableSettlementEventRegistry.Configure(null));
+            Assert.Throws<System.InvalidOperationException>(() => PlayableSettlementContentRuntime.Configure(null));
+
+            Assert.That(PlayableSettlementContentRuntime.Items, Is.SameAs(items));
+            Assert.That(PlayableSettlementContentRuntime.Inventions, Is.SameAs(inventions));
+            Assert.That(PlayableSettlementContentRuntime.Events, Is.SameAs(events));
+            Assert.That(PlayableSettlementItemRegistry.Items, Is.SameAs(items));
+            Assert.That(PlayableSettlementInventionRegistry.Inventions, Is.SameAs(inventions));
+            Assert.That(PlayableSettlementItemRegistry.TryGet(items[0].ContentId, out ItemData resolvedItem), Is.True);
+            Assert.That(resolvedItem, Is.SameAs(items[0]));
+            Assert.That(PlayableSettlementInventionRegistry.TryGet(inventions[0].ContentId, out InventionData resolvedInvention), Is.True);
+            Assert.That(resolvedInvention, Is.SameAs(inventions[0]));
+            Assert.That(PlayableSettlementEventRegistry.TryResolveCanonical(events[0].ContentId, out EventData resolvedEvent), Is.True);
+            Assert.That(resolvedEvent, Is.SameAs(events[0]));
+        }
+
+        [Test]
+        public void PublishedPlan_LeasesEventGenerationUntilPlanRetires()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSymptomRuntime.Configure(settings.Symptoms);
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
+            IReadOnlyList<EventData> leasedEvents = PlayableEventTableRuntime.GetEvents();
+            EventData leasedEvent = leasedEvents[0];
+
+            LogAssert.Expect(LogType.Error, "[PlayableEventTable] 活动营地内容计划仍在使用当前事件世代，拒绝重建缓存。");
+            Assert.That(PlayableEventTableRuntime.Rebuild(), Is.SameAs(leasedEvents));
+            LogAssert.Expect(LogType.Error, "[PlayableEventTable] 活动营地内容计划仍在使用当前事件世代，拒绝清理缓存。");
+            PlayableEventTableRuntime.ClearCache();
+
+            Assert.That(PlayableEventTableRuntime.GetEvents(), Is.SameAs(leasedEvents));
+            Assert.That(leasedEvent != null, Is.True);
+            resetSettlementContentRuntimeMethod.Invoke(null, null);
+            PlayableEventTableRuntime.ClearCache();
+            Assert.That(leasedEvent == null, Is.True);
         }
 
         private static EventData CreateDangerEvent(string contentId, int minYear, int maxYear)

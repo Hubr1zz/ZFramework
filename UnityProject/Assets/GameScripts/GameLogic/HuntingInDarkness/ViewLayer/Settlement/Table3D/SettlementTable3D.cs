@@ -322,7 +322,7 @@ namespace UI
 
             HideContextPanels();
             Vector3 position = hunterEquipmentPanelAnchor != null ? hunterEquipmentPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.2f));
-            hunterEquipmentPanel.Show(hunter, _mgr.Data, PlayableSettlementItemRegistry.Items, position);
+            hunterEquipmentPanel.Show(hunter, _mgr.Data, PlayableSettlementContentRuntime.Items, position);
         }
 
         private void HideContextPanels(WorkshopCard3D retainedWorkshop = null)

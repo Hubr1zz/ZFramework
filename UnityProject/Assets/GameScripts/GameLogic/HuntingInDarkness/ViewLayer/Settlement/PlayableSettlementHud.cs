@@ -321,7 +321,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             GUILayout.Label("装备仓库", sectionStyle);
             GUILayout.Label("制造完成的装备可以分配给猎人；死亡或卸下时会回到仓库。", mutedStyle);
             bool hasEquipment = false;
-            foreach (var item in PlayableSettlementItemRegistry.Items)
+            foreach (var item in PlayableSettlementContentRuntime.Items)
             {
                 if (item == null || item.itemType == ItemType.Resource) continue;
                 int count = data.GetStoredEquipment(item);

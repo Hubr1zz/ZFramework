@@ -35,14 +35,41 @@ title: "营地内容计划生命周期"
 
 ### Requirement: Campaign publishes one settlement generation
 
-Campaign 安装 SHALL 在事件世代发布后，以单一 `PlayableSettlementContentPlan` 指针发布 Item、Invention、Recipe、Hunter 与 Settlement Event 对象图。兼容 Registry SHALL 从该计划同批投影；投影数量或事件身份有效性不一致时 SHALL 回滚旧计划。
+Campaign 安装 SHALL 在事件世代发布后，以单一 `PlayableSettlementContentPlan` 指针发布 Item、Invention、Recipe、Hunter 与 Settlement Event 对象图。Plan SHALL 持有一个不可变 RegistryBundle，Item、Invention 与 Event 兼容 Registry SHALL 仅作为该 Bundle 的只读门面，不得持有独立索引状态。
 
 #### Scenario: Settlement plan publication succeeds
 
 - **WHEN** 候选计划通过跨表校验并完成安装事务
-- **THEN** Item、Invention 与 Event Registry SHALL 指向该计划的对象
+- **THEN** Item、Invention 与 Event Registry SHALL 通过同一 Bundle 解析该计划的对象
 - **AND** 后续创建的多个 SettlementManager SHALL 复用相同内容对象身份
 - **AND** 正式路径 SHALL NOT 再次读取表或创建另一批对象
+
+#### Scenario: A legacy registry is reconfigured during an active campaign
+
+- **WHEN** 活动 Plan 已发布后旧代码尝试独立 Configure Item、Invention 或 Event Registry
+- **THEN** 配置 SHALL 被拒绝
+- **AND** 当前 Bundle 引用、列表及稳定身份解析结果 SHALL 保持不变
+
+### Requirement: Published event generation remains leased
+
+活动 Plan SHALL 租用其 RegistryBundle 引用的同一事件世代。只要该 Plan 未退役，事件表的公开 Rebuild、ClearCache 与内容目录重配置入口 SHALL fail closed，不得销毁或替换 Plan 仍引用的 EventData。
+
+#### Scenario: Event cache maintenance is requested during an active campaign
+
+- **WHEN** 活动 Plan 已发布后调用事件表 Rebuild 或 ClearCache
+- **THEN** 操作 SHALL 被拒绝并报告诊断
+- **AND** 当前事件世代、Bundle 列表及事件对象身份 SHALL 保持不变
+- **AND** Plan 解除活动引用并退役后，显式缓存清理 SHALL 可以释放该世代
+
+### Requirement: Legacy registry configuration swaps one composite binding
+
+没有活动 Plan 的测试或兼容环境 MAY 独立配置某类 Registry，但每次配置 SHALL 构建并交换一个包含 Item、Invention 与 Event 索引的复合 legacy Bundle。RuntimeSnapshot SHALL 捕获和恢复该单一 Bundle 引用，不得分别复制三份 Registry 状态。
+
+#### Scenario: Campaign installation rolls back to a legacy binding
+
+- **WHEN** 安装前没有活动 Plan，但存在兼容 Registry 配置，且候选安装失败
+- **THEN** Runtime SHALL 恢复安装前的同一 legacy Bundle
+- **AND** 三类兼容门面 SHALL 同时观察到恢复后的对象身份
 
 ### Requirement: Plan ownership lasts for the campaign
 
@@ -67,4 +94,4 @@ Campaign 安装 SHALL 在事件世代发布后，以单一 `PlayableSettlementCo
 
 ## Known Boundary
 
-当前生产组合根已只发布并消费单一 Plan，但三个静态 Registry 仍保留公开兼容配置入口，尚未成为 Plan 内 RegistryBundle 的纯只读 facade。`SettlementManager.InjectData` 仍可对 live Data 执行兼容投影；普通读档的 candidate-manager 验证与整体替换属于下一阶段。
+Plan 与三个兼容 Registry 已收敛为单一不可变 RegistryBundle；公开 Configure 只服务没有活动 Plan 的旧测试/兼容环境。Bundle 冻结成员、索引键与对象身份，但不会克隆外部 ScriptableObject；发布后修改内容资产不属于受支持的运行期操作。`SettlementManager.InjectData` 仍可对 live Data 执行兼容投影；普通读档的 candidate-manager 验证与整体替换属于下一阶段。

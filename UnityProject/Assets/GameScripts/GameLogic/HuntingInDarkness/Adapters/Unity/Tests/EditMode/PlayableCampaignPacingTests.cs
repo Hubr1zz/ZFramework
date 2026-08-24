@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Core;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
@@ -11,8 +12,10 @@ namespace HuntingInDarkness.Tests
 {
     public sealed class PlayableCampaignPacingTests
     {
+        private static readonly MethodInfo resetSettlementContentRuntimeMethod = typeof(PlayableSettlementContentRuntime).GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
+
         [TearDown]
-        public void TearDown() => PlayableSettlementContentRuntime.Configure(null);
+        public void TearDown() => resetSettlementContentRuntimeMethod.Invoke(null, null);
 
         [Test]
         public void AdvanceYear_AdvancesExactlyOnceForEveryAcceptedReturn()

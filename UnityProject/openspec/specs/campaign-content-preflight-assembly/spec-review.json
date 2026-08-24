@@ -9,32 +9,32 @@
     "summary": "正式启动先构建冻结候选、事件世代与 SettlementContentPlan，再安装共享 Runtime 并执行隔离 Settlement 投影；任一阶段失败会恢复旧计划、Registry 与事件世代，成功才提交候选。",
     "evidence": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
-      "Unity CLI targeted: 11/11 passed",
-      "Unity CLI EditMode: 606/606 passed",
-      "C# derived index: 974/974, 100% coverage",
+      "Unity CLI targeted: 13/13 passed",
+      "Unity CLI EditMode: 609/609 passed",
+      "C# derived index: 975/975, 100% coverage",
       "zWorkFlow: 7/7 passed"
     ],
     "differences": [
-      "SettlementContentPlan 已纳入启动事务；剩余边界是静态 Registry 兼容入口，以及正式 SettlementManager 注入尚未使用候选管理器原子交换。"
+      "Settlement Registry 已收敛为单一 Bundle；剩余边界是正式 SettlementManager 注入尚未使用候选管理器原子交换。"
     ],
-    "verifiedAt": "2026-08-24T06:56:31-07:00",
+    "verifiedAt": "2026-08-24T07:21:34-07:00",
     "codeEvidence": [
       {
         "guid": "e720a0551a464b15a2f65f1e82fc4a4a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs",
         "line": 1,
-        "fileHash": "68a62b6d2894fe56181a77d9fe7427080df49675a980c334fb4023962c53e96f",
+        "fileHash": "d9ce7d231647a07d4f621766c0dd3463c490f9567a27f832519381cd66a1e022",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:56:31-07:00",
+        "checkedAt": "2026-08-24T07:21:34-07:00",
         "feature": "暂存事件世代与营地计划、执行分阶段安装并在异常时尽力逆序回滚。"
       },
       {
         "guid": "2c7d0e3a7e71476e9d04f85e0a4db4d4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentCandidate.cs",
         "line": 1,
-        "fileHash": "f8ebe316c68cb4589e4f269f0cf601edfb4850e96f33e9d27645e4a0dc799838",
+        "fileHash": "37fa62280218e97389f22c4ea2567d3c6f3267aa5a18113b9eeb9a366ae8c622",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:56:31-07:00",
+        "checkedAt": "2026-08-24T07:21:34-07:00",
         "feature": "冻结安装引用、暂存同一营地计划并在隔离营地状态上执行正式内容投影。"
       },
       {
@@ -50,19 +50,19 @@
         "guid": "176f9d6f63af40d9b3ee3e7e9b5f6ee5",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
         "line": 1,
-        "fileHash": "506a9599945d5ee58d60ef9c371d2f028bb42c2a7c43f0e6b52da4f0d345296c",
+        "fileHash": "d106d8e20af8cf34d5535383b30e22a584b1377766918170840671a82a817f49",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:56:31-07:00",
-        "feature": "验证无副作用预检、计划发布与身份复用、安装回滚、候选释放与无限年份覆盖。"
+        "checkedAt": "2026-08-24T07:21:34-07:00",
+        "feature": "验证无副作用预检、单 Bundle 发布、事件世代租约、安装回滚、候选释放与无限年份覆盖。"
       },
       {
         "guid": "13654856ee5c4c59b0ceafda4a80b637",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignRuntimeSnapshot.cs",
         "line": 1,
-        "fileHash": "5a2de549eed652869b0737c9d634bb6889d354375611f607f4437e5c59f960e8",
+        "fileHash": "d547c7de9ce47b184b50373cf674ce1f0531202326651c3948e0f3a07361ceb0",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:56:31-07:00",
-        "feature": "捕获并精确恢复内容安装可能触及的兼容 Runtime、缓存和稳定身份 Registry。"
+        "checkedAt": "2026-08-24T07:21:34-07:00",
+        "feature": "捕获并精确恢复内容安装可能触及的兼容 Runtime、缓存和单一稳定身份 Bundle。"
       },
       {
         "guid": "9e71694e151da1e46b76151a78867a1a",

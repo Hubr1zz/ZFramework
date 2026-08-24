@@ -6,46 +6,55 @@
   "readiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "启动事务将 Item、Invention、Recipe、Hunter 与 Settlement Event 冻结为单一战役计划；计划拥有表生成 transient 对象，失败时回滚，重复营地投影复用同一对象身份。",
+    "summary": "启动事务以一个 RegistryBundle 原子发布 Item、Invention 与 Settlement Event 索引；兼容 Registry 只读代理同一绑定，活动计划租用事件世代并拒绝独立重配置。",
     "evidence": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-      "Unity CLI targeted: 11/11 and 4/4 passed",
-      "Unity CLI EditMode: 606/606 passed",
-      "C# derived index: 974/974, 100% coverage",
+      "Unity CLI targeted: 13/13 and 7/7 passed",
+      "Unity CLI EditMode: 609/609 passed",
+      "C# derived index: 975/975, 100% coverage",
       "zWorkFlow: 7/7 passed"
     ],
     "differences": [
-      "静态 Registry 的公开 Configure 仍是兼容入口，尚未完全收敛为只读计划门面。",
+      "Bundle 冻结成员与索引，但不会克隆外部 ScriptableObject；发布后的内容资产变更不受支持。",
       "正式 SettlementManager 注入仍直接修改活体管理器；modifier 失败时尚未通过候选管理器实现整体原子交换。"
     ],
-    "verifiedAt": "2026-08-24T06:56:31-07:00",
+    "verifiedAt": "2026-08-24T07:21:34-07:00",
     "codeEvidence": [
       {
         "guid": "76ee8c16e7264fc89ae0566031980a8a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
         "line": 1,
-        "fileHash": "0d6ddedac7e3eb6dfb3d01594f9048f41ac6313b12baddc07d4696afe89dcd7f",
+        "fileHash": "d8fbeb4975e0352bcefb4d76a4d07fa4e3e03bf782c7a095ca183ac11ef43bf2",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:56:31-07:00",
-        "feature": "冻结跨表对象图、验证稳定引用、投影营地状态并拥有 transient Unity 对象生命周期。"
+        "checkedAt": "2026-08-24T07:21:34-07:00",
+        "feature": "冻结跨表对象图、持有单一 RegistryBundle 与事件世代租约，并管理 transient Unity 对象生命周期。"
+      },
+      {
+        "guid": "2f98d69be2fc4c94a20a1fc42af18f44",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs",
+        "line": 1,
+        "fileHash": "ae66cbd7ec0ba9b4fce7ee2fb6a3459314b14f1f7e2b7ff3fa0e0e09faf8a911",
+        "status": "verified",
+        "checkedAt": "2026-08-24T07:21:34-07:00",
+        "feature": "一次构建并发布 Item、Invention 与 Event 的不可变成员列表和稳定身份索引。"
       },
       {
         "guid": "89da669e4924d43409fe89475adc272b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
         "line": 1,
-        "fileHash": "60ce08d8a06f418bc2c627be0c12e7c6095c86abd46c8840c2eee58f20531840",
+        "fileHash": "00a020ef87b61ab6500d2a7a4296c1277509d79df8419d36168141a0ee186ca1",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:56:31-07:00",
-        "feature": "无副作用准备计划，并由 Runtime 原子发布、恢复和退役计划。"
+        "checkedAt": "2026-08-24T07:21:34-07:00",
+        "feature": "无副作用准备计划，并由 Runtime 单指针发布、恢复和退役计划及兼容 Bundle。"
       },
       {
         "guid": "e720a0551a464b15a2f65f1e82fc4a4a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs",
         "line": 1,
-        "fileHash": "68a62b6d2894fe56181a77d9fe7427080df49675a980c334fb4023962c53e96f",
+        "fileHash": "d9ce7d231647a07d4f621766c0dd3463c490f9567a27f832519381cd66a1e022",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:56:31-07:00",
+        "checkedAt": "2026-08-24T07:21:34-07:00",
         "feature": "暂存、发布并在失败时尽力逆序回滚营地计划与事件世代。"
       },
       {
@@ -61,10 +70,10 @@
         "guid": "176f9d6f63af40d9b3ee3e7e9b5f6ee5",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
         "line": 1,
-        "fileHash": "506a9599945d5ee58d60ef9c371d2f028bb42c2a7c43f0e6b52da4f0d345296c",
+        "fileHash": "d106d8e20af8cf34d5535383b30e22a584b1377766918170840671a82a817f49",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:56:31-07:00",
-        "feature": "验证发布身份复用、失败清理、外部资产保留、未来 Schema 拒绝与回滚。"
+        "checkedAt": "2026-08-24T07:21:34-07:00",
+        "feature": "验证单 Bundle 发布、独立重配置拒绝、事件世代租约、身份复用、失败清理与回滚。"
       },
       {
         "guid": "fe099c7b81392504dbdb631b0d972301",
@@ -81,7 +90,7 @@
     "Catalog 在启动事务内读取各表并构建冻结的 PlayableSettlementContentPlan。",
     "Plan 在任何正式 Runtime 变更前校验 Schema、稳定 ID、跨表引用和发明依赖环。",
     "Assembler 将事件世代与营地计划作为同一候选发布；异常时恢复旧计划和旧 Registry。",
-    "Plan 仅拥有表生成的 ItemData、InventionData 与 HunterData，退役时不销毁外部资产。",
+    "Plan 仅拥有表生成的 ItemData、InventionData 与 HunterData，并租用事件世代；退役时不销毁外部资产。",
     "正式和隔离 Settlement 投影都消费同一计划，避免重复读表和对象身份漂移。"
   ],
   "gapIds": [],
@@ -94,6 +103,7 @@
     "table-driven-event-chains"
   ],
   "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs:1"

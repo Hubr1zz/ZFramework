@@ -149,6 +149,17 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(PlayableSettlementItemRegistry.TryGet("second_id", out _), Is.False);
         }
 
+        [Test]
+        public void Configure_RejectsRepeatedReferenceWithoutThrowing()
+        {
+            ItemData item = CreateItem("repeated_item", "重复物品", ItemType.Resource);
+
+            Assert.DoesNotThrow(() => PlayableSettlementItemRegistry.Configure(new[] { item, item }));
+
+            Assert.That(PlayableSettlementItemRegistry.Items, Is.Empty);
+            Assert.That(PlayableSettlementItemRegistry.TryGet("repeated_item", out _), Is.False);
+        }
+
         private ItemData CreateItem(string contentId, string itemName, ItemType itemType)
         {
             ItemData item = ScriptableObject.CreateInstance<ItemData>();

@@ -11,66 +11,17 @@ namespace HuntingInDarkness.Settlement
         public const int CurrentIdentitySchemaVersion = 1;
         private const string timelinePrefix = "invention:";
 
-        private static readonly Dictionary<string, InventionData> inventionById = new(StringComparer.Ordinal);
-        private static readonly Dictionary<string, InventionData> inventionByAlias = new(StringComparer.Ordinal);
-        private static readonly List<InventionData> registeredInventions = new();
-
-        public static IReadOnlyList<InventionData> Inventions => registeredInventions;
+        public static IReadOnlyList<InventionData> Inventions => PlayableSettlementContentRuntime.Inventions;
 
         public static bool TryGet(string identifier, out InventionData invention)
         {
-            string key = identifier?.Trim() ?? string.Empty;
-            return inventionById.TryGetValue(key, out invention) || inventionByAlias.TryGetValue(key, out invention);
+            return PlayableSettlementContentRuntime.RegistryBundle.TryGetInvention(identifier, out invention);
         }
 
         public static string ResolveContentId(string identifier) => TryGet(identifier, out InventionData invention) ? invention.ContentId : identifier?.Trim() ?? string.Empty;
         public static string GetDisplayName(string identifier) => TryGet(identifier, out InventionData invention) ? invention.inventionName : identifier?.Trim() ?? string.Empty;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetRuntimeState() => Configure(null);
-
-        public static void Configure(IEnumerable<InventionData> inventions)
-        {
-            inventionById.Clear();
-            inventionByAlias.Clear();
-            registeredInventions.Clear();
-            if (inventions == null) return;
-
-            var candidates = new List<InventionData>();
-            var owners = new Dictionary<string, HashSet<InventionData>>(StringComparer.Ordinal);
-            var activeEffectOwners = new Dictionary<string, HashSet<InventionData>>(StringComparer.Ordinal);
-            var invalidActiveEffectOwners = new HashSet<InventionData>();
-            foreach (InventionData invention in inventions)
-            {
-                if (invention == null || !invention.HasExplicitContentId || string.IsNullOrWhiteSpace(invention.ContentId) || string.IsNullOrWhiteSpace(invention.inventionName)) continue;
-                candidates.Add(invention);
-                AddOwner(owners, invention.ContentId, invention);
-                AddOwner(owners, invention.inventionName, invention);
-                AddOwner(owners, invention.name, invention);
-                if (invention.activeEffects == null) continue;
-                var localEffectIds = new HashSet<string>(StringComparer.Ordinal);
-                foreach (InventionActiveEffect effect in invention.activeEffects)
-                {
-                    string effectId = effect?.effectId?.Trim() ?? string.Empty;
-                    if (effect == null || effectId.Length == 0 || string.IsNullOrWhiteSpace(effect.eventId) || effect.maxUsesPerYear < 0 || !localEffectIds.Add(effectId))
-                    {
-                        invalidActiveEffectOwners.Add(invention);
-                        continue;
-                    }
-                    AddOwner(activeEffectOwners, effectId, invention);
-                }
-            }
-
-            foreach (InventionData invention in candidates)
-            {
-                bool assetAliasIsValid = string.IsNullOrWhiteSpace(invention.name) || IsUnambiguous(owners, invention.name, invention);
-                if (!IsUnambiguous(owners, invention.ContentId, invention) || !IsUnambiguous(owners, invention.inventionName, invention) || !assetAliasIsValid || invalidActiveEffectOwners.Contains(invention) || HasConflictingActiveEffect(invention, activeEffectOwners)) continue;
-                inventionById.Add(invention.ContentId, invention);
-                AddAlias(invention.inventionName, invention);
-                AddAlias(invention.name, invention);
-                registeredInventions.Add(invention);
-            }
-        }
+        public static void Configure(IEnumerable<InventionData> inventions) => PlayableSettlementContentRuntime.ConfigureLegacyInventions(inventions);
 
         public static bool MigratePersistentState(SettlementInstance settlement)
         {
@@ -140,40 +91,5 @@ namespace HuntingInDarkness.Settlement
             return changed;
         }
 
-        private static void AddOwner(IDictionary<string, HashSet<InventionData>> owners, string identifier, InventionData invention)
-        {
-            string key = identifier?.Trim() ?? string.Empty;
-            if (key.Length == 0) return;
-            if (!owners.TryGetValue(key, out HashSet<InventionData> values))
-            {
-                values = new HashSet<InventionData>();
-                owners.Add(key, values);
-            }
-            values.Add(invention);
-        }
-
-        private static bool IsUnambiguous(IReadOnlyDictionary<string, HashSet<InventionData>> owners, string identifier, InventionData invention)
-        {
-            string key = identifier?.Trim() ?? string.Empty;
-            return key.Length > 0 && owners.TryGetValue(key, out HashSet<InventionData> values) && values.Count == 1 && values.Contains(invention);
-        }
-
-        private static void AddAlias(string identifier, InventionData invention)
-        {
-            string key = identifier?.Trim() ?? string.Empty;
-            if (key.Length > 0 && key != invention.ContentId && !inventionByAlias.ContainsKey(key))
-                inventionByAlias.Add(key, invention);
-        }
-
-        private static bool HasConflictingActiveEffect(InventionData invention, IReadOnlyDictionary<string, HashSet<InventionData>> owners)
-        {
-            if (invention?.activeEffects == null) return false;
-            foreach (InventionActiveEffect effect in invention.activeEffects)
-            {
-                string effectId = effect?.effectId?.Trim() ?? string.Empty;
-                if (effectId.Length > 0 && owners.TryGetValue(effectId, out HashSet<InventionData> values) && values.Count > 1) return true;
-            }
-            return false;
-        }
     }
 }

@@ -63,7 +63,8 @@ namespace HuntingInDarkness.Settlement
                 Debug.LogError("[SettlementManager] 已发布的营地内容属于另一目录，兼容 ApplyTo 不允许替换活动战役世代。");
                 return false;
             }
-            if (!TryPreparePlan(PlayableEventTableRuntime.GetEvents(), out PlayableSettlementContentPlan replacement, out string reason))
+            PlayableEventTableRuntime.GetEvents();
+            if (!TryPreparePlan(PlayableEventTableRuntime.CurrentGeneration, out PlayableSettlementContentPlan replacement, out string reason))
             {
                 Debug.LogError($"[SettlementManager] {reason}");
                 return false;
@@ -80,7 +81,7 @@ namespace HuntingInDarkness.Settlement
             return false;
         }
 
-        internal bool TryPreparePlan(IReadOnlyList<EventData> tableEvents, out PlayableSettlementContentPlan plan, out string reason)
+        internal bool TryPreparePlan(PlayableEventTableGeneration eventGeneration, out PlayableSettlementContentPlan plan, out string reason)
         {
             plan = null;
             reason = string.Empty;
@@ -90,6 +91,7 @@ namespace HuntingInDarkness.Settlement
                 return false;
             }
             var errors = new List<string>();
+            IReadOnlyList<EventData> tableEvents = eventGeneration != null ? eventGeneration.Events : Array.Empty<EventData>();
             using var ownership = new PlayableSettlementContentOwnership();
             try
             {
@@ -100,13 +102,14 @@ namespace HuntingInDarkness.Settlement
                 var allEvents = new List<EventData>(allRandomEvents);
                 allEvents.AddRange(allMainStoryEvents);
                 if (!PlayableSettlementContentPlan.ValidateContent(allItems, allInventions, allRecipes, allEvents, out string validationReason)) errors.Add(validationReason);
+                if (!PlayableSettlementRegistryBundle.TryCreate(allItems, allInventions, allEvents, out PlayableSettlementRegistryBundle registryBundle, out string registryReason)) errors.Add(registryReason);
                 if (!huntersValid || allStartingHunters.Count == 0) errors.Add("猎人内容未提供任何有效初始模板。");
                 if (errors.Count > 0)
                 {
                     reason = string.Join("；", errors);
                     return false;
                 }
-                plan = new PlayableSettlementContentPlan(this, allItems, allInventions, allRecipes, allRandomEvents, allMainStoryEvents, allStartingHunters, allRecruitmentTemplates, startingResources, ownership.Objects, deathInspirationGrowth, deathInspirationMinimumAge);
+                plan = new PlayableSettlementContentPlan(this, registryBundle, eventGeneration, allRecipes, allRandomEvents, allMainStoryEvents, allStartingHunters, allRecruitmentTemplates, startingResources, ownership.Objects, deathInspirationGrowth, deathInspirationMinimumAge);
                 ownership.Transfer();
                 return true;
             }
@@ -151,22 +154,31 @@ namespace HuntingInDarkness.Settlement
     {
         private static PlayableSettlementContentCatalog catalog;
         private static PlayableSettlementContentPlan currentPlan;
+        private static PlayableSettlementRegistryBundle legacyRegistryBundle = PlayableSettlementRegistryBundle.CreateLegacy(null, null, null, false);
         public static PlayableSettlementContentCatalog Catalog => catalog;
+        public static IReadOnlyList<ItemData> Items => RegistryBundle.Items;
+        public static IReadOnlyList<InventionData> Inventions => RegistryBundle.Inventions;
+        public static IReadOnlyList<EventData> Events => RegistryBundle.Events;
         internal static PlayableSettlementContentPlan CurrentPlan => currentPlan;
+        internal static PlayableSettlementRegistryBundle RegistryBundle => currentPlan != null && !currentPlan.IsRetired ? currentPlan.RegistryBundle : legacyRegistryBundle;
+        internal static bool IsEventGenerationLeased(PlayableEventTableGeneration generation) => generation != null && currentPlan != null && !currentPlan.IsRetired && ReferenceEquals(currentPlan.EventGeneration, generation);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
             catalog = null;
-            PlayableSettlementContentPlan retired = SwapPlan(null);
+            PlayableSettlementContentPlan retired = currentPlan;
+            currentPlan = null;
+            legacyRegistryBundle = PlayableSettlementRegistryBundle.CreateLegacy(null, null, null, false);
             RetirePlan(retired);
         }
 
         public static void Configure(PlayableSettlementContentCatalog contentCatalog)
         {
-            PlayableSettlementContentPlan retired = SwapPlan(null);
+            if (currentPlan != null && !currentPlan.IsRetired)
+                throw new InvalidOperationException("已发布营地内容计划期间不得重新配置内容目录。");
+            legacyRegistryBundle = PlayableSettlementRegistryBundle.CreateLegacy(null, null, null, false);
             catalog = contentCatalog;
-            RetirePlan(retired);
         }
 
         internal static void ConfigureForInstallation(PlayableSettlementContentCatalog contentCatalog) => catalog = contentCatalog;
@@ -187,25 +199,44 @@ namespace HuntingInDarkness.Settlement
         {
             PlayableSettlementContentPlan previous = currentPlan;
             currentPlan = replacement;
-            PlayableSettlementItemRegistry.Configure(replacement?.Items);
-            PlayableSettlementInventionRegistry.Configure(replacement?.Inventions);
-            if (replacement == null)
-            {
-                PlayableSettlementEventRegistry.Configure(null);
-                return previous;
-            }
-            var events = new List<EventData>(replacement.RandomEvents);
-            events.AddRange(replacement.MainStoryEvents);
-            PlayableSettlementEventRegistry.Configure(events);
-            if (PlayableSettlementItemRegistry.Items.Count != replacement.Items.Count || PlayableSettlementInventionRegistry.Inventions.Count != replacement.Inventions.Count || !PlayableSettlementEventRegistry.IsValid)
-                throw new InvalidOperationException("营地内容计划与兼容 Registry 的稳定身份投影不一致。");
             return previous;
+        }
+
+        internal static void ConfigureLegacyItems(IEnumerable<ItemData> items)
+        {
+            EnsureLegacyConfigurationAllowed("Item");
+            legacyRegistryBundle = PlayableSettlementRegistryBundle.CreateLegacy(items, legacyRegistryBundle.Inventions, legacyRegistryBundle.Events, legacyRegistryBundle.EventsConfigured);
+        }
+
+        internal static void ConfigureLegacyInventions(IEnumerable<InventionData> inventions)
+        {
+            EnsureLegacyConfigurationAllowed("Invention");
+            legacyRegistryBundle = PlayableSettlementRegistryBundle.CreateLegacy(legacyRegistryBundle.Items, inventions, legacyRegistryBundle.Events, legacyRegistryBundle.EventsConfigured);
+        }
+
+        internal static void ConfigureLegacyEvents(IEnumerable<EventData> events, bool configured = true)
+        {
+            EnsureLegacyConfigurationAllowed("Event");
+            legacyRegistryBundle = PlayableSettlementRegistryBundle.CreateLegacy(legacyRegistryBundle.Items, legacyRegistryBundle.Inventions, events, configured);
+        }
+
+        internal static PlayableSettlementRegistryBundle CaptureLegacyRegistryBundle() => legacyRegistryBundle;
+
+        internal static void RestoreLegacyRegistryBundle(PlayableSettlementRegistryBundle bundle)
+        {
+            legacyRegistryBundle = bundle ?? PlayableSettlementRegistryBundle.CreateLegacy(null, null, null, false);
         }
 
         internal static void RetirePlan(PlayableSettlementContentPlan plan)
         {
             if (plan == null || ReferenceEquals(plan, currentPlan)) return;
             plan.Dispose();
+        }
+
+        private static void EnsureLegacyConfigurationAllowed(string registryName)
+        {
+            if (currentPlan == null || currentPlan.IsRetired) return;
+            throw new InvalidOperationException($"已发布营地内容计划期间不得独立改写 {registryName} Registry。");
         }
     }
 }

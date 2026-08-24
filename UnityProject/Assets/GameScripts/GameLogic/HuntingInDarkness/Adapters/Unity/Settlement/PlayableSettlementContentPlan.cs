@@ -60,14 +60,17 @@ namespace HuntingInDarkness.Settlement
         private readonly int deathInspirationMinimumAge;
         private bool retired;
 
-        public PlayableSettlementContentPlan(PlayableSettlementContentCatalog sourceCatalog, List<ItemData> items, List<InventionData> inventions, List<CraftRecipe> recipes, List<EventData> randomEvents, List<EventData> mainStoryEvents, List<HunterData> startingHunters, List<HunterData> recruitmentTemplates, IReadOnlyList<StartingResourceDefinition> resources, List<UnityEngine.Object> ownedObjects, int deathInspirationGrowth, int deathInspirationMinimumAge)
+        public PlayableSettlementContentPlan(PlayableSettlementContentCatalog sourceCatalog, PlayableSettlementRegistryBundle registryBundle, PlayableEventTableGeneration eventGeneration, List<CraftRecipe> recipes, List<EventData> randomEvents, List<EventData> mainStoryEvents, List<HunterData> startingHunters, List<HunterData> recruitmentTemplates, IReadOnlyList<StartingResourceDefinition> resources, List<UnityEngine.Object> ownedObjects, int deathInspirationGrowth, int deathInspirationMinimumAge)
         {
             SourceCatalog = sourceCatalog;
-            Items = items.AsReadOnly();
-            Inventions = inventions.AsReadOnly();
+            RegistryBundle = registryBundle ?? throw new ArgumentNullException(nameof(registryBundle));
+            EventGeneration = eventGeneration;
+            Items = registryBundle.Items;
+            Inventions = registryBundle.Inventions;
             Recipes = recipes.AsReadOnly();
             RandomEvents = randomEvents.AsReadOnly();
             MainStoryEvents = mainStoryEvents.AsReadOnly();
+            Events = registryBundle.Events;
             StartingHunters = startingHunters.AsReadOnly();
             RecruitmentTemplates = recruitmentTemplates.AsReadOnly();
             startingResources = new List<StartingResourceSnapshot>();
@@ -80,11 +83,14 @@ namespace HuntingInDarkness.Settlement
         }
 
         public PlayableSettlementContentCatalog SourceCatalog { get; }
+        internal PlayableSettlementRegistryBundle RegistryBundle { get; }
+        internal PlayableEventTableGeneration EventGeneration { get; }
         public IReadOnlyList<ItemData> Items { get; }
         public IReadOnlyList<InventionData> Inventions { get; }
         public IReadOnlyList<CraftRecipe> Recipes { get; }
         public IReadOnlyList<EventData> RandomEvents { get; }
         public IReadOnlyList<EventData> MainStoryEvents { get; }
+        public IReadOnlyList<EventData> Events { get; }
         public IReadOnlyList<HunterData> StartingHunters { get; }
         public IReadOnlyList<HunterData> RecruitmentTemplates { get; }
         public bool IsRetired => retired;

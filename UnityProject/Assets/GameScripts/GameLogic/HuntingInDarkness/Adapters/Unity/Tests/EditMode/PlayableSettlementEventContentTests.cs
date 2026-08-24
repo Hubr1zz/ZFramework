@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -10,9 +11,10 @@ namespace HuntingInDarkness.Adapter.Tests
     public sealed class PlayableSettlementEventContentTests
     {
         private const string CatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/PlayableSettlementContentCatalog.asset";
+        private static readonly MethodInfo resetSettlementContentRuntimeMethod = typeof(PlayableSettlementContentRuntime).GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
 
         [TearDown]
-        public void TearDown() => PlayableSettlementContentRuntime.Configure(null);
+        public void TearDown() => resetSettlementContentRuntimeMethod.Invoke(null, null);
 
         [Test]
         public void Timeline_WithAlternatives_DoesNotRepeatMostRecentRandomEvent()
