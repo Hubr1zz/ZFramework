@@ -45,7 +45,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 - 第 2、5 步仍待完成；`GameManager` 暂时作为 `ICampaignPhaseTransitionHost` 执行场景根和旧会话装配。招募与休养 View 已改走窄命令外观，内容目录只在启动时注入并转交 Settlement Session，不再由 View Service 直接提交状态。
 - 第 6 步已提前完成安全子项：移除 `GameManager.OnDestroy` 中的全局 `EventBus.Clear()`，并在销毁时清空单例；完全删除兼容单例仍须等待调用方迁移。
 - 跨阶段事件表现已统一为 `IPlayableEventInput` 驱动的世界空间 3D 卡牌面板；Settlement/Hunt Runner 仍分别拥有规则环境与 ActionQueue，物理骰子继续在 Runner 内等待。旧 `EventPopupHunt` 和营地 HUD 事件入口仅保留兼容用途。
-- 营地出猎已改为世界空间猎人卡编队与地区卡选择：View 只暂存玩家意图，Settlement Runner 校验并提交名册，Campaign Runner 完成阶段切换。旧 `SettlementManager.TryDepart`、`DepartureConfirmWindow` 与 `SettlementUIManager.ShowDepartureConfirm` 暂作场景兼容层，确认无序列化引用后再一次性删除。
+- 营地出猎已改为世界空间猎人卡编队与地区卡选择：View 只暂存玩家意图，Settlement Runner 校验并提交名册，Campaign Runner 完成阶段切换。旧 `SettlementManager.TryDepart` 已降为注入式请求端口，不再写名册、发布出发事件或直接切阶段；`DepartureConfirmWindow` 与 `SettlementUIManager.ShowDepartureConfirm` 暂作场景兼容层，确认无序列化引用后再一次性删除。
 - 狩猎主动回营已改为地图边缘实体卡确认：Hunt Runner 只准备结算快照，Campaign Runner 接受切换后才转移采集物、结算成长并把记录交给 Settlement；原 Hunt HUD 与流程引导不再提供绕过 Runner 的屏幕按钮。
 - 营地发明与工坊建设已形成连续 3D 桌面流程：发明卡和蓝图卡只提交 Settlement Action，事务提交后重建工坊区并开放配置配方；正式 Bootstrap 不再创建旧屏幕空间建设窗，旧 HUD 也不再暴露发明、制造和装备库存旁路。
 - 猎人休养已并入 3D 猎人装备桌：负伤猎人才显示休养入口，四张部位卡根据伤势与配置资源展示可用状态，恢复仍由 Settlement ActionQueue 提交；正式 Bootstrap 不再创建旧屏幕空间休养窗。
@@ -77,6 +77,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 15. `PlayableSymptomGrowthService` 与 `PlayableSymptomGrowthView` 仍保留源码兼容，正式组合根已不再创建；旧 Service 仍能绕过 Runner 直接修改猎人。确认没有场景序列化或外部工具引用后应一次删除，避免读表扩展重新形成双提交入口。
 16. 全量 EditMode 在 Play Mode/重编译后的首次运行中，既有 `PlayableHuntActionSessionTests` 偶发出现事件输入未启动；同一夹具立即独立复跑 9/9、随后全量 358/358 通过，说明测试仍依赖未显式重置的静态或异步环境。后续应定位共享状态并在夹具 SetUp/TearDown 中隔离，不能靠重跑作为长期门禁。
 17. `EventSystem` 的效果列表仍按顺序直接提交，现已把单项失败与批次计数交还所属阶段 Root，但不能撤销前序效果。大量复合事件进入内容表前，仍需按具体内容明确“允许部分成功”与“必须原子提交”两类策略；后者应使用可预检、可补偿的专用复合效果，不要让 View 或 `GameManager` 做补偿。
+18. 出猎兼容端口当前仍由 `GameManager` 作为组合根实现，用于把旧 HUD/UnityEvent 请求导入同一 Runner 链。确认旧序列化引用全部迁走后，应随兼容 UI 一次删除该端口，不要把它扩展为第二套长期出猎 API。
 18. `HuntUIManager` 仍需逐项订阅地块、采集和事件节点提交事实来刷新同一状态桌。继续增加狩猎写路径后，应由 `HuntSession` 发布带会话身份的统一 ReadModel 失效事实，避免 View 遗漏新事实或收到旧会话的延迟刷新；在 Session 抽取前不为此单独重构全局事件总线。
 19. 远征小队全员死亡时，本阶段只关闭探索并保留回营结算，没有决定死者携带物、装备和尸体如何返回营地。该规则会显著改变惩罚强度与玩家负反馈，需先在设计层明确“自动回收、部分遗失或救援事件”后，再把对应结算策略注入 `PrepareHuntRetreatAction`，不得散落在 View 或 `ResourceSystem` 中。
 

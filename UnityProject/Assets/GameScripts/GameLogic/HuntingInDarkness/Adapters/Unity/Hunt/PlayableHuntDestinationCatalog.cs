@@ -112,6 +112,12 @@ namespace HuntingInDarkness.Hunt
         public static bool CanSelectForDeparture(PlayableHuntDestination destination, int currentYear, out string reason)
         {
             if (destination != null) return CanSelect(destination, currentYear, out reason);
+            if (catalog != null && catalog.GetAvailable(currentYear).Count > 0)
+            {
+                reason = "请选择狩猎目的地。";
+                return false;
+            }
+
             reason = string.Empty;
             return true;
         }
@@ -119,6 +125,7 @@ namespace HuntingInDarkness.Hunt
         public static bool TrySelectForDeparture(PlayableHuntDestination destination, int currentYear, out string reason)
         {
             if (destination != null) return TrySelect(destination, currentYear, out reason);
+            if (!CanSelectForDeparture(null, currentYear, out reason)) return false;
             RestoreSelection(null);
             reason = string.Empty;
             return true;

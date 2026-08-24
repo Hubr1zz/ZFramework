@@ -3,6 +3,7 @@ using Core;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Settlement;
+using HuntingInDarkness.ActionFlow.Settlement;
 using UnityEngine;
 
 namespace HuntingInDarkness.Settlement
@@ -28,10 +29,10 @@ namespace HuntingInDarkness.Settlement
 
         private readonly IRandomSource _rng;
 
-        // ─── UI 回调（由 SettlementUIManager 注入）────────────────
+        // ─── 组合根端口 ─────────────────────────────────────────
 
-        /// <summary>当进入狩猎阶段时触发（GameManager 监听，切换 Root）</summary>
-        public System.Action<List<int>> OnDepartForHunt;
+        /// <summary>由战役组合根注入的权威出猎请求端口。</summary>
+        public ISettlementDepartureRequestPort DepartureRequestPort { get; set; }
 
         // ─── 构造 ────────────────────────────────────────────────
 
@@ -83,17 +84,13 @@ namespace HuntingInDarkness.Settlement
         /// </summary>
         public bool TryDepart(List<int> hunterIds)
         {
-            if (!DepartureRules.CanDepart(hunterIds, out string reason))
+            if (DepartureRequestPort == null)
             {
-                Debug.LogWarning($"[SettlementManager] 出发失败：{reason}");
+                Debug.LogWarning("[SettlementManager] 出发失败：未配置权威出猎请求端口。");
                 return false;
             }
 
-            Data.DepartingHunterIds = new List<int>(hunterIds);
-            Debug.Log($"[SettlementManager] 出发狩猎，猎人：{string.Join(",", hunterIds)}");
-            EventBus.Publish(new HuntDepartedEvent { HunterIds = hunterIds.ToArray() });
-            OnDepartForHunt?.Invoke(hunterIds);
-            return true;
+            return DepartureRequestPort.RequestDeparture(hunterIds);
         }
 
         // ─── 初始化辅助 ──────────────────────────────────────────

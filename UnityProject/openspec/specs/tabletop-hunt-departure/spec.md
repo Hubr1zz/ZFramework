@@ -48,6 +48,17 @@ After roster preparation succeeds, the orchestration boundary SHALL configure th
 - **WHEN** destination state was staged but the phase transition does not commit
 - **THEN** the previous destination selection is restored and the game remains operable in Settlement
 
+### Requirement: Every departure entry uses the authoritative command path
+Every current or compatibility departure entry SHALL submit through the same Settlement departure request boundary. Compatibility APIs and notification events SHALL NOT directly replace the departing roster or change the campaign phase.
+
+#### Scenario: A legacy departure entry is invoked
+- **WHEN** an old HUD, UnityEvent, or compatibility caller requests departure
+- **THEN** the request is either accepted by the Settlement and Campaign runners or rejected without changing the roster, publishing a departure fact, or entering Hunt
+
+#### Scenario: A departure request is already in flight
+- **WHEN** another entry submits the same or a different roster before the current handoff completes
+- **THEN** no parallel preparation or campaign transition is started
+
 ### Requirement: Concurrent settlement flows do not overlap
 The departure table SHALL NOT open while another Settlement action chain is awaiting input, and duplicate departure confirmations SHALL NOT start parallel cross-runner handoffs.
 
@@ -61,7 +72,11 @@ The departure table SHALL NOT open while another Settlement action chain is awai
 - **AND** cancelling preparation restores the settlement table to its previous active state
 
 ### Requirement: Destination content remains configuration-driven
-Available routes SHALL come from `PlayableHuntDestinationCatalog`; when no route is available, the existing configured hunt content SHALL remain a valid fallback without changing the View contract.
+Available routes SHALL come from `PlayableHuntDestinationCatalog`. When at least one route is available for the current year, departure SHALL require an explicit valid selection. When no route is available, the existing configured hunt content SHALL remain a valid fallback without changing the View contract.
+
+#### Scenario: A route is available but no route was selected
+- **WHEN** any departure entry submits a valid squad without an explicit destination
+- **THEN** the request is rejected in Settlement and the current destination state is preserved
 
 #### Scenario: The catalog has no route available for the current year
 - **WHEN** a valid squad continues from the staging table

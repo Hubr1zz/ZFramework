@@ -46,7 +46,7 @@ namespace Core
     /// 管理三个游戏大阶段（Settlement / Hunt / BossFight）的根物体开关，
     /// 以及 Boss决战子系统的初始化与运行。
     /// </summary>
-    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, ICampaignPhaseTransitionHost, IPlayableHuntRetreatInput
+    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, ICampaignPhaseTransitionHost, IPlayableHuntRetreatInput, ISettlementDepartureRequestPort
     {
         // ─── 单例 ─────────────────────────────────────────────────────
         public static GameManager Instance { get; private set; }
@@ -532,8 +532,7 @@ namespace Core
         private SettlementManager CreateSettlementManager()
         {
             var mgr = new SettlementManager();
-            // 当营地系统要求出发狩猎时，切换到 Hunt 阶段
-            mgr.OnDepartForHunt = (hunterIds) => TransitionToPhase(GamePhase.Hunt);
+            mgr.DepartureRequestPort = this;
             return mgr;
         }
 
@@ -801,15 +800,21 @@ namespace Core
             }
         }
 
-        public bool TryDepartForHunt(List<int> hunterIds)
+        public bool TryDepartForHunt(IReadOnlyList<int> hunterIds)
         {
             if (huntDepartureInFlight || IsSettlementActionSessionRunning)
                 return false;
+            if (CurrentGamePhase != GamePhase.Settlement || settlementActionSession == null || !settlementActionSession.IsActive || SettlementData == null)
+                return false;
             if (!DepartureRules.CanDepart(hunterIds, out _))
+                return false;
+            if (!PlayableHuntDestinationRuntime.CanSelectForDeparture(null, SettlementData.CurrentYear, out _))
                 return false;
             DepartForHuntAsync(hunterIds).Forget();
             return true;
         }
+
+        bool ISettlementDepartureRequestPort.RequestDeparture(IReadOnlyList<int> hunterIds) => TryDepartForHunt(hunterIds);
 
         private void QueueSettlementEvents(IReadOnlyList<EventData> events)
         {

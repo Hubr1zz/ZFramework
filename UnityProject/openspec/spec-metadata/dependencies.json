@@ -362,6 +362,16 @@
       "blocksImplementation": false
     },
     {
+      "id": "tabletop-hunt-departure--requires--action-environment-lifecycle",
+      "from": "tabletop-hunt-departure",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "所有正式与兼容出猎入口都通过 Settlement 与 Campaign Runner 的单一受控命令链提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
       "id": "tabletop-hunt-retreat--requires--hunt-phase-orchestration",
       "from": "tabletop-hunt-retreat",
       "to": "hunt-phase-orchestration",

@@ -3,6 +3,7 @@ using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.Hunt;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEngine;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
@@ -50,17 +51,42 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void TrySelectForDeparture_NullRouteRestoresFallbackSelection()
+        public void TrySelectForDeparture_NullRouteRequiresSelectionWhenRouteIsAvailable()
         {
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
             PlayableHuntDestination destination = settings.HuntDestinations.GetAvailable(1)[0];
             PlayableHuntDestinationRuntime.Configure(settings.HuntDestinations, settings.HuntContent);
             Assert.That(PlayableHuntDestinationRuntime.TrySelect(destination, 1, out string selectReason), Is.True, selectReason);
 
+            bool canSelectFallback = PlayableHuntDestinationRuntime.CanSelectForDeparture(null, 1, out string canSelectReason);
             bool selectedFallback = PlayableHuntDestinationRuntime.TrySelectForDeparture(null, 1, out string fallbackReason);
 
-            Assert.That(selectedFallback, Is.True, fallbackReason);
-            Assert.That(PlayableHuntDestinationRuntime.ActiveDestination, Is.Null);
+            Assert.That(canSelectFallback, Is.False);
+            Assert.That(canSelectReason, Is.EqualTo("请选择狩猎目的地。"));
+            Assert.That(selectedFallback, Is.False);
+            Assert.That(fallbackReason, Is.EqualTo("请选择狩猎目的地。"));
+            Assert.That(PlayableHuntDestinationRuntime.ActiveDestination, Is.SameAs(destination));
+        }
+
+        [Test]
+        public void TrySelectForDeparture_NullRouteRestoresFallbackWhenCurrentYearHasNoRoutes()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableHuntDestinationCatalog emptyCatalog = ScriptableObject.CreateInstance<PlayableHuntDestinationCatalog>();
+            try
+            {
+                PlayableHuntDestinationRuntime.Configure(emptyCatalog, settings.HuntContent);
+
+                Assert.That(emptyCatalog.GetAvailable(1), Is.Empty);
+                bool selectedFallback = PlayableHuntDestinationRuntime.TrySelectForDeparture(null, 1, out string fallbackReason);
+
+                Assert.That(selectedFallback, Is.True, fallbackReason);
+                Assert.That(PlayableHuntDestinationRuntime.ActiveDestination, Is.Null);
+            }
+            finally
+            {
+                Object.DestroyImmediate(emptyCatalog);
+            }
         }
     }
 }
