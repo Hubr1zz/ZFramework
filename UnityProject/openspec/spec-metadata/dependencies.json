@@ -342,6 +342,16 @@
       "blocksImplementation": false
     },
     {
+      "id": "campaign-persistence--requires--tabletop-event-interaction",
+      "from": "campaign-persistence",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "继续战役把未完成 Timeline 引用重建为同一世界空间事件链，并在完成前保持出猎门禁",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
       "id": "tabletop-hunt-departure--requires--settlement-phase-orchestration",
       "from": "tabletop-hunt-departure",
       "to": "settlement-phase-orchestration",

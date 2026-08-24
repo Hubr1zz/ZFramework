@@ -141,6 +141,7 @@ namespace Core
         private HuntRecord           _pendingHuntRecord;
         private PlayableCombatSession _combatSession;
         private PlayableSettlementActionSession settlementActionSession;
+        private SettlementEventRestoreProjection settlementEventRestoreProjection;
         private PlayableHuntActionSession huntActionSession;
         private PlayableCampaignActionSession campaignActionSession;
         private readonly ActionEnvironmentInstallerRegistry actionEnvironmentInstallers = new();
@@ -705,6 +706,7 @@ namespace Core
         public bool IsHuntActionSessionRunning => huntActionSession?.IsRunning == true;
         public bool IsCampaignActionSessionActive => campaignActionSession?.IsActive == true;
         public bool IsSettlementActionSessionRunning => settlementActionSession?.IsRunning == true;
+        public bool IsSettlementEventRestoreReady => settlementEventRestoreProjection == null || settlementEventRestoreProjection.IsReady;
         public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers => actionEnvironmentInstallers;
         public CardGame.ActionQueue.ReactorRegistry SettlementActionReactors => settlementActionSession?.Reactors;
         public CardGame.ActionQueue.ReactorRegistry CampaignActionReactors => campaignActionSession?.Reactors;
@@ -744,6 +746,8 @@ namespace Core
 
         public void RequestHuntDeparture(IReadOnlyList<int> hunterIds)
         {
+            if (!CanDepartAfterSettlementEventRestore(out _))
+                return;
             if (playableHuntDepartureInput != null)
             {
                 playableHuntDepartureInput.RequestDeparture(hunterIds);
@@ -760,6 +764,8 @@ namespace Core
                 return SettlementDepartureCommandResult.Failed("出猎流程正在处理中。");
             if (CurrentGamePhase != GamePhase.Settlement || settlementActionSession == null || !settlementActionSession.IsActive)
                 return SettlementDepartureCommandResult.Failed("当前不在营地阶段。");
+            if (!CanDepartAfterSettlementEventRestore(out string restoreReason))
+                return SettlementDepartureCommandResult.Failed(restoreReason);
             if (IsSettlementActionSessionRunning)
                 return SettlementDepartureCommandResult.Failed("请先完成当前营地流程。");
             if (!PlayableHuntDestinationRuntime.CanSelectForDeparture(destination, SettlementData.CurrentYear, out string selectionReason))
@@ -806,6 +812,8 @@ namespace Core
                 return false;
             if (CurrentGamePhase != GamePhase.Settlement || settlementActionSession == null || !settlementActionSession.IsActive || SettlementData == null)
                 return false;
+            if (!CanDepartAfterSettlementEventRestore(out _))
+                return false;
             if (!DepartureRules.CanDepart(hunterIds, out _))
                 return false;
             if (!PlayableHuntDestinationRuntime.CanSelectForDeparture(null, SettlementData.CurrentYear, out _))
@@ -816,15 +824,41 @@ namespace Core
 
         bool ISettlementDepartureRequestPort.RequestDeparture(IReadOnlyList<int> hunterIds) => TryDepartForHunt(hunterIds);
 
-        private void QueueSettlementEvents(IReadOnlyList<EventData> events)
+        private bool CanDepartAfterSettlementEventRestore(out string reason)
         {
-            if (events == null || events.Count == 0 || settlementActionSession == null) return;
-            ResolveSettlementEventsAsync(settlementActionSession, events).Forget();
+            if (IsSettlementEventRestoreReady)
+            {
+                reason = string.Empty;
+                return true;
+            }
+
+            reason = settlementEventRestoreProjection?.FailureReason;
+            if (string.IsNullOrWhiteSpace(reason))
+                reason = "请先完成读档后的营地事件恢复。";
+            return false;
         }
 
-        private async UniTaskVoid ResolveSettlementEventsAsync(PlayableSettlementActionSession session, IReadOnlyList<EventData> events)
+        private void QueueSettlementEvents(IReadOnlyList<EventData> events, SettlementEventRestoreProjection restoreProjection = null)
         {
-            SettlementEventCommandResult result = await session.ResolveEventsAsync(events);
+            if (events == null || events.Count == 0 || settlementActionSession == null) return;
+            ResolveSettlementEventsAsync(settlementActionSession, events, restoreProjection).Forget();
+        }
+
+        private async UniTaskVoid ResolveSettlementEventsAsync(PlayableSettlementActionSession session, IReadOnlyList<EventData> events, SettlementEventRestoreProjection restoreProjection = null)
+        {
+            SettlementEventCommandResult result;
+            try
+            {
+                result = await session.ResolveEventsAsync(events);
+            }
+            catch (System.Exception exception)
+            {
+                restoreProjection?.Fail($"营地事件恢复异常：{exception.Message}");
+                Debug.LogError($"[GameManager] 营地事件链执行异常：{exception}");
+                return;
+            }
+            if (restoreProjection != null)
+                restoreProjection.Complete(result.Succeeded);
             if (!result.Succeeded && ReferenceEquals(session, settlementActionSession))
                 Debug.LogWarning($"[GameManager] 营地事件链未完成：{result.Reason}");
         }
@@ -1293,6 +1327,7 @@ namespace Core
                 SaveLoadSystem.DeleteSaveAsync(this.GetCancellationTokenOnDestroy()).Forget();
                 // 重置 SettlementManager，重新初始化
                 DisposeSettlementActionSession();
+                settlementEventRestoreProjection = null;
                 _settlementManager = CreateSettlementManager();
                 _settlementManager.EnsureStartingConditions();
                 if (CurrentGamePhase == GamePhase.Settlement)
@@ -1386,14 +1421,25 @@ namespace Core
             }
             _settlementManager ??= CreateSettlementManager();
             _settlementManager.InjectData(data);
+            settlementEventRestoreProjection = new SettlementEventRestoreProjection(data, _settlementManager.Timeline.ResolveEvent);
             if (CurrentGamePhase == GamePhase.Settlement)
                 StartSettlementActionSession();
 
             // 场景实例与运行时回退都保留，由幂等 Init 重新绑定新存档数据和命令端口。
             EnsureSettlementUI();
             _settlementUIManager?.Refresh();
+            bool restoreSucceeded = true;
+            if (CurrentGamePhase == GamePhase.Settlement)
+            {
+                SettlementEventRestorePlan restorePlan = settlementEventRestoreProjection.Prepare();
+                restoreSucceeded = restorePlan.Succeeded;
+                if (!restoreSucceeded)
+                    Debug.LogError($"[GameManager] 读档后的营地事件恢复失败：{restorePlan.FailureReason}");
+                else
+                    QueueSettlementEvents(restorePlan.Events, settlementEventRestoreProjection);
+            }
             Debug.Log($"[GameManager] DevLoad 完成，年份 {data.CurrentYear}");
-            SettlementProgressLoadCompleted?.Invoke(true);
+            SettlementProgressLoadCompleted?.Invoke(restoreSucceeded);
         }
 
         private void CompleteDefeatedHunt()

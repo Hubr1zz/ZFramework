@@ -49,6 +49,26 @@ title: 战役持久化与恢复
 - **WHEN** 存档包含当前目录无法解析的物品标识，或身份版本高于当前运行时
 - **THEN** 未知标识 SHALL 保留，未来版本状态 SHALL NOT 被当前运行时降级或重写
 
+### Requirement: Continue rebuilds pending settlement event execution
+
+继续战役 SHALL 把持久化 Timeline 中未完成的事件引用按原顺序解析为当前内容，并投影到新的 Settlement ActionQueue；恢复 SHALL NOT 再次推进年份、抽取随机事件或新增 Timeline 条目。
+
+#### Scenario: A settlement event was pending when the player exited
+
+- **WHEN** 继续战役加载包含未完成与已完成 Timeline 事件的有效存档
+- **THEN** 只有未完成事件 SHALL 进入 Settlement Runner，完成前出猎 SHALL 被权威命令边界拒绝
+- **AND** 最后一个恢复事件完成后，正常营地操作与出猎 SHALL 恢复
+
+#### Scenario: The save has no pending settlement event
+
+- **WHEN** Timeline 为空或其中事件均已完成
+- **THEN** 加载流程 SHALL 建立空恢复投影并正常开放营地，且 SHALL NOT 生成额外事件
+
+#### Scenario: A pending event reference cannot be resolved
+
+- **WHEN** 未完成 Timeline 条目缺少稳定事件 ID，或当前内容目录无法解析该 ID
+- **THEN** 加载流程 SHALL 报告可诊断失败并保持出猎门禁，且 SHALL NOT 静默完成、删除或跳过该条目
+
 ### Requirement: Save replacement preserves a recoverable snapshot
 
 每次保存 SHALL 先把带 schemaVersion 与内容校验值的完整封套写入同目录临时文件并刷盘，再替换正式文件；已有正式文件 SHALL 保留为上一份备份。版本门禁 SHALL 覆盖异步保存、立即保存与删除。

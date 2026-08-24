@@ -26,6 +26,18 @@ The project SHALL persist settlement state after the Settlement entry lifecycle 
 - **WHEN** SettlementManager has received any pending hunt record
 - **THEN** GameManager saves the resulting settlement state through the persistence adapter
 
+### Requirement: Loaded event state is projected before departure
+Loading a campaign in Settlement SHALL rebuild pending event execution from persisted Timeline references through the active Settlement runner. The load path SHALL remain distinct from normal phase entry and SHALL NOT invoke year advancement or event generation.
+
+#### Scenario: Continue restores an unresolved event chain
+- **WHEN** loaded Settlement data contains one or more unresolved event entries
+- **THEN** GameManager resolves their configured content in persisted order and submits one chain to the active Settlement ActionQueue
+- **AND** every departure entry remains rejected until the chain completes successfully
+
+#### Scenario: Event restoration fails
+- **WHEN** content resolution or Settlement ActionQueue execution cannot restore the pending chain
+- **THEN** the failure remains observable and the campaign SHALL NOT enter Hunt through another departure entry
+
 ### Requirement: Settlement table assembly is scene-authorable and reentrant
 GameManager SHALL initialize the same SettlementTable3D command ports and data bindings whether the table is assigned by the scene or created as a runtime fallback. Repeated settlement entry and load SHALL reuse the table without duplicating its generated hierarchy or EventBus subscriptions.
 
