@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HuntingInDarkness.Bootstrap;
+using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -100,6 +101,75 @@ namespace HuntingInDarkness.Adapter.Tests
                 Object.DestroyImmediate(destinationCatalog);
                 Object.DestroyImmediate(settings);
             }
+        }
+
+        [Test]
+        public void NoiseCoverage_InfiniteEvent_CoversUnboundedCampaign()
+        {
+            var profile = new PlayableHuntNoiseProfile();
+            EventData gameEvent = CreateDangerEvent("danger:always", 1, 0);
+            try
+            {
+                SetPrivateField(profile, "dangerEvents", new List<EventData> { gameEvent });
+
+                Assert.That(profile.TryValidateContinuousCoverage(1, out int firstMissingYear), Is.True);
+                Assert.That(firstMissingYear, Is.Zero);
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void NoiseCoverage_GapBeforeInfiniteEvent_ReportsFirstMissingYear()
+        {
+            var profile = new PlayableHuntNoiseProfile();
+            EventData earlyEvent = CreateDangerEvent("danger:early", 1, 2);
+            EventData lateEvent = CreateDangerEvent("danger:late", 4, 0);
+            try
+            {
+                SetPrivateField(profile, "dangerEvents", new List<EventData> { lateEvent, earlyEvent });
+
+                Assert.That(profile.TryValidateContinuousCoverage(1, out int firstMissingYear), Is.False);
+                Assert.That(firstMissingYear, Is.EqualTo(3));
+            }
+            finally
+            {
+                Object.DestroyImmediate(earlyEvent);
+                Object.DestroyImmediate(lateEvent);
+            }
+        }
+
+        [Test]
+        public void NoiseCoverage_AdjacentIntervals_CoverFromDestinationOpeningYear()
+        {
+            var profile = new PlayableHuntNoiseProfile();
+            EventData earlyEvent = CreateDangerEvent("danger:opening", 3, 5);
+            EventData lateEvent = CreateDangerEvent("danger:late", 6, 0);
+            try
+            {
+                SetPrivateField(profile, "dangerEvents", new List<EventData> { lateEvent, earlyEvent });
+
+                Assert.That(profile.TryValidateContinuousCoverage(3, out int firstMissingYear), Is.True);
+                Assert.That(firstMissingYear, Is.Zero);
+            }
+            finally
+            {
+                Object.DestroyImmediate(earlyEvent);
+                Object.DestroyImmediate(lateEvent);
+            }
+        }
+
+        private static EventData CreateDangerEvent(string contentId, int minYear, int maxYear)
+        {
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.ConfigureContentId(contentId);
+            gameEvent.category = EventCategory.Hunt;
+            gameEvent.drawWeight = 1;
+            gameEvent.minYear = minYear;
+            gameEvent.maxYear = maxYear;
+            return gameEvent;
         }
 
         private static void SetPrivateField(object target, string fieldName, object value)

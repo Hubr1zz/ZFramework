@@ -31,6 +31,21 @@ title: "战役内容启动预检装配"
 - **WHEN** 来源 Settings 的 Settlement 或 Hunt 引用被替换
 - **THEN** 候选 SHALL 继续持有构建时验证的引用
 
+### Requirement: Hunt risk content covers the unbounded campaign timeline
+
+在权威战役终止年尚未定义时，默认狩猎内容 SHALL 从第 1 年、每个目的地 SHALL 从其最早开放年份开始，连续提供至少一个可用危险事件直到无限年份。校验 SHALL 合并重叠或相邻的事件年份区间，并以现有 `maxYear <= 0` 作为无限上界；不得从字段默认值或未定案的 Showdown 流程推断战役终止年。
+
+#### Scenario: Danger-event intervals contain a future gap
+
+- **WHEN** 当前可用区间结束后的下一年没有危险事件，而后续年份才重新出现事件
+- **THEN** 候选构建 SHALL 返回首个缺失年份的结构化诊断
+- **AND** SHALL NOT 安装该内容候选
+
+#### Scenario: Finite intervals lead into an infinite interval
+
+- **WHEN** 有限年份区间彼此相邻，并最终连接到 `maxYear <= 0` 的事件
+- **THEN** 该狩猎内容 SHALL 通过连续覆盖校验
+
 ### Requirement: Installed content is probed before GameManager activation
 
 正式 Bootstrap SHALL 先安装候选，并在隔离的 `SettlementManager` 上执行真实内容投影。只有营地初始猎人、稳定身份与跨表规则均通过后，才可创建并激活 `GameManager`。

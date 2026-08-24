@@ -71,6 +71,8 @@ namespace HuntingInDarkness.Bootstrap
             string defaultReason = string.Empty;
             if (settings.HuntContent == null || !settings.HuntContent.IsAvailableForYear(1, out defaultReason))
                 report.AddError("hunt.default.invalid", string.IsNullOrWhiteSpace(defaultReason) ? "默认狩猎内容无效。" : defaultReason);
+            else if (!settings.HuntContent.NoiseProfile.TryValidateContinuousCoverage(1, out int defaultMissingYear))
+                report.AddError("hunt.default.year-gap", $"默认狩猎风险内容从第 {defaultMissingYear} 年起中断；无终止年战役必须连续覆盖到无限年份。");
             if (settings.HuntDestinations == null)
             {
                 report.AddError("hunt.destinations.missing", "缺少狩猎目的地目录。");
@@ -101,6 +103,8 @@ namespace HuntingInDarkness.Bootstrap
                 }
                 if (!destination.IsAvailable(destination.MinimumYear, out string reason))
                     report.AddError("hunt.destination.unavailable", $"目的地 {destination.DestinationId} 在最早年份不可用：{reason}");
+                else if (!destination.HuntContent.NoiseProfile.TryValidateContinuousCoverage(destination.MinimumYear, out int destinationMissingYear))
+                    report.AddError("hunt.destination.year-gap", $"目的地 {destination.DestinationId} 的风险内容从第 {destinationMissingYear} 年起中断。");
             }
         }
     }

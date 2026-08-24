@@ -52,6 +52,38 @@ namespace HuntingInDarkness.Hunt
             return available;
         }
 
+        public bool TryValidateContinuousCoverage(int firstYear, out int firstMissingYear)
+        {
+            int nextYear = Math.Max(1, firstYear);
+            if (dangerEvents == null)
+            {
+                firstMissingYear = nextYear;
+                return false;
+            }
+            var orderedEvents = dangerEvents.FindAll(gameEvent => gameEvent != null);
+            orderedEvents.Sort((left, right) => left.minYear.CompareTo(right.minYear));
+            foreach (EventData gameEvent in orderedEvents)
+            {
+                int eventFirstYear = Math.Max(1, gameEvent.minYear);
+                int eventLastYear = gameEvent.maxYear <= 0 ? int.MaxValue : gameEvent.maxYear;
+                if (eventLastYear < nextYear) continue;
+                if (eventFirstYear > nextYear)
+                {
+                    firstMissingYear = nextYear;
+                    return false;
+                }
+                if (eventLastYear == int.MaxValue)
+                {
+                    firstMissingYear = 0;
+                    return true;
+                }
+                nextYear = Math.Max(nextYear, eventLastYear + 1);
+            }
+
+            firstMissingYear = nextYear;
+            return false;
+        }
+
         private bool HasUniqueDangerEvents()
         {
             if (dangerEvents == null || dangerEvents.Count == 0) return false;

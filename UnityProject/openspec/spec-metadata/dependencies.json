@@ -319,6 +319,16 @@
   ],
   "edges": [
     {
+      "id": "campaign-content-preflight-assembly--requires--hunt-noise-risk-deck",
+      "from": "campaign-content-preflight-assembly",
+      "to": "hunt-noise-risk-deck",
+      "type": "requires",
+      "status": "defined",
+      "reason": "启动候选要求默认地区与每个目的地的危险事件区间连续覆盖无终止年战役",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
       "id": "campaign-content-preflight-assembly--requires--campaign-content-cache-lifecycle",
       "from": "campaign-content-preflight-assembly",
       "to": "campaign-content-cache-lifecycle",
