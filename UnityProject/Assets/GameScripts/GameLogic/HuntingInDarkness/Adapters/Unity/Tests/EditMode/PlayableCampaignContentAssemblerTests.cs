@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HuntingInDarkness.Bootstrap;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
@@ -13,9 +14,21 @@ namespace HuntingInDarkness.Adapter.Tests
     public sealed class PlayableCampaignContentAssemblerTests
     {
         private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
+        private static readonly FieldInfo installationFailureProbeField = typeof(PlayableCampaignContentAssembler).GetField("installationFailureProbe", BindingFlags.Static | BindingFlags.NonPublic);
+        private static readonly MethodInfo resetAssemblerMethod = typeof(PlayableCampaignContentAssembler).GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
 
         [TearDown]
-        public void TearDown() => PlayableHuntContentRuntime.Configure(null);
+        public void TearDown()
+        {
+            installationFailureProbeField.SetValue(null, null);
+            resetAssemblerMethod.Invoke(null, null);
+            PlayableEventTableRuntime.ClearCache();
+            PlayableHuntContentRuntime.Configure(null);
+            PlayableSymptomRuntime.Configure(null);
+            PlayableSettlementItemRegistry.Configure(null);
+            PlayableSettlementInventionRegistry.Configure(null);
+            PlayableSettlementEventRegistry.Configure(null);
+        }
 
         [Test]
         public void TryBuild_InvalidSettings_DoesNotMutateRuntime()
@@ -158,6 +171,51 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 Object.DestroyImmediate(earlyEvent);
                 Object.DestroyImmediate(lateEvent);
+            }
+        }
+
+        [Test]
+        public void InstallFailureAfterProjection_RestoresRuntimeAndPublishedEventGeneration()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            var sentinelHuntContent = ScriptableObject.CreateInstance<PlayableHuntContentCatalog>();
+            EventData stagedEvent = null;
+            try
+            {
+                PlayableSymptomRuntime.Configure(settings.Symptoms);
+                IReadOnlyList<EventData> previousEvents = PlayableEventTableRuntime.Rebuild();
+                EventData previousEvent = previousEvents[0];
+                PlayableHuntContentRuntime.Configure(sentinelHuntContent);
+                PlayableSettlementItemRegistry.Configure(null);
+                PlayableSettlementInventionRegistry.Configure(null);
+                PlayableSettlementEventRegistry.Configure(null);
+                Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+                installationFailureProbeField.SetValue(null, new System.Func<string, bool>(stage =>
+                {
+                    if (stage != "after-settlement-projection") return false;
+                    stagedEvent = PlayableEventTableRuntime.GetEvents()[0];
+                    return true;
+                }));
+
+                bool installed = PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport);
+
+                Assert.That(installed, Is.False);
+                Assert.That(installReport.HasErrors, Is.True);
+                Assert.That(PlayableHuntContentRuntime.Catalog, Is.SameAs(sentinelHuntContent));
+                Assert.That(PlayableEventTableRuntime.GetEvents()[0], Is.SameAs(previousEvent));
+                Assert.That(previousEvent != null, Is.True);
+                Assert.That(stagedEvent == null, Is.True);
+                Assert.That(PlayableSettlementItemRegistry.Items, Is.Empty);
+                Assert.That(PlayableSettlementInventionRegistry.Inventions, Is.Empty);
+
+                installationFailureProbeField.SetValue(null, new System.Func<string, bool>(stage => stage == "after-event-prepare"));
+                Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport retryReport), Is.False);
+                Assert.That(retryReport.Diagnostics, Has.None.Matches<PlayableContentDiagnostic>(diagnostic => diagnostic.Code == "candidate.install.gate"));
+                Assert.That(PlayableEventTableRuntime.GetEvents()[0], Is.SameAs(previousEvent));
+            }
+            finally
+            {
+                Object.DestroyImmediate(sentinelHuntContent);
             }
         }
 

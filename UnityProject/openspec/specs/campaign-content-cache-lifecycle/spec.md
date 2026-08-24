@@ -22,15 +22,31 @@ title: "战役内容缓存生命周期"
 - **THEN** 所有由该缓存创建的事件对象 SHALL 被释放
 - **AND** 外部传入的事件资产 SHALL 保持有效
 
-### Requirement: Rebuild replaces the complete event object graph
+### Requirement: Rebuild publishes a complete event generation before retirement
 
-显式重建 SHALL 先释放旧 transient 事件，再从当前表记录构建一套新的事件与事件链引用，不得混用不同批次的对象。
+显式重建 SHALL 先离线构建一套完整的新事件与事件链引用，再以单一交换点发布新世代，最后释放旧 transient 事件；构建或发布前失败 SHALL 保留旧世代，不得混用不同批次的对象。
 
 #### Scenario: Content is rebuilt from another record set
 
-- **WHEN** 缓存 A 被清理并从记录 B 重建
+- **WHEN** 当前世代 A 成功从记录 B 构建替代世代
 - **THEN** 查询只返回 B 创建的新对象
 - **AND** 旧 A 对象不再由 Runtime 持有
+
+#### Scenario: A staged generation is rejected
+
+- **WHEN** 新世代已经构建但后续内容投影失败
+- **THEN** Runtime SHALL 恢复并继续返回原世代的相同 EventData 引用
+- **AND** SHALL 只释放被拒绝世代拥有的 transient 对象
+
+### Requirement: Event dependency identity is frozen per generation
+
+事件世代 SHALL 捕获其症状目录与血脉内容依赖。普通查询 SHALL 继续返回当前已发布世代，不得因依赖引用改变而隐式销毁仍被 Registry、Timeline 或 Runner 消费的 EventData；依赖变化 SHALL 只在显式重建或启动事务中生效。
+
+#### Scenario: Bloodline content is replaced
+
+- **WHEN** 当前血脉内容 Provider 被另一实例替换
+- **THEN** 普通事件查询 SHALL 保持当前世代及其对象身份
+- **AND** 显式重建 SHALL 返回基于新 Provider 构建的新世代
 
 ### Requirement: Production rebuild occurs before gameplay activation
 

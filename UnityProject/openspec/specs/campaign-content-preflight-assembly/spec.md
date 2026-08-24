@@ -65,6 +65,17 @@ title: "战役内容启动预检装配"
 - **WHEN** 当前进程已经提交内容候选
 - **THEN** 不同候选 SHALL 被安装门禁拒绝
 
+### Requirement: Failed installation restores published compatibility state
+
+安装 SHALL 在发布前保留现有 Runtime、稳定身份 Registry 与事件世代快照。事件候选 SHALL 先离线构建；Runtime 绑定、事件世代交换或隔离营地投影失败时，安装器 SHALL 逆序恢复旧状态并释放候选世代。完整回滚成功后 SHALL 允许修正内容再次尝试；仅回滚本身失败时才可毒化进程门禁。
+
+#### Scenario: Settlement projection fails after event publication
+
+- **WHEN** 候选事件世代已交换，但隔离营地内容投影失败
+- **THEN** 当前 Runtime 与三个营地 Registry SHALL 恢复为安装前状态
+- **AND** 旧 EventData 引用 SHALL 保持有效且身份不变
+- **AND** 被拒绝世代拥有的 EventData SHALL 被释放
+
 ## Known Boundary
 
-当前门禁保证失败内容不会进入玩家运行态，但各兼容静态 Runtime 的安装仍是启动期顺序写入；完整 capture/rollback 与单一不可变上下文指针属于后续原子安装事务阶段。
+当前事务已覆盖兼容 Runtime 引用、战斗映射缓存、三个营地稳定身份 Registry 与事件世代的恢复。`PlayableSettlementContentCatalog.ApplyTo` 仍同时承担表生成、Registry 发布和 Manager 投影；其他表生成的 transient Item/Invention/Hunter 对象尚未收敛为可复用的不可变 `SettlementContentPlan`，这是下一阶段的集中重构边界。

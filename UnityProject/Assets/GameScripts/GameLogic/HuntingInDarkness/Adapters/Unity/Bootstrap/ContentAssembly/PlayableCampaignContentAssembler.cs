@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Hunt;
 using UnityEngine;
 
@@ -8,12 +9,14 @@ namespace HuntingInDarkness.Bootstrap
     {
         private static PlayableCampaignContentCandidate installedCandidate;
         private static bool installationFailed;
+        private static System.Func<string, bool> installationFailureProbe;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
             installedCandidate = null;
             installationFailed = false;
+            installationFailureProbe = null;
         }
 
         public static bool TryBuild(PlayableBootstrapSettings settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport report)
@@ -47,23 +50,79 @@ namespace HuntingInDarkness.Bootstrap
                 report.AddError("candidate.install.gate", "当前进程已经提交过另一批内容，或此前安装未能安全完成。");
                 return false;
             }
+            PlayableCampaignRuntimeSnapshot runtimeSnapshot = null;
+            PlayableEventTableGeneration stagedGeneration = null;
+            PlayableEventTableGeneration previousGeneration = null;
+            bool generationPublished = false;
             try
             {
-                if (!candidate.TryInstall(out string reason) || !candidate.TryValidateInstalledContent(out reason))
+                runtimeSnapshot = new PlayableCampaignRuntimeSnapshot();
+                stagedGeneration = PlayableEventTableRuntime.PrepareGeneration(candidate.Symptoms, PlayableBloodlineRuntime.Content);
+                if (stagedGeneration.HasErrors)
+                    return FailAndRollback(report, "candidate.events.invalid", stagedGeneration.Diagnostic, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished);
+                ThrowIfInstallationFailureRequested("after-event-prepare");
+                if (!candidate.TryInstallBindings(out string reason))
                 {
-                    installationFailed = true;
-                    report.AddError("candidate.install", reason);
-                    return false;
+                    return FailAndRollback(report, "candidate.install", reason, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished);
                 }
+                ThrowIfInstallationFailureRequested("after-runtime-bindings");
+                previousGeneration = PlayableEventTableRuntime.SwapGeneration(stagedGeneration);
+                generationPublished = true;
+                ThrowIfInstallationFailureRequested("after-event-publish");
+                if (!candidate.TryValidateInstalledContent(out reason))
+                {
+                    return FailAndRollback(report, "candidate.install", reason, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished);
+                }
+                ThrowIfInstallationFailureRequested("after-settlement-projection");
+                candidate.MarkInstalled();
                 installedCandidate = candidate;
+                try
+                {
+                    PlayableEventTableRuntime.RetireGeneration(previousGeneration);
+                }
+                catch (System.Exception retirementException)
+                {
+                    Debug.LogWarning($"[PlayableBootstrap] 旧事件内容世代回收失败，当前候选仍保持已提交：{retirementException.Message}");
+                }
                 return true;
             }
             catch (System.Exception exception)
             {
-                installationFailed = true;
-                report.AddError("candidate.install.exception", exception.Message);
-                return false;
+                return FailAndRollback(report, "candidate.install.exception", exception.Message, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished);
             }
+        }
+
+        private static bool FailAndRollback(PlayableContentDiagnosticReport report, string code, string reason, PlayableCampaignRuntimeSnapshot runtimeSnapshot, PlayableEventTableGeneration stagedGeneration, PlayableEventTableGeneration previousGeneration, bool generationPublished)
+        {
+            try
+            {
+                Rollback(runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished);
+                report.AddError(code, reason);
+            }
+            catch (System.Exception rollbackException)
+            {
+                installationFailed = true;
+                report.AddError("candidate.install.rollback", $"{reason}；回滚失败：{rollbackException.Message}");
+            }
+            return false;
+        }
+
+        private static void Rollback(PlayableCampaignRuntimeSnapshot runtimeSnapshot, PlayableEventTableGeneration stagedGeneration, PlayableEventTableGeneration previousGeneration, bool generationPublished)
+        {
+            runtimeSnapshot?.Restore();
+            if (generationPublished)
+            {
+                PlayableEventTableGeneration rejectedGeneration = PlayableEventTableRuntime.SwapGeneration(previousGeneration);
+                PlayableEventTableRuntime.RetireGeneration(rejectedGeneration);
+                return;
+            }
+            PlayableEventTableRuntime.RetireGeneration(stagedGeneration);
+        }
+
+        private static void ThrowIfInstallationFailureRequested(string stage)
+        {
+            if (installationFailureProbe?.Invoke(stage) == true)
+                throw new System.InvalidOperationException($"测试请求在 {stage} 中断内容安装。");
         }
 
         private static void ValidateHuntContent(PlayableBootstrapSettings settings, PlayableContentDiagnosticReport report)

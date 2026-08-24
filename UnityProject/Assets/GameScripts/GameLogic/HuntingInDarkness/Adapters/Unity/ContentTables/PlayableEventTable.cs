@@ -103,6 +103,78 @@ namespace HuntingInDarkness.ContentTables
         }
     }
 
+    internal sealed class PlayableEventTableGeneration : IDisposable
+    {
+        private readonly HashSet<EventData> ownedEvents = new();
+        private bool disposed;
+
+        public PlayableEventTableGeneration(List<EventTableRecord> records, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent)
+        {
+            Records = records ?? new List<EventTableRecord>();
+            Events = new List<EventData>();
+            SymptomCatalog = symptomCatalog;
+            BloodlineContent = bloodlineContent;
+        }
+
+        public List<EventTableRecord> Records { get; }
+        public List<EventData> Events { get; }
+        public PlayableSymptomCatalog SymptomCatalog { get; }
+        public IHunterBloodlineContent BloodlineContent { get; }
+        public bool IsUsable => !disposed && Events.TrueForAll(gameEvent => gameEvent != null);
+        public bool HasErrors => ErrorCount > 0;
+        public int ErrorCount { get; private set; }
+        public string Diagnostic => HasErrors ? $"事件表世代包含 {ErrorCount} 个无效记录或引用。" : string.Empty;
+
+        public void ReportError(string message)
+        {
+            ErrorCount++;
+            Debug.LogError($"[ContentTable] {message}");
+        }
+
+        public void Own(EventData gameEvent)
+        {
+            if (gameEvent != null)
+                ownedEvents.Add(gameEvent);
+        }
+
+        public void DestroyOwned(EventData gameEvent)
+        {
+            if (gameEvent == null || !ownedEvents.Remove(gameEvent)) return;
+            DestroyTransientEvent(gameEvent);
+        }
+
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
+            Exception firstException = null;
+            foreach (EventData gameEvent in new List<EventData>(ownedEvents))
+            {
+                try
+                {
+                    DestroyTransientEvent(gameEvent);
+                }
+                catch (Exception exception)
+                {
+                    firstException ??= exception;
+                }
+            }
+            ownedEvents.Clear();
+            if (firstException != null) throw firstException;
+        }
+
+        private static void DestroyTransientEvent(EventData gameEvent)
+        {
+            if (gameEvent == null) return;
+            if (Application.isPlaying)
+            {
+                UnityEngine.Object.Destroy(gameEvent);
+                return;
+            }
+            UnityEngine.Object.DestroyImmediate(gameEvent);
+        }
+    }
+
     /// <summary>把表数据映射为旧 EventData，并按稳定 ID 支持内容注入与覆盖。</summary>
     public static class PlayableEventTableRuntime
     {
@@ -111,9 +183,7 @@ namespace HuntingInDarkness.ContentTables
         private const string CardInteractionTablePath = "HuntingInDarkness/Tables/card-interaction-events";
         private const string HuntTablePath = "HuntingInDarkness/Tables/hunt-events";
         private static List<EventTableRecord> cachedRecords;
-        private static List<EventData> cachedEvents;
-        private static PlayableSymptomCatalog cachedSymptomCatalog;
-        private static readonly HashSet<EventData> transientEvents = new();
+        private static PlayableEventTableGeneration currentGeneration;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
@@ -124,19 +194,24 @@ namespace HuntingInDarkness.ContentTables
         /// <summary>清理由事件表运行时创建的事件对象；不会触碰外部资产。</summary>
         public static void ClearCache()
         {
-            foreach (EventData gameEvent in new List<EventData>(transientEvents))
-                DestroyTransientEvent(gameEvent);
-            transientEvents.Clear();
+            PlayableEventTableGeneration retired = SwapGeneration(null);
+            RetireGeneration(retired);
             cachedRecords = null;
-            cachedEvents = null;
-            cachedSymptomCatalog = null;
         }
 
         /// <summary>在正式内容装配边界重建事件表缓存。</summary>
         public static IReadOnlyList<EventData> Rebuild()
         {
-            ClearCache();
-            return GetEvents();
+            IReadOnlyList<EventTableRecord> retryRecords = currentGeneration != null && currentGeneration.HasErrors ? currentGeneration.Records : null;
+            PlayableEventTableGeneration replacement = BuildGeneration(PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, retryRecords, true);
+            if (replacement.HasErrors)
+            {
+                RetireGeneration(replacement);
+                return currentGeneration != null ? currentGeneration.Events : Array.Empty<EventData>();
+            }
+            PlayableEventTableGeneration retired = SwapGeneration(replacement);
+            RetireGeneration(retired);
+            return replacement.Events;
         }
 
         public static void Extend(IReadOnlyList<EventData> baseRandomEvents, IReadOnlyList<EventData> baseMainStoryEvents, out List<EventData> randomEvents, out List<EventData> mainStoryEvents)
@@ -178,63 +253,88 @@ namespace HuntingInDarkness.ContentTables
 
         public static IReadOnlyList<EventData> GetEvents()
         {
-            if (cachedEvents != null && cachedEvents.TrueForAll(gameEvent => gameEvent != null) && ReferenceEquals(cachedSymptomCatalog, PlayableSymptomRuntime.Catalog))
-                return cachedEvents;
-
-            if (cachedEvents != null)
-            {
-                foreach (EventData gameEvent in new List<EventData>(transientEvents))
-                    DestroyTransientEvent(gameEvent);
-                transientEvents.Clear();
-                cachedEvents = null;
-            }
-
-            if (cachedRecords == null)
-            {
-                var source = new JsonEventTableSource(TablePath);
-                cachedRecords = new List<EventTableRecord>(source.Load());
-                cachedRecords.AddRange(new JsonEventTableSource(BloodlineTablePath).Load());
-                cachedRecords.AddRange(new JsonEventTableSource(CardInteractionTablePath).Load());
-                cachedRecords.AddRange(new JsonEventTableSource(HuntTablePath).Load());
-            }
-            cachedEvents = new List<EventData>();
-            var knownIds = new HashSet<string>(StringComparer.Ordinal);
-            HashSet<string> duplicateIds = FindDuplicateIds(cachedRecords);
-            var validRecords = new Dictionary<string, EventTableRecord>(StringComparer.Ordinal);
-            var eventsById = new Dictionary<string, EventData>(StringComparer.Ordinal);
-            var orderedIds = new List<string>();
-            var reportedDuplicateIds = new HashSet<string>(StringComparer.Ordinal);
-            foreach (EventTableRecord record in cachedRecords)
-            {
-                if (record != null && duplicateIds.Contains(record.id))
-                {
-                    if (reportedDuplicateIds.Add(record.id))
-                        Debug.LogError($"[ContentTable] 事件表存在重复 id：{record.id}");
-                    continue;
-                }
-                if (!TryCreateEvent(record, knownIds, out EventData gameEvent, out string error))
-                {
-                    Debug.LogError($"[ContentTable] {error}");
-                    continue;
-                }
-                transientEvents.Add(gameEvent);
-                validRecords.Add(record.id, record);
-                eventsById.Add(record.id, gameEvent);
-                orderedIds.Add(record.id);
-            }
-
-            RemoveRecordsWithInvalidReferences(orderedIds, validRecords, eventsById);
-            foreach (string eventId in orderedIds)
-            {
-                if (!eventsById.TryGetValue(eventId, out EventData gameEvent)) continue;
-                BindEventChains(gameEvent, validRecords[eventId], eventsById);
-                cachedEvents.Add(gameEvent);
-            }
-            cachedSymptomCatalog = PlayableSymptomRuntime.Catalog;
-            return cachedEvents;
+            if (currentGeneration != null) return currentGeneration.Events;
+            PlayableEventTableGeneration replacement = BuildGeneration(PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, cachedRecords, false);
+            PlayableEventTableGeneration retired = SwapGeneration(replacement);
+            RetireGeneration(retired);
+            return replacement.Events;
         }
 
-        private static bool TryCreateEvent(EventTableRecord record, HashSet<string> knownIds, out EventData gameEvent, out string error)
+        internal static PlayableEventTableGeneration PrepareGeneration(PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent) => BuildGeneration(symptomCatalog, bloodlineContent, null, true);
+
+        internal static PlayableEventTableGeneration SwapGeneration(PlayableEventTableGeneration replacement)
+        {
+            PlayableEventTableGeneration previous = currentGeneration;
+            currentGeneration = replacement;
+            if (replacement != null)
+                cachedRecords = new List<EventTableRecord>(replacement.Records);
+            return previous;
+        }
+
+        internal static void RetireGeneration(PlayableEventTableGeneration generation)
+        {
+            if (generation == null || ReferenceEquals(generation, currentGeneration)) return;
+            generation.Dispose();
+        }
+
+        private static PlayableEventTableGeneration BuildGeneration(PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent, IReadOnlyList<EventTableRecord> sourceRecords, bool forceReload)
+        {
+            List<EventTableRecord> records = sourceRecords != null ? new List<EventTableRecord>(sourceRecords) : LoadRecords(forceReload);
+            var generation = new PlayableEventTableGeneration(records, symptomCatalog, bloodlineContent);
+            try
+            {
+                var knownIds = new HashSet<string>(StringComparer.Ordinal);
+                HashSet<string> duplicateIds = FindDuplicateIds(records);
+                var validRecords = new Dictionary<string, EventTableRecord>(StringComparer.Ordinal);
+                var eventsById = new Dictionary<string, EventData>(StringComparer.Ordinal);
+                var orderedIds = new List<string>();
+                var reportedDuplicateIds = new HashSet<string>(StringComparer.Ordinal);
+                foreach (EventTableRecord record in records)
+                {
+                    if (record != null && duplicateIds.Contains(record.id))
+                    {
+                        if (reportedDuplicateIds.Add(record.id))
+                            generation.ReportError($"事件表存在重复 id：{record.id}");
+                        continue;
+                    }
+                    if (!TryCreateEvent(record, knownIds, symptomCatalog, bloodlineContent, out EventData gameEvent, out string error))
+                    {
+                        generation.ReportError(error);
+                        continue;
+                    }
+                    generation.Own(gameEvent);
+                    validRecords.Add(record.id, record);
+                    eventsById.Add(record.id, gameEvent);
+                    orderedIds.Add(record.id);
+                }
+
+                RemoveRecordsWithInvalidReferences(orderedIds, validRecords, eventsById, generation);
+                foreach (string eventId in orderedIds)
+                {
+                    if (!eventsById.TryGetValue(eventId, out EventData gameEvent)) continue;
+                    BindEventChains(gameEvent, validRecords[eventId], eventsById);
+                    generation.Events.Add(gameEvent);
+                }
+                return generation;
+            }
+            catch
+            {
+                generation.Dispose();
+                throw;
+            }
+        }
+
+        private static List<EventTableRecord> LoadRecords(bool forceReload)
+        {
+            if (!forceReload && cachedRecords != null) return new List<EventTableRecord>(cachedRecords);
+            var records = new List<EventTableRecord>(new JsonEventTableSource(TablePath).Load());
+            records.AddRange(new JsonEventTableSource(BloodlineTablePath).Load());
+            records.AddRange(new JsonEventTableSource(CardInteractionTablePath).Load());
+            records.AddRange(new JsonEventTableSource(HuntTablePath).Load());
+            return records;
+        }
+
+        private static bool TryCreateEvent(EventTableRecord record, HashSet<string> knownIds, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent, out EventData gameEvent, out string error)
         {
             gameEvent = null;
             if (record == null || string.IsNullOrWhiteSpace(record.id) || string.IsNullOrWhiteSpace(record.eventName))
@@ -252,7 +352,7 @@ namespace HuntingInDarkness.ContentTables
                 error = $"事件 {record.id} 的类型或类别无效。";
                 return false;
             }
-            if (!ValidateOptions(record.options) || !ValidateEffects(record.immediateEffects, false))
+            if (!ValidateOptions(record.options, symptomCatalog, bloodlineContent) || !ValidateEffects(record.immediateEffects, false, symptomCatalog, bloodlineContent))
             {
                 error = $"事件 {record.id} 含无效选项或效果。";
                 return false;
@@ -279,13 +379,13 @@ namespace HuntingInDarkness.ContentTables
             gameEvent.maxYear = record.maxYear;
             gameEvent.drawWeight = Mathf.Max(1, record.drawWeight);
             gameEvent.category = category;
-            gameEvent.options = ConvertOptions(record.options, record.id);
+            gameEvent.options = ConvertOptions(record.options, record.id, bloodlineContent);
             gameEvent.immediateEffects = ConvertEffects(record.immediateEffects, record.id);
             error = string.Empty;
             return true;
         }
 
-        private static List<EventOption> ConvertOptions(IReadOnlyList<EventOptionTableRecord> records, string eventId)
+        private static List<EventOption> ConvertOptions(IReadOnlyList<EventOptionTableRecord> records, string eventId, IHunterBloodlineContent bloodlineContent)
         {
             var options = new List<EventOption>();
             if (records == null)
@@ -312,18 +412,18 @@ namespace HuntingInDarkness.ContentTables
                     failText = record.failText ?? string.Empty,
                     failEffects = ConvertEffects(record.failEffects, eventId),
                     alwaysAvailable = record.alwaysAvailable,
-                    conditions = ConvertConditions(record.conditions)
+                    conditions = ConvertConditions(record.conditions, bloodlineContent)
                 });
             }
             return options;
         }
 
-        private static bool ValidateOptions(IReadOnlyList<EventOptionTableRecord> records)
+        private static bool ValidateOptions(IReadOnlyList<EventOptionTableRecord> records, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent)
         {
             if (records == null)
                 return true;
             foreach (EventOptionTableRecord record in records)
-                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects, true) || !ValidateEffects(record.failEffects, true) || !ValidateConditions(record.alwaysAvailable, record.conditions))
+                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects, true, symptomCatalog, bloodlineContent) || !ValidateEffects(record.failEffects, true, symptomCatalog, bloodlineContent) || !ValidateConditions(record.alwaysAvailable, record.conditions, bloodlineContent))
                     return false;
             return true;
         }
@@ -338,7 +438,7 @@ namespace HuntingInDarkness.ContentTables
             return !string.IsNullOrWhiteSpace(record.checkDeckId);
         }
 
-        private static List<EventOptionCondition> ConvertConditions(IReadOnlyList<EventOptionConditionTableRecord> records)
+        private static List<EventOptionCondition> ConvertConditions(IReadOnlyList<EventOptionConditionTableRecord> records, IHunterBloodlineContent bloodlineContent)
         {
             var conditions = new List<EventOptionCondition>();
             if (records == null) return conditions;
@@ -346,14 +446,14 @@ namespace HuntingInDarkness.ContentTables
             {
                 if (record == null || !TryParse(record.conditionKind, out EventOptionConditionKind conditionKind)) continue;
                 string displayName = record.key ?? string.Empty;
-                if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && PlayableBloodlineRuntime.Content.TryGet(record.key, out HunterBloodlineDefinition bloodline))
+                if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && bloodlineContent != null && bloodlineContent.TryGet(record.key, out HunterBloodlineDefinition bloodline))
                     displayName = bloodline.DisplayName;
                 conditions.Add(new EventOptionCondition { conditionKind = conditionKind, key = record.key ?? string.Empty, displayName = displayName, value = Mathf.Max(0, record.value), inverted = record.inverted });
             }
             return conditions;
         }
 
-        private static bool ValidateConditions(bool alwaysAvailable, IReadOnlyList<EventOptionConditionTableRecord> records)
+        private static bool ValidateConditions(bool alwaysAvailable, IReadOnlyList<EventOptionConditionTableRecord> records, IHunterBloodlineContent bloodlineContent)
         {
             if (alwaysAvailable) return records == null || records.Count == 0;
             if (records == null || records.Count == 0) return false;
@@ -362,13 +462,13 @@ namespace HuntingInDarkness.ContentTables
                 if (record == null || !TryParse(record.conditionKind, out EventOptionConditionKind conditionKind)) return false;
                 bool requiresKey = conditionKind == EventOptionConditionKind.HasTrait || conditionKind == EventOptionConditionKind.HasAilment || conditionKind == EventOptionConditionKind.MinimumResource || conditionKind == EventOptionConditionKind.HasEquippedItem || conditionKind == EventOptionConditionKind.HasKeyword || conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline;
                 if (requiresKey && string.IsNullOrWhiteSpace(record.key)) return false;
-                if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && !PlayableBloodlineRuntime.Content.TryGet(record.key, out _)) return false;
+                if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && (bloodlineContent == null || !bloodlineContent.TryGet(record.key, out _))) return false;
                 if (record.value < 0) return false;
             }
             return true;
         }
 
-        private static bool ValidateEffects(IReadOnlyList<EventEffectTableRecord> records, bool allowHunterDeath)
+        private static bool ValidateEffects(IReadOnlyList<EventEffectTableRecord> records, bool allowHunterDeath, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent)
         {
             if (records == null)
                 return true;
@@ -378,9 +478,9 @@ namespace HuntingInDarkness.ContentTables
                     return false;
                 if (effectType == EventEffectType.ScheduleEvent && !DelayedEventRules.TryCreatePlan(1, record.value, record.targetName, out _, out _))
                     return false;
-                if (effectType == EventEffectType.ActivateBloodline && !PlayableBloodlineRuntime.Content.TryGet(record.targetName, out _))
+                if (effectType == EventEffectType.ActivateBloodline && (bloodlineContent == null || !bloodlineContent.TryGet(record.targetName, out _)))
                     return false;
-                if (effectType == EventEffectType.AddAilment && (PlayableSymptomRuntime.Catalog == null || !PlayableSymptomRuntime.Catalog.TryGetById(record.targetName, out _)))
+                if (effectType == EventEffectType.AddAilment && (symptomCatalog == null || !symptomCatalog.TryGetById(record.targetName, out _)))
                     return false;
                 if (effectType == EventEffectType.KillHunter && (!allowHunterDeath || !IsValidHunterDeathCauseId(record.targetName)))
                     return false;
@@ -416,7 +516,7 @@ namespace HuntingInDarkness.ContentTables
             return duplicateIds;
         }
 
-        private static void RemoveRecordsWithInvalidReferences(IReadOnlyList<string> orderedIds, Dictionary<string, EventTableRecord> validRecords, Dictionary<string, EventData> eventsById)
+        private static void RemoveRecordsWithInvalidReferences(IReadOnlyList<string> orderedIds, Dictionary<string, EventTableRecord> validRecords, Dictionary<string, EventData> eventsById, PlayableEventTableGeneration generation)
         {
             bool removedAny;
             do
@@ -426,25 +526,13 @@ namespace HuntingInDarkness.ContentTables
                 {
                     if (!validRecords.TryGetValue(eventId, out EventTableRecord record)) continue;
                     if (ValidateReferences(record, validRecords, out string error)) continue;
-                    Debug.LogError($"[ContentTable] {error}");
+                    generation.ReportError(error);
                     validRecords.Remove(eventId);
                     if (eventsById.Remove(eventId, out EventData invalidEvent))
-                        DestroyTransientEvent(invalidEvent);
+                        generation.DestroyOwned(invalidEvent);
                     removedAny = true;
                 }
             } while (removedAny);
-        }
-
-        private static void DestroyTransientEvent(EventData gameEvent)
-        {
-            if (gameEvent == null) return;
-            transientEvents.Remove(gameEvent);
-            if (Application.isPlaying)
-            {
-                UnityEngine.Object.Destroy(gameEvent);
-                return;
-            }
-            UnityEngine.Object.DestroyImmediate(gameEvent);
         }
 
         private static bool ValidateReferences(EventTableRecord source, IReadOnlyDictionary<string, EventTableRecord> targetRecords, out string error)

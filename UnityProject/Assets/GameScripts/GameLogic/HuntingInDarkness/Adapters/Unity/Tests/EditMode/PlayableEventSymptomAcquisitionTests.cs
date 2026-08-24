@@ -161,27 +161,20 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(validateEffects, Is.Not.Null);
             var exactId = new List<EventEffectTableRecord> { new() { effectType = nameof(EventEffectType.AddAilment), targetName = "symptom_cowardice" } };
             var displayName = new List<EventEffectTableRecord> { new() { effectType = nameof(EventEffectType.AddAilment), targetName = "胆怯" } };
-            Assert.That(validateEffects.Invoke(null, new object[] { exactId, true }), Is.True);
-            Assert.That(validateEffects.Invoke(null, new object[] { displayName, true }), Is.False);
+            Assert.That(validateEffects.Invoke(null, new object[] { exactId, true, catalog, PlayableBloodlineRuntime.Content }), Is.True);
+            Assert.That(validateEffects.Invoke(null, new object[] { displayName, true, catalog, PlayableBloodlineRuntime.Content }), Is.False);
             Assert.That(configuredCount, Is.GreaterThan(0));
         }
 
         [Test]
-        public void TableCache_RebuildsWhenSymptomCatalogBecomesAvailable()
+        public void TableCache_ExplicitlyRebuildsWhenSymptomCatalogBecomesAvailable()
         {
             Type runtimeType = typeof(PlayableEventTableRuntime);
             FieldInfo recordsField = runtimeType.GetField("cachedRecords", BindingFlags.Static | BindingFlags.NonPublic);
-            FieldInfo eventsField = runtimeType.GetField("cachedEvents", BindingFlags.Static | BindingFlags.NonPublic);
-            FieldInfo catalogField = runtimeType.GetField("cachedSymptomCatalog", BindingFlags.Static | BindingFlags.NonPublic);
             Assert.That(recordsField, Is.Not.Null);
-            Assert.That(eventsField, Is.Not.Null);
-            Assert.That(catalogField, Is.Not.Null);
-            object previousRecords = recordsField.GetValue(null);
-            object previousEvents = eventsField.GetValue(null);
-            object previousCatalog = catalogField.GetValue(null);
-            IReadOnlyList<EventData> rebuilt = Array.Empty<EventData>();
             try
             {
+                PlayableEventTableRuntime.ClearCache();
                 recordsField.SetValue(null, new List<EventTableRecord>
                 {
                     new()
@@ -201,26 +194,19 @@ namespace HuntingInDarkness.Adapter.Tests
                         }
                     }
                 });
-                eventsField.SetValue(null, null);
-                catalogField.SetValue(null, null);
                 PlayableSymptomRuntime.Configure(null);
                 LogAssert.Expect(LogType.Error, "[ContentTable] 事件 table_symptom_cache 含无效选项或效果。");
                 Assert.That(PlayableEventTableRuntime.GetEvents(), Is.Empty);
 
                 PlayableSymptomRuntime.Configure(catalog);
-                rebuilt = PlayableEventTableRuntime.GetEvents();
+                IReadOnlyList<EventData> rebuilt = PlayableEventTableRuntime.Rebuild();
 
                 Assert.That(rebuilt, Has.Count.EqualTo(1));
                 Assert.That(rebuilt[0].ContentId, Is.EqualTo("table_symptom_cache"));
             }
             finally
             {
-                foreach (EventData gameEvent in rebuilt)
-                    if (gameEvent != null)
-                        UnityEngine.Object.DestroyImmediate(gameEvent);
-                recordsField.SetValue(null, previousRecords);
-                eventsField.SetValue(null, previousEvents);
-                catalogField.SetValue(null, previousCatalog);
+                PlayableEventTableRuntime.ClearCache();
                 PlayableSymptomRuntime.Configure(catalog);
             }
         }

@@ -75,12 +75,36 @@ namespace HuntingInDarkness.Hunt
     /// <summary>保存当前一次狩猎的路线选择，并把所选 Unity 内容映射给既有 Hunt Adapter。</summary>
     public static class PlayableHuntDestinationRuntime
     {
+        internal readonly struct RuntimeState
+        {
+            public RuntimeState(PlayableHuntDestinationCatalog catalog, PlayableHuntContentCatalog fallbackContent, PlayableHuntDestination activeDestination)
+            {
+                Catalog = catalog;
+                FallbackContent = fallbackContent;
+                ActiveDestination = activeDestination;
+            }
+
+            public PlayableHuntDestinationCatalog Catalog { get; }
+            public PlayableHuntContentCatalog FallbackContent { get; }
+            public PlayableHuntDestination ActiveDestination { get; }
+        }
+
         private static PlayableHuntDestinationCatalog catalog;
         private static PlayableHuntContentCatalog fallbackContent;
 
         public static PlayableHuntDestination ActiveDestination { get; private set; }
         public static string ActiveDisplayName => ActiveDestination?.DisplayName ?? "未知地域";
         public static PlayableHuntDestinationCatalog Catalog => catalog;
+
+        internal static RuntimeState CaptureState() => new(catalog, fallbackContent, ActiveDestination);
+
+        internal static void RestoreState(RuntimeState state)
+        {
+            catalog = state.Catalog;
+            fallbackContent = state.FallbackContent;
+            ActiveDestination = state.ActiveDestination;
+            PlayableHuntContentRuntime.Configure(ActiveDestination != null ? ActiveDestination.HuntContent : fallbackContent);
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()

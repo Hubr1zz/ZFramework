@@ -30,15 +30,38 @@ namespace HuntingInDarkness.Settlement
 
         private static readonly Dictionary<string, HashSet<EventData>> ownersByIdentifier = new(StringComparer.Ordinal);
         private static readonly Dictionary<string, HashSet<EventData>> ownersByCanonicalId = new(StringComparer.Ordinal);
+        private static readonly List<EventData> registeredEvents = new();
         public static bool IsConfigured { get; private set; }
         public static bool IsValid { get; private set; }
         public static string Diagnostic { get; private set; } = string.Empty;
+
+        internal readonly struct RuntimeState
+        {
+            public RuntimeState(bool isConfigured, IReadOnlyList<EventData> events)
+            {
+                IsConfigured = isConfigured;
+                Events = events;
+            }
+
+            public bool IsConfigured { get; }
+            public IReadOnlyList<EventData> Events { get; }
+        }
+
+        internal static RuntimeState CaptureState() => new(IsConfigured, new List<EventData>(registeredEvents));
+
+        internal static void RestoreState(RuntimeState state)
+        {
+            ResetRuntimeState();
+            if (state.IsConfigured)
+                Configure(state.Events);
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
             ownersByIdentifier.Clear();
             ownersByCanonicalId.Clear();
+            registeredEvents.Clear();
             IsConfigured = false;
             IsValid = false;
             Diagnostic = string.Empty;
@@ -48,6 +71,7 @@ namespace HuntingInDarkness.Settlement
         {
             ownersByIdentifier.Clear();
             ownersByCanonicalId.Clear();
+            registeredEvents.Clear();
             IsConfigured = true;
             IsValid = true;
             Diagnostic = string.Empty;
@@ -56,6 +80,7 @@ namespace HuntingInDarkness.Settlement
             foreach (EventData gameEvent in events)
             {
                 if (gameEvent == null) continue;
+                registeredEvents.Add(gameEvent);
                 if (!gameEvent.HasExplicitContentId)
                 {
                     IsValid = false;

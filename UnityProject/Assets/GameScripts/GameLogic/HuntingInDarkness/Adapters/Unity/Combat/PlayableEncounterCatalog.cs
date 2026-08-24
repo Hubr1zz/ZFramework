@@ -67,10 +67,28 @@ namespace HuntingInDarkness.Combat
     /// <summary>组合根配置、Campaign Host 消费的遭遇目录桥；后续可替换为读表 Provider。</summary>
     public static class PlayableEncounterRuntime
     {
+        internal readonly struct RuntimeState
+        {
+            public RuntimeState(PlayableEncounterCatalog catalog, string defaultEncounterId, BattleSetup fallbackSetup)
+            {
+                Catalog = catalog;
+                DefaultEncounterId = defaultEncounterId;
+                FallbackSetup = fallbackSetup;
+            }
+
+            public PlayableEncounterCatalog Catalog { get; }
+            public string DefaultEncounterId { get; }
+            public BattleSetup FallbackSetup { get; }
+        }
+
         private static PlayableEncounterCatalog catalog;
         private static BattleSetup fallbackSetup;
 
         public static string DefaultEncounterId { get; private set; } = "default";
+
+        internal static RuntimeState CaptureState() => new(catalog, DefaultEncounterId, CloneSetup(fallbackSetup));
+
+        internal static void RestoreState(RuntimeState state) => Configure(state.Catalog, state.DefaultEncounterId, state.FallbackSetup);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()

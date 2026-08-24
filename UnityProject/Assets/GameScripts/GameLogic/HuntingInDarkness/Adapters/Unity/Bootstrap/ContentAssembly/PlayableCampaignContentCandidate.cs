@@ -50,7 +50,7 @@ namespace HuntingInDarkness.Bootstrap
         public PlayableEncounterCatalog EncounterCatalog { get; }
         public string DefaultEncounterId { get; }
 
-        internal bool TryInstall(out string reason)
+        internal bool TryInstallBindings(out string reason)
         {
             if (installed)
             {
@@ -73,11 +73,11 @@ namespace HuntingInDarkness.Bootstrap
             PlayableGrowthMilestoneRuntime.Configure(GrowthMilestones);
             PlayableWeaponMasteryRuntime.Configure(WeaponMastery);
             PlayableEncounterRuntime.Configure(EncounterCatalog, DefaultEncounterId, DefaultBattleSetup);
-            PlayableEventTableRuntime.Rebuild();
-            installed = true;
             reason = string.Empty;
             return true;
         }
+
+        internal void MarkInstalled() => installed = true;
 
         internal bool TryValidateInstalledContent(out string reason)
         {

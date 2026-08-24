@@ -186,6 +186,7 @@ namespace HuntingInDarkness.Settlement
     public static class PlayableSettlementContentRuntime
     {
         private static PlayableSettlementContentCatalog catalog;
+        public static PlayableSettlementContentCatalog Catalog => catalog;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()

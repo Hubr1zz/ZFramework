@@ -12,6 +12,20 @@ namespace HuntingInDarkness.Combat
     /// <summary>把营地猎人状态投影到现有决战运行时，不让两套数据模型直接互相依赖。</summary>
     public static class PlayableHunterCombatAdapter
     {
+        internal sealed class RuntimeState
+        {
+            public RuntimeState(PlayableCombatEquipmentCatalog catalog, Dictionary<ItemData, WeaponData> runtimeWeapons, Dictionary<WeaponData, CombatWeaponProfile> weaponProfiles)
+            {
+                Catalog = catalog;
+                RuntimeWeapons = runtimeWeapons;
+                WeaponProfiles = weaponProfiles;
+            }
+
+            public PlayableCombatEquipmentCatalog Catalog { get; }
+            public Dictionary<ItemData, WeaponData> RuntimeWeapons { get; }
+            public Dictionary<WeaponData, CombatWeaponProfile> WeaponProfiles { get; }
+        }
+
         private static readonly Dictionary<ItemData, WeaponData> runtimeWeapons = new();
         private static readonly Dictionary<WeaponData, CombatWeaponProfile> weaponProfiles = new();
         private static PlayableCombatEquipmentCatalog catalog;
@@ -29,6 +43,20 @@ namespace HuntingInDarkness.Combat
             catalog = equipmentCatalog;
             runtimeWeapons.Clear();
             weaponProfiles.Clear();
+        }
+
+        internal static RuntimeState CaptureState() => new(catalog, new Dictionary<ItemData, WeaponData>(runtimeWeapons), new Dictionary<WeaponData, CombatWeaponProfile>(weaponProfiles));
+
+        internal static void RestoreState(RuntimeState state)
+        {
+            catalog = state?.Catalog;
+            runtimeWeapons.Clear();
+            weaponProfiles.Clear();
+            if (state == null) return;
+            foreach (KeyValuePair<ItemData, WeaponData> pair in state.RuntimeWeapons)
+                runtimeWeapons.Add(pair.Key, pair.Value);
+            foreach (KeyValuePair<WeaponData, CombatWeaponProfile> pair in state.WeaponProfiles)
+                weaponProfiles.Add(pair.Key, pair.Value);
         }
 
         public static CombatRosterBindingResult Apply(IReadOnlyList<HunterInstance> hunters, IReadOnlyList<CharacterRuntimeData> characters, IReadOnlyDictionary<int, UI.CharacterEntity> characterViews, TimelineManager timeline)
