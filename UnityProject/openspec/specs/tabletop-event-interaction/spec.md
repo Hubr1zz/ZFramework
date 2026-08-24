@@ -10,14 +10,23 @@ title: "跨阶段桌面事件交互"
 
 让营地与狩猎事件复用同一套世界空间实体卡交互，同时保持阶段 ActionQueue 对事件选择、物理随机表现、规则提交和事件链推进的唯一控制权。
 
+正式组合根独立安装世界空间事件输入端口；旧屏幕 HUD 的可见性不决定事件端口是否存在。
+
 ## Requirements
 
 ### Requirement: Settlement and hunt share one event input port
 Settlement and Hunt SHALL present narrative, choice, check, and result prompts through the shared `IPlayableEventInput` contract while retaining independent phase runners and execution environments.
 
+The playable bootstrap SHALL install the world-space event input port independently of legacy settlement HUD visibility.
+
 #### Scenario: Either phase reaches an event node
 - **WHEN** its ActionQueue awaits player input
 - **THEN** the same world-space event presenter supplies the decision without directly mutating event state
+
+#### Scenario: Legacy HUD visibility is disabled
+- **WHEN** the playable bootstrap starts with legacy settlement HUD visibility disabled
+- **THEN** settlement and hunt event prompts still have the world-space event input port
+- **AND** the event presenter remains the only View-side input path
 
 ### Requirement: Event decisions use world-space physical cards
 The event presenter SHALL represent the primary narrative and every player decision as 3D cards anchored near the associated hunter or the active phase table.

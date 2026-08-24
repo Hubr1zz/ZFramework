@@ -51,6 +51,9 @@ namespace HuntingInDarkness.Bootstrap
             return true;
         }
 
+        /// <summary>安装可游玩流程必需的世界空间输入端口；不受旧屏幕 HUD 可见性控制。</summary>
+        public static void EnsureRequiredWorldSpacePorts(GameObject host, GameManager manager, PlayableBootstrapSettings settings) => PlayableSettlementWorldSpacePortInstaller.EnsureInstalled(host, manager, settings);
+
         private void Start()
         {
             if (GameManager.Instance != null) return;
@@ -99,11 +102,7 @@ namespace HuntingInDarkness.Bootstrap
             if (settings.ShowStartMenu || settings.ShowFlowGuide && settings.ShowOpeningNarrative)
                 gameObject.AddComponent<PlayableOpeningSequence3D>().Initialize(manager, settings);
 
-            if (settings.ShowSettlementHud)
-            {
-                gameObject.AddComponent<PlayableHuntDestinationView>().Initialize(manager, null, settings.HuntDestinations);
-                gameObject.AddComponent<PlayableSettlementEventView>().Initialize(manager);
-            }
+            EnsureRequiredWorldSpacePorts(gameObject, manager, settings);
 
             Debug.Log("[PlayableGameBootstrap] 可游玩流程已接入 ZFramework 启动场景。", this);
         }

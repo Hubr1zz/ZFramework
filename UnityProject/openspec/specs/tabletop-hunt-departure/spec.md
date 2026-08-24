@@ -10,14 +10,23 @@ title: "3D 狩猎远征整备"
 
 让玩家在营地桌面以实体猎人卡编成小队并选择狩猎地区，同时由 Settlement 与 Campaign ActionQueue 分别掌握名册提交和阶段切换的权威状态。
 
+营地出猎世界空间端口由正式组合根独立安装，不受旧屏幕 HUD 可见性开关影响。
+
 ## Requirements
 
 ### Requirement: Departure preparation is a world-space card flow
 The normal settlement departure flow SHALL use a 3D launcher card, draggable hunter cards, a four-slot squad grid, and physical destination cards instead of a screen-space confirmation window.
 
+The departure world-space input port SHALL be installed whenever the playable settlement bootstrap is active, regardless of legacy HUD visibility settings.
+
 #### Scenario: Player prepares a hunt
 - **WHEN** the settlement runner is idle and the player activates the departure launcher
 - **THEN** available hunters appear as draggable cards and one to four of them can be placed in the expedition slots
+
+#### Scenario: Legacy HUD visibility is disabled
+- **WHEN** the playable bootstrap starts with legacy settlement HUD visibility disabled
+- **THEN** the world-space departure port and destination selection remain available
+- **AND** no screen-space HUD is required for the departure command
 
 ### Requirement: The View only submits player intent
 The departure View SHALL preserve squad and route choices while navigating its card pages, but SHALL NOT directly mutate the settlement roster, active hunt content, or game phase.
