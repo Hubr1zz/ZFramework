@@ -6,28 +6,29 @@
   "readiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "启动事务以一个 RegistryBundle 原子发布 Item、Invention 与 Settlement Event 索引；兼容 Registry 只读代理同一绑定，活动计划租用事件世代并拒绝独立重配置。",
+    "summary": "启动事务以一个 RegistryBundle 发布内容世代；读档在独立随机源和完整 SettlementManager 候选图上投影，并由 GameManager 单引用提交，活动狩猎恢复同步使用候选 Data。",
     "evidence": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-      "Unity CLI targeted: 13/13 and 7/7 passed",
-      "Unity CLI EditMode: 609/609 passed",
-      "C# derived index: 975/975, 100% coverage",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementProjectionTransactionTests.cs",
+      "Unity CLI targeted settlement projection: 4/4 passed",
+      "Unity CLI EditMode: 613/613 passed",
+      "C# derived index: 976/976, 100% coverage",
       "zWorkFlow: 7/7 passed"
     ],
     "differences": [
       "Bundle 冻结成员与索引，但不会克隆外部 ScriptableObject；发布后的内容资产变更不受支持。",
-      "正式 SettlementManager 注入仍直接修改活体管理器；modifier 失败时尚未通过候选管理器实现整体原子交换。"
+      "候选数据采用消费式 ownership，不提供通用深拷贝；会话和表现仍在核心 Manager 提交后重绑，完整 GameManager PlayMode 视觉 smoke 留待后续。"
     ],
-    "verifiedAt": "2026-08-24T07:21:34-07:00",
+    "verifiedAt": "2026-08-24T07:53:40-07:00",
     "codeEvidence": [
       {
         "guid": "76ee8c16e7264fc89ae0566031980a8a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
         "line": 1,
-        "fileHash": "d8fbeb4975e0352bcefb4d76a4d07fa4e3e03bf782c7a095ca183ac11ef43bf2",
+        "fileHash": "65599805e1accd9ed44d62de828f4e99d0a5c14743fea37aca667753b9df96ff",
         "status": "verified",
-        "checkedAt": "2026-08-24T07:21:34-07:00",
+        "checkedAt": "2026-08-24T07:48:51-07:00",
         "feature": "冻结跨表对象图、持有单一 RegistryBundle 与事件世代租约，并管理 transient Unity 对象生命周期。"
       },
       {
@@ -43,10 +44,37 @@
         "guid": "89da669e4924d43409fe89475adc272b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
         "line": 1,
-        "fileHash": "00a020ef87b61ab6500d2a7a4296c1277509d79df8419d36168141a0ee186ca1",
+        "fileHash": "abc76a13e190d80b18101baacdeeb32fed965ca94e07c63f0027baaf95be04e5",
         "status": "verified",
-        "checkedAt": "2026-08-24T07:21:34-07:00",
+        "checkedAt": "2026-08-24T07:48:51-07:00",
         "feature": "无副作用准备计划，并由 Runtime 单指针发布、恢复和退役计划及兼容 Bundle。"
+      },
+      {
+        "guid": "1575b817a3362e94fbebfde4875d6115",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/SettlementManager.cs",
+        "line": 1,
+        "fileHash": "58e6963f92658dfc2337c209108c4ddc5b1076150c03539f6352c5b626d412e6",
+        "status": "verified",
+        "checkedAt": "2026-08-24T07:48:51-07:00",
+        "feature": "以单一 RuntimeBinding 组织 Data 与五个营地子系统，在独立随机源上准备并一次性消费读档候选。"
+      },
+      {
+        "guid": "551fe81197a6ca545a686a0c536f2646",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+        "line": 1,
+        "fileHash": "c276accaf462ef40272171323113464d3a3c159d254ab3cd37fc9b62b84a92d1",
+        "status": "verified",
+        "checkedAt": "2026-08-24T07:53:40-07:00",
+        "feature": "在 Runner 空闲门禁后提交候选 Manager，并使活动狩猎、稳定 payload 与阶段观察者使用同代 Data。"
+      },
+      {
+        "guid": "e549d8b4d78e4d00aa85a1125c8148d0",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementProjectionTransactionTests.cs",
+        "line": 1,
+        "fileHash": "20f846fc079a3979ee545382ff406af9c16c8b2bc0a6a5b1d3ec58ba369618d9",
+        "status": "verified",
+        "checkedAt": "2026-08-24T07:48:51-07:00",
+        "feature": "验证失败投影不污染旧图与 RNG、合法图一致性、自引用拒绝及 stale/double candidate 门禁。"
       },
       {
         "guid": "e720a0551a464b15a2f65f1e82fc4a4a",
@@ -91,7 +119,9 @@
     "Plan 在任何正式 Runtime 变更前校验 Schema、稳定 ID、跨表引用和发明依赖环。",
     "Assembler 将事件世代与营地计划作为同一候选发布；异常时恢复旧计划和旧 Registry。",
     "Plan 仅拥有表生成的 ItemData、InventionData 与 HunterData，并租用事件世代；退役时不销毁外部资产。",
-    "正式和隔离 Settlement 投影都消费同一计划，避免重复读表和对象身份漂移。"
+    "正式和隔离 Settlement 投影都消费同一计划，避免重复读表和对象身份漂移。",
+    "读档把反序列化 Data 交给完整候选 Manager，在独立 RNG 上恢复派生状态并拒绝 live alias、stale 或 double commit。",
+    "GameManager 仅在 ActionEnvironment 空闲时交换权威 Manager；活动狩猎恢复从候选 Data 解析猎人并预生成稳定 payload。"
   ],
   "gapIds": [],
   "dependencyIds": [
@@ -106,6 +136,8 @@
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs:1",
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs:1"
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/SettlementManager.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1"
   ]
 }

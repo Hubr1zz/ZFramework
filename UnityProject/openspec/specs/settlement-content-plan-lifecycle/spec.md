@@ -92,6 +92,51 @@ Campaign 安装 SHALL 在事件世代发布后，以单一 `PlayableSettlementCo
 - **THEN** 计划投影 SHALL 返回失败
 - **AND** 年份、猎人、事件池与其他存档字段 SHALL 不被迁移或初始化
 
+### Requirement: Loaded settlement publishes one complete candidate runtime graph
+
+读档 SHALL 把尚未归属运行态的反序列化 `SettlementInstance` 作为一次性 owned input，在独立随机源与完整 `SettlementManager` 候选图上完成 schema 迁移、内容计划投影和派生数据恢复。候选 SHALL 同时拥有 Data、Timeline、Event、Invention、Workshop 与 HunterManagement；正式组合根 SHALL 只通过一次权威 Manager 引用交换提交该图。
+
+#### Scenario: Candidate projection fails
+
+- **WHEN** 读档候选包含无效 schema、重复持续修正或其他无法投影的内容
+- **THEN** 当前权威 Manager、Data、五个子系统、随机序列、会话与阶段 SHALL 保持不变
+- **AND** 失败候选输入 SHALL 被视为已经消费，不得重新进入任何运行态
+
+#### Scenario: Candidate projection succeeds
+
+- **WHEN** 候选完成全部迁移并仍绑定当前活动 Plan
+- **THEN** 运行时出发准备 token SHALL 被清除，持久出发 token SHALL 保留
+- **AND** 装备 SHALL 通过稳定内容身份重建为候选图内的新实例
+- **AND** 普通营地读档 SHALL NOT 恢复只属于活动狩猎运行态的 Collectibles
+- **AND** 五个子系统 SHALL 引用同一个候选 Data 及其同代协作系统
+
+#### Scenario: A live Data alias or stale candidate is submitted
+
+- **WHEN** 调用方尝试把当前权威 Data 作为可消费候选重新注入，或提交已经消费、Plan 已退役的候选
+- **THEN** 提交 SHALL 被拒绝
+- **AND** 当前运行图与 Data 字段 SHALL 保持不变
+
+### Requirement: Load commit waits for idle action environments
+
+GameManager SHALL 在文件读取完成后、候选准备与提交前检查 Settlement、Hunt 与 Campaign ActionEnvironment，以及出发和回营 in-flight 门禁。任一旧流程仍在运行时 SHALL 拒绝读档，避免旧命令跨代写入新战役。
+
+#### Scenario: An action starts while the save file is loading
+
+- **WHEN** LoadAsync 返回时任一受管 Runner 或远征交接仍在执行
+- **THEN** GameManager SHALL 拒绝替换权威运行图
+- **AND** 当前与候选数据 SHALL NOT 因本次读档发生跨代写入
+
+### Requirement: Active hunt restore observes the candidate generation
+
+活动狩猎恢复 SHALL 使用候选 Settlement Data 解析猎人引用并预生成稳定 payload。在阶段切换通知发出前，GameManager SHALL 同时发布候选 SettlementManager 与 HuntManager，使同步观察者只看到 Hunt 阶段及其同代对象图；会话与表现初始化成功后才释放旧 idle 会话。
+
+#### Scenario: Active hunt snapshot is restored
+
+- **WHEN** 候选营地图、狩猎快照和稳定 payload 都验证成功
+- **THEN** HuntManager 的活动猎人 SHALL 与候选 Settlement Data 中的猎人为同一对象
+- **AND** Hunt 阶段同步观察者 SHALL 读取候选 Manager 图
+- **AND** 失败的阶段切换或会话初始化 SHALL 尝试恢复旧运行图并报告任何阶段回滚失败
+
 ## Known Boundary
 
-Plan 与三个兼容 Registry 已收敛为单一不可变 RegistryBundle；公开 Configure 只服务没有活动 Plan 的旧测试/兼容环境。Bundle 冻结成员、索引键与对象身份，但不会克隆外部 ScriptableObject；发布后修改内容资产不属于受支持的运行期操作。`SettlementManager.InjectData` 仍可对 live Data 执行兼容投影；普通读档的 candidate-manager 验证与整体替换属于下一阶段。
+Plan 与三个兼容 Registry 已收敛为单一不可变 RegistryBundle；公开 Configure 只服务没有活动 Plan 的旧测试/兼容环境。Bundle 冻结成员、索引键与对象身份，但不会克隆外部 ScriptableObject；发布后修改内容资产不属于受支持的运行期操作。候选输入采用明确的消费式 ownership，不提供通用深拷贝。核心运行图通过 Manager 单引用交换提交；会话和表现仍在提交后重绑，当前验证以 EditMode 数据与组合关系为主，尚未加入完整 GameManager PlayMode 视觉 smoke。

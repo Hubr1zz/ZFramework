@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core;
 using HuntingInDarkness.Data;
@@ -17,17 +18,22 @@ namespace HuntingInDarkness.Settlement
     {
         // ─── 数据 ───────────────────────────────────────────────
 
-        public SettlementInstance Data { get; private set; }
+        public SettlementInstance Data => binding.Data;
 
         // ─── 子系统 ──────────────────────────────────────────────
 
-        public TimelineSystem        Timeline     { get; private set; }
-        public EventSystem           Events       { get; private set; }
-        public InventionSystem       Inventions   { get; private set; }
-        public WorkshopSystem        Workshop     { get; private set; }
-        public HunterManagementSystem HunterMgmt  { get; private set; }
+        public TimelineSystem Timeline => binding.Timeline;
+        public EventSystem Events => binding.Events;
+        public InventionSystem Inventions => binding.Inventions;
+        public WorkshopSystem Workshop => binding.Workshop;
+        public HunterManagementSystem HunterMgmt => binding.HunterMgmt;
 
-        private readonly IRandomSource _rng;
+        private readonly Func<IRandomSource> randomFactory;
+        private RuntimeBinding binding;
+        private PlayableSettlementContentPlan contentPlan;
+        private bool preparedCandidate;
+        private bool candidateConsumed;
+        internal IRandomSource RandomSource => binding.Random;
 
         // ─── 组合根端口 ─────────────────────────────────────────
 
@@ -38,15 +44,14 @@ namespace HuntingInDarkness.Settlement
 
         public SettlementManager(int seed = 0)
         {
-            _rng  = seed != 0 ? new SystemRandomSource(seed) : new SystemRandomSource();
-            Data  = new SettlementInstance();
+            randomFactory = seed != 0 ? () => new SystemRandomSource(seed) : () => new SystemRandomSource();
+            binding = new RuntimeBinding(new SettlementInstance(), randomFactory());
+        }
 
-            Timeline   = new TimelineSystem(Data, _rng);
-            HunterMgmt = new HunterManagementSystem(Data, _rng);
-            Events     = new EventSystem(Data, _rng, Timeline, HunterMgmt);
-            Inventions = new InventionSystem(Data);
-            Workshop   = new WorkshopSystem(Data, Inventions);
-
+        private SettlementManager(SettlementInstance data, Func<IRandomSource> randomFactory)
+        {
+            this.randomFactory = randomFactory ?? throw new ArgumentNullException(nameof(randomFactory));
+            binding = new RuntimeBinding(data ?? throw new ArgumentNullException(nameof(data)), randomFactory());
         }
 
         // ─── 生命周期 ────────────────────────────────────────────
@@ -115,19 +120,118 @@ namespace HuntingInDarkness.Settlement
         // ─── 数据注入 ────────────────────────────────────────────
 
         /// <summary>
-        /// 用外部数据替换当前 Data（读档专用）。
-        /// 所有子系统同步重新绑定到新数据实例，保留原有事件回调。
+        /// 在独立候选运行图上验证外部数据，成功后以单一 Binding 引用替换当前图。
+        /// 正式组合根应优先准备完整候选 Manager，再交换权威 Manager 引用。
         /// </summary>
+        public bool TryInjectData(SettlementInstance data, out string reason)
+        {
+            if (ReferenceEquals(data, Data))
+            {
+                reason = "不能将当前权威营地数据作为可消费候选重新注入。";
+                return false;
+            }
+            if (!TryPrepareCandidate(data, randomFactory, out SettlementManager candidate, out reason)) return false;
+            candidate.Events.OnEventTriggered = Events.OnEventTriggered;
+            candidate.Events.OnEventChainCompleted = Events.OnEventChainCompleted;
+            if (!candidate.TryConsumePreparedCandidate(out reason)) return false;
+            binding = candidate.binding;
+            contentPlan = candidate.contentPlan;
+            return true;
+        }
+
+        [Obsolete("正式读档请通过候选 SettlementManager 和 GameManager 权威引用交换。")]
         public void InjectData(SettlementInstance data)
         {
-            if (data == null) return;
-            Data       = data;
-            Timeline   = new TimelineSystem(Data, _rng);
-            HunterMgmt = new HunterManagementSystem(Data, _rng);
-            Events     = new EventSystem(Data, _rng, Timeline, HunterMgmt);
-            Inventions = new InventionSystem(Data);
-            Workshop   = new WorkshopSystem(Data, Inventions);
-            PlayableSettlementContentRuntime.TryApplyTo(this);
+            if (!TryInjectData(data, out string reason))
+                Debug.LogError($"[SettlementManager] 数据注入失败，已保留原运行图：{reason}");
+        }
+
+        /// <summary>消费尚未归属运行态的反序列化数据；无论成功或失败，调用方都不得再次使用 ownedData。</summary>
+        internal static bool TryPrepareCandidate(SettlementInstance ownedData, out SettlementManager candidate, out string reason)
+        {
+            return TryPrepareCandidate(ownedData, () => new SystemRandomSource(), out candidate, out reason);
+        }
+
+        internal bool TryConsumePreparedCandidate(out string reason)
+        {
+            if (!preparedCandidate || candidateConsumed)
+            {
+                reason = "营地候选未准备或已经提交。";
+                return false;
+            }
+            if (!PlayableSettlementContentRuntime.IsCurrentPlan(contentPlan))
+            {
+                reason = "营地候选使用的内容计划已经失效。";
+                return false;
+            }
+            candidateConsumed = true;
+            reason = string.Empty;
+            return true;
+        }
+
+        private static bool TryPrepareCandidate(SettlementInstance ownedData, Func<IRandomSource> randomFactory, out SettlementManager candidate, out string reason)
+        {
+            candidate = null;
+            if (ownedData == null)
+            {
+                reason = "营地候选数据为空。";
+                return false;
+            }
+            try
+            {
+                ownedData.RuntimeDeparturePreparationToken = string.Empty;
+                ClearDerivedHunterState(ownedData);
+                var prepared = new SettlementManager(ownedData, randomFactory) { preparedCandidate = true };
+                if (!PlayableSettlementContentRuntime.TryApplyTo(prepared, out reason)) return false;
+                prepared.contentPlan = PlayableSettlementContentRuntime.CurrentPlan;
+                if (!PlayableSettlementContentRuntime.IsCurrentPlan(prepared.contentPlan))
+                {
+                    reason = "营地候选未绑定有效的内容计划。";
+                    return false;
+                }
+                candidate = prepared;
+                reason = string.Empty;
+                return true;
+            }
+            catch (Exception exception)
+            {
+                reason = $"营地候选投影异常：{exception.Message}";
+                return false;
+            }
+        }
+
+        private static void ClearDerivedHunterState(SettlementInstance data)
+        {
+            foreach (HunterInstance hunter in data.Hunters ?? new List<HunterInstance>())
+            {
+                if (hunter == null) continue;
+                hunter.Equipment ??= new List<ItemInstance>();
+                hunter.Collectibles ??= new List<ItemInstance>();
+                hunter.Equipment.Clear();
+                hunter.Collectibles.Clear();
+            }
+        }
+
+        private sealed class RuntimeBinding
+        {
+            public RuntimeBinding(SettlementInstance data, IRandomSource random)
+            {
+                Data = data;
+                Random = random ?? throw new ArgumentNullException(nameof(random));
+                Timeline = new TimelineSystem(data, Random);
+                HunterMgmt = new HunterManagementSystem(data, Random);
+                Events = new EventSystem(data, Random, Timeline, HunterMgmt);
+                Inventions = new InventionSystem(data);
+                Workshop = new WorkshopSystem(data, Inventions);
+            }
+
+            public SettlementInstance Data { get; }
+            public IRandomSource Random { get; }
+            public TimelineSystem Timeline { get; }
+            public EventSystem Events { get; }
+            public InventionSystem Inventions { get; }
+            public WorkshopSystem Workshop { get; }
+            public HunterManagementSystem HunterMgmt { get; }
         }
 
         // ─── 开发者工具 ──────────────────────────────────────────

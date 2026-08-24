@@ -12,13 +12,13 @@
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementDepartureActionTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntRetreatActionTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
-      "Unity CLI EditMode: 598/598 passed"
+      "Unity CLI EditMode: 613/613 passed"
     ],
     "differences": [
       "当前闭环验证使用生产协调契约与真实 Settlement/Hunt Runner 的 EditMode 组合 smoke；完整 GameManager 场景级 PlayMode 端到端测试可在场景依赖稳定后补充。",
       "显式 devStartPhase=Hunt 仅在当前存在 1 至 4 名可用猎人时允许开发回退；运行期 Settlement 到 Hunt 的权威转换不允许该回退。"
     ],
-    "verifiedAt": "2026-08-24T06:00:29-07:00",
+    "verifiedAt": "2026-08-24T07:53:40-07:00",
     "codeEvidence": [
       {
         "guid": "245d7a41004f432faff9c725577de9ab",
@@ -33,9 +33,9 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "15b28676a090081420665dfdf7c50e08113293b8ca337eb9c10aecfcff6a90d8",
+        "fileHash": "c276accaf462ef40272171323113464d3a3c159d254ab3cd37fc9b62b84a92d1",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:00:29-07:00",
+        "checkedAt": "2026-08-24T07:53:40-07:00",
         "feature": "把权威编队契约接入阶段转换、失败回滚、受限开发启动和回营两阶段保存。"
       },
       {

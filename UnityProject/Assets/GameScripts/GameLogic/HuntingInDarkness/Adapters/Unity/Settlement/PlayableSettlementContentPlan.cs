@@ -397,7 +397,7 @@ namespace HuntingInDarkness.Settlement
         private static void SynchronizeExistingRoster(SettlementManager manager)
         {
             PlayableSettlementItemRegistry.RestoreEquipment(manager.Data);
-            PlayableBloodlineRuntime.Synchronize(manager.Data);
+            PlayableBloodlineRuntime.Synchronize(manager.Data, manager.RandomSource);
             PlayableSymptomRuntime.Synchronize(manager.Data);
             PlayableGrowthMilestoneRuntime.Synchronize(manager.Data);
         }

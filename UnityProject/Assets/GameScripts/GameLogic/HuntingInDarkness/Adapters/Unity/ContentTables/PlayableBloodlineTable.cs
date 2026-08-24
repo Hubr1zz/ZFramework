@@ -124,16 +124,24 @@ namespace HuntingInDarkness.ContentTables
         public static bool TryAssign(HunterInstance hunter, out string reason)
         {
             random ??= new SystemRandomSource();
-            return HunterBloodlineRules.TryAssign(hunter, Content.Definitions, random, out _, out reason);
+            return TryAssign(hunter, random, out reason);
         }
 
+        public static bool TryAssign(HunterInstance hunter, IRandomSource randomSource, out string reason) => HunterBloodlineRules.TryAssign(hunter, Content.Definitions, randomSource ?? throw new ArgumentNullException(nameof(randomSource)), out _, out reason);
+
         public static void Synchronize(SettlementInstance settlement)
+        {
+            random ??= new SystemRandomSource();
+            Synchronize(settlement, random);
+        }
+
+        public static void Synchronize(SettlementInstance settlement, IRandomSource randomSource)
         {
             if (settlement?.Hunters == null) return;
             foreach (HunterInstance hunter in settlement.Hunters)
             {
                 if (hunter == null) continue;
-                if (!TryAssign(hunter, out string reason))
+                if (!TryAssign(hunter, randomSource, out string reason))
                     Debug.LogWarning($"[Bloodline] 无法同步 {hunter.Name}：{reason}");
             }
         }

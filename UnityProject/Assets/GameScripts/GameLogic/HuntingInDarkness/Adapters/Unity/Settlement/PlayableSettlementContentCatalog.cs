@@ -183,10 +183,18 @@ namespace HuntingInDarkness.Settlement
 
         internal static void ConfigureForInstallation(PlayableSettlementContentCatalog contentCatalog) => catalog = contentCatalog;
 
-        public static bool TryApplyTo(SettlementManager manager)
+        public static bool TryApplyTo(SettlementManager manager) => TryApplyTo(manager, out _);
+
+        internal static bool TryApplyTo(SettlementManager manager, out string reason)
         {
-            if (currentPlan != null && !currentPlan.IsRetired) return currentPlan.TryApplyTo(manager, out _);
-            return catalog != null && catalog.ApplyTo(manager);
+            if (currentPlan != null && !currentPlan.IsRetired) return currentPlan.TryApplyTo(manager, out reason);
+            if (catalog != null && catalog.ApplyTo(manager))
+            {
+                reason = string.Empty;
+                return true;
+            }
+            reason = catalog == null ? "营地内容目录未配置。" : "营地内容目录无法投影到候选状态。";
+            return false;
         }
 
         internal static bool TryGetPlan(PlayableSettlementContentCatalog sourceCatalog, out PlayableSettlementContentPlan plan)
@@ -194,6 +202,8 @@ namespace HuntingInDarkness.Settlement
             plan = currentPlan;
             return plan != null && !plan.IsRetired && ReferenceEquals(plan.SourceCatalog, sourceCatalog);
         }
+
+        internal static bool IsCurrentPlan(PlayableSettlementContentPlan plan) => plan != null && !plan.IsRetired && ReferenceEquals(currentPlan, plan);
 
         internal static PlayableSettlementContentPlan SwapPlan(PlayableSettlementContentPlan replacement)
         {

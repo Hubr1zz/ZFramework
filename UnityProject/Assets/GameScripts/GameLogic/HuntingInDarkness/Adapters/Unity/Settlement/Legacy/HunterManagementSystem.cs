@@ -38,7 +38,7 @@ namespace HuntingInDarkness.Settlement
         {
             var hunter = new HunterInstance(template, HunterIdentityRules.NextAvailableId(_settlement.Hunters));
             if (!string.IsNullOrEmpty(customName)) hunter.Name = customName;
-            if (!PlayableBloodlineRuntime.TryAssign(hunter, out string bloodlineReason))
+            if (!PlayableBloodlineRuntime.TryAssign(hunter, _rng, out string bloodlineReason))
             {
                 Debug.LogError($"[HunterMgmt] 招募失败：{bloodlineReason}");
                 return null;
@@ -59,7 +59,7 @@ namespace HuntingInDarkness.Settlement
         {
             var hunter = new HunterInstance(template, HunterIdentityRules.NextAvailableId(_settlement.Hunters));
             hunter.Name = name;
-            if (!PlayableBloodlineRuntime.TryAssign(hunter, out string bloodlineReason))
+            if (!PlayableBloodlineRuntime.TryAssign(hunter, _rng, out string bloodlineReason))
             {
                 Debug.LogError($"[HunterMgmt] 无法添加初始猎人：{bloodlineReason}");
                 return;

@@ -6,7 +6,7 @@
   "readiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "战役存档已显式区分营地与活动狩猎；普通 Hunt 的地图、编队、坐标、携带物、事件 occurrence 与版本化随机状态可从已提交 Action 检查点恢复，回营记录与活动狩猎保持互斥。",
+    "summary": "战役存档已显式区分营地与活动狩猎；恢复先在候选营地图上解析地图、编队、携带物、事件 occurrence 与随机状态，预生成稳定 payload 后再发布同代 Settlement/Hunt 运行图。",
     "evidence": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignSaveStorageTests.cs",
@@ -17,7 +17,7 @@
       "当前遭遇/BossFight 生命周期仍会销毁 Hunt session；存档以 fail-closed 交接标记阻止复活旧 Hunt，但不承诺战斗结束后回到原事件链。",
       "恢复验证使用生产 DTO、Adapter、HuntManager 与 ActionSession 的 EditMode 组合测试；完整场景 GameManager PlayMode 重启测试留作后续增强。"
     ],
-    "verifiedAt": "2026-08-24T04:44:00-07:00",
+    "verifiedAt": "2026-08-24T07:53:40-07:00",
     "codeEvidence": [
       {
         "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
@@ -32,10 +32,10 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "3a95af93a6af7d7224863741c2af6dd874ea67eb058ad3ec6b00ff1d5af34ee0",
+        "fileHash": "c276accaf462ef40272171323113464d3a3c159d254ab3cd37fc9b62b84a92d1",
         "status": "verified",
-        "checkedAt": "2026-08-24T04:44:00-07:00",
-        "feature": "在 Hunt Action 提交、退出、读档和回营两阶段交接处维护最近完整战役载荷。"
+        "checkedAt": "2026-08-24T07:53:40-07:00",
+        "feature": "在 Hunt Action 提交、退出、读档和回营两阶段交接处维护最近完整战役载荷，并在阶段通知前发布候选 Settlement/Hunt 图。"
       },
       {
         "guid": "6dce6ba7b65af9c42821b85a0555ac17",
