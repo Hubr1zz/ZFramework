@@ -80,7 +80,6 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private PrepareHuntNoiseAction noiseAction;
         private CommitHuntTileInteractionAction commitAction;
         private ResolveHuntTileEventAction eventAction;
-        private bool presentationScheduled;
         private bool eventScheduled;
         private bool finalizeScheduled;
         private bool noiseScheduled;
@@ -120,15 +119,10 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             if (commitAction == null)
             {
                 if (!context.LastOutcome.IsSuccess) return null;
-                commitAction = new CommitHuntTileInteractionAction(manager, coordinate, intendedKind, noiseAction.Resolution, eventOutbox, encounterAccumulator, Source, Target);
+                commitAction = new CommitHuntTileInteractionAction(manager, coordinate, intendedKind, noiseAction.Resolution, eventOutbox, encounterAccumulator, tileInteractionPresenter, Source, Target);
                 return commitAction;
             }
             if (!commitAction.IsCommitted) return null;
-            if (!presentationScheduled)
-            {
-                presentationScheduled = true;
-                return new PresentHuntTileInteractionAction(tileInteractionPresenter, new HuntTileInteractionPresentationRequest(commitAction.Commit.Coordinate, commitAction.Commit.Kind), Source, Target);
-            }
             if (!eventScheduled)
             {
                 eventScheduled = true;
@@ -180,8 +174,9 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly PlayableHuntNoiseResolution noiseResolution;
         private readonly ActionEventOutbox eventOutbox;
         private readonly HuntEncounterAccumulator encounterAccumulator;
+        private readonly IHuntTileInteractionPresenter tileInteractionPresenter;
 
-        internal CommitHuntTileInteractionAction(HuntManager manager, Vector2Int coordinate, HuntTileInteractionKind intendedKind, PlayableHuntNoiseResolution noiseResolution, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target)
+        internal CommitHuntTileInteractionAction(HuntManager manager, Vector2Int coordinate, HuntTileInteractionKind intendedKind, PlayableHuntNoiseResolution noiseResolution, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IHuntTileInteractionPresenter tileInteractionPresenter, IReactorEntity source, IReactorEntity target)
         {
             this.manager = manager;
             this.coordinate = coordinate;
@@ -189,6 +184,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             this.noiseResolution = noiseResolution;
             this.eventOutbox = eventOutbox;
             this.encounterAccumulator = encounterAccumulator;
+            this.tileInteractionPresenter = tileInteractionPresenter;
             Source = source;
             Target = target;
         }
@@ -199,10 +195,10 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public IReactorEntity Target { get; }
         public override ReactionPhases OpenReactionPhases => ReactionPhases.BeforeExecution | ReactionPhases.AfterResolved;
 
-        protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
+        protected override async UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
-            if (intendedKind == HuntTileInteractionKind.None) return UniTask.FromResult(ActionOutcome.Failure("该地块当前不可交互"));
-            if (!manager.TryCommitTileInteraction(coordinate, intendedKind, out HuntTileInteractionCommit commit)) return UniTask.FromResult(ActionOutcome.Failure("地块状态已变化，操作未执行"));
+            if (intendedKind == HuntTileInteractionKind.None) return ActionOutcome.Failure("该地块当前不可交互");
+            if (!manager.TryCommitTileInteraction(coordinate, intendedKind, out HuntTileInteractionCommit commit)) return ActionOutcome.Failure("地块状态已变化，操作未执行");
             Commit = commit;
             if (commit.BossEncounter)
                 encounterAccumulator.TryAdd(commit.Tile.Config?.bossEncounterId, CampaignEncounterSourceKind.HuntBossTile, commit.Coordinate, commit.Tile.ConfigName);
@@ -231,7 +227,21 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             if (commit.Kind == HuntTileInteractionKind.Reveal)
                 eventOutbox.Stage(new GameEventTriggeredEvent { EventId = $"tile_reveal:{coordinate.x},{coordinate.y}" });
             eventOutbox.PublishCheckpoint();
-            return UniTask.FromResult(ActionOutcome.Success());
+            if (tileInteractionPresenter == null) return ActionOutcome.Success();
+            try
+            {
+                var request = new HuntTileInteractionPresentationRequest(commit.Coordinate, commit.Kind);
+                await context.AwaitPresentationAsync(tileInteractionPresenter.PresentAsync(request, cancellationToken));
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+            }
+            return ActionOutcome.Success();
         }
     }
 

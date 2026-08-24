@@ -126,7 +126,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
                 resolutionActions.Add(new SelectHitLocationAction(execution, resolution));
                 resolutionActions.Add(new ApplyHitLocationDamageAction(execution, resolution));
                 resolutionActions.Add(new ResolveHitLocationEffectsAction(execution, resolution));
-                resolutionActions.Add(new PresentHitLocationResultAction(execution, resolution));
+                resolutionActions.Add(new FinalizeHitLocationResolutionAction(execution, resolution));
             }
             resolutionActions.Add(new HideHitLocationsAction(execution));
             resolutionActions.Add(new ClaimBossDefeatAction(execution));
@@ -343,12 +343,12 @@ namespace HuntingInDarkness.ActionFlow.Combat
         }
     }
 
-    public sealed class PresentHitLocationResultAction : CommandAction, ISourceAction, ITargetAction
+    public sealed class FinalizeHitLocationResolutionAction : CommandAction, ISourceAction, ITargetAction
     {
         private readonly CharacterAttackExecution execution;
         private readonly HitResolutionState resolution;
 
-        internal PresentHitLocationResultAction(CharacterAttackExecution execution, HitResolutionState resolution)
+        internal FinalizeHitLocationResolutionAction(CharacterAttackExecution execution, HitResolutionState resolution)
         {
             this.execution = execution;
             this.resolution = resolution;

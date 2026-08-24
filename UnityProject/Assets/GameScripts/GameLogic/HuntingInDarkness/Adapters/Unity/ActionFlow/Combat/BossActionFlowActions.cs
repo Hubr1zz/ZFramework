@@ -436,8 +436,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
                 0 => new BossHitCheckAction(execution, attempt),
                 1 => new PrepareHunterWoundAction(execution, attempt),
                 2 => new ApplyHunterWoundAction(execution, attempt),
-                3 => new PresentHunterWoundAction(execution, attempt),
-                4 => new ResolveHunterSurvivalEventAction(execution, attempt),
+                3 => new ResolveHunterSurvivalEventAction(execution, attempt),
                 _ => null
             };
             phase++;
@@ -556,11 +555,11 @@ namespace HuntingInDarkness.ActionFlow.Combat
         public IReactorEntity Source => execution.Source;
         public IReactorEntity Target => execution.Target;
 
-        protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
+        protected override async UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
             CharacterCombatStats stats = execution.Context.DefenderStats;
             if (attempt.WoundPrevented || execution.Context.HitResult != HitResult.Success || stats == null || stats.IsDead)
-                return UniTask.FromResult(ActionOutcome.Success());
+                return ActionOutcome.Success();
 
             HunterDamageResult damage = stats.ApplyDamage(execution.BodyPart, execution.WoundCount, execution.Random, execution.ArmorRule, execution.PermanentInjuryResolver, attempt.DeathDrawOrder, attempt.DeathCardPosition);
             attempt.Damage = damage;
@@ -588,28 +587,6 @@ namespace HuntingInDarkness.ActionFlow.Combat
                 });
             }
             execution.EventOutbox.PublishCheckpoint();
-            return UniTask.FromResult(ActionOutcome.Success());
-        }
-    }
-
-    public sealed class PresentHunterWoundAction : CommandAction, ISourceAction, ITargetAction
-    {
-        private readonly BossAttackExecution execution;
-        private readonly BossAttackAttemptState attempt;
-
-        internal PresentHunterWoundAction(BossAttackExecution execution, BossAttackAttemptState attempt)
-        {
-            this.execution = execution;
-            this.attempt = attempt;
-        }
-
-        public IReactorEntity Source => execution.Source;
-        public IReactorEntity Target => execution.Target;
-
-        protected override async UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
-        {
-            if (!attempt.Damage.HasValue) return ActionOutcome.Success();
-            HunterDamageResult damage = attempt.Damage.Value;
             string message = $"{HunterBodyPartPresentation.GetName(damage.BodyPart)}受到 {damage.IncomingDamage} 点伤害，护甲抵消 {damage.ArmorPrevented}，剩余生命 {damage.RemainingHealth}。";
             if (damage.IsDead)
                 message += "\n<color=#ff4444>翻开死亡牌：你失去希望。你死了。</color>";
