@@ -1,10 +1,5 @@
 using Core;
-using GameplayBase.CombatSystem;
 using HuntingInDarkness.Testing;
-using HuntingInDarkness.Hunt;
-using HuntingInDarkness.Settlement;
-using HuntingInDarkness.Combat;
-using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.ViewLayer.Camera;
 using HuntingInDarkness.ViewLayer.Combat;
 using HuntingInDarkness.ViewLayer.Flow;
@@ -66,31 +61,24 @@ namespace HuntingInDarkness.Bootstrap
                 return;
             }
 
-            if (!settings.CanCreateGame)
+            if (!PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate contentCandidate, out PlayableContentDiagnosticReport buildReport))
             {
-                Debug.LogError("[PlayableGameBootstrap] 启动配置需要战斗、狩猎地图和营地开局内容。", settings);
+                Debug.LogError($"[PlayableGameBootstrap] 内容装配失败：{buildReport}", settings);
                 return;
             }
 
-            PlayableHuntContentRuntime.Configure(settings.HuntContent);
-            PlayableHuntDestinationRuntime.Configure(settings.HuntDestinations, settings.HuntContent);
-            PlayableSettlementContentRuntime.Configure(settings.SettlementContent);
-            PlayableHunterCombatAdapter.Configure(settings.CombatEquipment);
-            PlayableSurvivalEventRuntime.Configure(settings.SurvivalEvents);
-            PlayablePermanentInjuryRuntime.Configure(settings.PermanentInjuries);
-            PlayableSymptomRuntime.Configure(settings.Symptoms);
-            PlayableGrowthMilestoneRuntime.Configure(settings.GrowthMilestones);
-            PlayableWeaponMasteryRuntime.Configure(settings.WeaponMastery);
-            BattleSetup defaultBattleSetup = settings.CreateBattleSetup();
-            PlayableEncounterRuntime.Configure(settings.EncounterCatalog, settings.DefaultEncounterId, defaultBattleSetup);
-            PlayableEventTableRuntime.Rebuild();
+            if (!PlayableCampaignContentAssembler.Install(contentCandidate, out PlayableContentDiagnosticReport installReport))
+            {
+                Debug.LogError($"[PlayableGameBootstrap] 内容安装失败：{installReport}", settings);
+                return;
+            }
 
             var managerObject = new GameObject("GameManager (Playable)");
             managerObject.SetActive(false);
             var manager = managerObject.AddComponent<GameManager>();
-            manager.ConfigureForStandaloneTest(defaultBattleSetup, settings.InitialPhase, settings.CellSize);
-            manager.ConfigureSettlementContent(settings.SettlementContent);
-            manager.ConfigureWorkshopContent(settings.WorkshopContent);
+            manager.ConfigureForStandaloneTest(contentCandidate.DefaultBattleSetup, contentCandidate.InitialPhase, contentCandidate.CellSize);
+            manager.ConfigureSettlementContent(contentCandidate.SettlementContent);
+            manager.ConfigureWorkshopContent(contentCandidate.WorkshopContent);
             EnsureRequiredWorldSpacePorts(gameObject, manager, settings);
             managerObject.SetActive(true);
 

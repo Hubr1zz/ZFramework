@@ -308,9 +308,36 @@
       "category": "architecture",
       "readiness": "implemented",
       "specPath": "openspec/specs/campaign-content-cache-lifecycle/spec.md"
+    },
+    {
+      "id": "campaign-content-preflight-assembly",
+      "label": "战役内容启动预检装配",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-content-preflight-assembly/spec.md"
     }
   ],
   "edges": [
+    {
+      "id": "campaign-content-preflight-assembly--requires--campaign-content-cache-lifecycle",
+      "from": "campaign-content-preflight-assembly",
+      "to": "campaign-content-cache-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "启动预检安装复用单一事件对象世代，并在 GameManager 创建前完成重建",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-content-preflight-assembly--requires--game-manager-orchestration",
+      "from": "campaign-content-preflight-assembly",
+      "to": "game-manager-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "只有候选安装和隔离营地投影通过后才允许创建正式组合根",
+      "gapId": "",
+      "blocksImplementation": false
+    },
     {
       "id": "campaign-content-cache-lifecycle--requires--tengine-startup-lifecycle",
       "from": "campaign-content-cache-lifecycle",

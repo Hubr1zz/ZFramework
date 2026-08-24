@@ -52,6 +52,7 @@ namespace HuntingInDarkness.Hunt
     public static class PlayableHuntContentRuntime
     {
         private static PlayableHuntContentCatalog catalog;
+        public static PlayableHuntContentCatalog Catalog => catalog;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()

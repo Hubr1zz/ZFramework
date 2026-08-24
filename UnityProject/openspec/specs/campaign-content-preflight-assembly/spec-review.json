@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 3,
+  "capability": "campaign-content-preflight-assembly",
+  "title": "战役内容启动预检装配",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "正式启动先构建冻结候选、验证 Hunt 目录、安装共享 Runtime，并在隔离 SettlementManager 上执行真实内容投影；失败不会创建正式 GameManager。",
+    "evidence": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
+      "Unity CLI EditMode: 594/594 passed"
+    ],
+    "differences": [
+      "当前安装在无玩家消费者的启动门禁中顺序写入兼容 Runtime；中途异常会停止启动并锁死后续安装，但尚未 capture/restore 全部旧 Runtime。",
+      "目的地只验证最早开放年份；无限战役的危险事件连续年度覆盖需要在后续内容编译事务中加入明确上限或无穷区间规则。"
+    ],
+    "verifiedAt": "2026-08-24T05:47:18-07:00",
+    "codeEvidence": [
+      {
+        "guid": "e720a0551a464b15a2f65f1e82fc4a4a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs",
+        "line": 1,
+        "fileHash": "3904626f7f214a3acf975c865859b576569f4c389fd6d29a7f25e1651903288a",
+        "status": "verified",
+        "checkedAt": "2026-08-24T05:47:18-07:00",
+        "feature": "构建结构化诊断、验证 Hunt 目录并维护进程级安装门禁。"
+      },
+      {
+        "guid": "2c7d0e3a7e71476e9d04f85e0a4db4d4",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentCandidate.cs",
+        "line": 1,
+        "fileHash": "c06f445a638d8ee9e4e0c249abe1d40d55c3c8a28618e011d71a5f30c49a2ecf",
+        "status": "verified",
+        "checkedAt": "2026-08-24T05:47:18-07:00",
+        "feature": "冻结安装引用并在隔离营地状态上执行正式内容投影。"
+      },
+      {
+        "guid": "3036f45e4a7fd284caf46b4750249551",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs",
+        "line": 1,
+        "fileHash": "669a74d12f7896237178d8ed0f9ffc9f8f87354e0dd02173e525556d8a055350",
+        "status": "verified",
+        "checkedAt": "2026-08-24T05:47:18-07:00",
+        "feature": "只有候选构建和安装通过后才创建、配置并激活 GameManager。"
+      },
+      {
+        "guid": "176f9d6f63af40d9b3ee3e7e9b5f6ee5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
+        "line": 1,
+        "fileHash": "5280ee855638e2883aabea4bfc8cca03535cf9f4199775181ea0b0858492153d",
+        "status": "verified",
+        "checkedAt": "2026-08-24T05:47:18-07:00",
+        "feature": "验证无副作用失败、确定性候选、稳定引用冻结与重复目的地拒绝。"
+      }
+    ]
+  },
+  "implementationOutline": [
+    "PlayableCampaignContentAssembler 在组合根创建前生成结构化诊断与冻结候选。",
+    "Candidate 安装共享 Runtime 后，用独立 SettlementManager 执行真实表、身份和初始猎人投影。",
+    "安装成功后 Bootstrap 才把同一候选的配置交给正式 GameManager。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "campaign-content-cache-lifecycle",
+    "game-manager-orchestration"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs:1"
+  ]
+}
