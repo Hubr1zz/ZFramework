@@ -42,12 +42,15 @@
    已有至少一个有效的 `openspec/design-source.json` 来源时不得要求用户重复输入路径，也不得被 setup 空配置覆盖。多个来源地位相同，类型参数只能用于扫描后的语义过滤。
 8. 发布带缺失 Spec 与允许实现分开判断；硬前置 accepted 后仍阻塞实现。
 9. 设计 Spec 扫描必须有 Agent 原生路径；可选脚本缺失时不得要求用户安装运行时。
-10. 文档包与项目包独立；项目包维护 `openspec/implementation-ledger.json`，其中只保存设计来源 ID、相对文档路径、实现基线和必要摘要，不保存文档库绝对路径。项目桥接以全部“设计文档路径”为唯一来源：至少一个有效目录即可点亮桥接灯，并按来源分别重建可折叠文档树；文档包不创建或维护该账本，任何一方都不得因文档变化自动调用“设计导入”或创建 proposal。
-11. `.DS_Store`、Python 缓存、`openspec/workbench-config.json`、`openspec/design-source.json`、`.agent-memory/zworkflow/team/MAINTAINERS.md`、`.agent-memory/zworkflow/team/members/` 与 `.agent-memory/zworkflow/local/` 属于系统生成物、个人偏好或机器路径，必须由 `.gitignore` 排除；项目级 Spec、Change、依赖、Gap 与共享适配器仍正常纳入版本管理。
-12. 新增持久化产物前必须注明权威内容、索引或审计三种角色，并至少有一个明确消费者（Workbench、CLI、validator、apply/sync 或人工审计）。索引与审计只能保存引用、hash 和必要摘要，不得复制 Spec/Review 正文；没有消费者的产物不生成。
-13. `openspec/localization.json` 和 `openspec/translations/` 必须进入 Git。前者保存以后生成权威工件的默认语言，以及以 capability ID 为键的中英文 Spec 条目显示名；后者是 Workbench 的非权威显示副本与块级 hash 索引。显示名与翻译均不得被 apply、sync、validator 或 Agent 事实读取替代原 Spec，依赖和生命周期引用仍使用稳定 ID。
-14. 已有工具工作流接入采用“清点 → 迁入共享源 → 路径更新 → 哈希/引用校验 → 原路径薄化”的事务。根 `CLAUDE.md`、`.claude/skills/`、`.codex/skills/` 中有价值的项目规则不得丢弃，也不得继续作为第二份权威正文；工具设置、凭据、用户历史和无法归类的内容不迁移。
-15. 工程能力发现按稳定、可独立路由的模块拆分。README 的核心模块表、模块目录、公共接口、asmdef 和代码入口共同证明边界时，Resource、Event、Config、UI、Procedure 等应分别建条目；不得只生成一个覆盖整个框架的笼统能力。
+10. 文档包与项目包独立；设计来源路径只保存在项目本机配置。正式实现事实按 capability 保存为 `openspec/specs/<id>/implementation.json`，审计基线与排除规则保存在 `openspec/implementation-audit.json`，不得再建立同时承担映射、状态和证据的全局 Ledger。
+11. Review 只属于 active/archive Change。正式 Spec 是已接受的行为权威，不保存 reviewIssues、difference 或 approval；显式 sync 将已核验事实转换为无争议的 `implementation.json`。
+12. `implementation-summary.json` 仅是带输入摘要校验的派生路由索引。摘要有效时可用于缩小到少量 capability；摘要过期时必须 fail-closed 并刷新，不能据此宣称功能完成。普通代码理解仍以 C# 派生索引和命中源码为准。
+13. Agent 可在用户明确授权时直接按文档编码；完成后必须核验已有正式 Spec，或生成 post-hoc adoption Change 供人类审查。没有正式 Spec 的实现与超出正式行为的实现不得直接成为权威。
+14. `.DS_Store`、Python 缓存、`openspec/workbench-config.json`、`openspec/design-source.json`、`.agent-memory/zworkflow/team/MAINTAINERS.md`、`.agent-memory/zworkflow/team/members/` 与 `.agent-memory/zworkflow/local/` 属于系统生成物、个人偏好或机器路径，必须由 `.gitignore` 排除；项目级 Spec、Change、依赖、Gap 与共享适配器仍正常纳入版本管理。
+15. 新增持久化产物前必须注明权威内容、索引或审计三种角色，并至少有一个明确消费者（Workbench、CLI、validator、apply/sync 或人工审计）。索引与审计只能保存引用、hash 和必要摘要，不得复制 Spec/Review 正文；没有消费者的产物不生成。
+16. `openspec/localization.json` 和 `openspec/translations/` 必须进入 Git。前者保存以后生成权威工件的默认语言，以及以 capability ID 为键的中英文 Spec 条目显示名；后者是 Workbench 的非权威显示副本与块级 hash 索引。显示名与翻译均不得被 apply、sync、validator 或 Agent 事实读取替代原 Spec，依赖和生命周期引用仍使用稳定 ID。
+17. 已有工具工作流接入采用“清点 → 迁入共享源 → 路径更新 → 哈希/引用校验 → 原路径薄化”的事务。根 `CLAUDE.md`、`.claude/skills/`、`.codex/skills/` 中有价值的项目规则不得丢弃，也不得继续作为第二份权威正文；工具设置、凭据、用户历史和无法归类的内容不迁移。
+18. 工程能力发现按稳定、可独立路由的模块拆分。README 的核心模块表、模块目录、公共接口、asmdef 和代码入口共同证明边界时，Resource、Event、Config、UI、Procedure 等应分别建条目；不得只生成一个覆盖整个框架的笼统能力。
 
 ## Agent 模型分层
 
@@ -59,7 +62,7 @@
 2. 方案 Agent 基于事实包完成宏观边界，也必须下沉到可执行的接口契约、状态所有权、失败路径、目标文件和验收接缝；不输出逐行实现。事实不足时只要求定向补查，不重新全量扫描。
 3. 执行 Agent 复用同一事实包完成读写、命令输入输出和验证。多个职责紧密相关、共享同一状态机或生命周期的改动作为一个功能簇连续实现，不逐文件切换 Agent、审查或跑全量测试。
 4. 每个功能簇完成后统一做一次后置审查和定向测试。全量测试只用于跨系统/L4 里程碑、公共运行契约变更、发布门禁或用户明确要求；普通功能簇使用编译、数据验证和命中测试组。
-5. OpenSpec、Review、Ledger、Summary 和 Workbench 进度只在实现与验证完成后投影，或在用户显式操作其生命周期时读取；除代码索引外，zWorkFlow 产物不得成为普通开发任务的启动依赖。
+5. OpenSpec Change、Review、Summary 和 Workbench 进度只在实现与验证完成后投影，或在用户显式操作其生命周期时读取。经过 digest 校验的 Summary 只负责定位，不能替代命中的 Spec、实现状态与源码；除代码索引外，zWorkFlow 产物不得成为普通开发任务的启动依赖。
 
 - 共享需求使用 `economy`、`coding`、`efficient-read`、`efficient-execution`、`advanced-reasoning` profile，并分别表达推理强度、写权限和成本/质量优先级；权威结构位于 `setup/adapters/registry.json`。
 - Codex 与 Claude 的模型名只是经过验证的平台映射示例，不作为其他平台的模型名翻译表。

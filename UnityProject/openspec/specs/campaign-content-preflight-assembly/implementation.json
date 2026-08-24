@@ -1,24 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "campaign-content-preflight-assembly",
-  "title": "战役内容启动预检装配",
-  "category": "architecture",
-  "readiness": "implemented",
+  "specHash": "0d39863bb24989329d3b904bcd5b6f969efca501fb25ce5b9836c2a7a8a857f8",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "正式启动先构建冻结候选、事件世代与 SettlementContentPlan，再安装共享 Runtime 并执行隔离 Settlement 投影；任一阶段失败会恢复旧计划、Registry 与事件世代，成功才提交候选。",
+    "validatedAgainstSpecHash": "0d39863bb24989329d3b904bcd5b6f969efca501fb25ce5b9836c2a7a8a857f8",
     "evidence": [
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
-      "Unity CLI targeted: 13/13 passed",
-      "Unity CLI EditMode: 609/609 passed",
-      "C# derived index: 975/975, 100% coverage",
-      "zWorkFlow: 7/7 passed"
-    ],
-    "differences": [
-      "Settlement Registry 已收敛为单一 Bundle；剩余边界是正式 SettlementManager 注入尚未使用候选管理器原子交换。"
-    ],
-    "verifiedAt": "2026-08-24T07:21:34-07:00",
-    "codeEvidence": [
       {
         "guid": "e720a0551a464b15a2f65f1e82fc4a4a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs",
@@ -73,7 +63,15 @@
         "checkedAt": "2026-08-24T05:54:54-07:00",
         "feature": "合并有限、重叠与无限危险事件年份区间，并返回首个缺失年份。"
       }
-    ]
+    ],
+    "tests": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
+      "Unity CLI targeted: 13/13 passed",
+      "Unity CLI EditMode: 609/609 passed",
+      "C# derived index: 975/975, 100% coverage",
+      "zWorkFlow: 7/7 passed"
+    ],
+    "verifiedAt": "08/24/2026 07:21:34"
   },
   "implementationOutline": [
     "PlayableCampaignContentAssembler 在组合根创建前生成结构化诊断与冻结候选。",
@@ -82,14 +80,12 @@
     "Hunt 风险内容按区间证明从开放年份连续覆盖到无限，不硬编码战役终止年。",
     "安装成功后 Bootstrap 才把同一候选的配置交给正式 GameManager。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "campaign-content-cache-lifecycle",
-    "hunt-noise-risk-deck",
-    "game-manager-orchestration"
-  ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs:1"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

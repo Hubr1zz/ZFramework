@@ -10,6 +10,7 @@ description: "仅在用户输入‘设计导入’、‘设计导入：指定范
 - 导入的唯一内容实体是 `openspec/drafts/changes/<change-id>/`。禁止生成 `openspec/drafts/specs/`；`design-imports/<run-id>/` 只保存批次审计和引用。
 - 批准只把整个 Draft Change 移到 `openspec/changes/`。apply 只修改实现与 Change 内审计；正式 Spec 只在用户之后显式执行 sync 时写入 `openspec/specs/`，规则也不例外。
 - 每个玩法规则与其实现 Feature 默认放进同一个配对 Change；共享公共契约确有变化时才追加 System capability。
+- Delta、正式 Spec 与关系图谱节点必须先通过 [Formal Spec Scope](references/formal-spec-scope.md)：它们只描述游戏玩法与 Player 运行时契约；开发工具、编辑器工具、zWorkFlow 自身能力和行为保持型工程维护即使已经实现或被显式要求生成 Spec，也不得进入。
 - scope、文档目录或系统名称只是扫描边界，不是 capability 边界。大型范围必须先拆成模块化 capability，再分别生成配对 Change；禁止为了减少工件数量创建覆盖多个独立状态 owner、生命周期或结算管线的“大系统实现” Feature。
 - 同一 capability/语义只保留一份。导入前按顺序检查正式 Spec、正式 Change、Draft Change；完全一致则引用现有工件，Draft 中已有同能力时原位更新，不新建冲突副本。
 - 来源 hash 只说明文档文件是否变化，不能替代语义比较。
@@ -35,7 +36,7 @@ description: "仅在用户输入‘设计导入’、‘设计导入：指定范
    - 代码证据与实现差异自然形成互不重叠的脚本/任务簇。
 3. 每个模块默认生成一个 `game-rule` 与一个配对 `feature`，并放入该模块自己的 paired Change。模块间通过 `feature -> feature | system` 依赖连接，不靠合并为一个 Feature 隐藏依赖。
 4. 只有当两组规则共享同一权威状态、必须原子交付且拆开后任一方都无法形成可验证行为时，才允许合并；在 `proposal.md` 明确记录合并理由。
-5. 多个模块共用的项目运行契约仅在确有公共契约变化时提取为 System；共享组合根、Manager 或 Presenter 本身不构成合并 capability 的理由。可脱离具体游戏独立复用的 Architecture 进入 `project-tooling`，不作为玩法 Spec 分类。
+5. 多个模块共用且进入 Player 构建的游戏运行契约，仅在确有公共契约变化时提取为 System；共享组合根、Manager 或 Presenter 本身不构成合并 capability 的理由。可脱离具体游戏独立复用的 Architecture 进入 `project-tooling`；编辑器、索引、构建、测试、调试和 zWorkFlow 工作流能力进入对应 Skill/工程文档，均不作为玩法 Spec 分类。
 6. 生成前做反向检查：若 Feature 名称仍是泛化的“<大系统>代码实现”，而 Tasks、代码证据或验收场景包含多个可独立交付的主题，停止写工件并重新拆分。
 7. 对 EventBus、状态机基类、注册表等共享工具先判断“类实现”还是“项目跨模块契约”：只有本次会改变其派发模型/订阅生命周期/重入异常线程等稳定语义，或至少两个 capability 的正确实现依赖这些语义时，才生成以契约命名的 System capability、图谱节点及真实依赖边；普通复用工具只写入 Feature 的 `implementationOutline`/代码证据，不为类本身创建 Spec 或节点。
 

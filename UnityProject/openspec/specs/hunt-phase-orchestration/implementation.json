@@ -1,16 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "hunt-phase-orchestration",
-  "title": "狩猎阶段编排",
-  "category": "architecture",
-  "readiness": "implemented",
+  "specHash": "aea0c4b662637193d95bb4d531b132cc10c53f81149fdb9bf61cd3f94ed01c1b",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "GameManager 创建或复用 HuntManager，并通过回调接收 Boss 遭遇与狩猎完成结果。",
-    "evidence": [],
-    "differences": [],
-    "verifiedAt": "2026-07-22T00:00:00+08:00",
-    "codeEvidence": [
+    "validatedAgainstSpecHash": "aea0c4b662637193d95bb4d531b132cc10c53f81149fdb9bf61cd3f94ed01c1b",
+    "evidence": [
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/Scripts/Core/GameManager.cs",
@@ -21,18 +19,20 @@
         "displayPath": "Assets/Scripts/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
         "line": 76
       }
-    ]
+    ],
+    "tests": [],
+    "verifiedAt": "07/21/2026 09:00:00"
   },
   "implementationOutline": [
     "GameManager 进入 Hunt 时把当前猎人队伍交给 HuntManager，并启用狩猎世界与界面适配器。",
     "HuntManager 遇到 Boss 或完成狩猎时调用组合根回调，由 GameManager 决定切换到决战或营地。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "hunt-phase-orchestration--requires--game-manager-orchestration"
-  ],
   "sourceReferences": [
     "Assets/Scripts/Core/GameManager.cs:798",
     "Assets/Scripts/Adapters/Unity/Hunt/Legacy/HuntManager.cs:76"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

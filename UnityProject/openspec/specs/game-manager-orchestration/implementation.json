@@ -1,18 +1,14 @@
-﻿{
-  "schemaVersion": 3,
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "game-manager-orchestration",
-  "title": "GameManager管理器",
-  "category": "architecture",
-  "readiness": "implemented",
+  "specHash": "1058badcc2f9b56afde96fce53f2c8e33e12a6864ac80a926391bbbdc448f67f",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "GameManager 与 PhaseManager 已实现三阶段组合根、阶段切换和根节点激活职责。",
+    "validatedAgainstSpecHash": "1058badcc2f9b56afde96fce53f2c8e33e12a6864ac80a926391bbbdc448f67f",
     "evidence": [
-      ".agents/skills/project-context/references/ARCHITECTURE.md"
-    ],
-    "differences": [],
-    "verifiedAt": "2026-07-22T00:00:00+08:00",
-    "codeEvidence": [
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/Scripts/Core/GameManager.cs",
@@ -23,16 +19,22 @@
         "displayPath": "Assets/Scripts/Core/PhaseManager.cs",
         "line": 16
       }
-    ]
+    ],
+    "tests": [
+      ".agents/skills/project-context/references/ARCHITECTURE.md"
+    ],
+    "verifiedAt": "07/21/2026 09:00:00"
   },
   "implementationOutline": [
     "GameManager 根据 PhaseManager 的阶段结果启用目标阶段根节点，并调用对应阶段管理器的进入接口。",
     "PhaseManager 只记录全局阶段并发布切换事件；GameManager 负责装配共享服务与三个阶段的交接回调。"
   ],
-  "gapIds": [],
-  "dependencyIds": [],
   "sourceReferences": [
     "Assets/Scripts/Core/GameManager.cs:32",
     "Assets/Scripts/Core/PhaseManager.cs:16"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

@@ -1,29 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "active-hunt-persistence",
-  "title": "活动狩猎检查点与恢复",
-  "category": "architecture",
-  "readiness": "implemented",
+  "specHash": "a6fded21aaf1c0e1b8a533d826ce52c6172e01135b0f87daf46f9c5b3a9cdd0a",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份；恢复只接受当前同指纹内容，在候选图完成地图、编队、携带物、事件与随机状态验证后原子发布，并以完整 RuntimeState 回滚。",
+    "validatedAgainstSpecHash": "a6fded21aaf1c0e1b8a533d826ce52c6172e01135b0f87daf46f9c5b3a9cdd0a",
     "evidence": [
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignSaveStorageTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/StatefulRandomSourceTests.cs",
-      "Unity CLI targeted Active Hunt persistence: 4/4 passed",
-      "Unity CLI EditMode: 626/626 passed",
-      "C# derived index: 978/978, 100% coverage",
-      "zWorkFlow: 7/7 passed",
-      "OpenSpec strict validation: 65/65 passed"
-    ],
-    "differences": [
-      "当前遭遇/BossFight 生命周期仍会销毁 Hunt session；存档以 fail-closed 交接标记阻止复活旧 Hunt，但不承诺战斗结束后回到原事件链。",
-      "恢复验证使用生产 DTO、Adapter、HuntManager 与 ActionSession 的 EditMode 组合测试；完整场景 GameManager PlayMode 重启测试留作后续增强。"
-    ],
-    "verifiedAt": "2026-08-24T09:34:27-07:00",
-    "codeEvidence": [
       {
         "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
@@ -69,7 +54,19 @@
         "checkedAt": "2026-08-24T09:28:30-07:00",
         "feature": "组合验证 Bundle 身份往返、错代拒绝、默认路线与只读解析不污染活动选择。"
       }
-    ]
+    ],
+    "tests": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignSaveStorageTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/StatefulRandomSourceTests.cs",
+      "Unity CLI targeted Active Hunt persistence: 4/4 passed",
+      "Unity CLI EditMode: 626/626 passed",
+      "C# derived index: 978/978, 100% coverage",
+      "zWorkFlow: 7/7 passed",
+      "OpenSpec strict validation: 65/65 passed"
+    ],
+    "verifiedAt": "08/24/2026 09:34:27"
   },
   "implementationOutline": [
     "CampaignSnapshot 以 HasActiveHuntState 显式声明阶段，恢复入口归一化 JsonUtility 产生的默认空引用记录。",
@@ -78,18 +75,14 @@
     "PlayableHuntActionSession 在提交边界通知 GameManager 冻结载荷，并把全部可恢复 sibling occurrence 排空。",
     "回营先保存 PendingHuntReturn 的 Settlement 快照；失败回滚仅在活动狩猎载荷保存成功后解除锁。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "campaign-persistence",
-    "hunt-phase-orchestration",
-    "hunt-session-event-occurrence-recovery",
-    "hunt-content-bundle-lifecycle",
-    "hunt-route-entry-context"
-  ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs:1"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

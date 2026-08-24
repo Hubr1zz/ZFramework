@@ -1,27 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "settlement-content-plan-lifecycle",
-  "title": "营地内容计划生命周期",
-  "category": "architecture",
-  "readiness": "implemented",
+  "specHash": "3248aee00ff8611a7ec5f4ca540623392e15d141d3aa9c41d5d9d45d7766738e",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "启动事务以一个 RegistryBundle 发布内容世代；读档在独立随机源和完整 SettlementManager 候选图上投影，并由 GameManager 单引用提交，活动狩猎恢复同步使用候选 Data。",
+    "validatedAgainstSpecHash": "3248aee00ff8611a7ec5f4ca540623392e15d141d3aa9c41d5d9d45d7766738e",
     "evidence": [
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementProjectionTransactionTests.cs",
-      "Unity CLI targeted settlement projection: 4/4 passed",
-      "Unity CLI EditMode: 613/613 passed",
-      "C# derived index: 976/976, 100% coverage",
-      "zWorkFlow: 7/7 passed"
-    ],
-    "differences": [
-      "Bundle 冻结成员与索引，但不会克隆外部 ScriptableObject；发布后的内容资产变更不受支持。",
-      "候选数据采用消费式 ownership，不提供通用深拷贝；会话和表现仍在核心 Manager 提交后重绑，完整 GameManager PlayMode 视觉 smoke 留待后续。"
-    ],
-    "verifiedAt": "2026-08-24T07:53:40-07:00",
-    "codeEvidence": [
       {
         "guid": "76ee8c16e7264fc89ae0566031980a8a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
@@ -112,7 +99,17 @@
         "checkedAt": "2026-08-24T06:56:31-07:00",
         "feature": "验证缺少显式稳定 ID 的表物品无法进入战役计划。"
       }
-    ]
+    ],
+    "tests": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementProjectionTransactionTests.cs",
+      "Unity CLI targeted settlement projection: 4/4 passed",
+      "Unity CLI EditMode: 613/613 passed",
+      "C# derived index: 976/976, 100% coverage",
+      "zWorkFlow: 7/7 passed"
+    ],
+    "verifiedAt": "08/24/2026 07:53:40"
   },
   "implementationOutline": [
     "Catalog 在启动事务内读取各表并构建冻结的 PlayableSettlementContentPlan。",
@@ -123,15 +120,6 @@
     "读档把反序列化 Data 交给完整候选 Manager，在独立 RNG 上恢复派生状态并拒绝 live alias、stale 或 double commit。",
     "GameManager 仅在 ActionEnvironment 空闲时交换权威 Manager；活动狩猎恢复从候选 Data 解析猎人并预生成稳定 payload。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "campaign-content-preflight-assembly",
-    "campaign-content-cache-lifecycle",
-    "table-driven-item-keywords",
-    "table-driven-invention-content",
-    "table-driven-hunter-templates",
-    "table-driven-event-chains"
-  ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs:1",
@@ -139,5 +127,9 @@
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/SettlementManager.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

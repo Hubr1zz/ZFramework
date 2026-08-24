@@ -1,23 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "campaign-startup-transaction",
-  "title": "战役开场启动事务",
-  "category": "architecture",
-  "readiness": "implemented",
+  "specHash": "03b5c02d808e2b66dc08375ef9a746e475d8f71cfe2ad7461e88bcb1516964ba",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "正式开场在选择前保持零权威运行态；新战役和 Continue 通过 typed single-flight 命令发布 Settlement 或 Active Hunt 候选，失败撤销 FSM、ActionSession 与表现并允许重试。",
+    "validatedAgainstSpecHash": "03b5c02d808e2b66dc08375ef9a746e475d8f71cfe2ad7461e88bcb1516964ba",
     "evidence": [
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "Unity CLI PlayMode campaign startup and year loop: 9/9 passed",
-      "dotnet GameLogic and PlayMode test assembly build passed"
-    ],
-    "differences": [
-      "PlayMode 使用动态空场景、即时桌面表现端口和内存持久化端口；正式 3D 开场卡仍通过相同 GameManager 公共命令接入。",
-      "启动事务位于玩法 ActionQueue 之上的组合根生命周期层；候选发布后才创建对应阶段 Runner。"
-    ],
-    "verifiedAt": "2026-08-24T10:40:00-07:00",
-    "codeEvidence": [
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
@@ -81,7 +72,13 @@
         "checkedAt": "2026-08-24T10:40:00-07:00",
         "feature": "通过公开命令验证选择前零写入、新建单次发布、营地与活动狩猎恢复、延迟 Load 重入门禁及年度闭环。"
       }
-    ]
+    ],
+    "tests": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "Unity CLI PlayMode campaign startup and year loop: 9/9 passed",
+      "dotnet GameLogic and PlayMode test assembly build passed"
+    ],
+    "verifiedAt": "08/24/2026 10:40:00"
   },
   "implementationOutline": [
     "Bootstrap 在开场菜单启用时把组合根置为 AwaitingChoice，不创建 Settlement 或阶段 Runner。",
@@ -90,12 +87,6 @@
     "失败路径释放 Campaign/Settlement/Hunt Session、Installer 租约和临时表现，关闭 FSM 并回到 AwaitingChoice。",
     "开场 3D View 只消费 typed 结果；所有验证使用 Unity CLI 数据断言，不依赖截图或 Showdown。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "campaign-persistence",
-    "active-hunt-persistence",
-    "settlement-phase-orchestration"
-  ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PhaseManager.cs:1",
@@ -103,5 +94,9 @@
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ICampaignPersistencePort.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/SaveLoadSystem.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/PlayableOpeningSequence3D.cs:1"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

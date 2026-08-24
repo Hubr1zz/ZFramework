@@ -1,6 +1,6 @@
 # System Spec Discovery（兼容旧文件名）
 
-本流程负责从项目已有的系统描述与代码事实中补充 `system` 正式 Spec。它只处理与具体项目领域、Manager、阶段或跨系统契约耦合的 System；可脱离当前游戏独立复用的 Architecture 与第三方 Plugin 进入 `project-tooling` 工程能力目录。文件名为旧版兼容保留。
+本流程负责从项目已有的系统描述与代码事实中补充 `system` 正式 Spec。它只处理进入 Player 构建、与具体游戏领域耦合且会影响玩法正确性的稳定运行时契约；编辑器、工作台、索引、生成、构建、测试、调试与 Agent 工作流进入对应 Skill、zWorkFlow 文档/测试或 `project-tooling`。可脱离当前游戏独立复用的 Architecture 与第三方 Plugin 也进入 `project-tooling`。文件名为旧版兼容保留。
 
 ## 触发条件
 
@@ -18,10 +18,10 @@
 
 - 定义模块、程序集、包或目录的依赖方向。
 - 定义组合根、全局服务、Manager、Coordinator、状态机或跨系统调度边界。
-- 定义资源、UI、事件、配置、数据流、生成代码或生命周期的全局约束。
+- 定义 Player 运行时资源、游戏内 UI、事件、配置、数据流或生命周期的全局玩法约束。
 - 定义多个子系统必须共同遵守的接口、禁用项或验证方式。
 
-普通业务规则、单一功能实现、局部编码偏好和示例代码不属于 System Spec。
+普通业务规则、单一功能实现、局部编码偏好、示例代码和所有开发期工具不属于 System Spec。所有候选还必须通过 `.agents/skills/openspec-derive-design-specs/references/formal-spec-scope.md`。
 
 ## 代码交叉核验
 
@@ -36,11 +36,11 @@
 ## 生成 System Spec
 
 - 按稳定项目系统边界聚合 capability，不按类逐个生成。
-- 写入新的 `openspec/specs/<capability>/spec.md` 与 `spec-review.json`，分类固定为 `system`；读取 legacy `architecture` 时归一化为 `system`。
+- 写入新的 `openspec/specs/<capability>/spec.md`；只有完成代码核验时才同时生成无 Review 语义的 `implementation.json`，分类固定为 `system`。读取 legacy `architecture` 时归一化为 `system`，旧正式 `spec-review.json` 按迁移脚本转换后移除。
 - System Spec 只允许依赖其他 System Spec。
 - 将新节点与新边增量写入 `openspec/spec-metadata/dependencies.json`；不得覆盖已有节点、边或 Spec。
 - Verification 记录文档与代码证据及核验结论。`codeEvidence` 保存 Unity GUID、显示路径、脚本全文 SHA-256、入口行和具体大功能；功能描述必须说明代码做什么，不得只写脚本名或“脚本主要职责”。GUID/hash 未变化时复用，变化时只重读该脚本。
-- `spec-review.json.implementationOutline` 用少量类似伪代码的句子概括核心数据、关键判断和主要调用方向，供关系图谱节点详情展示。
+- `implementation.json.implementationOutline` 用少量类似伪代码的句子概括已核验的核心数据、关键判断和主要调用方向，供关系图谱节点详情展示；未核验架构能力不伪造实现摘要。
 - Gap 只表示缺失的 System 依赖节点或契约，并与 open 依赖边一一对应。
 - capability 已存在时先做语义比较：相同内容跳过，有变化时走已有 OpenSpec Change 流程，不直接重写正式 Spec。
 

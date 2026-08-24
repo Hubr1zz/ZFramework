@@ -28,6 +28,10 @@ The generated proposal starts with `approvalStatus=draft`. Review and approve it
 
 **Steps**
 
+0. **Apply the formal-Spec scope gate**
+
+   Read `../openspec-derive-design-specs/references/formal-spec-scope.md` before creating a Change. Proceed only for game-play or Player-runtime capabilities that pass all admission conditions. Explicit OpenSpec/zWorkFlow wording does not admit editor tools, workbench/layout behavior, code indexes, build/test/debug tooling, workflow maintenance or behavior-preserving refactors. Route those to the owning Skill, zWorkFlow documentation/tests or `project-tooling`, and do not create delta Specs or graph nodes. For a mixed request, propose only the admitted game capabilities.
+
 1. **If no clear input provided, ask what they want to build**
 
    Ask through the available user-input mechanism:

@@ -122,7 +122,7 @@ setup 开始时先建立只读基线，列出已有入口、skills、commands、
 
 - 自动识别项目内部具有全局约束性质的架构 Markdown 或同等文档。
 - 用代码、依赖配置和模块边界简单交叉核验描述是否仍然成立。
-- 只把与具体项目耦合且已确认的边界生成分类为 `system` 的正式 Spec；legacy `architecture` 仅兼容读取。
+- 只把进入 Player 构建、与具体游戏玩法耦合且已确认的稳定运行时边界生成分类为 `system` 的正式 Spec；开发工具与工作流不得进入，legacy `architecture` 仅兼容读取。
 - capability 已存在时不覆盖：相同内容跳过，有变化时走 OpenSpec Change。
 - 增量维护依赖图；System Spec 只依赖 System Spec。真 Architecture 与 Plugin 写入 `project-tooling`，不进入玩法 Spec 分类。
 - Gap 只表示缺失的依赖节点或契约。
@@ -160,7 +160,7 @@ setup 开始时先建立只读基线，列出已有入口、skills、commands、
 - Spec 分类和依赖 metadata 的缺失空结构。
 - 成员映射或维护队列的空模板。
 - 文档包、中间桥接层及额外运行时均为显式可选项。
-- 安装 `document-project-bridge` 时只把 `inspect-implemented-design-changes` 安装到项目侧。Workbench 允许选择任意候选目录，只要可扫描到 Markdown 就保存文档根路径并点亮桥接灯；项目在 `openspec/implementation-ledger.json` 幂等创建账本，随后只读扫描设计 Markdown，重建显示实现进度、实现后变更与摘要的简化结构。不得向设计包注入 `projectRoot` 或工程状态，不得因文档变化自动调用设计导入或创建 proposal。
+- 安装 `document-project-bridge` 时只把 `inspect-implemented-design-changes` 安装到项目侧。Workbench 允许选择任意候选目录，只要可扫描到 Markdown 就保存文档根路径并点亮桥接灯；项目不创建全局 Ledger，只读扫描设计 Markdown，并从校验有效的实现路由摘要投影进度。不得向设计包注入 `projectRoot` 或工程状态，不得因文档变化自动调用设计导入或创建 proposal。
 - 发现旧 `.agent-bridge/project-sync.json` 时把它报告为 deprecated，不读取其中项目路径、不继续执行 `document-change-to-openspec`，也不为了迁移而改写外部设计包；由设计包 setup 幂等创建新账本。
 
 除 OpenSpec CLI 官方要求的 Node.js 外，Python 或其他额外运行时不得成为前置条件。已有有效配置保持不变；缺失配置只在当前能力确实需要时创建。

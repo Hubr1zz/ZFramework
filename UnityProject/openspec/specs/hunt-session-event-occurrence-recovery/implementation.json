@@ -1,22 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "hunt-session-event-occurrence-recovery",
-  "title": "狩猎会话事件链恢复",
-  "category": "feature",
-  "readiness": "implemented",
+  "specHash": "2df6e59ea6d3f4799c487d988ed0ee25295a655dee0cc61a5bbc22ae642447fa",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "Hunt session 已覆盖 pre-commit 保留、post-commit 子链续接、重复 sibling、稳定 ActorId、祖先循环、容量截断与遭遇交接门禁。",
+    "validatedAgainstSpecHash": "2df6e59ea6d3f4799c487d988ed0ee25295a655dee0cc61a5bbc22ae642447fa",
     "evidence": [
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventChainOccurrenceQueueTests.cs"
-    ],
-    "differences": [
-      "当前 active Hunt 没有完整持久化快照；遭遇成功会销毁来源 Hunt session，因此仅保证同会话恢复。"
-    ],
-    "verifiedAt": "2026-08-24T03:05:00-07:00",
-    "codeEvidence": [
       {
         "guid": "3b94f2b91c9d4f1ba72fe3ffb4dd1ea6",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
@@ -53,7 +45,13 @@
         "checkedAt": "2026-08-24T03:05:00-07:00",
         "feature": "复用跨阶段事件节点，并在结果确认前暴露直接子 EventData 的同步提交检查点。"
       }
-    ]
+    ],
+    "tests": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventChainOccurrenceQueueTests.cs"
+    ],
+    "verifiedAt": "08/24/2026 03:05:00"
   },
   "implementationOutline": [
     "Hunt session 在节点执行前登记 root occurrence，并在节点提交回调中同步消费父节点与追加直接子节点。",
@@ -62,17 +60,14 @@
     "遭遇请求发布前锁定 session，Campaign 启动失败按 SourceSessionId 解锁；成功时遵循当前阶段销毁边界。",
     "超过 64 个待办时提交有界前缀并发布截断事实，不重放已生效父节点。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "event-occurrence-checkpoint-core",
-    "hunt-phase-orchestration",
-    "tabletop-event-interaction",
-    "table-driven-event-chains"
-  ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs:1"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

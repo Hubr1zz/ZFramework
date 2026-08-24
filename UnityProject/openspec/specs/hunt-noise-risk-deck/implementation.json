@@ -1,20 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "hunt-noise-risk-deck",
-  "title": "狩猎噪音风险牌堆",
-  "category": "feature",
-  "readiness": "implemented",
+  "specHash": "a27fd6f60e0663dcca66a92f871e7b05d0998deb7b382ad6d4dfd89999c153cb",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "GameCore 规则、Hunt ActionQueue、共享实体抽牌端口、路线内容与 EditMode 回归共同覆盖噪音风险牌堆；普通揭图仅在抽牌成功后提交，取消或非法结果不改变地图。",
+    "validatedAgainstSpecHash": "a27fd6f60e0663dcca66a92f871e7b05d0998deb7b382ad6d4dfd89999c153cb",
     "evidence": [
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/HuntNoiseRulesTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntNoiseActionTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs"
-    ],
-    "differences": [],
-    "verifiedAt": "2026-08-24T00:00:00-07:00",
-    "codeEvidence": [
       {
         "guid": "ea2f729a26af71648a0a63ff22ebb51a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntNoiseRules.cs",
@@ -30,7 +24,13 @@
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs",
         "line": 8
       }
-    ]
+    ],
+    "tests": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/HuntNoiseRulesTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntNoiseActionTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs"
+    ],
+    "verifiedAt": "08/24/2026 00:00:00"
   },
   "implementationOutline": [
     "GameCore 将存活队伍、装备噪音和可组合修正投影为有界风险牌堆。",
@@ -38,16 +38,13 @@
     "提交节点原子记录地图与噪音结果，再通过 EventBus outbox 发布事实并按权重进入事件链。",
     "目的地门禁拒绝缺失配置或当前年份没有危险内容的路线。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "hunt-phase-orchestration",
-    "action-environment-lifecycle",
-    "tabletop-random-interaction",
-    "table-driven-hunt-events"
-  ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntNoiseRules.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs:27",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs:8"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

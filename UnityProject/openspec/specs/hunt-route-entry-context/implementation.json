@@ -1,30 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "hunt-route-entry-context",
-  "title": "狩猎路线入场上下文",
-  "category": "architecture",
-  "readiness": "implemented",
+  "specHash": "b860a8e16ec571d46bf89091680718e747c85b0e5d41d6c131c5d4e5cc611de0",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "正常出发把精确 RoutePlan、年份和准备令牌作为 Campaign ActionQueue 载荷传递；GameManager 在提交点重新验证同代身份，并对表现或 Session 初始化失败恢复目的地状态。",
+    "validatedAgainstSpecHash": "b860a8e16ec571d46bf89091680718e747c85b0e5d41d6c131c5d4e5cc611de0",
     "evidence": [
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignActionSessionTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
-      "Unity CLI targeted Campaign ActionSession: 6/6 passed",
-      "Unity CLI targeted Hunt ContentBundle: 7/7 passed",
-      "Unity CLI EditMode: 626/626 passed",
-      "C# derived index: 978/978, 100% coverage",
-      "zWorkFlow: 7/7 passed",
-      "OpenSpec strict validation: 65/65 passed"
-    ],
-    "differences": [
-      "开发启动与旧恢复入口仍允许通过 ActiveDestination 兼容门面绑定路线。",
-      "准备令牌尚未绑定出发猎人 ID 摘要；未来开放更多 roster Reactor 前应加入不可变 revision 或 digest。",
-      "阶段提交事实尚未携带 DestinationId 与 ContentBundleId；后续事件消费者需要稳定路线字段而非 RoutePlan 引用。",
-      "不可逆阶段提交仍需进一步明确取消竞态的 committed-wins 语义，并把阶段回滚失败提升为显式硬故障状态。"
-    ],
-    "verifiedAt": "2026-08-24T09:34:27-07:00",
-    "codeEvidence": [
       {
         "guid": "c6eeb30cbc2c2c342adfac7c46c6607b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
@@ -61,7 +45,18 @@
         "checkedAt": "2026-08-24T09:34:27-07:00",
         "feature": "验证精确 RoutePlan 身份穿过 Reactor 与请求 Host，且阻止时 Host 不变。"
       }
-    ]
+    ],
+    "tests": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignActionSessionTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
+      "Unity CLI targeted Campaign ActionSession: 6/6 passed",
+      "Unity CLI targeted Hunt ContentBundle: 7/7 passed",
+      "Unity CLI EditMode: 626/626 passed",
+      "C# derived index: 978/978, 100% coverage",
+      "zWorkFlow: 7/7 passed",
+      "OpenSpec strict validation: 65/65 passed"
+    ],
+    "verifiedAt": "08/24/2026 09:34:27"
   },
   "implementationOutline": [
     "在 Campaign transition request 中携带精确 RoutePlan、年份和营地准备令牌。",
@@ -70,16 +65,13 @@
     "新 HuntManager 绑定路线并建图后才发布活动选择，失败时恢复完整目的地状态。",
     "Session、遭遇交接与存档捕获从 BoundRoute 读取目的地身份。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "hunt-content-bundle-lifecycle",
-    "action-environment-lifecycle",
-    "game-manager-orchestration",
-    "campaign-year-loop"
-  ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntDestinationCatalog.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

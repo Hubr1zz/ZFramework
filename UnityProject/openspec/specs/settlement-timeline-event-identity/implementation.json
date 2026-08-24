@@ -1,23 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "settlement-timeline-event-identity",
-  "title": "营地时间线事件稳定身份",
-  "category": "feature",
-  "readiness": "implemented",
+  "specHash": "8e2a9c7dad6cb5744a09763d149e4c8116f3f413a2dab86ec952ae5cc41e9877",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "营地年度事件已使用显式 ContentId、保守迁移与精确 AnnalEntry 工作项；重复 occurrence、提交后表现失败和读档 child checkpoint 均由 Settlement Runner/恢复投影继续处理。",
+    "validatedAgainstSpecHash": "8e2a9c7dad6cb5744a09763d149e4c8116f3f413a2dab86ec952ae5cc41e9877",
     "evidence": [
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementTimelineEventIdentityTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs"
-    ],
-    "differences": [
-      "EventSystem 的旧式直接 Settlement API 仍保留名称匹配完成行为，仅作为兼容入口；生产年度事件与恢复路径使用精确工作项。",
-      "旧存档迁移别名目前来自当前资产名；未来重命名正式事件资产前，应增加持久 legacyAliases 表以覆盖长期离线的 schema-0 存档。"
-    ],
-    "verifiedAt": "2026-08-24T03:45:00-07:00",
-    "codeEvidence": [
       {
         "guid": "6d8a0bb8e1d54f408b0b0d6f9bf6d5d3",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementEventRegistry.cs",
@@ -63,7 +54,13 @@
         "checkedAt": "2026-08-24T03:45:00-07:00",
         "feature": "覆盖改名、迁移歧义、未来 schema、重复 occurrence、整批原子拒绝、阶段隔离与 checkpoint 恢复。"
       }
-    ]
+    ],
+    "tests": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementTimelineEventIdentityTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs"
+    ],
+    "verifiedAt": "08/24/2026 03:45:00"
   },
   "implementationOutline": [
     "内容目录要求可持久营地事件配置显式 ContentId，并以资产名仅作为旧存档的一次性唯一别名。",
@@ -72,17 +69,14 @@
     "提交后表现失败由同 Runner 继续已持久 children，必要时恢复投影和 GameManager 以 checkpoint 作为后备续接入口。",
     "standalone 与 Hunt 共享事件节点不隐式完成 Settlement Timeline。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "settlement-phase-orchestration",
-    "campaign-persistence",
-    "event-occurrence-checkpoint-core",
-    "table-driven-event-chains"
-  ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementEventRegistry.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/TimelineSystem.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEventActions.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs:1"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

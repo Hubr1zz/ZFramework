@@ -1,16 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "settlement-phase-orchestration",
-  "title": "营地阶段编排",
-  "category": "architecture",
-  "readiness": "implemented",
+  "specHash": "98fb042837f0175a116500b72fad2efa60d62c1fa3fe6cbfd5e89edafde65d44",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "营地阶段由 GameManager 激活根节点、调用 SettlementManager.OnEnter 并在进入后保存。",
-    "evidence": [],
-    "differences": [],
-    "verifiedAt": "2026-07-22T00:00:00+08:00",
-    "codeEvidence": [
+    "validatedAgainstSpecHash": "98fb042837f0175a116500b72fad2efa60d62c1fa3fe6cbfd5e89edafde65d44",
+    "evidence": [
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/Scripts/Core/GameManager.cs",
@@ -21,18 +19,20 @@
         "displayPath": "Assets/Scripts/Adapters/Unity/Settlement/Legacy/SettlementManager.cs",
         "line": 59
       }
-    ]
+    ],
+    "tests": [],
+    "verifiedAt": "07/21/2026 09:00:00"
   },
   "implementationOutline": [
     "GameManager 进入 Settlement 时启用营地根节点，把待结算狩猎记录交给 SettlementManager.OnEnter。",
     "SettlementManager 完成进入结算后刷新营地表现，GameManager 再通过持久化适配器保存结果。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "settlement-phase-orchestration--requires--game-manager-orchestration"
-  ],
   "sourceReferences": [
     "Assets/Scripts/Core/GameManager.cs:798",
     "Assets/Scripts/Adapters/Unity/Settlement/Legacy/SettlementManager.cs:59"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

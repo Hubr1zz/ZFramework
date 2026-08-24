@@ -1,13 +1,14 @@
 {
-  "schemaVersion": 5,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "tengine-startup-lifecycle",
-  "title": "TEngine 启动生命周期",
-  "category": "system",
-  "readiness": "implemented",
+  "specHash": "1990d61ebac19372e43bb9dbf897cb2e4f0058e923f2326fe97d9b8b0f7f0125",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "confirmed",
     "summary": "项目 Wiki 描述的启动主链已由入口、资源初始化、最终流程和 GameApp 源码交叉核验。",
-    "codeEvidence": [
+    "validatedAgainstSpecHash": "1990d61ebac19372e43bb9dbf897cb2e4f0058e923f2326fe97d9b8b0f7f0125",
+    "evidence": [
       {
         "guid": "9cdc4a1084443e8408c7e46ec9e661c7",
         "displayPath": "Assets/GameScripts/GameEntry.cs",
@@ -15,7 +16,7 @@
         "line": 4,
         "feature": "在 Awake 中取得核心模块并启动首个 Procedure",
         "status": "verified",
-        "checkedAt": "2026-07-29T00:00:00+08:00"
+        "checkedAt": "2026-07-28T09:00:00-07:00"
       },
       {
         "guid": "49285f361d08436aab23bdf729c10ea0",
@@ -24,7 +25,7 @@
         "line": 10,
         "feature": "更新资源包版本与清单，并按运行模式选择下载或内容包流程",
         "status": "verified",
-        "checkedAt": "2026-07-29T00:00:00+08:00"
+        "checkedAt": "2026-07-28T09:00:00-07:00"
       },
       {
         "guid": "db61ddc0f5f34d639fae224363a3ac49",
@@ -33,7 +34,7 @@
         "line": 8,
         "feature": "进入最终启动阶段时调用游戏逻辑入口并隐藏启动器 UI",
         "status": "verified",
-        "checkedAt": "2026-07-29T00:00:00+08:00"
+        "checkedAt": "2026-07-28T09:00:00-07:00"
       },
       {
         "guid": "87dc927a71fa444468edfce6da4e54ca",
@@ -42,20 +43,26 @@
         "line": 9,
         "feature": "初始化游戏事件、注册释放回调并启动首个游戏逻辑界面",
         "status": "verified",
-        "checkedAt": "2026-07-29T00:00:00+08:00"
+        "checkedAt": "2026-07-28T09:00:00-07:00"
       }
     ],
-    "evidence": ["repowiki/zh/content/核心架构/启动与生命周期.md", "repowiki/zh/content/流程管理/启动流程.md"],
-    "differences": ["CLAUDE.md 声明 IO 禁止 Coroutine，但现有 ProcedureInitResources 使用 IEnumerator/StartCoroutine；该差异未写入正式 Requirement。"],
-    "verifiedAt": "2026-07-29T00:00:00+08:00"
+    "tests": [
+      "repowiki/zh/content/核心架构/启动与生命周期.md",
+      "repowiki/zh/content/流程管理/启动流程.md"
+    ],
+    "verifiedAt": "07/28/2026 09:00:00"
   },
-  "gapIds": [],
-  "dependencyIds": [],
-  "sourceReferences": ["repowiki/zh/content/核心架构/启动与生命周期.md", "repowiki/zh/content/流程管理/启动流程.md"],
   "implementationOutline": [
     "GameEntry.Awake -> 初始化核心模块 -> StartProcedure",
     "ProcedureInitResources -> 更新版本与清单 -> 按 PlayMode 分流",
     "ProcedureStartGame -> GameApp.Entrance -> 启动游戏逻辑"
   ],
-  "reviewIssues": []
+  "sourceReferences": [
+    "repowiki/zh/content/核心架构/启动与生命周期.md",
+    "repowiki/zh/content/流程管理/启动流程.md"
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

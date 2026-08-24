@@ -1,24 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "campaign-content-cache-lifecycle",
-  "title": "战役内容缓存生命周期",
-  "category": "architecture",
-  "readiness": "implemented",
+  "specHash": "7e3eb7b5c29bef2b4d5ccdf5990e34ac9e715a78df81af1238547f2a45d8ca1f",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "事件表 Runtime 以可暂存世代拥有 transient EventData；活动 SettlementContentPlan 租用已发布世代，公开重建与清理在租约期间 fail closed，退役后才允许释放。",
+    "validatedAgainstSpecHash": "7e3eb7b5c29bef2b4d5ccdf5990e34ac9e715a78df81af1238547f2a45d8ca1f",
     "evidence": [
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventTableCacheLifecycleTests.cs",
-      "Unity CLI targeted: 5/5 passed",
-      "Unity CLI targeted: settlement content assembly 13/13 passed",
-      "Unity CLI EditMode: 609/609 passed"
-    ],
-    "differences": [
-      "PlayMode 的 Object.Destroy 在帧末完成；正式重建被限制在无活动消费者的启动门禁，因此不承诺同步销毁。",
-      "其他表生成的 transient Item/Invention/Hunter 已由 SettlementContentPlan 纳入所有权；PlayMode 销毁时序仍受帧末语义约束。"
-    ],
-    "verifiedAt": "2026-08-24T07:21:34-07:00",
-    "codeEvidence": [
       {
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
@@ -46,7 +36,14 @@
         "checkedAt": "2026-08-24T06:23:04-07:00",
         "feature": "验证替换、回滚、依赖冻结、错误候选拒绝与 transient 释放。"
       }
-    ]
+    ],
+    "tests": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventTableCacheLifecycleTests.cs",
+      "Unity CLI targeted: 5/5 passed",
+      "Unity CLI targeted: settlement content assembly 13/13 passed",
+      "Unity CLI EditMode: 609/609 passed"
+    ],
+    "verifiedAt": "08/24/2026 07:21:34"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 以独立集合记录其创建的 EventData。",
@@ -54,13 +51,12 @@
     "Rebuild 重新读取 Resources，先离线验证候选，成功后交换并回收旧世代。",
     "PlayableCampaignContentAssembler 在无活动 Runner/View 的启动事务中暂存并发布同一事件世代。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "tengine-startup-lifecycle",
-    "table-driven-event-chains"
-  ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs:1"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

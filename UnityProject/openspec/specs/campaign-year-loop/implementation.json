@@ -1,27 +1,14 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
   "capability": "campaign-year-loop",
-  "title": "战役年度狩猎闭环",
-  "category": "architecture",
-  "readiness": "implemented",
+  "specHash": "a7d2526f13b785418c0725ab7730d6b4e83fcadab54bcb5593e05566d2697035",
+  "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
     "summary": "营地编队准备、狩猎进入、撤退回营、年度结算和下一年再次出发已通过生产 Runner 与真实 GameManager 公共命令闭环；正式 Bootstrap 不再隐式获得开发直启能力，回营检查点保存失败会保留 Hunt 且不推进年份。",
+    "validatedAgainstSpecHash": "a7d2526f13b785418c0725ab7730d6b4e83fcadab54bcb5593e05566d2697035",
     "evidence": [
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignLoopSmokeTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementDepartureActionTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntRetreatActionTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "Unity CLI EditMode: 626/626 passed",
-      "Unity CLI PlayMode campaign startup and year loop: 9/9 passed"
-    ],
-    "differences": [
-      "PlayMode 闭环使用动态空测试场景和内存持久化端口，不依赖正式场景资产；正式场景的表现接线仍由各 3D 端口自己的验证覆盖。",
-      "显式 devStartPhase=Hunt 仅在当前存在 1 至 4 名可用猎人时允许开发回退；运行期 Settlement 到 Hunt 的权威转换不允许该回退。"
-    ],
-    "verifiedAt": "2026-08-24T10:50:00-07:00",
-    "codeEvidence": [
       {
         "guid": "245d7a41004f432faff9c725577de9ab",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignLoopContract.cs",
@@ -94,7 +81,17 @@
         "checkedAt": "2026-08-24T10:50:00-07:00",
         "feature": "通过真实 GameManager 公共命令验证年度闭环、正式阶段门禁、检查点保存失败回滚及延迟持久化期间禁止抢跑。"
       }
-    ]
+    ],
+    "tests": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignLoopSmokeTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementDepartureActionTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntRetreatActionTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "Unity CLI EditMode: 626/626 passed",
+      "Unity CLI PlayMode campaign startup and year loop: 9/9 passed"
+    ],
+    "verifiedAt": "08/24/2026 10:50:00"
   },
   "implementationOutline": [
     "Settlement Runner 提交 1 至 4 名唯一且可用的猎人，并创建绑定当前年份的一次性运行期授权。",
@@ -105,13 +102,6 @@
     "正式 Bootstrap 固定使用生产运行配置；只有显式开发调用才可授予非营地直启能力。",
     "每次成功回营恰好推进一年，下一次出猎必须重新编队，不存在正常玩家路径下的同年无限出猎。"
   ],
-  "gapIds": [],
-  "dependencyIds": [
-    "settlement-phase-orchestration",
-    "hunt-phase-orchestration",
-    "hunt-return-outcome-checkpoint",
-    "campaign-persistence"
-  ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignLoopContract.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1",
@@ -119,5 +109,9 @@
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ICampaignPersistencePort.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs:1"
-  ]
+  ],
+  "publishedBy": {
+    "mode": "legacy-formal-review-migration",
+    "changeId": ""
+  }
 }

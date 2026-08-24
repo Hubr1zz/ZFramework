@@ -44,6 +44,10 @@ This is an **agent-driven** operation - you will read delta specs and directly e
 
    If no delta specs found, inform user and stop.
 
+3.25. **Revalidate formal-Spec scope**
+
+   Read `../openspec-derive-design-specs/references/formal-spec-scope.md` and verify every delta capability still passes it. Never sync developer tooling, editor/workbench behavior, code indexes, workflow maintenance or behavior-preserving engineering work, even when the Change was previously approved or the user explicitly requests sync. Stop before writing any formal Spec or dependency-graph node and move the out-of-scope capability to its owning Skill, zWorkFlow documentation/tests or `project-tooling`. A mixed Change may continue only after all out-of-scope deltas are removed without changing the admitted gameplay semantics.
+
 3.5. **Validate the formal-Spec baseline before reading or merging targets**
 
    Every Change persists its targets and optimistic-concurrency baseline in `change-review.json.syncTargets`. Validate it with `sync_baseline.py validate` when Python is available; otherwise compute the same hashes and Requirement overlap directly.
@@ -89,10 +93,11 @@ This is an **agent-driven** operation - you will read delta specs and directly e
       - Add Requirements section with the ADDED requirements
 
    e. **Sync audit metadata**:
-      - Copy or intelligently merge the Change capability's `spec-review.json` to the formal Spec directory.
+      - Keep the capability `spec-review.json` inside the Change as review history. Never copy review issues, differences, approval state, gaps, or draft readiness into the formal Spec directory.
+      - Transform the accepted implementation facts into `openspec/specs/<capability>/implementation.json`: bind them to the merged Spec hash, retain only current code evidence, verification/tests, the actual implementation outline and optional editor guidance, and record the publishing Change ID. This file is an implementation assertion, not a Review.
       - Merge Change-local nodes and edges from `dependencies.json` into `openspec/spec-metadata/dependencies.json` by ID.
       - Merge Change-local missing-dependency gaps from `gaps.json` into `openspec/spec-metadata/gaps.json` by ID.
-      - Preserve unrelated formal nodes, edges, gaps, schema-v3 GUID-based `verification.codeEvidence`, and source history.
+      - Preserve unrelated formal nodes, edges, gaps, GUID/symbol-based code evidence, and source history.
       - Validate category direction after normalizing legacy `architecture` to `system`: system -> system; feature -> system or feature; game-rule -> feature.
 
 5. **Record sync completion**
@@ -165,7 +170,7 @@ Main specs are now updated. The change remains active - archive when implementat
 - If something is unclear, ask for clarification
 - Show what you're changing as you go
 - The operation should be idempotent - running twice should give same result
-- A synced formal Spec is incomplete if its category, `spec-review.json`, verification, local dependency subtree or missing-dependency gaps were dropped
+- A synced formal Spec is incomplete if its category, `implementation.json`, verification, local dependency subtree or missing-dependency gaps were dropped. A formal Spec containing `reviewIssues`, approval state, or unresolved differences is invalid.
 - Draft approval and apply never call this workflow. Only an explicit user sync request may merge delta Specs into formal Specs.
 - A changed hash is evidence, not a conflict. Block only after base/current/Delta comparison confirms functional replacement, incompatible edits or semantic mixing.
 - Never resolve a confirmed conflict by overwriting the formal Spec. Reconcile/rebase the Change first, then capture a new baseline with explicit user approval.

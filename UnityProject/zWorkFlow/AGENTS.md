@@ -25,7 +25,7 @@
 - 任务开始时使用 `team-member-preferences` 解析当前成员昵称；只读取 `.agent-memory/zworkflow/team/MAINTAINERS.md` 和当前成员对应的 `.agent-memory/zworkflow/team/members/<nickname>.md`，不要读取全员规范。
 - 项目读取先走 setup 生成或复用的 `project-context`；其中存在 `references/PROJECT-INDEX.md` 时先读索引。任务命中序列化、动画、资源、启动、依赖注入、异步或编辑器扩展时再读取 `project-tooling` 中的相关条目。若拆分会让事实检索、Spec 设计或代码核验重复读取同一来源/脚本，合并为单一负责人；只有上下文独立时才使用专门 Agent。
 - 涉及 C# 项目结构、类型/方法定位、候选调用者或改动影响时，若 `codebase-query` 已安装且 PowerShell 7 可用，必须先执行其索引命令收敛候选，再读取命中源码核验。只有工具不可用、执行失败或查询超出契约时才回退 `rg`/原生检索，并说明回退原因。
-- 普通开发任务不得以 Review、Ledger、Summary 或 Workbench 状态作为启动前置；这些工件只在显式 OpenSpec/zWorkFlow 生命周期或实现验证完成后的进度投影阶段读写。代码索引例外，它必须在 C# 方案设计前用于形成紧凑事实包。
+- 普通开发任务不得以 Change Review、Summary 或 Workbench 状态作为启动前置；全局实现 Ledger 已废止。这些工件只在显式 OpenSpec/zWorkFlow 生命周期或实现验证完成后的进度投影阶段读写。代码索引例外，它必须在 C# 方案设计前用于形成紧凑事实包。
 - 相关职责组成一个功能簇时，先连续实现，再统一执行一次后置审查和定向验证；不要按文件或小函数反复审查、重复测试。全量测试仅用于跨系统/L4 里程碑、公共运行契约变化、发布门禁或用户明确要求。
 - `openspec-derive-design-specs` 只能在用户显式要求生成或发布时触发；默认读取 `openspec/design-source.json` 中的全部等价来源路径，可重复的显式 `source` 仅临时覆盖本次扫描。
 - 统一用户入口为 `设计导入`、`设计导入：<范围>`、`修改<id>: <修改内容>` 和 `检查文档及时性`；导入可追加 `--规则`、`--内容`、`--美术` 且多个参数取并集。`检查文档及时性` 路由到 `inspect-implemented-design-changes`，只重算实现后设计变更状态和摘要，不自动设计导入或创建 Proposal。Codex 必须路由到共享 skill，不向用户暴露工具专属语法。

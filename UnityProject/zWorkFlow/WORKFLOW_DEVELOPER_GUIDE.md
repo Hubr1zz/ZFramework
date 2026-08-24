@@ -109,10 +109,11 @@ validator 必须拒绝同一 capability 被多个 Draft Change 持有，以及�
 
 ## Verification 的两层数据
 
-每个 capability 的 `spec-review.json` 保存该能力自己的核验结果；`change-review.json` 保存整个交付包的审批状态和汇总结论。
+Review 只存在于 Change。每个 Delta capability 的 `spec-review.json` 保存该次变更自己的核验结果；`change-review.json` 保存整个交付包的审批状态和汇总结论。显式 sync 后，这些 Review 留在归档 Change 中，不复制到正式 Spec。
 
-- `spec-review.json`：随 capability 生命周期存在，记录分类、来源、代码证据、差异、依赖和审核问题。
+- `changes/<id>/specs/<capability>/spec-review.json`：只随 Change 生命周期存在，记录该次 Delta 的分类、来源、代码证据、差异、依赖和审核问题。
 - `change-review.json`：服务整个 Change 的批准与 apply 门禁，汇总 readiness、codeReadiness、阻塞问题和审批记录。
+- `specs/<capability>/implementation.json`：正式 Spec 的实现核验声明，仅保存 Spec hash、证据、测试、实现摘要和可选编辑器接入指引；不得保存 Review 问题或批准状态。
 
 配对 Change 目前会把主要 Feature 的 Verification 摘要复制到 Change 层，方便 Workbench 和 apply 不遍历全部 capability 就能显示总体状态。这是有消费者的反规范化缓存，不是第二次人工审批。修改代码证据时必须同步两层；后续若改为运行时聚合，可删除这份摘要复制。
 
@@ -139,6 +140,12 @@ validator 必须拒绝同一 capability 被多个 Draft Change 持有，以及�
 
 Workbench 加载/刷新证据或尝试批准时按 GUID 找到当前脚本并计算 hash：一致显示“有效”，不同显示“修改过”，找不到显示“文件缺失”；“修改过”只代表字符内容变化，不阻止批准。apply 开始前 Agent 自动重读修改过的脚本：仍支持原功能则更新 hash 并直接继续，确认不再支持则先停止实现、调整 Change 的 Verification/Issues/Tasks 与受影响规划，再重新校验。文件缺失、已失效或未核验证据仍阻止审批。审批区用 HelpBox 明确显示门禁通过、修改证据数量或具体阻塞原因。Git 状态、修改时间和设计文档 hash 不能替代代码内容 hash。
 
+## 功能实现启动索引
+
+`track-implementation-progress` 是实现状态的共享 Skill 入口。它从正式 Spec 的 `implementation.json`、Spec 标题、关系元数据和当前代码证据生成 Git 管理的 `implementation-summary.json`。摘要是 `derived-routing-index`：只有 input manifest/digest 校验通过时才可用于定位少量 capability；任何完成声明必须追溯到正式实现事实和当前证据。旧 `implementation-ledger.json` 不再参与任何读写。
+
+`discover` 把 `implementation-audit.json.discoveryRevision` 之后的已提交 C#、当前工作区 C#、代码索引类型/方法和正式证据 hash 汇总到 Git 忽略的本地 discovery 快照；缺少首个 revision 时扫描全部 Git 管理的 C# 做一次性回填。没有现有证据覆盖的变化只进入候选。Agent 必须定向读取需求与源码并验证：符合不变正式 Spec 时更新 `implementation.json`；否则生成 post-hoc adoption Change 供人类审查。生成或第三方代码可通过带理由的 `discoveryExclusions` 排除，但排除不会产生完成状态。
+
 ## 产物可见性与消费者
 
 Workbench 展示业务内容，但不逐个展示机器文件。所有持久化产物必须属于权威内容、索引或审计之一，并至少有一个明确消费者。
@@ -148,16 +155,18 @@ Workbench 展示业务内容，但不逐个展示机器文件。所有持久化�
 | `drafts/changes/<id>/` | Workbench 直接展示 | Draft 审阅、批准、apply |
 | `change-review.json.implementationNotes` | Workbench 的“备注”按钮按需展示 | Workbench 编辑、apply 编码前读取 |
 | `change-review.json.syncTargets`、`.sync-baseline/` | Change 详情聚合显示同步状态，不直接展示快照正文 | sync 的三方合并预检、冲突审计 |
-| `spec-review.json.editorGuidance` | 仅在有人工 Unity 接入动作时显示“引擎配置”按钮 | Workbench、实现交接、validator |
+| Change 内 `spec-review.json.editorGuidance` / 正式 `implementation.json.editorGuidance` | 仅在有人工 Unity 接入动作时显示“引擎配置”按钮 | Workbench、实现交接、validator |
 | `run.json` | Workbench 聚合展示批次摘要与必要提示 | 状态、文档计数、不确定项、链接歧义、类型过滤审计、恢复 |
 | `sources.json`、`duplicate-precheck.json`、`draft-refs.json` | 不逐文件展示 | 去重、来源追踪、validator |
 | `drafts/index.json` | 不展示原始 JSON | Workbench 分组和批次引用；不得保存正文 |
 | `spec-metadata/*.json` | 通过依赖和 Gap 面板展示 | 正式 Spec 关系图与审核 |
+| `implementation-summary.json` | 不直接作为普通任务输入；Workbench 读取，Agent 通过校验后的 `query` 获取切片 | `track-implementation-progress`、Workbench、显式大型任务范围收敛 |
+| `implementation-audit.json` | 不展示原始 JSON | 直接实现发现的 revision 与排除项 |
 | `changes/archive/` | 不在活动列表展示 | 历史审计 |
 | `translations/<language>/` | 仅在 hash 同步时作为 Workbench 显示正文 | Workbench 显示；Agent 翻译命令写入，不参与 apply/sync/validator |
 | `translations/manifest.json` | 不展示原始 JSON | Workbench 新鲜度门禁、Agent 块级增量翻译 |
 
-不再生成重复结构化批次数据的 `report.md`；代码核验只读取 `spec-review.json`。没有 Workbench、CLI、validator、apply/sync 或人工审计消费者的产物不应生成。索引和审计只能保存引用、hash 与必要摘要，不得复制 Spec/Review 正文。
+不再生成重复结构化批次数据的 `report.md`。Change 核验读取 Change Review；正式符合性读取 `implementation.json`。没有 Workbench、CLI、validator、apply/sync 或人工审计消费者的产物不应生成。索引和审计只能保存引用、hash 与必要摘要，不得复制 Spec/Review 正文。
 
 导入记录的生命周期与 Draft 引用绑定：批准、删除或外部移动 Draft 后，工作台重写 `draft-refs.json` 并清理中央索引；一个批次不再引用任何实际存在的 Draft Change 时，删除整个 `design-imports/<run-id>/`，不得保留空记录。
 
@@ -170,7 +179,7 @@ Workbench 展示业务内容，但不逐个展示机器文件。所有持久化�
 - 被接受的硬依赖仍阻塞实现，只有补齐依赖并设为 resolved 才解除。
 - Gap 只表示缺失依赖节点或契约；代码差异和设计冲突不能伪装成 Gap。
 - `tasks.md` 只包含实现差异，不承载设计澄清或等待依赖。
-- 外部设计来源只读；项目包独立维护 `openspec/implementation-ledger.json`。项目 bridge 以 `openspec/design-source.json` 中全部来源为唯一文档输入，每个来源按稳定 `sourceId` 建立独立顶层节点；刷新时递归重扫 Markdown、同步新增/删除文件并重算指纹。账本以 `(sourceId, documentPath, implementationId)` 定位实现，新文档默认 0%，未被账本解释的指纹变化显示“手动修改”。它不向设计包注入项目路径或工程状态，也不自动创建 proposal。
+- 外部设计来源只读；项目 bridge 以 `openspec/design-source.json` 中全部来源为唯一文档输入，每个来源按稳定 `sourceId` 建立独立顶层节点。正式实现的 `sourceReferences/designSources` 建立 capability 到文档的关联，Workbench 只在路由摘要有效时投影进度；它不向设计包注入项目路径或工程状态，也不自动创建 proposal。
 - 修改 `.agents/` 后同步 `zWorkFlow/.agents/` 权威分发副本；修改 Workbench 后同步 `zWorkFlow/setup/assets/*.template`；修改普通用户行为后只更新 `zWorkFlow/` 顶层三份人类文档，并重建干净移植包与 ZIP。人类文档不再维护 setup 模板或项目根副本，工具专属目录仍保持薄壳。
 - 新持久化产物必须先声明角色、消费者和可见性。
 

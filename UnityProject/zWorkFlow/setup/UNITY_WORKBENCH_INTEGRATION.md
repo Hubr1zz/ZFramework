@@ -64,7 +64,7 @@
 - Git 同步的 `openspec/localization.json` 保存以后生成权威文件的默认语言：`source` 跟随设计文档，或明确选择 `zh-CN` / `en-US`；`specTitles` 以 capability ID 为键保存可选 `zhCN` / `enUS` 条目显示名。已有 Spec 的原路径与语言不因配置变化而迁移。
 - `openspec/translations/<language>/` 与 `manifest.json` 是团队共享的只读显示副本和块级 hash 索引。工作台始终让 Agent/生命周期操作读取原权威路径；当前界面语言的翻译缺失或 source/translation hash 失效时不渲染正文，只显示同步提示和复制命令按钮。非权威 Markdown 不允许在工作台直接编辑。
 - 工作台主题由自身配置中的浅色/深色模式控制，不读取 Unity 编辑器主题；工作台正文、背景、面板、标题与 Markdown 正文颜色读取所选工作台主题对应配置，警告与提示文字使用工作台正文颜色；深色主题的控件 tint 必须让按钮和输入框线框清晰区别于面板背景。
-- 配置有效设计来源时，玩法规则 Spec 可按 `sourceReferences` 反向打开对应设计 Markdown；配置允许指定 Obsidian、VS Code 等默认 Markdown 应用，留空则使用系统默认。独立设计文档树的“刷新文档状态”读取项目 `openspec/implementation-ledger.json` 并重算当前指纹，再将设计 Markdown 重建为简化目录树：每个文件显示实现状态/百分比、实现后是否修改和摘要；没有新摘要的外部指纹变化显示“手动修改”。不得把项目路径或工程状态写入设计包，或自动调用设计导入。
+- 配置有效设计来源时，玩法规则 Spec 可按 `sourceReferences` 反向打开对应设计 Markdown；配置允许指定 Obsidian、VS Code 等默认 Markdown 应用，留空则使用系统默认。独立设计文档树的“刷新文档状态”重建 Markdown 目录树，并仅从 input manifest 仍有效的 `implementation-summary.json` 投影 capability 状态；过期时提示刷新而不猜测。不得把项目路径或工程状态写入设计包，或自动调用设计导入。
 - 指令列表列出设计导入与筛选、`检查文档及时性`、修改导入、Spec 翻译/同步、`apply <change-id>`、`sync specs <change-id>` 与 `archive <change-id>`；Change 详情提供复制 ID，并在 Tasks 全完成且 `specSyncStatus=synced` 时启用“归档”按钮。检查文档及时性只刷新实现后设计变更状态和摘要，不触发设计导入。归档按钮只以纯 C# 移动完整 Change 目录到带日期的 archive，不触发 sync；Delete 才是永久移除。OpenSpec 生命周期命令始终定位 Change，不使用 Spec ID。
 - 安装时确保 `.gitignore` 排除 `.DS_Store`、Python 缓存、`openspec/workbench-config.json`、`openspec/design-source.json`、`.agent-memory/zworkflow/team/MAINTAINERS.md` 与 `.agent-memory/zworkflow/team/members/`；它们是系统垃圾、生成缓存、个人偏好或机器相关路径。
 

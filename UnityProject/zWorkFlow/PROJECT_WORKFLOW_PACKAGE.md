@@ -14,6 +14,6 @@
 
 不安装 `packages/document-project-bridge/` 时，项目层仍可通过对话手动 propose/apply/sync/archive，并可显式从任意设计文档路径生成基线 Spec。apply 保持 Change 沙箱，sync 使用 base/current/Delta 判断安全合并，完成 Tasks 并同步后可从 Workbench 归档。
 
-安装 bridge 后，项目 Workbench 将全部“设计文档路径”保存为本机绑定，并在项目 `openspec/implementation-ledger.json` 中维护实现基线。每个来源作为独立顶层节点，递归扫描 Markdown 并重建可折叠结构；“刷新文档状态”同时发现新增/删除文件和重算指纹，新文档默认显示 0%。没有摘要的外部指纹变化显示为“手动修改”。右上角灯只表示至少一个来源有效，项目端不写回设计包或自动触发设计导入。
+安装 bridge 后，项目 Workbench 将全部“设计文档路径”保存为本机绑定。每个来源作为独立顶层节点，递归扫描 Markdown 并重建可折叠结构；实现进度只从校验有效的 `implementation-summary.json` 路由索引投影，索引由正式 `implementation.json` 和 active Change 派生。右上角灯只表示至少一个来源有效，项目端不写回设计包或自动触发设计导入。
 
 同一团队可并行使用 Codex、Claude Code、Cursor、GitHub Copilot、Gemini CLI、Windsurf 与 Kimi Code CLI；完整 Skills 只维护在 `.agents/skills/`，工具专属目录只提供薄适配。
