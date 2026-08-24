@@ -225,7 +225,7 @@ namespace Core
                 _settlementManager.EnsureStartingConditions();
                 StartSettlementActionSession();
                 EnsureSettlementUI();
-                QueueSettlementEvents(_settlementManager.OnEnter());
+                QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
             }
             else if (startPhase == GamePhase.Hunt)
             {
@@ -864,6 +864,12 @@ namespace Core
             ResolveSettlementEventsAsync(settlementActionSession, events, restoreProjection, restoredChainId, restoredOccurrences).Forget();
         }
 
+        private void QueueSettlementEvents(IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection = null, string restoredChainId = null)
+        {
+            if (works == null || works.Count == 0 || settlementActionSession == null) return;
+            ResolveSettlementEventsAsync(settlementActionSession, works, restoreProjection, restoredChainId).Forget();
+        }
+
         private async UniTask<SettlementHuntReturnCommandResult> ApplyHuntReturnAsync(PlayableSettlementActionSession session, HuntRecord record, bool queueAnnualEvents = true)
         {
             SettlementHuntReturnCommandResult result;
@@ -916,7 +922,7 @@ namespace Core
                 if (queueAnnualEvents)
                 {
                     settlementEventRestoreProjection = projection;
-                    QueueSettlementEvents(restorePlan.Events, projection, restorePlan.ChainId, restorePlan.Occurrences);
+                    QueueSettlementEvents(restorePlan.WorkItems, projection, restorePlan.ChainId);
                 }
             }
             return result;
@@ -959,7 +965,7 @@ namespace Core
             if (restoreProjection != null)
             {
                 bool restoreCompleted = restoreProjection.Complete(result.Succeeded);
-                if (result.Succeeded && !restoreCompleted && restoreProjection.HasPendingEvents)
+                if (result.Succeeded && !restoreCompleted && restoreProjection.HasRecoverableCheckpoint)
                 {
                     SettlementEventRestorePlan nextRestorePlan = restoreProjection.Prepare();
                     if (!nextRestorePlan.Succeeded)
@@ -968,8 +974,37 @@ namespace Core
                     }
                     else if (nextRestorePlan.HasPendingEvents)
                     {
-                        QueueSettlementEvents(nextRestorePlan.Events, restoreProjection, nextRestorePlan.ChainId, nextRestorePlan.Occurrences);
+                        QueueSettlementEvents(nextRestorePlan.WorkItems, restoreProjection, nextRestorePlan.ChainId);
                     }
+                }
+            }
+            if (!result.Succeeded && ReferenceEquals(session, settlementActionSession))
+                Debug.LogWarning($"[GameManager] 营地事件链未完成：{result.Reason}");
+        }
+
+        private async UniTaskVoid ResolveSettlementEventsAsync(PlayableSettlementActionSession session, IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection = null, string restoredChainId = null)
+        {
+            SettlementEventCommandResult result;
+            try
+            {
+                result = await session.ResolveEventsAsync(works, restoredChainId);
+            }
+            catch (System.Exception exception)
+            {
+                restoreProjection?.Fail($"营地事件恢复异常：{exception.Message}");
+                Debug.LogError($"[GameManager] 营地事件链执行异常：{exception}");
+                return;
+            }
+            if (restoreProjection != null)
+            {
+                bool restoreCompleted = restoreProjection.Complete(result.Succeeded);
+                if (result.Succeeded && !restoreCompleted && restoreProjection.HasRecoverableCheckpoint)
+                {
+                    SettlementEventRestorePlan nextRestorePlan = restoreProjection.Prepare();
+                    if (nextRestorePlan.Succeeded && nextRestorePlan.HasPendingEvents)
+                        QueueSettlementEvents(nextRestorePlan.WorkItems, restoreProjection, nextRestorePlan.ChainId);
+                    else if (!nextRestorePlan.Succeeded)
+                        Debug.LogError($"[GameManager] 下一条营地事件链恢复失败：{nextRestorePlan.FailureReason}");
                 }
             }
             if (!result.Succeeded && ReferenceEquals(session, settlementActionSession))
@@ -1275,7 +1310,7 @@ namespace Core
                         ApplyHuntReturnAsync(settlementActionSession, record).Forget();
                     else
                     {
-                        QueueSettlementEvents(_settlementManager.OnEnter());
+                        QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
                         SaveLoadSystem.SaveAsync(_settlementManager.Data, this.GetCancellationTokenOnDestroy()).Forget();
                     }
                     break;
@@ -1495,7 +1530,7 @@ namespace Core
                 {
                     StartSettlementActionSession();
                     EnsureSettlementUI();
-                    QueueSettlementEvents(_settlementManager.OnEnter());
+                    QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
                 }
                 else
                 {
@@ -1609,7 +1644,7 @@ namespace Core
                 if (!restorePlan.Succeeded)
                     Debug.LogError($"[GameManager] 读档后的营地事件恢复失败：{restorePlan.FailureReason}");
                 else if (restoreSucceeded)
-                    QueueSettlementEvents(restorePlan.Events, settlementEventRestoreProjection, restorePlan.ChainId, restorePlan.Occurrences);
+                    QueueSettlementEvents(restorePlan.WorkItems, settlementEventRestoreProjection, restorePlan.ChainId);
             }
             Debug.Log($"[GameManager] DevLoad 完成，年份 {data.CurrentYear}");
             SettlementProgressLoadCompleted?.Invoke(restoreSucceeded);

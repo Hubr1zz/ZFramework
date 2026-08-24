@@ -110,6 +110,7 @@ namespace HuntingInDarkness.Settlement
         internal EventResolutionResult CommitPreparedChoice(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue, IPlayableEventResourceCommand resourceCommand)
         {
             PlayableEventCommitResult result = CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, success, rollValue, resourceCommand);
+            MarkEventCompleted(gameEvent);
             if (result.EncounterIds.Count > 0)
                 _pendingChain.Clear();
             else
@@ -135,7 +136,6 @@ namespace HuntingInDarkness.Settlement
                 encounterIds.Clear();
             if (!captureEncounterRequests && !campaignEnded)
                 PublishEncounters(encounterIds, gameEvent.name);
-            MarkEventCompleted(gameEvent);
             var result = new EventResolutionResult
             {
                 Success = success,

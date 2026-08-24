@@ -212,6 +212,13 @@
       "specPath": "openspec/specs/hunt-session-event-occurrence-recovery/spec.md"
     },
     {
+      "id": "settlement-timeline-event-identity",
+      "label": "营地时间线事件稳定身份",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/settlement-timeline-event-identity/spec.md"
+    },
+    {
       "id": "table-driven-hunt-events",
       "label": "读表狩猎事件内容",
       "category": "feature",
@@ -1190,6 +1197,46 @@
       "type": "requires",
       "status": "defined",
       "reason": "待恢复 children 来自事件表配置的有序直接分支",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-timeline-event-identity--requires--settlement-phase-orchestration",
+      "from": "settlement-timeline-event-identity",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "精确年鉴 occurrence 由 Settlement Runner 在事件提交检查点完成",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-timeline-event-identity--requires--campaign-persistence",
+      "from": "settlement-timeline-event-identity",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "稳定 ContentId、迁移 schema 与诊断随 SettlementInstance 持久化",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-timeline-event-identity--requires--event-occurrence-checkpoint-core",
+      "from": "settlement-timeline-event-identity",
+      "to": "event-occurrence-checkpoint-core",
+      "type": "requires",
+      "status": "defined",
+      "reason": "父事件提交后以 occurrence 检查点保存可恢复的直接子事件",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-timeline-event-identity--requires--table-driven-event-chains",
+      "from": "settlement-timeline-event-identity",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "内容目录以表配置事件的稳定 ContentId 解析年度事件与直接子链",
       "gapId": "",
       "blocksImplementation": false
     }

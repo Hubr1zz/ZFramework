@@ -429,15 +429,25 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
         public async UniTask<SettlementEventCommandResult> ResolveEventsAsync(System.Collections.Generic.IReadOnlyList<EventData> events, string restoredChainId = null, System.Collections.Generic.IReadOnlyList<SettlementEventChainOccurrence> restoredOccurrences = null)
         {
+            if (events == null) return SettlementEventCommandResult.Success(0, false);
+            var works = new System.Collections.Generic.List<SettlementEventWork>(events.Count);
+            bool hasOccurrences = restoredOccurrences != null && restoredOccurrences.Count == events.Count;
+            for (int index = 0; index < events.Count; index++)
+                works.Add(new SettlementEventWork(events[index], null, hasOccurrences ? restoredOccurrences[index] : null));
+            return await ResolveEventsAsync(works, restoredChainId);
+        }
+
+        public async UniTask<SettlementEventCommandResult> ResolveEventsAsync(System.Collections.Generic.IReadOnlyList<SettlementEventWork> works, string restoredChainId = null)
+        {
             if (!IsActive) return SettlementEventCommandResult.Failed("当前不在营地阶段", 0);
             if (eventSystem == null) return SettlementEventCommandResult.Failed("营地事件系统尚未配置", 0);
-            if (events == null || events.Count == 0) return SettlementEventCommandResult.Success(0, false);
+            if (works == null || works.Count == 0) return SettlementEventCommandResult.Success(0, false);
 
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
             ReactorEntityHandle chainEntity = environment.EntityHandles.GetOrCreate("settlement-event-chain", SessionId.ToString("N"), "营地事件链");
             IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("settlement-event", gameEvent != null ? gameEvent.ContentId : "unknown", gameEvent != null ? gameEvent.eventName : "营地事件");
-            var action = new ResolveSettlementEventChainAction(eventSystem, EventInput, events, SessionId, outbox, settlementEntity, chainEntity, ResolveEventEntity, randomInteractionPresenter, restoredChainId, restoredOccurrences);
+            var action = new ResolveSettlementEventChainAction(eventSystem, EventInput, works, SessionId, outbox, settlementEntity, chainEntity, ResolveEventEntity, randomInteractionPresenter, restoredChainId);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementEventCommandResult.Failed(outcome.Reason, action.Result.ResolvedCount) : action.Result;

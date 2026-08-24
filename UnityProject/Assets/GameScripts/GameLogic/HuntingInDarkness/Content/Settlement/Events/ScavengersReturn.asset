@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2471a7f4f41d4e74f85c7f31dc58d1a5, type: 3}
   m_Name: ScavengersReturn
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.EventData
+  contentId: settlement_scavengers_return
   eventName: "\u62FE\u8352\u8005\u5F52\u6765"
   eventType: 0
   displayText: "\u591C\u8272\u5C06\u5C3D\u65F6\uFF0C\u4E24\u540D\u62AB\u7740\u7834\u5E03\u7684\u62FE\u8352\u8005\u6765\u5230\u8425\u5730\u3002\u4ED6\u4EEC\u6CA1\u6709\u7559\u4E0B\u59D3\u540D\uFF0C\u53EA\u628A\u4E00\u56E2\u4ECD\u80FD\u98DF\u7528\u7684\u8611\u83C7\u8089\u653E\u5728\u684C\u8FB9\uFF0C\u6307\u5411\u77F3\u68EE\u6797\u6DF1\u5904\u540E\u91CD\u65B0\u6D88\u5931\u5728\u96FE\u91CC\u3002"

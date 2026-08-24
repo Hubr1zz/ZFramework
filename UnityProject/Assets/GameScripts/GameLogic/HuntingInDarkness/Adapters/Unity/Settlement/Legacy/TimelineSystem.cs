@@ -59,43 +59,59 @@ namespace HuntingInDarkness.Settlement
         /// </summary>
         public List<EventData> GetEventsForYear(int year)
         {
-            var result = new List<EventData>();
+            var workItems = GetEventWorkItemsForYear(year);
+            var events = new List<EventData>(workItems.Count);
+            foreach (SettlementEventWork workItem in workItems)
+                if (workItem.Event != null) events.Add(workItem.Event);
+            return events;
+        }
+
+        /// <summary>获取事件及其精确年鉴条目，供 ActionQueue 提交时完成对应 occurrence。</summary>
+        public List<SettlementEventWork> GetEventWorkItemsForYear(int year)
+        {
+            var result = new List<SettlementEventWork>();
             AppendDueScheduledEvents(year, result);
 
             // 主线事件：检查是否有该年份的主线事件
             foreach (var evt in MainStoryEvents)
             {
                 if (evt == null) continue;
-                bool completed = _settlement.Timeline.Exists(entry => entry.EventId == evt.name && entry.IsCompleted);
-                if (evt.minYear == year && evt.category == EventCategory.MainStory && !completed && presentedMainStoryIds.Add(evt.name))
+                string eventId = evt.ContentId;
+                bool completed = _settlement.Timeline.Exists(entry => entry != null && entry.EventId == eventId && entry.IsCompleted);
+                if (evt.minYear == year && evt.category == EventCategory.MainStory && !completed && presentedMainStoryIds.Add(eventId))
                 {
-                    result.Add(evt);
-                    if (!_settlement.Timeline.Exists(entry => entry.EventId == evt.name))
-                        _settlement.Timeline.Add(new AnnalEntry { Year = year, EventId = evt.name, EventName = evt.eventName, IsMilestone = true, EntryType = TimelineEntryType.MainStory });
+                    var entry = _settlement.Timeline.Find(candidate => candidate != null && candidate.EventId == eventId && candidate.EntryType == TimelineEntryType.MainStory);
+                    if (entry == null)
+                    {
+                        entry = new AnnalEntry { Year = year, EventId = eventId, EventName = evt.eventName, IsMilestone = true, EntryType = TimelineEntryType.MainStory };
+                        _settlement.Timeline.Add(entry);
+                    }
+                    result.Add(new SettlementEventWork(evt, entry));
                 }
             }
 
             // 随机事件：抽取1张
             if (_settlement.Timeline.Exists(entry => entry != null && entry.Year == year && entry.EntryType == TimelineEntryType.Random)) return result;
             var available = GetAvailableRandomEvents(year);
-            string mostRecentEventId = _settlement.Timeline.FindLast(entry => entry.EntryType == TimelineEntryType.Random)?.EventId;
-            bool hasAlternative = available.Exists(gameEvent => !string.Equals(gameEvent.name, mostRecentEventId, System.StringComparison.Ordinal));
-            available.RemoveAll(gameEvent => EventRecencyRules.ShouldExcludeMostRecent(gameEvent.name, mostRecentEventId, hasAlternative));
+            string mostRecentEventId = _settlement.Timeline.FindLast(entry => entry != null && entry.EntryType == TimelineEntryType.Random)?.EventId;
+            bool hasAlternative = available.Exists(gameEvent => !string.Equals(gameEvent.ContentId, mostRecentEventId, System.StringComparison.Ordinal));
+            available.RemoveAll(gameEvent => EventRecencyRules.ShouldExcludeMostRecent(gameEvent.ContentId, mostRecentEventId, hasAlternative));
             if (available.Count > 0)
             {
                 var picked = WeightedRandom(available, _rng);
                 if (picked != null)
                 {
-                    result.Add(picked);
                     // 将其标记为该年的记录
-                    _settlement.Timeline.Add(new AnnalEntry
+                    var entry = new AnnalEntry
                     {
                         Year      = year,
-                        EventId   = picked.name,
+                        EventId   = picked.ContentId,
                         EventName = picked.eventName,
                         IsMilestone = picked.category == EventCategory.MainStory,
                         EntryType = TimelineEntryType.Random
-                    });
+                    };
+                    _settlement.Timeline.Add(entry);
+                    result.Add(new SettlementEventWork(picked, entry));
                 }
             }
 
@@ -134,16 +150,17 @@ namespace HuntingInDarkness.Settlement
                 reason = $"事件 {plan.EventId} 不是 Scheduled 类别。";
                 return false;
             }
-            if (_settlement.Timeline.Exists(entry => entry.EntryType == TimelineEntryType.Scheduled && entry.EventId == plan.EventId && !entry.IsCompleted))
+            string canonicalEventId = gameEvent.ContentId;
+            if (_settlement.Timeline.Exists(entry => entry != null && entry.EntryType == TimelineEntryType.Scheduled && entry.EventId == canonicalEventId && !entry.IsCompleted))
             {
-                reason = $"事件 {plan.EventId} 已经在未来时间线上。";
+                reason = $"事件 {canonicalEventId} 已经在未来时间线上。";
                 return false;
             }
 
             _settlement.Timeline.Add(new AnnalEntry
             {
                 Year = plan.DueYear,
-                EventId = gameEvent.name,
+                EventId = canonicalEventId,
                 EventName = gameEvent.eventName,
                 IsMilestone = gameEvent.category == EventCategory.MainStory,
                 EntryType = TimelineEntryType.Scheduled
@@ -152,7 +169,7 @@ namespace HuntingInDarkness.Settlement
             return true;
         }
 
-        private void AppendDueScheduledEvents(int year, List<EventData> result)
+        private void AppendDueScheduledEvents(int year, List<SettlementEventWork> result)
         {
             foreach (AnnalEntry entry in _settlement.Timeline)
             {
@@ -162,7 +179,7 @@ namespace HuntingInDarkness.Settlement
                 EventData gameEvent = ResolveEvent(entry.EventId);
                 if (gameEvent != null)
                 {
-                    result.Add(gameEvent);
+                    result.Add(new SettlementEventWork(gameEvent, entry));
                     continue;
                 }
 
@@ -174,8 +191,21 @@ namespace HuntingInDarkness.Settlement
         public EventData ResolveEvent(string eventId)
         {
             if (string.IsNullOrWhiteSpace(eventId)) return null;
-            EventData gameEvent = MainStoryEvents.Find(candidate => candidate != null && candidate.name == eventId);
-            return gameEvent != null ? gameEvent : RandomEventPool.Find(candidate => candidate != null && candidate.name == eventId);
+            string canonicalId = eventId.Trim();
+            EventData resolved = null;
+            foreach (EventData candidate in MainStoryEvents)
+            {
+                if (candidate == null || candidate.ContentId != canonicalId) continue;
+                if (resolved != null) return null;
+                resolved = candidate;
+            }
+            foreach (EventData candidate in RandomEventPool)
+            {
+                if (candidate == null || candidate.ContentId != canonicalId) continue;
+                if (resolved != null) return null;
+                resolved = candidate;
+            }
+            return resolved;
         }
 
         // ─── 工具 ────────────────────────────────────────────────

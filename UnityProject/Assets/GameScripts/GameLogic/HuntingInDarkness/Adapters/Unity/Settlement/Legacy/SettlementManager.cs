@@ -54,8 +54,17 @@ namespace HuntingInDarkness.Settlement
         /// <summary>进入营地阶段（狩猎结算后调用）</summary>
         public IReadOnlyList<EventData> OnEnter()
         {
+            var works = OnEnterWorkItems();
+            var events = new List<EventData>(works.Count);
+            foreach (SettlementEventWork work in works)
+                if (work.Event != null) events.Add(work.Event);
+            return events;
+        }
+
+        public IReadOnlyList<SettlementEventWork> OnEnterWorkItems()
+        {
             Debug.Log($"[SettlementManager] 进入营地阶段 — 年份 {Data.CurrentYear}");
-            return Timeline.GetEventsForYear(Data.CurrentYear);
+            return Timeline.GetEventWorkItemsForYear(Data.CurrentYear);
         }
 
         /// <summary>离开营地阶段</summary>

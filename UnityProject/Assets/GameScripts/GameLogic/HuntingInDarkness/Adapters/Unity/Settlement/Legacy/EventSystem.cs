@@ -83,6 +83,7 @@ namespace HuntingInDarkness.Settlement
         public void ResolveNarrative(EventData evt)
         {
             PlayableEventNodeCommitResult result = ResolveNarrativeNode(evt, _selectedHunter, false);
+            MarkEventCompleted(evt);
             if (result.EncounterIds.Count > 0)
             {
                 _pendingChain.Clear();
@@ -119,7 +120,6 @@ namespace HuntingInDarkness.Settlement
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (!captureEncounterRequests)
                 PublishEncounters(encounterIds, gameEvent.name);
-            MarkEventCompleted(gameEvent);
             return new PlayableEventNodeCommitResult(gameEvent.chainedEvents, encounterIds, new PlayableEventEffectBatchResult(effectResults));
         }
 
@@ -395,9 +395,18 @@ namespace HuntingInDarkness.Settlement
         private void MarkEventCompleted(EventData gameEvent)
         {
             if (gameEvent == null) return;
-            var entry = _settlement.Timeline.FindLast(item => item.EventId == gameEvent.name && !item.IsCompleted);
+            string canonicalId = gameEvent.ContentId;
+            var entry = _settlement.Timeline.FindLast(item => item != null && !item.IsCompleted && (item.EventId == canonicalId || item.EventId == gameEvent.name));
             if (entry != null)
                 entry.IsCompleted = true;
+        }
+
+        internal bool TryMarkTimelineEntryCompleted(AnnalEntry timelineEntry, string eventId)
+        {
+            if (timelineEntry == null) return true;
+            if (_settlement?.Timeline == null || !_settlement.Timeline.Contains(timelineEntry) || timelineEntry.IsCompleted || !PlayableSettlementEventRegistry.IsTimelineEventEntry(timelineEntry) || !string.Equals(timelineEntry.EventId, eventId, System.StringComparison.Ordinal)) return false;
+            timelineEntry.IsCompleted = true;
+            return true;
         }
 
         private static SettlementEffectKind ToCoreEffectKind(EventEffectType effectType)

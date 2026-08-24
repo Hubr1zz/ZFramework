@@ -112,7 +112,7 @@ namespace HuntingInDarkness.Data
     public class AnnalEntry
     {
         public int    Year;
-        public string EventId;         // EventData SO 名称
+        public string EventId;         // 事件型条目使用 EventData.ContentId；动态条目保留自身稳定 ID
         public string EventName;       // 缓存名称
         public bool   IsCompleted;
         public bool   IsMilestone;     // 主线事件（金色标记）
@@ -189,6 +189,8 @@ namespace HuntingInDarkness.Data
         [Header("内容存档版本")]
         public int ItemIdentitySchemaVersion;
         public int InventionIdentitySchemaVersion;
+        public int TimelineEventIdentitySchemaVersion;
+        public string TimelineEventIdentityMigrationDiagnostic;
         public int SettlementModifierSchemaVersion;
 
         [Header("时间线")]

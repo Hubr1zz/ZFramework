@@ -529,14 +529,46 @@ namespace HuntingInDarkness.Adapter.Tests
             root.name = "confirm-root";
             root.eventType = GameEventType.Choice;
             root.options.Add(new EventOption { optionText = "确认", successChain = new List<EventData> { child } });
+            var timelineEntry = new AnnalEntry { EventId = root.ContentId, EventName = root.eventName, EntryType = TimelineEntryType.Random };
+            settlement.Timeline.Add(timelineEntry);
             var input = new ThrowingResultConfirmationInput(hunter);
 
             using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem, input);
-            SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { root });
+            SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { new SettlementEventWork(root, timelineEntry) });
 
-            Assert.That(result.Succeeded, Is.False);
-            Assert.That(settlement.HasPendingEventChainOccurrences, Is.True);
-            Assert.That(settlement.PendingEventChains[0].PendingOccurrences[0].EventId, Is.EqualTo("confirm-child"));
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(result.ResolvedCount, Is.EqualTo(2));
+            Assert.That(timelineEntry.IsCompleted, Is.True);
+            Assert.That(settlement.GetResource("碎石"), Is.EqualTo(2));
+            Assert.That(settlement.HasPendingEventChainOccurrences, Is.False);
+        }
+
+        [Test]
+        public async Task ResolveEventsAsync_TerminalCommitSurvivesResultConfirmationFailure()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            HunterInstance hunter = settlement.Hunters[0];
+            EventData root = ScriptableObject.CreateInstance<EventData>();
+            root.name = "confirm-terminal";
+            root.eventType = GameEventType.Choice;
+            root.options.Add(new EventOption
+            {
+                optionText = "确认",
+                successEffects = new List<EventEffect> { new EventEffect { effectType = EventEffectType.AddResource, targetName = "碎石", value = 2 } }
+            });
+            var timelineEntry = new AnnalEntry { EventId = root.ContentId, EventName = root.eventName, EntryType = TimelineEntryType.Random };
+            settlement.Timeline.Add(timelineEntry);
+            var input = new ThrowingResultConfirmationInput(hunter);
+
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem, input);
+            SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { new SettlementEventWork(root, timelineEntry) });
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(result.ResolvedCount, Is.EqualTo(1));
+            Assert.That(timelineEntry.IsCompleted, Is.True);
+            Assert.That(settlement.GetResource("碎石"), Is.EqualTo(2));
+            Assert.That(settlement.HasPendingEventChainOccurrences, Is.False);
         }
 
         [Test]

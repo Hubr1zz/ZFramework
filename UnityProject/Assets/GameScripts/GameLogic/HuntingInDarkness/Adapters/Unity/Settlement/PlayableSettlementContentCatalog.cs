@@ -80,6 +80,19 @@ namespace HuntingInDarkness.Settlement
             PlayableSettlementItemRegistry.MigratePersistentState(manager.Data);
             PlayableSettlementInventionRegistry.MigratePersistentState(manager.Data);
             PlayableEventTableRuntime.Extend(randomEvents, mainStoryEvents, out List<EventData> allRandomEvents, out List<EventData> allMainStoryEvents);
+            var allEvents = new List<EventData>(allRandomEvents);
+            allEvents.AddRange(allMainStoryEvents);
+            PlayableSettlementEventRegistry.Configure(allEvents);
+            if (!PlayableSettlementEventRegistry.IsValid)
+            {
+                Debug.LogError($"[SettlementManager] {PlayableSettlementEventRegistry.Diagnostic}");
+                return false;
+            }
+            if (!PlayableSettlementEventRegistry.MigratePersistentState(manager.Data) && manager.Data.TimelineEventIdentitySchemaVersion > PlayableSettlementEventRegistry.CurrentIdentitySchemaVersion)
+            {
+                Debug.LogError($"[SettlementManager] {manager.Data.TimelineEventIdentityMigrationDiagnostic}");
+                return false;
+            }
             manager.Timeline.RandomEventPool = allRandomEvents;
             manager.Timeline.MainStoryEvents = allMainStoryEvents;
             MigrateCampaignPacing(manager);

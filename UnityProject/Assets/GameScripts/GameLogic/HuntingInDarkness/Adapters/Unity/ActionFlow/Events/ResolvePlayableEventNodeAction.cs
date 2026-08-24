@@ -66,6 +66,7 @@ namespace HuntingInDarkness.ActionFlow.Events
         public IReadOnlyList<EventData> ChainedEvents { get; private set; } = Array.Empty<EventData>();
         public IReadOnlyList<string> EncounterIds { get; private set; } = Array.Empty<string>();
         public PlayableEventEffectBatchResult EffectResults { get; private set; } = PlayableEventEffectBatchResult.Empty;
+        public bool ResolutionCheckpointPublished { get; private set; }
         public string EventId => gameEvent.ContentId;
         public EventData GameEvent => gameEvent;
         public HunterInstance DefaultActor => defaultActor;
@@ -224,6 +225,8 @@ namespace HuntingInDarkness.ActionFlow.Events
                     if (eventId.Length > 0) chainedEventIds.Add(eventId);
                 }
             stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.ContentId, actor?.InstanceId ?? 0, chainedEventIds, chainedEvents));
+            if (kind == PlayableEventCommitKind.Resolution)
+                ResolutionCheckpointPublished = true;
             eventOutbox.PublishCheckpoint();
         }
 

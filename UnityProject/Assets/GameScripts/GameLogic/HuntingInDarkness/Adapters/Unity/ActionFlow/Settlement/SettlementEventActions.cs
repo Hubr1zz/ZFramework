@@ -59,6 +59,11 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly SettlementEventChainCheckpointAdapter checkpointAdapter;
 
         public ResolveSettlementEventChainAction(EventSystem eventSystem, IPlayableEventInput eventInput, IReadOnlyList<EventData> events, Guid sessionId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, string restoredChainId = null, IReadOnlyList<SettlementEventChainOccurrence> restoredOccurrences = null)
+            : this(eventSystem, eventInput, ToWorkItems(events, restoredOccurrences), sessionId, eventOutbox, source, target, resolveEventEntity, randomInteractionPresenter, restoredChainId)
+        {
+        }
+
+        public ResolveSettlementEventChainAction(EventSystem eventSystem, IPlayableEventInput eventInput, IReadOnlyList<SettlementEventWork> events, Guid sessionId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, string restoredChainId = null)
         {
             this.eventSystem = eventSystem ?? throw new ArgumentNullException(nameof(eventSystem));
             this.eventInput = eventInput;
@@ -71,15 +76,18 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             checkpointAdapter = new SettlementEventChainCheckpointAdapter(eventSystem.Settlement);
             chainId = string.IsNullOrWhiteSpace(restoredChainId) ? Guid.NewGuid().ToString("N") : restoredChainId.Trim();
             if (events == null) return;
-            if (restoredOccurrences != null && restoredOccurrences.Count == events.Count)
-                for (int index = 0; index < events.Count; index++)
+            var validWorks = new List<SettlementEventWork>(events.Count);
+            foreach (SettlementEventWork work in events)
+            {
+                if (!ValidateWork(work, out string reason))
                 {
-                    SettlementEventChainOccurrence occurrence = restoredOccurrences[index];
-                    TryEnqueue(events[index], occurrence.Sequence);
+                    failureReason = reason;
+                    return;
                 }
-            else
-                foreach (EventData gameEvent in events)
-                    TryEnqueue(gameEvent, nextRootSequence--);
+                validWorks.Add(work);
+            }
+            foreach (SettlementEventWork work in validWorks)
+                TryEnqueue(work, work.RestoredOccurrence != null ? work.RestoredOccurrence.Sequence : nextRootSequence--);
         }
 
         public SettlementEventCommandResult Result { get; private set; }
@@ -88,8 +96,10 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
         public void Append(EventData gameEvent)
         {
-            TryEnqueue(gameEvent, nextRootSequence--);
+            TryEnqueue(new SettlementEventWork(gameEvent), nextRootSequence--);
         }
+
+        public void Append(SettlementEventWork work) => TryEnqueue(work, nextRootSequence--);
 
         protected override GameAction GetNextChild(CompositeExecutionContext context)
         {
@@ -97,6 +107,20 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             {
                 if (!context.LastOutcome.IsSuccess)
                 {
+                    if (currentEntry.ResolutionCheckpointPublished && string.IsNullOrWhiteSpace(lastCommitDiagnostic))
+                    {
+                        resolvedCount++;
+                        effectResults.AddRange(currentEntry.EffectResults.Effects);
+                        EnqueuePersistedChildren(currentEntry.ChainedEvents, new HashSet<EventData>(currentWork.Ancestors) { currentEntry.GameEvent });
+                        if (currentEntry.EncounterIds.Count > 0)
+                        {
+                            string encounterId = string.IsNullOrWhiteSpace(currentEntry.EncounterIds[0]) ? PlayableEncounterRuntime.DefaultEncounterId : currentEntry.EncounterIds[0];
+                            encounterRequest = new CampaignEncounterRequest(sessionId, encounterId, CampaignEncounterSourceKind.SettlementEvent, GamePhase.Settlement, Vector2Int.zero, currentEntry.EventId, "settlement");
+                        }
+                        currentEntry = null;
+                        if (pendingEvents.Count > 0) return GetNextChild(context);
+                        return null;
+                    }
                     failureReason = context.LastOutcome.Reason;
                     currentEntry = null;
                     return null;
@@ -152,6 +176,11 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             lastCommitDiagnostic = string.Empty;
             if (checkpoint.Kind == PlayableEventCommitKind.Resolution)
             {
+                if (!eventSystem.TryMarkTimelineEntryCompleted(work.Work.TimelineEntry, checkpoint.EventId))
+                {
+                    lastCommitDiagnostic = "营地事件对应的年鉴 occurrence 已失效。";
+                    return;
+                }
                 var chainedEventIds = new List<string>();
                 foreach (string chainedEventId in checkpoint.ChainedEventIds)
                 {
@@ -195,7 +224,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 PlayableEventChainOccurrence occurrence = lastCommittedChildren[occurrenceIndex];
                 string eventId = chainedEvent.ContentId;
                 if (!string.Equals(eventId, occurrence.EventId, StringComparison.Ordinal)) continue;
-                TryEnqueue(chainedEvent, occurrence.Sequence, ancestors);
+                TryEnqueue(new SettlementEventWork(chainedEvent, null, null), occurrence.Sequence, ancestors);
                 occurrenceIndex++;
             }
             lastCommittedChildren = Array.Empty<PlayableEventChainOccurrence>();
@@ -203,6 +232,12 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
         private void TryEnqueue(EventData gameEvent, int persistenceSequence = -1, IReadOnlyCollection<EventData> ancestors = null)
         {
+            TryEnqueue(new SettlementEventWork(gameEvent), persistenceSequence, ancestors);
+        }
+
+        private void TryEnqueue(SettlementEventWork work, int persistenceSequence = -1, IReadOnlyCollection<EventData> ancestors = null)
+        {
+            EventData gameEvent = work.Event;
             if (gameEvent == null) return;
             if (ancestors != null && ContainsAncestor(ancestors, gameEvent))
             {
@@ -210,12 +245,17 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 return;
             }
 
-            bool scheduled = persistenceSequence > 0
+            string occurrenceKey = work.TimelineEntry != null
+                ? $"{chainId}:timeline:{persistenceSequence}"
+                : null;
+            bool scheduled = !string.IsNullOrWhiteSpace(occurrenceKey)
+                ? chainGuard.TrySchedule(gameEvent, occurrenceKey)
+                : persistenceSequence > 0
                 ? chainGuard.TrySchedule(gameEvent, $"{chainId}:{persistenceSequence}")
                 : chainGuard.TrySchedule(gameEvent);
             if (scheduled)
             {
-                pendingEvents.Enqueue(new PendingEventWork(gameEvent, persistenceSequence, ancestors));
+                pendingEvents.Enqueue(new PendingEventWork(work, persistenceSequence, ancestors));
                 return;
             }
             eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = gameEvent.ContentId });
@@ -230,18 +270,62 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             return false;
         }
 
+        private bool ValidateWork(SettlementEventWork work, out string reason)
+        {
+            reason = string.Empty;
+            if (work.Event == null)
+            {
+                reason = "营地事件工作项缺少事件内容。";
+                return false;
+            }
+            if (work.TimelineEntry != null)
+            {
+                bool belongsToSettlement = eventSystem.Settlement?.Timeline != null && eventSystem.Settlement.Timeline.Contains(work.TimelineEntry);
+                if (!belongsToSettlement || work.TimelineEntry.IsCompleted || !PlayableSettlementEventRegistry.IsTimelineEventEntry(work.TimelineEntry) || !string.Equals(work.TimelineEntry.EventId, work.Event.ContentId, StringComparison.Ordinal))
+                {
+                    reason = "营地事件工作项包含无效或不匹配的年鉴 occurrence。";
+                    return false;
+                }
+            }
+            if (work.RestoredOccurrence != null && !string.Equals(work.RestoredOccurrence.EventId, work.Event.ContentId, StringComparison.Ordinal))
+            {
+                reason = "营地事件恢复 occurrence 与事件内容不匹配。";
+                return false;
+            }
+            if (work.TimelineEntry != null && work.RestoredOccurrence != null)
+            {
+                reason = "营地事件工作项不能同时绑定年鉴与子链 occurrence。";
+                return false;
+            }
+            return true;
+        }
+
         private readonly struct PendingEventWork
         {
-            public PendingEventWork(EventData gameEvent, int persistenceSequence, IReadOnlyCollection<EventData> ancestors = null)
+            public PendingEventWork(SettlementEventWork work, int persistenceSequence, IReadOnlyCollection<EventData> ancestors = null)
             {
-                Event = gameEvent;
+                Work = work;
                 PersistenceSequence = persistenceSequence;
                 Ancestors = ancestors == null ? new HashSet<EventData>() : new HashSet<EventData>(ancestors);
             }
 
-            public EventData Event { get; }
+            public SettlementEventWork Work { get; }
+            public EventData Event => Work.Event;
             public int PersistenceSequence { get; }
             public IReadOnlyCollection<EventData> Ancestors { get; }
+        }
+
+        private static IReadOnlyList<SettlementEventWork> ToWorkItems(IReadOnlyList<EventData> events, IReadOnlyList<SettlementEventChainOccurrence> restoredOccurrences)
+        {
+            if (events == null) return null;
+            var works = new List<SettlementEventWork>(events.Count);
+            bool hasOccurrences = restoredOccurrences != null && restoredOccurrences.Count == events.Count;
+            for (int index = 0; index < events.Count; index++)
+            {
+                SettlementEventChainOccurrence occurrence = hasOccurrences ? restoredOccurrences[index] : null;
+                works.Add(new SettlementEventWork(events[index], null, occurrence));
+            }
+            return works;
         }
     }
 }
