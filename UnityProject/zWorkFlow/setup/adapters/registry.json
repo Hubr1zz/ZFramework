@@ -30,6 +30,20 @@
       "optimizationPriority": ["coding-quality", "cost"],
       "maxTurnsHint": 40
     },
+    "efficient-read": {
+      "capabilityTier": "efficient-read",
+      "reasoningEffort": "high",
+      "writeAccess": false,
+      "optimizationPriority": ["cost", "latency", "evidence-quality"],
+      "maxTurnsHint": 30
+    },
+    "efficient-execution": {
+      "capabilityTier": "efficient-execution",
+      "reasoningEffort": "high",
+      "writeAccess": true,
+      "optimizationPriority": ["coding-quality", "cost", "latency"],
+      "maxTurnsHint": 40
+    },
     "advanced-reasoning": {
       "capabilityTier": "advanced-reasoning",
       "reasoningEffort": "high",
@@ -39,11 +53,11 @@
     }
   },
   "roleModelRequirements": {
-    "project-query-agent": { "profile": "economy", "permissionMode": "read-only" },
-    "wiki-query-agent": { "profile": "economy", "permissionMode": "read-only" },
+    "project-query-agent": { "profile": "efficient-read", "permissionMode": "read-only" },
+    "wiki-query-agent": { "profile": "efficient-read", "permissionMode": "read-only" },
     "solution-architect": { "profile": "advanced-reasoning", "permissionMode": "read-only" },
-    "code-implementer": { "profile": "coding", "permissionMode": "workspace-write" },
-    "code-simplifier": { "profile": "coding", "permissionMode": "workspace-write" }
+    "code-implementer": { "profile": "efficient-execution", "permissionMode": "workspace-write" },
+    "code-simplifier": { "profile": "efficient-execution", "permissionMode": "workspace-write" }
   },
   "adapters": [
     {
@@ -67,6 +81,8 @@
         "profileMappings": {
           "economy": { "selector": "gpt-5.5", "reasoningEffort": "low", "fallbackSelectors": ["gpt-5.6-terra"] },
           "coding": { "selector": "gpt-5.6-sol", "reasoningEffort": "medium" },
+          "efficient-read": { "selector": "gpt-5.6-luna", "reasoningEffort": "high" },
+          "efficient-execution": { "selector": "gpt-5.6-luna", "reasoningEffort": "high" },
           "advanced-reasoning": { "selector": "gpt-5.6-sol", "reasoningEffort": "high" }
         },
         "notes": ["Only apply a configured selector after the active Codex runtime confirms it is available."]
@@ -100,6 +116,8 @@
         "profileMappings": {
           "economy": { "selector": "haiku", "reasoningEffort": "low" },
           "coding": { "selector": "sonnet", "reasoningEffort": "medium" },
+          "efficient-read": { "selector": "sonnet", "reasoningEffort": "high" },
+          "efficient-execution": { "selector": "sonnet", "reasoningEffort": "high" },
           "advanced-reasoning": { "selector": "sonnet", "reasoningEffort": "high" }
         },
         "notes": ["Aliases must still be accepted by the active Claude Code runtime before setup writes a missing thin wrapper."]
@@ -232,6 +250,8 @@
         "profileMappings": {
           "economy": { "selector": "secondary" },
           "coding": { "selector": "primary" },
+          "efficient-read": { "selector": "primary" },
+          "efficient-execution": { "selector": "primary" },
           "advanced-reasoning": { "selector": "primary" }
         },
         "notes": ["Use the economy mapping only when the current Kimi mode confirms secondary-model subagent routing is enabled."]

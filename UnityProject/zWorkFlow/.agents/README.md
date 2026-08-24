@@ -8,6 +8,8 @@
 - 项目读取先走 `project-context/references/PROJECT-INDEX.md`，再按需打开一个参考小节与目标脚本。
 - Agent 拆分是可选项：若事实检索与方案设计会重复读取同一来源/代码，由单一负责人完成；只有上下文不重叠时才拆分。
 - `project-query-agent` 可做独立、只读事实检索；`solution-architect` 可处理独立架构/Spec；`code-implementer` 负责实现。
+- C# 任务先由执行 Agent 用派生索引形成一次性事实包，再交给方案 Agent 和实现复用；不要让多个 Agent 重复读取同一批源码。
+- Review、Ledger、Summary 和 Workbench 状态是实现后的进度投影，不是普通开发启动依赖。相关职责按功能簇完成后统一审查与定向验证；全量测试只用于跨系统/L4 里程碑、公共契约、发布门禁或显式要求。
 - `openspec-derive-design-specs` 只允许显式调用。
 - `codebase-query` 是 C# 项目的条件能力：已安装且 PowerShell 7 可用时，C# 结构、符号、调用者与影响查询必须先用本地派生索引缩小候选，再以源码核验；仅在不可用、失败或超出契约时回退 `rg` 并说明原因。缓存不是项目事实或决策权威源。
 - `project-tooling` 保存 Git 同步的 Plugin/Architecture/System 工程能力目录；实现任务只读取命中条目。Plugin 判断依据为空时按代码风格判断，Architecture 固定 required/locked 且修改前需用户确认。

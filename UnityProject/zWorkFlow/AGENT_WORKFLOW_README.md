@@ -34,7 +34,7 @@
 1. 完整规则只改 `.agents/skills/` 或 `.agents/agent-roles/`。
 2. 新增 skill 只先修改 `.agents/skills/`；仅为注册表声明需要 wrapper 的工具同步薄壳。
 3. 新增 agent 角色先写 `.agents/agent-roles/`；只更新正式支持且需要原生 Agent 配置的工具壳层。
-4. 只有会新增或改变功能、外部可观察行为或公共运行契约的非平凡产品功能或运行框架改动才过 `openspec-intake-gate`。行为保持型重构和实现方案调整即使发生在框架代码中也不进入；用户显式调用 OpenSpec/zWorkFlow 时除外。
+4. 只有会新增或改变玩法功能、玩家可观察行为或 Player 运行时公共契约的非平凡游戏改动才过 `openspec-intake-gate`。行为保持型重构、实现方案调整和开发工具即使被显式要求使用 OpenSpec/zWorkFlow，也不能进入正式 Spec；显式调用只触发审阅。
 5. 成员提出个人规范时，更新 `.agent-memory/zworkflow/team/MAINTAINERS.md` 与对应 `.agent-memory/zworkflow/team/members/<nickname>.md`；不要写入口文档。
 6. 修改完成后检查旧绝对路径、工具私有 memory、重复完整 skill 副本和团队级唯一 active tool 是否残留。
    工具专属目录不得保存项目事实、维护队列或完整功能文档；这些内容必须归属到对应 `.agents/skills/<功能>/references/`。
@@ -53,7 +53,15 @@
 
 先判断拆分是否会导致重复读取。一次设计导入、同一系统的诊断+方案或紧密耦合审查默认由一个负责人贯穿；只有子任务上下文独立，或主 Agent 能提供足够的已读摘要而无需重读时才分 Agent。项目存在 `project-context/references/PROJECT-INDEX.md` 时先读索引，否则先读 setup 映射出的等价项目速查。
 
-- 共享需求只使用 `economy`、`coding`、`advanced-reasoning` 三种 profile，并分别表达推理强度、写权限和成本/质量优先级；权威结构位于 `setup/adapters/registry.json`。
+代码任务采用“索引定位 → 方案设计 → 功能簇实现 → 一次后置审查与定向验证 → 进度投影”的节奏：
+
+1. 只读执行 Agent 先用 C# 派生索引收敛类型、调用者、生命周期入口和影响范围，再读取少量命中源码，形成可复用的事实包。代码索引属于设计阶段的前置输入，不是仅供实现后审计的工具。
+2. 方案 Agent 基于事实包完成宏观边界，也必须下沉到可执行的接口契约、状态所有权、失败路径、目标文件和验收接缝；不输出逐行实现。事实不足时只要求定向补查，不重新全量扫描。
+3. 执行 Agent 复用同一事实包完成读写、命令输入输出和验证。多个职责紧密相关、共享同一状态机或生命周期的改动作为一个功能簇连续实现，不逐文件切换 Agent、审查或跑全量测试。
+4. 每个功能簇完成后统一做一次后置审查和定向测试。全量测试只用于跨系统/L4 里程碑、公共运行契约变更、发布门禁或用户明确要求；普通功能簇使用编译、数据验证和命中测试组。
+5. OpenSpec、Review、Ledger、Summary 和 Workbench 进度只在实现与验证完成后投影，或在用户显式操作其生命周期时读取；除代码索引外，zWorkFlow 产物不得成为普通开发任务的启动依赖。
+
+- 共享需求使用 `economy`、`coding`、`efficient-read`、`efficient-execution`、`advanced-reasoning` profile，并分别表达推理强度、写权限和成本/质量优先级；权威结构位于 `setup/adapters/registry.json`。
 - Codex 与 Claude 的模型名只是经过验证的平台映射示例，不作为其他平台的模型名翻译表。
 - setup 只在当前运行时确认模型可用且映射唯一时自动选择；候选不唯一、账号策略不可见或价格偏好未确定时，让当前成员确认一次，并把决定写入 Git 忽略的本地 tool selection。
 - 平台仅支持原生 Auto、主/次模型或继承时，按 adapter 声明降级；无法验证逐 Agent 选模时不得宣称已经节省模型费用。
@@ -61,9 +69,8 @@
 
 当前已验证映射：
 
-- `project-query-agent` / `wiki-query-agent` → `economy`：Codex `gpt-5.5` + `low`（不可用时显式建议 `gpt-5.6-terra + low`）；Claude `haiku`。
+- `project-query-agent` / `wiki-query-agent` → `efficient-read`，`code-implementer` / `code-simplifier` → `efficient-execution`：Codex 均为 `gpt-5.6-luna` + `high`；Claude 均为 `sonnet` + `high`。两者分别保持只读与写入权限，负责索引、定向阅读、执行、输入输出和实现，不承担独立宏观架构决策。
 - `solution-architect` → `advanced-reasoning`：Codex `gpt-5.6-sol` + `high`；Claude `sonnet`。
-- `code-implementer` / `code-simplifier` → `coding`：Codex `gpt-5.6-sol` + `medium`；Claude `sonnet`。
 
 ## 迁移到新项目
 
