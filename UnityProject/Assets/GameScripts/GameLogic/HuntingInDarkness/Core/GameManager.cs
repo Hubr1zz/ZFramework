@@ -154,12 +154,34 @@ namespace Core
         private bool preparedHuntExit;
         private string activeExpeditionId;
         private string stableCampaignPayload;
+        private bool hasAwakened;
+        private ICampaignPersistencePort campaignPersistence = new SaveLoadSystemCampaignPersistenceAdapter();
         [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
         [SerializeField] private TabletopCardInteractionPresenter tabletopCardPresenter;
         [SerializeField] private Vector3 tabletopDiceAnchorOffset = new(0f, 0f, -1.65f);
         private ITabletopRandomInteractionPresenter tabletopInteractionRouter;
+        private ITabletopRandomInteractionPresenter configuredTabletopInteraction;
         private PlayableSettlementContentCatalog settlementContentCatalog;
         private PlayableWorkshopCatalog workshopContentCatalog;
+
+        /// <summary>仅允许在 GameManager 未激活时替换战役持久化端口。</summary>
+        public bool ConfigureCampaignPersistence(ICampaignPersistencePort persistence)
+        {
+            if (hasAwakened || persistence == null) return false;
+            campaignPersistence = persistence;
+            return true;
+        }
+
+        public UniTask<bool> HasCampaignSaveAsync(CancellationToken cancellationToken = default) => campaignPersistence.HasSaveAsync(cancellationToken);
+
+        public UniTask DeleteCampaignSaveAsync(CancellationToken cancellationToken = default) => campaignPersistence.DeleteAsync(cancellationToken);
+
+        public bool ConfigureTabletopInteraction(ITabletopRandomInteractionPresenter presenter)
+        {
+            if (hasAwakened || presenter == null) return false;
+            configuredTabletopInteraction = presenter;
+            return true;
+        }
 
         // ─── 运行时数据 ───────────────────────────────────────────────
 
@@ -176,6 +198,7 @@ namespace Core
 
         private void Awake()
         {
+            hasAwakened = true;
             // 单例
             if (Instance != null && Instance != this)
             {
@@ -195,7 +218,7 @@ namespace Core
                 tabletopCardPresenter = GetComponent<TabletopCardInteractionPresenter>() ?? gameObject.AddComponent<TabletopCardInteractionPresenter>();
             tabletopRandomPresenter.AnchorResolver = ResolveTabletopRandomAnchor;
             tabletopCardPresenter.AnchorResolver = ResolveTabletopRandomAnchor;
-            tabletopInteractionRouter = new TabletopRandomInteractionRouter(tabletopRandomPresenter, tabletopCardPresenter);
+            tabletopInteractionRouter = configuredTabletopInteraction ?? new TabletopRandomInteractionRouter(tabletopRandomPresenter, tabletopCardPresenter);
 
             // 阶段管理器
             _phaseManager = new PhaseManager(GameModule.Fsm);
@@ -289,16 +312,19 @@ namespace Core
             if (settlementRoot == null)
             {
                 settlementRoot = new GameObject("SettlementRoot");
+                settlementRoot.transform.SetParent(transform, false);
                 Debug.Log("[GameManager] 自动创建 SettlementRoot");
             }
             if (huntRoot == null)
             {
                 huntRoot = new GameObject("HuntRoot");
+                huntRoot.transform.SetParent(transform, false);
                 Debug.Log("[GameManager] 自动创建 HuntRoot");
             }
             if (bossFightRoot == null)
             {
                 bossFightRoot = new GameObject("BossFightRoot");
+                bossFightRoot.transform.SetParent(transform, false);
                 Debug.Log("[GameManager] 自动创建 BossFightRoot");
             }
 
@@ -368,21 +394,36 @@ namespace Core
         /// </summary>
         public void InjectBattleSetup(BattleSetup setup) => _pendingSetup = setup;
 
-        /// <summary>
-        /// 独立测试场景的显式配置入口。必须在 inactive GameObject 激活、触发 Awake 之前调用。
-        /// </summary>
-        public void ConfigureForStandaloneTest(BattleSetup setup, GamePhase startPhase, float testCellSize, UI.EntityCreator testEntityCreator = null, TMP_FontAsset testChineseFontAsset = null, TextAsset testChineseCharacterSet = null)
+        /// <summary>正式运行配置入口。必须在 inactive GameObject 激活、触发 Awake 之前调用。</summary>
+        public void ConfigurePlayableRuntime(BattleSetup setup, float runtimeCellSize, UI.EntityCreator runtimeEntityCreator = null, TMP_FontAsset runtimeChineseFontAsset = null, TextAsset runtimeChineseCharacterSet = null)
         {
             if (gameObject.activeInHierarchy)
-                throw new System.InvalidOperationException("Standalone test configuration must be applied before GameManager is activated.");
+                throw new System.InvalidOperationException("Playable runtime configuration must be applied before GameManager is activated.");
 
             _pendingSetup = setup;
+            devMode = false;
+            devStartPhase = GamePhase.Settlement;
+            cellSize = Mathf.Max(0.01f, runtimeCellSize);
+            entityCreator = runtimeEntityCreator;
+            chineseFontAsset = runtimeChineseFontAsset;
+            chineseCharacterSet = runtimeChineseCharacterSet;
+        }
+
+        /// <summary>显式授予独立测试场景非营地直启能力。</summary>
+        public void ConfigureDevelopmentStart(GamePhase startPhase)
+        {
+            if (gameObject.activeInHierarchy)
+                throw new System.InvalidOperationException("Development start configuration must be applied before GameManager is activated.");
+
             devMode = true;
             devStartPhase = startPhase;
-            cellSize = Mathf.Max(0.01f, testCellSize);
-            entityCreator = testEntityCreator;
-            chineseFontAsset = testChineseFontAsset;
-            chineseCharacterSet = testChineseCharacterSet;
+        }
+
+        /// <summary>独立测试场景的兼容配置入口。</summary>
+        public void ConfigureForStandaloneTest(BattleSetup setup, GamePhase startPhase, float testCellSize, UI.EntityCreator testEntityCreator = null, TMP_FontAsset testChineseFontAsset = null, TextAsset testChineseCharacterSet = null)
+        {
+            ConfigurePlayableRuntime(setup, testCellSize, testEntityCreator, testChineseFontAsset, testChineseCharacterSet);
+            ConfigureDevelopmentStart(startPhase);
         }
 
         public void ConfigureSettlementContent(PlayableSettlementContentCatalog catalog)
@@ -1021,6 +1062,7 @@ namespace Core
         public IReadOnlyList<HunterInstance> ActiveHuntHunters => _huntMgr != null ? _huntMgr.ActiveHunters : System.Array.Empty<HunterInstance>();
         public bool IsHuntActionSessionActive => huntActionSession?.IsActive == true;
         public bool IsHuntActionSessionRunning => huntActionSession?.IsRunning == true;
+        public bool IsHuntReturnInFlight => huntReturnRecoveryInFlight;
         bool IPlayableHuntRetreatInput.IsReturnCheckpointLocked => huntActionSession?.IsReturnCheckpointLocked == true;
         public bool IsCampaignActionSessionActive => campaignActionSession?.IsActive == true;
         public bool IsSettlementActionSessionRunning => settlementActionSession?.IsRunning == true;
@@ -1083,6 +1125,8 @@ namespace Core
 
         public async UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds, PlayableHuntDestination destination)
         {
+            if (huntReturnRecoveryInFlight)
+                return SettlementDepartureCommandResult.Failed("请先完成上一场远征的回营结算，再重新发起出猎。");
             if (_pendingHuntRecord != null)
             {
                 if (!huntReturnRecoveryInFlight)
@@ -1126,6 +1170,8 @@ namespace Core
 
         public bool TryDepartForHunt(IReadOnlyList<int> hunterIds)
         {
+            if (huntReturnRecoveryInFlight)
+                return false;
             if (_pendingHuntRecord != null)
             {
                 if (!huntReturnRecoveryInFlight)
@@ -1216,18 +1262,18 @@ namespace Core
 
                 if (!PlayableCampaignLoopContract.TryClearAppliedReturnCheckpoint(settlement, record, out string checkpointReason))
                     return SettlementHuntReturnCommandResult.Failed(checkpointReason);
-                _pendingHuntRecord = null;
                 if (!await TrySaveCampaignAsync(false, cancellationToken))
                 {
                     _pendingHuntRecord = record;
                     settlement.PendingHuntReturn = record;
                     return SettlementHuntReturnCommandResult.Failed("回营检查点尚未清除，请重试后再出猎。");
                 }
+                _pendingHuntRecord = null;
 
                 if (queueAnnualEvents)
                 {
                     settlementEventRestoreProjection = projection;
-                    QueueSettlementEvents(restorePlan.WorkItems, projection, restorePlan.ChainId);
+                    await ResolveSettlementEventsAsync(session, restorePlan.WorkItems, projection, restorePlan.ChainId);
                 }
             }
             return result;
@@ -1235,12 +1281,19 @@ namespace Core
 
         private async UniTask<bool> RetryPendingHuntReturnAsync()
         {
-            if (_pendingHuntRecord == null || settlementActionSession == null || !settlementActionSession.IsActive || huntReturnRecoveryInFlight)
+            if (_pendingHuntRecord == null)
+                return false;
+            return await ApplyHuntReturnGuardedAsync(settlementActionSession, _pendingHuntRecord);
+        }
+
+        private async UniTask<bool> ApplyHuntReturnGuardedAsync(PlayableSettlementActionSession session, HuntRecord record)
+        {
+            if (record == null || session == null || !session.IsActive || huntReturnRecoveryInFlight)
                 return false;
             huntReturnRecoveryInFlight = true;
             try
             {
-                SettlementHuntReturnCommandResult result = await ApplyHuntReturnAsync(settlementActionSession, _pendingHuntRecord);
+                SettlementHuntReturnCommandResult result = await ApplyHuntReturnAsync(session, record);
                 return result.Succeeded;
             }
             catch (System.Exception exception)
@@ -1254,7 +1307,7 @@ namespace Core
             }
         }
 
-        private async UniTaskVoid ResolveSettlementEventsAsync(PlayableSettlementActionSession session, IReadOnlyList<EventData> events, SettlementEventRestoreProjection restoreProjection = null, string restoredChainId = null, IReadOnlyList<SettlementEventChainOccurrence> restoredOccurrences = null)
+        private async UniTask ResolveSettlementEventsAsync(PlayableSettlementActionSession session, IReadOnlyList<EventData> events, SettlementEventRestoreProjection restoreProjection = null, string restoredChainId = null, IReadOnlyList<SettlementEventChainOccurrence> restoredOccurrences = null)
         {
             SettlementEventCommandResult result;
             try
@@ -1279,7 +1332,7 @@ namespace Core
                     }
                     else if (nextRestorePlan.HasPendingEvents)
                     {
-                        QueueSettlementEvents(nextRestorePlan.WorkItems, restoreProjection, nextRestorePlan.ChainId);
+                        await ResolveSettlementEventsAsync(session, nextRestorePlan.WorkItems, restoreProjection, nextRestorePlan.ChainId);
                     }
                 }
             }
@@ -1287,7 +1340,7 @@ namespace Core
                 Debug.LogWarning($"[GameManager] 营地事件链未完成：{result.Reason}");
         }
 
-        private async UniTaskVoid ResolveSettlementEventsAsync(PlayableSettlementActionSession session, IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection = null, string restoredChainId = null)
+        private async UniTask ResolveSettlementEventsAsync(PlayableSettlementActionSession session, IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection = null, string restoredChainId = null)
         {
             SettlementEventCommandResult result;
             try
@@ -1307,7 +1360,7 @@ namespace Core
                 {
                     SettlementEventRestorePlan nextRestorePlan = restoreProjection.Prepare();
                     if (nextRestorePlan.Succeeded && nextRestorePlan.HasPendingEvents)
-                        QueueSettlementEvents(nextRestorePlan.WorkItems, restoreProjection, nextRestorePlan.ChainId);
+                        await ResolveSettlementEventsAsync(session, nextRestorePlan.WorkItems, restoreProjection, nextRestorePlan.ChainId);
                     else if (!nextRestorePlan.Succeeded)
                         Debug.LogError($"[GameManager] 下一条营地事件链恢复失败：{nextRestorePlan.FailureReason}");
                 }
@@ -1596,7 +1649,7 @@ namespace Core
             {
                 if (!TryCreateEncounterHandoffPayload(request.EncounterId, out string handoffPayload, out string normalHuntPayload, out reason)) return false;
                 if (string.IsNullOrWhiteSpace(previousStablePayload)) previousStablePayload = normalHuntPayload;
-                if (!SaveLoadSystem.TrySavePayloadImmediate(handoffPayload))
+                if (!campaignPersistence.TrySavePayloadImmediate(handoffPayload))
                 {
                     reason = "无法建立可靠的遭遇交接检查点。";
                     return false;
@@ -1613,7 +1666,7 @@ namespace Core
             pendingEncounterHunters = previousHunters;
             if (huntEncounter)
             {
-                if (SaveLoadSystem.TrySavePayloadImmediate(previousStablePayload))
+                if (campaignPersistence.TrySavePayloadImmediate(previousStablePayload))
                     stableCampaignPayload = previousStablePayload;
                 else
                 {
@@ -1662,10 +1715,15 @@ namespace Core
                 return false;
             }
             if (newPhase == _phaseManager.CurrentPhase) return true;
+            if (huntReturnRecoveryInFlight)
+            {
+                reason = "上一场远征的回营保存与年度流程尚未完成";
+                return false;
+            }
             GamePhase previousPhase = _phaseManager.CurrentPhase;
             if (previousPhase == GamePhase.Settlement && newPhase == GamePhase.Hunt)
             {
-                if (_pendingHuntRecord != null || _settlementManager?.Data?.PendingHuntReturn != null)
+                if (huntReturnRecoveryInFlight || _pendingHuntRecord != null || _settlementManager?.Data?.PendingHuntReturn != null)
                 {
                     reason = "上一场远征的回营结算尚未完成";
                     return false;
@@ -1734,7 +1792,7 @@ namespace Core
                     StartSettlementActionSession();
                     EnsureSettlementUI();
                     if (record != null)
-                        ApplyHuntReturnAsync(settlementActionSession, record).Forget();
+                        ApplyHuntReturnGuardedAsync(settlementActionSession, record).Forget();
                     else
                     {
                         QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
@@ -1807,7 +1865,7 @@ namespace Core
             else if (CurrentGamePhase == GamePhase.Hunt && huntActionSession?.IsRunning != true)
                 TryCaptureCampaignPayload(true, out _, out _);
             if (!string.IsNullOrWhiteSpace(stableCampaignPayload))
-                SaveLoadSystem.SavePayloadImmediate(stableCampaignPayload);
+                campaignPersistence.TrySavePayloadImmediate(stableCampaignPayload);
         }
 
         private void OnDestroy()
@@ -1953,7 +2011,7 @@ namespace Core
             gameOverView.OnRestart = () =>
             {
                 // 删除存档后重置到营地开头
-                SaveLoadSystem.DeleteSaveAsync(this.GetCancellationTokenOnDestroy()).Forget();
+                campaignPersistence.DeleteAsync(this.GetCancellationTokenOnDestroy()).Forget();
                 // 重置 SettlementManager，重新初始化
                 DisposeSettlementActionSession();
                 DisposeHuntActionSession();
@@ -2033,7 +2091,7 @@ namespace Core
                 Debug.LogError($"[GameManager] 无法冻结活动狩猎检查点：{reason}");
                 return;
             }
-            SaveLoadSystem.TrySavePayloadAsync(payload, this.GetCancellationTokenOnDestroy()).Forget();
+            campaignPersistence.TrySavePayloadAsync(payload, this.GetCancellationTokenOnDestroy()).Forget();
         }
 
         private async UniTask SaveCampaignAsync(bool includeActiveHunt)
@@ -2048,7 +2106,7 @@ namespace Core
                 Debug.LogError($"[GameManager] 无法冻结战役存档：{reason}");
                 return false;
             }
-            return await SaveLoadSystem.TrySavePayloadAsync(payload, cancellationToken);
+            return await campaignPersistence.TrySavePayloadAsync(payload, cancellationToken);
         }
 
         private bool TryCaptureCampaignPayload(bool includeActiveHunt, out string payload, out string reason)
@@ -2085,7 +2143,7 @@ namespace Core
 
         private async UniTaskVoid DevLoadAsync()
         {
-            CampaignSnapshot snapshot = await SaveLoadSystem.LoadAsync(this.GetCancellationTokenOnDestroy());
+            CampaignSnapshot snapshot = await campaignPersistence.LoadAsync(this.GetCancellationTokenOnDestroy());
             SettlementInstance data = snapshot?.Settlement;
             if (data == null)
             {

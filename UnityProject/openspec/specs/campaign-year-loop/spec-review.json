@@ -6,19 +6,21 @@
   "readiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "营地编队准备、狩猎进入、撤退回营、年度结算和下一年再次出发已由生产 Runner 与原子入口契约组成闭环；权威入口及开发回退均拒绝不可玩编队，初始化失败会回滚并保留可重试状态。",
+    "summary": "营地编队准备、狩猎进入、撤退回营、年度结算和下一年再次出发已通过生产 Runner 与真实 GameManager 公共命令闭环；正式 Bootstrap 不再隐式获得开发直启能力，回营检查点保存失败会保留 Hunt 且不推进年份。",
     "evidence": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignLoopSmokeTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementDepartureActionTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntRetreatActionTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
-      "Unity CLI EditMode: 613/613 passed"
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "Unity CLI EditMode: 626/626 passed",
+      "Unity CLI PlayMode campaign loop: 3/3 passed"
     ],
     "differences": [
-      "当前闭环验证使用生产协调契约与真实 Settlement/Hunt Runner 的 EditMode 组合 smoke；完整 GameManager 场景级 PlayMode 端到端测试可在场景依赖稳定后补充。",
+      "PlayMode 闭环使用动态空测试场景和内存持久化端口，不依赖正式场景资产；正式场景的表现接线仍由各 3D 端口自己的验证覆盖。",
       "显式 devStartPhase=Hunt 仅在当前存在 1 至 4 名可用猎人时允许开发回退；运行期 Settlement 到 Hunt 的权威转换不允许该回退。"
     ],
-    "verifiedAt": "2026-08-24T07:53:40-07:00",
+    "verifiedAt": "2026-08-24T10:18:37-07:00",
     "codeEvidence": [
       {
         "guid": "245d7a41004f432faff9c725577de9ab",
@@ -33,10 +35,10 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "c276accaf462ef40272171323113464d3a3c159d254ab3cd37fc9b62b84a92d1",
+        "fileHash": "18a7ebbfacc743d7425ee0a270f034fae40ec5b0b6f5f98904cec890df0bf3d8",
         "status": "verified",
-        "checkedAt": "2026-08-24T07:53:40-07:00",
-        "feature": "把权威编队契约接入阶段转换、失败回滚、受限开发启动和回营两阶段保存。"
+        "checkedAt": "2026-08-24T10:18:37-07:00",
+        "feature": "把权威编队契约接入阶段转换、失败回滚和受限开发启动；以完整 in-flight 门禁串行回营应用、两阶段保存与年度事件恢复。"
       },
       {
         "guid": "93a36191e033ff6478260769df9c7a0c",
@@ -51,9 +53,9 @@
         "guid": "e159b3c1d6bfcce4082b45e63fc28083",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
         "line": 1,
-        "fileHash": "fddecbf91c534fe6e6b5db863fa0abc60ce2ee03826f2e7c7b171b24208d15c6",
+        "fileHash": "947b9d858ad04849902ccb9e8e7698c775adc65450574a62ade0ddb6545d802f",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:00:29-07:00",
+        "checkedAt": "2026-08-24T09:57:29-07:00",
         "feature": "持久化准备年份与令牌身份，同时将本次进程授权保持为非序列化状态，阻止读档复用旧编队。"
       },
       {
@@ -64,6 +66,33 @@
         "status": "verified",
         "checkedAt": "2026-08-24T06:00:29-07:00",
         "feature": "覆盖完整年度循环、非法编队、开发回退边界、错误记录、初始化失败回滚与读档陈旧令牌。"
+      },
+      {
+        "guid": "3036f45e4a7fd284caf46b4750249551",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs",
+        "line": 1,
+        "fileHash": "ba8574f29da3f1f827e028b294140ea18e4120ce2f789de754c14d1bd9ae0455",
+        "status": "verified",
+        "checkedAt": "2026-08-24T09:57:29-07:00",
+        "feature": "正式组合根仅注入生产运行配置并固定从营地启动，不再把内容初始阶段升级为开发权限。"
+      },
+      {
+        "guid": "f12edfe6ff014c5fb529e138a1ed579b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ICampaignPersistencePort.cs",
+        "line": 1,
+        "fileHash": "4a2babb88854ad7ca022d63753f1e4e8b80047a7065d0e0b124de39b6ce42ad7",
+        "status": "verified",
+        "checkedAt": "2026-08-24T10:18:37-07:00",
+        "feature": "为组合根提供可替换的战役存档查询、保存、读取和删除端口，并声明跨异步与即时操作的顺序契约。"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "line": 1,
+        "fileHash": "1c36b60274a2a6b8cf65f9196734351698186e2f8680ccdae2750606ef8a77f3",
+        "status": "verified",
+        "checkedAt": "2026-08-24T10:18:37-07:00",
+        "feature": "通过真实 GameManager 公共命令验证年度闭环、正式阶段门禁、检查点保存失败回滚及延迟持久化期间禁止抢跑。"
       }
     ]
   },
@@ -72,6 +101,8 @@
     "GameManager 在改变 FSM 前冻结并验证编队；只有 HuntManager、Hunt Runner 与必要交互初始化成功才消费授权。",
     "初始化失败时回滚阶段并保留营地会话及授权，允许玩家修正环境后重试。",
     "撤退生成稳定回营记录；Settlement Runner 幂等应用资源、成长、历史和年份推进后，GameManager 仅按匹配 RecordId 清理检查点。",
+    "GameManager 的实际 I/O 通过可替换持久化端口完成，保存失败不会产生半提交的回营状态。",
+    "正式 Bootstrap 固定使用生产运行配置；只有显式开发调用才可授予非营地直启能力。",
     "每次成功回营恰好推进一年，下一次出猎必须重新编队，不存在正常玩家路径下的同年无限出猎。"
   ],
   "gapIds": [],
@@ -84,6 +115,8 @@
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignLoopContract.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ICampaignPersistencePort.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs:1"
   ]

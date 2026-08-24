@@ -39,7 +39,7 @@ namespace HuntingInDarkness.ViewLayer.Flow
         {
             try
             {
-                hasSave = await SaveLoadSystem.HasSaveFileAsync(this.GetCancellationTokenOnDestroy());
+                hasSave = await manager.HasCampaignSaveAsync(this.GetCancellationTokenOnDestroy());
                 statusText = hasSave ? "发现仍未结束的狩猎记录。" : "尚未留下任何狩猎记录。";
             }
             catch (System.OperationCanceledException)
@@ -127,7 +127,7 @@ namespace HuntingInDarkness.ViewLayer.Flow
             busy = true;
             try
             {
-                await SaveLoadSystem.DeleteSaveAsync(this.GetCancellationTokenOnDestroy());
+                await manager.DeleteCampaignSaveAsync(this.GetCancellationTokenOnDestroy());
                 visible = false;
             }
             catch (System.OperationCanceledException)

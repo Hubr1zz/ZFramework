@@ -76,7 +76,7 @@ namespace HuntingInDarkness.Bootstrap
             var managerObject = new GameObject("GameManager (Playable)");
             managerObject.SetActive(false);
             var manager = managerObject.AddComponent<GameManager>();
-            manager.ConfigureForStandaloneTest(contentCandidate.DefaultBattleSetup, contentCandidate.InitialPhase, contentCandidate.CellSize);
+            manager.ConfigurePlayableRuntime(contentCandidate.DefaultBattleSetup, contentCandidate.CellSize);
             manager.ConfigureSettlementContent(contentCandidate.SettlementContent);
             manager.ConfigureWorkshopContent(contentCandidate.WorkshopContent);
             EnsureRequiredWorldSpacePorts(gameObject, manager, settings);

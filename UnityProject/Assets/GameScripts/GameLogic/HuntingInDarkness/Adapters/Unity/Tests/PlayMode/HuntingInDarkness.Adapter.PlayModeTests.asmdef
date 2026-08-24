@@ -1,0 +1,23 @@
+{
+    "name": "HuntingInDarkness.Adapter.PlayModeTests",
+    "rootNamespace": "HuntingInDarkness.Adapter.PlayModeTests",
+    "references": [
+        "GameLogic",
+        "HuntingInDarkness.GameCore",
+        "UniTask",
+        "ActionQueue.Runtime",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

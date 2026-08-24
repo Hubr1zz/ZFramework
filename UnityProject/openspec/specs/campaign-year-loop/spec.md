@@ -42,7 +42,7 @@ Settlement Runner SHALL 为名册提交当前年份、持久 preparation token �
 
 ### Requirement: Development Hunt boot is an explicit exception
 
-仅 devStartPhase 直接启动 Hunt、且未经过 Settlement 到 Hunt 转换时，组合根 MAY 使用全部可用猎人作为开发回退。开发回退仍 SHALL 满足 1 至 4 名当前可用猎人的基础编队规则；该回退 SHALL NOT 放宽正式运行时转换门禁。
+仅显式调用开发启动配置、直接启动 Hunt、且未经过 Settlement 到 Hunt 转换时，组合根 MAY 使用全部可用猎人作为开发回退。正式 Bootstrap SHALL 使用生产运行配置并从 Settlement 启动，不得从内容配置隐式获得开发直启能力。开发回退仍 SHALL 满足 1 至 4 名当前可用猎人的基础编队规则；该回退 SHALL NOT 放宽正式运行时转换门禁。
 
 #### Scenario: The developer starts directly in Hunt
 
@@ -59,6 +59,12 @@ Settlement Runner SHALL 为名册提交当前年份、持久 preparation token �
 
 - **WHEN** devStartPhase 的 Hunt runtime 无法完成初始化
 - **THEN** 组合根 SHALL 回退到 Settlement 并恢复可用的 Settlement Runner
+
+#### Scenario: Production content requests another initial phase
+
+- **WHEN** 正式 Bootstrap 安装战役内容
+- **THEN** GameManager SHALL 使用生产运行配置并从 Settlement 启动
+- **AND** 内容候选的 InitialPhase SHALL NOT 隐式开启开发模式
 
 ### Requirement: View failure does not corrupt authoritative Hunt entry
 
@@ -90,11 +96,35 @@ Hunt Runner SHALL 生成稳定 HuntRecord；Settlement Runner 接受该记录后
 - **THEN** PendingHuntReturn SHALL 保持不变
 - **AND** 新的出猎 SHALL 继续被阻止
 
+### Requirement: Campaign persistence is a replaceable composition port
+
+GameManager SHALL 通过战役持久化端口执行存档存在性查询、保存、读档与删除 I/O，默认 Adapter SHALL 委托现有 SaveLoadSystem。开场菜单、开始菜单与开发面板 SHALL 只调用 GameManager 命令，不得直接访问另一存储。端口仅可在 GameManager 首次 Awake 前替换，且实现 SHALL 串行化异步与即时变更或保证最后一次调用获胜；载荷冻结与结构验证 SHALL 继续由既有纯逻辑执行。
+
+#### Scenario: The return checkpoint cannot be persisted
+
+- **WHEN** Hunt Runner 已生成回营记录，但持久化端口拒绝保存 PendingHuntReturn 检查点
+- **THEN** 玩家 SHALL 留在 Hunt
+- **AND** PendingHuntReturn 与 HuntHistory SHALL 保持未提交
+- **AND** CurrentYear SHALL NOT 推进
+
+#### Scenario: Applied return persistence is still running
+
+- **WHEN** 回营状态已经应用，但其可靠保存或年度事件恢复仍未完成
+- **THEN** Settlement 到 Hunt 的下一次出发 SHALL 被拒绝
+- **AND** 保存与恢复完成后才 SHALL 重新开放出发
+
 ### Requirement: Production runner composition proves the loop
 
-数据验证 SHALL 组合生产使用的 Settlement departure、Hunt retreat、Settlement return runners 与 Campaign loop contract，覆盖出发、消费名册、撤退、年份推进、检查点清理和下一次出发。该 smoke SHALL NOT 依赖 Showdown 流程。
+数据验证 SHALL 同时覆盖生产使用的独立 runners 与真实 GameManager 公共命令。PlayMode smoke SHALL 在空测试场景动态装配生产配置和内存持久化端口，通过 `DepartForHuntAsync`、`RequestRetreatAsync` 与公开读模型覆盖出发、消费名册、撤退、年份推进、检查点清理和下一次出发。该 smoke SHALL NOT 依赖 Showdown 流程、场景资产或截图。
 
 #### Scenario: A complete non-Showdown loop runs
 
 - **WHEN** 玩家从年份 1 出发并立即撤退回营
 - **THEN** 年份 2 SHALL 可以再次提交同一可用猎人的新出发名册
+
+#### Scenario: Public GameManager commands run the loop
+
+- **WHEN** PlayMode smoke 通过正式配置激活 GameManager，并依次调用公开出发与撤退命令
+- **THEN** 回营后 CurrentYear SHALL 精确增加 1
+- **AND** PendingHuntReturn 与 DepartingHunterIds SHALL 清空
+- **AND** 新年份 SHALL 可再次通过公开出发命令进入 Hunt

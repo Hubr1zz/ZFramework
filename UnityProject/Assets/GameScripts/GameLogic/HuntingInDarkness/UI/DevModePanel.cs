@@ -129,7 +129,7 @@ namespace UI
             AddSection(parent, "── 存档 ──");
             AddBtn(parent, "💾 保存",   () => _gm?.DevSave());
             AddBtn(parent, "📂 读档",   () => _gm?.DevLoad());
-            AddBtn(parent, "🗑 删除存档", () => SaveLoadSystem.DeleteSaveAsync().Forget());
+            AddBtn(parent, "🗑 删除存档", () => _gm?.DeleteCampaignSaveAsync().Forget());
         }
 
         // ─── 按钮逻辑 ─────────────────────────────────────────────
