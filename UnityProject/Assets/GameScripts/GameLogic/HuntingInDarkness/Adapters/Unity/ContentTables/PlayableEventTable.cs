@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Content;
 using HuntingInDarkness.GameCore.Settlement;
+using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using UnityEngine;
 
@@ -196,7 +197,7 @@ namespace HuntingInDarkness.ContentTables
         /// <summary>清理由事件表运行时创建的事件对象；不会触碰外部资产。</summary>
         public static void ClearCache()
         {
-            if (PlayableSettlementContentRuntime.IsEventGenerationLeased(currentGeneration))
+            if (PlayableSettlementContentRuntime.IsEventGenerationLeased(currentGeneration) || PlayableHuntContentRuntime.IsEventGenerationLeased(currentGeneration))
             {
                 Debug.LogError("[PlayableEventTable] 活动营地内容计划仍在使用当前事件世代，拒绝清理缓存。");
                 return;
@@ -209,7 +210,7 @@ namespace HuntingInDarkness.ContentTables
         /// <summary>在正式内容装配边界重建事件表缓存。</summary>
         public static IReadOnlyList<EventData> Rebuild()
         {
-            if (PlayableSettlementContentRuntime.IsEventGenerationLeased(currentGeneration))
+            if (PlayableSettlementContentRuntime.IsEventGenerationLeased(currentGeneration) || PlayableHuntContentRuntime.IsEventGenerationLeased(currentGeneration))
             {
                 Debug.LogError("[PlayableEventTable] 活动营地内容计划仍在使用当前事件世代，拒绝重建缓存。");
                 return currentGeneration.Events;
@@ -248,21 +249,26 @@ namespace HuntingInDarkness.ContentTables
 
         public static List<EventData> ExtendHunt(IReadOnlyList<EventData> baseEvents)
         {
+            return ExtendHunt(baseEvents, GetEvents());
+        }
+
+        internal static List<EventData> ExtendHunt(IReadOnlyList<EventData> baseEvents, IReadOnlyList<EventData> tableEvents)
+        {
             var result = new List<EventData>();
             var knownIds = new HashSet<string>(StringComparer.Ordinal);
             if (baseEvents != null)
             {
                 foreach (EventData baseEvent in baseEvents)
                 {
-                    if (baseEvent == null || baseEvent.category != EventCategory.Hunt || string.IsNullOrWhiteSpace(baseEvent.name) || !knownIds.Add(baseEvent.name)) continue;
+                    if (baseEvent == null || baseEvent.category != EventCategory.Hunt || !baseEvent.HasExplicitContentId || !knownIds.Add(baseEvent.ContentId)) continue;
                     result.Add(baseEvent);
                 }
             }
-            foreach (EventData tableEvent in GetEvents())
+            foreach (EventData tableEvent in tableEvents ?? Array.Empty<EventData>())
             {
-                if (tableEvent.category != EventCategory.Hunt) continue;
-                result.RemoveAll(gameEvent => gameEvent.name == tableEvent.name);
-                knownIds.Add(tableEvent.name);
+                if (tableEvent == null || tableEvent.category != EventCategory.Hunt || !tableEvent.HasExplicitContentId) continue;
+                result.RemoveAll(gameEvent => string.Equals(gameEvent.ContentId, tableEvent.ContentId, StringComparison.Ordinal));
+                knownIds.Add(tableEvent.ContentId);
                 result.Add(tableEvent);
             }
             return result;

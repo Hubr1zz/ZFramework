@@ -6,6 +6,7 @@ using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Settlement;
+using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 using UnityEditor;
@@ -35,6 +36,7 @@ namespace HuntingInDarkness.Adapter.Tests
         public void TearDown()
         {
             resetAssemblerMethod.Invoke(null, null);
+            PlayableHuntContentRuntime.Configure(null);
             resetSettlementContentRuntimeMethod.Invoke(null, null);
             PlayableEventTableRuntime.ClearCache();
             PlayableBloodlineRuntime.Configure(null);

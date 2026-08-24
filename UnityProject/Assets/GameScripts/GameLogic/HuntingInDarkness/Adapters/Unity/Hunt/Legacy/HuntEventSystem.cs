@@ -13,8 +13,18 @@ namespace HuntingInDarkness.Hunt
     public class HuntEventSystem
     {
         private readonly IRandomSource rng;
+        private List<EventData> huntEventPool = new();
+        private bool contentLocked;
         /// <summary>所有狩猎阶段事件池</summary>
-        public List<EventData> HuntEventPool { get; set; } = new();
+        public List<EventData> HuntEventPool
+        {
+            get => contentLocked ? new List<EventData>(huntEventPool) : huntEventPool;
+            set
+            {
+                if (contentLocked) return;
+                huntEventPool = value ?? new List<EventData>();
+            }
+        }
 
         public HuntEventSystem(IRandomSource rng)
         {
@@ -24,6 +34,13 @@ namespace HuntingInDarkness.Hunt
         public void ResetSession(int year = 1)
         {
             _ = year;
+        }
+
+        internal void BindContent(IReadOnlyList<EventData> events)
+        {
+            if (contentLocked) return;
+            huntEventPool = new List<EventData>(events ?? new List<EventData>());
+            contentLocked = true;
         }
 
         // ─── 地块翻开事件 ─────────────────────────────────────────

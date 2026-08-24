@@ -6,6 +6,7 @@ using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Foundation;
 
 namespace HuntingInDarkness.Bootstrap
 {
@@ -14,6 +15,7 @@ namespace HuntingInDarkness.Bootstrap
     {
         private bool installed;
         internal PlayableSettlementContentPlan SettlementPlan { get; private set; }
+        internal PlayableHuntContentBundle HuntBundle { get; private set; }
 
         internal PlayableCampaignContentCandidate(PlayableBootstrapSettings settings)
         {
@@ -64,9 +66,13 @@ namespace HuntingInDarkness.Bootstrap
                 reason = "默认遭遇配置为空。";
                 return false;
             }
+            if (HuntBundle == null)
+            {
+                reason = "狩猎路线内容计划尚未准备。";
+                return false;
+            }
 
-            PlayableHuntContentRuntime.Configure(DefaultHuntContent);
-            PlayableHuntDestinationRuntime.Configure(HuntDestinations, DefaultHuntContent);
+            PlayableHuntContentRuntime.ConfigureForInstallation(DefaultHuntContent);
             PlayableSettlementContentRuntime.ConfigureForInstallation(SettlementContent);
             PlayableHunterCombatAdapter.Configure(CombatEquipment);
             PlayableSurvivalEventRuntime.Configure(SurvivalEvents);
@@ -77,6 +83,11 @@ namespace HuntingInDarkness.Bootstrap
             PlayableEncounterRuntime.Configure(EncounterCatalog, DefaultEncounterId, DefaultBattleSetup);
             reason = string.Empty;
             return true;
+        }
+
+        internal void PublishHuntBindings()
+        {
+            PlayableHuntDestinationRuntime.Configure(HuntDestinations, DefaultHuntContent, HuntBundle);
         }
 
         internal bool TryPrepareSettlementPlan(PlayableEventTableGeneration eventGeneration, out string reason)
@@ -91,9 +102,26 @@ namespace HuntingInDarkness.Bootstrap
             return prepared;
         }
 
+        internal bool TryPrepareHuntPlans(PlayableEventTableGeneration eventGeneration, out string reason)
+        {
+            if (installed || HuntBundle != null || SettlementPlan == null)
+            {
+                reason = "狩猎路线内容候选已经准备或安装。";
+                return false;
+            }
+            bool prepared = PlayableHuntContentBundle.TryCreate(DefaultHuntContent, Destinations, eventGeneration, SettlementPlan.RegistryBundle, out PlayableHuntContentBundle bundle, out reason);
+            HuntBundle = bundle;
+            return prepared;
+        }
+
         internal void ReleaseSettlementPlan(PlayableSettlementContentPlan plan)
         {
             if (ReferenceEquals(SettlementPlan, plan)) SettlementPlan = null;
+        }
+
+        internal void ReleaseHuntPlans()
+        {
+            HuntBundle = null;
         }
 
         internal void MarkInstalled() => installed = true;
@@ -105,6 +133,11 @@ namespace HuntingInDarkness.Bootstrap
                 reason = "营地内容计划尚未发布。";
                 return false;
             }
+            if (HuntBundle == null || !ReferenceEquals(PlayableHuntContentRuntime.CurrentBundle, HuntBundle))
+            {
+                reason = "狩猎内容 Bundle 尚未发布。";
+                return false;
+            }
             var settlementProbe = new SettlementManager(1979);
             if (!SettlementPlan.TryApplyTo(settlementProbe, out reason))
             {
@@ -114,6 +147,12 @@ namespace HuntingInDarkness.Bootstrap
             if (settlementProbe.Data.Hunters.Count == 0)
             {
                 reason = "营地内容预检没有产生可用的初始猎人。";
+                return false;
+            }
+            var huntProbe = new HuntManager(new EventSystem(new SettlementInstance(), new SystemRandomSource(1979)), 1979);
+            if (!huntProbe.TryBindContent(HuntBundle.DefaultRoute, out reason))
+            {
+                reason = $"狩猎内容投影预检失败：{reason}";
                 return false;
             }
             reason = string.Empty;

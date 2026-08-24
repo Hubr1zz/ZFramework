@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 3,
+  "capability": "hunt-content-bundle-lifecycle",
+  "title": "狩猎内容 Bundle 生命周期",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "启动事务以同一 EventGeneration 与 Settlement Registry 准备并发布战役级 Hunt Bundle；路线规则使用自有快照，HuntManager 原子绑定且正常回营后换代。",
+    "evidence": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
+      "Unity CLI targeted Hunt Bundle: 4/4 passed",
+      "Unity CLI targeted content assembler: 13/13 passed",
+      "Unity CLI EditMode: 617/617 passed",
+      "C# derived index: 978/978, 100% coverage",
+      "zWorkFlow: 7/7 passed",
+      "OpenSpec strict validation: 64/64 passed"
+    ],
+    "differences": [
+      "ActiveDestination 仍为兼容静态门面；Campaign transition 尚未携带 RoutePlan payload。",
+      "活动狩猎存档尚未保存和校验 ContentBundleId，跨内容版本恢复仍 fail-open 到当前目的地内容，留待下一阶段。"
+    ],
+    "verifiedAt": "2026-08-24T08:37:56-07:00",
+    "codeEvidence": [
+      {
+        "guid": "3a91d14f82d74f08b0ebd4b4da7ac7ed",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
+        "line": 1,
+        "fileHash": "a74d50371da6012ead92966aa89c0397c161a5f322c0234d01ad6bdc77f3d99e",
+        "status": "verified",
+        "checkedAt": "2026-08-24T08:37:56-07:00",
+        "feature": "冻结战役级狩猎路线、规则快照、同代引用与依赖租约。"
+      },
+      {
+        "guid": "6dce6ba7b65af9c42821b85a0555ac17",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
+        "line": 1,
+        "fileHash": "98786671fcdfc68078b97041d5baee07b7c6fef32171863a261d68c1898b6742",
+        "status": "verified",
+        "checkedAt": "2026-08-24T08:37:56-07:00",
+        "feature": "在运行态建立前原子绑定单一 RoutePlan，并封闭正式配置的兼容写入口。"
+      },
+      {
+        "guid": "e720a0551a464b15a2f65f1e82fc4a4a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs",
+        "line": 1,
+        "fileHash": "e3113e67373593702ef268e566d9ffa2d36ac629687313ababac9a4491e60cda",
+        "status": "verified",
+        "checkedAt": "2026-08-24T08:37:56-07:00",
+        "feature": "以 Event、Settlement、Hunt 顺序发布，并按相反顺序回滚和退役内容世代。"
+      },
+      {
+        "guid": "551fe81197a6ca545a686a0c536f2646",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+        "line": 1,
+        "fileHash": "409eb3181a35238a9bf8016dbfa893f826d6f7fbffc213b256c17c2f845fa6a2",
+        "status": "verified",
+        "checkedAt": "2026-08-24T08:37:56-07:00",
+        "feature": "检查路线绑定结果，并在正常回营提交后废弃旧 HuntManager。"
+      },
+      {
+        "guid": "5e0d9f3f6f7d4b8a9c2e1d0f3a6b7c81",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
+        "line": 1,
+        "fileHash": "991e7ae5c2452aeb6f403efa6040cc269c4f9fe33feb4cbf65f00d20e1ce1f18",
+        "status": "verified",
+        "checkedAt": "2026-08-24T08:37:56-07:00",
+        "feature": "验证规则冻结、不同路线隔离、运行态重绑门禁和非资源引用拒绝。"
+      }
+    ]
+  },
+  "implementationOutline": [
+    "从 staged EventGeneration 和 Settlement RegistryBundle 构建默认路线与目的地索引。",
+    "深复制地块、资源点和噪音运行规则，保留同代 ItemData/EventData 身份。",
+    "Assembler 按 Event、Settlement、Hunt 顺序发布，并按相反顺序回滚和退役。",
+    "HuntManager 在运行态建立前一次性绑定 RoutePlan，拒绝跨计划静默覆盖。",
+    "GameManager 检查路线绑定失败，并在正常回营提交后废弃旧 HuntManager。"
+  ],
+  "gapIds": [
+    "hunt-route-entry-context",
+    "active-hunt-content-bundle-identity"
+  ],
+  "dependencyIds": [
+    "campaign-content-preflight-assembly",
+    "settlement-content-plan-lifecycle",
+    "table-driven-hunt-events",
+    "hunt-noise-risk-deck",
+    "game-manager-orchestration"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1"
+  ]
+}

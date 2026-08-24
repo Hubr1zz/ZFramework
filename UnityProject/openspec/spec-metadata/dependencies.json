@@ -322,9 +322,36 @@
       "category": "architecture",
       "readiness": "implemented",
       "specPath": "openspec/specs/settlement-content-plan-lifecycle/spec.md"
+    },
+    {
+      "id": "hunt-content-bundle-lifecycle",
+      "label": "狩猎内容 Bundle 生命周期",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-content-bundle-lifecycle/spec.md"
     }
   ],
   "edges": [
+    {
+      "id": "hunt-content-bundle-lifecycle--requires--campaign-content-preflight-assembly",
+      "from": "hunt-content-bundle-lifecycle",
+      "to": "campaign-content-preflight-assembly",
+      "type": "requires",
+      "status": "defined",
+      "reason": "战役安装事务负责准备、发布和逆序回滚 Hunt Bundle 及其依赖世代",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-content-bundle-lifecycle--requires--settlement-content-plan-lifecycle",
+      "from": "hunt-content-bundle-lifecycle",
+      "to": "settlement-content-plan-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "狩猎资源与事件引用使用同批 Settlement Registry 和 EventGeneration 对象身份",
+      "gapId": "",
+      "blocksImplementation": false
+    },
     {
       "id": "campaign-content-preflight-assembly--requires--hunt-noise-risk-deck",
       "from": "campaign-content-preflight-assembly",

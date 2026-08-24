@@ -19,6 +19,18 @@ namespace HuntingInDarkness.Hunt
         public int MaxDangerCards => Math.Max(0, maxDangerCards);
         public bool IsEnabled => ProfileId.Length > 0;
         public bool IsConfigured => IsEnabled && deckSize >= 2 && maxDangerCards >= 0 && maxDangerCards <= deckSize && HasUniqueDangerEvents();
+        internal string ManifestKey
+        {
+            get
+            {
+                var eventIds = new List<string>();
+                foreach (EventData gameEvent in dangerEvents ?? new List<EventData>())
+                    if (gameEvent != null)
+                        eventIds.Add(gameEvent.ContentId);
+                eventIds.Sort(StringComparer.Ordinal);
+                return $"{ProfileId}:{deckSize}:{baseNoisePerHunter}:{maxDangerCards}:{string.Join(",", eventIds)}";
+            }
+        }
 
         public bool TryCreatePlan(IReadOnlyList<HunterInstance> hunters, out NoiseCheckPlan plan)
         {
@@ -83,6 +95,33 @@ namespace HuntingInDarkness.Hunt
             firstMissingYear = nextYear;
             return false;
         }
+
+        internal PlayableHuntNoiseProfile CreateSnapshot()
+        {
+            return CreateSnapshot(null);
+        }
+
+        internal PlayableHuntNoiseProfile CreateSnapshot(IReadOnlyDictionary<string, EventData> canonicalEvents)
+        {
+            var snapshotEvents = new List<EventData>();
+            foreach (EventData gameEvent in dangerEvents ?? new List<EventData>())
+            {
+                if (gameEvent != null && canonicalEvents != null && canonicalEvents.TryGetValue(gameEvent.ContentId, out EventData canonicalEvent))
+                    snapshotEvents.Add(canonicalEvent);
+                else
+                    snapshotEvents.Add(gameEvent);
+            }
+            return new PlayableHuntNoiseProfile
+            {
+                profileId = profileId,
+                deckSize = deckSize,
+                baseNoisePerHunter = baseNoisePerHunter,
+                maxDangerCards = maxDangerCards,
+                dangerEvents = snapshotEvents
+            };
+        }
+
+        internal IReadOnlyList<EventData> GetDangerEvents() => dangerEvents;
 
         private bool HasUniqueDangerEvents()
         {

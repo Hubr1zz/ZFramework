@@ -610,7 +610,11 @@ namespace Core
             try
             {
                 EnsureHuntManager();
-                PlayableHuntDestinationRuntime.ApplyTo(_huntMgr);
+                if (!PlayableHuntDestinationRuntime.TryApplyTo(_huntMgr, out reason))
+                {
+                    _huntMgr = null;
+                    return false;
+                }
                 _huntMgr.EventInput = playableEventInput;
                 _huntMgr.OnEnter(hunters, _settlementManager?.Data.CurrentYear ?? 1);
                 DisposeHuntActionSession();
@@ -619,6 +623,7 @@ namespace Core
                 {
                     activeExpeditionId = string.Empty;
                     CleanupHuntPresentation();
+                    _huntMgr = null;
                     return false;
                 }
                 OnHuntCheckpointCommitted();
@@ -629,6 +634,7 @@ namespace Core
                 DisposeHuntActionSession();
                 CleanupHuntPresentation();
                 activeExpeditionId = string.Empty;
+                _huntMgr = null;
                 reason = $"狩猎运行环境初始化失败：{exception.Message}";
                 return false;
             }
@@ -732,7 +738,11 @@ namespace Core
                 ActiveHunt = campaign.ActiveHunt
             };
             HuntManager candidateHuntManager = CreateHuntManager(candidateSettlementManager);
-            PlayableHuntDestinationRuntime.ApplyTo(candidateHuntManager);
+            if (!PlayableHuntDestinationRuntime.TryApplyTo(candidateHuntManager, out reason))
+            {
+                RestoreHuntDestination(previousDestinationId);
+                return false;
+            }
             candidateHuntManager.EventInput = playableEventInput;
             if (!ActiveHuntSnapshotAdapter.TryRestore(candidateCampaign, candidateHuntManager, out PlayableHuntRuntimeState runtimeState, out PlayableHuntEventOccurrenceStore restoredOccurrences, out reason))
             {
@@ -1644,6 +1654,7 @@ namespace Core
         {
             preparedHuntExit = false;
             activeExpeditionId = null;
+            _huntMgr = null;
         }
 
         private void EnterBossFightPhase()

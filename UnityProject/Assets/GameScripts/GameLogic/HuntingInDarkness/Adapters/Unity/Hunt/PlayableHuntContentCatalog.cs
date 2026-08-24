@@ -17,6 +17,8 @@ namespace HuntingInDarkness.Hunt
         [SerializeField] private PlayableHuntNoiseProfile noiseProfile = new();
 
         public bool IsConfigured => startingTile != null && tilePool.Exists(tile => tile != null) && noiseProfile?.IsConfigured == true;
+        public HexTileData StartingTile => startingTile;
+        public IReadOnlyList<HexTileData> TilePool => tilePool;
         public IReadOnlyList<EventData> EventPool => eventPool;
         public PlayableHuntNoiseProfile NoiseProfile => noiseProfile;
 
@@ -52,23 +54,62 @@ namespace HuntingInDarkness.Hunt
     public static class PlayableHuntContentRuntime
     {
         private static PlayableHuntContentCatalog catalog;
+        private static PlayableHuntContentBundle currentBundle;
         public static PlayableHuntContentCatalog Catalog => catalog;
+        public static PlayableHuntRoutePlan CurrentRoutePlan => currentBundle?.DefaultRoute;
+        public static PlayableHuntContentBundle CurrentBundle => currentBundle;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
+            PlayableHuntContentBundle retired = SwapBundle(null);
+            RetireBundle(retired);
             catalog = null;
         }
 
         public static void Configure(PlayableHuntContentCatalog contentCatalog)
+        {
+            if (contentCatalog == null)
+            {
+                PlayableHuntContentBundle retired = SwapBundle(null);
+                PlayableHuntDestinationRuntime.ReleaseBundle(retired);
+                RetireBundle(retired);
+                catalog = null;
+                return;
+            }
+            if (currentBundle != null)
+            {
+                Debug.LogError("[PlayableHuntContent] 活动狩猎内容 Bundle 存在，拒绝兼容目录重配置。");
+                return;
+            }
+            catalog = contentCatalog;
+        }
+
+        internal static void ConfigureForInstallation(PlayableHuntContentCatalog contentCatalog)
         {
             catalog = contentCatalog;
         }
 
         public static void ApplyTo(HuntManager manager)
         {
-            if (catalog == null) return;
-            catalog.ApplyTo(manager);
+            if (manager == null) return;
+            if (currentBundle != null) return;
+            if (catalog != null) catalog.ApplyTo(manager);
         }
+
+        internal static PlayableHuntContentBundle SwapBundle(PlayableHuntContentBundle replacement)
+        {
+            PlayableHuntContentBundle previous = currentBundle;
+            currentBundle = replacement;
+            return previous;
+        }
+
+        internal static void RetireBundle(PlayableHuntContentBundle bundle)
+        {
+            if (bundle == null || ReferenceEquals(bundle, currentBundle)) return;
+            bundle.Retire();
+        }
+
+        internal static bool IsEventGenerationLeased(PlayableEventTableGeneration generation) => currentBundle?.Leases(generation) == true;
     }
 }

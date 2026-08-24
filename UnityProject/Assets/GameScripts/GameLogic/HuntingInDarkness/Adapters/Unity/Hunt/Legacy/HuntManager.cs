@@ -44,9 +44,42 @@ namespace HuntingInDarkness.Hunt
 
         // ─── 配置（运行时注入）────────────────────────────────────
 
-        public List<HexTileData> TilePool           { get; set; } = new();
-        public HexTileData       StartingTileConfig  { get; set; }
-        public PlayableHuntNoiseProfile NoiseProfile { get; set; }
+        private List<HexTileData> tilePool = new();
+        private HexTileData startingTileConfig;
+        private PlayableHuntNoiseProfile noiseProfile;
+        public List<HexTileData> TilePool
+        {
+            get => boundRoute != null ? new List<HexTileData>(tilePool) : tilePool;
+            set
+            {
+                if (boundRoute != null) return;
+                tilePool = value ?? new List<HexTileData>();
+            }
+        }
+        public HexTileData StartingTileConfig
+        {
+            get => startingTileConfig;
+            set
+            {
+                if (boundRoute != null) return;
+                startingTileConfig = value;
+            }
+        }
+        public PlayableHuntNoiseProfile NoiseProfile
+        {
+            get => noiseProfile;
+            set
+            {
+                if (boundRoute != null) return;
+                noiseProfile = value;
+            }
+        }
+        private PlayableHuntRoutePlan boundRoute;
+        private bool runtimeStarted;
+        public PlayableHuntRoutePlan BoundRoute => boundRoute;
+        public PlayableHuntContentBundle BoundContentBundle => boundRoute?.Owner;
+        public bool HasBoundContent => boundRoute != null;
+        public string ContentBundleId => boundRoute?.ContentBundleId ?? string.Empty;
         public PlayableHuntNoiseResolution LastNoiseResolution { get; private set; }
         public int CurrentYear { get; private set; } = 1;
 
@@ -90,11 +123,49 @@ namespace HuntingInDarkness.Hunt
             PlayableHuntContentRuntime.ApplyTo(this);
         }
 
+        /// <summary>原子绑定一个冻结的狩猎内容世代；旧的公开配置属性仍保留给兼容入口。</summary>
+        public bool TryBindContent(PlayableHuntRoutePlan plan, out string reason)
+        {
+            if (plan?.IsUsable != true || plan.Owner?.Owns(plan) != true)
+            {
+                reason = "狩猎路线内容计划未完整配置。";
+                return false;
+            }
+            if (ReferenceEquals(boundRoute, plan))
+            {
+                reason = string.Empty;
+                return true;
+            }
+            if (boundRoute != null || runtimeStarted)
+            {
+                reason = runtimeStarted ? "狩猎运行态已经建立，不能替换内容。" : "狩猎管理器已经绑定了另一个内容计划。";
+                return false;
+            }
+
+            var tilePool = new List<HexTileData>(plan.TilePool);
+            var huntEvents = new List<EventData>(plan.HuntEvents);
+            if (tilePool.Count == 0 || plan.StartingTile == null || huntEvents.Exists(gameEvent => gameEvent == null))
+            {
+                reason = "狩猎路线缺少起始地块、地块池或包含空事件。";
+                return false;
+            }
+            startingTileConfig = plan.StartingTile;
+            this.tilePool = tilePool;
+            HuntEvents.BindContent(huntEvents);
+            noiseProfile = plan.NoiseProfile;
+            boundRoute = plan;
+            reason = string.Empty;
+            return true;
+        }
+
+        public bool BindContent(PlayableHuntRoutePlan plan, out string reason) => TryBindContent(plan, out reason);
+
         // ─── 生命周期 ────────────────────────────────────────────
 
         /// <summary>进入狩猎阶段（由 GameManager 调用）</summary>
         public void OnEnter(List<HunterInstance> hunters, int currentYear = 1)
         {
+            runtimeStarted = true;
             ActiveHunters  = hunters ?? new List<HunterInstance>();
             SelectedHunter = PlayableHuntSquadAvailability.ResolveSelectedHunter(ActiveHunters, null);
             CurrentYear = Math.Max(1, currentYear);
@@ -102,7 +173,7 @@ namespace HuntingInDarkness.Hunt
             _navigation.Reset();
             HuntEvents.ResetSession(CurrentYear);
 
-            Map = MapGen.GenerateMap(TilePool, StartingTileConfig);
+            Map = MapGen.GenerateMap(tilePool, startingTileConfig);
 
             Debug.Log($"[HuntManager] 狩猎阶段开始，猎人数量: {ActiveHunters.Count}，地图格子: {Map.Count}");
 
@@ -126,6 +197,7 @@ namespace HuntingInDarkness.Hunt
                 return false;
             }
 
+            runtimeStarted = true;
             ActiveHunters = state.Hunters;
             SelectedHunter = ActiveHunters.Find(hunter => hunter != null && hunter.InstanceId == state.SelectedHunterId && hunter.IsAlive);
             SelectedHunter = PlayableHuntSquadAvailability.ResolveSelectedHunter(ActiveHunters, SelectedHunter);

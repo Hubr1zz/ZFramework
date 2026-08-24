@@ -26,8 +26,8 @@ namespace HuntingInDarkness.Adapter.Tests
             installationFailureProbeField.SetValue(null, null);
             resetAssemblerMethod.Invoke(null, null);
             resetSettlementContentRuntimeMethod.Invoke(null, null);
-            PlayableEventTableRuntime.ClearCache();
             PlayableHuntContentRuntime.Configure(null);
+            PlayableEventTableRuntime.ClearCache();
             PlayableSymptomRuntime.Configure(null);
             PlayableSettlementItemRegistry.Configure(null);
             PlayableSettlementInventionRegistry.Configure(null);
@@ -184,6 +184,8 @@ namespace HuntingInDarkness.Adapter.Tests
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
             var sentinelHuntContent = ScriptableObject.CreateInstance<PlayableHuntContentCatalog>();
             EventData stagedEvent = null;
+            PlayableHuntContentBundle stagedHuntBundle = null;
+            HexTileData stagedStartingTile = null;
             try
             {
                 PlayableSymptomRuntime.Configure(settings.Symptoms);
@@ -198,6 +200,8 @@ namespace HuntingInDarkness.Adapter.Tests
                 {
                     if (stage != "after-settlement-projection") return false;
                     stagedEvent = PlayableEventTableRuntime.GetEvents()[0];
+                    stagedHuntBundle = PlayableHuntContentRuntime.CurrentBundle;
+                    stagedStartingTile = stagedHuntBundle?.DefaultRoute?.StartingTile;
                     return true;
                 }));
 
@@ -209,6 +213,9 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(PlayableEventTableRuntime.GetEvents()[0], Is.SameAs(previousEvent));
                 Assert.That(previousEvent != null, Is.True);
                 Assert.That(stagedEvent == null, Is.True);
+                Assert.That(PlayableHuntContentRuntime.CurrentBundle, Is.Null);
+                Assert.That(stagedHuntBundle?.IsUsable, Is.False);
+                Assert.That(stagedStartingTile == null, Is.True);
                 Assert.That(PlayableSettlementItemRegistry.Items, Is.Empty);
                 Assert.That(PlayableSettlementInventionRegistry.Inventions, Is.Empty);
 
@@ -283,6 +290,10 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(FindByName(PlayableSettlementItemRegistry.Items, "black_salt"), Is.SameAs(planItem));
             Assert.That(firstManager.Data.Hunters, Is.Not.Empty);
             Assert.That(secondManager.Data.Hunters, Is.Not.Empty);
+            object huntBundle = typeof(PlayableCampaignContentCandidate).GetProperty("HuntBundle", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(candidate);
+            Assert.That(PlayableHuntContentRuntime.CurrentBundle, Is.SameAs(huntBundle));
+            Assert.That(PlayableHuntContentRuntime.CurrentBundle.DefaultRoute.IsUsable, Is.True);
+            PlayableHuntContentRuntime.Configure(null);
             resetSettlementContentRuntimeMethod.Invoke(null, null);
             Assert.That(planItem == null, Is.True);
             Assert.That(planInvention == null, Is.True);
@@ -359,6 +370,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(PlayableEventTableRuntime.GetEvents(), Is.SameAs(leasedEvents));
             Assert.That(leasedEvent != null, Is.True);
             resetSettlementContentRuntimeMethod.Invoke(null, null);
+            PlayableHuntContentRuntime.Configure(null);
             PlayableEventTableRuntime.ClearCache();
             Assert.That(leasedEvent == null, Is.True);
         }

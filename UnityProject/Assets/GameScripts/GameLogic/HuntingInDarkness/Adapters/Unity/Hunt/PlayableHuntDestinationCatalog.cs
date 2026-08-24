@@ -77,33 +77,41 @@ namespace HuntingInDarkness.Hunt
     {
         internal readonly struct RuntimeState
         {
-            public RuntimeState(PlayableHuntDestinationCatalog catalog, PlayableHuntContentCatalog fallbackContent, PlayableHuntDestination activeDestination)
+            public RuntimeState(PlayableHuntDestinationCatalog catalog, PlayableHuntContentCatalog fallbackContent, PlayableHuntDestination activeDestination, PlayableHuntContentBundle contentBundle, PlayableHuntRoutePlan activePlan)
             {
                 Catalog = catalog;
                 FallbackContent = fallbackContent;
                 ActiveDestination = activeDestination;
+                ContentBundle = contentBundle;
+                ActivePlan = activePlan;
             }
 
             public PlayableHuntDestinationCatalog Catalog { get; }
             public PlayableHuntContentCatalog FallbackContent { get; }
             public PlayableHuntDestination ActiveDestination { get; }
+            public PlayableHuntContentBundle ContentBundle { get; }
+            public PlayableHuntRoutePlan ActivePlan { get; }
         }
 
         private static PlayableHuntDestinationCatalog catalog;
         private static PlayableHuntContentCatalog fallbackContent;
+        private static PlayableHuntContentBundle contentBundle;
+        private static PlayableHuntRoutePlan activePlan;
 
         public static PlayableHuntDestination ActiveDestination { get; private set; }
+        public static PlayableHuntRoutePlan ActiveRoutePlan => activePlan ?? contentBundle?.DefaultRoute;
         public static string ActiveDisplayName => ActiveDestination?.DisplayName ?? "未知地域";
         public static PlayableHuntDestinationCatalog Catalog => catalog;
 
-        internal static RuntimeState CaptureState() => new(catalog, fallbackContent, ActiveDestination);
+        internal static RuntimeState CaptureState() => new(catalog, fallbackContent, ActiveDestination, contentBundle, activePlan);
 
         internal static void RestoreState(RuntimeState state)
         {
             catalog = state.Catalog;
             fallbackContent = state.FallbackContent;
             ActiveDestination = state.ActiveDestination;
-            PlayableHuntContentRuntime.Configure(ActiveDestination != null ? ActiveDestination.HuntContent : fallbackContent);
+            contentBundle = state.ContentBundle;
+            activePlan = state.ActivePlan;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -111,6 +119,8 @@ namespace HuntingInDarkness.Hunt
         {
             catalog = null;
             fallbackContent = null;
+            contentBundle = null;
+            activePlan = null;
             ActiveDestination = null;
         }
 
@@ -119,15 +129,35 @@ namespace HuntingInDarkness.Hunt
             catalog = destinationCatalog;
             fallbackContent = defaultContent;
             ActiveDestination = null;
+            contentBundle = null;
+            activePlan = null;
             PlayableHuntContentRuntime.Configure(defaultContent);
+        }
+
+        internal static void Configure(PlayableHuntDestinationCatalog destinationCatalog, PlayableHuntContentCatalog defaultContent, PlayableHuntContentBundle preparedBundle)
+        {
+            catalog = destinationCatalog;
+            fallbackContent = defaultContent;
+            ActiveDestination = null;
+            contentBundle = preparedBundle;
+            activePlan = null;
         }
 
         public static bool TrySelect(PlayableHuntDestination destination, int currentYear, out string reason)
         {
             if (!CanSelect(destination, currentYear, out reason)) return false;
 
+            PlayableHuntRoutePlan resolvedPlan = null;
+            if (contentBundle != null && !contentBundle.TryResolveRoute(destination.DestinationId, currentYear, out resolvedPlan, out reason)) return false;
             ActiveDestination = destination;
-            PlayableHuntContentRuntime.Configure(destination.HuntContent);
+            activePlan = resolvedPlan;
+            if (contentBundle != null && activePlan == null)
+            {
+                ActiveDestination = null;
+                reason = "目的地内容计划尚未准备。";
+                return false;
+            }
+            if (contentBundle == null) PlayableHuntContentRuntime.Configure(destination.HuntContent);
             reason = string.Empty;
             return true;
         }
@@ -137,6 +167,13 @@ namespace HuntingInDarkness.Hunt
             if (destination == null)
             {
                 reason = "没有选择狩猎目的地。";
+                return false;
+            }
+            if (contentBundle != null)
+            {
+                if (!contentBundle.TryResolveRoute(destination.DestinationId, currentYear, out PlayableHuntRoutePlan route, out reason)) return false;
+                if (ReferenceEquals(route.Destination, destination)) return true;
+                reason = "这个目的地不属于当前内容 Bundle。";
                 return false;
             }
             if (!destination.IsAvailable(currentYear, out reason)) return false;
@@ -153,6 +190,15 @@ namespace HuntingInDarkness.Hunt
         public static bool CanSelectForDeparture(PlayableHuntDestination destination, int currentYear, out string reason)
         {
             if (destination != null) return CanSelect(destination, currentYear, out reason);
+            if (contentBundle != null)
+            {
+                if (contentBundle.HasSelectableDestinations)
+                {
+                    reason = "请选择狩猎目的地。";
+                    return false;
+                }
+                return contentBundle.TryResolveRoute(string.Empty, currentYear, out _, out reason);
+            }
             if (catalog != null && catalog.GetAvailable(currentYear).Count > 0)
             {
                 reason = "请选择狩猎目的地。";
@@ -180,12 +226,14 @@ namespace HuntingInDarkness.Hunt
             if (destination != null && catalog != null && ContainsReference(catalog.Destinations, destination))
             {
                 ActiveDestination = destination;
-                PlayableHuntContentRuntime.Configure(destination.HuntContent);
+                activePlan = contentBundle != null && contentBundle.TryResolveRoute(destination.DestinationId, destination.MinimumYear, out PlayableHuntRoutePlan resolvedPlan, out _) ? resolvedPlan : null;
+                if (contentBundle == null) PlayableHuntContentRuntime.Configure(destination.HuntContent);
                 return;
             }
 
             ActiveDestination = null;
-            PlayableHuntContentRuntime.Configure(fallbackContent);
+            activePlan = null;
+            if (contentBundle == null) PlayableHuntContentRuntime.Configure(fallbackContent);
         }
 
         public static bool TryRestoreSelection(string destinationId, out string reason)
@@ -194,8 +242,9 @@ namespace HuntingInDarkness.Hunt
             if (normalizedId.Length == 0)
             {
                 RestoreSelection(null);
-                reason = fallbackContent != null ? string.Empty : "默认狩猎内容尚未配置。";
-                return fallbackContent != null;
+                bool hasFallback = contentBundle?.DefaultRoute?.IsUsable == true || fallbackContent != null;
+                reason = hasFallback ? string.Empty : "默认狩猎内容尚未配置。";
+                return hasFallback;
             }
             if (catalog == null || !catalog.TryGetById(normalizedId, out PlayableHuntDestination destination))
             {
@@ -209,9 +258,25 @@ namespace HuntingInDarkness.Hunt
 
         public static void ApplyTo(HuntManager manager)
         {
-            if (ActiveDestination == null)
-                PlayableHuntContentRuntime.Configure(fallbackContent);
+            TryApplyTo(manager, out _);
+        }
+
+        public static bool TryApplyTo(HuntManager manager, out string reason)
+        {
+            if (manager == null)
+            {
+                reason = "狩猎管理器为空。";
+                return false;
+            }
+            if (contentBundle != null)
+            {
+                return manager.TryBindContent(activePlan ?? contentBundle.DefaultRoute, out reason);
+            }
+            if (ActiveDestination == null) PlayableHuntContentRuntime.Configure(fallbackContent);
             PlayableHuntContentRuntime.ApplyTo(manager);
+            bool configured = manager.StartingTileConfig != null && manager.TilePool.Count > 0 && manager.NoiseProfile?.IsConfigured == true;
+            reason = configured ? string.Empty : "兼容狩猎内容未完整配置。";
+            return configured;
         }
 
         private static bool ContainsReference(IReadOnlyList<PlayableHuntDestination> destinations, PlayableHuntDestination target)
@@ -221,6 +286,14 @@ namespace HuntingInDarkness.Hunt
                 if (ReferenceEquals(destination, target))
                     return true;
             return false;
+        }
+
+        internal static void ReleaseBundle(PlayableHuntContentBundle bundle)
+        {
+            if (bundle == null || !ReferenceEquals(contentBundle, bundle)) return;
+            contentBundle = null;
+            activePlan = null;
+            ActiveDestination = null;
         }
     }
 }

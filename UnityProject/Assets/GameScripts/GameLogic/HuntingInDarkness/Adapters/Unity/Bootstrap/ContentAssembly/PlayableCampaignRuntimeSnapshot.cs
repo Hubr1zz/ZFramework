@@ -8,6 +8,7 @@ namespace HuntingInDarkness.Bootstrap
     internal sealed class PlayableCampaignRuntimeSnapshot
     {
         private readonly PlayableHuntContentCatalog huntContent = PlayableHuntContentRuntime.Catalog;
+        private readonly PlayableHuntContentBundle huntBundle = PlayableHuntContentRuntime.CurrentBundle;
         private readonly PlayableHuntDestinationRuntime.RuntimeState huntDestination = PlayableHuntDestinationRuntime.CaptureState();
         private readonly PlayableSettlementContentCatalog settlementContent = PlayableSettlementContentRuntime.Catalog;
         private readonly PlayableHunterCombatAdapter.RuntimeState hunterCombat = PlayableHunterCombatAdapter.CaptureState();
@@ -30,8 +31,9 @@ namespace HuntingInDarkness.Bootstrap
             PlayableWeaponMasteryRuntime.Configure(weaponMastery);
             PlayableEncounterRuntime.RestoreState(encounter);
             PlayableSettlementContentRuntime.RestoreLegacyRegistryBundle(settlementRegistryBundle);
+            PlayableHuntContentRuntime.SwapBundle(huntBundle);
+            PlayableHuntContentRuntime.ConfigureForInstallation(huntContent);
             PlayableHuntDestinationRuntime.RestoreState(huntDestination);
-            PlayableHuntContentRuntime.Configure(huntContent);
         }
     }
 }

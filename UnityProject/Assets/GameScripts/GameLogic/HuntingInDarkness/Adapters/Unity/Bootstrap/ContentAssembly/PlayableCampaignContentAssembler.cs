@@ -56,22 +56,29 @@ namespace HuntingInDarkness.Bootstrap
             PlayableEventTableGeneration previousGeneration = null;
             PlayableSettlementContentPlan stagedSettlementPlan = null;
             PlayableSettlementContentPlan previousSettlementPlan = null;
+            PlayableHuntContentBundle stagedHuntBundle = null;
+            PlayableHuntContentBundle previousHuntBundle = null;
             bool generationPublished = false;
             bool settlementPlanPublished = false;
+            bool huntBundlePublished = false;
             try
             {
                 runtimeSnapshot = new PlayableCampaignRuntimeSnapshot();
                 stagedGeneration = PlayableEventTableRuntime.PrepareGeneration(candidate.Symptoms, PlayableBloodlineRuntime.Content);
                 if (stagedGeneration.HasErrors)
-                    return FailAndRollback(report, "candidate.events.invalid", stagedGeneration.Diagnostic, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
+                    return FailAndRollback(report, "candidate.events.invalid", stagedGeneration.Diagnostic, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished, stagedHuntBundle, previousHuntBundle, huntBundlePublished);
                 ThrowIfInstallationFailureRequested("after-event-prepare");
                 if (!candidate.TryPrepareSettlementPlan(stagedGeneration, out string reason))
-                    return FailAndRollback(report, "candidate.settlement.invalid", reason, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
+                    return FailAndRollback(report, "candidate.settlement.invalid", reason, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished, stagedHuntBundle, previousHuntBundle, huntBundlePublished);
                 stagedSettlementPlan = candidate.SettlementPlan;
                 ThrowIfInstallationFailureRequested("after-settlement-prepare");
+                if (!candidate.TryPrepareHuntPlans(stagedGeneration, out reason))
+                    return FailAndRollback(report, "candidate.hunt.invalid", reason, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished, stagedHuntBundle, previousHuntBundle, huntBundlePublished);
+                stagedHuntBundle = candidate.HuntBundle;
+                ThrowIfInstallationFailureRequested("after-hunt-prepare");
                 if (!candidate.TryInstallBindings(out reason))
                 {
-                    return FailAndRollback(report, "candidate.install", reason, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
+                    return FailAndRollback(report, "candidate.install", reason, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished, stagedHuntBundle, previousHuntBundle, huntBundlePublished);
                 }
                 ThrowIfInstallationFailureRequested("after-runtime-bindings");
                 previousGeneration = PlayableEventTableRuntime.SwapGeneration(stagedGeneration);
@@ -81,13 +88,26 @@ namespace HuntingInDarkness.Bootstrap
                 PlayableSettlementContentRuntime.SwapPlan(stagedSettlementPlan);
                 settlementPlanPublished = true;
                 ThrowIfInstallationFailureRequested("after-settlement-publish");
+                previousHuntBundle = PlayableHuntContentRuntime.SwapBundle(stagedHuntBundle);
+                huntBundlePublished = true;
+                candidate.PublishHuntBindings();
+                ThrowIfInstallationFailureRequested("after-hunt-publish");
                 if (!candidate.TryValidateInstalledContent(out reason))
                 {
-                    return FailAndRollback(report, "candidate.install", reason, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
+                    return FailAndRollback(report, "candidate.install", reason, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished, stagedHuntBundle, previousHuntBundle, huntBundlePublished);
                 }
+                ThrowIfInstallationFailureRequested("after-hunt-projection");
                 ThrowIfInstallationFailureRequested("after-settlement-projection");
                 candidate.MarkInstalled();
                 installedCandidate = candidate;
+                try
+                {
+                    PlayableHuntContentRuntime.RetireBundle(previousHuntBundle);
+                }
+                catch (System.Exception huntRetirementException)
+                {
+                    Debug.LogWarning($"[PlayableBootstrap] 旧狩猎内容世代回收失败，当前候选仍保持已提交：{huntRetirementException.Message}");
+                }
                 try
                 {
                     PlayableSettlementContentRuntime.RetirePlan(previousSettlementPlan);
@@ -108,15 +128,15 @@ namespace HuntingInDarkness.Bootstrap
             }
             catch (System.Exception exception)
             {
-                return FailAndRollback(report, "candidate.install.exception", exception.Message, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
+                return FailAndRollback(report, "candidate.install.exception", exception.Message, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished, stagedHuntBundle, previousHuntBundle, huntBundlePublished);
             }
         }
 
-        private static bool FailAndRollback(PlayableContentDiagnosticReport report, string code, string reason, PlayableCampaignContentCandidate candidate, PlayableCampaignRuntimeSnapshot runtimeSnapshot, PlayableEventTableGeneration stagedGeneration, PlayableEventTableGeneration previousGeneration, bool generationPublished, PlayableSettlementContentPlan stagedSettlementPlan, PlayableSettlementContentPlan previousSettlementPlan, bool settlementPlanPublished)
+        private static bool FailAndRollback(PlayableContentDiagnosticReport report, string code, string reason, PlayableCampaignContentCandidate candidate, PlayableCampaignRuntimeSnapshot runtimeSnapshot, PlayableEventTableGeneration stagedGeneration, PlayableEventTableGeneration previousGeneration, bool generationPublished, PlayableSettlementContentPlan stagedSettlementPlan, PlayableSettlementContentPlan previousSettlementPlan, bool settlementPlanPublished, PlayableHuntContentBundle stagedHuntBundle, PlayableHuntContentBundle previousHuntBundle, bool huntBundlePublished)
         {
             try
             {
-                Rollback(candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished);
+                Rollback(candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished, stagedHuntBundle, previousHuntBundle, huntBundlePublished);
                 report.AddError(code, reason);
             }
             catch (System.Exception rollbackException)
@@ -127,9 +147,18 @@ namespace HuntingInDarkness.Bootstrap
             return false;
         }
 
-        private static void Rollback(PlayableCampaignContentCandidate candidate, PlayableCampaignRuntimeSnapshot runtimeSnapshot, PlayableEventTableGeneration stagedGeneration, PlayableEventTableGeneration previousGeneration, bool generationPublished, PlayableSettlementContentPlan stagedSettlementPlan, PlayableSettlementContentPlan previousSettlementPlan, bool settlementPlanPublished)
+        private static void Rollback(PlayableCampaignContentCandidate candidate, PlayableCampaignRuntimeSnapshot runtimeSnapshot, PlayableEventTableGeneration stagedGeneration, PlayableEventTableGeneration previousGeneration, bool generationPublished, PlayableSettlementContentPlan stagedSettlementPlan, PlayableSettlementContentPlan previousSettlementPlan, bool settlementPlanPublished, PlayableHuntContentBundle stagedHuntBundle, PlayableHuntContentBundle previousHuntBundle, bool huntBundlePublished)
         {
             System.Exception firstException = null;
+            try
+            {
+                PlayableHuntContentBundle rejectedBundle = huntBundlePublished ? PlayableHuntContentRuntime.SwapBundle(previousHuntBundle) : stagedHuntBundle;
+                PlayableHuntContentRuntime.RetireBundle(rejectedBundle);
+            }
+            catch (System.Exception exception)
+            {
+                firstException ??= exception;
+            }
             bool stagedPlanIsCurrent = ReferenceEquals(PlayableSettlementContentRuntime.CurrentPlan, stagedSettlementPlan);
             PlayableSettlementContentPlan rejectedPlan = null;
             try
@@ -141,6 +170,7 @@ namespace HuntingInDarkness.Bootstrap
                 firstException ??= exception;
             }
             candidate?.ReleaseSettlementPlan(stagedSettlementPlan);
+            candidate?.ReleaseHuntPlans();
             try
             {
                 if (!ReferenceEquals(PlayableSettlementContentRuntime.CurrentPlan, rejectedPlan)) PlayableSettlementContentRuntime.RetirePlan(rejectedPlan);
