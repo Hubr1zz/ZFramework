@@ -113,13 +113,30 @@ namespace HuntingInDarkness.ContentTables
         private static List<EventTableRecord> cachedRecords;
         private static List<EventData> cachedEvents;
         private static PlayableSymptomCatalog cachedSymptomCatalog;
+        private static readonly HashSet<EventData> transientEvents = new();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
+            ClearCache();
+        }
+
+        /// <summary>清理由事件表运行时创建的事件对象；不会触碰外部资产。</summary>
+        public static void ClearCache()
+        {
+            foreach (EventData gameEvent in new List<EventData>(transientEvents))
+                DestroyTransientEvent(gameEvent);
+            transientEvents.Clear();
             cachedRecords = null;
             cachedEvents = null;
             cachedSymptomCatalog = null;
+        }
+
+        /// <summary>在正式内容装配边界重建事件表缓存。</summary>
+        public static IReadOnlyList<EventData> Rebuild()
+        {
+            ClearCache();
+            return GetEvents();
         }
 
         public static void Extend(IReadOnlyList<EventData> baseRandomEvents, IReadOnlyList<EventData> baseMainStoryEvents, out List<EventData> randomEvents, out List<EventData> mainStoryEvents)
@@ -164,6 +181,14 @@ namespace HuntingInDarkness.ContentTables
             if (cachedEvents != null && cachedEvents.TrueForAll(gameEvent => gameEvent != null) && ReferenceEquals(cachedSymptomCatalog, PlayableSymptomRuntime.Catalog))
                 return cachedEvents;
 
+            if (cachedEvents != null)
+            {
+                foreach (EventData gameEvent in new List<EventData>(transientEvents))
+                    DestroyTransientEvent(gameEvent);
+                transientEvents.Clear();
+                cachedEvents = null;
+            }
+
             if (cachedRecords == null)
             {
                 var source = new JsonEventTableSource(TablePath);
@@ -192,6 +217,7 @@ namespace HuntingInDarkness.ContentTables
                     Debug.LogError($"[ContentTable] {error}");
                     continue;
                 }
+                transientEvents.Add(gameEvent);
                 validRecords.Add(record.id, record);
                 eventsById.Add(record.id, gameEvent);
                 orderedIds.Add(record.id);
@@ -412,6 +438,7 @@ namespace HuntingInDarkness.ContentTables
         private static void DestroyTransientEvent(EventData gameEvent)
         {
             if (gameEvent == null) return;
+            transientEvents.Remove(gameEvent);
             if (Application.isPlaying)
             {
                 UnityEngine.Object.Destroy(gameEvent);

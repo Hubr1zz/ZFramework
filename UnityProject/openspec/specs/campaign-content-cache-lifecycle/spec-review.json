@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 3,
+  "capability": "campaign-content-cache-lifecycle",
+  "title": "战役内容缓存生命周期",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "事件表 Runtime 显式拥有并释放其 transient EventData；正式组合根在 GameManager 创建前只构建一个共享事件世代，Settlement、Hunt 与读档路径不再隐式热重建。",
+    "evidence": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventTableCacheLifecycleTests.cs",
+      "Unity CLI EditMode: 590/590 passed"
+    ],
+    "differences": [
+      "PlayMode 的 Object.Destroy 在帧末完成；正式重建被限制在无活动消费者的启动门禁，因此不承诺同步销毁。",
+      "其他表生成的 transient ScriptableObject 将由后续 Campaign Content Assembly 统一纳入候选所有权。"
+    ],
+    "verifiedAt": "2026-08-24T05:29:14-07:00",
+    "codeEvidence": [
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "line": 1,
+        "fileHash": "764e2efbd51b9ab5c4708bc7a04760d8eed11e874fa8e2768ac41a9f546e074b",
+        "status": "verified",
+        "checkedAt": "2026-08-24T05:29:14-07:00",
+        "feature": "跟踪、清理并显式重建表运行时拥有的事件对象图。"
+      },
+      {
+        "guid": "3036f45e4a7fd284caf46b4750249551",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs",
+        "line": 1,
+        "fileHash": "6713feb5668198b139d09832835178629bad259c5db40a32b1eaea5548aa97d9",
+        "status": "verified",
+        "checkedAt": "2026-08-24T05:29:14-07:00",
+        "feature": "在依赖目录配置完成后、GameManager 创建前建立唯一共享事件世代。"
+      },
+      {
+        "guid": "4f18c5c6df3c4c4cb65c66f34cb0e5ac",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventTableCacheLifecycleTests.cs",
+        "line": 1,
+        "fileHash": "b3a4f21b2863e54382bcbcd1b916075f44d0f37fdbf457fb74192d3eedd2b422",
+        "status": "verified",
+        "checkedAt": "2026-08-24T05:29:14-07:00",
+        "feature": "验证缓存替换、旧 transient 释放与重建对象身份隔离。"
+      }
+    ]
+  },
+  "implementationOutline": [
+    "PlayableEventTableRuntime 以独立集合记录其创建的 EventData。",
+    "ClearCache 与依赖目录变化统一释放旧世代，Rebuild 建立完整新对象图。",
+    "PlayableGameBootstrap 在无活动 Runner/View 的同步启动门禁内调用一次 Rebuild。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "tengine-startup-lifecycle",
+    "table-driven-event-chains"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs:1"
+  ]
+}

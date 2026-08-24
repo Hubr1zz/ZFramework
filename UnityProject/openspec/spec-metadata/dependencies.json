@@ -301,9 +301,36 @@
       "category": "feature",
       "readiness": "implemented",
       "specPath": "openspec/specs/hunt-return-outcome-checkpoint/spec.md"
+    },
+    {
+      "id": "campaign-content-cache-lifecycle",
+      "label": "战役内容缓存生命周期",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-content-cache-lifecycle/spec.md"
     }
   ],
   "edges": [
+    {
+      "id": "campaign-content-cache-lifecycle--requires--tengine-startup-lifecycle",
+      "from": "campaign-content-cache-lifecycle",
+      "to": "tengine-startup-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "正式事件缓存只在 GameManager 激活前的同步组合根门禁内重建",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-content-cache-lifecycle--requires--table-driven-event-chains",
+      "from": "campaign-content-cache-lifecycle",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "共享缓存拥有表驱动事件及其同批次链引用的生命周期",
+      "gapId": "",
+      "blocksImplementation": false
+    },
     {
       "id": "action-environment-lifecycle--requires--tengine-startup-lifecycle",
       "from": "action-environment-lifecycle",

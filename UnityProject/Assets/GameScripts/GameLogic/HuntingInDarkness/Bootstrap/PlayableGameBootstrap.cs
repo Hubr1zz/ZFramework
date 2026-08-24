@@ -4,6 +4,7 @@ using HuntingInDarkness.Testing;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.Combat;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.ViewLayer.Camera;
 using HuntingInDarkness.ViewLayer.Combat;
 using HuntingInDarkness.ViewLayer.Flow;
@@ -82,6 +83,7 @@ namespace HuntingInDarkness.Bootstrap
             PlayableWeaponMasteryRuntime.Configure(settings.WeaponMastery);
             BattleSetup defaultBattleSetup = settings.CreateBattleSetup();
             PlayableEncounterRuntime.Configure(settings.EncounterCatalog, settings.DefaultEncounterId, defaultBattleSetup);
+            PlayableEventTableRuntime.Rebuild();
 
             var managerObject = new GameObject("GameManager (Playable)");
             managerObject.SetActive(false);
