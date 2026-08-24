@@ -24,7 +24,9 @@ namespace InteractionSystem.Runtime
     {
         // ─── Behaviours ───────────────────────────────────────────────────────────
         [SerializeReference]
+#if UNITY_EDITOR
         [ListDrawerSettings(OnBeginListElementGUI = nameof(DrawElementScriptLink))]
+#endif
         public List<InteractableUIBehaviour> uiBehaviours = new();
 
         // ─── IInteractableTarget ─────────────────────────────────────────────────

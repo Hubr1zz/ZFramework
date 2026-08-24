@@ -10,7 +10,9 @@ namespace InteractionSystem.Runtime
     public abstract class InteractableObject : MonoBehaviour, IInteractableTarget
     {
         [SerializeReference]
+#if UNITY_EDITOR
         [ListDrawerSettings(OnBeginListElementGUI = nameof(DrawElementScriptLink))]
+#endif
         private List<InteractableThreeDBehaviour> _interactableBehaviours = new();
 
         // IInteractableTarget — base type list for unified dispatch in EasyInteractive
