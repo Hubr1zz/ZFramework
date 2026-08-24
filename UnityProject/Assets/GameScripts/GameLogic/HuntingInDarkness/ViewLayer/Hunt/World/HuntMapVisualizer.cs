@@ -45,6 +45,7 @@ namespace HuntingInDarkness.Hunt
         private readonly Dictionary<Vector2Int, List<PlayableHuntResourceMarker3D>> resourceMarkers = new();
         private PlayableHuntSquadPawn3D squadPawn;
         private PlayableHuntMapIntroCamera3D mapIntroCamera;
+        private IHuntExplorationPort explorationPort;
 
         public Transform TabletopInteractionAnchor => squadPawn != null ? squadPawn.transform : transform;
 
@@ -59,6 +60,19 @@ namespace HuntingInDarkness.Hunt
                         position = marker.PresentationPosition;
                         return true;
                     }
+            return false;
+        }
+
+        public bool TryGetResourcePointPresentationPosition(Vector2Int coordinate, int pointIndex, out Vector3 position)
+        {
+            position = default;
+            if (!resourceMarkers.TryGetValue(coordinate, out List<PlayableHuntResourceMarker3D> markers)) return false;
+            foreach (PlayableHuntResourceMarker3D marker in markers)
+                if (marker != null && marker.PointIndex == pointIndex)
+                {
+                    position = marker.PresentationPosition;
+                    return true;
+                }
             return false;
         }
 
@@ -80,8 +94,14 @@ namespace HuntingInDarkness.Hunt
 
         public void Init(HuntManager huntMgr)
         {
+            Init(huntMgr, null);
+        }
+
+        public void Init(HuntManager huntMgr, IHuntExplorationPort port)
+        {
             ClearVisuals();
             _huntMgr = huntMgr;
+            explorationPort = port;
             huntMgr.OnTileStateChanged  = OnTileStateChanged;
             huntMgr.OnSquadMoved        = OnSquadMoved;
             huntMgr.OnResourcePointHarvested = OnResourcePointHarvested;
@@ -126,7 +146,7 @@ namespace HuntingInDarkness.Hunt
             // 点击组件
             var clicker = go.AddComponent<TileClickHandler>();
             clicker.Coord      = coord;
-            clicker.HuntMgr    = _huntMgr;
+            clicker.ExplorationPort = explorationPort;
             clicker.Visualizer = this;
         }
 
@@ -241,7 +261,7 @@ namespace HuntingInDarkness.Hunt
             {
                 int pointIndex = activePointIndices[visualIndex];
                 if (!PlayableHuntResourceMarkerLayout.TryGetLocalPosition(visualIndex, activePointIndices.Count, 0.48f, out Vector3 localPosition)) continue;
-                markers.Add(PlayableHuntResourceMarker3D.Create(parent.transform, _huntMgr, coord, pointIndex, tile.ResourcePoints[pointIndex], localPosition));
+                markers.Add(PlayableHuntResourceMarker3D.Create(parent.transform, _huntMgr, explorationPort, coord, pointIndex, tile.ResourcePoints[pointIndex], localPosition));
             }
             resourceMarkers[coord] = markers;
         }
@@ -300,6 +320,7 @@ namespace HuntingInDarkness.Hunt
             bossMarkers.Clear();
             resourceMarkers.Clear();
             squadPawn = null;
+            explorationPort = null;
         }
     }
 }

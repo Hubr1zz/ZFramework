@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Core;
@@ -16,6 +17,7 @@ using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
+using UI.Hunt;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -86,6 +88,119 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             SettlementDepartureCommandResult nextDepartureResult = nextDeparture.GetResult();
             Assert.That(nextDepartureResult.Succeeded, Is.True, nextDepartureResult.Reason);
             Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
+        }
+
+        [UnityTest]
+        public IEnumerator ExplorationPort_CompletesTabletopRevealMoveHarvestReturnAndRejectsStaleSession()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            EnsureMainCamera();
+            yield return WaitForSettlementIdle(manager);
+            int initialYear = manager.SettlementData.CurrentYear;
+            int hunterId = manager.SettlementData.GetAliveHunters()[0].InstanceId;
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { hunterId }, GetDestination(initialYear)).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            SettlementDepartureCommandResult departureResult = departure.GetResult();
+            Assert.That(departureResult.Succeeded, Is.True, departureResult.Reason);
+
+            HuntMapVisualizer visualizer = managerObject.GetComponentInChildren<HuntMapVisualizer>(true);
+            Assert.That(visualizer, Is.Not.Null);
+            PlayableHuntSquadPawn3D pawn = visualizer.GetComponentInChildren<PlayableHuntSquadPawn3D>(true);
+            Assert.That(pawn, Is.Not.Null);
+            Assert.That(pawn.HunterCount, Is.EqualTo(1));
+            PlayableHuntMapIntroCamera3D mapIntro = visualizer.GetComponent<PlayableHuntMapIntroCamera3D>();
+            Assert.That(mapIntro, Is.Not.Null);
+            Assert.That(mapIntro.Plan.Duration, Is.GreaterThan(0f));
+            if (mapIntro.IsPresenting)
+                Assert.That(PlayableHuntInputGuard.IsBlocked, Is.True, "地图入场运镜播放期间应锁定狩猎输入。");
+            yield return WaitForHuntInputReady();
+            yield return WaitForActiveHuntSnapshot(persistence);
+            CampaignSnapshot initialSnapshot = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+            Assert.That(visualizer.GetComponentsInChildren<PlayableHexTileCard3D>(true), Has.Length.EqualTo(initialSnapshot.ActiveHunt.Tiles.Count));
+
+            ActiveHuntTileSnapshot targetTile = initialSnapshot.ActiveHunt.Tiles.FirstOrDefault(tile => tile.State == TileState.Interactable && !tile.HasBossEncounter);
+            Assert.That(targetTile, Is.Not.Null, "正式路线缺少可安全探索的相邻地块。");
+            var coordinate = new Vector2Int(targetTile.X, targetTile.Y);
+            IHuntExplorationPort explorationPort = manager.ActiveHuntExplorationPort;
+            Assert.That(explorationPort, Is.Not.Null);
+            Assert.That(explorationPort.TryCreateSnapshot(coordinate, -1, out HuntExplorationSnapshot target), Is.True);
+
+            UniTask<HuntTileCommandResult>.Awaiter reveal = explorationPort.SubmitTileAsync(target).GetAwaiter();
+            PlayableHexTileCard3D tileCard = FindTileCard(visualizer, coordinate);
+            yield return WaitForTileFlip(tileCard);
+            Assert.That(reveal.IsCompleted, Is.False, "ActionQueue 不得在实体地形卡翻面完成前结束命令。");
+            yield return WaitForPresentationCompletion(reveal);
+            HuntTileCommandResult revealResult = reveal.GetResult();
+            Assert.That(revealResult.Succeeded, Is.True, revealResult.Reason);
+            Assert.That(tileCard.IsFaceUp, Is.True);
+
+            UniTask<HuntTileCommandResult>.Awaiter move = explorationPort.SubmitTileAsync(target).GetAwaiter();
+            yield return WaitForSquadMovement(pawn);
+            Assert.That(move.IsCompleted, Is.False, "ActionQueue 不得在实体小队棋子落位前结束命令。");
+            yield return WaitForPresentationCompletion(move);
+            HuntTileCommandResult moveResult = move.GetResult();
+            Assert.That(moveResult.Succeeded, Is.True, moveResult.Reason);
+
+            yield return WaitForActiveHuntSnapshot(persistence, coordinate);
+            CampaignSnapshot exploredSnapshot = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+            ActiveHuntTileSnapshot exploredTile = exploredSnapshot.ActiveHunt.Tiles.Single(tile => tile.X == coordinate.x && tile.Y == coordinate.y);
+            Assert.That(exploredTile.State, Is.EqualTo(TileState.Revealed));
+            Assert.That(exploredTile.ResourcePoints, Is.Not.Empty, "基础路线的非起始地块应提供最小可采集内容。");
+            Assert.That(visualizer.GetComponentsInChildren<PlayableHuntResourceMarker3D>(true), Has.Length.GreaterThanOrEqualTo(exploredTile.ResourcePoints.Count));
+
+            Assert.That(explorationPort.TryCreateSnapshot(coordinate, 0, out HuntExplorationSnapshot resourceTarget), Is.True);
+            UniTask<bool>.Awaiter selection = explorationPort.SubmitResourcePointAsync(resourceTarget).GetAwaiter();
+            yield return WaitForCompletion(selection);
+            Assert.That(selection.GetResult(), Is.True);
+            HuntHarvestPanel3D harvestPanel = visualizer.GetComponentInChildren<HuntHarvestPanel3D>(true);
+            Assert.That(harvestPanel, Is.Not.Null);
+            Assert.That(harvestPanel.IsOpen, Is.True);
+            Assert.That(harvestPanel.CardCount, Is.EqualTo(exploredTile.ResourcePoints[0].DrawCount));
+            Assert.That(harvestPanel.CardCount, Is.GreaterThan(0));
+
+            for (int cardIndex = 0; cardIndex < harvestPanel.CardCount; cardIndex++)
+            {
+                HuntHarvestCard3D harvestCard = harvestPanel.GetComponentsInChildren<HuntHarvestCard3D>(true).Single(card => card.CardIndex == cardIndex);
+                Assert.That(harvestCard.RevealRequested, Is.Not.Null);
+                Assert.That(harvestPanel.RevealedCount, Is.EqualTo(cardIndex));
+                Assert.That(harvestPanel.TryRevealCard(cardIndex), Is.True, $"第 {cardIndex + 1} 张实体采集牌未接受点击。");
+                yield return WaitForHarvestStep(harvestPanel, cardIndex + 1);
+                HuntHarvestCard3D presentedCard = harvestPanel.GetComponentsInChildren<HuntHarvestCard3D>(true).Single(card => card.CardIndex == cardIndex);
+                Assert.That(presentedCard.IsRevealed, Is.True, $"第 {cardIndex + 1} 张实体采集牌未完成翻面。");
+            }
+            HuntHarvestControlCard3D controlCard = harvestPanel.GetComponentInChildren<HuntHarvestControlCard3D>(true);
+            Assert.That(controlCard, Is.Not.Null);
+            Assert.That(controlCard.Clicked, Is.Not.Null);
+            Assert.That(harvestPanel.TryActivateControlCard(), Is.True);
+            yield return WaitForHarvestStep(harvestPanel, harvestPanel.CardCount);
+            Assert.That(harvestPanel.IsOperationRunning, Is.False);
+            harvestPanel.RequestClose();
+            yield return null;
+            Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
+
+            yield return WaitForActiveHuntSnapshot(persistence, coordinate, true);
+            CampaignSnapshot harvestedSnapshot = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+            ActiveHuntTileSnapshot harvestedTile = harvestedSnapshot.ActiveHunt.Tiles.Single(tile => tile.X == coordinate.x && tile.Y == coordinate.y);
+            Assert.That(harvestedTile.ResourcePoints[0].IsExhausted, Is.True);
+
+            UniTask<HuntRetreatCommandResult>.Awaiter retreat = manager.RequestRetreatAsync().GetAwaiter();
+            yield return WaitForCompletion(retreat);
+            HuntRetreatCommandResult retreatResult = retreat.GetResult();
+            Assert.That(retreatResult.Succeeded, Is.True, retreatResult.Reason);
+            yield return WaitForSettlementIdle(manager);
+            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear + 1));
+            Assert.That(manager.SettlementData.PendingHuntReturn, Is.Null);
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter nextDeparture = manager.DepartForHuntAsync(new[] { hunterId }, GetDestination(initialYear + 1)).GetAwaiter();
+            yield return WaitForCompletion(nextDeparture);
+            SettlementDepartureCommandResult nextDepartureResult = nextDeparture.GetResult();
+            Assert.That(nextDepartureResult.Succeeded, Is.True, nextDepartureResult.Reason);
+            Assert.That(explorationPort.TryCreateSnapshot(Vector2Int.zero, -1, out _), Is.False, "上一轮 View 端口不得为新会话签发快照。");
+            UniTask<HuntTileCommandResult>.Awaiter staleRequest = explorationPort.SubmitTileAsync(target).GetAwaiter();
+            yield return WaitForCompletion(staleRequest);
+            Assert.That(staleRequest.GetResult().Succeeded, Is.False, "上一轮地图 View 的请求不得写入新狩猎会话。");
         }
 
         [UnityTest]
@@ -340,6 +455,91 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             List<PlayableHuntDestination> destinations = destinationCatalog.GetAvailable(year);
             Assert.That(destinations, Is.Not.Empty, $"第 {year} 年缺少可用狩猎目的地。");
             return destinations[0];
+        }
+
+        private void EnsureMainCamera()
+        {
+            if (Camera.main != null) return;
+            var cameraObject = new GameObject("Campaign Hunt Smoke Camera");
+            cameraObject.tag = "MainCamera";
+            cameraObject.transform.SetParent(managerObject.transform, false);
+            cameraObject.AddComponent<Camera>();
+        }
+
+        private static PlayableHexTileCard3D FindTileCard(HuntMapVisualizer visualizer, Vector2Int coordinate)
+        {
+            string expectedName = $"Tile_{coordinate.x}_{coordinate.y}";
+            PlayableHexTileCard3D card = visualizer.GetComponentsInChildren<PlayableHexTileCard3D>(true).FirstOrDefault(candidate => candidate.gameObject.name == expectedName);
+            Assert.That(card, Is.Not.Null, $"缺少地块实体 {expectedName}。");
+            return card;
+        }
+
+        private static IEnumerator WaitForHuntInputReady()
+        {
+            float deadline = Time.realtimeSinceStartup + 5f;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                if (!PlayableHuntInputGuard.IsBlocked) yield break;
+                yield return null;
+            }
+            Assert.Fail("等待狩猎地图入场运镜释放输入超时。");
+        }
+
+        private static IEnumerator WaitForTileFlip(PlayableHexTileCard3D card)
+        {
+            float deadline = Time.realtimeSinceStartup + 5f;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                if (card != null && card.IsFlipping) yield break;
+                yield return null;
+            }
+            Assert.Fail("等待实体地形卡开始翻面超时。");
+        }
+
+        private static IEnumerator WaitForSquadMovement(PlayableHuntSquadPawn3D pawn)
+        {
+            float deadline = Time.realtimeSinceStartup + 5f;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                if (pawn != null && pawn.IsMoving) yield break;
+                yield return null;
+            }
+            Assert.Fail("等待实体小队棋子开始移动超时。");
+        }
+
+        private static IEnumerator WaitForPresentationCompletion<T>(UniTask<T>.Awaiter awaiter)
+        {
+            float deadline = Time.realtimeSinceStartup + 5f;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                if (awaiter.IsCompleted) yield break;
+                yield return null;
+            }
+            Assert.Fail("等待 3D 表现命令完成超时。");
+        }
+
+        private static IEnumerator WaitForHarvestStep(HuntHarvestPanel3D panel, int expectedRevealedCount)
+        {
+            float deadline = Time.realtimeSinceStartup + 5f;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                if (panel != null && !panel.IsOperationRunning && panel.RevealedCount >= expectedRevealedCount) yield break;
+                yield return null;
+            }
+            Assert.Fail($"等待 3D 采集牌推进超时：revealed={panel?.RevealedCount}, expected={expectedRevealedCount}, running={panel?.IsOperationRunning}。");
+        }
+
+        private static IEnumerator WaitForActiveHuntSnapshot(MemoryCampaignPersistence persistence, Vector2Int? squadCoordinate = null, bool requireExhaustedPoint = false)
+        {
+            for (int frame = 0; frame < FrameTimeout; frame++)
+            {
+                CampaignSnapshot snapshot = string.IsNullOrWhiteSpace(persistence.Payload) ? null : JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+                bool coordinateMatches = !squadCoordinate.HasValue || snapshot?.ActiveHunt != null && snapshot.ActiveHunt.SquadX == squadCoordinate.Value.x && snapshot.ActiveHunt.SquadY == squadCoordinate.Value.y;
+                bool exhaustedMatches = !requireExhaustedPoint || snapshot?.ActiveHunt?.Tiles.Any(tile => tile.X == squadCoordinate.Value.x && tile.Y == squadCoordinate.Value.y && tile.ResourcePoints.Any(point => point.IsExhausted)) == true;
+                if (snapshot?.HasActiveHunt == true && coordinateMatches && exhaustedMatches) yield break;
+                yield return null;
+            }
+            Assert.Fail("等待活动狩猎检查点持久化超时。");
         }
 
         private static IEnumerator WaitForSettlementIdle(GameManager manager)

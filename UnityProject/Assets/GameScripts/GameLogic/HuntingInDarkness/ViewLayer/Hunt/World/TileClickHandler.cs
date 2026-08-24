@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Cysharp.Threading.Tasks;
 
 namespace HuntingInDarkness.Hunt
 {
@@ -7,14 +8,20 @@ namespace HuntingInDarkness.Hunt
     public class TileClickHandler : MonoBehaviour
     {
         public Vector2Int        Coord;
-        [System.NonSerialized] public HuntManager HuntMgr;
+        [System.NonSerialized] public IHuntExplorationPort ExplorationPort;
         public HuntMapVisualizer Visualizer;
 
         private void OnMouseDown()
         {
             // 不穿透 UI
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
-            HuntMgr?.OnTileClicked(Coord);
+            if (ExplorationPort == null || !ExplorationPort.TryCreateSnapshot(Coord, -1, out HuntExplorationSnapshot snapshot)) return;
+            SubmitAsync(snapshot).Forget();
+        }
+
+        private async UniTaskVoid SubmitAsync(HuntExplorationSnapshot snapshot)
+        {
+            await ExplorationPort.SubmitTileAsync(snapshot);
         }
     }
 }

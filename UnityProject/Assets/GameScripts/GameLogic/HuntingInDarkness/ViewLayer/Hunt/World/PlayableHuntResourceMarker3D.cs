@@ -28,21 +28,31 @@ namespace HuntingInDarkness.Hunt
 
         public static PlayableHuntResourceMarker3D Create(Transform parent, HuntManager manager, Vector2Int tileCoordinate, int pointIndex, ResourcePointInstance point, Vector3 localPosition)
         {
+            return Create(parent, manager, null, tileCoordinate, pointIndex, point, localPosition);
+        }
+
+        public static PlayableHuntResourceMarker3D Create(Transform parent, HuntManager manager, IHuntExplorationPort explorationPort, Vector2Int tileCoordinate, int pointIndex, ResourcePointInstance point, Vector3 localPosition)
+        {
             var markerObject = new GameObject($"ResourcePoint_{pointIndex}_{point?.ResourceName ?? "Unknown"}");
             markerObject.transform.SetParent(parent, false);
             markerObject.transform.localPosition = localPosition;
             var marker = markerObject.AddComponent<PlayableHuntResourceMarker3D>();
-            marker.Present(manager, tileCoordinate, pointIndex, point);
+            marker.Present(manager, explorationPort, tileCoordinate, pointIndex, point);
             return marker;
         }
 
         public void Present(HuntManager manager, Vector2Int tileCoordinate, int pointIndex, ResourcePointInstance point)
         {
+            Present(manager, null, tileCoordinate, pointIndex, point);
+        }
+
+        public void Present(HuntManager manager, IHuntExplorationPort explorationPort, Vector2Int tileCoordinate, int pointIndex, ResourcePointInstance point)
+        {
             this.manager = manager;
             Point = point;
             PointIndex = pointIndex;
             EnsureBuilt();
-            GetComponent<ResourceMarkerClickHandler>().Initialize(manager, tileCoordinate, pointIndex);
+            GetComponent<ResourceMarkerClickHandler>().Initialize(manager, explorationPort, tileCoordinate, pointIndex);
             string displayName = string.IsNullOrWhiteSpace(point?.ResourceName) ? "未知资源" : point.ResourceName;
             resourceColor = CreateResourceColor(displayName);
             RefreshAvailability();

@@ -146,6 +146,36 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task InputGuard_BlocksBeforePendingEventRecovery()
+        {
+            var input = new RetryInput(false);
+            using var rig = new SessionRig(input);
+            HuntTileCommandResult first = await rig.Session.InteractTileAsync(rig.Interactable.AxialCoord);
+            Assert.That(first.Succeeded, Is.False);
+            Assert.That(rig.Session.HasPendingEventOccurrences, Is.True);
+
+            const int ownerId = 482071;
+            PlayableHuntInputGuard.Acquire(ownerId);
+            try
+            {
+                HuntTileCommandResult blocked = await rig.Session.InteractTileAsync(rig.Interactable.AxialCoord);
+
+                Assert.That(blocked.Succeeded, Is.False);
+                Assert.That(blocked.Reason, Does.Contain("锁定"));
+                Assert.That(rig.Session.HasPendingEventOccurrences, Is.True);
+                Assert.That(input.ChildNarrativeCount, Is.Zero, "输入锁生效时不得先恢复并消费 pending event。");
+            }
+            finally
+            {
+                PlayableHuntInputGuard.Release(ownerId);
+            }
+
+            HuntRetreatCommandResult resumed = await rig.Session.PrepareRetreatAsync(1);
+            Assert.That(resumed.Succeeded, Is.True, resumed.Reason);
+            Assert.That(input.ChildNarrativeCount, Is.EqualTo(1));
+        }
+
+        [Test]
         public async Task ResumePendingEvents_DrainsRepeatedSiblingsBeforeRetreat()
         {
             var input = new RetryInput(false);

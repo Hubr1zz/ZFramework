@@ -15,6 +15,7 @@ namespace UI.Hunt
     {
         private HuntManager _huntMgr;
         private HuntMapVisualizer huntVisualizer;
+        private IHuntExplorationPort explorationPort;
         private bool _initialized;
 
         // 子面板
@@ -31,10 +32,18 @@ namespace UI.Hunt
 
         public void Init(HuntManager huntMgr, HuntMapVisualizer visualizer = null)
         {
+            Init(huntMgr, visualizer, null);
+        }
+
+        public void Init(HuntManager huntMgr, HuntMapVisualizer visualizer, IHuntExplorationPort port)
+        {
             harvestPanel3D?.DismissForSessionChange();
+            ClearResourcePresentationCallbacks();
             _huntMgr = huntMgr;
             huntVisualizer = visualizer;
-            huntMgr.OnResourcePointClicked = ShowHarvestPopup;
+            explorationPort = port;
+            huntMgr.OnResourcePointClicked = visualizer == null ? ShowHarvestPopup : null;
+            huntMgr.OnResourcePointPresentationRequested = visualizer != null && port != null ? ShowHarvestPresentation : null;
 
             if (_initialized)
             {
@@ -107,21 +116,20 @@ namespace UI.Hunt
 
         private void ShowHarvestPopup(ResourcePointInstance point, HunterInstance hunter)
         {
-            if (huntVisualizer != null)
-            {
-                if (_harvestPopup != null)
-                    _harvestPopup.gameObject.SetActive(false);
-                Vector3 position = huntVisualizer.TryGetResourcePointPresentationPosition(point, out Vector3 markerPosition)
-                    ? markerPosition
-                    : huntVisualizer.TabletopInteractionAnchor.position + new Vector3(0f, 0.58f, -1.55f);
-                harvestPanel3D ??= HuntHarvestPanel3D.Create(huntVisualizer.transform);
-                harvestPanel3D.Show(point, _huntMgr, position);
-                return;
-            }
             if (_harvestPopup == null)
                 return;
             _harvestPopup.gameObject.SetActive(true);
             _harvestPopup.Show(point, hunter, _huntMgr);
+        }
+
+        private void ShowHarvestPresentation(HuntResourcePointPresentationRequest request)
+        {
+            if (explorationPort == null || huntVisualizer == null || !explorationPort.TryCreateSnapshot(request.Coordinate, request.PointIndex, out HuntExplorationSnapshot target)) return;
+            Vector3 position = huntVisualizer.TryGetResourcePointPresentationPosition(request.Coordinate, request.PointIndex, out Vector3 markerPosition)
+                ? markerPosition
+                : huntVisualizer.TabletopInteractionAnchor.position + new Vector3(0f, 0.58f, -1.55f);
+            harvestPanel3D ??= HuntHarvestPanel3D.Create(huntVisualizer.transform);
+            harvestPanel3D.Show(target, request.ResourceName, request.DrawCount, explorationPort, position);
         }
 
         private void OnGameEvent(GameEventTriggeredEvent e)
@@ -180,6 +188,7 @@ namespace UI.Hunt
             EventBus.Unsubscribe<HuntTileInteractionCommittedEvent>(OnTileInteractionCommitted);
             EventBus.Unsubscribe<HarvestCommittedEvent>(OnHarvestCommitted);
             EventBus.Unsubscribe<HuntEventNodeCommittedEvent>(OnHuntEventNodeCommitted);
+            ClearResourcePresentationCallbacks();
             if (statusBoard3D != null)
                 Destroy(statusBoard3D.gameObject);
             if (harvestPanel3D != null)
@@ -187,6 +196,13 @@ namespace UI.Hunt
                 harvestPanel3D.DismissForSessionChange();
                 Destroy(harvestPanel3D.gameObject);
             }
+        }
+
+        private void ClearResourcePresentationCallbacks()
+        {
+            if (_huntMgr == null) return;
+            if (_huntMgr.OnResourcePointClicked == ShowHarvestPopup) _huntMgr.OnResourcePointClicked = null;
+            if (_huntMgr.OnResourcePointPresentationRequested == ShowHarvestPresentation) _huntMgr.OnResourcePointPresentationRequested = null;
         }
     }
 }

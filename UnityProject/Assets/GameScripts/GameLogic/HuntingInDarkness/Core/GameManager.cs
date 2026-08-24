@@ -167,6 +167,7 @@ namespace Core
         private PlayableSettlementActionSession settlementActionSession;
         private SettlementEventRestoreProjection settlementEventRestoreProjection;
         private PlayableHuntActionSession huntActionSession;
+        private HuntExplorationRuntime huntExplorationRuntime;
         private PlayableCampaignActionSession campaignActionSession;
         private readonly ActionEnvironmentInstallerRegistry actionEnvironmentInstallers = new();
         private IPlayableEventInput playableEventInput;
@@ -834,6 +835,7 @@ namespace Core
         {
             PlayableHuntActionSession session = huntActionSession;
             huntActionSession = null;
+            huntExplorationRuntime = null;
             session?.Dispose();
         }
 
@@ -964,19 +966,13 @@ namespace Core
                     visualizerObject.transform.SetParent(huntRoot.transform);
                     _huntVisualizer = visualizerObject.AddComponent<HuntMapVisualizer>();
                 }
-                _huntVisualizer?.Init(_huntMgr);
-            }
-            catch (System.Exception exception)
-            {
-                CleanupHuntPresentation();
-                Debug.LogWarning($"[GameManager] 狩猎地图表现初始化失败，已降级继续：{exception.Message}");
-            }
-            try
-            {
                 huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, _huntMgr.BoundRoute?.DestinationId ?? string.Empty, tabletopInteractionRouter, _huntVisualizer, actionEnvironmentInstallers, restoredOccurrences, OnHuntCheckpointCommitted);
+                huntExplorationRuntime = new HuntExplorationRuntime(_huntMgr, huntActionSession);
+                _huntVisualizer?.Init(_huntMgr, huntExplorationRuntime.Port);
             }
             catch (System.Exception exception)
             {
+                DisposeHuntActionSession();
                 reason = $"狩猎 ActionSession 初始化失败：{exception.Message}";
                 return false;
             }
@@ -1130,7 +1126,7 @@ namespace Core
             }
             if (previousPhase == GamePhase.Hunt && previousHuntManager != null)
             {
-                _huntVisualizer?.Init(previousHuntManager);
+                _huntVisualizer?.Init(previousHuntManager, huntExplorationRuntime?.Port);
                 EnsureHuntRetreatPanel();
                 EnsureHuntUI();
             }
@@ -1148,6 +1144,7 @@ namespace Core
             _huntMgr = huntManager;
             settlementActionSession = settlementSession;
             huntActionSession = huntSession;
+            huntExplorationRuntime = huntSession == null ? null : new HuntExplorationRuntime(huntManager, huntSession);
             settlementEventRestoreProjection = restoreProjection;
             activeExpeditionId = expeditionId;
             PlayableHuntDestinationRuntime.RestoreState(destinationState);
@@ -1201,7 +1198,7 @@ namespace Core
         {
             if (_huntUI != null)
             {
-                _huntUI.Init(_huntMgr, _huntVisualizer);
+                _huntUI.Init(_huntMgr, _huntVisualizer, huntExplorationRuntime?.Port);
                 return;
             }
             var uiParent = uiHunt != null ? uiHunt : huntRoot;
@@ -1209,7 +1206,7 @@ namespace Core
             var uiGo = new GameObject("HuntUIManager", typeof(RectTransform));
             uiGo.transform.SetParent(uiParent.transform, false);
             _huntUI = uiGo.AddComponent<HuntUIManager>();
-            _huntUI.Init(_huntMgr, _huntVisualizer);
+            _huntUI.Init(_huntMgr, _huntVisualizer, huntExplorationRuntime?.Port);
         }
 
         private void EnsureHuntRetreatPanel()
@@ -1288,6 +1285,7 @@ namespace Core
         public CardGame.ActionQueue.ReactorRegistry SettlementActionReactors => campaignStarted ? settlementActionSession?.Reactors : null;
         public CardGame.ActionQueue.ReactorRegistry CampaignActionReactors => campaignStarted ? campaignActionSession?.Reactors : null;
         public CardGame.ActionQueue.ReactorRegistry HuntActionReactors => huntActionSession?.Reactors;
+        public IHuntExplorationPort ActiveHuntExplorationPort => campaignStarted && CurrentGamePhase == GamePhase.Hunt && huntExplorationRuntime?.IsActive == true ? huntExplorationRuntime.Port : null;
         public InventionSystem SettlementInventions => campaignStarted ? _settlementManager?.Inventions : null;
         public WorkshopSystem SettlementWorkshop => campaignStarted ? _settlementManager?.Workshop : null;
         public HunterManagementSystem SettlementHunters => campaignStarted ? _settlementManager?.HunterMgmt : null;

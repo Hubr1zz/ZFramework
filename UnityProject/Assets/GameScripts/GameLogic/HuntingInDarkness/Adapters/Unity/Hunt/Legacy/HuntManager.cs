@@ -96,6 +96,9 @@ namespace HuntingInDarkness.Hunt
         /// <summary>需要显示资源采集 UI 时</summary>
         public System.Action<ResourcePointInstance, HunterInstance> OnResourcePointClicked;
 
+        /// <summary>正式世界空间采集桌的只读展示请求；不携带 ResourcePointInstance。</summary>
+        public System.Action<HuntResourcePointPresentationRequest> OnResourcePointPresentationRequested;
+
         /// <summary>资源点采集状态改变后</summary>
         public System.Action<ResourcePointInstance> OnResourcePointHarvested;
 
@@ -305,6 +308,7 @@ namespace HuntingInDarkness.Hunt
             var point = tile.ResourcePoints[pointIndex];
             if (!IsHarvestablePoint(point)) return;
 
+            OnResourcePointPresentationRequested?.Invoke(new HuntResourcePointPresentationRequest(tileCoord, pointIndex, point.ResourceName, point.DrawCount));
             OnResourcePointClicked?.Invoke(point, SelectedHunter);
         }
 
