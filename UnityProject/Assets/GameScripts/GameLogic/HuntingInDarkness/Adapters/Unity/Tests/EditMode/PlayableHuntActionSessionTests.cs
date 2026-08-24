@@ -322,6 +322,7 @@ namespace HuntingInDarkness.Adapter.Tests
             HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
 
             Assert.That(result.Succeeded, Is.True);
+            Assert.That(result.FailedEffectCount, Is.EqualTo(1));
             Assert.That(rig.Hunter.Collectibles.Sum(item => item.Count), Is.EqualTo(1));
             Assert.That(rig.Settlement.GetResource(rig.Resource), Is.EqualTo(5));
         }

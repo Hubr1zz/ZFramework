@@ -45,6 +45,27 @@ namespace HuntingInDarkness.GameCore.Tests
         }
 
         [Test]
+        public void RemoveResourceEffect_ReportsFailureWhenResourceIsInsufficient()
+        {
+            int amount = 1;
+
+            SettlementEffectOutcome outcome = SettlementEffectRules.Apply(SettlementEffectKind.RemoveResource, "蘑菇肉", 2, null, null, new HunterState[0], _ => amount, (_, _) => { }, (_, _) => false, _ => { });
+
+            Assert.That(outcome.Handled, Is.False);
+            Assert.That(outcome.Reason, Does.Contain("资源不足"));
+            Assert.That(amount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void HunterEffect_ReportsFailureWhenConfiguredTargetDoesNotExist()
+        {
+            SettlementEffectOutcome outcome = SettlementEffectRules.Apply(SettlementEffectKind.AddCourage, "selected", 1, null, null, new HunterState[0], _ => 0, (_, _) => { }, (_, _) => false, _ => { });
+
+            Assert.That(outcome.Handled, Is.False);
+            Assert.That(outcome.Reason, Does.Contain("未找到效果目标"));
+        }
+
+        [Test]
         public void DelayedEventPlan_UsesStableIdAndFutureYear()
         {
             bool created = DelayedEventRules.TryCreatePlan(4, 3, " future_event ", out DelayedEventPlan plan, out string reason);

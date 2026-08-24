@@ -107,19 +107,20 @@ namespace HuntingInDarkness.Settlement
 
         private PlayableEventNodeCommitResult ResolveNarrativeNode(EventData gameEvent, HunterInstance actor, bool captureEncounterRequests, IPlayableEventResourceCommand resourceCommand = null)
         {
-            if (gameEvent == null) return new PlayableEventNodeCommitResult(System.Array.Empty<EventData>(), System.Array.Empty<string>());
+            if (gameEvent == null) return new PlayableEventNodeCommitResult(System.Array.Empty<EventData>(), System.Array.Empty<string>(), PlayableEventEffectBatchResult.Empty);
             var encounterIds = new List<string>();
+            var effectResults = new List<PlayableEventEffectResult>();
             if (gameEvent.eventType == GameEventType.Combat && !string.IsNullOrWhiteSpace(gameEvent.combatEncounterId))
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (gameEvent.immediateEffects != null)
-                foreach (EventEffect effect in gameEvent.immediateEffects)
-                    ApplyEffect(effect, actor, actor, encounterIds, resourceCommand);
+                for (int effectIndex = 0; effectIndex < gameEvent.immediateEffects.Count; effectIndex++)
+                    effectResults.Add(ApplyEffect(gameEvent.immediateEffects[effectIndex], actor, actor, encounterIds, resourceCommand, effectIndex, gameEvent.name));
             if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (!captureEncounterRequests)
                 PublishEncounters(encounterIds, gameEvent.name);
             MarkEventCompleted(gameEvent);
-            return new PlayableEventNodeCommitResult(gameEvent.chainedEvents, encounterIds);
+            return new PlayableEventNodeCommitResult(gameEvent.chainedEvents, encounterIds, new PlayableEventEffectBatchResult(effectResults));
         }
 
         // ─── 抉择事件结算 ────────────────────────────────────────
@@ -161,11 +162,12 @@ namespace HuntingInDarkness.Settlement
             // 执行效果
             var effects = success ? option.successEffects : option.failEffects;
             var encounterIds = new List<string>();
+            var effectResults = new List<PlayableEventEffectResult>();
             if (evt.eventType == GameEventType.Combat && !string.IsNullOrWhiteSpace(evt.combatEncounterId))
                 RecordEncounter(evt.combatEncounterId, encounterIds);
             if (effects != null)
-                foreach (var effect in effects)
-                    ApplyEffect(effect, actor, actor, encounterIds);
+                for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, null, effectIndex, evt.name));
             if (evt.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(evt.combatEncounterId, encounterIds);
             bool campaignEnded = _settlement.GetAliveHunters().Count == 0;
@@ -179,7 +181,8 @@ namespace HuntingInDarkness.Settlement
             {
                 Success = success,
                 RollValue = rollValue,
-                ResultText = success ? option.successText : option.failText
+                ResultText = success ? option.successText : option.failText,
+                EffectResults = new PlayableEventEffectBatchResult(effectResults)
             };
             if (campaignEnded)
             {
@@ -236,70 +239,56 @@ namespace HuntingInDarkness.Settlement
 
         public void ApplyEffect(EventEffect effect, HunterInstance target)
         {
-            ApplyEffect(effect, target, _selectedHunter ?? target);
+            PlayableEventEffectResult result = ApplyEffect(effect, target, _selectedHunter ?? target, null, null, -1);
+            if (!result.Succeeded)
+            {
+                if (effect?.effectType == EventEffectType.UnlockInvention && result.Reason.StartsWith("未注册发明："))
+                    Debug.LogWarning($"[EventSystem] 无法解锁未注册发明：{effect.targetName}");
+                else
+                    Debug.LogWarning($"[EventSystem] 效果未应用：{result.Reason}");
+            }
         }
 
-        private void ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null, IPlayableEventResourceCommand resourceCommand = null)
+        private PlayableEventEffectResult ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null, IPlayableEventResourceCommand resourceCommand = null, int effectIndex = -1, string eventId = "")
         {
-            if (effect == null) return;
+            if (effect == null) return FailedEffect(effectIndex, effect, "事件效果为空。", eventId);
             if (effect.effectType == EventEffectType.ActivateBloodline)
             {
                 HunterInstance actor = target ?? eventActor;
                 if (actor == null)
-                {
-                    Debug.LogWarning($"[EventSystem] 无法激活血脉 {effect.targetName}：事件没有猎人执行者");
-                    return;
-                }
+                    return FailedEffect(effectIndex, effect, "事件没有猎人执行者。", eventId);
                 if (!PlayableBloodlineRuntime.Content.TryGet(effect.targetName, out HunterBloodlineDefinition bloodline))
-                {
-                    Debug.LogWarning($"[EventSystem] 无法激活未注册血脉：{effect.targetName}");
-                    return;
-                }
+                    return FailedEffect(effectIndex, effect, $"未注册血脉：{effect.targetName}", eventId);
                 if (!HunterBloodlineRules.TryActivate(actor, bloodline.Id, out string reason))
-                {
-                    Debug.LogWarning($"[EventSystem] 无法激活 {actor.Name} 的血脉：{reason}");
-                    return;
-                }
+                    return FailedEffect(effectIndex, effect, reason, eventId);
                 actor.BloodlineName = bloodline.DisplayName;
-                return;
+                return SucceededEffect(effectIndex, effect, eventId);
             }
             if (effect.effectType == EventEffectType.ScheduleEvent)
             {
                 if (delayedEventScheduler == null)
-                {
-                    Debug.LogWarning($"[EventSystem] 无法安排延时事件 {effect.targetName}：Timeline 未注入");
-                    return;
-                }
+                    return FailedEffect(effectIndex, effect, "Timeline 未注入。", eventId);
                 if (!delayedEventScheduler.TryScheduleEventAfterYears(effect.targetName, effect.value, out string reason))
-                    Debug.LogWarning($"[EventSystem] 无法安排延时事件 {effect.targetName}：{reason}");
-                return;
+                    return FailedEffect(effectIndex, effect, reason, eventId);
+                return SucceededEffect(effectIndex, effect, eventId);
             }
             if (effect.effectType == EventEffectType.KillHunter)
             {
                 HunterInstance actor = target ?? eventActor;
                 if (actor == null)
-                {
-                    Debug.LogWarning("[EventSystem] 无法结算猎人死亡：事件没有猎人执行者");
-                    return;
-                }
+                    return FailedEffect(effectIndex, effect, "事件没有猎人执行者。", eventId);
                 if (hunterDeathCommand == null)
-                {
-                    Debug.LogWarning("[EventSystem] 无法结算猎人死亡：死亡命令端口尚未注入");
-                    return;
-                }
+                    return FailedEffect(effectIndex, effect, "死亡命令端口尚未注入。", eventId);
                 if (!hunterDeathCommand.TryKill(actor, effect.targetName, effect.description, out string reason))
-                    Debug.LogWarning($"[EventSystem] 无法结算 {actor.Name} 的死亡：{reason}");
-                return;
+                    return FailedEffect(effectIndex, effect, reason, eventId);
+                return SucceededEffect(effectIndex, effect, eventId);
             }
 
             if (resourceCommand != null && (effect.effectType == EventEffectType.AddResource || effect.effectType == EventEffectType.RemoveResource))
             {
                 string resourceId = PlayableSettlementItemRegistry.ResolveContentId(effect.targetName);
                 if (!resourceCommand.TryApply(effect.effectType, resourceId, effect.value, eventActor ?? target, out PlayableEventResourceChange change, out string reason))
-                {
-                    Debug.LogWarning($"[EventSystem] 无法结算阶段资源效果 {resourceId}：{reason}");
-                    return;
-                }
+                    return FailedEffect(effectIndex, effect, reason, eventId);
                 if (change.Changed)
                 {
                     EventBus.Publish(new PlayableEventResourceChangedEvent
@@ -310,7 +299,7 @@ namespace HuntingInDarkness.Settlement
                         NewAmount = change.NewAmount
                     });
                 }
-                return;
+                return SucceededEffect(effectIndex, effect, eventId);
             }
 
             string targetId = effect.targetName;
@@ -318,10 +307,7 @@ namespace HuntingInDarkness.Settlement
             if (effect.effectType == EventEffectType.AddResource || effect.effectType == EventEffectType.RemoveResource)
                 targetId = PlayableSettlementItemRegistry.ResolveContentId(effect.targetName);
             if (effect.effectType == EventEffectType.UnlockInvention && !PlayableSettlementInventionRegistry.TryGet(effect.targetName, out targetInvention))
-            {
-                Debug.LogWarning($"[EventSystem] 无法解锁未注册发明：{effect.targetName}");
-                return;
-            }
+                return FailedEffect(effectIndex, effect, $"未注册发明：{effect.targetName}", eventId);
             if (targetInvention != null)
                 targetId = targetInvention.ContentId;
             SettlementEffectOutcome outcome = SettlementEffectRules.Apply(
@@ -362,8 +348,13 @@ namespace HuntingInDarkness.Settlement
             if (outcome.AdvanceYear)
                 Debug.Log("[EventSystem] 效果要求推进年份（由外部处理）");
             if (!outcome.Handled)
-                Debug.LogWarning($"[EventSystem] 未处理的效果类型: {effect.effectType}");
+                return FailedEffect(effectIndex, effect, string.IsNullOrWhiteSpace(outcome.Reason) ? $"未处理的效果类型：{effect.effectType}" : outcome.Reason, eventId);
+            return SucceededEffect(effectIndex, effect, eventId);
         }
+
+        private static PlayableEventEffectResult SucceededEffect(int effectIndex, EventEffect effect, string eventId) => new(effectIndex, effect, PlayableEventEffectStatus.Applied, string.Empty, eventId);
+
+        private static PlayableEventEffectResult FailedEffect(int effectIndex, EventEffect effect, string reason, string eventId) => new(effectIndex, effect, PlayableEventEffectStatus.Failed, reason, eventId);
 
         // ─── 工具 ────────────────────────────────────────────────
 
@@ -443,6 +434,7 @@ namespace HuntingInDarkness.Settlement
         public bool   Success;
         public int    RollValue;
         public string ResultText;
+        public PlayableEventEffectBatchResult EffectResults;
     }
 
     public struct RerollResult

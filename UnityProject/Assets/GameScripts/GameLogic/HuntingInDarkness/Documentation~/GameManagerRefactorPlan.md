@@ -56,6 +56,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 - 共享事件节点新增阶段资源命令端口：营地事件继续写权威库存，狩猎事件只改写猎人 `Collectibles`，并在 Campaign 接受回营后统一转入库存；`GameManager` 不再需要按事件 ID 分流资源奖励。
 - 狩猎状态桌已改为在事件节点提交事实后重读权威猎人状态；猎人卡与回营确认复用同一携带物只读投影，采集和事件奖励不再出现桌面摘要口径分叉。
 - 狩猎行动资格已统一：事件杀死当前行动者时在提交事实前切换到存活队员；远征全员失能后地图与采集停止提交、3D 状态桌指向正式回营卡；采集过程中失去猎人会释放资源点预约而不产生素材。
+- 事件效果提交已增加不可变的单项/批次结果：营地与狩猎 Root 可读取每项 Applied/Failed、失败原因和聚合计数；资源不足与无效猎人目标不再只写 Warning 或被误报为已处理。
 
 ## 已知剩余风险
 
@@ -75,7 +76,7 @@ GameCore 继续保存纯规则与持久状态；Unity Adapter 负责资产、场
 14. `GameManager.TrySpendHunterGrowth` 与 `PlayableHunterAdvancementAdapter.TrySpendGrowth` 仍保留同步兼容入口，旧 HUD 类也仍在源码中；正常组合根已不再调用它们。确认没有场景序列化与外部工具引用后，应连同旧 HUD 一次性删除，避免新代码重新接入非 ActionQueue 旁路。
 15. `PlayableSymptomGrowthService` 与 `PlayableSymptomGrowthView` 仍保留源码兼容，正式组合根已不再创建；旧 Service 仍能绕过 Runner 直接修改猎人。确认没有场景序列化或外部工具引用后应一次删除，避免读表扩展重新形成双提交入口。
 16. 全量 EditMode 在 Play Mode/重编译后的首次运行中，既有 `PlayableHuntActionSessionTests` 偶发出现事件输入未启动；同一夹具立即独立复跑 9/9、随后全量 358/358 通过，说明测试仍依赖未显式重置的静态或异步环境。后续应定位共享状态并在夹具 SetUp/TearDown 中隔离，不能靠重跑作为长期门禁。
-17. `EventSystem` 的效果列表仍按顺序直接提交，单个效果失败只记录警告，不能撤销前序效果。大量复合事件进入内容表前，应抽出可预检的 `EventEffectPlan`，明确“允许部分成功”与“必须原子提交”两类策略，并把提交结果交还所属阶段 Root；不要让 View 或 `GameManager` 做补偿。
+17. `EventSystem` 的效果列表仍按顺序直接提交，现已把单项失败与批次计数交还所属阶段 Root，但不能撤销前序效果。大量复合事件进入内容表前，仍需按具体内容明确“允许部分成功”与“必须原子提交”两类策略；后者应使用可预检、可补偿的专用复合效果，不要让 View 或 `GameManager` 做补偿。
 18. `HuntUIManager` 仍需逐项订阅地块、采集和事件节点提交事实来刷新同一状态桌。继续增加狩猎写路径后，应由 `HuntSession` 发布带会话身份的统一 ReadModel 失效事实，避免 View 遗漏新事实或收到旧会话的延迟刷新；在 Session 抽取前不为此单独重构全局事件总线。
 19. 远征小队全员死亡时，本阶段只关闭探索并保留回营结算，没有决定死者携带物、装备和尸体如何返回营地。该规则会显著改变惩罚强度与玩家负反馈，需先在设计层明确“自动回收、部分遗失或救援事件”后，再把对应结算策略注入 `PrepareHuntRetreatAction`，不得散落在 View 或 `ResourceSystem` 中。
 

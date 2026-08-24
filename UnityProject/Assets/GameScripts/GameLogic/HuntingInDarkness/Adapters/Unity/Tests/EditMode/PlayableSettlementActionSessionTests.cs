@@ -249,6 +249,33 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task ResolveEventsAsync_ReportsPartialEffectResultsAtCommandBoundary()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            EventData gameEvent = CreateNarrativeEvent("partial-settlement", "碎石", 1);
+            gameEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.UnlockInvention, targetName = "missing-invention" });
+            gameEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddCourage, targetName = "all", value = 1 });
+
+            try
+            {
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem);
+
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+                Assert.That(result.Succeeded, Is.True);
+                Assert.That(result.FailedEffectCount, Is.EqualTo(1));
+                Assert.That(result.EffectResults.AppliedCount, Is.EqualTo(2));
+                Assert.That(settlement.GetResource("碎石"), Is.EqualTo(1));
+                Assert.That(settlement.Hunters[0].Courage, Is.EqualTo(1));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
         public async Task ResolveEventsAsync_BloodlineActivationCommitsThroughSettlementRoot()
         {
             SettlementInstance settlement = CreateSettlement(resourceAmount: 0);

@@ -60,6 +60,7 @@ namespace HuntingInDarkness.ActionFlow.Events
 
         public IReadOnlyList<EventData> ChainedEvents { get; private set; } = Array.Empty<EventData>();
         public IReadOnlyList<string> EncounterIds { get; private set; } = Array.Empty<string>();
+        public PlayableEventEffectBatchResult EffectResults { get; private set; } = PlayableEventEffectBatchResult.Empty;
         public string EventId => gameEvent.name;
         public EventData GameEvent => gameEvent;
         public HunterInstance DefaultActor => defaultActor;
@@ -78,6 +79,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                 PlayableEventNodeCommitResult narrativeResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor, resourceCommand);
                 ChainedEvents = narrativeResult.ChainedEvents;
                 EncounterIds = narrativeResult.EncounterIds;
+                EffectResults = narrativeResult.EffectResults;
                 PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor);
                 return ActionOutcome.Success();
             }
@@ -98,6 +100,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                 PlayableEventNodeCommitResult fallbackResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor, resourceCommand);
                 ChainedEvents = fallbackResult.ChainedEvents;
                 EncounterIds = fallbackResult.EncounterIds;
+                EffectResults = fallbackResult.EffectResults;
                 PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor);
                 return ActionOutcome.Success();
             }
@@ -115,6 +118,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             bool campaignEnded = eventSystem.Settlement.GetAliveHunters().Count == 0;
             ChainedEvents = campaignEnded ? System.Array.Empty<EventData>() : result.ChainedEvents;
             EncounterIds = campaignEnded ? System.Array.Empty<string>() : result.EncounterIds;
+            EffectResults = result.EffectResults;
             PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, transaction.Actor);
             if (eventInput != null && !campaignEnded)
                 await eventInput.ConfirmResultAsync(gameEvent, result.Result, cancellationToken);

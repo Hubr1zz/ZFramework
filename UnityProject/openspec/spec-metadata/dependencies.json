@@ -226,6 +226,13 @@
       "specPath": "openspec/specs/hunt-squad-action-availability/spec.md"
     },
     {
+      "id": "event-effect-resolution-reporting",
+      "label": "事件效果结构化结算结果",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/event-effect-resolution-reporting/spec.md"
+    },
+    {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "category": "feature",
@@ -821,6 +828,46 @@
       "type": "requires",
       "status": "defined",
       "reason": "远征失去全部行动者后禁止继续探索，但保留正式回营结算边界",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-effect-resolution-reporting--requires--table-driven-event-chains",
+      "from": "event-effect-resolution-reporting",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "读表事件节点按配置顺序执行效果，并将每项应用或拒绝结果汇总到同一批次",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-effect-resolution-reporting--requires--action-environment-lifecycle",
+      "from": "event-effect-resolution-reporting",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地与狩猎 ActionQueue Root 在提交边界暴露效果批次而不伪造回滚语义",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-effect-resolution-reporting--requires--settlement-phase-orchestration",
+      "from": "event-effect-resolution-reporting",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地事件命令向上返回跨节点聚合的效果成功与失败计数",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-effect-resolution-reporting--requires--hunt-phase-orchestration",
+      "from": "event-effect-resolution-reporting",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "狩猎地块事件命令显式返回阶段资源拒绝等效果结果",
       "gapId": "",
       "blocksImplementation": false
     }

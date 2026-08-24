@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core;
+using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Settlement;
@@ -131,6 +132,61 @@ namespace HuntingInDarkness.Adapter.Tests
                 Object.DestroyImmediate(child);
                 Object.DestroyImmediate(gameEvent);
             }
+        }
+
+        [Test]
+        public void ChoiceCommit_ExposesPartialEffectResultsWithoutHidingLaterEffects()
+        {
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 8126) { Name = "记录者" };
+            settlement.Hunters.Add(hunter);
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "partial-effect-event";
+            gameEvent.options.Add(new EventOption
+            {
+                optionText = "执行多效果",
+                successEffects = new List<EventEffect>
+                {
+                    new EventEffect { effectType = EventEffectType.AddResource, targetName = "碎石", value = 1 },
+                    new EventEffect { effectType = EventEffectType.UnlockInvention, targetName = "missing-invention" },
+                    new EventEffect { effectType = EventEffectType.AddInsanity, targetName = "selected", value = 1 }
+                }
+            });
+
+            try
+            {
+                PlayableEventChoiceTransaction transaction = new EventSystem(settlement, new SequenceRandom(0)).PrepareChoice(gameEvent, 0, hunter);
+                PlayableEventCommitResult result = transaction.CommitStandalone();
+
+                Assert.That(result.EffectResults.Count, Is.EqualTo(3));
+                Assert.That(result.EffectResults.AppliedCount, Is.EqualTo(2));
+                Assert.That(result.EffectResults.FailedCount, Is.EqualTo(1));
+                Assert.That(result.EffectResults.Effects[1].EventId, Is.EqualTo("partial-effect-event"));
+                Assert.That(result.EffectResults.Effects[1].Reason, Does.Contain("未注册发明"));
+                Assert.That(settlement.GetResource("碎石"), Is.EqualTo(1));
+                Assert.That(hunter.Insanity, Is.EqualTo(1));
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void EffectBatch_CapturesStableSnapshotWhenSourceListChanges()
+        {
+            var source = new List<PlayableEventEffectResult>
+            {
+                new(0, new EventEffect { effectType = EventEffectType.AddResource, targetName = "碎石" }, PlayableEventEffectStatus.Applied, string.Empty)
+            };
+            var batch = new PlayableEventEffectBatchResult(source);
+
+            source.Add(new PlayableEventEffectResult(1, null, PlayableEventEffectStatus.Failed, "后续失败"));
+
+            Assert.That(batch.Count, Is.EqualTo(1));
+            Assert.That(batch.AppliedCount, Is.EqualTo(1));
+            Assert.That(batch.FailedCount, Is.Zero);
+            Assert.That(batch.Effects[0].TargetName, Is.EqualTo("碎石"));
         }
 
         private static EventData CreateCheckedEvent()

@@ -293,6 +293,7 @@ namespace HuntingInDarkness.GameCore.Settlement
     public readonly struct SettlementEffectOutcome
     {
         public bool Handled { get; }
+        public string Reason { get; }
         public bool ResourceChanged { get; }
         public string ResourceId { get; }
         public int OldAmount { get; }
@@ -307,9 +308,11 @@ namespace HuntingInDarkness.GameCore.Settlement
             int oldAmount = 0,
             int newAmount = 0,
             bool triggerCombat = false,
-            bool advanceYear = false)
+            bool advanceYear = false,
+            string reason = "")
         {
             Handled = handled;
+            Reason = reason ?? string.Empty;
             ResourceChanged = resourceChanged;
             ResourceId = resourceId;
             OldAmount = oldAmount;
@@ -341,37 +344,46 @@ namespace HuntingInDarkness.GameCore.Settlement
                     return new SettlementEffectOutcome(
                         true, true, targetName, oldAmount, getResource(targetName));
                 case SettlementEffectKind.RemoveResource:
-                    spendResource(targetName, value);
-                    return new SettlementEffectOutcome(true);
+                    if (spendResource(targetName, value))
+                        return new SettlementEffectOutcome(true);
+                    return new SettlementEffectOutcome(false, reason: $"资源不足：{targetName} 需要 {value}，当前 {getResource(targetName)}");
                 case SettlementEffectKind.AddWillpower:
-                    ApplyToTargets(targetName, selectedHunter, hunters, hunter =>
+                    if (!ApplyToTargets(targetName, selectedHunter, hunters, hunter =>
                         hunter.Willpower = EventRules.ClampWillpower(
-                            hunter.Willpower, value, hunter.WillpowerMax));
+                            hunter.Willpower, value, hunter.WillpowerMax)))
+                        return MissingTarget(targetName);
                     return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.RemoveWillpower:
-                    ApplyToTargets(targetName, selectedHunter, hunters, hunter =>
+                    if (!ApplyToTargets(targetName, selectedHunter, hunters, hunter =>
                         hunter.Willpower = EventRules.ClampWillpower(
-                            hunter.Willpower, -value, hunter.WillpowerMax));
+                            hunter.Willpower, -value, hunter.WillpowerMax)))
+                        return MissingTarget(targetName);
                     return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.AddLuck:
-                    ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Luck += value);
+                    if (!ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Luck += value))
+                        return MissingTarget(targetName);
                     return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.AddInsanity:
-                    ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Insanity += value);
+                    if (!ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Insanity += value))
+                        return MissingTarget(targetName);
                     return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.AddCourage:
-                    ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Courage = Math.Max(0, Math.Min(HunterAdvancementRules.MaximumGrowthAttribute, hunter.Courage + value)));
+                    if (!ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Courage = Math.Max(0, Math.Min(HunterAdvancementRules.MaximumGrowthAttribute, hunter.Courage + value))))
+                        return MissingTarget(targetName);
                     return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.AddUnderstanding:
-                    ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Understanding = Math.Max(0, Math.Min(HunterAdvancementRules.MaximumGrowthAttribute, hunter.Understanding + value)));
+                    if (!ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Understanding = Math.Max(0, Math.Min(HunterAdvancementRules.MaximumGrowthAttribute, hunter.Understanding + value))))
+                        return MissingTarget(targetName);
                     return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.AddTrait:
-                    if (directTarget != null && !directTarget.Traits.Contains(targetName))
-                        directTarget.Traits.Add(targetName);
+                    if (directTarget == null)
+                        return MissingTarget(targetName);
+                    if (!directTarget.Traits.Contains(targetName)) directTarget.Traits.Add(targetName);
                     return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.AddAilment:
-                    if (directTarget != null && !directTarget.Ailments.Contains(targetName))
-                        directTarget.Ailments.Add(targetName);
+                    if (directTarget == null)
+                        return MissingTarget(targetName);
+                    if (!directTarget.Ailments.Contains(targetName)) directTarget.Ailments.Add(targetName);
                     return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.UnlockInvention:
                     unlockInvention(targetName);
@@ -385,7 +397,9 @@ namespace HuntingInDarkness.GameCore.Settlement
             }
         }
 
-        private static void ApplyToTargets(
+        private static SettlementEffectOutcome MissingTarget(string targetName) => new(false, reason: $"未找到效果目标：{targetName}");
+
+        private static bool ApplyToTargets(
             string targetSpec,
             HunterState selectedHunter,
             IEnumerable<HunterState> hunters,
@@ -393,22 +407,30 @@ namespace HuntingInDarkness.GameCore.Settlement
         {
             if (targetSpec == "all")
             {
+                bool applied = false;
                 foreach (HunterState hunter in hunters)
-                    if (hunter.IsAlive) action(hunter);
-                return;
+                {
+                    if (!hunter.IsAlive) continue;
+                    action(hunter);
+                    applied = true;
+                }
+                return applied;
             }
             if (targetSpec == "selected" && selectedHunter != null)
             {
                 action(selectedHunter);
-                return;
+                return true;
             }
             if (int.TryParse(targetSpec, out int id))
             {
                 HunterState target = hunters.FirstOrDefault(hunter => hunter.InstanceId == id);
-                if (target != null) action(target);
-                return;
+                if (target == null) return false;
+                action(target);
+                return true;
             }
-            if (selectedHunter != null) action(selectedHunter);
+            if (selectedHunter == null) return false;
+            action(selectedHunter);
+            return true;
         }
     }
 

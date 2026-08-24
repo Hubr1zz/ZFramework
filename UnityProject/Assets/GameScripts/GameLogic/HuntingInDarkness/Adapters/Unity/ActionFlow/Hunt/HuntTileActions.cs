@@ -15,18 +15,22 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 {
     public readonly struct HuntTileCommandResult
     {
-        private HuntTileCommandResult(bool succeeded, string reason, HuntTileInteractionCommit commit)
+        private HuntTileCommandResult(bool succeeded, string reason, HuntTileInteractionCommit commit, PlayableEventEffectBatchResult effectResults)
         {
             Succeeded = succeeded;
             Reason = reason;
             Commit = commit;
+            EffectResults = effectResults;
         }
 
         public bool Succeeded { get; }
         public string Reason { get; }
         public HuntTileInteractionCommit Commit { get; }
-        public static HuntTileCommandResult Success(HuntTileInteractionCommit commit) => new(true, string.Empty, commit);
-        public static HuntTileCommandResult Failed(string reason) => new(false, reason, default);
+        public PlayableEventEffectBatchResult EffectResults { get; }
+        public int FailedEffectCount => EffectResults.FailedCount;
+        public static HuntTileCommandResult Success(HuntTileInteractionCommit commit) => Success(commit, PlayableEventEffectBatchResult.Empty);
+        public static HuntTileCommandResult Success(HuntTileInteractionCommit commit, PlayableEventEffectBatchResult effectResults) => new(true, string.Empty, commit, effectResults);
+        public static HuntTileCommandResult Failed(string reason) => new(false, reason, default, PlayableEventEffectBatchResult.Empty);
     }
 
     public struct HuntTileInteractionCommittedEvent
@@ -57,6 +61,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly IHuntTileInteractionPresenter tileInteractionPresenter;
         private CommitHuntTileInteractionAction commitAction;
+        private ResolveHuntTileEventAction eventAction;
         private bool presentationScheduled;
         private bool eventScheduled;
         private bool finalizeScheduled;
@@ -95,7 +100,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             if (!eventScheduled)
             {
                 eventScheduled = true;
-                return new ResolveHuntTileEventAction(manager, commitAction.Commit, eventOutbox, encounterAccumulator, Source, Target, resolveEventEntity, randomInteractionPresenter);
+                eventAction = new ResolveHuntTileEventAction(manager, commitAction.Commit, eventOutbox, encounterAccumulator, Source, Target, resolveEventEntity, randomInteractionPresenter);
+                return eventAction;
             }
             if (!finalizeScheduled)
             {
@@ -113,7 +119,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 Result = HuntTileCommandResult.Failed(reason);
                 return ActionOutcome.Failure(reason);
             }
-            Result = HuntTileCommandResult.Success(commitAction.Commit);
+            Result = HuntTileCommandResult.Success(commitAction.Commit, eventAction?.EffectResults ?? PlayableEventEffectBatchResult.Empty);
             if (encounterAccumulator.HasRequest)
                 eventOutbox.StageAfterCommit(new CampaignEncounterRequestedEvent { Request = encounterAccumulator.Request });
             return ActionOutcome.Success();
@@ -180,6 +186,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private SelectHuntTileEventAction selectAction;
         private ResolvePlayableEventNodeAction currentEntry;
         private bool selectionCollected;
+        private readonly List<PlayableEventEffectResult> effectResults = new();
 
         internal ResolveHuntTileEventAction(HuntManager manager, HuntTileInteractionCommit commit, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
         {
@@ -194,6 +201,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         }
 
         public HuntTileInteractionCommit Commit => commit;
+        public PlayableEventEffectBatchResult EffectResults => new(effectResults);
         public IReactorEntity Source { get; }
         public IReactorEntity Target { get; }
         protected override GameAction GetNextChild(CompositeExecutionContext context)
@@ -210,6 +218,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             }
             else if (currentEntry != null)
             {
+                effectResults.AddRange(currentEntry.EffectResults.Effects);
                 foreach (string encounterId in currentEntry.EncounterIds)
                     encounterAccumulator.TryAdd(encounterId, CampaignEncounterSourceKind.HuntEvent, commit.Coordinate, currentEntry.EventId);
                 if (encounterAccumulator.HasRequest)

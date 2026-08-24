@@ -17,6 +17,7 @@ namespace HuntingInDarkness.Settlement
         private EventResolutionResult committedResult;
         private IReadOnlyList<EventData> standaloneChain;
         private IReadOnlyList<string> standaloneEncounterIds;
+        private PlayableEventEffectBatchResult standaloneEffectResults;
         private bool continued;
 
         public EventData GameEvent => gameEvent;
@@ -75,8 +76,9 @@ namespace HuntingInDarkness.Settlement
                 committedResult = result.Result;
                 standaloneChain = result.ChainedEvents;
                 standaloneEncounterIds = result.EncounterIds;
+                standaloneEffectResults = result.EffectResults;
             }
-            return new PlayableEventCommitResult(committedResult, standaloneChain, standaloneEncounterIds);
+            return new PlayableEventCommitResult(committedResult, standaloneChain, standaloneEncounterIds, standaloneEffectResults);
         }
 
         public void Continue()
@@ -120,11 +122,12 @@ namespace HuntingInDarkness.Settlement
             EventOption option = gameEvent.options[optionIndex];
             List<EventEffect> effects = success ? option.successEffects : option.failEffects;
             var encounterIds = new List<string>();
+            var effectResults = new List<PlayableEventEffectResult>();
             if (gameEvent.eventType == GameEventType.Combat && !string.IsNullOrWhiteSpace(gameEvent.combatEncounterId))
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (effects != null)
-                foreach (EventEffect effect in effects)
-                    ApplyEffect(effect, actor, actor, encounterIds, resourceCommand);
+                for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, resourceCommand, effectIndex, gameEvent.name));
             if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             bool campaignEnded = _settlement.GetAliveHunters().Count == 0;
@@ -137,12 +140,13 @@ namespace HuntingInDarkness.Settlement
             {
                 Success = success,
                 RollValue = rollValue,
-                ResultText = success ? option.successText : option.failText
+                ResultText = success ? option.successText : option.failText,
+                EffectResults = new PlayableEventEffectBatchResult(effectResults)
             };
             IReadOnlyList<EventData> chain = System.Array.Empty<EventData>();
             if (!campaignEnded)
                 chain = success ? option.successChain : option.failChain;
-            return new PlayableEventCommitResult(result, chain, encounterIds);
+            return new PlayableEventCommitResult(result, chain, encounterIds, result.EffectResults);
         }
 
         internal void ContinuePreparedChoice() => ProcessNextInChain();
@@ -151,32 +155,46 @@ namespace HuntingInDarkness.Settlement
     public readonly struct PlayableEventCommitResult
     {
         public PlayableEventCommitResult(EventResolutionResult result, IReadOnlyList<EventData> chainedEvents)
-            : this(result, chainedEvents, System.Array.Empty<string>())
+            : this(result, chainedEvents, System.Array.Empty<string>(), result.EffectResults)
         {
         }
 
         public PlayableEventCommitResult(EventResolutionResult result, IReadOnlyList<EventData> chainedEvents, IReadOnlyList<string> encounterIds)
+            : this(result, chainedEvents, encounterIds, result.EffectResults)
+        {
+        }
+
+        public PlayableEventCommitResult(EventResolutionResult result, IReadOnlyList<EventData> chainedEvents, IReadOnlyList<string> encounterIds, PlayableEventEffectBatchResult effectResults)
         {
             Result = result;
             ChainedEvents = chainedEvents ?? System.Array.Empty<EventData>();
             EncounterIds = encounterIds ?? System.Array.Empty<string>();
+            EffectResults = effectResults;
         }
 
         public EventResolutionResult Result { get; }
         public IReadOnlyList<EventData> ChainedEvents { get; }
         public IReadOnlyList<string> EncounterIds { get; }
+        public PlayableEventEffectBatchResult EffectResults { get; }
     }
 
     public readonly struct PlayableEventNodeCommitResult
     {
         public PlayableEventNodeCommitResult(IReadOnlyList<EventData> chainedEvents, IReadOnlyList<string> encounterIds)
+            : this(chainedEvents, encounterIds, PlayableEventEffectBatchResult.Empty)
+        {
+        }
+
+        public PlayableEventNodeCommitResult(IReadOnlyList<EventData> chainedEvents, IReadOnlyList<string> encounterIds, PlayableEventEffectBatchResult effectResults)
         {
             ChainedEvents = chainedEvents ?? System.Array.Empty<EventData>();
             EncounterIds = encounterIds ?? System.Array.Empty<string>();
+            EffectResults = effectResults;
         }
 
         public IReadOnlyList<EventData> ChainedEvents { get; }
         public IReadOnlyList<string> EncounterIds { get; }
+        public PlayableEventEffectBatchResult EffectResults { get; }
     }
 
     public struct PlayableEventEncounterRequestedEvent

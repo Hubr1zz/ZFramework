@@ -15,20 +15,24 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 {
     public readonly struct SettlementEventCommandResult
     {
-        private SettlementEventCommandResult(bool succeeded, string reason, int resolvedCount, bool encounterRequested)
+        private SettlementEventCommandResult(bool succeeded, string reason, int resolvedCount, bool encounterRequested, PlayableEventEffectBatchResult effectResults)
         {
             Succeeded = succeeded;
             Reason = reason ?? string.Empty;
             ResolvedCount = resolvedCount;
             EncounterRequested = encounterRequested;
+            EffectResults = effectResults;
         }
 
         public bool Succeeded { get; }
         public string Reason { get; }
         public int ResolvedCount { get; }
         public bool EncounterRequested { get; }
-        public static SettlementEventCommandResult Success(int resolvedCount, bool encounterRequested) => new(true, string.Empty, resolvedCount, encounterRequested);
-        public static SettlementEventCommandResult Failed(string reason, int resolvedCount) => new(false, reason, resolvedCount, false);
+        public PlayableEventEffectBatchResult EffectResults { get; }
+        public int FailedEffectCount => EffectResults.FailedCount;
+        public static SettlementEventCommandResult Success(int resolvedCount, bool encounterRequested) => Success(resolvedCount, encounterRequested, PlayableEventEffectBatchResult.Empty);
+        public static SettlementEventCommandResult Success(int resolvedCount, bool encounterRequested, PlayableEventEffectBatchResult effectResults) => new(true, string.Empty, resolvedCount, encounterRequested, effectResults);
+        public static SettlementEventCommandResult Failed(string reason, int resolvedCount) => new(false, reason, resolvedCount, false, PlayableEventEffectBatchResult.Empty);
     }
 
     /// <summary>营地事件列表的唯一流程根；节点、子链与跨环境交接均在同一 Action 因果链中执行。</summary>
@@ -47,6 +51,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private CampaignEncounterRequest encounterRequest;
         private string failureReason;
         private int resolvedCount;
+        private readonly List<PlayableEventEffectResult> effectResults = new();
 
         public ResolveSettlementEventChainAction(EventSystem eventSystem, IPlayableEventInput eventInput, IReadOnlyList<EventData> events, Guid sessionId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null)
         {
@@ -85,6 +90,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 }
 
                 resolvedCount++;
+                effectResults.AddRange(currentEntry.EffectResults.Effects);
                 if (currentEntry.EncounterIds.Count > 0)
                 {
                     string encounterId = string.IsNullOrWhiteSpace(currentEntry.EncounterIds[0]) ? PlayableEncounterRuntime.DefaultEncounterId : currentEntry.EncounterIds[0];
@@ -114,7 +120,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             }
 
             bool encounterRequested = !string.IsNullOrWhiteSpace(encounterRequest.EncounterId);
-            Result = SettlementEventCommandResult.Success(resolvedCount, encounterRequested);
+            Result = SettlementEventCommandResult.Success(resolvedCount, encounterRequested, new PlayableEventEffectBatchResult(effectResults));
             if (encounterRequested)
                 eventOutbox.StageAfterCommit(new CampaignEncounterRequestedEvent { Request = encounterRequest });
             return ActionOutcome.Success();
