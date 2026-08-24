@@ -219,6 +219,13 @@
       "specPath": "openspec/specs/settlement-timeline-event-identity/spec.md"
     },
     {
+      "id": "campaign-year-loop",
+      "label": "战役年度出猎闭环",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-year-loop/spec.md"
+    },
+    {
       "id": "table-driven-hunt-events",
       "label": "读表狩猎事件内容",
       "category": "feature",
@@ -1237,6 +1244,46 @@
       "type": "requires",
       "status": "defined",
       "reason": "内容目录以表配置事件的稳定 ContentId 解析年度事件与直接子链",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-year-loop--requires--settlement-phase-orchestration",
+      "from": "campaign-year-loop",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "出发名册与回营结果由 Settlement Runner 串行验证并提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-year-loop--requires--hunt-phase-orchestration",
+      "from": "campaign-year-loop",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Hunt Runner 冻结本次小队、年份与撤退记录",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-year-loop--requires--hunt-return-outcome-checkpoint",
+      "from": "campaign-year-loop",
+      "to": "hunt-return-outcome-checkpoint",
+      "type": "requires",
+      "status": "defined",
+      "reason": "回营资源、成长、历史与年份通过稳定记录和两阶段保存可靠提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-year-loop--requires--campaign-persistence",
+      "from": "campaign-year-loop",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "PendingHuntReturn 在应用与清理两个保存边界间保持可恢复",
       "gapId": "",
       "blocksImplementation": false
     }

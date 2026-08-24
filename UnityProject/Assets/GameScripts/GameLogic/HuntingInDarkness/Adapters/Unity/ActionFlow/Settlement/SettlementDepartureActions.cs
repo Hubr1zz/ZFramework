@@ -5,6 +5,7 @@ using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.GameCore.Settlement;
 
 namespace HuntingInDarkness.ActionFlow.Settlement
@@ -80,7 +81,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            settlement.DepartingHunterIds = committedIds;
+            PlayableCampaignLoopContract.CommitDepartureRoster(settlement, committedIds);
             int[] snapshot = committedIds.ToArray();
             Result = new SettlementDepartureCommandResult(true, string.Empty, snapshot);
             eventOutbox.StageAfterCommit(new SettlementDeparturePreparedEvent { HunterIds = (int[])snapshot.Clone() });

@@ -233,6 +233,9 @@ namespace HuntingInDarkness.Data
 
         [Header("本年出发的猎人（狩猎阶段用）")]
         public List<int> DepartingHunterIds = new();
+        public int DeparturePreparedYear;
+        public string DeparturePreparationToken;
+        [System.NonSerialized] public string RuntimeDeparturePreparationToken;
 
         /// <summary>
         /// 旧存档仍带有按年配额字段。它们只作为兼容数据保留，生产规则统一为一次归来推进一年。
