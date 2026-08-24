@@ -35,7 +35,6 @@ namespace HuntingInDarkness.ViewLayer.Flow
                 return;
             }
 
-            manager.SettlementProgressLoadCompleted += OnLoadCompleted;
             panel = TabletopEventPanel3D.Create(transform);
             GateCurrentPhasePresentation();
 
@@ -123,7 +122,14 @@ namespace HuntingInDarkness.ViewLayer.Flow
             PresentBusy("正在抹去旧日记录……");
             try
             {
-                await manager.DeleteCampaignSaveAsync(this.GetCancellationTokenOnDestroy());
+                CampaignStartupResult result = await manager.StartNewCampaignAsync(this.GetCancellationTokenOnDestroy());
+                if (!result.Succeeded)
+                {
+                    busy = false;
+                    statusText = result.Reason;
+                    PresentStartMenu();
+                    return;
+                }
                 hasSave = false;
                 busy = false;
                 if (settings.ShowFlowGuide && settings.ShowOpeningNarrative)
@@ -144,26 +150,35 @@ namespace HuntingInDarkness.ViewLayer.Flow
             }
         }
 
-        private void ContinueGame()
+        private void ContinueGame() => ContinueGameAsync().Forget();
+
+        private async UniTaskVoid ContinueGameAsync()
         {
             if (manager == null || !hasSave || busy)
                 return;
             busy = true;
             PresentBusy("正在唤回营地记录……");
-            manager.LoadSettlementProgress();
-        }
-
-        private void OnLoadCompleted(bool success)
-        {
-            busy = false;
-            if (success)
+            try
             {
-                CompleteSequence();
-                return;
+                CampaignStartupResult result = await manager.ContinueCampaignAsync(this.GetCancellationTokenOnDestroy());
+                if (result.Succeeded)
+                {
+                    CompleteSequence();
+                    return;
+                }
+                busy = false;
+                statusText = string.IsNullOrWhiteSpace(result.Reason) ? "存档无法读取。你仍可以开始新战役。" : result.Reason;
+                PresentStartMenu();
             }
-            statusText = "存档无法读取。你仍可以开始新战役。";
-            hasSave = false;
-            PresentStartMenu();
+            catch (System.OperationCanceledException)
+            {
+            }
+            catch (System.Exception exception)
+            {
+                busy = false;
+                statusText = $"无法继续战役：{exception.Message}";
+                PresentStartMenu();
+            }
         }
 
         private void PresentOpeningNarrative()
@@ -203,8 +218,6 @@ namespace HuntingInDarkness.ViewLayer.Flow
             if (completed)
                 return;
             completed = true;
-            if (manager != null)
-                manager.SettlementProgressLoadCompleted -= OnLoadCompleted;
             panel?.Close();
             RestoreCurrentPhasePresentation();
             enabled = false;
@@ -221,8 +234,6 @@ namespace HuntingInDarkness.ViewLayer.Flow
 
         private void OnDestroy()
         {
-            if (manager != null)
-                manager.SettlementProgressLoadCompleted -= OnLoadCompleted;
             RestoreCurrentPhasePresentation();
         }
     }

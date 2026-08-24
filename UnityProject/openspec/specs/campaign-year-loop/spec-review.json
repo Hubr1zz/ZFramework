@@ -14,13 +14,13 @@
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "Unity CLI EditMode: 626/626 passed",
-      "Unity CLI PlayMode campaign loop: 3/3 passed"
+      "Unity CLI PlayMode campaign startup and year loop: 9/9 passed"
     ],
     "differences": [
       "PlayMode 闭环使用动态空测试场景和内存持久化端口，不依赖正式场景资产；正式场景的表现接线仍由各 3D 端口自己的验证覆盖。",
       "显式 devStartPhase=Hunt 仅在当前存在 1 至 4 名可用猎人时允许开发回退；运行期 Settlement 到 Hunt 的权威转换不允许该回退。"
     ],
-    "verifiedAt": "2026-08-24T10:18:37-07:00",
+    "verifiedAt": "2026-08-24T10:50:00-07:00",
     "codeEvidence": [
       {
         "guid": "245d7a41004f432faff9c725577de9ab",
@@ -35,9 +35,9 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "18a7ebbfacc743d7425ee0a270f034fae40ec5b0b6f5f98904cec890df0bf3d8",
+        "fileHash": "6ee505ae722f5235073fe8f43a83e195892b0ce8d9adc21e1c5c7f380de3f380",
         "status": "verified",
-        "checkedAt": "2026-08-24T10:18:37-07:00",
+        "checkedAt": "2026-08-24T10:50:00-07:00",
         "feature": "把权威编队契约接入阶段转换、失败回滚和受限开发启动；以完整 in-flight 门禁串行回营应用、两阶段保存与年度事件恢复。"
       },
       {
@@ -80,18 +80,18 @@
         "guid": "f12edfe6ff014c5fb529e138a1ed579b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ICampaignPersistencePort.cs",
         "line": 1,
-        "fileHash": "4a2babb88854ad7ca022d63753f1e4e8b80047a7065d0e0b124de39b6ce42ad7",
+        "fileHash": "db4de7a105de1ba7c68455e854e6134887ac4768aa6362517af1ef9e1e5aab56",
         "status": "verified",
-        "checkedAt": "2026-08-24T10:18:37-07:00",
+        "checkedAt": "2026-08-24T10:50:00-07:00",
         "feature": "为组合根提供可替换的战役存档查询、保存、读取和删除端口，并声明跨异步与即时操作的顺序契约。"
       },
       {
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 1,
-        "fileHash": "1c36b60274a2a6b8cf65f9196734351698186e2f8680ccdae2750606ef8a77f3",
+        "fileHash": "fc1a316a8524e2fdd02d802bd6f92d2987a54785941e148858efde2d97d199f0",
         "status": "verified",
-        "checkedAt": "2026-08-24T10:18:37-07:00",
+        "checkedAt": "2026-08-24T10:50:00-07:00",
         "feature": "通过真实 GameManager 公共命令验证年度闭环、正式阶段门禁、检查点保存失败回滚及延迟持久化期间禁止抢跑。"
       }
     ]

@@ -41,6 +41,30 @@ using Cards3D;
 
 namespace Core
 {
+    public enum CampaignStartupState
+    {
+        AwaitingChoice,
+        StartingNew,
+        Loading,
+        Active
+    }
+
+    public readonly struct CampaignStartupResult
+    {
+        private CampaignStartupResult(bool succeeded, CampaignStartupState state, string reason)
+        {
+            State = state;
+            Succeeded = succeeded;
+            Reason = reason ?? string.Empty;
+        }
+
+        public CampaignStartupState State { get; }
+        public bool Succeeded { get; }
+        public string Reason { get; }
+        public static CampaignStartupResult Success() => new(true, CampaignStartupState.Active, string.Empty);
+        public static CampaignStartupResult Failed(CampaignStartupState state, string reason) => new(false, state, reason);
+    }
+
     /// <summary>
     /// 场景中唯一的 MonoBehaviour 核心。持久单例。
     /// 管理三个游戏大阶段（Settlement / Hunt / BossFight）的根物体开关，
@@ -155,6 +179,11 @@ namespace Core
         private string activeExpeditionId;
         private string stableCampaignPayload;
         private bool hasAwakened;
+        private bool deferPlayableStart;
+        private bool campaignStarted;
+        private bool campaignStartupInFlight;
+        private CampaignStartupState campaignStartupState = CampaignStartupState.Active;
+        private System.IDisposable inventionActionInstallation;
         private ICampaignPersistencePort campaignPersistence = new SaveLoadSystemCampaignPersistenceAdapter();
         [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
         [SerializeField] private TabletopCardInteractionPresenter tabletopCardPresenter;
@@ -172,9 +201,118 @@ namespace Core
             return true;
         }
 
+        /// <summary>在正式开场菜单选择前延迟创建营地运行态；仅允许在 Awake 前配置。</summary>
+        public bool ConfigurePlayableStartup(bool waitForEntrySelection)
+        {
+            if (hasAwakened || campaignStarted) return false;
+            deferPlayableStart = waitForEntrySelection;
+            campaignStartupState = waitForEntrySelection ? CampaignStartupState.AwaitingChoice : CampaignStartupState.Active;
+            return true;
+        }
+
+        public CampaignStartupState CampaignStartupState => campaignStartupState;
+
         public UniTask<bool> HasCampaignSaveAsync(CancellationToken cancellationToken = default) => campaignPersistence.HasSaveAsync(cancellationToken);
 
-        public UniTask DeleteCampaignSaveAsync(CancellationToken cancellationToken = default) => campaignPersistence.DeleteAsync(cancellationToken);
+        public UniTask<bool> DeleteCampaignSaveAsync(CancellationToken cancellationToken = default) => campaignPersistence.TryDeleteAsync(cancellationToken);
+
+        public async UniTask<CampaignStartupResult> StartNewCampaignAsync(CancellationToken cancellationToken = default)
+        {
+            if (!TryBeginCampaignStartup(CampaignStartupState.StartingNew, out string beginReason)) return CampaignStartupResult.Failed(campaignStartupState, beginReason);
+            try
+            {
+                if (!await campaignPersistence.TryDeleteAsync(cancellationToken))
+                    return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "旧战役记录未能可靠删除，请重试。");
+                if (!TryStartCampaignRuntime(GamePhase.Settlement, true, out string startReason)) return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, startReason);
+                return CampaignStartupResult.Success();
+            }
+            catch (System.OperationCanceledException)
+            {
+                ResetFailedCampaignStartupRuntime();
+                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "开始新战役已取消。");
+            }
+            catch (System.Exception exception)
+            {
+                ResetFailedCampaignStartupRuntime();
+                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, $"开始新战役失败：{exception.Message}");
+            }
+            finally
+            {
+                campaignStartupInFlight = false;
+                campaignStartupState = campaignStarted ? CampaignStartupState.Active : CampaignStartupState.AwaitingChoice;
+            }
+        }
+
+        public async UniTask<CampaignStartupResult> ContinueCampaignAsync(CancellationToken cancellationToken = default)
+        {
+            if (!TryBeginCampaignStartup(CampaignStartupState.Loading, out string beginReason)) return CampaignStartupResult.Failed(campaignStartupState, beginReason);
+            try
+            {
+                CampaignSnapshot snapshot = await campaignPersistence.LoadAsync(cancellationToken);
+                if (snapshot?.Settlement == null) return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "没有可继续的有效战役存档。");
+                if (snapshot.HasActiveHunt)
+                {
+                    EnsureCampaignShell();
+                    if (TryRestoreActiveHunt(snapshot, out string huntRestoreReason))
+                    {
+                        campaignStarted = true;
+                        return CampaignStartupResult.Success();
+                    }
+                    ResetFailedCampaignStartupRuntime();
+                    return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, huntRestoreReason);
+                }
+                if (!SettlementManager.TryPrepareCandidate(snapshot.Settlement, out SettlementManager candidateSettlementManager, out string projectionReason)) return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, projectionReason);
+                CampaignSnapshot candidateSnapshot = ActiveHuntSnapshotAdapter.CaptureSettlement(candidateSettlementManager.Data);
+                if (!SaveLoadSystem.TryCreatePayload(candidateSnapshot, out string candidatePayload, out projectionReason)) return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, projectionReason);
+                if (!TryStartCampaignRuntime(GamePhase.Settlement, false, out string startReason, candidateSettlementManager, false)) return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, startReason);
+                bool restored = await FinalizePreparedSettlementAsync(candidateSettlementManager.Data, candidatePayload);
+                if (!restored)
+                {
+                    ResetFailedCampaignStartupRuntime();
+                    return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "战役存档恢复失败，当前运行态已撤销。");
+                }
+                campaignStarted = true;
+                return CampaignStartupResult.Success();
+            }
+            catch (System.OperationCanceledException)
+            {
+                ResetFailedCampaignStartupRuntime();
+                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "继续战役已取消。");
+            }
+            catch (System.Exception exception)
+            {
+                ResetFailedCampaignStartupRuntime();
+                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, $"继续战役失败：{exception.Message}");
+            }
+            finally
+            {
+                campaignStartupInFlight = false;
+                campaignStartupState = campaignStarted ? CampaignStartupState.Active : CampaignStartupState.AwaitingChoice;
+            }
+        }
+
+        private bool TryBeginCampaignStartup(CampaignStartupState inFlightState, out string reason)
+        {
+            if (!deferPlayableStart)
+            {
+                reason = "当前 GameManager 未启用正式开场入口。";
+                return false;
+            }
+            if (campaignStarted)
+            {
+                reason = "战役运行态已经启动。";
+                return false;
+            }
+            if (campaignStartupInFlight)
+            {
+                reason = "战役入口正在处理中。";
+                return false;
+            }
+            campaignStartupInFlight = true;
+            campaignStartupState = inFlightState;
+            reason = string.Empty;
+            return true;
+        }
 
         public bool ConfigureTabletopInteraction(ITabletopRandomInteractionPresenter presenter)
         {
@@ -239,43 +377,110 @@ namespace Core
 
         private void Start()
         {
-            // 设置初始阶段。PhaseManager 使用独立命名的 ZFramework FSM。
-            var startPhase = devMode ? devStartPhase : GamePhase.Settlement;
-            _settlementManager = CreateSettlementManager();
-            actionEnvironmentInstallers.Register(new InventionActionEffectInstaller(() => _settlementManager?.Data, () => _settlementManager?.Inventions?.AllInventions));
-            _phaseManager.Start(startPhase);
-            campaignActionSession = new PlayableCampaignActionSession(this, actionEnvironmentInstallers);
-
-            if (startPhase == GamePhase.Settlement)
+            if (!deferPlayableStart)
             {
-                _settlementManager.EnsureStartingConditions();
-                StartSettlementActionSession();
-                EnsureSettlementUI();
-                QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
+                if (!TryStartCampaignRuntime(devMode ? devStartPhase : GamePhase.Settlement, true, out string startupReason))
+                    Debug.LogError($"[GameManager] 战役启动失败：{startupReason}");
             }
-            else if (startPhase == GamePhase.Hunt)
-            {
-                _settlementManager.EnsureStartingConditions();
-                if (TryEnterHuntPhase(null, true, out string huntStartReason))
-                    PlayableCampaignLoopContract.ConsumeDepartureRoster(_settlementManager.Data);
-                else
-                {
-                    Debug.LogError($"[GameManager] 开发者狩猎直启失败：{huntStartReason}");
-                    _phaseManager.TransitionTo(GamePhase.Settlement);
-                    StartSettlementActionSession();
-                    EnsureSettlementUI();
-                    QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
-                }
-            }
-
-            if (startPhase == GamePhase.BossFight)
-                EnterBossFightPhase();
+            else
+                Debug.Log("[GameManager] 正式开场菜单等待玩家选择，已延迟创建战役运行态。");
 
             // 开发者面板（挂在 Shared UI 节点上，F1 切换显隐）
             if (devMode)
                 EnsureDevPanel();
 
             EnsureGameOverView();
+        }
+
+        private bool TryStartCampaignRuntime(GamePhase startPhase, bool queueSettlementEvents, out string reason, SettlementManager preparedSettlement = null, bool activateOnSuccess = true)
+        {
+            reason = string.Empty;
+            if (campaignStarted)
+            {
+                reason = "战役运行态已经启动。";
+                return false;
+            }
+
+            try
+            {
+                IReadOnlyList<SettlementEventWork> initialSettlementEvents = null;
+                if (preparedSettlement != null)
+                {
+                    if (!TryCommitSettlementCandidate(preparedSettlement, null, out reason)) return false;
+                }
+                else
+                    _settlementManager = CreateSettlementManager();
+                EnsureCampaignShell();
+                _phaseManager.Start(startPhase);
+
+                if (startPhase == GamePhase.Settlement)
+                {
+                    if (preparedSettlement == null)
+                        _settlementManager.EnsureStartingConditions();
+                    StartSettlementActionSession();
+                    if (activateOnSuccess)
+                        EnsureSettlementUI();
+                    if (queueSettlementEvents)
+                        initialSettlementEvents = _settlementManager.OnEnterWorkItems();
+                }
+                else if (startPhase == GamePhase.Hunt)
+                {
+                    _settlementManager.EnsureStartingConditions();
+                    if (TryEnterHuntPhase(null, true, out string huntStartReason))
+                        PlayableCampaignLoopContract.ConsumeDepartureRoster(_settlementManager.Data);
+                    else
+                    {
+                        Debug.LogError($"[GameManager] 开发者狩猎直启失败：{huntStartReason}");
+                        _phaseManager.TransitionTo(GamePhase.Settlement);
+                        StartSettlementActionSession();
+                        EnsureSettlementUI();
+                        if (queueSettlementEvents)
+                            QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
+                    }
+                }
+                else if (startPhase == GamePhase.BossFight)
+                    EnterBossFightPhase();
+
+                campaignStarted = activateOnSuccess;
+                if (campaignStarted && initialSettlementEvents != null)
+                    QueueSettlementEvents(initialSettlementEvents);
+                return true;
+            }
+            catch (System.Exception exception)
+            {
+                ResetFailedCampaignStartupRuntime();
+                reason = $"战役运行态初始化异常：{exception.Message}";
+                return false;
+            }
+        }
+
+        private void EnsureCampaignShell()
+        {
+            inventionActionInstallation ??= actionEnvironmentInstallers.Register(new InventionActionEffectInstaller(() => _settlementManager?.Data, () => _settlementManager?.Inventions?.AllInventions));
+            campaignActionSession ??= new PlayableCampaignActionSession(this, actionEnvironmentInstallers);
+        }
+
+        private void ResetFailedCampaignStartupRuntime()
+        {
+            DisposeSettlementActionSession();
+            DisposeHuntActionSession();
+            campaignActionSession?.Dispose();
+            campaignActionSession = null;
+            inventionActionInstallation?.Dispose();
+            inventionActionInstallation = null;
+            _settlementManager = null;
+            _huntMgr = null;
+            settlementEventRestoreProjection = null;
+            _pendingHuntRecord = null;
+            stableCampaignPayload = null;
+            campaignStarted = false;
+            _phaseManager?.Shutdown();
+            _phaseManager = new PhaseManager(GameModule.Fsm);
+            _phaseManager.OnPhaseTransition = ApplyPhaseRoots;
+            CleanupHuntPresentation();
+            if (settlementRoot != null) settlementRoot.SetActive(false);
+            if (huntRoot != null) huntRoot.SetActive(false);
+            if (bossFightRoot != null) bossFightRoot.SetActive(false);
         }
 
         private void Update()
@@ -792,6 +997,7 @@ namespace Core
         private bool TryRestoreActiveHunt(CampaignSnapshot campaign, out string reason)
         {
             reason = string.Empty;
+            bool initialStartup = !_phaseManager.IsStarted;
             ActiveHuntSnapshot active = campaign?.ActiveHunt;
             if (active == null)
             {
@@ -864,7 +1070,9 @@ namespace Core
             activeExpeditionId = active.ExpeditionId;
             try
             {
-                if (CurrentGamePhase != GamePhase.Hunt && !_phaseManager.TransitionTo(GamePhase.Hunt))
+                if (initialStartup)
+                    _phaseManager.Start(GamePhase.Hunt);
+                else if (CurrentGamePhase != GamePhase.Hunt && !_phaseManager.TransitionTo(GamePhase.Hunt))
                 {
                     reason = "无法切换到活动狩猎恢复阶段。";
                     RestoreActiveHuntRuntime(previousSettlementManager, previousHuntManager, previousSettlementSession, previousHuntSession, previousRestoreProjection, previousExpeditionId, previousDestinationState);
@@ -877,6 +1085,8 @@ namespace Core
                 {
                     reason = $"切换到活动狩猎恢复阶段时发生异常：{exception.Message}";
                     RestoreActiveHuntRuntime(previousSettlementManager, previousHuntManager, previousSettlementSession, previousHuntSession, previousRestoreProjection, previousExpeditionId, previousDestinationState);
+                    if (initialStartup)
+                        _phaseManager.Shutdown();
                     return false;
                 }
                 Debug.LogWarning($"[GameManager] 活动狩猎阶段已经切换，但阶段通知存在异常，将继续恢复权威运行态：{exception.Message}");
@@ -905,6 +1115,12 @@ namespace Core
 
             DisposeHuntActionSession();
             RestoreActiveHuntRuntime(previousSettlementManager, previousHuntManager, previousSettlementSession, previousHuntSession, previousRestoreProjection, previousExpeditionId, previousDestinationState);
+            if (initialStartup)
+            {
+                _phaseManager.Shutdown();
+                CleanupHuntPresentation();
+                return false;
+            }
             if (!TryRollbackPhase(previousPhase, out string rollbackReason))
             {
                 reason = $"{reason}；阶段回滚失败：{rollbackReason}";
@@ -1058,22 +1274,23 @@ namespace Core
 
         /// <summary>获取当前游戏大阶段</summary>
         public GamePhase CurrentGamePhase => _phaseManager?.CurrentPhase ?? GamePhase.Settlement;
-        public SettlementInstance SettlementData => _settlementManager?.Data;
+        public SettlementInstance SettlementData => campaignStarted ? _settlementManager?.Data : null;
         public IReadOnlyList<HunterInstance> ActiveHuntHunters => _huntMgr != null ? _huntMgr.ActiveHunters : System.Array.Empty<HunterInstance>();
         public bool IsHuntActionSessionActive => huntActionSession?.IsActive == true;
         public bool IsHuntActionSessionRunning => huntActionSession?.IsRunning == true;
         public bool IsHuntReturnInFlight => huntReturnRecoveryInFlight;
         bool IPlayableHuntRetreatInput.IsReturnCheckpointLocked => huntActionSession?.IsReturnCheckpointLocked == true;
-        public bool IsCampaignActionSessionActive => campaignActionSession?.IsActive == true;
-        public bool IsSettlementActionSessionRunning => settlementActionSession?.IsRunning == true;
-        public bool IsSettlementEventRestoreReady => settlementEventRestoreProjection == null || settlementEventRestoreProjection.IsReady;
+        public bool IsCampaignActionSessionActive => campaignStarted && campaignActionSession?.IsActive == true;
+        public bool IsCampaignRuntimeActive => campaignStarted;
+        public bool IsSettlementActionSessionRunning => campaignStarted && settlementActionSession?.IsRunning == true;
+        public bool IsSettlementEventRestoreReady => campaignStarted && (settlementEventRestoreProjection == null || settlementEventRestoreProjection.IsReady);
         public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers => actionEnvironmentInstallers;
-        public CardGame.ActionQueue.ReactorRegistry SettlementActionReactors => settlementActionSession?.Reactors;
-        public CardGame.ActionQueue.ReactorRegistry CampaignActionReactors => campaignActionSession?.Reactors;
+        public CardGame.ActionQueue.ReactorRegistry SettlementActionReactors => campaignStarted ? settlementActionSession?.Reactors : null;
+        public CardGame.ActionQueue.ReactorRegistry CampaignActionReactors => campaignStarted ? campaignActionSession?.Reactors : null;
         public CardGame.ActionQueue.ReactorRegistry HuntActionReactors => huntActionSession?.Reactors;
-        public InventionSystem SettlementInventions => _settlementManager?.Inventions;
-        public WorkshopSystem SettlementWorkshop => _settlementManager?.Workshop;
-        public HunterManagementSystem SettlementHunters => _settlementManager?.HunterMgmt;
+        public InventionSystem SettlementInventions => campaignStarted ? _settlementManager?.Inventions : null;
+        public WorkshopSystem SettlementWorkshop => campaignStarted ? _settlementManager?.Workshop : null;
+        public HunterManagementSystem SettlementHunters => campaignStarted ? _settlementManager?.HunterMgmt : null;
         public event System.Action<EventData, HunterInstance> SettlementEventPresented;
         public event System.Action<bool> SettlementProgressLoadCompleted;
 
@@ -1106,6 +1323,7 @@ namespace Core
 
         public void RequestHuntDeparture(IReadOnlyList<int> hunterIds)
         {
+            if (!campaignStarted) return;
             if (_pendingHuntRecord != null)
             {
                 RetryPendingHuntReturnAsync().Forget();
@@ -1125,6 +1343,8 @@ namespace Core
 
         public async UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds, PlayableHuntDestination destination)
         {
+            if (!campaignStarted)
+                return SettlementDepartureCommandResult.Failed("战役入口尚未完成。");
             if (huntReturnRecoveryInFlight)
                 return SettlementDepartureCommandResult.Failed("请先完成上一场远征的回营结算，再重新发起出猎。");
             if (_pendingHuntRecord != null)
@@ -1170,6 +1390,8 @@ namespace Core
 
         public bool TryDepartForHunt(IReadOnlyList<int> hunterIds)
         {
+            if (!campaignStarted)
+                return false;
             if (huntReturnRecoveryInFlight)
                 return false;
             if (_pendingHuntRecord != null)
@@ -1369,16 +1591,29 @@ namespace Core
                 Debug.LogWarning($"[GameManager] 营地事件链未完成：{result.Reason}");
         }
 
-        public void ResolveSettlementNarrative(EventData gameEvent) => _settlementManager?.Events.ResolveNarrative(gameEvent);
+        public void ResolveSettlementNarrative(EventData gameEvent)
+        {
+            if (campaignStarted)
+                _settlementManager?.Events.ResolveNarrative(gameEvent);
+        }
 
-        public EventResolutionResult ResolveSettlementChoice(EventData gameEvent, int optionIndex, HunterInstance hunter = null) => _settlementManager != null ? _settlementManager.Events.ResolveChoice(gameEvent, optionIndex, hunter) : default;
+        public EventResolutionResult ResolveSettlementChoice(EventData gameEvent, int optionIndex, HunterInstance hunter = null) => campaignStarted && _settlementManager != null ? _settlementManager.Events.ResolveChoice(gameEvent, optionIndex, hunter) : default;
 
-        public PlayableEventChoiceTransaction PrepareSettlementChoice(EventData gameEvent, int optionIndex, HunterInstance hunter = null) => _settlementManager?.Events.PrepareChoice(gameEvent, optionIndex, hunter);
+        public PlayableEventChoiceTransaction PrepareSettlementChoice(EventData gameEvent, int optionIndex, HunterInstance hunter = null) => campaignStarted ? _settlementManager?.Events.PrepareChoice(gameEvent, optionIndex, hunter) : null;
 
-        public void SaveSettlementProgress() => DevSave();
+        public void SaveSettlementProgress()
+        {
+            if (campaignStarted)
+                DevSave();
+        }
 
         public bool CanTrainWeapon(int hunterId, string masteryId, out string reason)
         {
+            if (!campaignStarted)
+            {
+                reason = "战役入口尚未完成。";
+                return false;
+            }
             if (settlementActionSession != null && settlementActionSession.IsActive)
                 return settlementActionSession.CanTrainWeapon(hunterId, masteryId, out reason);
             reason = "仅可在营地阶段训练";
@@ -1387,6 +1622,8 @@ namespace Core
 
         public UniTask<WeaponTrainingCommandResult> TrainWeaponAsync(int hunterId, string masteryId)
         {
+            if (!campaignStarted)
+                return UniTask.FromResult(WeaponTrainingCommandResult.Failed("战役入口尚未完成。"));
             if (settlementActionSession == null || !settlementActionSession.IsActive)
                 return UniTask.FromResult(WeaponTrainingCommandResult.Failed("仅可在营地阶段训练"));
             return settlementActionSession.TrainWeaponAsync(hunterId, masteryId);
@@ -1394,6 +1631,11 @@ namespace Core
 
         public bool CanCraft(CraftRecipe recipe, out string reason)
         {
+            if (!campaignStarted)
+            {
+                reason = "战役入口尚未完成。";
+                return false;
+            }
             if (settlementActionSession != null && settlementActionSession.IsActive)
                 return settlementActionSession.CanCraft(recipe, out reason);
             reason = "仅可在营地阶段制作。";
@@ -1402,6 +1644,8 @@ namespace Core
 
         public UniTask<SettlementCraftCommandResult> CraftAsync(CraftRecipe recipe)
         {
+            if (!campaignStarted)
+                return UniTask.FromResult(SettlementCraftCommandResult.Failed("战役入口尚未完成。"));
             if (settlementActionSession == null || !settlementActionSession.IsActive)
                 return UniTask.FromResult(SettlementCraftCommandResult.Failed("仅可在营地阶段制作。"));
             return settlementActionSession.CraftAsync(recipe);
@@ -1409,6 +1653,11 @@ namespace Core
 
         public bool CanRecruitHunter(out string reason)
         {
+            if (!campaignStarted)
+            {
+                reason = "战役入口尚未完成。";
+                return false;
+            }
             if (settlementActionSession != null && settlementActionSession.IsActive)
                 return settlementActionSession.CanRecruit(out reason);
             reason = "仅可在营地阶段招募。";
@@ -1417,15 +1666,22 @@ namespace Core
 
         public UniTask<RecruitHunterCommandResult> RecruitHunterAsync(HunterData template, string requestedName)
         {
+            if (!campaignStarted)
+                return UniTask.FromResult(RecruitHunterCommandResult.Failed("战役入口尚未完成。"));
             if (settlementActionSession == null || !settlementActionSession.IsActive)
                 return UniTask.FromResult(RecruitHunterCommandResult.Failed("仅可在营地阶段招募。"));
             return settlementActionSession.RecruitHunterAsync(template, requestedName);
         }
 
-        public bool HasRecoverableHunter() => settlementActionSession?.IsActive == true && settlementActionSession.HasRecoverableHunter();
+        public bool HasRecoverableHunter() => campaignStarted && settlementActionSession?.IsActive == true && settlementActionSession.HasRecoverableHunter();
 
         public bool CanRecoverHunter(int hunterId, HunterBodyPart bodyPart, out string reason)
         {
+            if (!campaignStarted)
+            {
+                reason = "战役入口尚未完成。";
+                return false;
+            }
             if (settlementActionSession != null && settlementActionSession.IsActive)
                 return settlementActionSession.CanRecoverHunter(hunterId, bodyPart, out reason);
             reason = "仅可在营地阶段休养。";
@@ -1434,6 +1690,8 @@ namespace Core
 
         public UniTask<RecoverHunterCommandResult> RecoverHunterAsync(int hunterId, HunterBodyPart bodyPart)
         {
+            if (!campaignStarted)
+                return UniTask.FromResult(RecoverHunterCommandResult.Failed("战役入口尚未完成。"));
             if (settlementActionSession == null || !settlementActionSession.IsActive)
                 return UniTask.FromResult(RecoverHunterCommandResult.Failed("仅可在营地阶段休养。"));
             return settlementActionSession.RecoverHunterAsync(hunterId, bodyPart);
@@ -1441,6 +1699,7 @@ namespace Core
 
         public bool TrySpendHunterGrowth(int hunterId, HunterGrowthChoice choice)
         {
+            if (!campaignStarted) return false;
             if (!PlayableHunterAdvancementAdapter.TrySpendGrowth(_settlementManager?.Data.GetHunter(hunterId), choice)) return false;
             SaveSettlementProgress();
             return true;
@@ -1448,6 +1707,8 @@ namespace Core
 
         public UniTask<HunterGrowthCommandResult> SpendHunterGrowthAsync(int hunterId, HunterGrowthChoice choice)
         {
+            if (!campaignStarted)
+                return UniTask.FromResult(HunterGrowthCommandResult.Failed("战役入口尚未完成。"));
             if (settlementActionSession == null || !settlementActionSession.IsActive)
                 return UniTask.FromResult(HunterGrowthCommandResult.Failed("仅可在营地阶段分配成长。"));
             return settlementActionSession.SpendHunterGrowthAsync(hunterId, choice);
@@ -1550,6 +1811,8 @@ namespace Core
 
         public UniTask<CampaignPhaseTransitionResult> TransitionToPhaseAsync(GamePhase newPhase)
         {
+            if (!campaignStarted)
+                return UniTask.FromResult(CampaignPhaseTransitionResult.Failed(CurrentGamePhase, "战役入口尚未完成。"));
             if (campaignActionSession?.IsActive == true)
                 return campaignActionSession.TransitionAsync(newPhase, this.GetCancellationTokenOnDestroy());
             GamePhase previousPhase = CurrentGamePhase;
@@ -1560,6 +1823,8 @@ namespace Core
 
         public UniTask<CampaignPhaseTransitionResult> TransitionToPhaseAsync(CampaignPhaseTransitionRequest request)
         {
+            if (!campaignStarted)
+                return UniTask.FromResult(CampaignPhaseTransitionResult.Failed(CurrentGamePhase, "战役入口尚未完成。"));
             if (campaignActionSession?.IsActive == true)
                 return campaignActionSession.TransitionAsync(request, this.GetCancellationTokenOnDestroy());
             GamePhase previousPhase = CurrentGamePhase;
@@ -1571,6 +1836,8 @@ namespace Core
 
         public UniTask<CampaignEncounterStartResult> BeginEncounterAsync(CampaignEncounterRequest request)
         {
+            if (!campaignStarted)
+                return UniTask.FromResult(CampaignEncounterStartResult.Failed(request.EncounterId, "战役入口尚未完成。"));
             if (campaignActionSession?.IsActive == true)
                 return campaignActionSession.BeginEncounterAsync(request, this.GetCancellationTokenOnDestroy());
             if (TryBeginEncounter(request, out string reason))
@@ -1709,6 +1976,11 @@ namespace Core
         private bool TryApplyPhaseTransition(GamePhase newPhase, CampaignHuntEntryContext huntContext, out string reason)
         {
             reason = string.Empty;
+            if (!campaignStarted)
+            {
+                reason = "战役入口尚未完成。";
+                return false;
+            }
             if (_phaseManager == null)
             {
                 reason = "阶段管理器尚未初始化";
@@ -1858,7 +2130,7 @@ namespace Core
 
         private void OnApplicationQuit()
         {
-            if (_settlementManager?.Data == null)
+            if (!campaignStarted || _settlementManager?.Data == null)
                 return;
             if (CurrentGamePhase == GamePhase.Settlement)
                 TryCaptureCampaignPayload(false, out _, out _);
@@ -1955,7 +2227,7 @@ namespace Core
 
         private void OnSettlementTransactionCommitted(SettlementTransactionCommittedEvent evt)
         {
-            if (CurrentGamePhase != GamePhase.Settlement || settlementActionSession == null) return;
+            if (!campaignStarted || CurrentGamePhase != GamePhase.Settlement || settlementActionSession == null) return;
             SaveSettlementProgress();
             _settlementUIManager?.Refresh();
             if (evt.Kind == SettlementTransactionKind.Crafting)
@@ -1979,7 +2251,7 @@ namespace Core
         /// <summary>猎人名册变化时检查胜负条件</summary>
         private void OnHunterRosterChanged(HunterRosterChangedEvent _)
         {
-            if (_settlementManager == null) return;
+            if (!campaignStarted || _settlementManager == null) return;
             var alive = _settlementManager.Data.GetAliveHunters();
             if (alive.Count == 0)
             {
@@ -2011,7 +2283,7 @@ namespace Core
             gameOverView.OnRestart = () =>
             {
                 // 删除存档后重置到营地开头
-                campaignPersistence.DeleteAsync(this.GetCancellationTokenOnDestroy()).Forget();
+                campaignPersistence.TryDeleteAsync(this.GetCancellationTokenOnDestroy()).Forget();
                 // 重置 SettlementManager，重新初始化
                 DisposeSettlementActionSession();
                 DisposeHuntActionSession();
@@ -2121,6 +2393,32 @@ namespace Core
                 snapshot = ActiveHuntSnapshotAdapter.CaptureSettlement(_settlementManager?.Data);
             if (!SaveLoadSystem.TryCreatePayload(snapshot, out payload, out reason)) return false;
             stableCampaignPayload = payload;
+            return true;
+        }
+
+        private async UniTask<bool> FinalizePreparedSettlementAsync(SettlementInstance data, string candidatePayload)
+        {
+            if (!ReferenceEquals(data, _settlementManager?.Data) || CurrentGamePhase != GamePhase.Settlement || settlementActionSession?.IsActive != true) return false;
+            _huntMgr = null;
+            stableCampaignPayload = candidatePayload;
+            settlementEventRestoreProjection = new SettlementEventRestoreProjection(data, _settlementManager.Timeline.ResolveEvent);
+            if (data.PendingHuntReturn != null)
+            {
+                _pendingHuntRecord = data.PendingHuntReturn;
+                SettlementHuntReturnCommandResult pendingResult = await ApplyHuntReturnAsync(settlementActionSession, _pendingHuntRecord, queueAnnualEvents: false);
+                if (!pendingResult.Succeeded) return false;
+            }
+
+            SettlementEventRestorePlan restorePlan = settlementEventRestoreProjection.Prepare();
+            if (!restorePlan.Succeeded)
+            {
+                Debug.LogError($"[GameManager] 开场读档后的营地事件恢复失败：{restorePlan.FailureReason}");
+                return false;
+            }
+            EnsureSettlementUI();
+            campaignStarted = true;
+            _settlementUIManager?.Refresh();
+            QueueSettlementEvents(restorePlan.WorkItems, settlementEventRestoreProjection, restorePlan.ChainId);
             return true;
         }
 

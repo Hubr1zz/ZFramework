@@ -79,6 +79,7 @@ namespace HuntingInDarkness.Bootstrap
             manager.ConfigurePlayableRuntime(contentCandidate.DefaultBattleSetup, contentCandidate.CellSize);
             manager.ConfigureSettlementContent(contentCandidate.SettlementContent);
             manager.ConfigureWorkshopContent(contentCandidate.WorkshopContent);
+            manager.ConfigurePlayableStartup(settings.ShowStartMenu);
             EnsureRequiredWorldSpacePorts(gameObject, manager, settings);
             managerObject.SetActive(true);
 

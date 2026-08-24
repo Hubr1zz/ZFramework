@@ -18,6 +18,7 @@ namespace Core
         private bool publishInitialTransition;
 
         public GamePhase CurrentPhase { get; private set; } = GamePhase.Settlement;
+        public bool IsStarted => started;
         public Action<GamePhase, GamePhase> OnPhaseTransition;
 
         public PhaseManager(IFsmModule fsmModule)

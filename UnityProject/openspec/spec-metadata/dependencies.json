@@ -233,6 +233,13 @@
       "specPath": "openspec/specs/campaign-year-loop/spec.md"
     },
     {
+      "id": "campaign-startup-transaction",
+      "label": "战役开场启动事务",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-startup-transaction/spec.md"
+    },
+    {
       "id": "table-driven-hunt-events",
       "label": "读表狩猎事件内容",
       "category": "feature",
@@ -1456,6 +1463,36 @@
       "type": "requires",
       "status": "defined",
       "reason": "PendingHuntReturn 在应用与清理两个保存边界间保持可恢复",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-startup-transaction--requires--campaign-persistence",
+      "from": "campaign-startup-transaction",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "开场事务通过可替换端口检查、删除或加载存档，并在候选发布前保持零写入",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-startup-transaction--requires--active-hunt-persistence",
+      "from": "campaign-startup-transaction",
+      "to": "active-hunt-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Continue 复用活动狩猎候选验证并直接发布 Hunt 运行态",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-startup-transaction--requires--settlement-phase-orchestration",
+      "from": "campaign-startup-transaction",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "有效营地候选发布后才创建 Settlement Runner 并恢复待处理事件",
       "gapId": "",
       "blocksImplementation": false
     },

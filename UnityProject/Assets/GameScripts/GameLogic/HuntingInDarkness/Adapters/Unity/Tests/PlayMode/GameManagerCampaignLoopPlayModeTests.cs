@@ -26,11 +26,14 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         private const int FrameTimeout = 600;
         private GameObject managerObject;
         private PlayableHuntDestinationCatalog destinationCatalog;
+        private PlayableCampaignContentCandidate contentCandidate;
 
         [UnitySetUp]
         public IEnumerator SetUp()
         {
             ResetContentAssembly();
+            contentCandidate = null;
+            destinationCatalog = null;
             yield return null;
         }
 
@@ -148,21 +151,182 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(nextDepartureResult.Succeeded, Is.True, nextDepartureResult.Reason);
         }
 
-        private GameManager CreateProductionManager(ICampaignPersistencePort persistence)
+        [UnityTest]
+        public IEnumerator DeferredStartup_WaitsWithoutCreatingOrSavingCampaignRuntime()
         {
-            PlayableBootstrapSettings settings = Resources.Load<PlayableBootstrapSettings>("HuntingInDarkness/PlayableBootstrapSettings");
-            Assert.That(settings, Is.Not.Null);
-            PlayableSymptomRuntime.Configure(settings.Symptoms);
-            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
-            Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
-            destinationCatalog = candidate.HuntDestinations;
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence, true);
+            yield return null;
+            yield return null;
+
+            Assert.That(manager.CampaignStartupState, Is.EqualTo(CampaignStartupState.AwaitingChoice));
+            Assert.That(manager.IsCampaignRuntimeActive, Is.False);
+            Assert.That(manager.IsCampaignActionSessionActive, Is.False);
+            Assert.That(manager.SettlementData, Is.Null);
+            Assert.That(persistence.Snapshots, Is.Empty);
+            Assert.That(persistence.DeleteCount, Is.Zero);
+
+            UniTask<CampaignPhaseTransitionResult>.Awaiter transition = manager.TransitionToPhaseAsync(GamePhase.Settlement).GetAwaiter();
+            yield return WaitForCompletion(transition);
+            Assert.That(transition.GetResult().Succeeded, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator StartNewCampaign_DeletesOnceAndPublishesRuntimeOnce()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence, true);
+            yield return null;
+
+            UniTask<CampaignStartupResult>.Awaiter first = manager.StartNewCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(first);
+            CampaignStartupResult firstResult = first.GetResult();
+            UniTask<CampaignStartupResult>.Awaiter duplicate = manager.StartNewCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(duplicate);
+
+            Assert.That(firstResult.Succeeded, Is.True, firstResult.Reason);
+            Assert.That(duplicate.GetResult().Succeeded, Is.False);
+            Assert.That(persistence.DeleteCount, Is.EqualTo(1));
+            Assert.That(manager.CampaignStartupState, Is.EqualTo(CampaignStartupState.Active));
+            Assert.That(manager.SettlementData, Is.Not.Null);
+            yield return WaitForSettlementIdle(manager);
+        }
+
+        [UnityTest]
+        public IEnumerator StartNewCampaign_DeleteFailureKeepsEntryRetryable()
+        {
+            var persistence = new MemoryCampaignPersistence { RejectDelete = true };
+            GameManager manager = CreateProductionManager(persistence, true);
+            yield return null;
+
+            UniTask<CampaignStartupResult>.Awaiter rejected = manager.StartNewCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(rejected);
+            Assert.That(rejected.GetResult().Succeeded, Is.False);
+            Assert.That(manager.CampaignStartupState, Is.EqualTo(CampaignStartupState.AwaitingChoice));
+            Assert.That(manager.SettlementData, Is.Null);
+            Assert.That(manager.IsCampaignActionSessionActive, Is.False);
+
+            persistence.RejectDelete = false;
+            UniTask<CampaignStartupResult>.Awaiter retry = manager.StartNewCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(retry);
+            CampaignStartupResult retryResult = retry.GetResult();
+            Assert.That(retryResult.Succeeded, Is.True, retryResult.Reason);
+            Assert.That(persistence.DeleteCount, Is.EqualTo(2));
+            Assert.That(manager.ActionEnvironmentInstallers.InstallerCount, Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator ContinueCampaign_PublishesPreparedSettlementWithoutNewYearProjection()
+        {
+            var source = new SettlementManager();
+            source.EnsureStartingConditions();
+            source.Data.CurrentYear = 7;
+            source.Data.AddResource("startup-test-resource", 3);
+            var persistence = new MemoryCampaignPersistence { SnapshotToLoad = ActiveHuntSnapshotAdapter.CaptureSettlement(source.Data) };
+            GameManager manager = CreateProductionManager(persistence, true);
+            yield return null;
+
+            UniTask<CampaignStartupResult>.Awaiter load = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(load);
+            CampaignStartupResult result = load.GetResult();
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(manager.CampaignStartupState, Is.EqualTo(CampaignStartupState.Active));
+            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(7));
+            Assert.That(manager.SettlementData.GetResource("startup-test-resource"), Is.EqualTo(3));
+            Assert.That(persistence.LoadCount, Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator ContinueCampaign_DelayedLoadRejectsDuplicateAndKeepsAwaitingStateOnFailure()
+        {
+            var persistence = new MemoryCampaignPersistence { DelayLoad = true };
+            GameManager manager = CreateProductionManager(persistence, true);
+            yield return null;
+
+            UniTask<CampaignStartupResult>.Awaiter first = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return null;
+            Assert.That(manager.CampaignStartupState, Is.EqualTo(CampaignStartupState.Loading));
+            UniTask<CampaignStartupResult>.Awaiter duplicate = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(duplicate);
+            Assert.That(duplicate.GetResult().Succeeded, Is.False);
+            persistence.CompleteLoad(null);
+            yield return WaitForCompletion(first);
+
+            Assert.That(first.GetResult().Succeeded, Is.False);
+            Assert.That(manager.CampaignStartupState, Is.EqualTo(CampaignStartupState.AwaitingChoice));
+            Assert.That(manager.SettlementData, Is.Null);
+            Assert.That(manager.IsCampaignActionSessionActive, Is.False);
+            Assert.That(persistence.LoadCount, Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator ContinueCampaign_RestoresActiveHuntFromDeferredEntry()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager sourceManager = CreateProductionManager(persistence, true);
+            yield return null;
+            UniTask<CampaignStartupResult>.Awaiter start = sourceManager.StartNewCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(start);
+            Assert.That(start.GetResult().Succeeded, Is.True);
+            yield return WaitForSettlementIdle(sourceManager);
+            int hunterId = sourceManager.SettlementData.GetAliveHunters()[0].InstanceId;
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = sourceManager.DepartForHuntAsync(new[] { hunterId }, GetDestination(sourceManager.SettlementData.CurrentYear)).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            SettlementDepartureCommandResult departureResult = departure.GetResult();
+            Assert.That(departureResult.Succeeded, Is.True, departureResult.Reason);
+            yield return null;
+            CampaignSnapshot activeSnapshot = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+            Assert.That(activeSnapshot?.HasActiveHunt, Is.True);
+
+            Object.Destroy(managerObject);
+            managerObject = null;
+            yield return null;
+            string contentBundleId = activeSnapshot.ActiveHunt.ContentBundleId;
+            activeSnapshot.ActiveHunt.ContentBundleId = "missing-startup-bundle";
+            persistence.SnapshotToLoad = activeSnapshot;
+            GameManager restoredManager = CreateProductionManager(persistence, true);
+            yield return null;
+            UniTask<CampaignStartupResult>.Awaiter rejectedRestore = restoredManager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(rejectedRestore);
+            Assert.That(rejectedRestore.GetResult().Succeeded, Is.False);
+            Assert.That(restoredManager.CampaignStartupState, Is.EqualTo(CampaignStartupState.AwaitingChoice));
+            Assert.That(restoredManager.SettlementData, Is.Null);
+            Assert.That(restoredManager.IsCampaignActionSessionActive, Is.False);
+            Assert.That(restoredManager.IsHuntActionSessionActive, Is.False);
+            Assert.That(restoredManager.ActionEnvironmentInstallers.InstallerCount, Is.Zero);
+
+            activeSnapshot.ActiveHunt.ContentBundleId = contentBundleId;
+            UniTask<CampaignStartupResult>.Awaiter restore = restoredManager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(restore);
+            CampaignStartupResult restoreResult = restore.GetResult();
+
+            Assert.That(restoreResult.Succeeded, Is.True, restoreResult.Reason);
+            Assert.That(restoredManager.CampaignStartupState, Is.EqualTo(CampaignStartupState.Active));
+            Assert.That(restoredManager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
+            Assert.That(restoredManager.IsHuntActionSessionActive, Is.True);
+            Assert.That(restoredManager.ActiveHuntHunters, Has.Count.EqualTo(1));
+        }
+
+        private GameManager CreateProductionManager(ICampaignPersistencePort persistence, bool deferStartup = false)
+        {
+            if (contentCandidate == null)
+            {
+                PlayableBootstrapSettings settings = Resources.Load<PlayableBootstrapSettings>("HuntingInDarkness/PlayableBootstrapSettings");
+                Assert.That(settings, Is.Not.Null);
+                PlayableSymptomRuntime.Configure(settings.Symptoms);
+                Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out contentCandidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+                Assert.That(PlayableCampaignContentAssembler.Install(contentCandidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
+                destinationCatalog = contentCandidate.HuntDestinations;
+            }
 
             managerObject = new GameObject("GameManager Campaign Loop Smoke");
             managerObject.SetActive(false);
             var manager = managerObject.AddComponent<GameManager>();
-            manager.ConfigurePlayableRuntime(candidate.DefaultBattleSetup, candidate.CellSize);
-            manager.ConfigureSettlementContent(candidate.SettlementContent);
-            manager.ConfigureWorkshopContent(candidate.WorkshopContent);
+            manager.ConfigurePlayableRuntime(contentCandidate.DefaultBattleSetup, contentCandidate.CellSize);
+            manager.ConfigureSettlementContent(contentCandidate.SettlementContent);
+            manager.ConfigureWorkshopContent(contentCandidate.WorkshopContent);
+            Assert.That(manager.ConfigurePlayableStartup(deferStartup), Is.True);
             manager.SetPlayableEventInput(new ImmediateEventInput());
             Assert.That(manager.ConfigureTabletopInteraction(new ImmediateTabletopInteraction()), Is.True);
             Assert.That(manager.ConfigureCampaignPersistence(persistence), Is.True);
@@ -264,11 +428,16 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         {
             public bool RejectPendingReturn { get; set; }
             public bool DelayAppliedReturn { get; set; }
+            public bool DelayLoad { get; set; }
+            public CampaignSnapshot SnapshotToLoad { get; set; }
+            public int DeleteCount { get; private set; }
+            public int LoadCount { get; private set; }
             public string Payload { get; private set; }
             public List<CampaignSnapshot> Snapshots { get; } = new();
             private List<bool> pendingReturnFlags = new();
             public bool IsAppliedReturnSavePending => appliedReturnSaveCompletion != null;
             private UniTaskCompletionSource<bool> appliedReturnSaveCompletion;
+            private UniTaskCompletionSource<CampaignSnapshot> loadCompletion;
             private bool hasDelayedAppliedReturn;
 
             public UniTask<bool> TrySavePayloadAsync(string payload, CancellationToken cancellationToken = default)
@@ -298,12 +467,41 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
             public UniTask<bool> HasSaveAsync(CancellationToken cancellationToken = default) => UniTask.FromResult(!string.IsNullOrWhiteSpace(Payload));
 
-            public UniTask<CampaignSnapshot> LoadAsync(CancellationToken cancellationToken = default) => UniTask.FromResult<CampaignSnapshot>(null);
-
-            public UniTask DeleteAsync(CancellationToken cancellationToken = default)
+            public UniTask<CampaignSnapshot> LoadAsync(CancellationToken cancellationToken = default)
             {
+                LoadCount++;
+                if (!DelayLoad)
+                {
+                    NormalizeLoadedSnapshot(SnapshotToLoad);
+                    return UniTask.FromResult(SnapshotToLoad);
+                }
+                loadCompletion = new UniTaskCompletionSource<CampaignSnapshot>();
+                return loadCompletion.Task;
+            }
+
+            public bool RejectDelete { get; set; }
+
+            public UniTask<bool> TryDeleteAsync(CancellationToken cancellationToken = default)
+            {
+                DeleteCount++;
+                if (RejectDelete) return UniTask.FromResult(false);
                 Payload = null;
-                return UniTask.CompletedTask;
+                SnapshotToLoad = null;
+                return UniTask.FromResult(true);
+            }
+
+            public void CompleteLoad(CampaignSnapshot snapshot)
+            {
+                NormalizeLoadedSnapshot(snapshot);
+                UniTaskCompletionSource<CampaignSnapshot> completion = loadCompletion;
+                loadCompletion = null;
+                completion?.TrySetResult(snapshot);
+            }
+
+            private static void NormalizeLoadedSnapshot(CampaignSnapshot snapshot)
+            {
+                if (snapshot?.Settlement?.PendingHuntReturn != null && string.IsNullOrWhiteSpace(snapshot.Settlement.PendingHuntReturn.RecordId))
+                    snapshot.Settlement.PendingHuntReturn = null;
             }
 
             public void CompleteAppliedReturnSave()

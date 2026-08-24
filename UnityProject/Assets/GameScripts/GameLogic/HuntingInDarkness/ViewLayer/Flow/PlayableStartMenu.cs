@@ -30,8 +30,6 @@ namespace HuntingInDarkness.ViewLayer.Flow
             manager = gameManager;
             gameTitle = string.IsNullOrWhiteSpace(title) ? "黑暗狩猎" : title;
             titleTagline = tagline ?? string.Empty;
-            if (manager != null)
-                manager.SettlementProgressLoadCompleted += OnLoadCompleted;
             CheckSaveAsync().Forget();
         }
 
@@ -113,12 +111,22 @@ namespace HuntingInDarkness.ViewLayer.Flow
             GUILayout.EndArea();
         }
 
-        private void ContinueGame()
+        private void ContinueGame() => ContinueGameAsync().Forget();
+
+        private async UniTaskVoid ContinueGameAsync()
         {
             if (manager == null || !hasSave || busy) return;
             busy = true;
             statusText = "正在读取战役……";
-            manager.LoadSettlementProgress();
+            CampaignStartupResult result = await manager.ContinueCampaignAsync(this.GetCancellationTokenOnDestroy());
+            busy = false;
+            if (result.Succeeded)
+            {
+                FindAnyObjectByType<PlayableFlowGuide>()?.SkipOpeningNarrative();
+                visible = false;
+                return;
+            }
+            statusText = result.Reason;
         }
 
         private async UniTaskVoid StartNewGameAsync()
@@ -127,8 +135,11 @@ namespace HuntingInDarkness.ViewLayer.Flow
             busy = true;
             try
             {
-                await manager.DeleteCampaignSaveAsync(this.GetCancellationTokenOnDestroy());
-                visible = false;
+                CampaignStartupResult result = await manager.StartNewCampaignAsync(this.GetCancellationTokenOnDestroy());
+                if (result.Succeeded)
+                    visible = false;
+                else
+                    statusText = result.Reason;
             }
             catch (System.OperationCanceledException)
             {
@@ -143,19 +154,6 @@ namespace HuntingInDarkness.ViewLayer.Flow
             {
                 busy = false;
             }
-        }
-
-        private void OnLoadCompleted(bool success)
-        {
-            busy = false;
-            if (!success)
-            {
-                statusText = "存档无法读取。你仍可以开始新战役。";
-                return;
-            }
-
-            FindAnyObjectByType<PlayableFlowGuide>()?.SkipOpeningNarrative();
-            visible = false;
         }
 
         private void EnsureStyles()
@@ -191,8 +189,6 @@ namespace HuntingInDarkness.ViewLayer.Flow
 
         private void OnDestroy()
         {
-            if (manager != null)
-                manager.SettlementProgressLoadCompleted -= OnLoadCompleted;
             if (backgroundTexture != null)
                 Destroy(backgroundTexture);
         }

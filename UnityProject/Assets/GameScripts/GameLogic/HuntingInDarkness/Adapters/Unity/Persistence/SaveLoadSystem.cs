@@ -167,7 +167,7 @@ namespace Core
             }, cancellationToken: cancellationToken);
         }
 
-        public static async UniTask DeleteSaveAsync(CancellationToken cancellationToken = default)
+        public static async UniTask<bool> TryDeleteSaveAsync(CancellationToken cancellationToken = default)
         {
             string savePath = SavePath;
             int deleteVersion = Interlocked.Increment(ref nextSaveVersion);
@@ -181,6 +181,8 @@ namespace Core
 
             if (deleted)
                 Debug.Log("[SaveLoad] 存档已删除");
+            lock (SaveGate)
+                return !CampaignSaveFileStore.HasAnyCandidate(savePath);
         }
 
         public static bool TryCreatePayload(CampaignSnapshot snapshot, out string payload, out string reason)

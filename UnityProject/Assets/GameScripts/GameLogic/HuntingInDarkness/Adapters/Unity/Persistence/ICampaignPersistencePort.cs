@@ -12,7 +12,7 @@ namespace Core
         bool TrySavePayloadImmediate(string payload);
         UniTask<bool> HasSaveAsync(CancellationToken cancellationToken = default);
         UniTask<CampaignSnapshot> LoadAsync(CancellationToken cancellationToken = default);
-        UniTask DeleteAsync(CancellationToken cancellationToken = default);
+        UniTask<bool> TryDeleteAsync(CancellationToken cancellationToken = default);
     }
 
     /// <summary>默认使用现有 SaveLoadSystem 文件存储实现持久化端口。</summary>
@@ -30,7 +30,7 @@ namespace Core
         public UniTask<CampaignSnapshot> LoadAsync(CancellationToken cancellationToken = default)
             => SaveLoadSystem.LoadAsync(cancellationToken);
 
-        public UniTask DeleteAsync(CancellationToken cancellationToken = default)
-            => SaveLoadSystem.DeleteSaveAsync(cancellationToken);
+        public UniTask<bool> TryDeleteAsync(CancellationToken cancellationToken = default)
+            => SaveLoadSystem.TryDeleteSaveAsync(cancellationToken);
     }
 }
