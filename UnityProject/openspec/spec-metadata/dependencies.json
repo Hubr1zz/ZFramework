@@ -198,6 +198,13 @@
       "specPath": "openspec/specs/table-driven-event-chains/spec.md"
     },
     {
+      "id": "event-occurrence-checkpoint-core",
+      "label": "跨阶段事件 occurrence 检查点核心",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/event-occurrence-checkpoint-core/spec.md"
+    },
+    {
       "id": "table-driven-hunt-events",
       "label": "读表狩猎事件内容",
       "category": "feature",
@@ -1106,6 +1113,36 @@
       "type": "requires",
       "status": "defined",
       "reason": "地块事件资源奖励使用稳定物品 ID 并在正式回营前暂存为远征携带物",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-occurrence-checkpoint-core--requires--action-environment-lifecycle",
+      "from": "event-occurrence-checkpoint-core",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "共享 occurrence 只定义 Action 节点提交后的有限身份与幂等边界",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-event-chains--requires--event-occurrence-checkpoint-core",
+      "from": "table-driven-event-chains",
+      "to": "event-occurrence-checkpoint-core",
+      "type": "requires",
+      "status": "defined",
+      "reason": "直接事件分支以稳定 occurrence 序号区分重复内容引用并阻止祖先回边",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-persistence--requires--event-occurrence-checkpoint-core",
+      "from": "campaign-persistence",
+      "to": "event-occurrence-checkpoint-core",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Settlement Adapter 保持现有 Schema 1 DTO 与存档字段，Hunt 耐久恢复等待完整 active-Hunt snapshot",
       "gapId": "",
       "blocksImplementation": false
     }

@@ -49,13 +49,14 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private ResolvePlayableEventNodeAction currentEntry;
         private PendingEventWork currentWork;
-        private IReadOnlyList<SettlementEventChainOccurrence> lastCommittedChildren = Array.Empty<SettlementEventChainOccurrence>();
+        private IReadOnlyList<PlayableEventChainOccurrence> lastCommittedChildren = Array.Empty<PlayableEventChainOccurrence>();
         private string lastCommitDiagnostic = string.Empty;
         private int nextRootSequence = -1;
         private CampaignEncounterRequest encounterRequest;
         private string failureReason;
         private int resolvedCount;
         private readonly List<PlayableEventEffectResult> effectResults = new();
+        private readonly SettlementEventChainCheckpointAdapter checkpointAdapter;
 
         public ResolveSettlementEventChainAction(EventSystem eventSystem, IPlayableEventInput eventInput, IReadOnlyList<EventData> events, Guid sessionId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, string restoredChainId = null, IReadOnlyList<SettlementEventChainOccurrence> restoredOccurrences = null)
         {
@@ -67,6 +68,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             this.randomInteractionPresenter = randomInteractionPresenter;
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
+            checkpointAdapter = new SettlementEventChainCheckpointAdapter(eventSystem.Settlement);
             chainId = string.IsNullOrWhiteSpace(restoredChainId) ? Guid.NewGuid().ToString("N") : restoredChainId.Trim();
             if (events == null) return;
             if (restoredOccurrences != null && restoredOccurrences.Count == events.Count)
@@ -146,7 +148,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
         private void StageCommitCheckpoint(PlayableEventCommitCheckpoint checkpoint, PendingEventWork work)
         {
-            lastCommittedChildren = Array.Empty<SettlementEventChainOccurrence>();
+            lastCommittedChildren = Array.Empty<PlayableEventChainOccurrence>();
             lastCommitDiagnostic = string.Empty;
             if (checkpoint.Kind == PlayableEventCommitKind.Resolution)
             {
@@ -156,7 +158,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                     bool cycle = string.Equals(chainedEventId, checkpoint.EventId, StringComparison.Ordinal);
                     if (!cycle)
                         foreach (EventData ancestor in work.Ancestors)
-                            if (ancestor != null && string.Equals(ancestor.name, chainedEventId, StringComparison.Ordinal))
+                            if (ancestor != null && string.Equals(ancestor.ContentId, chainedEventId, StringComparison.Ordinal))
                             {
                                 cycle = true;
                                 break;
@@ -167,8 +169,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                     }
                     chainedEventIds.Add(chainedEventId);
                 }
-                lastCommittedChildren = eventSystem.Settlement.CommitEventChainOccurrence(chainId, work.PersistenceSequence, chainedEventIds, eventSystem.Settlement.CurrentYear, checkpoint.ActorId);
-                lastCommitDiagnostic = eventSystem.Settlement.GetEventChainDiagnostic(chainId);
+                lastCommittedChildren = checkpointAdapter.Commit(chainId, work.PersistenceSequence, chainedEventIds, eventSystem.Settlement.CurrentYear, checkpoint.ActorId);
+                lastCommitDiagnostic = checkpointAdapter.GetDiagnostic(chainId);
             }
             eventOutbox.Stage(new SettlementTransactionCommittedEvent
             {
@@ -190,13 +192,13 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                     continue;
                 }
                 if (occurrenceIndex >= lastCommittedChildren.Count) break;
-                SettlementEventChainOccurrence occurrence = lastCommittedChildren[occurrenceIndex];
+                PlayableEventChainOccurrence occurrence = lastCommittedChildren[occurrenceIndex];
                 string eventId = chainedEvent.ContentId;
                 if (!string.Equals(eventId, occurrence.EventId, StringComparison.Ordinal)) continue;
                 TryEnqueue(chainedEvent, occurrence.Sequence, ancestors);
                 occurrenceIndex++;
             }
-            lastCommittedChildren = Array.Empty<SettlementEventChainOccurrence>();
+            lastCommittedChildren = Array.Empty<PlayableEventChainOccurrence>();
         }
 
         private void TryEnqueue(EventData gameEvent, int persistenceSequence = -1, IReadOnlyCollection<EventData> ancestors = null)
@@ -221,8 +223,10 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
         private static bool ContainsAncestor(IReadOnlyCollection<EventData> ancestors, EventData gameEvent)
         {
+            if (gameEvent == null) return false;
+            string eventId = gameEvent.ContentId;
             foreach (EventData ancestor in ancestors)
-                if (ReferenceEquals(ancestor, gameEvent)) return true;
+                if (ancestor != null && string.Equals(ancestor.ContentId, eventId, StringComparison.Ordinal)) return true;
             return false;
         }
 
