@@ -27,11 +27,12 @@ namespace Core
     [Serializable]
     public sealed class ActiveHuntSnapshot
     {
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
         public const string RandomAlgorithm = "xorshift32-v1";
         public int SchemaVersion = CurrentSchemaVersion;
         public string ExpeditionId;
         public string DestinationId;
+        public string ContentBundleId;
         public bool EncounterHandoffPending;
         public string EncounterId;
         public int Year;
@@ -104,7 +105,7 @@ namespace Core
 
     public static class ActiveHuntSnapshotAdapter
     {
-        public static bool TryCapture(SettlementInstance settlement, HuntManager manager, PlayableHuntActionSession session, string expeditionId, string destinationId, out CampaignSnapshot campaign, out string reason, bool allowRunningSession = false)
+        public static bool TryCapture(SettlementInstance settlement, HuntManager manager, PlayableHuntActionSession session, string expeditionId, out CampaignSnapshot campaign, out string reason, bool allowRunningSession = false)
         {
             campaign = null;
             if (settlement == null || manager == null || session?.IsActive != true || session.IsRunning && !allowRunningSession)
@@ -122,11 +123,18 @@ namespace Core
                 reason = "活动狩猎缺少稳定远征 ID。";
                 return false;
             }
+            PlayableHuntRoutePlan boundRoute = manager.BoundRoute;
+            if (boundRoute?.IsUsable != true || !ReferenceEquals(boundRoute.Owner, PlayableHuntContentRuntime.CurrentBundle))
+            {
+                reason = "活动狩猎未绑定当前可用的 Hunt 内容 Bundle。";
+                return false;
+            }
 
             var active = new ActiveHuntSnapshot
             {
                 ExpeditionId = expeditionId.Trim(),
-                DestinationId = destinationId?.Trim() ?? string.Empty,
+                DestinationId = boundRoute.DestinationId,
+                ContentBundleId = boundRoute.ContentBundleId,
                 Year = manager.CurrentYear,
                 SelectedHunterId = manager.SelectedHunter?.InstanceId ?? 0,
                 SquadX = manager.SquadPosition.x,
@@ -136,18 +144,18 @@ namespace Core
             var hunterIds = new HashSet<int>();
             foreach (HunterInstance hunter in manager.ActiveHunters)
             {
-                if (hunter == null || hunter.InstanceId <= 0 || !hunterIds.Add(hunter.InstanceId))
+                if (hunter == null || hunter.InstanceId <= 0 || !hunterIds.Add(hunter.InstanceId) || !ReferenceEquals(settlement.GetHunter(hunter.InstanceId), hunter))
                 {
-                    reason = "活动狩猎包含空、重复或无效猎人。";
+                    reason = "活动狩猎包含空、重复、无效或非当前营地世代的猎人。";
                     return false;
                 }
                 active.HunterIds.Add(hunter.InstanceId);
                 var collectible = new ActiveHuntCollectibleSnapshot { HunterId = hunter.InstanceId };
                 foreach (ItemInstance item in hunter.Collectibles)
                 {
-                    if (item?.Data == null || string.IsNullOrWhiteSpace(item.Data.ContentId) || item.Count <= 0)
+                    if (item?.Data == null || string.IsNullOrWhiteSpace(item.Data.ContentId) || item.Count <= 0 || !boundRoute.TryResolveItem(item.Data.ContentId, out ItemData canonicalItem) || !ReferenceEquals(canonicalItem, item.Data))
                     {
-                        reason = $"猎人 {hunter.InstanceId} 的采集物缺少稳定内容 ID 或数量无效。";
+                        reason = $"猎人 {hunter.InstanceId} 的采集物缺少同代稳定内容或数量无效。";
                         return false;
                     }
                     collectible.Items.Add(new ActiveHuntItemStackSnapshot { ItemId = item.Data.ContentId, Count = item.Count });
@@ -167,12 +175,14 @@ namespace Core
 
             var coordinates = new List<Vector2Int>(manager.Map.Keys);
             coordinates.Sort((left, right) => left.x != right.x ? left.x.CompareTo(right.x) : left.y.CompareTo(right.y));
+            var canonicalTiles = new Dictionary<string, HexTileData>(StringComparer.Ordinal) { [boundRoute.StartingTile.ContentId] = boundRoute.StartingTile };
+            foreach (HexTileData routeTile in boundRoute.TilePool) canonicalTiles.Add(routeTile.ContentId, routeTile);
             foreach (Vector2Int coordinate in coordinates)
             {
                 HexTileInstance tile = manager.Map[coordinate];
-                if (tile?.Config == null || !tile.Config.HasExplicitContentId)
+                if (tile?.Config == null || !tile.Config.HasExplicitContentId || !canonicalTiles.TryGetValue(tile.Config.ContentId, out HexTileData canonicalTile) || !ReferenceEquals(canonicalTile, tile.Config))
                 {
-                    reason = $"地块 {coordinate} 缺少显式稳定 ContentId。";
+                    reason = $"地块 {coordinate} 缺少当前路线世代的稳定内容。";
                     return false;
                 }
                 var tileSnapshot = new ActiveHuntTileSnapshot
@@ -185,9 +195,9 @@ namespace Core
                 };
                 foreach (ResourcePointInstance point in tile.ResourcePoints)
                 {
-                    if (point?.Resource == null || string.IsNullOrWhiteSpace(point.Resource.ContentId))
+                    if (point?.Resource == null || string.IsNullOrWhiteSpace(point.Resource.ContentId) || !boundRoute.TryResolveItem(point.Resource.ContentId, out ItemData canonicalItem) || !ReferenceEquals(canonicalItem, point.Resource))
                     {
-                        reason = $"地块 {coordinate} 的资源点缺少稳定物品 ID。";
+                        reason = $"地块 {coordinate} 的资源点缺少同代稳定物品 ID。";
                         return false;
                     }
                     tileSnapshot.ResourcePoints.Add(new ActiveHuntResourcePointSnapshot { ItemId = point.Resource.ContentId, DrawCount = point.DrawCount, IsExhausted = point.IsExhausted });
@@ -216,9 +226,15 @@ namespace Core
                 reason = "战役或活动狩猎快照版本无效。";
                 return false;
             }
-            if (active.SchemaVersion != ActiveHuntSnapshot.CurrentSchemaVersion || active.Year != settlement.CurrentYear || string.IsNullOrWhiteSpace(active.ExpeditionId) || active.RandomState == 0 || !string.Equals(active.RandomAlgorithmId, ActiveHuntSnapshot.RandomAlgorithm, StringComparison.Ordinal))
+            if (active.SchemaVersion != ActiveHuntSnapshot.CurrentSchemaVersion || active.Year != settlement.CurrentYear || string.IsNullOrWhiteSpace(active.ExpeditionId) || string.IsNullOrWhiteSpace(active.ContentBundleId) || active.RandomState == 0 || !string.Equals(active.RandomAlgorithmId, ActiveHuntSnapshot.RandomAlgorithm, StringComparison.Ordinal))
             {
                 reason = "活动狩猎快照的年份、身份或随机算法无效。";
+                return false;
+            }
+            PlayableHuntRoutePlan boundRoute = manager?.BoundRoute;
+            if (boundRoute?.IsUsable != true || !ReferenceEquals(boundRoute.Owner, PlayableHuntContentRuntime.CurrentBundle) || !string.Equals(active.DestinationId, boundRoute.DestinationId, StringComparison.Ordinal) || !string.Equals(active.ContentBundleId, boundRoute.ContentBundleId, StringComparison.Ordinal))
+            {
+                reason = "活动狩猎快照的目的地或内容 Bundle 与当前运行态不一致。";
                 return false;
             }
             if (settlement.PendingHuntReturn != null)
@@ -286,7 +302,7 @@ namespace Core
                 }
                 foreach (ActiveHuntResourcePointSnapshot savedPoint in savedTile.ResourcePoints)
                 {
-                    if (savedPoint == null || savedPoint.DrawCount < 0 || !PlayableSettlementItemRegistry.TryGet(savedPoint.ItemId, out ItemData item) || item == null || item.itemType != ItemType.Resource)
+                    if (savedPoint == null || savedPoint.DrawCount < 0 || !boundRoute.TryResolveItem(savedPoint.ItemId, out ItemData item) || item == null || item.itemType != ItemType.Resource)
                     {
                         reason = $"无法恢复地块资源：{savedPoint?.ItemId}";
                         return false;
@@ -303,7 +319,7 @@ namespace Core
                 return false;
             }
             if (!TryRestoreEventStore(active.EventStore, manager.HuntEvents.HuntEventPool, out occurrenceStore, out reason)) return false;
-            if (!TryRestoreCollectibles(active, hunters, out reason)) return false;
+            if (!TryRestoreCollectibles(active, hunters, boundRoute, out reason)) return false;
 
             runtimeState = new PlayableHuntRuntimeState
             {
@@ -362,7 +378,7 @@ namespace Core
             return false;
         }
 
-        private static bool TryRestoreCollectibles(ActiveHuntSnapshot active, IReadOnlyList<HunterInstance> hunters, out string reason)
+        private static bool TryRestoreCollectibles(ActiveHuntSnapshot active, IReadOnlyList<HunterInstance> hunters, PlayableHuntRoutePlan boundRoute, out string reason)
         {
             if (active.Collectibles == null)
             {
@@ -391,7 +407,7 @@ namespace Core
                 }
                 foreach (ActiveHuntItemStackSnapshot savedItem in collectible.Items)
                 {
-                    if (savedItem == null || savedItem.Count <= 0 || !PlayableSettlementItemRegistry.TryGet(savedItem.ItemId, out ItemData item) || item == null)
+                    if (savedItem == null || savedItem.Count <= 0 || !boundRoute.TryResolveItem(savedItem.ItemId, out ItemData item) || item == null)
                     {
                         reason = $"无法恢复狩猎采集物：{savedItem?.ItemId}";
                         return false;

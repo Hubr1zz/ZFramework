@@ -16,6 +16,8 @@ namespace HuntingInDarkness.Hunt
         [SerializeField] private List<EventData> dangerEvents = new();
 
         public string ProfileId => profileId?.Trim() ?? string.Empty;
+        internal int DeckSize => deckSize;
+        internal int BaseNoisePerHunter => baseNoisePerHunter;
         public int MaxDangerCards => Math.Max(0, maxDangerCards);
         public bool IsEnabled => ProfileId.Length > 0;
         public bool IsConfigured => IsEnabled && deckSize >= 2 && maxDangerCards >= 0 && maxDangerCards <= deckSize && HasUniqueDangerEvents();

@@ -67,10 +67,38 @@ namespace HuntingInDarkness.Adapter.Tests
         public void CampaignPayload_RejectsActiveHuntAndPendingReturnTogether()
         {
             var settlement = new SettlementInstance { PendingHuntReturn = new HuntRecord { RecordId = "pending", Year = 2 } };
-            var snapshot = new CampaignSnapshot { Settlement = settlement, HasActiveHuntState = true, ActiveHunt = new ActiveHuntSnapshot { ExpeditionId = "expedition" } };
+            var snapshot = new CampaignSnapshot { Settlement = settlement, HasActiveHuntState = true, ActiveHunt = new ActiveHuntSnapshot { ExpeditionId = "expedition", ContentBundleId = "bundle:test" } };
 
             Assert.That(SaveLoadSystem.TryCreatePayload(snapshot, out _, out string reason), Is.False);
             Assert.That(reason, Does.Contain("不能同时"));
+        }
+
+        [Test]
+        public void CampaignPayload_RejectsLegacyActiveHuntSchema()
+        {
+            var snapshot = new CampaignSnapshot
+            {
+                Settlement = new SettlementInstance { CurrentYear = 2 },
+                HasActiveHuntState = true,
+                ActiveHunt = new ActiveHuntSnapshot { SchemaVersion = 1, DestinationId = "route", ContentBundleId = "bundle" }
+            };
+
+            Assert.That(SaveLoadSystem.TryCreatePayload(snapshot, out _, out string reason), Is.False);
+            Assert.That(reason, Does.Contain("活动狩猎快照版本"));
+        }
+
+        [Test]
+        public void CampaignPayload_RejectsEmptyActiveHuntIdentity()
+        {
+            var snapshot = new CampaignSnapshot
+            {
+                Settlement = new SettlementInstance { CurrentYear = 2 },
+                HasActiveHuntState = true,
+                ActiveHunt = new ActiveHuntSnapshot { SchemaVersion = ActiveHuntSnapshot.CurrentSchemaVersion, DestinationId = "", ContentBundleId = "" }
+            };
+
+            Assert.That(SaveLoadSystem.TryCreatePayload(snapshot, out _, out string reason), Is.False);
+            Assert.That(reason, Does.Contain("内容 Bundle 身份"));
         }
 
         [Test]

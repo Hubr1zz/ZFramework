@@ -73,6 +73,16 @@ HuntManager SHALL 通过 `TryBindContent` 全量验证并一次提交 StartingTi
 - **THEN** 绑定 SHALL 失败
 - **AND** 原 BoundRoute 与全部运行配置 SHALL 保持不变
 
+### Requirement: Bundle exposes a deterministic compatibility fingerprint
+
+BundleId SHALL 使用版本化、长度前缀的 canonical manifest 和 SHA-256 生成跨进程稳定指纹。RegistryBundle 的完整物品集、发明集以及 Registry/EventGeneration/路线直接事件的 canonical 事件并集 SHALL 按 ContentId 排序并完整编码一次；任何事件链引用 SHALL 是该并集中相同对象身份的 canonical 事件。路线集合 SHALL 按 DestinationId 排序，路线内部 SHALL 保留地块池、事件池和噪音危险事件的运行顺序，并覆盖起始角色、地块生成/资源/Boss 规则、事件规则、物品/发明规则和噪音标量。相同冻结内容重建 SHALL 得到相同 `hunt-v2:` 指纹，任何依赖内容规则或运行顺序变化 SHALL 得到不同指纹。
+
+#### Scenario: A nested harvest rule changes without changing IDs
+
+- **WHEN** 地块、事件和物品 ContentId 保持不变，但资源抽取数或地块池顺序变化
+- **THEN** 新 BundleId SHALL 与旧指纹不同
+- **AND** 旧活动狩猎存档 SHALL NOT 作为同代内容恢复
+
 ### Requirement: Completed expeditions do not reuse a manager
 
 正常 Hunt 返回 Settlement 的提交点 SHALL 释放权威 HuntManager 引用。下一次出发 SHALL 创建新 Manager，并且 GameManager SHALL 检查目的地 RoutePlan 绑定结果；绑定失败 SHALL 阻止进入或恢复 Hunt，不得吞掉错误后使用上一条路线。
@@ -85,4 +95,4 @@ HuntManager SHALL 通过 `TryBindContent` 全量验证并一次提交 StartingTi
 
 ## Known Boundary
 
-本阶段完成启动期 Hunt 内容世代、依赖租约、Manager 原子绑定和正常回营后的 Manager 换代。正常出发已经由 `hunt-route-entry-context` 以精确 RoutePlan 驱动；活动狩猎存档仍只保存 DestinationId、尚未校验 ContentBundleId。在持久化 schema 完成前不得宣称活动 Hunt 已支持跨内容版本恢复。
+本阶段完成启动期 Hunt 内容世代、依赖租约、确定性兼容指纹、Manager 原子绑定和正常回营后的 Manager 换代。正常出发与活动恢复均持有精确 RoutePlan；不同 BundleId 的活动狩猎存档会 fail closed。运行期内容热重载与跨 Bundle 迁移仍不在当前能力范围。

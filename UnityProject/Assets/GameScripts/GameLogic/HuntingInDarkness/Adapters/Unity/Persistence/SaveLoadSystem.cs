@@ -191,10 +191,24 @@ namespace Core
                 reason = "战役快照版本或营地数据无效。";
                 return false;
             }
-            if (snapshot.HasActiveHunt && snapshot.Settlement.PendingHuntReturn != null)
+            if (!snapshot.HasActiveHuntState && snapshot.ActiveHunt != null)
             {
-                reason = "活动狩猎与待结算回营记录不能同时保存。";
+                reason = "战役阶段标志与活动狩猎快照不一致。";
                 return false;
+            }
+            if (snapshot.HasActiveHuntState)
+            {
+                ActiveHuntSnapshot active = snapshot.ActiveHunt;
+                if (active == null || active.SchemaVersion != ActiveHuntSnapshot.CurrentSchemaVersion || string.IsNullOrWhiteSpace(active.ContentBundleId))
+                {
+                    reason = "活动狩猎快照版本或内容 Bundle 身份无效。";
+                    return false;
+                }
+                if (snapshot.Settlement.PendingHuntReturn != null)
+                {
+                    reason = "活动狩猎与待结算回营记录不能同时保存。";
+                    return false;
+                }
             }
             payload = JsonUtility.ToJson(snapshot, prettyPrint: true);
             reason = string.Empty;

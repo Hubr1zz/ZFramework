@@ -24,6 +24,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             bundle?.Dispose();
             PlayableSettlementItemRegistry.Configure(null);
+            PlayableSettlementInventionRegistry.Configure(null);
             foreach (Object ownedObject in ownedObjects)
                 if (ownedObject != null)
                     Object.DestroyImmediate(ownedObject);
@@ -104,6 +105,74 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.False);
             Assert.That(reason, Does.Contain("计划外资源"));
+        }
+
+        [Test]
+        public void BundleId_IsDeterministicAndTracksOrderedNestedRules()
+        {
+            EventData dangerEvent = CreateHuntEvent("hunt:danger");
+            ItemData resource = Own(ScriptableObject.CreateInstance<ItemData>());
+            resource.ConfigureContentId("item:herb");
+            resource.itemName = "herb";
+            resource.itemType = ItemType.Resource;
+            ItemData unreferencedItem = Own(ScriptableObject.CreateInstance<ItemData>());
+            unreferencedItem.ConfigureContentId("item:unreferenced");
+            unreferencedItem.itemName = "unreferenced";
+            unreferencedItem.itemType = ItemType.Resource;
+            unreferencedItem.stackLimit = 1;
+            PlayableSettlementItemRegistry.Configure(new[] { resource, unreferencedItem });
+            InventionData invention = Own(ScriptableObject.CreateInstance<InventionData>());
+            invention.ConfigureContentId("invention:harvest");
+            invention.inventionName = "harvest";
+            invention.actionEffects.Add(new InventionActionEffect { effectId = "effect:harvest", kind = InventionActionEffectKind.ModifyHarvestHitChance, targetKeyword = "herb", value = 0.1f });
+            PlayableSettlementInventionRegistry.Configure(new[] { invention });
+            HexTileData first = CreateTile("tile:first", TileType.Forest, 3);
+            first.resourcePoints.Add(new ResourcePointConfig { resource = resource, spawnWeight = 2, drawCount = 1, maxPerTile = 1 });
+            HexTileData second = CreateTile("tile:second", TileType.Ruins, 5);
+            var orderedTiles = new List<HexTileData> { first, second };
+            PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:start", TileType.Starting, 1), orderedTiles, new List<EventData> { dangerEvent }, CreateNoiseProfile(dangerEvent));
+
+            Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.True, reason);
+            Assert.That(PlayableHuntContentBundle.TryCreateSnapshot(catalog, new List<PlayableHuntDestination>(), out PlayableHuntContentBundle equivalent, out reason), Is.True, reason);
+            Assert.That(equivalent.BundleId, Is.EqualTo(bundle.BundleId));
+
+            SetPrivateField(catalog, "tilePool", new List<HexTileData> { second, first });
+            Assert.That(PlayableHuntContentBundle.TryCreateSnapshot(catalog, new List<PlayableHuntDestination>(), out PlayableHuntContentBundle reordered, out reason), Is.True, reason);
+            Assert.That(reordered.BundleId, Is.Not.EqualTo(bundle.BundleId));
+
+            SetPrivateField(catalog, "tilePool", orderedTiles);
+            first.resourcePoints[0].drawCount = 4;
+            Assert.That(PlayableHuntContentBundle.TryCreateSnapshot(catalog, new List<PlayableHuntDestination>(), out PlayableHuntContentBundle changedRule, out reason), Is.True, reason);
+            Assert.That(changedRule.BundleId, Is.Not.EqualTo(bundle.BundleId));
+
+            first.resourcePoints[0].drawCount = 1;
+            unreferencedItem.stackLimit = 2;
+            Assert.That(PlayableHuntContentBundle.TryCreateSnapshot(catalog, new List<PlayableHuntDestination>(), out PlayableHuntContentBundle changedRegistry, out reason), Is.True, reason);
+            Assert.That(changedRegistry.BundleId, Is.Not.EqualTo(bundle.BundleId));
+
+            unreferencedItem.stackLimit = 1;
+            invention.actionEffects[0].value = 0.2f;
+            Assert.That(PlayableHuntContentBundle.TryCreateSnapshot(catalog, new List<PlayableHuntDestination>(), out PlayableHuntContentBundle changedInvention, out reason), Is.True, reason);
+            Assert.That(changedInvention.BundleId, Is.Not.EqualTo(bundle.BundleId));
+
+            equivalent.Dispose();
+            reordered.Dispose();
+            changedRule.Dispose();
+            changedRegistry.Dispose();
+            changedInvention.Dispose();
+        }
+
+        [Test]
+        public void Bundle_RejectsNonCanonicalChainedEventObject()
+        {
+            EventData dangerEvent = CreateHuntEvent("hunt:danger");
+            EventData canonicalChild = CreateHuntEvent("hunt:child");
+            EventData foreignChild = CreateHuntEvent("hunt:child");
+            dangerEvent.chainedEvents.Add(foreignChild);
+            PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:start", TileType.Starting, 1), new List<HexTileData> { CreateTile("tile:plain", TileType.Plains, 1) }, new List<EventData> { dangerEvent, canonicalChild }, CreateNoiseProfile(dangerEvent));
+
+            Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.False);
+            Assert.That(reason, Does.Contain("canonical 事件闭包"));
         }
 
         [Test]

@@ -11,20 +11,19 @@
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignActionSessionTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
       "Unity CLI targeted Campaign ActionSession: 6/6 passed",
-      "Unity CLI targeted Hunt ContentBundle: 5/5 passed",
-      "Unity CLI EditMode: 619/619 passed",
+      "Unity CLI targeted Hunt ContentBundle: 7/7 passed",
+      "Unity CLI EditMode: 626/626 passed",
       "C# derived index: 978/978, 100% coverage",
       "zWorkFlow: 7/7 passed",
       "OpenSpec strict validation: 65/65 passed"
     ],
     "differences": [
-      "活动狩猎持久化尚未保存和校验 ContentBundleId，跨内容版本恢复留待独立 schema 阶段。",
       "开发启动与旧恢复入口仍允许通过 ActiveDestination 兼容门面绑定路线。",
       "准备令牌尚未绑定出发猎人 ID 摘要；未来开放更多 roster Reactor 前应加入不可变 revision 或 digest。",
       "阶段提交事实尚未携带 DestinationId 与 ContentBundleId；后续事件消费者需要稳定路线字段而非 RoutePlan 引用。",
       "不可逆阶段提交仍需进一步明确取消竞态的 committed-wins 语义，并把阶段回滚失败提升为显式硬故障状态。"
     ],
-    "verifiedAt": "2026-08-24T09:06:40-07:00",
+    "verifiedAt": "2026-08-24T09:34:27-07:00",
     "codeEvidence": [
       {
         "guid": "c6eeb30cbc2c2c342adfac7c46c6607b",
@@ -39,27 +38,27 @@
         "guid": "a11294226d6e3e34b9783cda133d88f2",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntDestinationCatalog.cs",
         "line": 1,
-        "fileHash": "c4c3a2a0c67195dffa407e1d7b3612849e7a15c752e8a29e127c8ee7e7b63116",
+        "fileHash": "6f6f95aa6cf03ea6100f58b8467c1ac0dffd2e6cf6b58cf8ea0b417ebacae952",
         "status": "verified",
-        "checkedAt": "2026-08-24T09:06:40-07:00",
-        "feature": "分离路线只读解析与活动路线提交，并拒绝非当前 Bundle 路线。"
+        "checkedAt": "2026-08-24T09:28:30-07:00",
+        "feature": "分离路线只读解析与活动路线提交，并以精确 BundleId 拒绝非当前内容世代。"
       },
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "33714b2f0c966772b957ceffbda984304bb515af9d5a94e53e50d3c25069e11e",
+        "fileHash": "1f69f185f38b4313caa3959115ddb419bf9d2a9b6b57e5c8c68b00625cbd55c1",
         "status": "verified",
-        "checkedAt": "2026-08-24T09:06:40-07:00",
+        "checkedAt": "2026-08-24T09:28:30-07:00",
         "feature": "在组合根重新验证同年令牌和路线身份，原子绑定、提交与回滚 Hunt 运行图。"
       },
       {
         "guid": "5e0d9f3f6f7d4b8a9c2e1d0f3a6b7c81",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
         "line": 1,
-        "fileHash": "d080cdcd5a868273b524970e064fa62b495a5c7d1bcc603d21d05210adbddc4a",
+        "fileHash": "fc65bd46f5a0fd60ca54ec14d92ce28bb7169f396d79d9857bdeea360a8737dd",
         "status": "verified",
-        "checkedAt": "2026-08-24T09:06:40-07:00",
+        "checkedAt": "2026-08-24T09:34:27-07:00",
         "feature": "验证精确 RoutePlan 身份穿过 Reactor 与请求 Host，且阻止时 Host 不变。"
       }
     ]
@@ -71,9 +70,7 @@
     "新 HuntManager 绑定路线并建图后才发布活动选择，失败时恢复完整目的地状态。",
     "Session、遭遇交接与存档捕获从 BoundRoute 读取目的地身份。"
   ],
-  "gapIds": [
-    "active-hunt-content-bundle-identity"
-  ],
+  "gapIds": [],
   "dependencyIds": [
     "hunt-content-bundle-lifecycle",
     "action-environment-lifecycle",

@@ -87,4 +87,4 @@ GameManager SHALL 在新 HuntManager 成功绑定同一 RoutePlan 并建立地�
 
 ## Known Boundary
 
-本阶段仅建立运行期 RoutePlan 入队、验证、提交和回滚契约。活动狩猎持久化仍只保存 DestinationId，尚未保存或校验 ContentBundleId；跨内容版本恢复必须继续视为未完成能力。
+正常出发与活动狩猎恢复现均从当前 Bundle 解析并持有精确 RoutePlan；活动快照保存 ContentBundleId，不同内容指纹会 fail closed。运行期内容热重载和跨 Bundle 存档迁移仍需独立设计。

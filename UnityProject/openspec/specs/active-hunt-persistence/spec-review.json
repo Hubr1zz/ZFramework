@@ -6,36 +6,41 @@
   "readiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "战役存档已显式区分营地与活动狩猎；恢复先在候选营地图上解析地图、编队、携带物、事件 occurrence 与随机状态，预生成稳定 payload 后再发布同代 Settlement/Hunt 运行图。",
+    "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份；恢复只接受当前同指纹内容，在候选图完成地图、编队、携带物、事件与随机状态验证后原子发布，并以完整 RuntimeState 回滚。",
     "evidence": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignSaveStorageTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/StatefulRandomSourceTests.cs"
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/StatefulRandomSourceTests.cs",
+      "Unity CLI targeted Active Hunt persistence: 4/4 passed",
+      "Unity CLI EditMode: 626/626 passed",
+      "C# derived index: 978/978, 100% coverage",
+      "zWorkFlow: 7/7 passed",
+      "OpenSpec strict validation: 65/65 passed"
     ],
     "differences": [
       "当前遭遇/BossFight 生命周期仍会销毁 Hunt session；存档以 fail-closed 交接标记阻止复活旧 Hunt，但不承诺战斗结束后回到原事件链。",
       "恢复验证使用生产 DTO、Adapter、HuntManager 与 ActionSession 的 EditMode 组合测试；完整场景 GameManager PlayMode 重启测试留作后续增强。"
     ],
-    "verifiedAt": "2026-08-24T07:53:40-07:00",
+    "verifiedAt": "2026-08-24T09:34:27-07:00",
     "codeEvidence": [
       {
         "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
         "line": 1,
-        "fileHash": "233bba2b8be26074ea22b6a83618370efd3c7e800f5502773181b2d93baaf34b",
+        "fileHash": "8fc0a4ea611941c3500798a8740b163aa88526da348891ee685a5079d33ccb80",
         "status": "verified",
-        "checkedAt": "2026-08-24T04:44:00-07:00",
-        "feature": "定义显式阶段战役快照，验证并恢复活动狩猎地图、编队、携带物、事件与随机状态。"
+        "checkedAt": "2026-08-24T09:28:30-07:00",
+        "feature": "定义活动狩猎 schema v2，捕获同代 Route/Bundle、猎人、地块、物品、事件与随机状态并 fail closed 恢复。"
       },
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "c276accaf462ef40272171323113464d3a3c159d254ab3cd37fc9b62b84a92d1",
+        "fileHash": "1f69f185f38b4313caa3959115ddb419bf9d2a9b6b57e5c8c68b00625cbd55c1",
         "status": "verified",
-        "checkedAt": "2026-08-24T07:53:40-07:00",
-        "feature": "在 Hunt Action 提交、退出、读档和回营两阶段交接处维护最近完整战役载荷，并在阶段通知前发布候选 Settlement/Hunt 图。"
+        "checkedAt": "2026-08-24T09:28:30-07:00",
+        "feature": "只读解析精确路线，原子提交候选运行图，失败恢复完整目的地状态，并在退役旧 Session 前固定稳定载荷。"
       },
       {
         "guid": "6dce6ba7b65af9c42821b85a0555ac17",
@@ -59,10 +64,10 @@
         "guid": "a61a5c63f2764aa98fb12323a8c94f3a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
         "line": 1,
-        "fileHash": "d7dbc7cfc13164caf1df7b423d3575162b59187333ed3ce1a64fdef88f62b466",
+        "fileHash": "8c31c0e4dc81e7f932e11f02f823795724b8edaf3bae167a87856c74c8d6203d",
         "status": "verified",
-        "checkedAt": "2026-08-24T04:44:00-07:00",
-        "feature": "组合验证 JSON 封套往返后地图、编队、位置、随机状态与空 occurrence 的恢复。"
+        "checkedAt": "2026-08-24T09:28:30-07:00",
+        "feature": "组合验证 Bundle 身份往返、错代拒绝、默认路线与只读解析不污染活动选择。"
       }
     ]
   },
@@ -77,7 +82,9 @@
   "dependencyIds": [
     "campaign-persistence",
     "hunt-phase-orchestration",
-    "hunt-session-event-occurrence-recovery"
+    "hunt-session-event-occurrence-recovery",
+    "hunt-content-bundle-lifecycle",
+    "hunt-route-entry-context"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs:1",

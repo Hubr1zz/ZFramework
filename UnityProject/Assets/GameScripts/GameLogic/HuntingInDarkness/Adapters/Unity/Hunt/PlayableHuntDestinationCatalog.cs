@@ -233,6 +233,22 @@ namespace HuntingInDarkness.Hunt
             return contentBundle.TryResolveRoute(destination?.DestinationId, currentYear, out route, out reason);
         }
 
+        public static bool TryResolveRouteForRestore(string destinationId, int year, string contentBundleId, out PlayableHuntRoutePlan route, out string reason)
+        {
+            route = null;
+            if (contentBundle == null || !ReferenceEquals(contentBundle, PlayableHuntContentRuntime.CurrentBundle))
+            {
+                reason = "狩猎内容 Bundle 尚未发布或已经变化。";
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(contentBundleId) || !string.Equals(contentBundle.BundleId, contentBundleId.Trim(), StringComparison.Ordinal))
+            {
+                reason = "活动狩猎存档与当前内容 Bundle 不兼容。";
+                return false;
+            }
+            return contentBundle.TryResolveRoute(destinationId, year, out route, out reason);
+        }
+
         internal static bool TryCommitRoute(PlayableHuntRoutePlan route, out string reason)
         {
             if (route?.IsUsable != true || contentBundle == null || !ReferenceEquals(contentBundle, PlayableHuntContentRuntime.CurrentBundle) || !contentBundle.Owns(route))

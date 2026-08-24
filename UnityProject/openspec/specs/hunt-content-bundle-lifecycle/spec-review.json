@@ -10,27 +10,26 @@
     "evidence": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
-      "Unity CLI targeted Hunt Bundle: 4/4 passed",
+      "Unity CLI targeted Hunt Bundle: 7/7 passed",
       "Unity CLI targeted content assembler: 13/13 passed",
-      "Unity CLI EditMode: 617/617 passed",
+      "Unity CLI EditMode: 626/626 passed",
       "C# derived index: 978/978, 100% coverage",
       "zWorkFlow: 7/7 passed",
-      "OpenSpec strict validation: 64/64 passed"
+      "OpenSpec strict validation: 65/65 passed"
     ],
     "differences": [
-      "ActiveDestination 仍为开发启动与旧恢复入口的兼容静态门面；正常 Campaign transition 已由 hunt-route-entry-context 携带 RoutePlan。",
-      "活动狩猎存档尚未保存和校验 ContentBundleId，跨内容版本恢复仍 fail-open 到当前目的地内容，留待下一阶段。"
+      "ActiveDestination 仍为开发启动兼容静态门面；正常 Campaign transition 与活动恢复均已使用精确 RoutePlan。"
     ],
-    "verifiedAt": "2026-08-24T08:37:56-07:00",
+    "verifiedAt": "2026-08-24T09:34:27-07:00",
     "codeEvidence": [
       {
         "guid": "3a91d14f82d74f08b0ebd4b4da7ac7ed",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
         "line": 1,
-        "fileHash": "a74d50371da6012ead92966aa89c0397c161a5f322c0234d01ad6bdc77f3d99e",
+        "fileHash": "20b62f94c778154250e12867579febc02956607af76a73c72fd201dd93415194",
         "status": "verified",
-        "checkedAt": "2026-08-24T08:37:56-07:00",
-        "feature": "冻结战役级狩猎路线、规则快照、同代引用与依赖租约。"
+        "checkedAt": "2026-08-24T09:34:27-07:00",
+        "feature": "冻结战役级狩猎路线、物品、发明与 canonical 事件闭包，并以 hunt-v2 manifest 和 SHA-256 生成兼容指纹。"
       },
       {
         "guid": "6dce6ba7b65af9c42821b85a0555ac17",
@@ -54,19 +53,19 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "33714b2f0c966772b957ceffbda984304bb515af9d5a94e53e50d3c25069e11e",
+        "fileHash": "1f69f185f38b4313caa3959115ddb419bf9d2a9b6b57e5c8c68b00625cbd55c1",
         "status": "verified",
-        "checkedAt": "2026-08-24T08:37:56-07:00",
+        "checkedAt": "2026-08-24T09:28:30-07:00",
         "feature": "检查路线绑定结果，并在正常回营提交后废弃旧 HuntManager。"
       },
       {
         "guid": "5e0d9f3f6f7d4b8a9c2e1d0f3a6b7c81",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
         "line": 1,
-        "fileHash": "d080cdcd5a868273b524970e064fa62b495a5c7d1bcc603d21d05210adbddc4a",
+        "fileHash": "fc65bd46f5a0fd60ca54ec14d92ce28bb7169f396d79d9857bdeea360a8737dd",
         "status": "verified",
-        "checkedAt": "2026-08-24T08:37:56-07:00",
-        "feature": "验证规则冻结、不同路线隔离、运行态重绑门禁和非资源引用拒绝。"
+        "checkedAt": "2026-08-24T09:34:27-07:00",
+        "feature": "验证嵌套规则、顺序、非路线 Registry 内容、发明注入效果和跨对象事件链对 Bundle 身份的影响。"
       }
     ]
   },
@@ -77,9 +76,7 @@
     "HuntManager 在运行态建立前一次性绑定 RoutePlan，拒绝跨计划静默覆盖。",
     "GameManager 检查路线绑定失败，并在正常回营提交后废弃旧 HuntManager。"
   ],
-  "gapIds": [
-    "active-hunt-content-bundle-identity"
-  ],
+  "gapIds": [],
   "dependencyIds": [
     "campaign-content-preflight-assembly",
     "settlement-content-plan-lifecycle",

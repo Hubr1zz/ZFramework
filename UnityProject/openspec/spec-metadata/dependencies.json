@@ -1490,6 +1490,26 @@
       "blocksImplementation": false
     },
     {
+      "id": "active-hunt-persistence--requires--hunt-content-bundle-lifecycle",
+      "from": "active-hunt-persistence",
+      "to": "hunt-content-bundle-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "活动快照保存确定性 Bundle 指纹，并从同一冻结 RoutePlan 对象图解析地块、事件和物品",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "active-hunt-persistence--requires--hunt-route-entry-context",
+      "from": "active-hunt-persistence",
+      "to": "hunt-route-entry-context",
+      "type": "requires",
+      "status": "defined",
+      "reason": "恢复事务复用精确 RoutePlan 的只读解析、身份校验、提交和 RuntimeState 回滚契约",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
       "id": "campaign-year-loop--requires--active-hunt-persistence",
       "from": "campaign-year-loop",
       "to": "active-hunt-persistence",
