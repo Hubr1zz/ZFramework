@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-settlement-invention",
+  "specHash": "9c086688d2efb971436c81154497ac911ab6015a707c1d8b04a85fdae0e334dc",
+  "title": "营地桌面发明解锁",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "配置驱动的 3D 发明卡通过世界空间确认板解锁；已掌握卡的主动效果使用四项分页板，并复用 Settlement 事件链、持久年度次数与 ActionQueue 事务。",
+    "validatedAgainstSpecHash": "9c086688d2efb971436c81154497ac911ab6015a707c1d8b04a85fdae0e334dc",
+    "evidence": [
+      { "guid": "e3df2eb09bbcb35488d82b426d770f39", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionUnlockPanel3D.cs", "line": 1, "fileHash": "6676a94c116b5fc5c0957b4c98f9bd6f356b5afa5d24bf7e2e483eb30a61b210", "status": "verified", "checkedAt": "2026-08-25T12:04:00-07:00", "feature": "确认板展示说明、成本和可用性，并在 pending 时抑制重复命令。" },
+      { "guid": "60291e388da048a40ae64c0c6d448aca", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionActiveEffectPanel3D.cs", "line": 1, "fileHash": "92da78a65d4b8b43ac338ad5c8f7dcea537929416f7fbb2e678346c531e519ae", "status": "verified", "checkedAt": "2026-08-25T12:04:00-07:00", "feature": "四效果分页板投影持久年度使用次数，并在事件表现前主动收起。" },
+      { "guid": "b35ef5ce1484f2643a78746521ea1183", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActions.cs", "line": 1, "fileHash": "d386a9917354ec2198ef612a9c1438ff36045ff13a32cb5ff538517d19536b57", "status": "verified", "checkedAt": "2026-08-25T12:04:00-07:00", "feature": "Runner 重验注册、前置、排斥、聚合成本和 campaign modifiers 后提交稳定发明事实。" },
+      { "guid": "309b40db87929db4ebff56d54119f818", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActiveEffectActions.cs", "line": 1, "fileHash": "a7fc150413a047a93bda9dbf1b3f181ed05ddca3efc0c6e5c8082afd3197d9ba", "status": "verified", "checkedAt": "2026-08-25T12:04:00-07:00", "feature": "主动效果在同一 Settlement 根内重验并通过共享事件链提交持久使用次数。" }
+    ],
+    "tests": ["PlayableSettlementInventionActionTests: 8/8 passed", "PlayableInventionActiveEffectActionTests: 2/2 passed", "SettlementTableInitializationTests: 4/4 passed"],
+    "verifiedAt": "2026-08-25T12:04:00-07:00"
+  },
+  "publishedBy": { "mode": "direct-implementation-reconciliation", "changeId": "" }
+}

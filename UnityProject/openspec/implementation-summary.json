@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "01cc693856c526597fbf357d11f4a7bd82009ef6631f1346bd835b82b1719ff5",
-  "inputManifestDigest": "0d9f9e46c5da20c40d6ad678bc5d3d02b384b9d90738b78225a42329522a7cf0",
-  "outputDigest": "cc0f85e4657579f11afa419897226b0cb7aaab028f0185aade7573774b0511eb",
+  "inputDigest": "fc672ec1bc207f016bcaf0f6c2ee78371e0070b03eaed88c0ab3ffcfbc3b6fea",
+  "inputManifestDigest": "b0413a78bf1ab1cfbf53031b967ab54f5c613e3a4b6d3aaf2b3aecbae7ee4d88",
+  "outputDigest": "768d618dbf0112d83d9afc604942e318d28f9e11f0e9c7623bbf654f45878f6b",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -86,6 +86,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs",
+      "sha256": "dfcd50d04ecd34c915cad321978609ba4e25e32f896e94c9eb06e517de7ad724",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs",
       "sha256": "59b022407b12f1acc87a38c4fefd2b67d0be6e3a11ac524b281c9c54c1be6c43",
       "state": "current"
@@ -108,6 +113,16 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs",
       "sha256": "da225a7419738369b7ad3e633ba595fe558d6576651bea623207adbfd3cfabc2",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActions.cs",
+      "sha256": "d386a9917354ec2198ef612a9c1438ff36045ff13a32cb5ff538517d19536b57",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActiveEffectActions.cs",
+      "sha256": "a7fc150413a047a93bda9dbf1b3f181ed05ddca3efc0c6e5c8082afd3197d9ba",
       "state": "current"
     },
     {
@@ -326,6 +341,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/CardView3DFactoryPositionTests.cs",
+      "sha256": "16b8f02048fcd7afe27c62ceee17f47ffb315105bb3a18cc5df8d2a4db5c3fc3",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "sha256": "4bd72f0d50821c5aeef62285fcae61c5d9f0f14fbabd9c78ef06b700b3b54989",
       "state": "current"
@@ -463,6 +483,26 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs",
       "sha256": "e2788d27d9e5209e0b1935a4cc4f6a414ea5e27281a9f6d535fd9c5f7c9fd41c",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterRecoveryPanel3D.cs",
+      "sha256": "150eb3dd2941872cfd0931ad2f95eae2c1914fb8237641301391eea7d145125f",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionActiveEffectPanel3D.cs",
+      "sha256": "92da78a65d4b8b43ac338ad5c8f7dcea537929416f7fbb2e678346c531e519ae",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionUnlockPanel3D.cs",
+      "sha256": "6676a94c116b5fc5c0957b4c98f9bd6f356b5afa5d24bf7e2e483eb30a61b210",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/RecruitmentPanel3D.cs",
+      "sha256": "cc4b21a65e609b0937a1f48e4bccc10167b7e5858e1b6686a81ae4478136561e",
       "state": "current"
     },
     {
@@ -1082,8 +1122,8 @@
     },
     {
       "path": "openspec/specs/tabletop-settlement-invention/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "5fde455ce67aca7a08035931494d3b4a59bb346aa69be2ef39c4c0328fdb956f",
+      "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-settlement-invention/spec.md",
@@ -1102,8 +1142,8 @@
     },
     {
       "path": "openspec/specs/tabletop-settlement-recovery/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "90102f4277ee1e9418e7a13234570bd6f560c1c561a0ac64c47daf6f5dcd31c3",
+      "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-settlement-recovery/spec.md",
@@ -1112,8 +1152,8 @@
     },
     {
       "path": "openspec/specs/tabletop-settlement-recruitment/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "4dc10f636c5daf1979815eab0a3b686fcd905d7b6f4cf0b68ff4ba81eb40502c",
+      "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-settlement-recruitment/spec.md",
@@ -1172,11 +1212,11 @@
     }
   ],
   "counts": {
-    "verified": 17,
+    "verified": 20,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 26,
+    "unknown": 23,
     "blocked": 0,
     "stale": 19
   },
@@ -1219,10 +1259,7 @@
     "tabletop-hunt-map-intro",
     "tabletop-opening-sequence",
     "tabletop-settlement-advancement-ledger",
-    "tabletop-settlement-invention",
     "tabletop-settlement-notices",
-    "tabletop-settlement-recovery",
-    "tabletop-settlement-recruitment",
     "tabletop-settlement-symptoms",
     "tengine-startup-lifecycle",
     "zworkflow-workbench-layout"
@@ -2979,16 +3016,35 @@
     {
       "id": "tabletop-settlement-invention",
       "label": "营地桌面发明解锁",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "配置驱动的 3D 发明卡通过世界空间确认板解锁；已掌握卡的主动效果使用四项分页板，并复用 Settlement 事件链、持久年度次数与 ActionQueue 事务。",
+      "designSources": [],
       "sources": [
         "openspec/specs/tabletop-settlement-invention/spec.md",
-        "openspec/specs/tabletop-settlement-invention/implementation.json"
+        "openspec/specs/tabletop-settlement-invention/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionUnlockPanel3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionActiveEffectPanel3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActiveEffectActions.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "tabletop-settlement-notices",
@@ -3007,30 +3063,60 @@
     {
       "id": "tabletop-settlement-recovery",
       "label": "营地桌面猎人休养",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "受伤猎人的 3D 装备桌显示休养入口，四张实体部位卡投影当前生命与配置成本，并把治疗意图串行提交给 Settlement ActionQueue。",
+      "designSources": [],
       "sources": [
         "openspec/specs/tabletop-settlement-recovery/spec.md",
-        "openspec/specs/tabletop-settlement-recovery/implementation.json"
+        "openspec/specs/tabletop-settlement-recovery/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterRecoveryPanel3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/CardView3DFactoryPositionTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "tabletop-settlement-recruitment",
-      "label": "tabletop-settlement-recruitment",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "label": "营地桌面猎人招募",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "营火入口持续投影年度、人口、候选与资源门禁；世界空间招募板分页展示候选并支持 IME 命名，最终仅向 Settlement ActionQueue 提交模板与名字。",
+      "designSources": [],
       "sources": [
         "openspec/specs/tabletop-settlement-recruitment/spec.md",
-        "openspec/specs/tabletop-settlement-recruitment/implementation.json"
+        "openspec/specs/tabletop-settlement-recruitment/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/RecruitmentPanel3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/CardView3DFactoryPositionTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "tabletop-settlement-symptoms",

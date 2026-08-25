@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-settlement-recovery",
+  "specHash": "85046a511b8449fb664f146a64fece349cb25d07379269c6d0de3ad82fe60704",
+  "title": "营地桌面猎人休养",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "受伤猎人的 3D 装备桌显示休养入口，四张实体部位卡投影当前生命与配置成本，并把治疗意图串行提交给 Settlement ActionQueue。",
+    "validatedAgainstSpecHash": "85046a511b8449fb664f146a64fece349cb25d07379269c6d0de3ad82fe60704",
+    "evidence": [
+      { "guid": "6245f3ecef5b20540ab78568f4a3c6e7", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterRecoveryPanel3D.cs", "line": 1, "fileHash": "150eb3dd2941872cfd0931ad2f95eae2c1914fb8237641301391eea7d145125f", "status": "verified", "checkedAt": "2026-08-25T12:04:00-07:00", "feature": "四部位卡展示生命、成本和失败原因，pending 期间禁止重复提交。" },
+      { "guid": "dcec38ea35640204a8ab0c443fd45c98", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs", "line": 180, "fileHash": "dfcd50d04ecd34c915cad321978609ba4e25e32f896e94c9eb06e517de7ad724", "status": "verified", "checkedAt": "2026-08-25T12:04:00-07:00", "feature": "Runner 按配置成本与恢复量重验并原子提交资源和普通生命恢复。" },
+      { "guid": "e65368a998ba4e9a8a529d770b46e9d7", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/CardView3DFactoryPositionTests.cs", "line": 1, "fileHash": "16b8f02048fcd7afe27c62ceee17f47ffb315105bb3a18cc5df8d2a4db5c3fc3", "status": "verified", "checkedAt": "2026-08-25T12:04:00-07:00", "feature": "真实部位卡工厂按面板布局坐标创建，不再堆叠在原点。" }
+    ],
+    "tests": ["CardView3DFactoryPositionTests: 1/1 passed", "PlayableSettlementCareActionTests: 11/11 passed", "SettlementTableInitializationTests: 4/4 passed"],
+    "verifiedAt": "2026-08-25T12:04:00-07:00"
+  },
+  "publishedBy": { "mode": "direct-implementation-reconciliation", "changeId": "" }
+}

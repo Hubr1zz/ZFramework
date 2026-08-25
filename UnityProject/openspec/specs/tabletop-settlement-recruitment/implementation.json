@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-settlement-recruitment",
+  "specHash": "66a1e77bfab455fbfd645c7b42d71b399f44e7e41a61b090775b7a4308e37071",
+  "title": "营地桌面猎人招募",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "营火入口持续投影年度、人口、候选与资源门禁；世界空间招募板分页展示候选并支持 IME 命名，最终仅向 Settlement ActionQueue 提交模板与名字。",
+    "validatedAgainstSpecHash": "66a1e77bfab455fbfd645c7b42d71b399f44e7e41a61b090775b7a4308e37071",
+    "evidence": [
+      { "guid": "c0a18d1ff9ace464f92ba184f152e167", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/RecruitmentPanel3D.cs", "line": 1, "fileHash": "cc4b21a65e609b0937a1f48e4bccc10167b7e5858e1b6686a81ae4478136561e", "status": "verified", "checkedAt": "2026-08-25T12:04:00-07:00", "feature": "用五卡分页、世界空间命名牌和单请求门禁呈现候选与招募结果。" },
+      { "guid": "dcec38ea35640204a8ab0c443fd45c98", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs", "line": 1, "fileHash": "dfcd50d04ecd34c915cad321978609ba4e25e32f896e94c9eb06e517de7ad724", "status": "verified", "checkedAt": "2026-08-25T12:04:00-07:00", "feature": "Runner 重验模板、命名、年度、人口和资源后原子创建猎人并发布事实。" },
+      { "guid": "e65368a998ba4e9a8a529d770b46e9d7", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/CardView3DFactoryPositionTests.cs", "line": 1, "fileHash": "16b8f02048fcd7afe27c62ceee17f47ffb315105bb3a18cc5df8d2a4db5c3fc3", "status": "verified", "checkedAt": "2026-08-25T12:04:00-07:00", "feature": "真实招募入口与候选卡工厂按配置局部坐标分离摆放。" }
+    ],
+    "tests": ["CardView3DFactoryPositionTests: 1/1 passed", "PlayableSettlementCareActionTests: 11/11 passed", "SettlementTableInitializationTests: 4/4 passed"],
+    "verifiedAt": "2026-08-25T12:04:00-07:00"
+  },
+  "publishedBy": { "mode": "direct-implementation-reconciliation", "changeId": "" }
+}

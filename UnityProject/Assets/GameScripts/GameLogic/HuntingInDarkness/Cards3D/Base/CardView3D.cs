@@ -92,6 +92,7 @@ namespace Cards3D
         protected void InitView(Vector3 localPos)
         {
             _baseLocalPos = localPos;
+            transform.localPosition = localPos;
             bool wasPrebuilt = _bodyRenderer != null;
             BuildBaseGeometry();
             // Prefab mode: body already exists, instance the material per-card
