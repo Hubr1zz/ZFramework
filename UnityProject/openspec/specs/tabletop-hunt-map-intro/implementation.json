@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-hunt-map-intro",
+  "specHash": "164250e55c2b0099490a1aa1446206b341f21b41784bfd8e6f90e7a9adf8a65f",
+  "title": "3D 狩猎地图入场运镜",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "实体地形卡构建后，纯规划器按完整地图边界生成确定性俯瞰与操作镜头；入场 View 使用非缩放时间并独占自身 Hunt 输入租约，地图重建、缺失相机、禁用或销毁都会精确落位并安全释放。",
+    "validatedAgainstSpecHash": "164250e55c2b0099490a1aa1446206b341f21b41784bfd8e6f90e7a9adf8a65f",
+    "evidence": [
+      {
+        "guid": "f5f660b06745e454ca87dbef448ed091",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntMapIntroPlanner.cs",
+        "line": 1,
+        "fileHash": "a281a33eeb83bcf74dad5a35255acad527a683c9187d0e6c7816f0db61b74a46",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:13:03-07:00",
+        "feature": "从有限地块世界坐标计算共同地图中心、俯瞰位置和操作位置，并规范反向、负数及非有限配置。"
+      },
+      {
+        "guid": "b699c84caa2639042b44e9e6c26bcd80",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHuntMapIntroCamera3D.cs",
+        "line": 1,
+        "fileHash": "1a9b340cee1c39739d1a1171e5ce3ce905e44118b45d99a86982650fe6b7699e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:13:03-07:00",
+        "feature": "使用非缩放时间播放俯瞰至操作位置，等待相机激活有界，并在跳过、禁用、销毁或依赖丢失时幂等收敛。"
+      },
+      {
+        "guid": "e438b7e087c13ce4ca8653a1701f8f0a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
+        "line": 96,
+        "fileHash": "b1b62885027430ef3c90facc928379297d5861fc989798e20877959f45645d20",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:13:03-07:00",
+        "feature": "在所有实体地块构建后提交世界坐标；重建地图前终止旧入场，并把空地块或缺失相机交给统一释放路径。"
+      },
+      {
+        "guid": "cd9f9ddbe5c61ba4f98643d1ea2970b5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntInputGuard.cs",
+        "line": 1,
+        "fileHash": "4fddf763594a8fc92ffbd9d80e200fdbb295b59147953db0b92081dbf31416d6",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:13:03-07:00",
+        "feature": "以所有者身份维护共享输入租约，入场结束只释放自身而不影响移动、采集或其他模态交互。"
+      },
+      {
+        "guid": "e10bd356683b47eaa37d1e5622e09d1b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableHuntMapIntroCamera3DTests.cs",
+        "line": 1,
+        "fileHash": "6f728c21e878fd0f0fdaed93b111b776d8711767c9c4d1090d44450bd4a4b89a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:13:03-07:00",
+        "feature": "验证无效替换立即收敛、暂停游戏时间仍完成，以及禁用时只释放入场自身输入所有权。"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "line": 218,
+        "fileHash": "2b3fcd25ec6b542f5b4233601e0d99c878cb671e47550b55024504e532cba939",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:13:03-07:00",
+        "feature": "验证正式战役进入 Hunt 后建立入场计划、运镜期间阻止输入并最终恢复完整地图流程。"
+      }
+    ],
+    "tests": [
+      "PlayableHuntMapIntroCamera3DTests: 3/3 passed",
+      "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
+    ],
+    "verifiedAt": "2026-08-25T14:13:03-07:00"
+  },
+  "implementationOutline": [
+    "HuntMapVisualizer 在地图实体卡完成后把世界坐标交给无状态规划器，不修改任何地图权威状态。",
+    "PlayableHuntMapIntroCamera3D 持有独立输入租约，以非缩放时间从完整地图俯瞰移动到精确操作镜头。",
+    "地图重建和所有异常生命周期统一调用 Skip 或 SettleAndRelease，防止输入租约遗留。",
+    "时长、俯仰、操作高度、俯瞰缩放、高度上下限与激活超时继续由 SerializeField 配置。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntMapIntroPlanner.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHuntMapIntroCamera3D.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs:96",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntInputGuard.cs:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

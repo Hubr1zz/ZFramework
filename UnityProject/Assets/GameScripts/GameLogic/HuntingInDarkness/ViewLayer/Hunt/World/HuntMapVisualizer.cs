@@ -113,9 +113,8 @@ namespace HuntingInDarkness.Hunt
 
         private void PresentMapIntro()
         {
-            Camera presentationCamera = Camera.main;
-            if (presentationCamera == null || _tileObjects.Count == 0) return;
             mapIntroCamera ??= GetComponent<PlayableHuntMapIntroCamera3D>() ?? gameObject.AddComponent<PlayableHuntMapIntroCamera3D>();
+            Camera presentationCamera = Camera.main;
             var tilePositions = new List<Vector3>(_tileObjects.Count);
             foreach (GameObject tileObject in _tileObjects.Values)
                 if (tileObject != null) tilePositions.Add(tileObject.transform.position);
@@ -298,6 +297,7 @@ namespace HuntingInDarkness.Hunt
 
         private void ClearVisuals()
         {
+            mapIntroCamera?.Skip();
             if (_huntMgr != null && _huntMgr.OnTileStateChanged == OnTileStateChanged)
                 _huntMgr.OnTileStateChanged = null;
             if (_huntMgr != null && _huntMgr.OnSquadMoved == OnSquadMoved)

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "711b16716bd8af00e06d6b6b7f611c680df382b7b439f53e1977dc28ee5ec949",
-  "inputManifestDigest": "a90927afc09a7a0dc15dfd44d752fb377e5c1044d5ff4b9f7ecdfbaed715656d",
-  "outputDigest": "7d8a85a63abf7402d104c0f7675847854fd29ba9273f7ca681b8507eff11a777",
+  "inputDigest": "ce84dc399fc38cfa80383b1219cbfdfb397d5b064ce1b3c3596372aff9aee57e",
+  "inputManifestDigest": "cccb58ea9a56877b0d0e9cb9e76ac6877ac0a445c36bc9777c9b1d4a807007d3",
+  "outputDigest": "2d2138930b6f1d8c3568bcc40674f5520983c043ecf6c59ecb8bc3b211ea2350",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -206,6 +206,16 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntInputGuard.cs",
+      "sha256": "4fddf763594a8fc92ffbd9d80e200fdbb295b59147953db0b92081dbf31416d6",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntMapIntroPlanner.cs",
+      "sha256": "a281a33eeb83bcf74dad5a35255acad527a683c9187d0e6c7816f0db61b74a46",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs",
       "sha256": "1cb58a552a64ccf614da083873a373379f6b71ba03385ba91f42b798d2d5a14a",
       "state": "current"
@@ -391,6 +401,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableHuntMapIntroCamera3DTests.cs",
+      "sha256": "6f728c21e878fd0f0fdaed93b111b776d8711767c9c4d1090d44450bd4a4b89a",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventViewPlayModeTests.cs",
       "sha256": "f1e22a6bacd94a3ef43993eff271376ad5d24b38030f81df8d820642ff93a666",
       "state": "current"
@@ -502,7 +517,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
-      "sha256": "008d3407a165c200a6f3a699b1153616fcd94b76fdd969aa24910b8b38d8c366",
+      "sha256": "b1b62885027430ef3c90facc928379297d5861fc989798e20877959f45645d20",
       "state": "current"
     },
     {
@@ -513,6 +528,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs",
       "sha256": "19d8ebd96a223032b1916c3ba5c3761cc18673dbe0ed1312762d22c015949bc6",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHuntMapIntroCamera3D.cs",
+      "sha256": "1a9b340cee1c39739d1a1171e5ce3ce905e44118b45d99a86982650fe6b7699e",
       "state": "current"
     },
     {
@@ -1097,8 +1117,8 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-map-intro/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "6724801604d6f1bd6504e59c1cfd50a795afbd9708ce0e2f79e88036fbd1a572",
+      "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-hunt-map-intro/spec.md",
@@ -1107,7 +1127,7 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-resource-markers/implementation.json",
-      "sha256": "1f815ebddec9774f11f32f7b06f23927eb2306d9ae0528643dc923783186d1fd",
+      "sha256": "b3784c2b1dc8191da6dcfcdd6c48ce350560441b5e670b5b098f3f07700eca16",
       "state": "current"
     },
     {
@@ -1127,7 +1147,7 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-squad-pawn/implementation.json",
-      "sha256": "304e9960f4c9ab830a991a82cd6d8aca7e401f690c70cd6f3b8e72cab807e1c6",
+      "sha256": "19dc61526c28814c35b24cf38315da3692e67c87bb0b59cd1a1c6f535370ceeb",
       "state": "current"
     },
     {
@@ -1147,7 +1167,7 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-tile-cards/implementation.json",
-      "sha256": "3daa5dcdf20b856a95432acecc5d2b3fe5dd55f31f180fb988688e2a506685ea",
+      "sha256": "8de5390b2ade9248eed95222b4145edabf36082aa764ca49210bb0128a83f595",
       "state": "current"
     },
     {
@@ -1287,11 +1307,11 @@
     }
   ],
   "counts": {
-    "verified": 26,
+    "verified": 27,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 18,
+    "unknown": 17,
     "blocked": 0,
     "stale": 18
   },
@@ -1328,7 +1348,6 @@
     "table-driven-invention-content",
     "tabletop-chinese-font-fallback",
     "tabletop-hunt-harvest",
-    "tabletop-hunt-map-intro",
     "tabletop-opening-sequence",
     "tengine-startup-lifecycle",
     "zworkflow-workbench-layout"
@@ -2833,16 +2852,42 @@
     {
       "id": "tabletop-hunt-map-intro",
       "label": "3D 狩猎地图入场运镜",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "实体地形卡构建后，纯规划器按完整地图边界生成确定性俯瞰与操作镜头；入场 View 使用非缩放时间并独占自身 Hunt 输入租约，地图重建、缺失相机、禁用或销毁都会精确落位并安全释放。",
+      "designSources": [],
       "sources": [
         "openspec/specs/tabletop-hunt-map-intro/spec.md",
         "openspec/specs/tabletop-hunt-map-intro/implementation.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntMapIntroPlanner.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHuntMapIntroCamera3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntInputGuard.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableHuntMapIntroCamera3DTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "tabletop-hunt-resource-markers",
