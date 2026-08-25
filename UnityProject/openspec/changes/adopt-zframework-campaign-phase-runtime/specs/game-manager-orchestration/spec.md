@@ -59,6 +59,32 @@ title: GameManager管理器
 - **THEN** 已发布的营地事件恢复投影被清除
 - **AND** 后续启动不会继承旧存档的恢复门禁
 
+### Requirement: Settlement runtime is replaced as one generation
+
+项目 SHALL 将 `SettlementManager`、其阶段性 `PlayableSettlementActionSession` 和 `SettlementEventRestoreProjection` 作为同一个 Campaign Runtime 管理的营地 generation。新战役或存档恢复 MUST 先准备 detached generation，再以当前 generation 引用执行 CAS 交换；GameManager 不得分别缓存或替换三项权威状态。
+
+#### Scenario: 过期候选尝试发布
+
+- **WHEN** 调用方使用并非当前 generation 的 expected 引用交换营地候选
+- **THEN** 交换被拒绝
+- **AND** 当前 Manager、ActionSession 和恢复投影均保持不变
+
+#### Scenario: 活动狩猎恢复失败
+
+- **WHEN** 候选营地已经发布但阶段或 Hunt Session 恢复失败
+- **THEN** 系统可以把仍受 runtime 跟踪的旧 generation 原样换回
+- **AND** 候选只在事务结果确定后释放
+
+### Requirement: Settlement action session follows phase lifetime
+
+Settlement Manager/Data SHALL 跨阶段保持至 generation 退役；Settlement ActionSession SHALL 只在 Settlement 阶段激活。离开营地 MUST 释放 Session 而不改变 Settlement GenerationId，回营 MUST 基于同一个 Manager 创建新的 Session。
+
+#### Scenario: 从营地出猎并回营
+
+- **WHEN** 玩家从 Settlement 进入 Hunt 后再完成回营
+- **THEN** 离营时旧 Settlement ActionSession 被释放
+- **AND** 回营时同一 generation 基于原 Manager/Data 创建新的 ActionSession
+
 ### Requirement: Player campaign commands always use ActionQueue
 
 战役启动完成后，玩家请求的阶段切换和遭遇开始 MUST 通过 runtime 内的 Campaign ActionSession 执行。若该 Session 不可用，命令 MUST 失败，不得直接调用阶段 Host 绕过 Reactor、Gate 或串行执行。

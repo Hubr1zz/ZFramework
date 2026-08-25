@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using CardGame.ActionQueue;
 using Cysharp.Threading.Tasks;
@@ -18,12 +19,14 @@ namespace Core
         bool IsStarted { get; }
         bool IsActionSessionActive { get; }
         bool IsActionSessionRunning { get; }
-        SettlementEventRestoreProjection SettlementEventRestore { get; }
+        IPlayableSettlementRuntime Settlement { get; }
         IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers { get; }
         ReactorRegistry ActionReactors { get; }
-        SettlementEventRestoreProjection CreateSettlementEventRestoreCandidate(SettlementInstance settlement, Func<string, EventData> resolveEvent);
-        void PublishSettlementEventRestore(SettlementEventRestoreProjection candidate);
-        void ClearSettlementEventRestore();
+        void ConfigureSettlementRuntime(PlayableSettlementRuntimeConfiguration configuration);
+        bool TryPrepareNewSettlement(out IPlayableSettlementRuntime candidate, out string reason);
+        bool TryPrepareSettlementRestore(SettlementInstance data, out IPlayableSettlementRuntime candidate, out string reason);
+        bool TrySwapSettlement(IPlayableSettlementRuntime expectedCurrent, IPlayableSettlementRuntime replacement, out string reason);
+        void ReleaseSettlement(IPlayableSettlementRuntime runtime);
         void EnsureGameplayRuntime(IActionEnvironmentInstaller gameplayInstaller);
         void Start(GamePhase initialPhase);
         bool TransitionTo(GamePhase phase);
@@ -78,11 +81,14 @@ namespace Core
             private ICampaignPhaseTransitionHost host;
             private Action<CampaignRuntime> release;
             private readonly ActionEnvironmentInstallerRegistry actionEnvironmentInstallers = new();
+            private readonly HashSet<PlayableSettlementRuntime> settlementRuntimes = new();
             private Action<GamePhase, GamePhase> onPhaseTransition;
             private PhaseManager phaseManager;
             private PlayableCampaignActionSession actionSession;
             private IDisposable gameplayInstallation;
-            private SettlementEventRestoreProjection settlementEventRestore;
+            private PlayableSettlementRuntimeConfiguration settlementConfiguration;
+            private PlayableSettlementRuntime settlement;
+            private long nextSettlementGenerationId;
             private bool disposed;
 
             public long GenerationId { get; }
@@ -90,7 +96,7 @@ namespace Core
             public bool IsStarted => phaseManager?.IsStarted == true;
             public bool IsActionSessionActive => actionSession?.IsActive == true;
             public bool IsActionSessionRunning => actionSession?.IsRunning == true;
-            public SettlementEventRestoreProjection SettlementEventRestore => settlementEventRestore;
+            public IPlayableSettlementRuntime Settlement => settlement;
             public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers => actionEnvironmentInstallers;
             public ReactorRegistry ActionReactors => actionSession?.Reactors;
 
@@ -125,22 +131,71 @@ namespace Core
                 }
             }
 
-            public SettlementEventRestoreProjection CreateSettlementEventRestoreCandidate(SettlementInstance settlement, Func<string, EventData> resolveEvent)
+            public void ConfigureSettlementRuntime(PlayableSettlementRuntimeConfiguration configuration)
             {
                 ThrowIfDisposed();
-                return new SettlementEventRestoreProjection(settlement, resolveEvent);
+                if (settlementConfiguration != null) throw new InvalidOperationException("营地运行态配置已经安装。");
+                settlementConfiguration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             }
 
-            public void PublishSettlementEventRestore(SettlementEventRestoreProjection candidate)
+            public bool TryPrepareNewSettlement(out IPlayableSettlementRuntime candidate, out string reason)
             {
                 ThrowIfDisposed();
-                settlementEventRestore = candidate ?? throw new ArgumentNullException(nameof(candidate));
+                candidate = null;
+                if (!TryGetSettlementConfiguration(out reason)) return false;
+                var runtime = new PlayableSettlementRuntime(++nextSettlementGenerationId, new SettlementManager(), settlementConfiguration, false);
+                settlementRuntimes.Add(runtime);
+                candidate = runtime;
+                reason = string.Empty;
+                return true;
             }
 
-            public void ClearSettlementEventRestore()
+            public bool TryPrepareSettlementRestore(SettlementInstance data, out IPlayableSettlementRuntime candidate, out string reason)
             {
                 ThrowIfDisposed();
-                settlementEventRestore = null;
+                candidate = null;
+                if (!TryGetSettlementConfiguration(out reason)) return false;
+                if (!SettlementManager.TryPrepareCandidate(data, out SettlementManager manager, out reason)) return false;
+                var runtime = new PlayableSettlementRuntime(++nextSettlementGenerationId, manager, settlementConfiguration, true);
+                settlementRuntimes.Add(runtime);
+                candidate = runtime;
+                reason = string.Empty;
+                return true;
+            }
+
+            public bool TrySwapSettlement(IPlayableSettlementRuntime expectedCurrent, IPlayableSettlementRuntime replacement, out string reason)
+            {
+                ThrowIfDisposed();
+                if (!ReferenceEquals(settlement, expectedCurrent))
+                {
+                    reason = "权威营地运行世代已变化，拒绝提交过期候选。";
+                    return false;
+                }
+                PlayableSettlementRuntime next = replacement as PlayableSettlementRuntime;
+                if (replacement != null && (next == null || !settlementRuntimes.Contains(next) || !next.IsDetached))
+                {
+                    reason = "替换目标不是当前战役持有的可发布营地候选。";
+                    return false;
+                }
+                if (next != null && !next.TryPreparePublication(out reason)) return false;
+
+                PlayableSettlementRuntime previous = settlement;
+                previous?.Detach();
+                next?.Publish();
+                settlement = next;
+                reason = string.Empty;
+                return true;
+            }
+
+            public void ReleaseSettlement(IPlayableSettlementRuntime runtime)
+            {
+                ThrowIfDisposed();
+                if (runtime is not PlayableSettlementRuntime owned || !settlementRuntimes.Contains(owned))
+                    throw new InvalidOperationException("营地运行世代不属于当前战役。");
+                if (owned.IsCurrent)
+                    throw new InvalidOperationException("不能释放当前权威营地运行世代。");
+                owned.Dispose();
+                settlementRuntimes.Remove(owned);
             }
 
             public void Start(GamePhase initialPhase)
@@ -180,7 +235,7 @@ namespace Core
             {
                 ThrowIfDisposed();
                 ResetGameplayRuntime();
-                settlementEventRestore = null;
+                ResetSettlementRuntime();
                 phaseManager.Shutdown();
                 phaseManager = CreatePhaseManager();
             }
@@ -191,7 +246,7 @@ namespace Core
 
                 disposed = true;
                 ResetGameplayRuntime();
-                settlementEventRestore = null;
+                ResetSettlementRuntime();
                 actionEnvironmentInstallers.Dispose();
                 phaseManager?.Shutdown();
                 phaseManager = null;
@@ -208,7 +263,7 @@ namespace Core
 
                 disposed = true;
                 ResetGameplayRuntime();
-                settlementEventRestore = null;
+                ResetSettlementRuntime();
                 actionEnvironmentInstallers.Dispose();
                 phaseManager?.Shutdown();
                 phaseManager = null;
@@ -233,6 +288,25 @@ namespace Core
                 session?.Dispose();
                 gameplayInstallation?.Dispose();
                 gameplayInstallation = null;
+            }
+
+            private bool TryGetSettlementConfiguration(out string reason)
+            {
+                if (settlementConfiguration != null)
+                {
+                    reason = string.Empty;
+                    return true;
+                }
+                reason = "营地运行态组合配置尚未安装。";
+                return false;
+            }
+
+            private void ResetSettlementRuntime()
+            {
+                foreach (PlayableSettlementRuntime runtime in settlementRuntimes)
+                    runtime.Dispose();
+                settlementRuntimes.Clear();
+                settlement = null;
             }
 
             private void ThrowIfDisposed()

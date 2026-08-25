@@ -1,0 +1,176 @@
+using System;
+using HuntingInDarkness.ActionFlow.Settlement;
+using HuntingInDarkness.Data;
+using HuntingInDarkness.Settlement;
+
+namespace Core
+{
+    public sealed class PlayableSettlementRuntimeConfiguration
+    {
+        public ISettlementDepartureRequestPort DepartureRequestPort { get; }
+        public Func<SettlementManager, PlayableSettlementActionSession> CreateActionSession { get; }
+
+        public PlayableSettlementRuntimeConfiguration(ISettlementDepartureRequestPort departureRequestPort, Func<SettlementManager, PlayableSettlementActionSession> createActionSession)
+        {
+            DepartureRequestPort = departureRequestPort ?? throw new ArgumentNullException(nameof(departureRequestPort));
+            CreateActionSession = createActionSession ?? throw new ArgumentNullException(nameof(createActionSession));
+        }
+    }
+
+    public interface IPlayableSettlementRuntime
+    {
+        long GenerationId { get; }
+        SettlementManager Manager { get; }
+        SettlementInstance Data { get; }
+        PlayableSettlementActionSession ActionSession { get; }
+        SettlementEventRestoreProjection EventRestore { get; }
+        bool IsActionSessionActive { get; }
+        bool IsActionSessionRunning { get; }
+        bool TryActivateActionSession(out string reason);
+        void DeactivateActionSession();
+        SettlementEventRestoreProjection CreateEventRestoreCandidate();
+        void PublishEventRestore(SettlementEventRestoreProjection candidate);
+        void ClearEventRestore();
+    }
+
+    internal sealed class PlayableSettlementRuntime : IPlayableSettlementRuntime, IDisposable
+    {
+        private enum RuntimeState
+        {
+            Detached,
+            Current,
+            Disposed
+        }
+
+        private readonly PlayableSettlementRuntimeConfiguration configuration;
+        private PlayableSettlementActionSession actionSession;
+        private SettlementEventRestoreProjection eventRestore;
+        private RuntimeState state;
+        private bool preparedCandidatePending;
+
+        public long GenerationId { get; }
+        public SettlementManager Manager { get; }
+        public SettlementInstance Data => Manager.Data;
+        public PlayableSettlementActionSession ActionSession => actionSession;
+        public SettlementEventRestoreProjection EventRestore => eventRestore;
+        public bool IsActionSessionActive => actionSession?.IsActive == true;
+        public bool IsActionSessionRunning => actionSession?.IsRunning == true;
+        internal bool IsCurrent => state == RuntimeState.Current;
+        internal bool IsDetached => state == RuntimeState.Detached;
+
+        internal PlayableSettlementRuntime(long generationId, SettlementManager manager, PlayableSettlementRuntimeConfiguration configuration, bool preparedCandidatePending)
+        {
+            GenerationId = generationId;
+            Manager = manager ?? throw new ArgumentNullException(nameof(manager));
+            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this.preparedCandidatePending = preparedCandidatePending;
+            Manager.DepartureRequestPort = configuration.DepartureRequestPort;
+        }
+
+        public bool TryActivateActionSession(out string reason)
+        {
+            ThrowIfDisposed();
+            if (!IsCurrent)
+            {
+                reason = "营地运行世代不是当前权威，无法启动 ActionSession。";
+                return false;
+            }
+            if (IsActionSessionActive)
+            {
+                reason = string.Empty;
+                return true;
+            }
+
+            PlayableSettlementActionSession staleSession = actionSession;
+            actionSession = null;
+            staleSession?.Dispose();
+
+            PlayableSettlementActionSession candidate = null;
+            try
+            {
+                candidate = configuration.CreateActionSession(Manager);
+                if (candidate == null)
+                {
+                    reason = "营地 ActionSession 工厂返回空结果。";
+                    return false;
+                }
+                actionSession = candidate;
+                reason = string.Empty;
+                return true;
+            }
+            catch (Exception exception)
+            {
+                candidate?.Dispose();
+                reason = $"营地 ActionSession 初始化异常：{exception.Message}";
+                return false;
+            }
+        }
+
+        public void DeactivateActionSession()
+        {
+            if (state == RuntimeState.Disposed) return;
+            PlayableSettlementActionSession session = actionSession;
+            actionSession = null;
+            session?.Dispose();
+        }
+
+        public SettlementEventRestoreProjection CreateEventRestoreCandidate()
+        {
+            ThrowIfDisposed();
+            return new SettlementEventRestoreProjection(Data, Manager.Timeline.ResolveEvent);
+        }
+
+        public void PublishEventRestore(SettlementEventRestoreProjection candidate)
+        {
+            ThrowIfDisposed();
+            eventRestore = candidate ?? throw new ArgumentNullException(nameof(candidate));
+        }
+
+        public void ClearEventRestore()
+        {
+            ThrowIfDisposed();
+            eventRestore = null;
+        }
+
+        internal bool TryPreparePublication(out string reason)
+        {
+            ThrowIfDisposed();
+            if (!IsDetached)
+            {
+                reason = "营地运行世代不是可发布候选。";
+                return false;
+            }
+            if (preparedCandidatePending && !Manager.TryConsumePreparedCandidate(out reason)) return false;
+            preparedCandidatePending = false;
+            reason = string.Empty;
+            return true;
+        }
+
+        internal void Publish()
+        {
+            ThrowIfDisposed();
+            if (!IsDetached) throw new InvalidOperationException("营地运行世代不是可发布候选。");
+            state = RuntimeState.Current;
+        }
+
+        internal void Detach()
+        {
+            ThrowIfDisposed();
+            state = RuntimeState.Detached;
+        }
+
+        public void Dispose()
+        {
+            if (state == RuntimeState.Disposed) return;
+            DeactivateActionSession();
+            eventRestore = null;
+            state = RuntimeState.Disposed;
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (state == RuntimeState.Disposed)
+                throw new ObjectDisposedException(nameof(PlayableSettlementRuntime));
+        }
+    }
+}

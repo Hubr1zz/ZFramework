@@ -122,7 +122,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(manager.SettlementData.GetResource(blackSalt.ContentId), Is.EqualTo(1));
             Assert.That(manager.SettlementData.PendingHuntReturn, Is.Null);
 
-            IReadOnlyList<CraftRecipe> recipes = GetPrivateField<SettlementManager>(manager, "_settlementManager").Workshop.AllRecipes;
+            IReadOnlyList<CraftRecipe> recipes = manager.SettlementRecipes;
             CraftRecipe recipe = recipes.Single(candidate => candidate.outputItem?.ContentId == "salt_ward" && candidate.ingredients.Any(ingredient => ingredient.item?.ContentId == blackSalt.ContentId));
             UniTask<SettlementCraftCommandResult>.Awaiter craft = manager.CraftAsync(recipe).GetAwaiter();
             yield return WaitForCompletion(craft);
@@ -132,8 +132,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(manager.SettlementData.GetResource(blackSalt.ContentId), Is.Zero);
             Assert.That(manager.SettlementData.GetStoredEquipment(saltWard.ContentId), Is.EqualTo(1));
 
-            PlayableSettlementActionSession settlementSession = GetPrivateField<PlayableSettlementActionSession>(manager, "settlementActionSession");
-            UniTask<SettlementEquipmentCommandResult>.Awaiter equip = settlementSession.EquipItemAsync(hunterId, saltWard).GetAwaiter();
+            UniTask<SettlementEquipmentCommandResult>.Awaiter equip = manager.EquipItemAsync(hunterId, saltWard).GetAwaiter();
             yield return WaitForCompletion(equip);
             SettlementEquipmentCommandResult equipResult = equip.GetResult();
             Assert.That(equipResult.Succeeded, Is.True, equipResult.Reason);
@@ -177,8 +176,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(buildRetreatResult.Succeeded, Is.True, buildRetreatResult.Reason);
             yield return WaitForSettlementIdle(restoredManager);
 
-            PlayableSettlementActionSession restoredSession = GetPrivateField<PlayableSettlementActionSession>(restoredManager, "settlementActionSession");
-            UniTask<SettlementEquipmentCommandResult>.Awaiter unequip = restoredSession.UnequipItemAsync(hunterId, restoredWard.InstanceId).GetAwaiter();
+            UniTask<SettlementEquipmentCommandResult>.Awaiter unequip = restoredManager.UnequipItemAsync(hunterId, restoredWard.InstanceId).GetAwaiter();
             yield return WaitForCompletion(unequip);
             SettlementEquipmentCommandResult unequipResult = unequip.GetResult();
             Assert.That(unequipResult.Succeeded, Is.True, unequipResult.Reason);

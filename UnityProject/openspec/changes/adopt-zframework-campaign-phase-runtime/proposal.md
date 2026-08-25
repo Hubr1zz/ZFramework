@@ -4,11 +4,12 @@
 
 ## What Changes
 
-- 新增 ZFramework `PlayableCampaignRuntimeModule`，独占持有当前阶段 FSM、跨阶段 ActionEnvironment registry、发明安装租约、Campaign ActionSession 和营地事件恢复投影。
+- 新增 ZFramework `PlayableCampaignRuntimeModule`，独占持有当前阶段 FSM、跨阶段 ActionEnvironment registry、发明安装租约、Campaign ActionSession，以及由 Manager、Settlement ActionSession 和事件恢复投影组成的营地运行世代。
 - `GameManager` 通过代际 lease 启动、切换和重置战役运行态，只保留领域对象、场景表现回调与兼容入口。
 - 同一时刻拒绝第二个阶段运行态；释放后新 lease 使用递增代际 ID。
 - 玩家阶段切换与遭遇请求只能经过 Campaign ActionQueue；启动/恢复内部 FSM 操作不进入玩法队列。
-- 营地事件恢复候选由 runtime 创建，只有发布后的投影参与出猎门禁；Reset/Shutdown 清除投影。其他存档事务、营地/狩猎会话和 3D 表现行为保持不变。
+- 新建与读档营地先形成 detached generation，再通过引用身份 CAS 交换为当前权威；旧世代仅在事务完成后释放，失败时可原样换回。
+- 离营只释放当前世代的 Settlement ActionSession，Manager/Data 与 GenerationId 保持；回营在同一世代重建 Session。狩猎会话、存档格式和 3D 表现行为保持不变。
 
 ## Capabilities
 
