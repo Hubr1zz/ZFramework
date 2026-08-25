@@ -195,6 +195,29 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Prepare_OversizedCheckpointFailsClosedWithoutResolvingOrDeletingData()
+        {
+            var settlement = new SettlementInstance();
+            var pending = new List<SettlementEventChainOccurrence>();
+            for (int index = 1; index <= SettlementInstance.MaxPendingEventChainOccurrences + 1; index++)
+                pending.Add(new SettlementEventChainOccurrence { Sequence = index, EventId = $"event-{index}" });
+            settlement.PendingEventChains.Add(new SettlementEventChainCheckpoint { ChainId = "oversized", PendingOccurrences = pending });
+            int resolveCount = 0;
+            var projection = new SettlementEventRestoreProjection(settlement, _ =>
+            {
+                resolveCount++;
+                return null;
+            });
+
+            SettlementEventRestorePlan plan = projection.Prepare();
+
+            Assert.That(plan.Succeeded, Is.False);
+            Assert.That(plan.FailureReason, Does.Contain("上限"));
+            Assert.That(resolveCount, Is.Zero);
+            Assert.That(settlement.PendingEventChains[0].PendingOccurrences, Has.Count.EqualTo(SettlementInstance.MaxPendingEventChainOccurrences + 1));
+        }
+
+        [Test]
         public void FailedRestoreReleasesBusyStateAndAllowsExplicitRetry()
         {
             EventData gameEvent = CreateEvent("retry_event");

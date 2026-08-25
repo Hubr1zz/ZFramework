@@ -51,7 +51,7 @@
         "guid": "d22556d8e7f42df44b45cf799dc1c53e",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
         "line": 1,
-        "fileHash": "bfc477b2900bed82a57d14788fa5d31a6bc8211f7fec4906f3f6df14fa5f0a94",
+        "fileHash": "b2e76e5b5273e4e5947467b85dd7a67e8ae985e9607f9850b89f1f1a4b2bbd9f",
         "status": "verified",
         "checkedAt": "2026-08-25T15:37:49-07:00",
         "feature": "按持久化顺序投影未完成 Timeline 与事件 occurrence，失败时保留原检查点并维持出猎门禁。"

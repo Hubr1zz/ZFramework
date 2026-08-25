@@ -42,7 +42,7 @@
         "guid": "881b14754c20430e852c9fda727bb3d9",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventChainOccurrenceQueue.cs",
         "line": 1,
-        "fileHash": "ecd8fa53f05d9c1e91f072c821f638cf5125626509f5cf3a667987bab267097b",
+        "fileHash": "a5348a14d1ae3751320a594e3e4c981a053e482eed57b70d5d82be1ef07b4844",
         "status": "verified",
         "checkedAt": "2026-08-25T14:50:04-07:00",
         "feature": "提供 schema v2 的独立 occurrence 序号、幂等提交、容量诊断与持久祖先路径。"
@@ -51,7 +51,7 @@
         "guid": "e159b3c1d6bfcce4082b45e63fc28083",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
         "line": 122,
-        "fileHash": "81966416282c30b1ed4cbacf2973f35e1ede400b960547f580e1213ddd48a5cd",
+        "fileHash": "06b751bf9ec01d01d2445167f3a1652d91a60efdd65079ec5265e8416bf75b13",
         "status": "verified",
         "checkedAt": "2026-08-25T14:50:04-07:00",
         "feature": "在营地权威存档中保存链 ID、序号、诊断、待恢复节点与有序祖先稳定 ID。"
@@ -60,7 +60,7 @@
         "guid": "d22556d8e7f42df44b45cf799dc1c53e",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
         "line": 68,
-        "fileHash": "bfc477b2900bed82a57d14788fa5d31a6bc8211f7fec4906f3f6df14fa5f0a94",
+        "fileHash": "b2e76e5b5273e4e5947467b85dd7a67e8ae985e9607f9850b89f1f1a4b2bbd9f",
         "status": "verified",
         "checkedAt": "2026-08-25T14:55:53-07:00",
         "feature": "读档时优先恢复持久 occurrence，未知内容、诊断及任何不受支持的 schema 均 fail closed 并保留检查点。"
@@ -69,7 +69,7 @@
         "guid": "3b94f2b91c9d4f1ba72fe3ffb4dd1ea6",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
         "line": 1,
-        "fileHash": "bdba1a6c67383af5067bcb5ff0dcea8901794c1cf574e5738afea9f605929c01",
+        "fileHash": "d4a61d17a7efd056a6cafc7ddc90108fa580f4f71f75d024abbbf551655b32cb",
         "status": "verified",
         "checkedAt": "2026-08-25T14:50:04-07:00",
         "feature": "为单次狩猎维护带地图上下文和祖先路径的 occurrence，阻止循环并保留容量失败诊断。"

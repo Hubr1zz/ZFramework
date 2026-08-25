@@ -65,6 +65,11 @@ namespace HuntingInDarkness.ActionFlow.Events
                 foreach (PlayableEventChainOccurrence occurrence in pendingOccurrences)
                 {
                     if (occurrence.Sequence == 0 || committedSequenceSet.Contains(occurrence.Sequence) || this.pendingOccurrences.Exists(candidate => candidate.Sequence == occurrence.Sequence)) continue;
+                    if (this.pendingOccurrences.Count >= maxPendingOccurrences)
+                    {
+                        this.diagnostic = $"事件链检查点超过待恢复 occurrence 上限 {maxPendingOccurrences}。";
+                        break;
+                    }
                     this.pendingOccurrences.Add(occurrence);
                     if (occurrence.Sequence > 0)
                         this.nextSequence = occurrence.Sequence == int.MaxValue || this.nextSequence == int.MaxValue ? int.MaxValue : Math.Max(this.nextSequence, occurrence.Sequence + 1);

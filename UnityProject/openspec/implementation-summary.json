@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "fc5a8042e54ca556af7ab553b314463d2b47dd6afa775457c89d3d71124a51ca",
-  "inputManifestDigest": "904f06592fc5b5f1f14bdbfa37bad15b9189214bd12b2572735aaff0089c6158",
-  "outputDigest": "6e9a89e20c8e1fab80bd8f75a8c5e562f4abb7b7baa63f73bc6f589112888f2c",
+  "inputDigest": "0c5924b517ce2a65d10d677f63960b1161e6e21385af18a080590f3cf9afc95a",
+  "inputManifestDigest": "4c51af4c71c0c6df6191fdccb0683fc9f4d9502f301aa381f258b659de3281e4",
+  "outputDigest": "d6c5f89bc6978f8559631cea9d82d59bf8df53abf1f91f43622e4b0291d4e16e",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -42,7 +42,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventChainOccurrenceQueue.cs",
-      "sha256": "ecd8fa53f05d9c1e91f072c821f638cf5125626509f5cf3a667987bab267097b",
+      "sha256": "a5348a14d1ae3751320a594e3e4c981a053e482eed57b70d5d82be1ef07b4844",
       "state": "current"
     },
     {
@@ -87,7 +87,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
-      "sha256": "bdba1a6c67383af5067bcb5ff0dcea8901794c1cf574e5738afea9f605929c01",
+      "sha256": "d4a61d17a7efd056a6cafc7ddc90108fa580f4f71f75d024abbbf551655b32cb",
       "state": "current"
     },
     {
@@ -237,7 +237,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
-      "sha256": "81966416282c30b1ed4cbacf2973f35e1ede400b960547f580e1213ddd48a5cd",
+      "sha256": "06b751bf9ec01d01d2445167f3a1652d91a60efdd65079ec5265e8416bf75b13",
       "state": "current"
     },
     {
@@ -377,7 +377,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
-      "sha256": "bfc477b2900bed82a57d14788fa5d31a6bc8211f7fec4906f3f6df14fa5f0a94",
+      "sha256": "b2e76e5b5273e4e5947467b85dd7a67e8ae985e9607f9850b89f1f1a4b2bbd9f",
       "state": "current"
     },
     {
@@ -416,6 +416,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventChainOccurrenceQueueTests.cs",
+      "sha256": "6894e3e5520d43ebb7ab3bf5641bfe3389121c935b6fe7d0f21308568b51f558",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventTableCacheLifecycleTests.cs",
       "sha256": "41bd71fe0d9d77dfccf53d2abfc1b6bacea0360611ad712b0251ba48db771a7a",
       "state": "current"
@@ -433,6 +438,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
       "sha256": "b44df6d66694a195dcf16dbf65cfffec4fb68fabf5cea5151bf8669041b75ba1",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
+      "sha256": "cce36927b86708d53679987d516b063659c310e18ed624684e1adbe6c66cbd88",
       "state": "current"
     },
     {
@@ -503,6 +513,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorldSpacePortInstallerTests.cs",
       "sha256": "01363a44bd096529761e67ee62f10dc45c36734072a8fd2d742f1d4e097d5de6",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs",
+      "sha256": "e93d1babc78b04a2345dfbf68bcddb2a21c4f3953cebf931194da0806750ffcf",
       "state": "current"
     },
     {
@@ -872,7 +887,7 @@
     },
     {
       "path": "openspec/specs/campaign-persistence/implementation.json",
-      "sha256": "65d9ad09765ddc851d5d1312a9b3f0e6801842206bb1ea29f5cd18158d3ccb9e",
+      "sha256": "49e910f204fda512c4ef3825e6a5558ad91f5f5844c30eeb656a375e4969b23f",
       "state": "current"
     },
     {
@@ -892,7 +907,7 @@
     },
     {
       "path": "openspec/specs/campaign-year-loop/implementation.json",
-      "sha256": "c7b31fa8fd863a32aff032206b85f0fbbc0e81b96f9a825ffddb45fce5c8129e",
+      "sha256": "12c6100e36007906d1bd1a1422767079b0bbb575ca16c09a8640759590f03901",
       "state": "current"
     },
     {
@@ -942,8 +957,8 @@
     },
     {
       "path": "openspec/specs/event-occurrence-checkpoint-core/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "8f8247af0d2c5cc4256f3037428aa79048edc11d0c4482786ae1ddf28170f662",
+      "state": "current"
     },
     {
       "path": "openspec/specs/event-occurrence-checkpoint-core/spec.md",
@@ -1062,7 +1077,7 @@
     },
     {
       "path": "openspec/specs/hunt-session-event-occurrence-recovery/implementation.json",
-      "sha256": "955df5badcc97591effbf9270bf5038241487fdd742fa4355d47d7acf664ac24",
+      "sha256": "e2f44e997df28fdb00c422780a1fcf89d8fce33e0dd89b1f2745ce5184e05041",
       "state": "current"
     },
     {
@@ -1122,7 +1137,7 @@
     },
     {
       "path": "openspec/specs/settlement-timeline-event-identity/implementation.json",
-      "sha256": "032c52695c7f09259742b2654a4c387e987bc00c54b514e3b5c411723f6519ff",
+      "sha256": "7a87d5be898a3141d834074d5f37b0e2ed49487f297100972ad65dcc388e328c",
       "state": "current"
     },
     {
@@ -1162,7 +1177,7 @@
     },
     {
       "path": "openspec/specs/table-driven-event-chains/implementation.json",
-      "sha256": "92ed87e12bf2d02d4cc4d04d8b06524eb3debbf694af2eade81ff04f3d9214cf",
+      "sha256": "033813d16836d147442851306198331d4db33a3f54e71ea3d32bd820456e46cf",
       "state": "current"
     },
     {
@@ -1462,11 +1477,11 @@
     }
   ],
   "counts": {
-    "verified": 38,
+    "verified": 39,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 4,
+    "unknown": 3,
     "blocked": 0,
     "stale": 20
   },
@@ -1477,7 +1492,6 @@
     "campaign-content-preflight-assembly",
     "campaign-year-loop",
     "csharp-derived-index",
-    "event-occurrence-checkpoint-core",
     "event-recoverable-wounds",
     "game-manager-orchestration",
     "hunt-content-bundle-lifecycle",
@@ -1566,11 +1580,6 @@
     {
       "capability": "campaign-content-preflight-assembly",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "campaign-year-loop",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
       "state": "stale"
     },
     {
@@ -1726,11 +1735,6 @@
     {
       "capability": "settlement-timeline-event-identity",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementEventRegistry.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "settlement-timeline-event-identity",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
       "state": "stale"
     },
     {
@@ -2078,7 +2082,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignLoopSmokeTests.cs",
@@ -2233,16 +2237,51 @@
     {
       "id": "event-occurrence-checkpoint-core",
       "label": "跨阶段事件 occurrence 检查点核心",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "共享 occurrence 队列以独立序号保留重复兄弟身份、幂等提交和有界前缀；营地与狩猎所有者在解析内容前对超限恢复失败关闭，且不改写原检查点。",
+      "designSources": [],
       "sources": [
         "openspec/specs/event-occurrence-checkpoint-core/spec.md",
-        "openspec/specs/event-occurrence-checkpoint-core/implementation.json"
+        "openspec/specs/event-occurrence-checkpoint-core/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventChainOccurrenceQueue.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventChainOccurrenceQueueTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "event-recoverable-wounds",
@@ -2851,7 +2890,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementTimelineEventIdentityTests.cs",

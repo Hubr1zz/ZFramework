@@ -40,7 +40,7 @@
         "guid": "e159b3c1d6bfcce4082b45e63fc28083",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
         "line": 1,
-        "fileHash": "947b9d858ad04849902ccb9e8e7698c775adc65450574a62ade0ddb6545d802f",
+        "fileHash": "06b751bf9ec01d01d2445167f3a1652d91a60efdd65079ec5265e8416bf75b13",
         "status": "verified",
         "checkedAt": "2026-08-24T09:57:29-07:00",
         "feature": "持久化准备年份与令牌身份，同时将本次进程授权保持为非序列化状态，阻止读档复用旧编队。"

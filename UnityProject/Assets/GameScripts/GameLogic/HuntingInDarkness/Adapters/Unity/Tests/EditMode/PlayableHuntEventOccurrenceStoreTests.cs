@@ -92,6 +92,31 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void TryRestore_RejectsOversizedPendingStateWithoutResolvingContent()
+        {
+            var records = new List<PlayableHuntEventOccurrenceRecord>();
+            for (int index = 1; index <= 65; index++)
+            {
+                var occurrence = new PlayableEventChainOccurrence(index, $"event-{index}", $"event-{index}", 1, 1);
+                records.Add(new PlayableHuntEventOccurrenceRecord(occurrence, Vector2Int.zero, Array.Empty<string>()));
+            }
+            var state = new PlayableHuntEventOccurrenceStoreState { PendingOccurrences = records };
+            int resolveCount = 0;
+
+            bool restored = PlayableHuntEventOccurrenceStore.TryRestore(state, _ =>
+            {
+                resolveCount++;
+                return null;
+            }, out PlayableHuntEventOccurrenceStore store, out string reason);
+
+            Assert.That(restored, Is.False);
+            Assert.That(store, Is.Null);
+            Assert.That(reason, Does.Contain("上限"));
+            Assert.That(resolveCount, Is.Zero);
+            Assert.That(state.PendingOccurrences, Has.Count.EqualTo(65));
+        }
+
+        [Test]
         public void Commit_ReportsOverflowOnceAndAllowsAcceptedOccurrencesToDrain()
         {
             var store = new PlayableHuntEventOccurrenceStore();

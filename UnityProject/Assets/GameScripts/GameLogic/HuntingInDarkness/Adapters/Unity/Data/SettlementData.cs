@@ -395,13 +395,18 @@ namespace HuntingInDarkness.Data
                 if (hasChildren)
                     foreach (string childEventId in childEventIds)
                     {
+                        string normalizedEventId = childEventId?.Trim() ?? string.Empty;
+                        if (normalizedEventId.Length == 0) continue;
                         if (checkpoint.PendingOccurrences.Count >= MaxPendingEventChainOccurrences)
                         {
                             checkpoint.Diagnostic = $"事件链检查点超过待恢复 occurrence 上限 {MaxPendingEventChainOccurrences}。";
                             break;
                         }
-                        string normalizedEventId = childEventId?.Trim() ?? string.Empty;
-                        if (normalizedEventId.Length == 0) continue;
+                        if (checkpoint.NextSequence <= 0 || checkpoint.NextSequence == int.MaxValue)
+                        {
+                            checkpoint.Diagnostic = "事件链检查点 occurrence 序号已耗尽。";
+                            break;
+                        }
                         var occurrence = new SettlementEventChainOccurrence
                         {
                             Sequence = checkpoint.NextSequence++,
@@ -416,7 +421,7 @@ namespace HuntingInDarkness.Data
                     }
             }
 
-            if (checkpoint.PendingOccurrences.Count == 0)
+            if (checkpoint.PendingOccurrences.Count == 0 && string.IsNullOrWhiteSpace(checkpoint.Diagnostic))
             {
                 PendingEventChains.Remove(checkpoint);
                 return System.Array.Empty<SettlementEventChainOccurrence>();

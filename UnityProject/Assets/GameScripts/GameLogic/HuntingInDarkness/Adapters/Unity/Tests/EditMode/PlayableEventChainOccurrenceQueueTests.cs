@@ -74,6 +74,52 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Constructor_BoundsRestoredPendingOccurrencesAndReportsOverflow()
+        {
+            var pending = new[]
+            {
+                new PlayableEventChainOccurrence(1, "first", "first", 1, 1),
+                new PlayableEventChainOccurrence(2, "second", "second", 1, 1),
+                new PlayableEventChainOccurrence(3, "overflow", "overflow", 1, 1)
+            };
+            var queue = new PlayableEventChainOccurrenceQueue(2, pendingOccurrences: pending);
+
+            Assert.That(queue.PendingOccurrences, Has.Count.EqualTo(2));
+            Assert.That(queue.PendingOccurrences[0].EventId, Is.EqualTo("first"));
+            Assert.That(queue.PendingOccurrences[1].EventId, Is.EqualTo("second"));
+            Assert.That(queue.Diagnostic, Does.Contain("上限"));
+        }
+
+        [Test]
+        public void SettlementAdapter_IgnoresBlankChildAtCapacityWithoutReportingOverflow()
+        {
+            var settlement = new SettlementInstance();
+            var childIds = new List<string>();
+            for (int index = 0; index < SettlementInstance.MaxPendingEventChainOccurrences; index++)
+                childIds.Add($"event-{index}");
+            settlement.CommitEventChainOccurrence("bounded", -1, childIds, 1, 1);
+
+            settlement.CommitEventChainOccurrence("bounded", -2, new[] { " " }, 1, 1);
+
+            Assert.That(settlement.PendingEventChains[0].PendingOccurrences, Has.Count.EqualTo(SettlementInstance.MaxPendingEventChainOccurrences));
+            Assert.That(settlement.PendingEventChains[0].Diagnostic, Is.Null.Or.Empty);
+        }
+
+        [Test]
+        public void SettlementAdapter_RejectsExhaustedSequenceWithoutCreatingInvalidOccurrence()
+        {
+            var settlement = new SettlementInstance();
+            settlement.PendingEventChains.Add(new SettlementEventChainCheckpoint { ChainId = "exhausted", NextSequence = int.MaxValue });
+            var adapter = new SettlementEventChainCheckpointAdapter(settlement);
+
+            IReadOnlyList<PlayableEventChainOccurrence> appended = adapter.Commit("exhausted", -1, new[] { "child" }, 1, 1);
+
+            Assert.That(appended, Is.Empty);
+            Assert.That(settlement.PendingEventChains[0].PendingOccurrences, Is.Empty);
+            Assert.That(settlement.PendingEventChains[0].Diagnostic, Does.Contain("序号"));
+        }
+
+        [Test]
         public void SettlementAdapter_RoundTripsAncestorPathThroughSchemaTwoCheckpoint()
         {
             var settlement = new SettlementInstance();

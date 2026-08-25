@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "event-occurrence-checkpoint-core",
+  "specHash": "7b1f9f943d57a49485e92f86801eea92afbe4863dad3386e40fd12b796de377c",
+  "title": "跨阶段事件 occurrence 检查点核心",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "共享 occurrence 队列以独立序号保留重复兄弟身份、幂等提交和有界前缀；营地与狩猎所有者在解析内容前对超限恢复失败关闭，且不改写原检查点。",
+    "validatedAgainstSpecHash": "7b1f9f943d57a49485e92f86801eea92afbe4863dad3386e40fd12b796de377c",
+    "evidence": [
+      {
+        "guid": "881b14754c20430e852c9fda727bb3d9",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventChainOccurrenceQueue.cs",
+        "line": 41,
+        "fileHash": "a5348a14d1ae3751320a594e3e4c981a053e482eed57b70d5d82be1ef07b4844",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "feature": "提供与内容 ID 无关的序号、幂等消费、重复兄弟和有界恢复算法。"
+      },
+      {
+        "guid": "3b94f2b91c9d4f1ba72fe3ffb4dd1ea6",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
+        "line": 75,
+        "fileHash": "d4a61d17a7efd056a6cafc7ddc90108fa580f4f71f75d024abbbf551655b32cb",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "feature": "保留狩猎会话运行时内容引用，并在内容解析前拒绝超限活动狩猎快照。"
+      },
+      {
+        "guid": "e159b3c1d6bfcce4082b45e63fc28083",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
+        "line": 122,
+        "fileHash": "06b751bf9ec01d01d2445167f3a1652d91a60efdd65079ec5265e8416bf75b13",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "feature": "以 schema 2 DTO 持久化链 ID、occurrence 序号、祖先 ContentId 路径及有界待办队列。"
+      },
+      {
+        "guid": "d22556d8e7f42df44b45cf799dc1c53e",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
+        "line": 100,
+        "fileHash": "b2e76e5b5273e4e5947467b85dd7a67e8ae985e9607f9850b89f1f1a4b2bbd9f",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "feature": "对不支持 schema、无法解析内容及超限营地检查点失败关闭并保留原数据。"
+      },
+      {
+        "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
+        "line": 1,
+        "fileHash": "82a1588168902d3b846aecfa6e93fb7ee59185b07cfc591e4c81917d8fa114ba",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "feature": "只在完整活动狩猎快照中持久化狩猎 occurrence，不写入营地链。"
+      },
+      {
+        "guid": "8e7e4e6ad9ce4a418e29ac62f1cdbda2",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventChainOccurrenceQueueTests.cs",
+        "line": 1,
+        "fileHash": "6894e3e5520d43ebb7ab3bf5641bfe3389121c935b6fe7d0f21308568b51f558",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "feature": "覆盖重复兄弟、序号耗尽、schema 2 祖先路径及构造恢复超限前缀。"
+      },
+      {
+        "guid": "2667ba9674c844adbc87b87ecefef0b9",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
+        "line": 1,
+        "fileHash": "cce36927b86708d53679987d516b063659c310e18ed624684e1adbe6c66cbd88",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "feature": "覆盖狩猎 occurrence 恢复、重复兄弟排空、稳定 ID 循环和超限快照拒绝。"
+      },
+      {
+        "guid": "891458a21bc4b8e41be39bad56fa9569",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs",
+        "line": 1,
+        "fileHash": "e93d1babc78b04a2345dfbf68bcddb2a21c4f3953cebf931194da0806750ffcf",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "feature": "覆盖营地检查点重载、schema 失配、未知内容和超限数据无损失拒绝。"
+      }
+    ],
+    "tests": [
+      "PlayableEventChainOccurrenceQueueTests: 10/10 passed",
+      "PlayableHuntEventOccurrenceStoreTests: 12/12 passed",
+      "SettlementEventRestoreProjectionTests: 14/14 passed",
+      "PlayableSettlementActionSessionTests: 33/33 passed"
+    ],
+    "verifiedAt": "2026-08-25T15:46:39-07:00"
+  },
+  "implementationOutline": [
+    "PlayableEventChainOccurrenceQueue 只管理 occurrence 身份、顺序、幂等和上限，不拥有任何阶段业务或存档 I/O。",
+    "Settlement 使用 schema 2 持久化祖先 ContentId 路径，由恢复投影在执行前验证整个检查点。",
+    "Hunt 在 session store 中保留 EventData 引用，只通过完整 active-Hunt snapshot 获得跨进程持久性。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventChainOccurrenceQueue.cs:41",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs:75",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs:122",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs:100",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

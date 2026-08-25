@@ -13,7 +13,7 @@
         "guid": "3b94f2b91c9d4f1ba72fe3ffb4dd1ea6",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
         "line": 1,
-        "fileHash": "bdba1a6c67383af5067bcb5ff0dcea8901794c1cf574e5738afea9f605929c01",
+        "fileHash": "d4a61d17a7efd056a6cafc7ddc90108fa580f4f71f75d024abbbf551655b32cb",
         "status": "verified",
         "checkedAt": "2026-08-24T23:17:53-07:00",
         "feature": "维护狩猎会话内 occurrence、稳定祖先身份、冻结行动者和有界子链提交。"

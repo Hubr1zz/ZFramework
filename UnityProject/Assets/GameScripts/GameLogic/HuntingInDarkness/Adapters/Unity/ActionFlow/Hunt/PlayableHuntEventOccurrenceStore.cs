@@ -121,9 +121,15 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 reason = "狩猎事件检查点或内容解析器为空。";
                 return false;
             }
+            IReadOnlyList<PlayableHuntEventOccurrenceRecord> pendingRecords = state.PendingOccurrences ?? Array.Empty<PlayableHuntEventOccurrenceRecord>();
+            if (pendingRecords.Count > MaxPendingOccurrences)
+            {
+                reason = $"狩猎事件检查点超过待恢复 occurrence 上限 {MaxPendingOccurrences}。";
+                return false;
+            }
             var pendingQueue = new List<PlayableEventChainOccurrence>();
             var resolved = new List<(PlayableHuntEventOccurrenceRecord Record, EventData Event)>();
-            foreach (PlayableHuntEventOccurrenceRecord record in state.PendingOccurrences ?? Array.Empty<PlayableHuntEventOccurrenceRecord>())
+            foreach (PlayableHuntEventOccurrenceRecord record in pendingRecords)
             {
                 EventData gameEvent = resolveEvent(record.Occurrence.EventId);
                 if (gameEvent == null || !string.Equals(gameEvent.ContentId, record.Occurrence.EventId, StringComparison.Ordinal))
