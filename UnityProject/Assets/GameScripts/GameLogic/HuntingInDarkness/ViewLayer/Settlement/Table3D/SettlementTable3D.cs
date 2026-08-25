@@ -376,7 +376,7 @@ namespace UI
             int hunCount = _mgr.Data.GetAvailableHunters().Count;
             int resCount = _mgr.Data.Resources.Count;
             int invCount = _mgr.Inventions.AllInventions.Count;
-            int wsCount  = 0; // 暂无建筑/工坊数据，预留空区
+            int wsCount  = WorkshopZone.CountProjectedCards(_mgr.Workshop, _mgr.Data, workshopCatalog);
 
             var hun = Dim(hunCount, 3, 2);
             var res = Dim(resCount, 4, 2);

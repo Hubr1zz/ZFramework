@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "ecc451d0b4fd5ffaa84a2961c33fc44d2225486b51cd93c5c03d98f48998dc26",
-  "inputManifestDigest": "5615ace9b93d5d99c01d09028dc30cf422b8ce7be207acd3563ab248a219c16a",
-  "outputDigest": "730833c64b87a25f7d6754e177129c01a41a1e965bbb227c76756bc09c79a168",
+  "inputDigest": "97d008a37470a2563f9efd426dee1ff19faa07445a9f51d3f6f547f75092edf4",
+  "inputManifestDigest": "f5159b4624d2419eea6688042d646f4a5b19a66830fb109a956255d693a79aad",
+  "outputDigest": "47618f9322751f702846b361acc1a23256f98360c5f36234550de5e3ae16edf2",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -88,6 +88,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs",
       "sha256": "fe098b7103b27fb25aa4b9cbb104d0fc748838919ebfac20049af87f961c291c",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementWorkshopConstructionActions.cs",
+      "sha256": "6b196feb6f803b8ed4793102bc1f5d916717fa966dea669338aae06001ee1cc2",
       "state": "current"
     },
     {
@@ -251,8 +256,18 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorkshopConstructionActionTests.cs",
+      "sha256": "583f9a7140b4c9b6065e9a009c2fe41568ed940f42fca4d0176e955bce372f81",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorldSpacePortInstallerTests.cs",
       "sha256": "01363a44bd096529761e67ee62f10dc45c36734072a8fd2d742f1d4e097d5de6",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementTableInitializationTests.cs",
+      "sha256": "685c00fbe5944f4e477c10414bc75b8980621825a1ba079f88d3b579e53e26db",
       "state": "current"
     },
     {
@@ -318,6 +333,16 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs",
       "sha256": "fa8d5351a4b139be83f392aace1f725f92f4c390f674bc8e6a570f83d91fc8a0",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+      "sha256": "ce1de17d82c77b0d037bbde1e0bba51845252261e55fae93705b1cab0e760595",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
+      "sha256": "0ae307a69bb2712f822136e6c2da336495131bbe76195d8f7d83a4befcf6217d",
       "state": "current"
     },
     {
@@ -962,8 +987,8 @@
     },
     {
       "path": "openspec/specs/tabletop-settlement-workshop-construction/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "808de38784112761985f2484a7dcd7fb655b0f010a0d0ba0411e99852f202ecc",
+      "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-settlement-workshop-construction/spec.md",
@@ -1002,11 +1027,11 @@
     }
   ],
   "counts": {
-    "verified": 4,
+    "verified": 5,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 38,
+    "unknown": 37,
     "blocked": 0,
     "stale": 20
   },
@@ -1066,7 +1091,6 @@
     "tabletop-settlement-recovery",
     "tabletop-settlement-recruitment",
     "tabletop-settlement-symptoms",
-    "tabletop-settlement-workshop-construction",
     "tengine-startup-lifecycle",
     "zworkflow-workbench-layout"
   ],
@@ -2641,16 +2665,43 @@
     {
       "id": "tabletop-settlement-workshop-construction",
       "label": "营地桌面工坊建设",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "营地 3D 工坊以配置目录投影蓝图和工坊卡，fallback 桌面按真实卡牌数量预留网格；建造命令由 Settlement ActionQueue 串行校验、提交并持久化。",
+      "designSources": [],
       "sources": [
         "openspec/specs/tabletop-settlement-workshop-construction/spec.md",
-        "openspec/specs/tabletop-settlement-workshop-construction/implementation.json"
+        "openspec/specs/tabletop-settlement-workshop-construction/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementWorkshopConstructionActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorkshopConstructionActionTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementTableInitializationTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "tengine-startup-lifecycle",

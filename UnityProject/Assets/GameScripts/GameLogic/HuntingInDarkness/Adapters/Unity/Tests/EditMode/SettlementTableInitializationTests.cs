@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Reflection;
+using Cards3D;
 using Core;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -73,6 +75,62 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 Object.DestroyImmediate(root);
             }
+        }
+
+        [Test]
+        public void Init_FallbackWorkshopGridFitsProjectedCards()
+        {
+            var root = new GameObject("FallbackWorkshopLayoutTest");
+            SettlementTable3D table = root.AddComponent<SettlementTable3D>();
+            PlayableWorkshopCatalog catalog = ScriptableObject.CreateInstance<PlayableWorkshopCatalog>();
+            SetPrivateField(catalog, "workshops", new List<PlayableWorkshopDefinition>
+            {
+                CreateWorkshop("workshop_1"),
+                CreateWorkshop("workshop_2"),
+                CreateWorkshop("workshop_3"),
+                CreateWorkshop("workshop_4")
+            });
+            bool previousIgnoreState = LogAssert.ignoreFailingMessages;
+            try
+            {
+                LogAssert.ignoreFailingMessages = true;
+                table.Init(new SettlementManager(1), catalog);
+
+                WorkshopZone workshopZone = GetPrivateField<WorkshopZone>(table, "_workshopZone");
+                SlotGrid grid = GetPrivateField<SlotGrid>(workshopZone, "_grid");
+                Assert.That(grid.Columns, Is.EqualTo(3));
+                Assert.That(grid.Rows, Is.EqualTo(2));
+                Assert.That(grid.Slots, Has.Count.EqualTo(6));
+                Assert.That(workshopZone.GetComponentsInChildren<WorkshopBlueprintCard3D>(true), Has.Length.EqualTo(4));
+            }
+            finally
+            {
+                LogAssert.ignoreFailingMessages = previousIgnoreState;
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(catalog);
+            }
+        }
+
+        private static PlayableWorkshopDefinition CreateWorkshop(string workshopId)
+        {
+            var definition = new PlayableWorkshopDefinition();
+            SetPrivateField(definition, "workshopId", workshopId);
+            SetPrivateField(definition, "displayName", workshopId);
+            return definition;
+        }
+
+        private static T GetPrivateField<T>(object instance, string fieldName)
+        {
+            FieldInfo field = instance.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null, $"Missing field: {fieldName}");
+            return (T)field.GetValue(instance);
+        }
+
+        private static void SetPrivateField(object instance, string fieldName, object value)
+        {
+            FieldInfo field = instance.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null, $"Missing field: {fieldName}");
+            field.SetValue(instance, value);
         }
     }
 }

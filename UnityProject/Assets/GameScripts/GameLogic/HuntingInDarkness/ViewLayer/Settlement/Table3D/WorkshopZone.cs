@@ -27,6 +27,29 @@ namespace UI
 
         public void SetRefs(SlotGrid grid) => _grid = grid;
 
+        internal static int CountProjectedCards(WorkshopSystem workshop, SettlementInstance settlement, PlayableWorkshopCatalog catalog)
+        {
+            if (workshop == null || settlement == null) return 0;
+
+            int blueprintCount = 0;
+            var workshopCardIds = new HashSet<string>();
+            if (catalog != null)
+                foreach (PlayableWorkshopDefinition definition in catalog.Workshops)
+                {
+                    if (definition == null || string.IsNullOrWhiteSpace(definition.WorkshopId)) continue;
+                    if (settlement.IsWorkshopBuilt(definition.WorkshopId)) workshopCardIds.Add(definition.WorkshopId);
+                    else blueprintCount++;
+                }
+
+            foreach (CraftRecipe recipe in workshop.GetAvailableRecipes())
+            {
+                if (recipe == null) continue;
+                string workshopId = string.IsNullOrWhiteSpace(recipe.requiredWorkshopId) ? "共享工坊" : recipe.requiredWorkshopId;
+                workshopCardIds.Add(workshopId);
+            }
+            return blueprintCount + workshopCardIds.Count;
+        }
+
         public void Fill(WorkshopSystem workshop, SettlementInstance settlement, PlayableWorkshopCatalog catalog)
         {
             Clear();

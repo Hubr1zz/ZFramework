@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-settlement-workshop-construction",
+  "specHash": "ffc0367f233b4fb0e1c078c3a80a31c26736e902a3acfc3f2d2c1c4007ae5a9e",
+  "title": "营地桌面工坊建设",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "营地 3D 工坊以配置目录投影蓝图和工坊卡，fallback 桌面按真实卡牌数量预留网格；建造命令由 Settlement ActionQueue 串行校验、提交并持久化。",
+    "validatedAgainstSpecHash": "ffc0367f233b4fb0e1c078c3a80a31c26736e902a3acfc3f2d2c1c4007ae5a9e",
+    "evidence": [
+      {
+        "guid": "6202bee0b3d8e8e4386ae66aa1299251",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementWorkshopConstructionActions.cs",
+        "line": 1,
+        "fileHash": "6b196feb6f803b8ed4793102bc1f5d916717fa966dea669338aae06001ee1cc2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T01:17:19-07:00",
+        "feature": "在 Settlement ActionQueue 中重新校验蓝图、资源和前置发明，并提交建造事实。"
+      },
+      {
+        "guid": "bd23a30b0d55c684abacd81e4792ed64",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
+        "line": 400,
+        "fileHash": "8a63ac11386f101c7783ef8fc3a7af563a3ef27493f6c543c413bafcf8adae7c",
+        "status": "verified",
+        "checkedAt": "2026-08-25T01:17:19-07:00",
+        "feature": "把玩家建造请求作为 Settlement Root GameAction 串行执行并返回权威结果。"
+      },
+      {
+        "guid": "fae66be113c0f1b4aa8e8601a20f1b18",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+        "line": 369,
+        "fileHash": "ce1de17d82c77b0d037bbde1e0bba51845252261e55fae93705b1cab0e760595",
+        "status": "verified",
+        "checkedAt": "2026-08-25T01:17:19-07:00",
+        "feature": "fallback 营地桌面按工坊投影数量建立不会侵入相邻区域的 3D 网格。"
+      },
+      {
+        "guid": "59e65c28f501e7944b628d6f642a2c36",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
+        "line": 30,
+        "fileHash": "0ae307a69bb2712f822136e6c2da336495131bbe76195d8f7d83a4befcf6217d",
+        "status": "verified",
+        "checkedAt": "2026-08-25T01:17:19-07:00",
+        "feature": "用同一配置读模型投影未建蓝图、已建工坊及可用配方组，并只转发玩家命令。"
+      },
+      {
+        "guid": "4d29881fd1f5e984297bad31797c833e",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorkshopConstructionActionTests.cs",
+        "line": 1,
+        "fileHash": "583f9a7140b4c9b6065e9a009c2fe41568ed940f42fca4d0176e955bce372f81",
+        "status": "verified",
+        "checkedAt": "2026-08-25T01:17:19-07:00",
+        "feature": "覆盖成功提交、并发去重、Reactor 阻止及外部蓝图拒绝。"
+      },
+      {
+        "guid": "ccd228a4a5ef37042bff2905951397ca",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementTableInitializationTests.cs",
+        "line": 79,
+        "fileHash": "685c00fbe5944f4e477c10414bc75b8980621825a1ba079f88d3b579e53e26db",
+        "status": "verified",
+        "checkedAt": "2026-08-25T01:17:19-07:00",
+        "feature": "验证 fallback 多卡工坊网格容量、蓝图可见性及重复初始化幂等。"
+      }
+    ],
+    "tests": [
+      "Unity CLI compile: passed",
+      "Settlement workshop responsibility cluster: 18/18 passed",
+      "C# derived index: 977/977 files, parsed 3/reused 974"
+    ],
+    "verifiedAt": "2026-08-25T01:17:19-07:00"
+  },
+  "implementationOutline": [
+    "WorkshopZone 从工坊目录、营地建设状态和当前可用配方生成蓝图或工坊 3D 卡牌，并只转发玩家交互。",
+    "SettlementTable3D 在 fallback 建表前使用同一投影规则计算区域尺寸，多卡内容不依赖事后自动扩列修补布局。",
+    "PlayableSettlementActionSession 将建造请求送入 Settlement ActionQueue，由 BuildSettlementWorkshopAction 完成权威校验、资源消费、事实发布和持久化状态变更。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs:30",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs:369",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementWorkshopConstructionActions.cs:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}
