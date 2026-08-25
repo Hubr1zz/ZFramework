@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "table-driven-hunter-bloodlines",
+  "specHash": "87e5157db79c9d2a9c5f388268633c205ac98e36e594b17aaa28645d04bd0053",
+  "title": "读表猎人血脉",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "血脉定义由独立 Resources 表提供；猎人在招募提交前按权重获得稳定身份，存档同步只刷新已知身份的显示缓存；血脉条件与激活效果经统一事件表和 Settlement ActionQueue 根提交。",
+    "validatedAgainstSpecHash": "87e5157db79c9d2a9c5f388268633c205ac98e36e594b17aaa28645d04bd0053",
+    "evidence": [
+      {
+        "guid": "167ce847800e3034581ed4d1063a51aa",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterBloodlineRules.cs",
+        "line": 1,
+        "fileHash": "c5773f672245694e866bf2639f0f1e9a9ce054eab8b0ffe83ec1835851156e22",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:27:10-07:00",
+        "feature": "以纯 C# 规则执行一次性加权抽取、已知稳定身份恢复和精确身份激活。"
+      },
+      {
+        "guid": "4a322a57dbe3e214eb6d65e9eceb48fb",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableBloodlineTable.cs",
+        "line": 1,
+        "fileHash": "fd42220391380e1c4e712cd7930042618857c36442d3e0775fb933ae8c9da801",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:27:10-07:00",
+        "feature": "读取并校验独立血脉表，拒绝无效或重复稳定 ID，并向 GameCore 暴露只读定义。"
+      },
+      {
+        "guid": "dcec38ea35640204a8ab0c443fd45c98",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs",
+        "line": 96,
+        "fileHash": "dfcd50d04ecd34c915cad321978609ba4e25e32f896e94c9eb06e517de7ad724",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:27:10-07:00",
+        "feature": "在资源扣除、名册写入和招募事实发布前完成血脉分配，失败保持营地权威状态不变。"
+      },
+      {
+        "guid": "415d8d7b8cbb06540ad790f520dafbde",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+        "line": 253,
+        "fileHash": "559eb29812814097b73940b62b513a47cf7d192d0d21ec4e9bcb7c37c6c5b2b2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:27:10-07:00",
+        "feature": "事件效果按稳定血脉 ID 调用 GameCore 激活入口，并返回可提交或可拒绝的结构化结果。"
+      },
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "line": 467,
+        "fileHash": "c99a4146eccb975790d101e46640426fe539702cad863f986dbc360b7972b5d9",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:27:10-07:00",
+        "feature": "合并独立血脉事件表，校验条件和激活效果引用，并把技术 ID 转换为玩家可读名称。"
+      },
+      {
+        "guid": "1e0d246fe7975284aa80f31c816ed619",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/bloodline-events.json",
+        "line": 1,
+        "fileHash": "f0df1c64ae0eaee4e93fc436776c28e113f3ea0ad7e9034cf28fe50004f0aa02",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:27:10-07:00",
+        "feature": "以独立内容表配置三类血脉觉醒选项、条件、激活和特性授予，不修改基础事件记录。"
+      }
+    ],
+    "tests": [
+      "HunterBloodlineRulesTests: 3/3 passed",
+      "PlayableBloodlineContentTests: 2/2 passed",
+      "PlayableConditionalEventOptionTests: 10/10 passed",
+      "PlayableSettlementCareActionTests: 11/11 passed",
+      "PlayableSettlementActionSessionTests.ResolveEventsAsync_BloodlineActivationCommitsThroughSettlementRoot: 1/1 passed"
+    ],
+    "verifiedAt": "2026-08-25T14:27:10-07:00"
+  },
+  "implementationOutline": [
+    "PlayableBloodlineTable 从 Resources JSON 构建稳定、只读的 GameCore 血脉定义，并拒绝歧义身份。",
+    "HunterBloodlineRules 只在猎人缺少身份时加权抽取；已有可识别 ID 只刷新显示缓存并保留激活状态。",
+    "RecruitHunterAction 在任何营地持久写入前分配血脉，随后由统一 Settlement Root 发布招募事实。",
+    "独立 bloodline-events 表通过统一事件目录、猎人选择、条件可用性与 3D 事件卡流程激活血脉。",
+    "血脉玩法状态由数据、Adapter 和 GameCore 规则维护，View 仅展示与转发交互。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterBloodlineRules.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableBloodlineTable.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs:96",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs:467",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/bloodline-events.json:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "0460c7ea487a131a292e95a14921ad4af2594ee8f6e78c491bfb6056553e3c2c",
-  "inputManifestDigest": "c49cd0190bd5cc03abf8c2f663e3ae42e518e7163af9196e65049fcde5bd09ea",
-  "outputDigest": "c818418ac21394fde41888facba3e8aeb499c0be5fbfa5224af496944cc01bc6",
+  "inputDigest": "32cbe529f4c7d9d58163d6a7ef92f28be18c2f61a04151694f27cf07bb63976c",
+  "inputManifestDigest": "fc1954847972918765caa59c6732d45849e1bd123604a37e1f0b70654f096fe4",
+  "outputDigest": "dbe45002d3f37b0f94199a44fbadd7fdda2e32e02c6074621f6fd0a3b89940b4",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -163,6 +163,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableCombatSession.cs",
       "sha256": "b1312fe3683c91d166fff13c6e548b5471c09c9b5e6daf32dea610f8ba221b11",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableBloodlineTable.cs",
+      "sha256": "fd42220391380e1c4e712cd7930042618857c36442d3e0775fb933ae8c9da801",
       "state": "current"
     },
     {
@@ -501,6 +506,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterBloodlineRules.cs",
+      "sha256": "c5773f672245694e866bf2639f0f1e9a9ce054eab8b0ffe83ec1835851156e22",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterRecoveryRules.cs",
       "sha256": "e32e6d2a657ff0c459935e95db79e47e7c3eac46c69bdd4530030e97188ecb32",
       "state": "current"
@@ -508,6 +518,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementRules.cs",
       "sha256": "07ff54dd361da8f9bc83e21eec29e38ad15aa8a445fa8d657ddf23f15edccf65",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/bloodline-events.json",
+      "sha256": "f0df1c64ae0eaee4e93fc436776c28e113f3ea0ad7e9034cf28fe50004f0aa02",
       "state": "current"
     },
     {
@@ -1057,8 +1072,8 @@
     },
     {
       "path": "openspec/specs/table-driven-hunter-bloodlines/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "1f50fd3183ce705d6bcb8390dadb492cdb8cd3efb22ba7e23d4ceb9e16bee1cf",
+      "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-hunter-bloodlines/spec.md",
@@ -1337,11 +1352,11 @@
     }
   ],
   "counts": {
-    "verified": 28,
+    "verified": 29,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 16,
+    "unknown": 15,
     "blocked": 0,
     "stale": 18
   },
@@ -1373,7 +1388,6 @@
     "showdown-phase-orchestration",
     "table-driven-event-chains",
     "table-driven-hunt-events",
-    "table-driven-hunter-bloodlines",
     "table-driven-invention-content",
     "tabletop-chinese-font-fallback",
     "tabletop-hunt-harvest",
@@ -2659,16 +2673,43 @@
     {
       "id": "table-driven-hunter-bloodlines",
       "label": "读表猎人血脉",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "血脉定义由独立 Resources 表提供；猎人在招募提交前按权重获得稳定身份，存档同步只刷新已知身份的显示缓存；血脉条件与激活效果经统一事件表和 Settlement ActionQueue 根提交。",
+      "designSources": [],
       "sources": [
         "openspec/specs/table-driven-hunter-bloodlines/spec.md",
-        "openspec/specs/table-driven-hunter-bloodlines/implementation.json"
+        "openspec/specs/table-driven-hunter-bloodlines/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterBloodlineRules.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableBloodlineTable.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/bloodline-events.json",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "table-driven-hunter-templates",
