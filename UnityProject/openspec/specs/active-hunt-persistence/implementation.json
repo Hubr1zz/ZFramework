@@ -6,7 +6,7 @@
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份；恢复只接受当前同指纹内容，在候选图完成地图、编队、携带物、事件与随机状态验证后原子发布，并以完整 RuntimeState 回滚。",
+    "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份；独立恢复事务在候选图完成地图、编队、携带物、事件与随机状态验证后原子发布，并以完整 RuntimeState 回滚。",
     "validatedAgainstSpecHash": "a6fded21aaf1c0e1b8a533d826ce52c6172e01135b0f87daf46f9c5b3a9cdd0a",
     "evidence": [
       {
@@ -22,10 +22,19 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "1f69f185f38b4313caa3959115ddb419bf9d2a9b6b57e5c8c68b00625cbd55c1",
+        "fileHash": "cdc9ec0901561c2df19f7deafb4e092f9f759a4b160243a9954247e616bcf8ae",
         "status": "verified",
-        "checkedAt": "2026-08-24T09:28:30-07:00",
-        "feature": "只读解析精确路线，原子提交候选运行图，失败恢复完整目的地状态，并在退役旧 Session 前固定稳定载荷。"
+        "checkedAt": "2026-08-25T10:46:52-07:00",
+        "feature": "仅作为组合根调用活动狩猎恢复事务，并在事务结果成为权威后接管稳定载荷与场景表现。"
+      },
+      {
+        "guid": "44a46c79517647b8be18210431a6a856",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/ActiveHuntRestoreTransaction.cs",
+        "line": 1,
+        "fileHash": "a35af268ca69811087d653d3c76117c21c025934f9542b4f4f3c3fed65468be5",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:46:52-07:00",
+        "feature": "集中准备、验证、交换与回滚 Settlement/Hunt 运行世代，动态解析事件输入端口，并在不可逆阶段回滚失败时返回当前权威稳定载荷。"
       },
       {
         "guid": "6dce6ba7b65af9c42821b85a0555ac17",
@@ -60,24 +69,23 @@
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignSaveStorageTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/StatefulRandomSourceTests.cs",
-      "Unity CLI targeted Active Hunt persistence: 4/4 passed",
-      "Unity CLI EditMode: 626/626 passed",
-      "C# derived index: 978/978, 100% coverage",
-      "zWorkFlow: 7/7 passed",
-      "OpenSpec strict validation: 65/65 passed"
+      "Unity CLI GameManager campaign loop PlayMode: 14/14 passed",
+      "C# derived index: 986/986, 100% coverage"
     ],
-    "verifiedAt": "08/24/2026 09:34:27"
+    "verifiedAt": "2026-08-25T10:46:52-07:00"
   },
   "implementationOutline": [
     "CampaignSnapshot 以 HasActiveHuntState 显式声明阶段，恢复入口归一化 JsonUtility 产生的默认空引用记录。",
     "ActiveHuntSnapshotAdapter 只从空闲 Hunt session 捕获稳定身份数据，恢复时先解析目录和临时投影，再提交运行时携带物。",
     "HuntManager 使用版本固定的 StatefulRandomSource，恢复地图、导航、选中猎人与随机状态。",
     "PlayableHuntActionSession 在提交边界通知 GameManager 冻结载荷，并把全部可恢复 sibling occurrence 排空。",
+    "ActiveHuntRestoreTransaction 在独立候选图上恢复并验证内容，统一提交或回滚 ZFramework 运行世代、目的地状态和阶段状态。",
     "回营先保存 PendingHuntReturn 的 Settlement 快照；失败回滚仅在活动狩猎载荷保存成功后解除锁。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/ActiveHuntRestoreTransaction.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs:1"
   ],

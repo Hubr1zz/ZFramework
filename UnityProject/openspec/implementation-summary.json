@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "4251f3552086f3b6e77c6aada85e4b3901d72ba027f11ef919b05e5dbf9a3612",
-  "inputManifestDigest": "2074bcaa29aa4dea68c88e1a06d6dd794630b995cff6c7973e8509b9e5da74be",
-  "outputDigest": "719ce9308aa8fdecd66169405ecfb20b4b34ad5a62be163357d81e7607b477db",
+  "inputDigest": "bf1bf108f9060881ea369f4624d892b61c50e9b0cac405b758930f8e5cee1c40",
+  "inputManifestDigest": "dd9405d58dd5e45f2a7c9251f24d816d637e070d535bb966dc48a134312d0a6d",
+  "outputDigest": "e67dd9a266b779a2073aceaee648256816b47634a0bda3da8b877b36093dc314",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -296,13 +296,18 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/ActiveHuntRestoreTransaction.cs",
+      "sha256": "a35af268ca69811087d653d3c76117c21c025934f9542b4f4f3c3fed65468be5",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupLifecycle.cs",
       "sha256": "ffc62329ec83fb4424025f8a6353fa07a88ed81054e3ca396874e35c80f66981",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "800b680bc2988375f447035ad5318df18d0d842ac91f725314b70ad87ed977c7",
+      "sha256": "cdc9ec0901561c2df19f7deafb4e092f9f759a4b160243a9954247e616bcf8ae",
       "state": "current"
     },
     {
@@ -417,7 +422,7 @@
     },
     {
       "path": "openspec/specs/active-hunt-persistence/implementation.json",
-      "sha256": "492670e8b34ed3f29e3480d991345ddfeb1cd833227d90a7e386fb284a4f2f9e",
+      "sha256": "e707837c1b7b19b8822cef4158d995b54ea5332d0ac537f41899278e73fd6738",
       "state": "current"
     },
     {
@@ -457,7 +462,7 @@
     },
     {
       "path": "openspec/specs/campaign-startup-transaction/implementation.json",
-      "sha256": "4e276ddba8c2f0e1ab372d1a0b322c0940ae5c465880c0377fd2e511daee98d9",
+      "sha256": "c40a3006fb0e44ea864aa33fb2cf22c004da92e00a1b5f13542ffa87d1f30da5",
       "state": "current"
     },
     {
@@ -1144,11 +1149,6 @@
       "state": "stale"
     },
     {
-      "capability": "active-hunt-persistence",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "state": "stale"
-    },
-    {
       "capability": "campaign-content-cache-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
       "state": "stale"
@@ -1191,11 +1191,6 @@
     {
       "capability": "campaign-startup-transaction",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "campaign-startup-transaction",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
     },
     {
@@ -1486,7 +1481,7 @@
       "effectiveStatus": "stale",
       "progress": 0,
       "verificationStatus": "verified",
-      "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份；恢复只接受当前同指纹内容，在候选图完成地图、编队、携带物、事件与随机状态验证后原子发布，并以完整 RuntimeState 回滚。",
+      "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份；独立恢复事务在候选图完成地图、编队、携带物、事件与随机状态验证后原子发布，并以完整 RuntimeState 回滚。",
       "designSources": [],
       "sources": [
         "openspec/specs/active-hunt-persistence/spec.md",
@@ -1500,7 +1495,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "stale"
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/ActiveHuntRestoreTransaction.cs",
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
@@ -1607,7 +1606,7 @@
       "effectiveStatus": "stale",
       "progress": 0,
       "verificationStatus": "verified",
-      "summary": "纯 C# CampaignStartupLifecycle 统一维护等待、启动、加载与激活状态；GameManager 通过 typed single-flight 命令发布 Settlement 或 Active Hunt 候选，失败撤销 FSM、ActionSession 与表现并允许重试。",
+      "summary": "纯 C# CampaignStartupLifecycle 统一维护等待、启动、加载与激活状态；GameManager 通过 typed single-flight 命令委托独立事务发布 Settlement 或 Active Hunt 候选，失败撤销 FSM、ActionSession 与表现并允许重试。",
       "designSources": [],
       "sources": [
         "openspec/specs/campaign-startup-transaction/spec.md",
@@ -1617,7 +1616,11 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "stale"
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/ActiveHuntRestoreTransaction.cs",
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupLifecycle.cs",

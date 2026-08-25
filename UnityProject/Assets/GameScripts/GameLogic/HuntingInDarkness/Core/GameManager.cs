@@ -128,6 +128,7 @@ namespace Core
 
         private IPlayableCampaignRuntime campaignRuntime;
         private CampaignRestartTransaction campaignRestartTransaction;
+        private ActiveHuntRestoreTransaction activeHuntRestoreTransaction;
         private IPlayableSettlementRuntime settlementRuntime => campaignRuntime?.Settlement;
         private SettlementManager _settlementManager => settlementRuntime?.Manager;
         private IPlayableHuntRuntime huntRuntime => campaignRuntime?.Hunt;
@@ -334,6 +335,7 @@ namespace Core
             campaignRuntime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(this, CreateSettlementActionSession));
             campaignRuntime.ConfigureHuntRuntime(new PlayableHuntRuntimeConfiguration(CreateHuntManager, CreateHuntActionSession));
             campaignRestartTransaction = new CampaignRestartTransaction(campaignRuntime, campaignPersistence, PrepareCampaignRestartPayload, message => Debug.LogWarning($"[GameManager] {message}"));
+            activeHuntRestoreTransaction = new ActiveHuntRestoreTransaction(campaignRuntime, () => playableEventInput, TryStartHuntPresentationAndSession, DisposeHuntActionSession, () => CleanupHuntPresentation(), RestorePreviousHuntPresentation, message => Debug.LogWarning($"[GameManager] {message}"));
 
             // 全局事件订阅
             EventBus.Subscribe<BossDefeatedEvent>(OnBossDefeated);
@@ -926,173 +928,16 @@ namespace Core
 
         private bool TryRestoreActiveHunt(CampaignSnapshot campaign, out string reason)
         {
-            reason = string.Empty;
-            bool initialStartup = !campaignRuntime.IsStarted;
-            ActiveHuntSnapshot active = campaign?.ActiveHunt;
-            if (active == null)
-            {
-                reason = "存档不包含活动狩猎快照。";
-                return false;
-            }
-            if (active.EncounterHandoffPending)
-            {
-                reason = $"存档停留在尚未支持恢复的遭遇交接：{active.EncounterId}";
-                return false;
-            }
-            PlayableHuntDestinationRuntime.RuntimeState previousDestinationState = PlayableHuntDestinationRuntime.CaptureState();
-            if (!PlayableHuntDestinationRuntime.TryResolveRouteForRestore(active.DestinationId, active.Year, active.ContentBundleId, out PlayableHuntRoutePlan restoredRoute, out reason)) return false;
-            IPlayableSettlementRuntime previousSettlement = settlementRuntime;
-            IPlayableHuntRuntime previousHunt = huntRuntime;
-            GamePhase previousPhase = CurrentGamePhase;
-            if (!campaignRuntime.TryPrepareSettlementRestore(campaign.Settlement, out IPlayableSettlementRuntime candidateSettlement, out reason))
-            {
-                PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
-                return false;
-            }
-            SettlementManager candidateSettlementManager = candidateSettlement.Manager;
-            var candidateCampaign = new CampaignSnapshot
-            {
-                CampaignSchemaVersion = campaign.CampaignSchemaVersion,
-                Settlement = candidateSettlementManager.Data,
-                HasActiveHuntState = campaign.HasActiveHuntState,
-                ActiveHunt = campaign.ActiveHunt
-            };
-            if (!campaignRuntime.TryPrepareHuntRestore(candidateSettlement, active.ExpeditionId, out IPlayableHuntRuntime candidateHunt, out reason))
-            {
-                campaignRuntime.ReleaseSettlement(candidateSettlement);
-                PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
-                return false;
-            }
-            HuntManager candidateHuntManager = candidateHunt.Manager;
-            if (!candidateHuntManager.TryBindContent(restoredRoute, out reason))
-            {
-                campaignRuntime.ReleaseHunt(candidateHunt);
-                campaignRuntime.ReleaseSettlement(candidateSettlement);
-                PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
-                return false;
-            }
-            candidateHuntManager.EventInput = playableEventInput;
-            if (!ActiveHuntSnapshotAdapter.TryRestore(candidateCampaign, candidateHuntManager, out PlayableHuntRuntimeState runtimeState, out PlayableHuntEventOccurrenceStore restoredOccurrences, out reason))
-            {
-                campaignRuntime.ReleaseHunt(candidateHunt);
-                campaignRuntime.ReleaseSettlement(candidateSettlement);
-                PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
-                return false;
-            }
-            if (!candidateHuntManager.TryRestore(runtimeState, out reason))
-            {
-                campaignRuntime.ReleaseHunt(candidateHunt);
-                campaignRuntime.ReleaseSettlement(candidateSettlement);
-                PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
-                return false;
-            }
-            if (!SaveLoadSystem.TryCreatePayload(candidateCampaign, out string candidatePayload, out reason))
-            {
-                campaignRuntime.ReleaseHunt(candidateHunt);
-                campaignRuntime.ReleaseSettlement(candidateSettlement);
-                PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
-                return false;
-            }
-            if (!PlayableHuntDestinationRuntime.TryCommitRoute(restoredRoute, out reason))
-            {
-                campaignRuntime.ReleaseHunt(candidateHunt);
-                campaignRuntime.ReleaseSettlement(candidateSettlement);
-                PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
-                return false;
-            }
-            PlayableHuntDestinationRuntime.RuntimeState candidateDestinationState = PlayableHuntDestinationRuntime.CaptureState();
-            if (!campaignRuntime.TrySwapSettlement(previousSettlement, candidateSettlement, out reason))
-            {
-                campaignRuntime.ReleaseHunt(candidateHunt);
-                campaignRuntime.ReleaseSettlement(candidateSettlement);
-                PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
-                return false;
-            }
-            if (!campaignRuntime.TrySwapHunt(previousHunt, candidateHunt, out reason))
-            {
-                campaignRuntime.TrySwapSettlement(candidateSettlement, previousSettlement, out _);
-                campaignRuntime.ReleaseHunt(candidateHunt);
-                campaignRuntime.ReleaseSettlement(candidateSettlement);
-                PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
-                return false;
-            }
-            candidateSettlement.PublishEventRestore(candidateSettlement.CreateEventRestoreCandidate());
-            try
-            {
-                if (initialStartup)
-                    campaignRuntime.Start(GamePhase.Hunt);
-                else if (CurrentGamePhase != GamePhase.Hunt && !campaignRuntime.TransitionTo(GamePhase.Hunt))
-                {
-                    reason = "无法切换到活动狩猎恢复阶段。";
-                    RestoreActiveHuntGenerations(candidateSettlement, previousSettlement, candidateHunt, previousHunt, previousDestinationState);
-                    campaignRuntime.ReleaseHunt(candidateHunt);
-                    campaignRuntime.ReleaseSettlement(candidateSettlement);
-                    return false;
-                }
-            }
-            catch (System.Exception exception)
-            {
-                if (CurrentGamePhase != GamePhase.Hunt)
-                {
-                    reason = $"切换到活动狩猎恢复阶段时发生异常：{exception.Message}";
-                    RestoreActiveHuntGenerations(candidateSettlement, previousSettlement, candidateHunt, previousHunt, previousDestinationState);
-                    campaignRuntime.ReleaseHunt(candidateHunt);
-                    campaignRuntime.ReleaseSettlement(candidateSettlement);
-                    if (initialStartup)
-                        campaignRuntime.Reset();
-                    return false;
-                }
-                Debug.LogWarning($"[GameManager] 活动狩猎阶段已经切换，但阶段通知存在异常，将继续恢复权威运行态：{exception.Message}");
-            }
-            if (TryStartHuntPresentationAndSession(restoredOccurrences, out reason))
-            {
-                stableCampaignPayload = candidatePayload;
-                try
-                {
-                    if (previousSettlement != null)
-                        campaignRuntime.ReleaseSettlement(previousSettlement);
-                }
-                catch (System.Exception exception)
-                {
-                    Debug.LogWarning($"[GameManager] 退役旧营地 ActionSession 时发生异常，活动狩猎恢复结果仍然有效：{exception.Message}");
-                }
-                try
-                {
-                    if (previousHunt != null)
-                        campaignRuntime.ReleaseHunt(previousHunt);
-                }
-                catch (System.Exception exception)
-                {
-                    Debug.LogWarning($"[GameManager] 退役旧狩猎运行世代时发生异常，活动狩猎恢复结果仍然有效：{exception.Message}");
-                }
-                return true;
-            }
+            ActiveHuntRestoreResult result = activeHuntRestoreTransaction.Execute(campaign);
+            reason = result.Reason;
+            if (!string.IsNullOrWhiteSpace(result.StablePayload))
+                stableCampaignPayload = result.StablePayload;
+            if (!result.Succeeded) return false;
+            return true;
+        }
 
-            DisposeHuntActionSession();
-            if (initialStartup)
-            {
-                campaignRuntime.TrySwapHunt(candidateHunt, null, out _);
-                campaignRuntime.TrySwapSettlement(candidateSettlement, null, out _);
-                campaignRuntime.ReleaseHunt(candidateHunt);
-                campaignRuntime.ReleaseSettlement(candidateSettlement);
-                campaignRuntime.Reset();
-                CleanupHuntPresentation();
-                return false;
-            }
-            if (!TryRollbackPhase(previousPhase, out string rollbackReason))
-            {
-                reason = $"{reason}；阶段回滚失败：{rollbackReason}";
-                if (previousSettlement != null)
-                    campaignRuntime.ReleaseSettlement(previousSettlement);
-                if (previousHunt != null)
-                    campaignRuntime.ReleaseHunt(previousHunt);
-                PlayableHuntDestinationRuntime.RestoreState(candidateDestinationState);
-                stableCampaignPayload = candidatePayload;
-                return false;
-            }
-            RestoreActiveHuntGenerations(candidateSettlement, previousSettlement, candidateHunt, previousHunt, previousDestinationState);
-            campaignRuntime.ReleaseHunt(candidateHunt);
-            campaignRuntime.ReleaseSettlement(candidateSettlement);
+        private void RestorePreviousHuntPresentation(GamePhase previousPhase, IPlayableHuntRuntime previousHunt)
+        {
             if (previousPhase == GamePhase.Hunt && previousHunt != null)
             {
                 _huntVisualizer?.Init(previousHunt.Manager, previousHunt.ExplorationPort);
@@ -1103,46 +948,6 @@ namespace Core
             {
                 CleanupHuntPresentation();
                 EnsureSettlementUI();
-            }
-            return false;
-        }
-
-        private void RestoreActiveHuntGenerations(IPlayableSettlementRuntime currentSettlement, IPlayableSettlementRuntime previousSettlement, IPlayableHuntRuntime currentHunt, IPlayableHuntRuntime previousHunt, PlayableHuntDestinationRuntime.RuntimeState destinationState)
-        {
-            if (!campaignRuntime.TrySwapHunt(currentHunt, previousHunt, out string huntReason))
-                throw new System.InvalidOperationException($"恢复狩猎运行世代失败：{huntReason}");
-            if (!campaignRuntime.TrySwapSettlement(currentSettlement, previousSettlement, out string settlementReason))
-                throw new System.InvalidOperationException($"恢复营地运行世代失败：{settlementReason}");
-            PlayableHuntDestinationRuntime.RestoreState(destinationState);
-        }
-
-        private bool TryRollbackPhase(GamePhase targetPhase, out string reason)
-        {
-            if (CurrentGamePhase == targetPhase)
-            {
-                reason = string.Empty;
-                return true;
-            }
-            try
-            {
-                if (campaignRuntime.TransitionTo(targetPhase) && CurrentGamePhase == targetPhase)
-                {
-                    reason = string.Empty;
-                    return true;
-                }
-                reason = $"阶段仍停留在 {CurrentGamePhase}";
-                return false;
-            }
-            catch (System.Exception exception)
-            {
-                if (CurrentGamePhase == targetPhase)
-                {
-                    Debug.LogWarning($"[GameManager] 阶段已经回滚到 {targetPhase}，但阶段通知存在异常：{exception.Message}");
-                    reason = string.Empty;
-                    return true;
-                }
-                reason = exception.Message;
-                return false;
             }
         }
 
