@@ -153,6 +153,18 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void LegacySettlement_WithoutOriginTemplateIdKeepsEmptyStableOrigin()
+        {
+            const string legacyPayload = "{\"CurrentYear\":1,\"Hunters\":[{\"InstanceId\":7,\"Name\":\"旧猎人\",\"IsAlive\":true}]}";
+
+            Assert.That(CampaignSaveRecovery.TryRestore(new CampaignSaveCandidates(CampaignSaveCodec.Encode(legacyPayload), null), out CampaignSnapshot restored, out _, out string reason), Is.True, reason);
+
+            Assert.That(restored.Settlement.Hunters, Has.Count.EqualTo(1));
+            Assert.That(restored.Settlement.Hunters[0].OriginTemplateId, Is.Empty);
+            Assert.That(restored.Settlement.Hunters[0].Name, Is.EqualTo("旧猎人"), "旧存档不得从显示名伪造模板身份。");
+        }
+
+        [Test]
         public void FileStore_SecondWriteKeepsPreviousSnapshotAsBackup()
         {
             Assert.That(CampaignSaveFileStore.TryWrite(savePath, "first", out string reason), Is.True, reason);

@@ -281,6 +281,10 @@ namespace Core
         {
             if (data?.Settlement?.PendingHuntReturn != null && string.IsNullOrWhiteSpace(data.Settlement.PendingHuntReturn.RecordId))
                 data.Settlement.PendingHuntReturn = null;
+            if (data?.Settlement?.Hunters != null)
+                foreach (HunterInstance hunter in data.Settlement.Hunters)
+                    if (hunter != null)
+                        hunter.OriginTemplateId = hunter.OriginTemplateId?.Trim() ?? string.Empty;
             if (data != null && !data.HasActiveHuntState)
                 data.ActiveHunt = null;
         }

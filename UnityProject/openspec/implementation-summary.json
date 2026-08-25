@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "ce84dc399fc38cfa80383b1219cbfdfb397d5b064ce1b3c3596372aff9aee57e",
-  "inputManifestDigest": "cccb58ea9a56877b0d0e9cb9e76ac6877ac0a445c36bc9777c9b1d4a807007d3",
-  "outputDigest": "2d2138930b6f1d8c3568bcc40674f5520983c043ecf6c59ecb8bc3b211ea2350",
+  "inputDigest": "0460c7ea487a131a292e95a14921ad4af2594ee8f6e78c491bfb6056553e3c2c",
+  "inputManifestDigest": "c49cd0190bd5cc03abf8c2f663e3ae42e518e7163af9196e65049fcde5bd09ea",
+  "outputDigest": "c818418ac21394fde41888facba3e8aeb499c0be5fbfa5224af496944cc01bc6",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -171,6 +171,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableHunterTemplateTable.cs",
+      "sha256": "2a173bda9a00ab216453aecc270a50b43c6171b94cdb211025f5da9942aee643",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
       "sha256": "224e84ad0d1704b2e0751c3e7667991c92691853582b26e614a29f3d560a0ee3",
       "state": "current"
@@ -178,6 +183,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableRecipeTable.cs",
       "sha256": "5b9b4ba3966da7dfc507a38f800e6e4902c2a98425ec65f7c0616b7536125f77",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HunterData.cs",
+      "sha256": "129b6675c1aff96b668673cc683a48054b226f7047dfbed333843448116c34ef",
       "state": "current"
     },
     {
@@ -228,6 +238,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
       "sha256": "82a1588168902d3b846aecfa6e93fb7ee59185b07cfc591e4c81917d8fa114ba",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs",
+      "sha256": "8825ae4e0188b661cd56020505e6cf76436447243c7cc0ff1f2b7d987ae4a84a",
       "state": "current"
     },
     {
@@ -291,6 +306,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignSaveStorageTests.cs",
+      "sha256": "eb67298725613fca1f3b6d8208a6d6dc9f12ed5a53e31ada84025b9dbe70f3d3",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignStartupLifecycleTests.cs",
       "sha256": "4a3fe01a52875e1caf4f18c8c2cb66b73cf115cb13951f75707f21e7e986dffa",
       "state": "current"
@@ -336,6 +356,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHunterTemplateTableTests.cs",
+      "sha256": "7a17d0a3680de0ef6577ccc9e723638c60d9f83e17adbef892ad0b19db3415bb",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
       "sha256": "88664ac68dbd9c8e89886b3bd92d2e7ae292248aae0388cda0c24c4608de2aa5",
       "state": "current"
@@ -343,6 +368,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
       "sha256": "d8dfedcd121e598d5e3163ccf7dbee1c62e0512e01a56be48fbd0402b615a4c8",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementCareActionTests.cs",
+      "sha256": "081485e79c428f4ce1c8b1bd8bcd00ce0de2e6fb0009819752b14bf5ef5c8101",
       "state": "current"
     },
     {
@@ -1037,8 +1067,8 @@
     },
     {
       "path": "openspec/specs/table-driven-hunter-templates/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "54e53a4c267fd54b186aeb52850a9041f4f98a3e8029af3b1e6ee7791474b739",
+      "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-hunter-templates/spec.md",
@@ -1307,11 +1337,11 @@
     }
   ],
   "counts": {
-    "verified": 27,
+    "verified": 28,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 17,
+    "unknown": 16,
     "blocked": 0,
     "stale": 18
   },
@@ -1344,7 +1374,6 @@
     "table-driven-event-chains",
     "table-driven-hunt-events",
     "table-driven-hunter-bloodlines",
-    "table-driven-hunter-templates",
     "table-driven-invention-content",
     "tabletop-chinese-font-fallback",
     "tabletop-hunt-harvest",
@@ -2644,16 +2673,55 @@
     {
       "id": "table-driven-hunter-templates",
       "label": "读表猎人模板与稳定身份",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "猎人 JSON 表在内容装配阶段映射为普通 HunterData，严格校验稳定身份、属性、角色与初始装备；招募继续由 Settlement ActionQueue 提交，运行时及存档保留模板 ID，旧存档缺失身份时规范为空且不按显示名伪造绑定。",
+      "designSources": [],
       "sources": [
         "openspec/specs/table-driven-hunter-templates/spec.md",
-        "openspec/specs/table-driven-hunter-templates/implementation.json"
+        "openspec/specs/table-driven-hunter-templates/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableHunterTemplateTable.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HunterData.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/RecruitmentPanel3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHunterTemplateTableTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementCareActionTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignSaveStorageTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "table-driven-invention-content",

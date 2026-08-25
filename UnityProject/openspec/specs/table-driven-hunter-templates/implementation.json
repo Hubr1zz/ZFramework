@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "table-driven-hunter-templates",
+  "specHash": "87f26c5177848e3ba0d93549c4c1561ac6adf8355e3026d40503b7cb8c6a6829",
+  "title": "读表猎人模板与稳定身份",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "猎人 JSON 表在内容装配阶段映射为普通 HunterData，严格校验稳定身份、属性、角色与初始装备；招募继续由 Settlement ActionQueue 提交，运行时及存档保留模板 ID，旧存档缺失身份时规范为空且不按显示名伪造绑定。",
+    "validatedAgainstSpecHash": "87f26c5177848e3ba0d93549c4c1561ac6adf8355e3026d40503b7cb8c6a6829",
+    "evidence": [
+      {
+        "guid": "e2fd62e7b7b24abfa6589b154bf8c584",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableHunterTemplateTable.cs",
+        "line": 1,
+        "fileHash": "2a173bda9a00ab216453aecc270a50b43c6171b94cdb211025f5da9942aee643",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:19:35-07:00",
+        "feature": "按表顺序生成 HunterData，并拒绝缺失或冲突身份、无角色、无效属性、未知装备、容量、武器与护甲覆盖违规。"
+      },
+      {
+        "guid": "89da669e4924d43409fe89475adc272b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
+        "line": 91,
+        "fileHash": "abc76a13e190d80b18101baacdeeb32fed965ca94e07c63f0027baaf95be04e5",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:19:35-07:00",
+        "feature": "在玩法开始前把序列化猎人表装入冻结内容计划，并由内容所有权租约管理动态模板生命周期。"
+      },
+      {
+        "guid": "685fc9d050fbac7428be3ef6d6b7a8f7",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HunterData.cs",
+        "line": 82,
+        "fileHash": "129b6675c1aff96b668673cc683a48054b226f7047dfbed333843448116c34ef",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:19:35-07:00",
+        "feature": "实例化时复制模板稳定 ID、全部战斗属性、特性、症状及受容量约束的装备实例与持久物品 ID。"
+      },
+      {
+        "guid": "dcec38ea35640204a8ab0c443fd45c98",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs",
+        "line": 64,
+        "fileHash": "dfcd50d04ecd34c915cad321978609ba4e25e32f896e94c9eb06e517de7ad724",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:19:35-07:00",
+        "feature": "招募 Action 重验目录成员、费用、容量、年度与姓名，并把模板 ID 写入猎人和提交事实。"
+      },
+      {
+        "guid": "c0a18d1ff9ace464f92ba184f152e167",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/RecruitmentPanel3D.cs",
+        "line": 1,
+        "fileHash": "cc4b21a65e609b0937a1f48e4bccc10167b7e5858e1b6686a81ae4478136561e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:19:35-07:00",
+        "feature": "世界空间候选卡只消费生成后的 HunterData 并提交现有招募命令，不读取 JSON 或分支到内容专属逻辑。"
+      },
+      {
+        "guid": "4a52335e5f26e2d46ab8f4192d6da186",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs",
+        "line": 280,
+        "fileHash": "8825ae4e0188b661cd56020505e6cf76436447243c7cc0ff1f2b7d987ae4a84a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:19:35-07:00",
+        "feature": "存档恢复边界规范模板身份；旧字段缺失时保留空身份，不从猎人显示名推导伪身份。"
+      },
+      {
+        "guid": "e7468c45d9904312aa60401b6c808d7d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHunterTemplateTableTests.cs",
+        "line": 1,
+        "fileHash": "7a17d0a3680de0ef6577ccc9e723638c60d9f83e17adbef892ad0b19db3415bb",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:19:35-07:00",
+        "feature": "验证稳定身份、装备持久 ID、表内基线内容、重复身份、未知装备、武器上限及资产冲突。"
+      },
+      {
+        "guid": "10c709224cb4ab04daf99d3317273d8d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementCareActionTests.cs",
+        "line": 20,
+        "fileHash": "081485e79c428f4ce1c8b1bd8bcd00ce0de2e6fb0009819752b14bf5ef5c8101",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:19:35-07:00",
+        "feature": "验证模板候选经 Settlement runner 原子提交、Reactor 改写、并发串行化及非目录模板拒绝。"
+      },
+      {
+        "guid": "627185649739029449961cf4b1059fc5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignSaveStorageTests.cs",
+        "line": 144,
+        "fileHash": "eb67298725613fca1f3b6d8208a6d6dc9f12ed5a53e31ada84025b9dbe70f3d3",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:19:35-07:00",
+        "feature": "验证新存档保留模板 ID，旧存档缺失字段时恢复为空且保持原显示名。"
+      }
+    ],
+    "tests": [
+      "PlayableHunterTemplateTableTests: 5/5 passed",
+      "PlayableSettlementCareActionTests: 11/11 passed",
+      "CampaignSaveStorageTests: 13/13 passed"
+    ],
+    "verifiedAt": "2026-08-25T14:19:35-07:00"
+  },
+  "implementationOutline": [
+    "内容 Adapter 把 JSON 记录映射为普通 HunterData，并在发布冻结计划前完成身份、属性和装备规则校验。",
+    "HunterInstance 从模板复制稳定来源、属性及装备双表示，继续兼容现有装备槽和存档恢复。",
+    "3D 招募 View 只消费目录结果，Settlement ActionQueue 仍是费用、容量、年度、Reactor 和事实提交的唯一权威。",
+    "CampaignSaveRecovery 在持久化边界规范旧存档缺失的来源模板字段，不创建显示名绑定。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableHunterTemplateTable.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs:91",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HunterData.cs:82",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs:64",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs:280"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}
