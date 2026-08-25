@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "hunt-squad-action-availability",
+  "specHash": "7f02a8ddabe2c638e8708f0f3b3229dd80d51ed6b6295633ef5fe837205f5fe6",
+  "title": "狩猎小队行动资格与失能交接",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "地图、资源点、采集事务、事件提交与 3D 状态桌共用同一存活远征猎人资格；当前行动猎人死亡时在提交事实前交接给存活队员，全员失能后停止探索与采集但保留实体回营路径。",
+    "validatedAgainstSpecHash": "7f02a8ddabe2c638e8708f0f3b3229dd80d51ed6b6295633ef5fe837205f5fe6",
+    "evidence": [
+      {
+        "guid": "9e316e1eca08d7444835c4c9bdf78838",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntSquadAvailability.cs",
+        "line": 1,
+        "fileHash": "d48befe1c536421ee2b7f0f4b40de76c95f2919de13647f3688a9a7afb7d2a9e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:07:03-07:00",
+        "feature": "集中判断远征是否存在存活行动者，并只在当前选择仍存活且属于远征时保留引用。"
+      },
+      {
+        "guid": "6dce6ba7b65af9c42821b85a0555ac17",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
+        "line": 42,
+        "fileHash": "a53abd9bb772af48f3bf0307430055fb40f94920d92df4def01b4d79f95ab5e5",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:07:03-07:00",
+        "feature": "地图提交、资源点选择与采集准备共用存活资格；全员失能后拒绝写入地图和资源状态。"
+      },
+      {
+        "guid": "9c726607d6f6843489ac06114f3cc299",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
+        "line": 309,
+        "fileHash": "691232f89713a636f92e8de69c886e2f440b1294df6ebe2c8d5ba786bec2de7a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:07:03-07:00",
+        "feature": "事件检查点提交时先规范当前行动猎人，再发布提交事实并把稳定行动者身份交给后续事件。"
+      },
+      {
+        "guid": "50cb7b7c3f1a8824b9ced6e7a35d8b43",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntHarvestActions.cs",
+        "line": 213,
+        "fileHash": "b005c71d5df53e86f4c56c5bf5f7cf22a1a568808eab100ff21e69c409d092be",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:07:03-07:00",
+        "feature": "最终采集提交重新验证猎人生命；失能时释放预约、不耗尽资源点且不授予素材。"
+      },
+      {
+        "guid": "ebb448198a81de643bb81b0ceab402cb",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs",
+        "line": 86,
+        "fileHash": "19d8ebd96a223032b1916c3ba5c3761cc18673dbe0ed1312762d22c015949bc6",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:07:03-07:00",
+        "feature": "全员失能时用实体状态卡替换探索指引，明确告知玩家只能使用地图侧回营卡。"
+      },
+      {
+        "guid": "85f60544b7e9b004d9def05c16cdabd1",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
+        "line": 184,
+        "fileHash": "1167563b232d350e111b9f368d1f65af7c3b0beba435d8ab44f55a84d43c507e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:07:03-07:00",
+        "feature": "验证全员失能拒绝探索但允许回营，以及当前行动猎人死亡后在事实发布前交接给存活队员。"
+      },
+      {
+        "guid": "66c2225b8ff13a9448f6620ae35f2983",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntHarvestActionSessionTests.cs",
+        "line": 140,
+        "fileHash": "2ff3137ac37452688229da7829d2e6bc077e471e999c46c63954e68591799d93",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:07:03-07:00",
+        "feature": "验证准备阶段无行动者不预约，采集中失能会释放资源点、结束事务且不产生携带物。"
+      }
+    ],
+    "tests": [
+      "PlayableHuntActionSessionTests: 19/19 passed",
+      "PlayableHuntHarvestActionSessionTests: 10/10 passed"
+    ],
+    "verifiedAt": "2026-08-25T14:07:03-07:00"
+  },
+  "implementationOutline": [
+    "PlayableHuntSquadAvailability 是地图、事件、采集和表现层共同使用的行动者资格策略。",
+    "Hunt 事件在每个提交检查点规范当前猎人，使连锁事件与观察者不会继续引用已死亡行动者。",
+    "采集最终提交重新验证生命并在失败时释放预约；全员失能状态仍允许正式回营结算。",
+    "HuntStatusBoard3D 把失能状态投影为玩家可读的世界空间说明，不承担任何权威写入。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntSquadAvailability.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs:42",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs:309",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntHarvestActions.cs:213",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs:86"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}
