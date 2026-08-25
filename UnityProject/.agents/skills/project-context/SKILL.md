@@ -5,7 +5,7 @@ description: TEngine Unity 项目速查与低成本路由。用于开始项目�
 
 # TEngine Project Context
 
-先读取 [PROJECT-INDEX.md](references/PROJECT-INDEX.md)，只打开与当前任务相关的来源。
+先读取 [PROJECT-INDEX.md](references/PROJECT-INDEX.md)。命中某一领域行时必须读取该行列出的 `project-*` skill，再按其“必读参考”只打开相关来源；未命中的项目资料不读取。Agent 角色文件只在该角色实际被调度时读取，不作为所有任务的项目记忆。
 
 ## 已确认概况
 

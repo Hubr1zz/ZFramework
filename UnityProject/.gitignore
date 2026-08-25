@@ -111,8 +111,8 @@ __pycache__/
 *.py[cod]
 /openspec/workbench-config.json
 /openspec/design-source.json
-/.agent-memory/team/MAINTAINERS.md
-/.agent-memory/team/members/
+/.agent-memory/zworkflow/team/MAINTAINERS.md
+/.agent-memory/zworkflow/team/members/
 /.agent-memory/zworkflow/local/
 /zWorkFlow/zWorkFlow Pack/
 !/zWorkFlow/bin/

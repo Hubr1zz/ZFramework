@@ -18,6 +18,7 @@ UnityProject/ProjectSettings/BurstAotSettings_StandaloneWindows.json
 /.agent-memory/
 /Temp/
 /UnityProject/.agent-memory/code-index-progress.json
+/UnityProject/.agent-memory/zworkflow/team/
 /UnityProject/UserSettings/Layouts/CurrentMaximizeLayout.dwlt
 
 #GameEventSourceGenerator

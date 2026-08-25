@@ -8,7 +8,7 @@
 2. `zWorkFlow/AGENTS.md`
 3. `.agents/README.md`
 4. `.agents/skills/project-refactor-queue/references/PROTECTED_FILES.md`（仅在任务可能修改项目文件时）
-5. `.agents/skills/team-member-preferences/SKILL.md`；只读取当前成员对应的 `.agent-memory/team/members/<nickname>.md`
+5. `.agents/skills/team-member-preferences/SKILL.md`；只读取当前成员对应的 `.agent-memory/zworkflow/team/members/<nickname>.md`
 
 项目事实、领域规则、OpenSpec、重构队列和团队规范以项目根 `.agents/`、`.agent-memory/` 与 `openspec/` 为准。这些是当前项目数据；完整通用工作流与分发资产以 `zWorkFlow/` 为准。任务涉及序列化、动画、资源、启动、依赖注入、异步或编辑器扩展时，按 `.agents/skills/project-tooling/SKILL.md` 读取命中的工程能力条目。
 
