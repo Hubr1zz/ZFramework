@@ -153,10 +153,14 @@ namespace Core
         private IPlayableCampaignRuntime campaignRuntime;
         private IPlayableSettlementRuntime settlementRuntime => campaignRuntime?.Settlement;
         private SettlementManager _settlementManager => settlementRuntime?.Manager;
+        private IPlayableHuntRuntime huntRuntime => campaignRuntime?.Hunt;
+        private HuntManager _huntMgr => huntRuntime?.Manager;
+        private PlayableHuntActionSession huntActionSession => huntRuntime?.ActionSession;
+        private HuntExplorationRuntime huntExplorationRuntime => huntRuntime?.Exploration;
+        private string activeExpeditionId => huntRuntime?.ExpeditionId;
         [SerializeField] private SettlementUIManager _settlementUIManager; // 场景预建并连线（缺失则报错）
         private bool _settlementUIInited;
         [SerializeField] private SettlementTable3D _settlementTable3D;
-        private HuntManager          _huntMgr;
         private HuntMapVisualizer    _huntVisualizer;
         private HuntUIManager        _huntUI;
         private HuntRetreatPanel3D huntRetreatPanel;
@@ -182,8 +186,6 @@ namespace Core
                     settlementRuntime.PublishEventRestore(value);
             }
         }
-        private PlayableHuntActionSession huntActionSession;
-        private HuntExplorationRuntime huntExplorationRuntime;
         private IPlayableEventInput playableEventInput;
         private IPlayableHuntDepartureInput playableHuntDepartureInput;
         private bool huntDepartureInFlight;
@@ -191,7 +193,6 @@ namespace Core
         private bool encounterCheckpointRollbackFailed;
         private bool huntReturnRecoveryInFlight;
         private bool preparedHuntExit;
-        private string activeExpeditionId;
         private string stableCampaignPayload;
         private bool hasAwakened;
         private bool deferPlayableStart;
@@ -379,6 +380,7 @@ namespace Core
             // 权威阶段 FSM 由 ZFramework Campaign 模块持有；GameManager 只保留当前世代 lease。
             campaignRuntime = GameModule.Campaign.AcquireRuntime(this, ApplyPhaseRoots);
             campaignRuntime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(this, CreateSettlementActionSession));
+            campaignRuntime.ConfigureHuntRuntime(new PlayableHuntRuntimeConfiguration(CreateHuntManager, CreateHuntActionSession));
 
             // 全局事件订阅
             EventBus.Subscribe<BossDefeatedEvent>(OnBossDefeated);
@@ -482,7 +484,6 @@ namespace Core
         {
             DisposeSettlementActionSession();
             DisposeHuntActionSession();
-            _huntMgr = null;
             _pendingHuntRecord = null;
             stableCampaignPayload = null;
             campaignStarted = false;
@@ -817,10 +818,7 @@ namespace Core
 
         private void DisposeHuntActionSession()
         {
-            PlayableHuntActionSession session = huntActionSession;
-            huntActionSession = null;
-            huntExplorationRuntime = null;
-            session?.Dispose();
+            huntRuntime?.DeactivateActionSession();
         }
 
         // ═══════════════════════════════════════════
@@ -851,73 +849,64 @@ namespace Core
             PlayableHuntDestinationRuntime.RuntimeState previousDestinationState = default;
             bool routeCommitted = false;
             if (huntContext.IsValid) previousDestinationState = PlayableHuntDestinationRuntime.CaptureState();
+            IPlayableHuntRuntime previousHunt = huntRuntime;
+            IPlayableHuntRuntime candidateHunt = null;
             try
             {
-                EnsureHuntManager();
+                if (!campaignRuntime.TryPrepareNewHunt(settlementRuntime, out candidateHunt, out reason))
+                    return false;
+                HuntManager candidateManager = candidateHunt.Manager;
                 if (huntContext.IsValid)
                 {
-                    if (!_huntMgr.TryBindContent(huntContext.RoutePlan, out reason))
-                    {
-                        _huntMgr = null;
-                        return false;
-                    }
+                    if (!candidateManager.TryBindContent(huntContext.RoutePlan, out reason))
+                        return ReleaseFailedHuntCandidate(candidateHunt);
                 }
-                else if (!PlayableHuntDestinationRuntime.TryApplyTo(_huntMgr, out reason))
-                {
-                    _huntMgr = null;
-                    return false;
-                }
-                _huntMgr.EventInput = playableEventInput;
-                _huntMgr.OnEnter(hunters, _settlementManager?.Data.CurrentYear ?? 1);
-                DisposeHuntActionSession();
-                activeExpeditionId = System.Guid.NewGuid().ToString("N");
+                else if (!PlayableHuntDestinationRuntime.TryApplyTo(candidateManager, out reason))
+                    return ReleaseFailedHuntCandidate(candidateHunt);
+                candidateManager.EventInput = playableEventInput;
+                candidateManager.OnEnter(hunters, _settlementManager?.Data.CurrentYear ?? 1);
                 if (huntContext.IsValid && CurrentGamePhase != GamePhase.Hunt)
                 {
                     reason = "阶段状态机未保持在狩猎阶段。";
-                    activeExpeditionId = string.Empty;
-                    _huntMgr = null;
-                    return false;
+                    return ReleaseFailedHuntCandidate(candidateHunt);
                 }
                 if (huntContext.IsValid && !TryValidateHuntEntryContext(huntContext, expectedSettlement, out reason))
-                {
-                    activeExpeditionId = string.Empty;
-                    _huntMgr = null;
-                    return false;
-                }
+                    return ReleaseFailedHuntCandidate(candidateHunt);
                 if (huntContext.IsValid && !PlayableHuntDestinationRuntime.TryCommitRoute(huntContext.RoutePlan, out reason))
-                {
-                    activeExpeditionId = string.Empty;
-                    _huntMgr = null;
-                    return false;
-                }
+                    return ReleaseFailedHuntCandidate(candidateHunt);
                 routeCommitted = huntContext.IsValid;
+                if (!campaignRuntime.TrySwapHunt(previousHunt, candidateHunt, out reason))
+                    return ReleaseFailedHuntCandidate(candidateHunt);
                 if (!TryStartHuntPresentationAndSession(null, out reason))
                 {
                     if (routeCommitted) PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
-                    activeExpeditionId = string.Empty;
                     CleanupHuntPresentation();
-                    _huntMgr = null;
+                    campaignRuntime.TrySwapHunt(candidateHunt, previousHunt, out _);
+                    campaignRuntime.ReleaseHunt(candidateHunt);
                     return false;
                 }
+                if (previousHunt != null)
+                    campaignRuntime.ReleaseHunt(previousHunt);
                 OnHuntCheckpointCommitted();
                 return true;
             }
             catch (System.Exception exception)
             {
                 if (routeCommitted) PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
-                DisposeHuntActionSession();
                 CleanupHuntPresentation();
-                activeExpeditionId = string.Empty;
-                _huntMgr = null;
+                if (ReferenceEquals(huntRuntime, candidateHunt))
+                    campaignRuntime.TrySwapHunt(candidateHunt, previousHunt, out _);
+                if (candidateHunt != null && !ReferenceEquals(huntRuntime, candidateHunt))
+                    campaignRuntime.ReleaseHunt(candidateHunt);
                 reason = $"狩猎运行环境初始化失败：{exception.Message}";
                 return false;
             }
         }
 
-        private void EnsureHuntManager()
+        private bool ReleaseFailedHuntCandidate(IPlayableHuntRuntime candidate)
         {
-            if (_huntMgr != null) return;
-            _huntMgr = CreateHuntManager(_settlementManager);
+            campaignRuntime.ReleaseHunt(candidate);
+            return false;
         }
 
         private HuntManager CreateHuntManager(SettlementManager settlementManager)
@@ -926,18 +915,26 @@ namespace Core
             var manager = new HuntManager(sharedEventSystem, bindInitialContent: false);
             manager.OnBossEncounterTriggered = () =>
             {
-                if (huntActionSession == null) return;
-                var request = new CampaignEncounterRequest(huntActionSession.SessionId, PlayableEncounterRuntime.DefaultEncounterId, CampaignEncounterSourceKind.HuntBossTile, GamePhase.Hunt, _huntMgr.SquadPosition, string.Empty, _huntMgr.BoundRoute?.DestinationId ?? string.Empty);
+                IPlayableHuntRuntime source = huntRuntime;
+                if (!ReferenceEquals(source?.Manager, manager) || source.ActionSession == null) return;
+                var request = new CampaignEncounterRequest(source.ActionSession.SessionId, PlayableEncounterRuntime.DefaultEncounterId, CampaignEncounterSourceKind.HuntBossTile, GamePhase.Hunt, manager.SquadPosition, string.Empty, manager.BoundRoute?.DestinationId ?? string.Empty);
                 BeginEncounterAsync(request).Forget();
             };
             manager.OnHuntCompleted = record =>
             {
+                if (!ReferenceEquals(huntRuntime?.Manager, manager)) return;
                 if (_settlementManager?.HunterMgmt == null) throw new System.InvalidOperationException("营地猎人管理器未初始化，无法提交狩猎成长。");
-                PlayableHunterAdvancementAdapter.ApplyAfterHunt(_huntMgr.ActiveHunters, _settlementManager.HunterMgmt);
+                PlayableHunterAdvancementAdapter.ApplyAfterHunt(manager.ActiveHunters, _settlementManager.HunterMgmt);
                 _pendingHuntRecord = record;
                 TransitionToPhase(GamePhase.Settlement);
             };
             return manager;
+        }
+
+        private PlayableHuntActionSession CreateHuntActionSession(HuntManager manager, PlayableHuntEventOccurrenceStore restoredOccurrences)
+        {
+            IPlayableHuntRuntime source = huntRuntime;
+            return new PlayableHuntActionSession(manager, PlayableEncounterRuntime.DefaultEncounterId, manager.BoundRoute?.DestinationId ?? string.Empty, tabletopInteractionRouter, _huntVisualizer, campaignRuntime.ActionEnvironmentInstallers, restoredOccurrences, () => OnHuntCheckpointCommitted(source));
         }
 
         private bool TryStartHuntPresentationAndSession(PlayableHuntEventOccurrenceStore restoredOccurrences, out string reason)
@@ -950,9 +947,8 @@ namespace Core
                     visualizerObject.transform.SetParent(huntRoot.transform);
                     _huntVisualizer = visualizerObject.AddComponent<HuntMapVisualizer>();
                 }
-                huntActionSession = new PlayableHuntActionSession(_huntMgr, PlayableEncounterRuntime.DefaultEncounterId, _huntMgr.BoundRoute?.DestinationId ?? string.Empty, tabletopInteractionRouter, _huntVisualizer, campaignRuntime.ActionEnvironmentInstallers, restoredOccurrences, OnHuntCheckpointCommitted);
-                huntExplorationRuntime = new HuntExplorationRuntime(_huntMgr, huntActionSession);
-                _huntVisualizer?.Init(_huntMgr, huntExplorationRuntime.Port);
+                if (!huntRuntime.TryActivateActionSession(restoredOccurrences, out reason)) return false;
+                _huntVisualizer?.Init(_huntMgr, huntRuntime.ExplorationPort);
             }
             catch (System.Exception exception)
             {
@@ -992,7 +988,7 @@ namespace Core
             PlayableHuntDestinationRuntime.RuntimeState previousDestinationState = PlayableHuntDestinationRuntime.CaptureState();
             if (!PlayableHuntDestinationRuntime.TryResolveRouteForRestore(active.DestinationId, active.Year, active.ContentBundleId, out PlayableHuntRoutePlan restoredRoute, out reason)) return false;
             IPlayableSettlementRuntime previousSettlement = settlementRuntime;
-            HuntManager previousHuntManager = _huntMgr;
+            IPlayableHuntRuntime previousHunt = huntRuntime;
             GamePhase previousPhase = CurrentGamePhase;
             if (!campaignRuntime.TryPrepareSettlementRestore(campaign.Settlement, out IPlayableSettlementRuntime candidateSettlement, out reason))
             {
@@ -1007,9 +1003,16 @@ namespace Core
                 HasActiveHuntState = campaign.HasActiveHuntState,
                 ActiveHunt = campaign.ActiveHunt
             };
-            HuntManager candidateHuntManager = CreateHuntManager(candidateSettlementManager);
+            if (!campaignRuntime.TryPrepareHuntRestore(candidateSettlement, active.ExpeditionId, out IPlayableHuntRuntime candidateHunt, out reason))
+            {
+                campaignRuntime.ReleaseSettlement(candidateSettlement);
+                PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
+                return false;
+            }
+            HuntManager candidateHuntManager = candidateHunt.Manager;
             if (!candidateHuntManager.TryBindContent(restoredRoute, out reason))
             {
+                campaignRuntime.ReleaseHunt(candidateHunt);
                 campaignRuntime.ReleaseSettlement(candidateSettlement);
                 PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
                 return false;
@@ -1017,26 +1020,28 @@ namespace Core
             candidateHuntManager.EventInput = playableEventInput;
             if (!ActiveHuntSnapshotAdapter.TryRestore(candidateCampaign, candidateHuntManager, out PlayableHuntRuntimeState runtimeState, out PlayableHuntEventOccurrenceStore restoredOccurrences, out reason))
             {
+                campaignRuntime.ReleaseHunt(candidateHunt);
                 campaignRuntime.ReleaseSettlement(candidateSettlement);
                 PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
                 return false;
             }
             if (!candidateHuntManager.TryRestore(runtimeState, out reason))
             {
+                campaignRuntime.ReleaseHunt(candidateHunt);
                 campaignRuntime.ReleaseSettlement(candidateSettlement);
                 PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
                 return false;
             }
             if (!SaveLoadSystem.TryCreatePayload(candidateCampaign, out string candidatePayload, out reason))
             {
+                campaignRuntime.ReleaseHunt(candidateHunt);
                 campaignRuntime.ReleaseSettlement(candidateSettlement);
                 PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
                 return false;
             }
-            PlayableHuntActionSession previousHuntSession = huntActionSession;
-            string previousExpeditionId = activeExpeditionId;
             if (!PlayableHuntDestinationRuntime.TryCommitRoute(restoredRoute, out reason))
             {
+                campaignRuntime.ReleaseHunt(candidateHunt);
                 campaignRuntime.ReleaseSettlement(candidateSettlement);
                 PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
                 return false;
@@ -1044,14 +1049,20 @@ namespace Core
             PlayableHuntDestinationRuntime.RuntimeState candidateDestinationState = PlayableHuntDestinationRuntime.CaptureState();
             if (!campaignRuntime.TrySwapSettlement(previousSettlement, candidateSettlement, out reason))
             {
+                campaignRuntime.ReleaseHunt(candidateHunt);
                 campaignRuntime.ReleaseSettlement(candidateSettlement);
                 PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
                 return false;
             }
-            huntActionSession = null;
-            _huntMgr = candidateHuntManager;
+            if (!campaignRuntime.TrySwapHunt(previousHunt, candidateHunt, out reason))
+            {
+                campaignRuntime.TrySwapSettlement(candidateSettlement, previousSettlement, out _);
+                campaignRuntime.ReleaseHunt(candidateHunt);
+                campaignRuntime.ReleaseSettlement(candidateSettlement);
+                PlayableHuntDestinationRuntime.RestoreState(previousDestinationState);
+                return false;
+            }
             candidateSettlement.PublishEventRestore(candidateSettlement.CreateEventRestoreCandidate());
-            activeExpeditionId = active.ExpeditionId;
             try
             {
                 if (initialStartup)
@@ -1059,7 +1070,8 @@ namespace Core
                 else if (CurrentGamePhase != GamePhase.Hunt && !campaignRuntime.TransitionTo(GamePhase.Hunt))
                 {
                     reason = "无法切换到活动狩猎恢复阶段。";
-                    RestoreActiveHuntRuntime(previousSettlement, previousHuntManager, previousHuntSession, previousExpeditionId, previousDestinationState);
+                    RestoreActiveHuntGenerations(candidateSettlement, previousSettlement, candidateHunt, previousHunt, previousDestinationState);
+                    campaignRuntime.ReleaseHunt(candidateHunt);
                     campaignRuntime.ReleaseSettlement(candidateSettlement);
                     return false;
                 }
@@ -1069,7 +1081,8 @@ namespace Core
                 if (CurrentGamePhase != GamePhase.Hunt)
                 {
                     reason = $"切换到活动狩猎恢复阶段时发生异常：{exception.Message}";
-                    RestoreActiveHuntRuntime(previousSettlement, previousHuntManager, previousHuntSession, previousExpeditionId, previousDestinationState);
+                    RestoreActiveHuntGenerations(candidateSettlement, previousSettlement, candidateHunt, previousHunt, previousDestinationState);
+                    campaignRuntime.ReleaseHunt(candidateHunt);
                     campaignRuntime.ReleaseSettlement(candidateSettlement);
                     if (initialStartup)
                         campaignRuntime.Reset();
@@ -1091,19 +1104,22 @@ namespace Core
                 }
                 try
                 {
-                    previousHuntSession?.Dispose();
+                    if (previousHunt != null)
+                        campaignRuntime.ReleaseHunt(previousHunt);
                 }
                 catch (System.Exception exception)
                 {
-                    Debug.LogWarning($"[GameManager] 退役旧狩猎 ActionSession 时发生异常，活动狩猎恢复结果仍然有效：{exception.Message}");
+                    Debug.LogWarning($"[GameManager] 退役旧狩猎运行世代时发生异常，活动狩猎恢复结果仍然有效：{exception.Message}");
                 }
                 return true;
             }
 
             DisposeHuntActionSession();
-            RestoreActiveHuntRuntime(previousSettlement, previousHuntManager, previousHuntSession, previousExpeditionId, previousDestinationState);
             if (initialStartup)
             {
+                campaignRuntime.TrySwapHunt(candidateHunt, null, out _);
+                campaignRuntime.TrySwapSettlement(candidateSettlement, null, out _);
+                campaignRuntime.ReleaseHunt(candidateHunt);
                 campaignRuntime.ReleaseSettlement(candidateSettlement);
                 campaignRuntime.Reset();
                 CleanupHuntPresentation();
@@ -1112,16 +1128,20 @@ namespace Core
             if (!TryRollbackPhase(previousPhase, out string rollbackReason))
             {
                 reason = $"{reason}；阶段回滚失败：{rollbackReason}";
-                RestoreActiveHuntRuntime(candidateSettlement, candidateHuntManager, null, active.ExpeditionId, candidateDestinationState);
                 if (previousSettlement != null)
                     campaignRuntime.ReleaseSettlement(previousSettlement);
+                if (previousHunt != null)
+                    campaignRuntime.ReleaseHunt(previousHunt);
+                PlayableHuntDestinationRuntime.RestoreState(candidateDestinationState);
                 stableCampaignPayload = candidatePayload;
                 return false;
             }
+            RestoreActiveHuntGenerations(candidateSettlement, previousSettlement, candidateHunt, previousHunt, previousDestinationState);
+            campaignRuntime.ReleaseHunt(candidateHunt);
             campaignRuntime.ReleaseSettlement(candidateSettlement);
-            if (previousPhase == GamePhase.Hunt && previousHuntManager != null)
+            if (previousPhase == GamePhase.Hunt && previousHunt != null)
             {
-                _huntVisualizer?.Init(previousHuntManager, huntExplorationRuntime?.Port);
+                _huntVisualizer?.Init(previousHunt.Manager, previousHunt.ExplorationPort);
                 EnsureHuntRetreatPanel();
                 EnsureHuntUI();
             }
@@ -1133,14 +1153,12 @@ namespace Core
             return false;
         }
 
-        private void RestoreActiveHuntRuntime(IPlayableSettlementRuntime settlement, HuntManager huntManager, PlayableHuntActionSession huntSession, string expeditionId, PlayableHuntDestinationRuntime.RuntimeState destinationState)
+        private void RestoreActiveHuntGenerations(IPlayableSettlementRuntime currentSettlement, IPlayableSettlementRuntime previousSettlement, IPlayableHuntRuntime currentHunt, IPlayableHuntRuntime previousHunt, PlayableHuntDestinationRuntime.RuntimeState destinationState)
         {
-            if (!ReferenceEquals(settlementRuntime, settlement) && !campaignRuntime.TrySwapSettlement(settlementRuntime, settlement, out string reason))
-                throw new System.InvalidOperationException($"恢复营地运行世代失败：{reason}");
-            _huntMgr = huntManager;
-            huntActionSession = huntSession;
-            huntExplorationRuntime = huntSession == null ? null : new HuntExplorationRuntime(huntManager, huntSession);
-            activeExpeditionId = expeditionId;
+            if (!campaignRuntime.TrySwapHunt(currentHunt, previousHunt, out string huntReason))
+                throw new System.InvalidOperationException($"恢复狩猎运行世代失败：{huntReason}");
+            if (!campaignRuntime.TrySwapSettlement(currentSettlement, previousSettlement, out string settlementReason))
+                throw new System.InvalidOperationException($"恢复营地运行世代失败：{settlementReason}");
             PlayableHuntDestinationRuntime.RestoreState(destinationState);
         }
 
@@ -1268,6 +1286,7 @@ namespace Core
         public SettlementInstance SettlementData => campaignStarted ? _settlementManager?.Data : null;
         public IReadOnlyList<CraftRecipe> SettlementRecipes => campaignStarted && _settlementManager?.Workshop?.AllRecipes != null ? _settlementManager.Workshop.AllRecipes : System.Array.Empty<CraftRecipe>();
         public IReadOnlyList<HunterInstance> ActiveHuntHunters => _huntMgr != null ? _huntMgr.ActiveHunters : System.Array.Empty<HunterInstance>();
+        public IPlayableHuntRuntime ActiveHuntRuntime => campaignStarted && CurrentGamePhase is GamePhase.Hunt or GamePhase.BossFight ? huntRuntime : null;
         public bool IsHuntActionSessionActive => huntActionSession?.IsActive == true;
         public bool IsHuntActionSessionRunning => huntActionSession?.IsRunning == true;
         public bool IsHuntReturnInFlight => huntReturnRecoveryInFlight;
@@ -1731,23 +1750,34 @@ namespace Core
                 return retryTransition.Succeeded ? HuntRetreatCommandResult.Success(_pendingHuntRecord) : HuntRetreatCommandResult.Failed(retryTransition.Reason);
             }
 
+            IPlayableHuntRuntime sourceHunt = huntRuntime;
+            IPlayableSettlementRuntime sourceSettlement = settlementRuntime;
             huntRetreatInFlight = true;
             try
             {
-                HuntRetreatCommandResult retreat = await huntActionSession.PrepareRetreatAsync(_settlementManager.Data.CurrentYear, this.GetCancellationTokenOnDestroy());
+                HuntRetreatCommandResult retreat = await sourceHunt.ActionSession.PrepareRetreatAsync(sourceSettlement.Manager.Data.CurrentYear, this.GetCancellationTokenOnDestroy());
                 if (!retreat.Succeeded)
                     return retreat;
+                if (!ReferenceEquals(huntRuntime, sourceHunt) || !ReferenceEquals(settlementRuntime, sourceSettlement))
+                    return HuntRetreatCommandResult.Failed("回营准备期间权威运行世代已经变化，请在当前阶段重试。");
 
                 _pendingHuntRecord = retreat.Record;
-                _settlementManager.Data.PendingHuntReturn = retreat.Record;
+                sourceSettlement.Manager.Data.PendingHuntReturn = retreat.Record;
                 if (!await TrySaveCampaignAsync(false, this.GetCancellationTokenOnDestroy()))
                 {
-                    _settlementManager.Data.PendingHuntReturn = null;
+                    sourceSettlement.Manager.Data.PendingHuntReturn = null;
                     _pendingHuntRecord = null;
                     return HuntRetreatCommandResult.Failed("无法建立可靠的回营检查点，请留在狩猎阶段重试。");
                 }
+                if (!ReferenceEquals(huntRuntime, sourceHunt) || !ReferenceEquals(settlementRuntime, sourceSettlement))
+                {
+                    sourceSettlement.Manager.Data.PendingHuntReturn = null;
+                    if (ReferenceEquals(_pendingHuntRecord, retreat.Record))
+                        _pendingHuntRecord = null;
+                    return HuntRetreatCommandResult.Failed("保存回营检查点期间权威运行世代已经变化。");
+                }
 
-                huntActionSession.SetReturnCheckpointLock(true);
+                sourceHunt.ActionSession.SetReturnCheckpointLock(true);
                 preparedHuntExit = true;
                 CampaignPhaseTransitionResult transition = await TransitionToPhaseAsync(GamePhase.Settlement);
                 if (transition.Succeeded)
@@ -1755,15 +1785,16 @@ namespace Core
 
                 preparedHuntExit = false;
                 _pendingHuntRecord = null;
-                _settlementManager.Data.PendingHuntReturn = null;
+                sourceSettlement.Manager.Data.PendingHuntReturn = null;
                 if (!await TrySaveCampaignAsync(true, this.GetCancellationTokenOnDestroy()))
                 {
                     preparedHuntExit = true;
                     _pendingHuntRecord = retreat.Record;
-                    _settlementManager.Data.PendingHuntReturn = retreat.Record;
+                    sourceSettlement.Manager.Data.PendingHuntReturn = retreat.Record;
                     return HuntRetreatCommandResult.Failed("阶段切换被拒绝，且回营检查点尚未安全撤销；请直接重试回营。");
                 }
-                huntActionSession.SetReturnCheckpointLock(false);
+                if (ReferenceEquals(huntRuntime, sourceHunt))
+                    sourceHunt.ActionSession.SetReturnCheckpointLock(false);
                 return HuntRetreatCommandResult.Failed(transition.Reason);
             }
             catch (System.OperationCanceledException)
@@ -2072,8 +2103,16 @@ namespace Core
         private void CommitPreparedHuntExit()
         {
             preparedHuntExit = false;
-            activeExpeditionId = null;
-            _huntMgr = null;
+            ReleaseCurrentHuntRuntime();
+        }
+
+        private void ReleaseCurrentHuntRuntime()
+        {
+            IPlayableHuntRuntime current = huntRuntime;
+            if (current == null) return;
+            if (!campaignRuntime.TrySwapHunt(current, null, out string reason))
+                throw new System.InvalidOperationException(reason);
+            campaignRuntime.ReleaseHunt(current);
         }
 
         private void EnterBossFightPhase()
@@ -2270,8 +2309,7 @@ namespace Core
                 DisposeSettlementActionSession();
                 DisposeHuntActionSession();
                 CleanupHuntPresentation();
-                _huntMgr = null;
-                activeExpeditionId = string.Empty;
+                ReleaseCurrentHuntRuntime();
                 stableCampaignPayload = string.Empty;
                 IPlayableSettlementRuntime previousSettlement = settlementRuntime;
                 if (!campaignRuntime.TryPrepareNewSettlement(out IPlayableSettlementRuntime candidateSettlement, out string prepareReason))
@@ -2345,8 +2383,11 @@ namespace Core
             _settlementTable3D?.Refresh();
         }
 
-        private void OnHuntCheckpointCommitted()
+        private void OnHuntCheckpointCommitted() => OnHuntCheckpointCommitted(huntRuntime);
+
+        private void OnHuntCheckpointCommitted(IPlayableHuntRuntime source)
         {
+            if (!ReferenceEquals(huntRuntime, source)) return;
             if (CurrentGamePhase != GamePhase.Hunt || huntActionSession?.IsActive != true || huntActionSession.IsRunning) return;
             if (!TryCaptureCampaignPayload(true, out string payload, out string reason))
             {
@@ -2389,7 +2430,7 @@ namespace Core
         private async UniTask<bool> FinalizePreparedSettlementAsync(SettlementInstance data, string candidatePayload)
         {
             if (!ReferenceEquals(data, _settlementManager?.Data) || CurrentGamePhase != GamePhase.Settlement || settlementActionSession?.IsActive != true) return false;
-            _huntMgr = null;
+            ReleaseCurrentHuntRuntime();
             stableCampaignPayload = candidatePayload;
             settlementEventRestoreProjection = settlementRuntime.CreateEventRestoreCandidate();
             if (data.PendingHuntReturn != null)
@@ -2503,8 +2544,8 @@ namespace Core
             {
                 DisposeHuntActionSession();
                 CleanupHuntPresentation();
+                ReleaseCurrentHuntRuntime();
             }
-            _huntMgr = null;
             stableCampaignPayload = candidatePayload;
             data = candidateSettlementManager.Data;
             settlementEventRestoreProjection = candidateSettlement.CreateEventRestoreCandidate();

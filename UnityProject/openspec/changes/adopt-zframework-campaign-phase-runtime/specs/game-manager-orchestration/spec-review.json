@@ -6,16 +6,25 @@
   "readiness": "implemented",
   "verification": {
     "status": "implemented",
-    "summary": "ZFramework Campaign Runtime Module 已独占阶段 FSM、共享 registry、Campaign Runner 和完整 Settlement generation，GameManager 通过当前代际 lease 保持原有非决战流程。",
+    "summary": "ZFramework Campaign Runtime Module 已独占阶段 FSM、共享 registry、Campaign Runner 和 Settlement/Hunt generations，GameManager 通过当前代际 lease 保持原有非决战流程。",
     "codeEvidence": [
       {
         "guid": "14ce1f834e26c5e4092eee2a5a0b887d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
-        "fileHash": "2994fe59dfbb947f82d2551e4b053a5734c8c9707fd2000faf1e14840c9dae75",
+        "fileHash": "937a4fe5a33297c6072e2a8b0cb283543df7f7e4d9696aa7e9eb8f25345b72cf",
         "line": 22,
         "feature": "Module 独占阶段 FSM、共享 ActionEnvironment scope，并跟踪 current/detached Settlement generations",
         "status": "verified",
-        "checkedAt": "2026-08-25T02:55:21-07:00"
+        "checkedAt": "2026-08-25T03:15:00-07:00"
+      },
+      {
+        "guid": "3ce6772a51424b9ba698cb89712380db",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableHuntRuntime.cs",
+        "fileHash": "8b9034dc0a6eac5fa2da849055a23ef761d316039e9accb15c675de56bf56b31",
+        "line": 8,
+        "feature": "Hunt generation 统一拥有 Manager、远征身份、玩法 ActionSession 与探索环境",
+        "status": "verified",
+        "checkedAt": "2026-08-25T03:15:00-07:00"
       },
       {
         "guid": "a8c0150ffdb443a3908eef028ea39a7f",
@@ -29,29 +38,29 @@
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-        "fileHash": "fe08d0e395e8a9851dc0957679aca025dfa5a4d3170be678341ee1ee0e540bf0",
+        "fileHash": "42edc3f088408a5c66b9ad282d5bae19e2353b40707732b8a8432246114e5f0a",
         "line": 153,
-        "feature": "GameManager 使用 prepare/CAS swap/release 编排营地恢复，并只读取 runtime 当前 generation",
+        "feature": "GameManager 使用 prepare/CAS swap/release 编排 Settlement/Hunt 恢复，并校验异步结果来源 generation",
         "status": "verified",
-        "checkedAt": "2026-08-25T02:55:21-07:00"
+        "checkedAt": "2026-08-25T03:15:00-07:00"
       },
       {
         "guid": "860c7509a68a0ad4a85b4210d362c813",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
-        "fileHash": "c8cbf8754c91c983fdf4a162a7d80890edfaf46d2e913aa33b3e57cf1f5e4acc",
+        "fileHash": "53b9427add9b2d6a2364a983c10fd022497b5edd50fda8a1f60df7f94f8af1f1",
         "line": 19,
-        "feature": "验证 Settlement CAS、rollback、current 释放门禁及 Reset 释放所有世代",
+        "feature": "验证 Settlement/Hunt CAS、rollback、current 释放门禁及 Reset 释放所有世代",
         "status": "verified",
-        "checkedAt": "2026-08-25T02:55:21-07:00"
+        "checkedAt": "2026-08-25T03:15:00-07:00"
       },
       {
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-        "fileHash": "96347f2783108abd1634d470b3dbc2c5734d9df9367d90f0f9338e23c5dfe6b1",
+        "fileHash": "171b57c6bb24d7e80553cff0f3ac089f693a871488942cfe1cc665b33c1d42ff",
         "line": 95,
         "feature": "验证营地出猎、回营、制造装备、继续游戏与活动狩猎恢复闭环",
         "status": "verified",
-        "checkedAt": "2026-08-25T02:55:21-07:00"
+        "checkedAt": "2026-08-25T03:15:00-07:00"
       },
       {
         "guid": "10a5fdf3ba146c94ea83e0afd4a0131a",
@@ -66,14 +75,14 @@
     "evidence": [
       "Unity CLI 编译通过。",
       "ActionEnvironment/Campaign Runner EditMode 13/13。",
-      "Campaign Runtime Module PlayMode 8/8。",
+      "Campaign Runtime Module PlayMode 10/10。",
       "Settlement 事件恢复投影 EditMode 11/11。",
       "GameManager 非决战战役循环 PlayMode 12/12。"
     ],
     "differences": [
-      "正式 Spec 尚未表达 Module 对共享 ActionEnvironment scope、Settlement generation CAS 与阶段 Session 生命周期的所有权。"
+      "正式 Spec 尚未表达 Module 对共享 ActionEnvironment scope、Settlement/Hunt generation CAS 与阶段 Session 生命周期的所有权。"
     ],
-    "verifiedAt": "2026-08-25T02:55:21-07:00"
+    "verifiedAt": "2026-08-25T03:15:00-07:00"
   },
   "gapIds": [],
   "dependencyIds": [],
@@ -83,8 +92,8 @@
   ],
   "implementationOutline": [
     "GameModule 暴露唯一 Campaign Runtime Module。",
-    "Module 建立独占 runtime lease，并在 lease 内创建、重置和销毁 PhaseManager、registry、Campaign Runner 与 Settlement generations。",
-    "Settlement generation 通过引用 CAS 交换 Manager、ActionSession 和恢复投影；事务结束后释放 detached 世代。",
+    "Module 建立独占 runtime lease，并在 lease 内创建、重置和销毁 PhaseManager、registry、Campaign Runner 与 Settlement/Hunt generations。",
+    "Settlement/Hunt generations 通过引用 CAS 交换各自权威状态；事务结束后释放 detached 世代。",
     "Settlement/Hunt/Combat Session attach 到同一个 registry；GameManager 通过 lease 请求玩家阶段命令。"
   ],
   "reviewIssues": [

@@ -1,6 +1,6 @@
 ## Context
 
-现有非决战年度闭环已可运行，但 `GameManager` 同时拥有 Unity 场景引用、阶段 FSM、跨阶段 ActionEnvironment scope 和营地运行态。本阶段迁移同属一个战役世代的 FSM、共享 registry、发明安装租约与 Campaign Runner，并将 SettlementManager、Settlement ActionSession 和事件恢复投影收敛为可交换的营地 generation。Hunt/Combat 运行态暂不迁移。
+现有非决战年度闭环已可运行，但 `GameManager` 同时拥有 Unity 场景引用、阶段 FSM、跨阶段 ActionEnvironment scope 和阶段运行态。本阶段迁移同属一个战役世代的 FSM、共享 registry、发明安装租约与 Campaign Runner，并将 Settlement 与 Hunt 运行对象分别收敛为可交换 generation。Combat 运行态暂不迁移。
 
 ## Decisions
 
@@ -36,9 +36,17 @@ Campaign Runtime 通过只安装一次的组合配置接收出猎端口和 Actio
 
 SettlementManager/Data 与 generation 同寿命，跨 Hunt 阶段继续存在。Settlement ActionSession 只在 Settlement 阶段激活，离营时由 generation 释放，回营时使用同一 Manager 和共享 installer registry 重建。工厂先在局部构造候选 Session，成功后才发布；失效旧 Session 先退休，避免两个 Session 同时写同一 SettlementInstance。
 
+### 狩猎状态按 generation 原子交换
+
+Hunt generation 统一持有 HuntManager、不可变远征 ID、PlayableHuntActionSession 与 HuntExplorationRuntime。新远征和活动狩猎恢复均先准备 detached generation，再通过当前引用 CAS 发布；恢复同时交换 Settlement 与 Hunt 时按 Settlement→Hunt 发布、Hunt→Settlement 回滚。Hunt→BossFight 只停用玩法 Session/探索环境并保留 Manager 与远征身份，正式回营才退役整个 generation。
+
+### 异步结果绑定来源世代
+
+Manager 的遭遇与完成回调、Session 的检查点回调及撤退异步流程都捕获来源 generation。提交结果前必须与 Campaign Runtime 当前 Hunt/Settlement 引用一致；迟到的旧世代回调静默失效，避免污染新远征。
+
 ## Risks / Trade-offs
 
-- 本阶段没有迁移 Hunt Manager/Hunt ActionSession、稳定存档载荷或表现事务，`GameManager` 仍负责跨系统编排。
+- 本阶段没有迁移稳定存档载荷、表现事务或 Combat 运行态，`GameManager` 仍负责跨系统编排。
 - 开发者读档在候选回营记录执行失败后延续原有策略：保留已发布候选及门禁，而非恢复已退休狩猎表现；正式继续游戏启动失败则 Reset 整个候选世代。
 - 当前 lease 在场景宿主销毁时一并释放；无场景 Host 的跨场景常驻运行态留到后续迁移职责簇。
 - `PhaseManager` 仍复用固定 FSM 名称；独占 lease 是当前防止同名争用的门禁。

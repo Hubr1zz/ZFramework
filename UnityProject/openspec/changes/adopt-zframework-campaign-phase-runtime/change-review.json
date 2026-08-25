@@ -10,22 +10,22 @@
   "approvalStatus": "draft",
   "approvedBy": "",
   "approvedAt": "",
-  "implementationNotes": "阶段 FSM、跨阶段 ActionEnvironment scope 与完整 Settlement generation 所有权迁移已完成；Hunt/Combat 运行态后续按簇迁移，本 Change 未自动改写正式 Spec。",
+  "implementationNotes": "阶段 FSM、跨阶段 ActionEnvironment scope 与 Settlement/Hunt generations 所有权迁移已完成；Combat 运行态后续按簇迁移，本 Change 未自动改写正式 Spec。",
   "verification": {
     "status": "implemented",
-    "summary": "Unity 编译、ActionEnvironment/Campaign Runner 13 项、Campaign Runtime generation 8 项、营地恢复投影 11 项与非决战战役循环 12 项验证通过。",
+    "summary": "Unity 编译、Campaign Runtime generation 10 项与非决战战役循环 12 项验证通过；既有 ActionEnvironment/Campaign Runner 13 项及营地恢复投影 11 项证据保持有效。",
     "codeEvidence": [],
     "evidence": [
       "Unity CLI Compile 通过。",
       "ActionEnvironment/Campaign Runner EditMode 13/13。",
-      "PlayableCampaignRuntimeModuleTests 8/8。",
+      "PlayableCampaignRuntimeModuleTests 10/10。",
       "SettlementEventRestoreProjectionTests 11/11。",
       "GameManagerCampaignLoopPlayModeTests 12/12。"
     ],
     "differences": [
-      "正式 Spec 仍表述 GameManager 直接委托 PhaseManager；实现增加 ZFramework Module、代际 lease 和 Settlement generation CAS，统一拥有 FSM、共享 registry、Campaign Runner、SettlementManager、Settlement ActionSession 与恢复投影。"
+      "正式 Spec 仍表述 GameManager 直接委托 PhaseManager；实现增加 ZFramework Module、代际 lease 及 Settlement/Hunt generation CAS，统一拥有 FSM、共享 registry、Campaign Runner 与两个阶段运行世代。"
     ],
-    "verifiedAt": "2026-08-25T02:55:21-07:00"
+    "verifiedAt": "2026-08-25T03:15:00-07:00"
   },
   "reviewIssues": [
     {
@@ -34,8 +34,8 @@
       "severity": "warning",
       "status": "open",
       "blocksApproval": true,
-      "summary": "确认由 ZFramework Campaign Runtime Module 取代 GameManager 对阶段 FSM、跨阶段 ActionEnvironment scope 与完整 Settlement generation 的直接所有权。",
-      "details": "批准本 Change 不表示 Hunt/Combat 阶段运行态或稳定存档载荷已完成迁移。",
+      "summary": "确认由 ZFramework Campaign Runtime Module 取代 GameManager 对阶段 FSM、跨阶段 ActionEnvironment scope 与 Settlement/Hunt generations 的直接所有权。",
+      "details": "批准本 Change 不表示 Combat 运行态或稳定存档载荷已完成迁移。",
       "sourceId": "conversation::2026-08-25",
       "acceptedBy": "",
       "acceptedAt": "",
@@ -64,8 +64,8 @@
     "status": "baseline-captured",
     "summary": "正式 Spec 基线哈希已记录，尚未同步。",
     "changes": [
-      "阶段 FSM、共享 registry、Campaign Runner 与 Settlement generation 改由 ZFramework Module 独占持有。",
-      "增加 generation prepare/CAS swap/release、阶段 Session 生命周期、失败 Reset、ActionQueue 无旁路与幂等释放契约。"
+      "阶段 FSM、共享 registry、Campaign Runner 与 Settlement/Hunt generations 改由 ZFramework Module 独占持有。",
+      "增加 generation prepare/CAS swap/release、阶段 Session 生命周期、来源世代异步校验、失败 Reset、ActionQueue 无旁路与幂等释放契约。"
     ],
     "conflicts": [],
     "validatedAt": "2026-08-25T02:25:18-07:00"

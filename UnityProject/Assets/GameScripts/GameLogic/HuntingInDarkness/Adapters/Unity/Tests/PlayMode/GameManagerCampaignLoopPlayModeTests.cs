@@ -105,7 +105,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             SettlementDepartureCommandResult departureResult = departure.GetResult();
             Assert.That(departureResult.Succeeded, Is.True, departureResult.Reason);
 
-            HuntManager huntManager = GetPrivateField<HuntManager>(manager, "_huntMgr");
+            HuntManager huntManager = manager.ActiveHuntRuntime.Manager;
             ItemData blackSalt = PlayableSettlementItemRegistry.Items.Single(item => item.ContentId == "black_salt");
             HunterInstance activeHunter = manager.ActiveHuntHunters.Single(hunter => hunter.InstanceId == hunterId);
             var resourceCommand = new HuntEventResourceCommand(huntManager);
@@ -165,7 +165,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return WaitForCompletion(buildDeparture);
             SettlementDepartureCommandResult buildDepartureResult = buildDeparture.GetResult();
             Assert.That(buildDepartureResult.Succeeded, Is.True, buildDepartureResult.Reason);
-            HuntManager restoredHuntManager = GetPrivateField<HuntManager>(restoredManager, "_huntMgr");
+            HuntManager restoredHuntManager = restoredManager.ActiveHuntRuntime.Manager;
             Assert.That(restoredHuntManager.NoiseProfile.TryCreatePlan(restoredManager.ActiveHuntHunters, out NoiseCheckPlan buildNoisePlan), Is.True);
             Assert.That(buildNoisePlan.NoiseScore, Is.Zero, "盐纹护符应在下一次狩猎中抵消单人队伍的基础噪音。");
             Assert.That(buildNoisePlan.DangerCardCount, Is.Zero);
@@ -335,7 +335,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             SettlementDepartureCommandResult departureResult = departure.GetResult();
             Assert.That(departureResult.Succeeded, Is.True, departureResult.Reason);
 
-            PlayableHuntActionSession huntSession = GetPrivateField<PlayableHuntActionSession>(manager, "huntActionSession");
+            PlayableHuntActionSession huntSession = manager.ActiveHuntRuntime.ActionSession;
             InvokePrivate(huntSession, "LockEncounterHandoff");
             Assert.That(GetPrivateField<bool>(huntSession, "gameplayLocked"), Is.True);
             var request = new CampaignEncounterRequest(huntSession.SessionId, "missing-encounter", CampaignEncounterSourceKind.HuntEvent, GamePhase.Hunt, Vector2Int.zero, "test-event", GetDestination(initialYear).DestinationId);

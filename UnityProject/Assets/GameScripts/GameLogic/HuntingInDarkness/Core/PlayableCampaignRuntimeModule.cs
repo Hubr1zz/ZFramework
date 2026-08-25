@@ -20,6 +20,7 @@ namespace Core
         bool IsActionSessionActive { get; }
         bool IsActionSessionRunning { get; }
         IPlayableSettlementRuntime Settlement { get; }
+        IPlayableHuntRuntime Hunt { get; }
         IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers { get; }
         ReactorRegistry ActionReactors { get; }
         void ConfigureSettlementRuntime(PlayableSettlementRuntimeConfiguration configuration);
@@ -27,6 +28,11 @@ namespace Core
         bool TryPrepareSettlementRestore(SettlementInstance data, out IPlayableSettlementRuntime candidate, out string reason);
         bool TrySwapSettlement(IPlayableSettlementRuntime expectedCurrent, IPlayableSettlementRuntime replacement, out string reason);
         void ReleaseSettlement(IPlayableSettlementRuntime runtime);
+        void ConfigureHuntRuntime(PlayableHuntRuntimeConfiguration configuration);
+        bool TryPrepareNewHunt(IPlayableSettlementRuntime settlement, out IPlayableHuntRuntime candidate, out string reason);
+        bool TryPrepareHuntRestore(IPlayableSettlementRuntime settlement, string expeditionId, out IPlayableHuntRuntime candidate, out string reason);
+        bool TrySwapHunt(IPlayableHuntRuntime expectedCurrent, IPlayableHuntRuntime replacement, out string reason);
+        void ReleaseHunt(IPlayableHuntRuntime runtime);
         void EnsureGameplayRuntime(IActionEnvironmentInstaller gameplayInstaller);
         void Start(GamePhase initialPhase);
         bool TransitionTo(GamePhase phase);
@@ -82,13 +88,17 @@ namespace Core
             private Action<CampaignRuntime> release;
             private readonly ActionEnvironmentInstallerRegistry actionEnvironmentInstallers = new();
             private readonly HashSet<PlayableSettlementRuntime> settlementRuntimes = new();
+            private readonly HashSet<PlayableHuntRuntime> huntRuntimes = new();
             private Action<GamePhase, GamePhase> onPhaseTransition;
             private PhaseManager phaseManager;
             private PlayableCampaignActionSession actionSession;
             private IDisposable gameplayInstallation;
             private PlayableSettlementRuntimeConfiguration settlementConfiguration;
             private PlayableSettlementRuntime settlement;
+            private PlayableHuntRuntimeConfiguration huntConfiguration;
+            private PlayableHuntRuntime hunt;
             private long nextSettlementGenerationId;
+            private long nextHuntGenerationId;
             private bool disposed;
 
             public long GenerationId { get; }
@@ -97,6 +107,7 @@ namespace Core
             public bool IsActionSessionActive => actionSession?.IsActive == true;
             public bool IsActionSessionRunning => actionSession?.IsRunning == true;
             public IPlayableSettlementRuntime Settlement => settlement;
+            public IPlayableHuntRuntime Hunt => hunt;
             public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers => actionEnvironmentInstallers;
             public ReactorRegistry ActionReactors => actionSession?.Reactors;
 
@@ -198,6 +209,53 @@ namespace Core
                 settlementRuntimes.Remove(owned);
             }
 
+            public void ConfigureHuntRuntime(PlayableHuntRuntimeConfiguration configuration)
+            {
+                ThrowIfDisposed();
+                if (huntConfiguration != null)
+                    throw new InvalidOperationException("狩猎运行态配置已经安装。");
+                huntConfiguration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            }
+
+            public bool TryPrepareNewHunt(IPlayableSettlementRuntime settlement, out IPlayableHuntRuntime candidate, out string reason)
+                => TryPrepareHunt(settlement, Guid.NewGuid().ToString("N"), out candidate, out reason);
+
+            public bool TryPrepareHuntRestore(IPlayableSettlementRuntime settlement, string expeditionId, out IPlayableHuntRuntime candidate, out string reason)
+                => TryPrepareHunt(settlement, expeditionId, out candidate, out reason);
+
+            public bool TrySwapHunt(IPlayableHuntRuntime expectedCurrent, IPlayableHuntRuntime replacement, out string reason)
+            {
+                ThrowIfDisposed();
+                if (!ReferenceEquals(hunt, expectedCurrent))
+                {
+                    reason = "权威狩猎运行世代已变化，拒绝提交过期候选。";
+                    return false;
+                }
+                PlayableHuntRuntime next = replacement as PlayableHuntRuntime;
+                if (replacement != null && (next == null || !huntRuntimes.Contains(next) || !next.IsDetached))
+                {
+                    reason = "替换目标不是当前战役持有的可发布狩猎候选。";
+                    return false;
+                }
+                PlayableHuntRuntime previous = hunt;
+                previous?.Detach();
+                next?.Publish();
+                hunt = next;
+                reason = string.Empty;
+                return true;
+            }
+
+            public void ReleaseHunt(IPlayableHuntRuntime runtime)
+            {
+                ThrowIfDisposed();
+                if (runtime is not PlayableHuntRuntime owned || !huntRuntimes.Contains(owned))
+                    throw new InvalidOperationException("狩猎运行世代不属于当前战役。");
+                if (owned.IsCurrent)
+                    throw new InvalidOperationException("不能释放当前权威狩猎运行世代。");
+                owned.Dispose();
+                huntRuntimes.Remove(owned);
+            }
+
             public void Start(GamePhase initialPhase)
             {
                 ThrowIfDisposed();
@@ -235,6 +293,7 @@ namespace Core
             {
                 ThrowIfDisposed();
                 ResetGameplayRuntime();
+                ResetHuntRuntime();
                 ResetSettlementRuntime();
                 phaseManager.Shutdown();
                 phaseManager = CreatePhaseManager();
@@ -246,6 +305,7 @@ namespace Core
 
                 disposed = true;
                 ResetGameplayRuntime();
+                ResetHuntRuntime();
                 ResetSettlementRuntime();
                 actionEnvironmentInstallers.Dispose();
                 phaseManager?.Shutdown();
@@ -263,6 +323,7 @@ namespace Core
 
                 disposed = true;
                 ResetGameplayRuntime();
+                ResetHuntRuntime();
                 ResetSettlementRuntime();
                 actionEnvironmentInstallers.Dispose();
                 phaseManager?.Shutdown();
@@ -299,6 +360,43 @@ namespace Core
                 }
                 reason = "营地运行态组合配置尚未安装。";
                 return false;
+            }
+
+            private bool TryPrepareHunt(IPlayableSettlementRuntime settlementRuntime, string expeditionId, out IPlayableHuntRuntime candidate, out string reason)
+            {
+                ThrowIfDisposed();
+                candidate = null;
+                if (huntConfiguration == null)
+                {
+                    reason = "狩猎运行态组合配置尚未安装。";
+                    return false;
+                }
+                if (settlementRuntime is not PlayableSettlementRuntime ownedSettlement || !settlementRuntimes.Contains(ownedSettlement))
+                {
+                    reason = "狩猎运行态引用的营地世代不属于当前战役。";
+                    return false;
+                }
+                try
+                {
+                    var runtime = new PlayableHuntRuntime(++nextHuntGenerationId, expeditionId, ownedSettlement.Manager, huntConfiguration);
+                    huntRuntimes.Add(runtime);
+                    candidate = runtime;
+                    reason = string.Empty;
+                    return true;
+                }
+                catch (Exception exception)
+                {
+                    reason = $"准备狩猎运行世代失败：{exception.Message}";
+                    return false;
+                }
+            }
+
+            private void ResetHuntRuntime()
+            {
+                foreach (PlayableHuntRuntime runtime in huntRuntimes)
+                    runtime.Dispose();
+                huntRuntimes.Clear();
+                hunt = null;
             }
 
             private void ResetSettlementRuntime()

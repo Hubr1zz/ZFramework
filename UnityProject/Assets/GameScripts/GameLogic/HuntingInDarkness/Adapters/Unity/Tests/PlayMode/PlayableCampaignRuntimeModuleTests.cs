@@ -8,6 +8,7 @@ using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 
@@ -157,7 +158,55 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.Throws<ObjectDisposedException>(() => detached.CreateEventRestoreCandidate());
         }
 
+        [Test]
+        public void HuntSwap_RejectsStaleExpectedAndAllowsRollbackBeforeRelease()
+        {
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            ConfigureSettlementRuntime();
+            ConfigureHuntRuntime();
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime settlement, out string settlementReason), Is.True, settlementReason);
+            Assert.That(runtime.TrySwapSettlement(null, settlement, out string settlementSwapReason), Is.True, settlementSwapReason);
+            Assert.That(runtime.TryPrepareNewHunt(settlement, out IPlayableHuntRuntime first, out string firstReason), Is.True, firstReason);
+            Assert.That(runtime.TryPrepareNewHunt(settlement, out IPlayableHuntRuntime second, out string secondReason), Is.True, secondReason);
+            Assert.That(runtime.TrySwapHunt(null, first, out string firstSwapReason), Is.True, firstSwapReason);
+            Assert.That(first.TryActivateActionSession(null, out string activationReason), Is.False);
+            Assert.That(activationReason, Is.Not.Empty);
+            Assert.That(first.ActionSession, Is.Null);
+            Assert.That(first.Exploration, Is.Null);
+
+            Assert.That(runtime.TrySwapHunt(null, second, out string staleReason), Is.False);
+            Assert.That(staleReason, Is.Not.Empty);
+            Assert.That(runtime.Hunt, Is.SameAs(first));
+            Assert.That(runtime.TrySwapHunt(first, second, out string secondSwapReason), Is.True, secondSwapReason);
+            Assert.That(runtime.TrySwapHunt(second, first, out string rollbackReason), Is.True, rollbackReason);
+            runtime.ReleaseHunt(second);
+
+            Assert.That(runtime.Hunt, Is.SameAs(first));
+            Assert.That(first.ExpeditionId, Is.Not.Empty);
+            Assert.Throws<InvalidOperationException>(() => runtime.ReleaseHunt(first));
+        }
+
+        [Test]
+        public void Reset_DisposesCurrentAndDetachedHuntGenerations()
+        {
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            ConfigureSettlementRuntime();
+            ConfigureHuntRuntime();
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime settlement, out string settlementReason), Is.True, settlementReason);
+            Assert.That(runtime.TrySwapSettlement(null, settlement, out string settlementSwapReason), Is.True, settlementSwapReason);
+            Assert.That(runtime.TryPrepareNewHunt(settlement, out IPlayableHuntRuntime current, out string currentReason), Is.True, currentReason);
+            Assert.That(runtime.TryPrepareHuntRestore(settlement, "restored-expedition", out IPlayableHuntRuntime detached, out string detachedReason), Is.True, detachedReason);
+            Assert.That(runtime.TrySwapHunt(null, current, out string swapReason), Is.True, swapReason);
+
+            runtime.Reset();
+
+            Assert.That(runtime.Hunt, Is.Null);
+            Assert.Throws<ObjectDisposedException>(() => current.TryActivateActionSession(null, out _));
+            Assert.Throws<ObjectDisposedException>(() => detached.TryActivateActionSession(null, out _));
+        }
+
         private void ConfigureSettlementRuntime() => runtime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), _ => null));
+        private void ConfigureHuntRuntime() => runtime.ConfigureHuntRuntime(new PlayableHuntRuntimeConfiguration(settlement => new HuntManager(settlement.Events, bindInitialContent: false), (_, _) => null));
 
         private sealed class RecordingHost : ICampaignPhaseTransitionHost
         {

@@ -85,6 +85,28 @@ Settlement Manager/Data SHALL 跨阶段保持至 generation 退役；Settlement 
 - **THEN** 离营时旧 Settlement ActionSession 被释放
 - **AND** 回营时同一 generation 基于原 Manager/Data 创建新的 ActionSession
 
+### Requirement: Hunt runtime is replaced as one generation
+
+项目 SHALL 将 `HuntManager`、不可变远征 ID、`PlayableHuntActionSession` 与 `HuntExplorationRuntime` 作为同一个 Campaign Runtime 管理的狩猎 generation。新远征或活动狩猎恢复 MUST 先准备 detached generation，再以当前 generation 引用执行 CAS 交换；迟到的 Manager、Session 或撤退异步结果不得修改新的权威世代。
+
+#### Scenario: 活动狩猎恢复失败
+
+- **WHEN** 候选 Settlement 与 Hunt generations 已发布但阶段或 Hunt Session 恢复失败
+- **THEN** 系统按 Hunt 后 Settlement 的顺序换回旧 generations
+- **AND** 候选只在事务结果确定后释放
+
+#### Scenario: 狩猎进入遭遇
+
+- **WHEN** Hunt 阶段成功交接到 BossFight
+- **THEN** 当前 Hunt ActionSession 与探索环境被停用
+- **AND** HuntManager 与远征身份保持至战斗完成或正式回营
+
+#### Scenario: 旧世代异步结果迟到
+
+- **WHEN** 已退役 Hunt generation 的检查点、遭遇、完成或撤退结果在新世代发布后返回
+- **THEN** 结果因来源 generation 不匹配而被拒绝
+- **AND** 当前权威 Hunt 与 Settlement 状态保持不变
+
 ### Requirement: Player campaign commands always use ActionQueue
 
 战役启动完成后，玩家请求的阶段切换和遭遇开始 MUST 通过 runtime 内的 Campaign ActionSession 执行。若该 Session 不可用，命令 MUST 失败，不得直接调用阶段 Host 绕过 Reactor、Gate 或串行执行。
