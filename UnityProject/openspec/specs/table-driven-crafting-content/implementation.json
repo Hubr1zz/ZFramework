@@ -8,7 +8,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；狩猎素材可被原子消费并制造为具有不同噪音取向的装备。",
+    "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；狩猎素材可被原子消费并制造为噪音、距离与事件词条取向的装备。",
     "validatedAgainstSpecHash": "6a4ef60df7038afa3d184c09da3ad0b1cce241def704045feb91580b0dd4455b",
     "evidence": [
       {
@@ -33,7 +33,7 @@
         "guid": "b03cbb7b8c779d242836d8385b31e05b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
         "line": 1,
-        "fileHash": "217203263451b2ab9c9cd2ece67253822f33cde88750610f939b7eb9c19f473f",
+        "fileHash": "253315220df9a645407e95bb3a8cc147a36bb1733b8c1ff9721f6a10da8c6ca5",
         "status": "verified",
         "checkedAt": "2026-08-25T15:30:16-07:00",
         "feature": "覆盖稳定绑定、重复原料合并、歧义拒绝、混合来源引用和生产表制作闭环。"
@@ -42,14 +42,14 @@
         "guid": "156c7bea2196d0047b84b06aa2342495",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
         "line": 1,
-        "fileHash": "e09c67c9d412151dafe3ead0320f9c49692801d11bb05e667ad0fec9123f7934",
+        "fileHash": "029635669578f60df9f100019fedb6847b797a3fcd28a79024ebf4228d54ef65",
         "status": "verified",
         "checkedAt": "2026-08-25T15:30:16-07:00",
         "feature": "提供护符、盐晶短刃和菌绒裹衣三条基础制造路线。"
       }
     ],
     "tests": [
-      "PlayableRecipeTableTests: 6/6 passed",
+      "PlayableRecipeTableTests: 7/7 passed",
       "PlayableSettlementCraftActionTests: 4/4 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
     ],

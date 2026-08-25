@@ -249,6 +249,49 @@
       "maxYear": 0,
       "drawWeight": 1,
       "category": "Triggered"
+    },
+    {
+      "id": "random_echo_knot",
+      "eventName": "会记住名字的绳结",
+      "eventType": "Choice",
+      "displayText": "一段灰白筋腱缠在营地边缘的木桩上。每当有人叫出同伴的名字，绳结便会向那个方向收紧。",
+      "hiddenText": "你们没有找到编织它的人，却找到了几道从营地通往黑暗的旧足迹。",
+      "options": [
+        {
+          "optionText": "让携带回声词条的猎人听完绳结的记忆",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "绳结重复了几个早已无人记得的名字。猎人学会分辨声音从何处返回。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" },
+            { "effectType": "AddResource", "targetName": "echo_sinew", "value": 1, "description": "回声筋腱 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "echo", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "割下绳结，把它作为普通筋腱收藏",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "离开木桩后，筋腱不再复述名字，但仍是一份可用的材料。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "echo_sinew", "value": 1, "description": "回声筋腱 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Random"
     }
   ]
 }

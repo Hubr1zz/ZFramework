@@ -167,6 +167,30 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(settlement.GetStoredEquipment("fungal_hush_wrap"), Is.EqualTo(1));
         }
 
+        [Test]
+        public async Task RuntimeEchoRecipe_ConnectsHuntMaterialToCraftedWeapon()
+        {
+            List<ItemData> items = CreateRuntimeRecipeItems();
+            ItemData sinew = items.Find(item => item.ContentId == "echo_sinew");
+            ItemData stone = items.Find(item => item.ContentId == "broken_stone");
+            InventionData tools = CreateInvention("tools", "工具");
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
+            CraftRecipe recipe = FindRecipe(recipes, "绑制回声钩矛");
+            var settlement = new SettlementInstance();
+            settlement.AddResource(sinew, 1);
+            settlement.AddResource(stone, 1);
+            settlement.UnlockInvention(tools.ContentId);
+            var workshop = new WorkshopSystem(settlement, new InventionSystem(settlement)) { AllRecipes = new List<CraftRecipe>(recipes) };
+            using var session = new PlayableSettlementActionSession(settlement, new EmptyWeaponTrainingContent(), workshopSystem: workshop);
+
+            SettlementCraftCommandResult result = await session.CraftAsync(recipe);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(settlement.GetResource("echo_sinew"), Is.Zero);
+            Assert.That(settlement.GetResource("broken_stone"), Is.Zero);
+            Assert.That(settlement.GetStoredEquipment("echo_hook_spear"), Is.EqualTo(1));
+        }
+
         private List<ItemData> CreateRuntimeRecipeItems()
         {
             var items = new List<ItemData>(PlayableItemTableRuntime.GetItems())

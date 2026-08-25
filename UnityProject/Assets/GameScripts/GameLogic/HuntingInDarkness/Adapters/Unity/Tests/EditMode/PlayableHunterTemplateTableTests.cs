@@ -95,6 +95,16 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(entry.Recruitable, Is.True);
             Assert.That(entry.Template.startingEquipment, Has.Count.EqualTo(1));
             Assert.That(entry.Template.startingEquipment[0].ContentId, Is.EqualTo("salt_ward"));
+            HunterTemplateTableEntry listener = entries.Find(candidate => candidate.Template != null && candidate.Template.ContentId == "trail_listener_su");
+            HunterTemplateTableEntry mender = entries.Find(candidate => candidate.Template != null && candidate.Template.ContentId == "stone_mender_lin");
+            Assert.That(listener.Template, Is.Not.Null);
+            Assert.That(listener.Recruitable, Is.True);
+            Assert.That(listener.Template.startingEquipment[0].ContentId, Is.EqualTo("echo_hook_spear"));
+            Assert.That(listener.Template.startingTraits, Does.Contain("守望者"));
+            Assert.That(mender.Template, Is.Not.Null);
+            Assert.That(mender.Recruitable, Is.True);
+            Assert.That(mender.Template.startingEquipment[0].ContentId, Is.EqualTo("stonewatch_mantle"));
+            Assert.That(mender.Template.initialWillpower, Is.EqualTo(3));
             foreach (HunterTemplateTableEntry candidate in entries)
                 Object.DestroyImmediate(candidate.Template);
         }

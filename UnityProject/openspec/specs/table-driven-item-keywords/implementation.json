@@ -8,7 +8,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "物品表以稳定 ContentId 扩展现有 ItemData，统一标签与关键词后进入营地注册表；事件选项从权威猎人装备解析关键词，奖励仍在所属阶段 ActionQueue 事务内提交。",
+    "summary": "物品表以稳定 ContentId 扩展现有 ItemData，七件基础内容统一标签与关键词后进入营地注册表；事件选项从权威猎人装备解析关键词，奖励仍在所属阶段 ActionQueue 事务内提交。",
     "validatedAgainstSpecHash": "256d96bf9bc8459a5a7b8ae95261bc950bf203dc1f7294b51c5d4fbb4b46b111",
     "evidence": [
       {
@@ -33,7 +33,7 @@
         "guid": "fe099c7b81392504dbdb631b0d972301",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
         "line": 1,
-        "fileHash": "88200bdae711d40566de367a675d0998d8badcf3444bafe0d3335d90145309ba",
+        "fileHash": "a63e48d557398e74649cfc52c7287dd8a2b4edcd826de84e302771435391d640",
         "status": "verified",
         "checkedAt": "2026-08-25T15:30:16-07:00",
         "feature": "覆盖生产表加载、稳定身份、重复内容拒绝、装备数据及关键词归一化。"
@@ -42,14 +42,14 @@
         "guid": "8c2b910c19609904ea5a547a1ec3d80d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
         "line": 1,
-        "fileHash": "15be7aebdbd8e706dbed8521cba992627af59c2277f2d9f600192834fec7c020",
+        "fileHash": "f364b3dc569c9226a75bb5f4a2c4191ef7e0cbd3df7adfef2ed0c38743712bd1",
         "status": "verified",
         "checkedAt": "2026-08-25T15:30:16-07:00",
         "feature": "提供可被事件奖励、制作和装备闭环消费的资源及三种不同狩猎噪音取向装备。"
       }
     ],
     "tests": [
-      "PlayableItemTableTests: 6/6 passed",
+      "PlayableItemTableTests: 7/7 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
     ],
     "verifiedAt": "2026-08-25T15:30:16-07:00"

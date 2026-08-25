@@ -78,17 +78,17 @@
         "guid": "2a32e230eed309144a69d91ec3f752f4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
         "line": 1,
-        "fileHash": "e0187edaff7afb1afebb7fbf0b0e08d2f9ef2caec8c9080de4434256244aabdb",
+        "fileHash": "a41fc1412f957565bac8cb05dcd192a27f99518ee31e2068630a0c65475b2a80",
         "status": "verified",
         "checkedAt": "2026-08-25T14:50:04-07:00",
         "feature": "提供事件级、成功与失败直接分支的基础可玩内容，并保持延迟事件为独立 ScheduleEvent 效果。"
       }
     ],
     "tests": [
-      "PlayableEventChainOccurrenceQueueTests: 7/7 passed",
-      "SettlementEventRestoreProjectionTests: 13/13 passed",
-      "PlayableHuntEventOccurrenceStoreTests: 11/11 passed",
-      "PlayableConditionalEventOptionTests: 10/10 passed",
+      "PlayableEventChainOccurrenceQueueTests: 10/10 passed",
+      "SettlementEventRestoreProjectionTests: 14/14 passed",
+      "PlayableHuntEventOccurrenceStoreTests: 12/12 passed",
+      "PlayableConditionalEventOptionTests: 11/11 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed",
       "PlayableEventChoiceTransactionTests: 6/6 passed",
       "C# derived index: 989/989, 100% coverage"

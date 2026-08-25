@@ -49,6 +49,42 @@
       "outputCount": 1,
       "requiredInventionId": "tools",
       "requiredWorkshopId": ""
+    },
+    {
+      "id": "bind_echo_hook_spear",
+      "recipeName": "绑制回声钩矛",
+      "ingredients": [
+        {
+          "itemId": "echo_sinew",
+          "count": 1
+        },
+        {
+          "itemId": "broken_stone",
+          "count": 1
+        }
+      ],
+      "outputItemId": "echo_hook_spear",
+      "outputCount": 1,
+      "requiredInventionId": "tools",
+      "requiredWorkshopId": ""
+    },
+    {
+      "id": "sew_stonewatch_mantle",
+      "recipeName": "缝制守石斗篷",
+      "ingredients": [
+        {
+          "itemId": "mushroom_flesh",
+          "count": 1
+        },
+        {
+          "itemId": "broken_stone",
+          "count": 1
+        }
+      ],
+      "outputItemId": "stonewatch_mantle",
+      "outputCount": 1,
+      "requiredInventionId": "tools",
+      "requiredWorkshopId": ""
     }
   ]
 }

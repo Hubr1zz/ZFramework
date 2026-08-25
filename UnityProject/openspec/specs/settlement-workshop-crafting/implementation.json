@@ -8,7 +8,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，三条基础装备路线把狩猎素材转化为不同噪音取向的下一轮构筑。",
+    "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，五条基础装备路线把狩猎素材转化为噪音、距离与事件词条取向的下一轮构筑。",
     "validatedAgainstSpecHash": "ae50601ac43149a843e1b1fea0141f9ff53efb03050b87ca82f32258cf6e71a0",
     "evidence": [
       {
@@ -60,7 +60,7 @@
         "guid": "156c7bea2196d0047b84b06aa2342495",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
         "line": 1,
-        "fileHash": "e09c67c9d412151dafe3ead0320f9c49692801d11bb05e667ad0fec9123f7934",
+        "fileHash": "029635669578f60df9f100019fedb6847b797a3fcd28a79024ebf4228d54ef65",
         "status": "verified",
         "checkedAt": "2026-08-25T15:30:16-07:00",
         "feature": "以稳定 ID 配置护符、盐晶短刃和菌绒裹衣三条基础制作路线。"
@@ -69,7 +69,7 @@
         "guid": "b03cbb7b8c779d242836d8385b31e05b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
         "line": 1,
-        "fileHash": "217203263451b2ab9c9cd2ece67253822f33cde88750610f939b7eb9c19f473f",
+        "fileHash": "253315220df9a645407e95bb3a8cc147a36bb1733b8c1ff9721f6a10da8c6ca5",
         "status": "verified",
         "checkedAt": "2026-08-25T15:30:16-07:00",
         "feature": "验证混合来源素材、工具发明门禁和菌绒裹衣通过 Settlement ActionQueue 原子制作。"
@@ -86,8 +86,8 @@
     ],
     "tests": [
       "PlayableSettlementCraftActionTests: 4/4 passed",
-      "PlayableRecipeTableTests: 6/6 passed",
-      "PlayableItemTableTests: 6/6 passed",
+      "PlayableRecipeTableTests: 7/7 passed",
+      "PlayableItemTableTests: 7/7 passed",
       "PlayableEquipmentRulesTests: 4/4 passed",
       "PlayableHuntNoiseActionTests: 7/7 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed"

@@ -69,10 +69,19 @@
         "guid": "e7468c45d9904312aa60401b6c808d7d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHunterTemplateTableTests.cs",
         "line": 1,
-        "fileHash": "7a17d0a3680de0ef6577ccc9e723638c60d9f83e17adbef892ad0b19db3415bb",
+        "fileHash": "0c515e1195bb10351de8c5447b9069c60d13ef24bc1fd9ae1d49a8abcee57356",
         "status": "verified",
         "checkedAt": "2026-08-25T14:19:35-07:00",
         "feature": "验证稳定身份、装备持久 ID、表内基线内容、重复身份、未知装备、武器上限及资产冲突。"
+      },
+      {
+        "guid": "9d72aaead5aa4db893d5c2e3c3907270",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunters.json",
+        "line": 1,
+        "fileHash": "ab92db475532626e3f2086e1fc4fcc9e41e348ecabec9951735690cbfe97ceb4",
+        "status": "verified",
+        "checkedAt": "2026-08-25T16:01:38-07:00",
+        "feature": "提供三名稳定身份的可招募猎人，覆盖守火、守望与石语特性及三种不同初始构筑。"
       },
       {
         "guid": "10c709224cb4ab04daf99d3317273d8d",
@@ -111,7 +120,8 @@
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs:91",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HunterData.cs:82",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs:64",
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs:280"
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs:280",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunters.json:1"
   ],
   "publishedBy": {
     "mode": "direct-implementation-reconciliation",

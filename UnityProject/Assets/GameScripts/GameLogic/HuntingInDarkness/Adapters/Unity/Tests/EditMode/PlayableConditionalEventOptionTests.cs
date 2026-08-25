@@ -87,6 +87,41 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void EchoContent_ConnectsEquipmentKeywordsToSettlementAndHuntRewards()
+        {
+            ItemData echoWeapon = PlayableItemTableRuntime.GetItems().First(item => item.ContentId == "echo_hook_spear");
+            ItemData quietArmor = PlayableItemTableRuntime.GetItems().First(item => item.ContentId == "stonewatch_mantle");
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 9112) { Name = "回声猎人" };
+            hunter.Equipment.Add(new ItemInstance(echoWeapon));
+            hunter.Equipment.Add(new ItemInstance(quietArmor));
+            hunter.EquippedItemIds.Add(echoWeapon.ContentId);
+            hunter.EquippedItemIds.Add(quietArmor.ContentId);
+            settlement.Hunters.Add(hunter);
+
+            try
+            {
+                PlayableSettlementItemRegistry.Configure(PlayableItemTableRuntime.GetItems());
+                EventData settlementEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_echo_knot");
+                EventOption echoOption = settlementEvent.options.First(option => !option.alwaysAvailable);
+                EventData huntEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "hunt_singing_sinew");
+                EventOption quietOption = huntEvent.options.First(option => !option.alwaysAvailable);
+                var eventSystem = new EventSystem(settlement, new FirstRandom());
+
+                Assert.That(PlayableEventOptionAvailability.CanUse(echoOption, hunter, settlement, out string echoReason), Is.True, echoReason);
+                Assert.That(PlayableEventOptionAvailability.CanUse(quietOption, hunter, settlement, out string quietReason), Is.True, quietReason);
+                Assert.That(eventSystem.PrepareChoice(settlementEvent, settlementEvent.options.IndexOf(echoOption), hunter).CommitStandalone().Result.Success, Is.True);
+                Assert.That(eventSystem.PrepareChoice(huntEvent, huntEvent.options.IndexOf(quietOption), hunter).CommitStandalone().Result.Success, Is.True);
+                Assert.That(hunter.Understanding, Is.EqualTo(1));
+                Assert.That(settlement.GetResource("echo_sinew"), Is.EqualTo(3));
+            }
+            finally
+            {
+                PlayableSettlementItemRegistry.Configure(null);
+            }
+        }
+
+        [Test]
         public void BloodlineEvent_ActivatesOnlyMatchingInactiveHunter()
         {
             var settlement = new SettlementInstance();

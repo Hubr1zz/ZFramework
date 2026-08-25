@@ -136,6 +136,65 @@
       "maxYear": 0,
       "drawWeight": 1,
       "category": "Hunt"
+    },
+    {
+      "id": "hunt_singing_sinew",
+      "eventName": "哼唱的筋束",
+      "eventType": "Choice",
+      "displayText": "数条灰白筋束横跨在两块巨石之间，风每穿过一次，它们就多哼出一个人声。",
+      "hiddenText": "筋束不会歌唱。它们只是把过路者留下的声音一次次送回黑暗。",
+      "options": [
+        {
+          "optionText": "让携带安静词条的猎人压住震动后切取筋束",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "安静的材料吸收了震动。筋束没来得及发出警告就被收起。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "echo_sinew", "value": 2, "description": "回声筋腱 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "quiet", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "用力扯断一束并在回声聚拢前离开",
+          "checkType": "Strength",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在扯动筋束的猎人旁投掷一枚 d10",
+          "successText": "筋束应声断裂，你们在它呼唤出别的东西前带走了材料。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "echo_sinew", "value": 1, "description": "回声筋腱 +1" }
+          ],
+          "failText": "筋束把猎人的喘息放大数十次。队伍逃离时，他仍觉得有人在背后呼吸。",
+          "failEffects": [
+            { "effectType": "AddInsanity", "targetName": "selected", "value": 1, "description": "压抑 +1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "绕开筋束，不让它记住更多声音",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "哼唱在身后继续，但没有一声属于你们。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Hunt"
     }
   ]
 }

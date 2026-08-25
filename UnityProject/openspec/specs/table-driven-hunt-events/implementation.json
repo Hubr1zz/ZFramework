@@ -48,13 +48,13 @@
         "feature": "由活动 Hunt Runner 等待选择、物理判定、效果、子链与遭遇检查点。"
       },
       {
-        "guid": "2a32e230eed309144a69d91ec3f752f4",
-        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
+        "guid": "6a052d984b59f624f9a084bb3ee4204f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
         "line": 1,
-        "fileHash": "e0187edaff7afb1afebb7fbf0b0e08d2f9ef2caec8c9080de4434256244aabdb",
+        "fileHash": "b43c63c80c85fb574452444ecac58e61cdd52c7db35f07ccaaf0656e3caacc4c",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:14:24-07:00",
-        "feature": "提供包含物理骰子、抽卡、资源、伤势和直接分支的基础 Hunt 内容。"
+        "checkedAt": "2026-08-25T16:01:38-07:00",
+        "feature": "提供包含物理骰子、抽卡、资源、伤势、装备词条条件和直接分支的基础 Hunt 内容。"
       }
     ],
     "tests": [
@@ -73,7 +73,8 @@
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs:251",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentCatalog.cs:8",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntEventSystem.cs:1",
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs:252"
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs:252",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json:1"
   ],
   "publishedBy": { "mode": "direct-implementation-conformance", "changeId": "" }
 }

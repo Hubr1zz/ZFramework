@@ -108,6 +108,25 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void RuntimeTable_ProvidesEchoMaterialWeaponAndWatcherArmor()
+        {
+            ItemData sinew = FindRuntimeItem("echo_sinew");
+            ItemData spear = FindRuntimeItem("echo_hook_spear");
+            ItemData mantle = FindRuntimeItem("stonewatch_mantle");
+
+            Assert.That(sinew, Is.Not.Null);
+            Assert.That(sinew.itemType, Is.EqualTo(ItemType.Resource));
+            Assert.That(sinew.keywords, Does.Contain("echo"));
+            Assert.That(spear, Is.Not.Null);
+            Assert.That(spear.weaponStats.range, Is.EqualTo(2));
+            Assert.That(spear.keywords, Is.SupersetOf(new[] { "echo", "reach" }));
+            Assert.That(mantle, Is.Not.Null);
+            Assert.That(mantle.armorStats.armorLegs, Is.EqualTo(1));
+            Assert.That(mantle.HuntNoise, Is.EqualTo(-1));
+            Assert.That(mantle.keywords, Does.Contain("quiet"));
+        }
+
+        [Test]
         public void SettlementPlan_RejectsItemWithoutExplicitStableId()
         {
             ItemData item = ScriptableObject.CreateInstance<ItemData>();

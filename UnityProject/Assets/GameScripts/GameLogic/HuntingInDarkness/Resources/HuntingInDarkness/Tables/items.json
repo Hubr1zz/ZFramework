@@ -53,6 +53,46 @@
       },
       "stackLimit": 1,
       "huntNoise": -1
+    },
+    {
+      "id": "echo_sinew",
+      "itemName": "回声筋腱",
+      "itemType": "Resource",
+      "description": "从石缝深处抽出的灰白筋束，绷紧时会复述附近最近的声音。",
+      "tags": ["Organ", "Rare"],
+      "keywords": ["echo", "flexible"],
+      "stackLimit": 99
+    },
+    {
+      "id": "echo_hook_spear",
+      "itemName": "回声钩矛",
+      "itemType": "Weapon",
+      "description": "以回声筋腱绑紧的长柄石钩，能在危险边缘拖拽目标。",
+      "tags": ["Gear", "Weapon", "Stone", "Organ", "Rare"],
+      "keywords": ["echo", "reach", "stone"],
+      "weaponStats": {
+        "speed": 1,
+        "power": 2,
+        "accuracy": 1,
+        "range": 2,
+        "specialRule": "回声与长柄词条可解锁特殊事件选项。"
+      },
+      "stackLimit": 1,
+      "huntNoise": 0
+    },
+    {
+      "id": "stonewatch_mantle",
+      "itemName": "守石斗篷",
+      "itemType": "Armor",
+      "description": "菌丝缝入薄石片的披风，移动时石片会先于穿戴者感知震动。",
+      "tags": ["Gear", "Cloth", "Stone", "Herb"],
+      "keywords": ["stone", "quiet", "watcher"],
+      "armorStats": {
+        "armorBody": 1,
+        "armorLegs": 1
+      },
+      "stackLimit": 1,
+      "huntNoise": -1
     }
   ]
 }

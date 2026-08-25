@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "0c5924b517ce2a65d10d677f63960b1161e6e21385af18a080590f3cf9afc95a",
-  "inputManifestDigest": "4c51af4c71c0c6df6191fdccb0683fc9f4d9502f301aa381f258b659de3281e4",
-  "outputDigest": "d6c5f89bc6978f8559631cea9d82d59bf8df53abf1f91f43622e4b0291d4e16e",
+  "inputDigest": "621bf862c8f6caf62246cc99287a40531eca9e2aabd220a2c8a037506e34487e",
+  "inputManifestDigest": "377f457fea377f107dd8d4760ac86a14ec0b480bf8f530d283b93b20ca32b8b3",
+  "outputDigest": "a594817a54ded045fbab3021db7f66cde34bb7b50bc16e3cb20975c954ceb323",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -407,7 +407,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
-      "sha256": "c54a2582486bef72baf321b3b9e001f82d275954b2f59f4c25c430348e594970",
+      "sha256": "a030126fcc800fc4031776004f49bf62e69ca99ab545c1002328df353c81db80",
       "state": "current"
     },
     {
@@ -452,7 +452,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHunterTemplateTableTests.cs",
-      "sha256": "7a17d0a3680de0ef6577ccc9e723638c60d9f83e17adbef892ad0b19db3415bb",
+      "sha256": "0c515e1195bb10351de8c5447b9069c60d13ef24bc1fd9ae1d49a8abcee57356",
       "state": "current"
     },
     {
@@ -462,12 +462,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-      "sha256": "88200bdae711d40566de367a675d0998d8badcf3444bafe0d3335d90145309ba",
+      "sha256": "a63e48d557398e74649cfc52c7287dd8a2b4edcd826de84e302771435391d640",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-      "sha256": "217203263451b2ab9c9cd2ece67253822f33cde88750610f939b7eb9c19f473f",
+      "sha256": "253315220df9a645407e95bb3a8cc147a36bb1733b8c1ff9721f6a10da8c6ca5",
       "state": "current"
     },
     {
@@ -647,17 +647,27 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
-      "sha256": "e0187edaff7afb1afebb7fbf0b0e08d2f9ef2caec8c9080de4434256244aabdb",
+      "sha256": "a41fc1412f957565bac8cb05dcd192a27f99518ee31e2068630a0c65475b2a80",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
+      "sha256": "b43c63c80c85fb574452444ecac58e61cdd52c7db35f07ccaaf0656e3caacc4c",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunters.json",
+      "sha256": "ab92db475532626e3f2086e1fc4fcc9e41e348ecabec9951735690cbfe97ceb4",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
-      "sha256": "15be7aebdbd8e706dbed8521cba992627af59c2277f2d9f600192834fec7c020",
+      "sha256": "f364b3dc569c9226a75bb5f4a2c4191ef7e0cbd3df7adfef2ed0c38743712bd1",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
-      "sha256": "e09c67c9d412151dafe3ead0320f9c49692801d11bb05e667ad0fec9123f7934",
+      "sha256": "029635669578f60df9f100019fedb6847b797a3fcd28a79024ebf4228d54ef65",
       "state": "current"
     },
     {
@@ -1117,7 +1127,7 @@
     },
     {
       "path": "openspec/specs/settlement-content-plan-lifecycle/implementation.json",
-      "sha256": "8c5c22c8ff6640e59cc905462f3854499fb0ecfef1b6f3c00963f751b22a56c8",
+      "sha256": "bc47db2579f10d9831c96a8a90476d476a731317a8d6cb2d34ee0e189ade4dab",
       "state": "current"
     },
     {
@@ -1147,7 +1157,7 @@
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/implementation.json",
-      "sha256": "cc88cceed1168859f5ef8e487445ea148a24758d221fb1df664f9ef8f450afa4",
+      "sha256": "be6088bf12b3ac504c6a9d4b1743eb8e474f4a4a6b785b70ca329ce5aebe9717",
       "state": "current"
     },
     {
@@ -1167,7 +1177,7 @@
     },
     {
       "path": "openspec/specs/table-driven-crafting-content/implementation.json",
-      "sha256": "91824b042c9ea3af2ea100133e2bbbb90f398675f03325b5b4bb62fdd81f1ea0",
+      "sha256": "ad0f7284720876b32a68c42dd972f65221d0aebc1d0c9c39428ebf2019e53461",
       "state": "current"
     },
     {
@@ -1177,7 +1187,7 @@
     },
     {
       "path": "openspec/specs/table-driven-event-chains/implementation.json",
-      "sha256": "033813d16836d147442851306198331d4db33a3f54e71ea3d32bd820456e46cf",
+      "sha256": "80a4908066fba0c8169ad523be2aa108122463d90c1e70de3805506b5a198cca",
       "state": "current"
     },
     {
@@ -1187,7 +1197,7 @@
     },
     {
       "path": "openspec/specs/table-driven-hunt-events/implementation.json",
-      "sha256": "441e9b2eace9309092ef8933db6651546eea7b7cb41b5f3501fc83c1a200f0a8",
+      "sha256": "f70303f32adf3a47bb7fc02e56396fa0774a5dc15ed9b1860867f370b1d67d0d",
       "state": "current"
     },
     {
@@ -1207,7 +1217,7 @@
     },
     {
       "path": "openspec/specs/table-driven-hunter-templates/implementation.json",
-      "sha256": "54e53a4c267fd54b186aeb52850a9041f4f98a3e8029af3b1e6ee7791474b739",
+      "sha256": "8994b77c00a1933b6e83875533b7d77e704bfc89e13d0fd0ab4e15fe4aad3f65",
       "state": "current"
     },
     {
@@ -1227,7 +1237,7 @@
     },
     {
       "path": "openspec/specs/table-driven-item-keywords/implementation.json",
-      "sha256": "54a1f1c872d8879b9598e75b8ff1a7cd53ff29483637d3e9eb98a70b0bc58d60",
+      "sha256": "cbd969f81ba5bd7900797c5190d4a4353bc7b82c99d8716890f6cb74197388aa",
       "state": "current"
     },
     {
@@ -1357,7 +1367,7 @@
     },
     {
       "path": "openspec/specs/tabletop-random-interaction/implementation.json",
-      "sha256": "a1f5d4c2dad50460623a608d0e6f64f8b807799388da32015744fda34e5e3a6b",
+      "sha256": "e31c733a7ea80aca6f8f58ae08054794d58122246d1dbc996dfd952a999a5658",
       "state": "current"
     },
     {
@@ -2905,7 +2915,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，三条基础装备路线把狩猎素材转化为不同噪音取向的下一轮构筑。",
+      "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，五条基础装备路线把狩猎素材转化为噪音、距离与事件词条取向的下一轮构筑。",
       "designSources": [],
       "sources": [
         "openspec/specs/settlement-workshop-crafting/spec.md",
@@ -2978,7 +2988,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；狩猎素材可被原子消费并制造为具有不同噪音取向的装备。",
+      "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；狩猎素材可被原子消费并制造为噪音、距离与事件词条取向的装备。",
       "designSources": [],
       "sources": [
         "openspec/specs/table-driven-crafting-content/spec.md",
@@ -3085,7 +3095,7 @@
           "state": "current"
         },
         {
-          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
           "state": "current"
         }
       ]
@@ -3175,6 +3185,10 @@
           "state": "current"
         },
         {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunters.json",
+          "state": "current"
+        },
+        {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementCareActionTests.cs",
           "state": "current"
         },
@@ -3240,7 +3254,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "物品表以稳定 ContentId 扩展现有 ItemData，统一标签与关键词后进入营地注册表；事件选项从权威猎人装备解析关键词，奖励仍在所属阶段 ActionQueue 事务内提交。",
+      "summary": "物品表以稳定 ContentId 扩展现有 ItemData，七件基础内容统一标签与关键词后进入营地注册表；事件选项从权威猎人装备解析关键词，奖励仍在所属阶段 ActionQueue 事务内提交。",
       "designSources": [],
       "sources": [
         "openspec/specs/table-driven-item-keywords/spec.md",

@@ -104,14 +104,14 @@
         "guid": "2b17ff3d52628a04b81c7873108ecf6f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
         "line": 1,
-        "fileHash": "c54a2582486bef72baf321b3b9e001f82d275954b2f59f4c25c430348e594970",
+        "fileHash": "a030126fcc800fc4031776004f49bf62e69ca99ab545c1002328df353c81db80",
         "status": "verified",
         "checkedAt": "2026-08-25T10:59:07-07:00",
         "feature": "验证 OldMaid 内容可达、鬼牌忽略属性加值以及多牌总值和重投范围。"
       }
     ],
     "tests": [
-      "PlayableConditionalEventOptionTests: 10/10 passed",
+      "PlayableConditionalEventOptionTests: 11/11 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed",
       "TabletopRandomInteractionTests: 5/5 passed",
       "PlayableSettlementEventViewPlayModeTests: 1/1 passed"
