@@ -114,6 +114,7 @@ namespace HuntingInDarkness.Settlement
             if (checkpoint != null)
             {
                 if (string.IsNullOrWhiteSpace(checkpoint.ChainId)) return Reject("事件链检查点缺少稳定链 ID。");
+                if (checkpoint.SchemaVersion != SettlementEventChainCheckpoint.CurrentSchemaVersion) return Reject($"事件链检查点 schema {checkpoint.SchemaVersion} 无法由当前版本 {SettlementEventChainCheckpoint.CurrentSchemaVersion} 恢复。");
                 if (!string.IsNullOrWhiteSpace(checkpoint.Diagnostic)) return Reject(checkpoint.Diagnostic);
                 var checkpointOccurrences = new List<SettlementEventChainOccurrence>(checkpoint.PendingOccurrences);
                 checkpointOccurrences.Sort((left, right) => left.Sequence.CompareTo(right.Sequence));

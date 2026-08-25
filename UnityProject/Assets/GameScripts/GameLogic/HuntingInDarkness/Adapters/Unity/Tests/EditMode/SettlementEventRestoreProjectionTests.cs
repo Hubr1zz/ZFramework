@@ -163,6 +163,38 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Prepare_FutureCheckpointSchemaFailsClosedWithoutDeletingData()
+        {
+            EventData gameEvent = CreateEvent("future_event");
+            var settlement = new SettlementInstance();
+            settlement.CommitEventChainOccurrence("future-chain", -1, new[] { gameEvent.ContentId }, 2, 0);
+            settlement.PendingEventChains[0].SchemaVersion = SettlementEventChainCheckpoint.CurrentSchemaVersion + 1;
+            var projection = new SettlementEventRestoreProjection(settlement, _ => gameEvent);
+
+            SettlementEventRestorePlan plan = projection.Prepare();
+
+            Assert.That(plan.Succeeded, Is.False);
+            Assert.That(plan.FailureReason, Does.Contain("schema"));
+            Assert.That(settlement.HasPendingEventChainOccurrences, Is.True);
+        }
+
+        [Test]
+        public void Prepare_LegacyCheckpointWithoutAncestorPathFailsClosedWithoutDeletingData()
+        {
+            EventData gameEvent = CreateEvent("legacy_event");
+            var settlement = new SettlementInstance();
+            settlement.CommitEventChainOccurrence("legacy-chain", -1, new[] { gameEvent.ContentId }, 2, 0);
+            settlement.PendingEventChains[0].SchemaVersion = SettlementEventChainCheckpoint.CurrentSchemaVersion - 1;
+            var projection = new SettlementEventRestoreProjection(settlement, _ => gameEvent);
+
+            SettlementEventRestorePlan plan = projection.Prepare();
+
+            Assert.That(plan.Succeeded, Is.False);
+            Assert.That(plan.FailureReason, Does.Contain("schema"));
+            Assert.That(settlement.HasPendingEventChainOccurrences, Is.True);
+        }
+
+        [Test]
         public void FailedRestoreReleasesBusyStateAndAllowsExplicitRetry()
         {
             EventData gameEvent = CreateEvent("retry_event");

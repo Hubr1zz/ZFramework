@@ -126,7 +126,8 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public sealed class SettlementEventChainCheckpoint
     {
-        public int SchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
+        public int SchemaVersion = CurrentSchemaVersion;
         public string ChainId;
         public int NextSequence = 1;
         public string Diagnostic;
@@ -142,6 +143,7 @@ namespace HuntingInDarkness.Data
         public string EventName;
         public int Year;
         public int ActorId;
+        public List<string> AncestorEventIds = new();
     }
 
     public enum TimelineEntryType
@@ -368,7 +370,7 @@ namespace HuntingInDarkness.Data
         }
 
         /// <summary>在同一同步提交边界中消费当前 occurrence，并追加直接子 occurrence。</summary>
-        public IReadOnlyList<SettlementEventChainOccurrence> CommitEventChainOccurrence(string chainId, int completedSequence, IReadOnlyList<string> childEventIds, int year, int actorId)
+        public IReadOnlyList<SettlementEventChainOccurrence> CommitEventChainOccurrence(string chainId, int completedSequence, IReadOnlyList<string> childEventIds, int year, int actorId, IReadOnlyCollection<string> ancestorEventIds = null)
         {
             string normalizedChainId = chainId?.Trim() ?? string.Empty;
             if (normalizedChainId.Length == 0) return System.Array.Empty<SettlementEventChainOccurrence>();
@@ -384,6 +386,7 @@ namespace HuntingInDarkness.Data
 
             checkpoint.CommittedSequences ??= new List<int>();
             checkpoint.PendingOccurrences ??= new List<SettlementEventChainOccurrence>();
+            checkpoint.SchemaVersion = SettlementEventChainCheckpoint.CurrentSchemaVersion;
             var appendedOccurrences = new List<SettlementEventChainOccurrence>();
             if (!checkpoint.CommittedSequences.Contains(completedSequence))
             {
@@ -405,7 +408,8 @@ namespace HuntingInDarkness.Data
                             EventId = normalizedEventId,
                             EventName = normalizedEventId,
                             Year = year,
-                            ActorId = actorId
+                            ActorId = actorId,
+                            AncestorEventIds = ancestorEventIds == null ? new List<string>() : new List<string>(ancestorEventIds)
                         };
                         checkpoint.PendingOccurrences.Add(occurrence);
                         appendedOccurrences.Add(occurrence);

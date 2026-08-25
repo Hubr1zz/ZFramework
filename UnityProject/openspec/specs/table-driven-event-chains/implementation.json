@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "table-driven-event-chains",
+  "specHash": "7f22b4222d6a0e7796221f56526be38ac587937a54c5ceaf47b545ec3d8fa302",
+  "title": "读表事件分支与事件链",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "事件表以稳定 ID 合并并绑定直接、成功和失败分支，错误引用在发布前传递拒绝；Settlement 与 Hunt Runner 以独立 occurrence 顺序执行子链，schema v2 持久祖先路径阻止读档后循环重复结算。",
+    "validatedAgainstSpecHash": "7f22b4222d6a0e7796221f56526be38ac587937a54c5ceaf47b545ec3d8fa302",
+    "evidence": [
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "line": 530,
+        "fileHash": "c99a4146eccb975790d101e46640426fe539702cad863f986dbc360b7972b5d9",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:50:04-07:00",
+        "feature": "先合并全部事件来源，再传递拒绝错误引用，并按稳定 ID 和配置顺序绑定 Triggered 子链。"
+      },
+      {
+        "guid": "d94d370a430db9b41b025aedfeb3a471",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+        "line": 37,
+        "fileHash": "1c3b64ae95de55bb90f2286adddf679feef3f584e7f0bf4a98366671199937ae",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:50:04-07:00",
+        "feature": "跨阶段复用单节点选择、实体随机交互、效果提交与子链检查点发布，View 不修改事件状态。"
+      },
+      {
+        "guid": "e03f23b616fd5be46b68d164379dc2ef",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEventActions.cs",
+        "line": 34,
+        "fileHash": "d0bd85e62fa24d5354c152c66218fff0ac6e6967b270e3f034aa42cafc8c6a1b",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:50:04-07:00",
+        "feature": "在同一 Settlement Root 中稳定执行初始节点与直接子 occurrence，并把有序祖先 ID 路径写入每个持久子节点。"
+      },
+      {
+        "guid": "881b14754c20430e852c9fda727bb3d9",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventChainOccurrenceQueue.cs",
+        "line": 1,
+        "fileHash": "ecd8fa53f05d9c1e91f072c821f638cf5125626509f5cf3a667987bab267097b",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:50:04-07:00",
+        "feature": "提供 schema v2 的独立 occurrence 序号、幂等提交、容量诊断与持久祖先路径。"
+      },
+      {
+        "guid": "e159b3c1d6bfcce4082b45e63fc28083",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
+        "line": 122,
+        "fileHash": "81966416282c30b1ed4cbacf2973f35e1ede400b960547f580e1213ddd48a5cd",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:50:04-07:00",
+        "feature": "在营地权威存档中保存链 ID、序号、诊断、待恢复节点与有序祖先稳定 ID。"
+      },
+      {
+        "guid": "d22556d8e7f42df44b45cf799dc1c53e",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
+        "line": 68,
+        "fileHash": "bfc477b2900bed82a57d14788fa5d31a6bc8211f7fec4906f3f6df14fa5f0a94",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:55:53-07:00",
+        "feature": "读档时优先恢复持久 occurrence，未知内容、诊断及任何不受支持的 schema 均 fail closed 并保留检查点。"
+      },
+      {
+        "guid": "3b94f2b91c9d4f1ba72fe3ffb4dd1ea6",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
+        "line": 1,
+        "fileHash": "bdba1a6c67383af5067bcb5ff0dcea8901794c1cf574e5738afea9f605929c01",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:50:04-07:00",
+        "feature": "为单次狩猎维护带地图上下文和祖先路径的 occurrence，阻止循环并保留容量失败诊断。"
+      },
+      {
+        "guid": "2a32e230eed309144a69d91ec3f752f4",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
+        "line": 1,
+        "fileHash": "e0187edaff7afb1afebb7fbf0b0e08d2f9ef2caec8c9080de4434256244aabdb",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:50:04-07:00",
+        "feature": "提供事件级、成功与失败直接分支的基础可玩内容，并保持延迟事件为独立 ScheduleEvent 效果。"
+      }
+    ],
+    "tests": [
+      "PlayableEventChainOccurrenceQueueTests: 7/7 passed",
+      "SettlementEventRestoreProjectionTests: 13/13 passed",
+      "PlayableHuntEventOccurrenceStoreTests: 11/11 passed",
+      "PlayableConditionalEventOptionTests: 10/10 passed",
+      "PlayableSettlementActionSessionTests: 33/33 passed",
+      "PlayableEventChoiceTransactionTests: 6/6 passed",
+      "C# derived index: 989/989, 100% coverage"
+    ],
+    "verifiedAt": "2026-08-25T14:55:53-07:00"
+  },
+  "implementationOutline": [
+    "PlayableEventTableRuntime 在共享事件世代完成合并后校验并绑定事件级、成功与失败分支，错误依赖传递拒绝。",
+    "直接子链继续在当前 Settlement 或 Hunt ActionQueue 根中执行；ScheduleEvent 只写入未来年度时间线。",
+    "每个重复内容引用获得独立 occurrence 序号，同一 occurrence 不能重复提交，配置顺序保持不变。",
+    "营地 occurrence schema v2 保存从根到当前节点的稳定祖先 ID，跨存档恢复后仍能在提交前阻止循环回边。",
+    "恢复投影拒绝未知内容、持久诊断和任何不受支持的 schema，不删除无法理解的检查点，也不解除出猎门禁。",
+    "3D 事件 View 继续只提供选择、目标和结果确认；权威效果、检查点与子链都由 Runner 提交。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs:530",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs:37",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEventActions.cs:34",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs:122",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs:68",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-conformance",
+    "changeId": ""
+  }
+}

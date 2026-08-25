@@ -87,7 +87,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 validWorks.Add(work);
             }
             foreach (SettlementEventWork work in validWorks)
-                TryEnqueue(work, work.RestoredOccurrence != null ? work.RestoredOccurrence.Sequence : nextRootSequence--);
+                TryEnqueue(work, work.RestoredOccurrence != null ? work.RestoredOccurrence.Sequence : nextRootSequence--, work.RestoredOccurrence?.AncestorEventIds);
         }
 
         public SettlementEventCommandResult Result { get; private set; }
@@ -111,7 +111,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                     {
                         resolvedCount++;
                         effectResults.AddRange(currentEntry.EffectResults.Effects);
-                        EnqueuePersistedChildren(currentEntry.ChainedEvents, new HashSet<EventData>(currentWork.Ancestors) { currentEntry.GameEvent });
+                        EnqueuePersistedChildren(currentEntry.ChainedEvents, AppendAncestor(currentWork.AncestorEventIds, currentEntry.EventId));
                         if (currentEntry.EncounterIds.Count > 0)
                         {
                             string encounterId = string.IsNullOrWhiteSpace(currentEntry.EncounterIds[0]) ? PlayableEncounterRuntime.DefaultEncounterId : currentEntry.EncounterIds[0];
@@ -142,7 +142,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                     return null;
                 }
 
-                var childAncestors = new HashSet<EventData>(currentWork.Ancestors) { currentEntry.GameEvent };
+                IReadOnlyCollection<string> childAncestors = AppendAncestor(currentWork.AncestorEventIds, currentEntry.EventId);
                 EnqueuePersistedChildren(currentEntry.ChainedEvents, childAncestors);
                 currentEntry = null;
             }
@@ -186,8 +186,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 {
                     bool cycle = string.Equals(chainedEventId, checkpoint.EventId, StringComparison.Ordinal);
                     if (!cycle)
-                        foreach (EventData ancestor in work.Ancestors)
-                            if (ancestor != null && string.Equals(ancestor.ContentId, chainedEventId, StringComparison.Ordinal))
+                        foreach (string ancestorEventId in work.AncestorEventIds)
+                            if (string.Equals(ancestorEventId, chainedEventId, StringComparison.Ordinal))
                             {
                                 cycle = true;
                                 break;
@@ -198,7 +198,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                     }
                     chainedEventIds.Add(chainedEventId);
                 }
-                lastCommittedChildren = checkpointAdapter.Commit(chainId, work.PersistenceSequence, chainedEventIds, eventSystem.Settlement.CurrentYear, checkpoint.ActorId);
+                lastCommittedChildren = checkpointAdapter.Commit(chainId, work.PersistenceSequence, chainedEventIds, eventSystem.Settlement.CurrentYear, checkpoint.ActorId, AppendAncestor(work.AncestorEventIds, checkpoint.EventId));
                 lastCommitDiagnostic = checkpointAdapter.GetDiagnostic(chainId);
             }
             eventOutbox.Stage(new SettlementTransactionCommittedEvent
@@ -208,14 +208,14 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             });
         }
 
-        private void EnqueuePersistedChildren(IReadOnlyList<EventData> chainedEvents, IReadOnlyCollection<EventData> ancestors)
+        private void EnqueuePersistedChildren(IReadOnlyList<EventData> chainedEvents, IReadOnlyCollection<string> ancestorEventIds)
         {
             if (chainedEvents == null) return;
             int occurrenceIndex = 0;
             foreach (EventData chainedEvent in chainedEvents)
             {
                 if (chainedEvent == null) continue;
-                if (ContainsAncestor(ancestors, chainedEvent))
+                if (ContainsAncestor(ancestorEventIds, chainedEvent))
                 {
                     eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = chainedEvent.ContentId });
                     continue;
@@ -224,22 +224,22 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 PlayableEventChainOccurrence occurrence = lastCommittedChildren[occurrenceIndex];
                 string eventId = chainedEvent.ContentId;
                 if (!string.Equals(eventId, occurrence.EventId, StringComparison.Ordinal)) continue;
-                TryEnqueue(new SettlementEventWork(chainedEvent, null, null), occurrence.Sequence, ancestors);
+                TryEnqueue(new SettlementEventWork(chainedEvent, null, null), occurrence.Sequence, occurrence.AncestorEventIds);
                 occurrenceIndex++;
             }
             lastCommittedChildren = Array.Empty<PlayableEventChainOccurrence>();
         }
 
-        private void TryEnqueue(EventData gameEvent, int persistenceSequence = -1, IReadOnlyCollection<EventData> ancestors = null)
+        private void TryEnqueue(EventData gameEvent, int persistenceSequence = -1, IReadOnlyCollection<string> ancestorEventIds = null)
         {
-            TryEnqueue(new SettlementEventWork(gameEvent), persistenceSequence, ancestors);
+            TryEnqueue(new SettlementEventWork(gameEvent), persistenceSequence, ancestorEventIds);
         }
 
-        private void TryEnqueue(SettlementEventWork work, int persistenceSequence = -1, IReadOnlyCollection<EventData> ancestors = null)
+        private void TryEnqueue(SettlementEventWork work, int persistenceSequence = -1, IReadOnlyCollection<string> ancestorEventIds = null)
         {
             EventData gameEvent = work.Event;
             if (gameEvent == null) return;
-            if (ancestors != null && ContainsAncestor(ancestors, gameEvent))
+            if (ancestorEventIds != null && ContainsAncestor(ancestorEventIds, gameEvent))
             {
                 eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = gameEvent.ContentId });
                 return;
@@ -255,19 +255,29 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 : chainGuard.TrySchedule(gameEvent);
             if (scheduled)
             {
-                pendingEvents.Enqueue(new PendingEventWork(work, persistenceSequence, ancestors));
+                pendingEvents.Enqueue(new PendingEventWork(work, persistenceSequence, ancestorEventIds));
                 return;
             }
             eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = gameEvent.ContentId });
         }
 
-        private static bool ContainsAncestor(IReadOnlyCollection<EventData> ancestors, EventData gameEvent)
+        private static bool ContainsAncestor(IReadOnlyCollection<string> ancestorEventIds, EventData gameEvent)
         {
             if (gameEvent == null) return false;
             string eventId = gameEvent.ContentId;
-            foreach (EventData ancestor in ancestors)
-                if (ancestor != null && string.Equals(ancestor.ContentId, eventId, StringComparison.Ordinal)) return true;
+            foreach (string ancestorEventId in ancestorEventIds)
+                if (string.Equals(ancestorEventId, eventId, StringComparison.Ordinal)) return true;
             return false;
+        }
+
+        private static IReadOnlyCollection<string> AppendAncestor(IReadOnlyCollection<string> ancestorEventIds, string eventId)
+        {
+            var result = new List<string>();
+            if (ancestorEventIds != null)
+                foreach (string ancestorEventId in ancestorEventIds)
+                    if (!string.IsNullOrWhiteSpace(ancestorEventId) && !result.Contains(ancestorEventId)) result.Add(ancestorEventId);
+            if (!string.IsNullOrWhiteSpace(eventId) && !result.Contains(eventId)) result.Add(eventId);
+            return result;
         }
 
         private bool ValidateWork(SettlementEventWork work, out string reason)
@@ -302,17 +312,17 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
         private readonly struct PendingEventWork
         {
-            public PendingEventWork(SettlementEventWork work, int persistenceSequence, IReadOnlyCollection<EventData> ancestors = null)
+            public PendingEventWork(SettlementEventWork work, int persistenceSequence, IReadOnlyCollection<string> ancestorEventIds = null)
             {
                 Work = work;
                 PersistenceSequence = persistenceSequence;
-                Ancestors = ancestors == null ? new HashSet<EventData>() : new HashSet<EventData>(ancestors);
+                AncestorEventIds = ancestorEventIds == null ? Array.Empty<string>() : new List<string>(ancestorEventIds);
             }
 
             public SettlementEventWork Work { get; }
             public EventData Event => Work.Event;
             public int PersistenceSequence { get; }
-            public IReadOnlyCollection<EventData> Ancestors { get; }
+            public IReadOnlyCollection<string> AncestorEventIds { get; }
         }
 
         private static IReadOnlyList<SettlementEventWork> ToWorkItems(IReadOnlyList<EventData> events, IReadOnlyList<SettlementEventChainOccurrence> restoredOccurrences)

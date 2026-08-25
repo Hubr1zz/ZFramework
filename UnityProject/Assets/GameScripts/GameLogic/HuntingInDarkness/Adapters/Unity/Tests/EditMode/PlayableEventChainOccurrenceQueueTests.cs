@@ -74,11 +74,11 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void SettlementAdapter_RoundTripsSchemaOneCheckpointThroughJsonUtility()
+        public void SettlementAdapter_RoundTripsAncestorPathThroughSchemaTwoCheckpoint()
         {
             var settlement = new SettlementInstance();
             var adapter = new SettlementEventChainCheckpointAdapter(settlement);
-            adapter.Commit("schema-chain", -1, new[] { "child" }, 3, 11);
+            adapter.Commit("schema-chain", -1, new[] { "child" }, 3, 11, new[] { "root" });
 
             SettlementInstance restored = JsonUtility.FromJson<SettlementInstance>(JsonUtility.ToJson(settlement));
             SettlementEventChainCheckpoint checkpoint = restored.PendingEventChains[0];
@@ -89,6 +89,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(pending, Has.Count.EqualTo(1));
             Assert.That(pending[0].EventId, Is.EqualTo("child"));
             Assert.That(pending[0].Sequence, Is.EqualTo(1));
+            Assert.That(pending[0].AncestorEventIds, Is.EqualTo(new[] { "root" }));
         }
 
         [Test]
@@ -107,6 +108,29 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(result.Succeeded, Is.True, result.Reason);
             Assert.That(result.ResolvedCount, Is.EqualTo(2));
+            Assert.That(settlement.HasPendingEventChainOccurrences, Is.False);
+        }
+
+        [Test]
+        public async Task SettlementRunner_RestoredAncestorPathStopsCycleWithoutReplayingAncestor()
+        {
+            var settlement = new SettlementInstance();
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            EventData root = CreateNarrativeEvent("root-asset", "root-id");
+            EventData child = CreateNarrativeEvent("child-asset", "child-id");
+            root.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = "root-resource", value = 1 });
+            child.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddResource, targetName = "child-resource", value = 1 });
+            child.chainedEvents.Add(root);
+            var restoredOccurrence = new SettlementEventChainOccurrence { Sequence = 1, EventId = child.ContentId, EventName = child.eventName, Year = 2, AncestorEventIds = new List<string> { root.ContentId } };
+            settlement.PendingEventChains.Add(new SettlementEventChainCheckpoint { ChainId = "restored-cycle", NextSequence = 2, PendingOccurrences = new List<SettlementEventChainOccurrence> { restoredOccurrence } });
+
+            using var session = new PlayableSettlementActionSession(settlement, new EmptyWeaponTrainingContent(), eventSystem);
+            SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { child }, "restored-cycle", new[] { restoredOccurrence });
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(result.ResolvedCount, Is.EqualTo(1));
+            Assert.That(settlement.GetResource("child-resource"), Is.EqualTo(1));
+            Assert.That(settlement.GetResource("root-resource"), Is.Zero);
             Assert.That(settlement.HasPendingEventChainOccurrences, Is.False);
         }
 

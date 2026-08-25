@@ -5,13 +5,14 @@ namespace HuntingInDarkness.ActionFlow.Events
 {
     public readonly struct PlayableEventChainOccurrence
     {
-        public PlayableEventChainOccurrence(int sequence, string eventId, string eventName, int year, int actorId)
+        public PlayableEventChainOccurrence(int sequence, string eventId, string eventName, int year, int actorId, IReadOnlyList<string> ancestorEventIds = null)
         {
             Sequence = sequence;
             EventId = eventId ?? string.Empty;
             EventName = eventName ?? string.Empty;
             Year = year;
             ActorId = actorId;
+            AncestorEventIds = ancestorEventIds ?? Array.Empty<string>();
         }
 
         public int Sequence { get; }
@@ -19,6 +20,7 @@ namespace HuntingInDarkness.ActionFlow.Events
         public string EventName { get; }
         public int Year { get; }
         public int ActorId { get; }
+        public IReadOnlyList<string> AncestorEventIds { get; }
     }
 
     public readonly struct PlayableEventChainCommitResult
@@ -39,7 +41,7 @@ namespace HuntingInDarkness.ActionFlow.Events
     /// <summary>不依赖存档 DTO 的单链 occurrence 顺序、幂等与上限算法。</summary>
     public sealed class PlayableEventChainOccurrenceQueue
     {
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
 
         private readonly int maxPendingOccurrences;
         private readonly List<int> committedSequences = new();
@@ -108,7 +110,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             return true;
         }
 
-        public PlayableEventChainCommitResult Commit(int completedSequence, IReadOnlyList<string> childEventIds, int year, int actorId)
+        public PlayableEventChainCommitResult Commit(int completedSequence, IReadOnlyList<string> childEventIds, int year, int actorId, IReadOnlyList<string> ancestorEventIds = null)
         {
             bool hasChildren = childEventIds != null && childEventIds.Count > 0;
             if (committedSequenceSet.Contains(completedSequence))
@@ -132,7 +134,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                         diagnostic = "事件链检查点 occurrence 序号已耗尽。";
                         break;
                     }
-                    var occurrence = new PlayableEventChainOccurrence(nextSequence++, normalizedEventId, normalizedEventId, year, actorId);
+                    var occurrence = new PlayableEventChainOccurrence(nextSequence++, normalizedEventId, normalizedEventId, year, actorId, ancestorEventIds);
                     pendingOccurrences.Add(occurrence);
                     appendedOccurrences.Add(occurrence);
                 }

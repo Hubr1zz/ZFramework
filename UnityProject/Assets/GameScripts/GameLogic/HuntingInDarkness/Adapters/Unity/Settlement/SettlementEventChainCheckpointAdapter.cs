@@ -28,10 +28,10 @@ namespace HuntingInDarkness.Settlement
 
         public string GetDiagnostic(string chainId) => FindCheckpoint(chainId)?.Diagnostic ?? string.Empty;
 
-        public IReadOnlyList<PlayableEventChainOccurrence> Commit(string chainId, int completedSequence, IReadOnlyList<string> childEventIds, int year, int actorId)
+        public IReadOnlyList<PlayableEventChainOccurrence> Commit(string chainId, int completedSequence, IReadOnlyList<string> childEventIds, int year, int actorId, IReadOnlyCollection<string> ancestorEventIds = null)
         {
             if (settlement == null) return Array.Empty<PlayableEventChainOccurrence>();
-            IReadOnlyList<SettlementEventChainOccurrence> appended = settlement.CommitEventChainOccurrence(chainId, completedSequence, childEventIds, year, actorId);
+            IReadOnlyList<SettlementEventChainOccurrence> appended = settlement.CommitEventChainOccurrence(chainId, completedSequence, childEventIds, year, actorId, ancestorEventIds);
             if (appended == null || appended.Count == 0) return Array.Empty<PlayableEventChainOccurrence>();
             var result = new List<PlayableEventChainOccurrence>(appended.Count);
             foreach (SettlementEventChainOccurrence occurrence in appended)
@@ -43,7 +43,7 @@ namespace HuntingInDarkness.Settlement
         public static PlayableEventChainOccurrence ToSharedOccurrence(SettlementEventChainOccurrence occurrence)
         {
             if (occurrence == null) return default;
-            return new PlayableEventChainOccurrence(occurrence.Sequence, occurrence.EventId, occurrence.EventName, occurrence.Year, occurrence.ActorId);
+            return new PlayableEventChainOccurrence(occurrence.Sequence, occurrence.EventId, occurrence.EventName, occurrence.Year, occurrence.ActorId, occurrence.AncestorEventIds);
         }
 
         private SettlementEventChainCheckpoint FindCheckpoint(string chainId)

@@ -36,13 +36,18 @@ Phase adapters SHALL compare explicit stable ContentId values when rejecting a d
 - **THEN** the back edge is rejected before execution
 - **AND** no pending occurrence remains for that cycle
 
-### Requirement: Settlement persistence remains schema compatible
-The Settlement adapter SHALL continue using the existing SchemaVersion 1 checkpoint DTO and JSON field names. It SHALL map persisted occurrences to the shared runtime contract without moving Timeline ownership or introducing an active-Hunt payload.
+### Requirement: Settlement persistence preserves ancestry across reloads
+The Settlement adapter SHALL use SchemaVersion 2 checkpoint DTOs while preserving the existing JSON field names. Every pending occurrence SHALL persist the ordered stable ContentId path of its ancestors and map that path to the shared runtime contract without moving Timeline ownership or introducing an active-Hunt payload. A pending checkpoint from any other schema version SHALL fail closed and remain available for explicit migration or recovery.
 
-#### Scenario: A schema-one checkpoint is serialized and loaded
+#### Scenario: A schema-two checkpoint is serialized and loaded
 - **WHEN** SettlementInstance completes a JsonUtility round trip
-- **THEN** ChainId, Sequence, EventId, Year, ActorId, and pending order remain unchanged
-- **AND** no save migration is required
+- **THEN** ChainId, Sequence, EventId, Year, ActorId, ancestor ContentId path, and pending order remain unchanged
+- **AND** a restored child cannot replay an ancestor through a back edge
+
+#### Scenario: A pending checkpoint uses an unsupported schema
+- **WHEN** recovery encounters a schema older or newer than the current checkpoint contract
+- **THEN** the runner SHALL NOT execute its pending occurrences
+- **AND** the checkpoint remains intact for explicit migration or recovery
 
 ### Requirement: Shared core does not claim phase recovery
 The shared core SHALL NOT own maps, Timeline, inventories, encounter transitions, Views, or save I/O. Hunt cross-process recovery SHALL require a complete active-Hunt snapshot before its occurrence ledger can become durable.
