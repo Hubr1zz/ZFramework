@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "ef586ea8baec5b390ecc015d35d3c42a32a3b264f1f7b14a0fd6ba51558c9835",
-  "inputManifestDigest": "81079a6491a3aed9a1e0c2349e3e64692bc312dd06ac78e6e7fcf933f5a3d820",
-  "outputDigest": "b8d20878482841b038388b366e651fac287d07972bd531ae093042928c85fe63",
+  "inputDigest": "b91dec4c295042484d398ecef05d31550aaa4f7bb0e7baf24201038acc8aa685",
+  "inputManifestDigest": "73cee0f354c28f8fc1ba3d9d8d9147a641029a7fc155b355d7332029f266b347",
+  "outputDigest": "5026049290aec8f3811e9e772da53d240f201a97c72145727e45db3ed6eb4015",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -326,6 +326,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopHuntDeparturePanel3DTests.cs",
+      "sha256": "db119e5ab74ba215f085577b5c650ee4aa98a9beca6070f69fd842ee8d7a8648",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs",
       "sha256": "92fc39284a62751a80ba6ee753d78c51ca312dab3f4ba9b07226e458a6163d6e",
       "state": "current"
@@ -406,6 +411,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs",
+      "sha256": "c318c2475e96026e8064057ac4df07b19dbde1adf724d504719cea00fd319669",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs",
       "sha256": "009c57ed94cf4c605686b43b6ffba31147177d246e92515cf3bec3b08a9ce112",
       "state": "current"
@@ -438,6 +448,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCardInteractionPresenter.cs",
       "sha256": "a53ac7cfb416f588155246d931e1184e73781c27a235bec9ccb4ad1f480fb5e8",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs",
+      "sha256": "ab2e85602b204a5cb1d5682fc34bf53524bbd40341ab749f4f425185bca767e3",
       "state": "current"
     },
     {
@@ -907,8 +922,8 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-departure/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "675689980a70dcfda7bbabe38155195079f3e3edcdaecd92f98a8f14f70b0402",
+      "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-hunt-departure/spec.md",
@@ -1117,11 +1132,11 @@
     }
   ],
   "counts": {
-    "verified": 9,
+    "verified": 10,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 32,
+    "unknown": 31,
     "blocked": 0,
     "stale": 21
   },
@@ -1162,7 +1177,6 @@
     "table-driven-invention-content",
     "tabletop-chinese-font-fallback",
     "tabletop-game-over",
-    "tabletop-hunt-departure",
     "tabletop-hunt-harvest",
     "tabletop-hunt-map-intro",
     "tabletop-hunt-resource-markers",
@@ -2597,16 +2611,43 @@
     {
       "id": "tabletop-hunt-departure",
       "label": "3D 狩猎远征整备",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；返回编队会按玩家暂存顺序恢复卡槽，权威名册与阶段切换仍分别由 Settlement 与 Campaign ActionQueue 提交。",
+      "designSources": [],
       "sources": [
         "openspec/specs/tabletop-hunt-departure/spec.md",
-        "openspec/specs/tabletop-hunt-departure/implementation.json"
+        "openspec/specs/tabletop-hunt-departure/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableSettlementWorldSpacePortInstaller.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopHuntDeparturePanel3DTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "tabletop-hunt-harvest",

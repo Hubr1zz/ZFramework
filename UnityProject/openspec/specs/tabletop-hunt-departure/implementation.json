@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-hunt-departure",
+  "specHash": "b63aefe06fa718840d16ac17801990b1a7bc3f84fa9ce8ad8ae8e2a32e4ee851",
+  "title": "3D 狩猎远征整备",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；返回编队会按玩家暂存顺序恢复卡槽，权威名册与阶段切换仍分别由 Settlement 与 Campaign ActionQueue 提交。",
+    "validatedAgainstSpecHash": "b63aefe06fa718840d16ac17801990b1a7bc3f84fa9ce8ad8ae8e2a32e4ee851",
+    "evidence": [
+      {
+        "guid": "c9df97dabae7cda47adf626ad609d66b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs",
+        "line": 1,
+        "fileHash": "ab2e85602b204a5cb1d5682fc34bf53524bbd40341ab749f4f425185bca767e3",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:44:53-07:00",
+        "feature": "以实体卡展示四槽编队和地区选择，并按暂存 HunterId 顺序恢复玩家的卡槽安排。"
+      },
+      {
+        "guid": "e9c005d288214754191355b57720008f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs",
+        "line": 1,
+        "fileHash": "c318c2475e96026e8064057ac4df07b19dbde1adf724d504719cea00fd319669",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:44:53-07:00",
+        "feature": "维护非权威编队与地区选择，隐藏底层营地桌并只向 GameManager 提交确认意图。"
+      },
+      {
+        "guid": "93a36191e033ff6478260769df9c7a0c",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs",
+        "line": 1,
+        "fileHash": "b997d4659b46766b4dea1d09d60a3c5315e679ace45f37f50472e8fd7ee6a3fd",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:44:53-07:00",
+        "feature": "在 Settlement runner 中重验一至四名唯一且可用的营地猎人，提交一次性出发名册令牌。"
+      },
+      {
+        "guid": "93d2e5f2378e4a4780fb7d8f6e103b7a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableSettlementWorldSpacePortInstaller.cs",
+        "line": 1,
+        "fileHash": "2961c6863b1eddb3b7de4e677742a780e63c5aa16c980e3b0e6e537f8b8beb4a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:44:53-07:00",
+        "feature": "由正式组合根独立安装世界空间出猎端口，不依赖旧 HUD 可见性。"
+      },
+      {
+        "guid": "f4a6088d2c8e4f13bc56e31b365b3758",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopHuntDeparturePanel3DTests.cs",
+        "line": 1,
+        "fileHash": "db119e5ab74ba215f085577b5c650ee4aa98a9beca6070f69fd842ee8d7a8648",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:44:53-07:00",
+        "feature": "实例化真实 3D 卡槽并验证返回编队时保留暂存猎人顺序。"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "line": 49,
+        "fileHash": "f006a3dd7e60fb3c212b4369f1ed94f330e1fe5350d5fa05686ea8957bc8069e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:44:53-07:00",
+        "feature": "验证生产组合根中名册准备、地区上下文、Campaign 切换、一次性令牌消费及完整回营循环。"
+      }
+    ],
+    "tests": [
+      "TabletopHuntDeparturePanel3DTests: 1/1 passed",
+      "PlayableSettlementDepartureActionTests: 4/4 passed",
+      "SettlementDepartureCompatibilityTests: 3/3 passed",
+      "PlayableSettlementWorldSpacePortInstallerTests: 2/2 passed",
+      "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
+    ],
+    "verifiedAt": "2026-08-25T11:44:53-07:00"
+  },
+  "implementationOutline": [
+    "组合根安装 PlayableHuntDestinationView，营地启动卡打开独占的世界空间整备桌并暂时隐藏底层营地卡牌。",
+    "TabletopHuntDeparturePanel3D 只维护编队卡槽和地区卡选择；返回编队按暂存 HunterId 顺序恢复，不重排玩家选择。",
+    "确认后 Settlement runner 提交稳定名册令牌，GameManager 构造地区入场上下文并由 Campaign runner 切换阶段。",
+    "生产和兼容入口共用同一请求边界，并在事件恢复、重复请求、无地区选择或无效猎人时保持权威状态不变。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1092"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

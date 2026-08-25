@@ -57,18 +57,30 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             squadGrid = CreateHunterGrid(new Vector3(0f, 0f, 0.20f), 4, 1, "远 征 小 队");
             rosterGrid = CreateHunterGrid(new Vector3(0f, 0f, -1.15f - (rosterRows - 1) * 0.38f), 4, rosterRows, "可 用 猎 人");
 
-            var selectedIds = new HashSet<int>(initialHunterIds ?? System.Array.Empty<int>());
+            var cardsByHunterId = new Dictionary<int, HuntDepartureHunterCard3D>();
             if (availableHunters != null)
                 foreach (HunterInstance hunter in availableHunters)
                 {
-                    if (hunter == null || !hunter.IsAvailable)
+                    if (hunter == null || !hunter.IsAvailable || cardsByHunterId.ContainsKey(hunter.InstanceId))
                         continue;
                     HuntDepartureHunterCard3D card = HuntDepartureHunterCard3D.Create(hunter, transform);
                     card.ConfigureDropScope(HunterDropScope);
                     card.PlacementChanged = RefreshSquadActionCard;
-                    bool wantsSquad = selectedIds.Contains(hunter.InstanceId) && squadGrid.GetFirstEmptySlot() != null;
-                    (wantsSquad ? squadGrid : rosterGrid).TryPlaceCard(card);
                     hunterCards.Add(card);
+                    cardsByHunterId.Add(hunter.InstanceId, card);
+                }
+
+            if (initialHunterIds != null)
+                foreach (int hunterId in initialHunterIds)
+                {
+                    if (squadGrid.GetFirstEmptySlot() == null || !cardsByHunterId.Remove(hunterId, out HuntDepartureHunterCard3D card)) continue;
+                    squadGrid.TryPlaceCard(card);
+                }
+            if (availableHunters != null)
+                foreach (HunterInstance hunter in availableHunters)
+                {
+                    if (hunter == null || !cardsByHunterId.Remove(hunter.InstanceId, out HuntDepartureHunterCard3D card)) continue;
+                    rosterGrid.TryPlaceCard(card);
                 }
 
             float actionZ = -2.55f - (rosterRows - 1) * (CardView3D.CH + 0.12f);
