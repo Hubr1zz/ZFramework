@@ -41,30 +41,6 @@ using Cards3D;
 
 namespace Core
 {
-    public enum CampaignStartupState
-    {
-        AwaitingChoice,
-        StartingNew,
-        Loading,
-        Active
-    }
-
-    public readonly struct CampaignStartupResult
-    {
-        private CampaignStartupResult(bool succeeded, CampaignStartupState state, string reason)
-        {
-            State = state;
-            Succeeded = succeeded;
-            Reason = reason ?? string.Empty;
-        }
-
-        public CampaignStartupState State { get; }
-        public bool Succeeded { get; }
-        public string Reason { get; }
-        public static CampaignStartupResult Success() => new(true, CampaignStartupState.Active, string.Empty);
-        public static CampaignStartupResult Failed(CampaignStartupState state, string reason) => new(false, state, reason);
-    }
-
     /// <summary>
     /// 场景中唯一的 MonoBehaviour 核心。持久单例。
     /// 管理三个游戏大阶段（Settlement / Hunt / BossFight）的根物体开关，
@@ -195,10 +171,8 @@ namespace Core
         private bool preparedHuntExit;
         private string stableCampaignPayload;
         private bool hasAwakened;
-        private bool deferPlayableStart;
-        private bool campaignStarted;
-        private bool campaignStartupInFlight;
-        private CampaignStartupState campaignStartupState = CampaignStartupState.Active;
+        private readonly CampaignStartupLifecycle campaignStartup = new();
+        private bool campaignStarted => campaignStartup.IsRuntimeActive;
         private ICampaignPersistencePort campaignPersistence = new SaveLoadSystemCampaignPersistenceAdapter();
         [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
         [SerializeField] private TabletopCardInteractionPresenter tabletopCardPresenter;
@@ -219,13 +193,10 @@ namespace Core
         /// <summary>在正式开场菜单选择前延迟创建营地运行态；仅允许在 Awake 前配置。</summary>
         public bool ConfigurePlayableStartup(bool waitForEntrySelection)
         {
-            if (hasAwakened || campaignStarted) return false;
-            deferPlayableStart = waitForEntrySelection;
-            campaignStartupState = waitForEntrySelection ? CampaignStartupState.AwaitingChoice : CampaignStartupState.Active;
-            return true;
+            return !hasAwakened && campaignStartup.Configure(waitForEntrySelection);
         }
 
-        public CampaignStartupState CampaignStartupState => campaignStartupState;
+        public CampaignStartupState CampaignStartupState => campaignStartup.State;
 
         public UniTask<bool> HasCampaignSaveAsync(CancellationToken cancellationToken = default) => campaignPersistence.HasSaveAsync(cancellationToken);
 
@@ -233,7 +204,7 @@ namespace Core
 
         public async UniTask<CampaignStartupResult> StartNewCampaignAsync(CancellationToken cancellationToken = default)
         {
-            if (!TryBeginCampaignStartup(CampaignStartupState.StartingNew, out string beginReason)) return CampaignStartupResult.Failed(campaignStartupState, beginReason);
+            if (!TryBeginCampaignStartup(CampaignStartupState.StartingNew, out string beginReason)) return CampaignStartupResult.Failed(campaignStartup.State, beginReason);
             try
             {
                 if (!await campaignPersistence.TryDeleteAsync(cancellationToken))
@@ -253,14 +224,13 @@ namespace Core
             }
             finally
             {
-                campaignStartupInFlight = false;
-                campaignStartupState = campaignStarted ? CampaignStartupState.Active : CampaignStartupState.AwaitingChoice;
+                campaignStartup.CompleteAttempt();
             }
         }
 
         public async UniTask<CampaignStartupResult> ContinueCampaignAsync(CancellationToken cancellationToken = default)
         {
-            if (!TryBeginCampaignStartup(CampaignStartupState.Loading, out string beginReason)) return CampaignStartupResult.Failed(campaignStartupState, beginReason);
+            if (!TryBeginCampaignStartup(CampaignStartupState.Loading, out string beginReason)) return CampaignStartupResult.Failed(campaignStartup.State, beginReason);
             try
             {
                 CampaignSnapshot snapshot = await campaignPersistence.LoadAsync(cancellationToken);
@@ -270,7 +240,7 @@ namespace Core
                     EnsureCampaignShell();
                     if (TryRestoreActiveHunt(snapshot, out string huntRestoreReason))
                     {
-                        campaignStarted = true;
+                        campaignStartup.ActivateRuntime();
                         return CampaignStartupResult.Success();
                     }
                     ResetFailedCampaignStartupRuntime();
@@ -290,7 +260,7 @@ namespace Core
                     ResetFailedCampaignStartupRuntime();
                     return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "战役存档恢复失败，当前运行态已撤销。");
                 }
-                campaignStarted = true;
+                campaignStartup.ActivateRuntime();
                 return CampaignStartupResult.Success();
             }
             catch (System.OperationCanceledException)
@@ -305,32 +275,13 @@ namespace Core
             }
             finally
             {
-                campaignStartupInFlight = false;
-                campaignStartupState = campaignStarted ? CampaignStartupState.Active : CampaignStartupState.AwaitingChoice;
+                campaignStartup.CompleteAttempt();
             }
         }
 
         private bool TryBeginCampaignStartup(CampaignStartupState inFlightState, out string reason)
         {
-            if (!deferPlayableStart)
-            {
-                reason = "当前 GameManager 未启用正式开场入口。";
-                return false;
-            }
-            if (campaignStarted)
-            {
-                reason = "战役运行态已经启动。";
-                return false;
-            }
-            if (campaignStartupInFlight)
-            {
-                reason = "战役入口正在处理中。";
-                return false;
-            }
-            campaignStartupInFlight = true;
-            campaignStartupState = inFlightState;
-            reason = string.Empty;
-            return true;
+            return campaignStartup.TryBegin(inFlightState, out reason);
         }
 
         public bool ConfigureTabletopInteraction(ITabletopRandomInteractionPresenter presenter)
@@ -397,7 +348,7 @@ namespace Core
 
         private void Start()
         {
-            if (!deferPlayableStart)
+            if (!campaignStartup.WaitForEntrySelection)
             {
                 if (!TryStartCampaignRuntime(devMode ? devStartPhase : GamePhase.Settlement, true, out string startupReason))
                     Debug.LogError($"[GameManager] 战役启动失败：{startupReason}");
@@ -462,7 +413,8 @@ namespace Core
                 else if (startPhase == GamePhase.BossFight)
                     EnterBossFightPhase();
 
-                campaignStarted = activateOnSuccess;
+                if (activateOnSuccess)
+                    campaignStartup.ActivateRuntime();
                 if (campaignStarted && initialSettlementEvents != null)
                     QueueSettlementEvents(initialSettlementEvents);
                 return true;
@@ -486,7 +438,7 @@ namespace Core
             DisposeHuntActionSession();
             _pendingHuntRecord = null;
             stableCampaignPayload = null;
-            campaignStarted = false;
+            campaignStartup.DeactivateRuntime();
             campaignRuntime?.Reset();
             CleanupHuntPresentation();
             if (settlementRoot != null) settlementRoot.SetActive(false);
@@ -2447,7 +2399,7 @@ namespace Core
                 return false;
             }
             EnsureSettlementUI();
-            campaignStarted = true;
+            campaignStartup.ActivateRuntime();
             _settlementUIManager?.Refresh();
             QueueSettlementEvents(restorePlan.WorkItems, settlementEventRestoreProjection, restorePlan.ChainId);
             return true;

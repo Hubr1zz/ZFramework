@@ -6,25 +6,34 @@
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "正式开场在选择前保持零权威运行态；新战役和 Continue 通过 typed single-flight 命令发布 Settlement 或 Active Hunt 候选，失败撤销 FSM、ActionSession 与表现并允许重试。",
+    "summary": "纯 C# CampaignStartupLifecycle 统一维护等待、启动、加载与激活状态；GameManager 通过 typed single-flight 命令发布 Settlement 或 Active Hunt 候选，失败撤销 FSM、ActionSession 与表现并允许重试。",
     "validatedAgainstSpecHash": "03b5c02d808e2b66dc08375ef9a746e475d8f71cfe2ad7461e88bcb1516964ba",
     "evidence": [
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "6ee505ae722f5235073fe8f43a83e195892b0ce8d9adc21e1c5c7f380de3f380",
+        "fileHash": "b421f183b341caa243c71bba4124623e5fbf2f162eec00279181348ca1cbfffc",
         "status": "verified",
-        "checkedAt": "2026-08-24T10:40:00-07:00",
-        "feature": "维护显式启动状态与 single-flight，先验证 Settlement/Active Hunt 候选，再发布 FSM、阶段 Session 和稳定载荷；失败统一撤销临时运行图。"
+        "checkedAt": "2026-08-25T09:21:00-07:00",
+        "feature": "委托权威启动生命周期执行 single-flight 门禁，先验证 Settlement/Active Hunt 候选，再发布 FSM、阶段 Session 和稳定载荷；失败统一撤销临时运行图。"
+      },
+      {
+        "guid": "9d2fac70477c46628ab61483ce61de9d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupLifecycle.cs",
+        "line": 1,
+        "fileHash": "ffc62329ec83fb4424025f8a6353fa07a88ed81054e3ca396874e35c80f66981",
+        "status": "verified",
+        "checkedAt": "2026-08-25T09:21:00-07:00",
+        "feature": "以纯 C# 状态对象集中维护 AwaitingChoice、StartingNew、Loading、Active 与重复入口门禁，并在成功或失败后确定性收敛状态。"
       },
       {
         "guid": "855f5a061b314044fafa09adb4c90253",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PhaseManager.cs",
         "line": 1,
-        "fileHash": "c31b60b023cd125e8bf16a11aa80c250b1715e491935f3591f92ed59acab3212",
+        "fileHash": "3b526237dfc65d150a77f2c3e3c5d1f638e50e93753ae8aeb447573316921674",
         "status": "verified",
-        "checkedAt": "2026-08-24T10:40:00-07:00",
+        "checkedAt": "2026-08-25T09:21:00-07:00",
         "feature": "暴露只读启动状态，使活动狩猎候选可以在未发布临时 Settlement 的情况下直接启动 Hunt FSM。"
       },
       {
@@ -58,30 +67,41 @@
         "guid": "afc769eae9ee1a645a0c6b1e390899e4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/SaveLoadSystem.cs",
         "line": 1,
-        "fileHash": "4a0052be9de4b7e3f77b31f62f414a57461f48c03b0cb2c9602a51f49484013b",
+        "fileHash": "b28d1f438a4f6ba654a4856e108ec124eb6ec17229a46f7ebf51ac46238effc5",
         "status": "verified",
-        "checkedAt": "2026-08-24T10:40:00-07:00",
+        "checkedAt": "2026-08-25T09:21:00-07:00",
         "feature": "在线性化删除边界后复查主存档与备份候选，向组合根报告可靠删除结果。"
       },
       {
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 1,
-        "fileHash": "fc1a316a8524e2fdd02d802bd6f92d2987a54785941e148858efde2d97d199f0",
+        "fileHash": "dee30d03c94b7ba9b53e88860f6e4dc4fe738a295ce6d4c466448f6e22a27dc0",
         "status": "verified",
-        "checkedAt": "2026-08-24T10:40:00-07:00",
+        "checkedAt": "2026-08-25T09:21:00-07:00",
         "feature": "通过公开命令验证选择前零写入、新建单次发布、营地与活动狩猎恢复、延迟 Load 重入门禁及年度闭环。"
+      },
+      {
+        "guid": "61d971bf47d144f8bf935367b224e6ee",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignStartupLifecycleTests.cs",
+        "line": 1,
+        "fileHash": "4a3fe01a52875e1caf4f18c8c2cb66b73cf115cb13951f75707f21e7e986dffa",
+        "status": "verified",
+        "checkedAt": "2026-08-25T09:21:00-07:00",
+        "feature": "验证未启用入口、重复提交、非法状态、失败重试与成功激活的启动生命周期边界。"
       }
     ],
     "tests": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "Unity CLI PlayMode campaign startup and year loop: 9/9 passed",
-      "dotnet GameLogic and PlayMode test assembly build passed"
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignStartupLifecycleTests.cs",
+      "Unity CLI EditMode: 626/626 passed",
+      "Unity CLI GameManager campaign startup PlayMode: 12/12 passed"
     ],
-    "verifiedAt": "08/24/2026 10:40:00"
+    "verifiedAt": "2026-08-25T09:21:00-07:00"
   },
   "implementationOutline": [
-    "Bootstrap 在开场菜单启用时把组合根置为 AwaitingChoice，不创建 Settlement 或阶段 Runner。",
+    "Bootstrap 在开场菜单启用时配置 CampaignStartupLifecycle 为 AwaitingChoice，不创建 Settlement 或阶段 Runner。",
+    "CampaignStartupLifecycle 以单一 in-flight 门禁维护新建、加载、成功激活与失败重试状态，GameManager 不再平行保存启动标记。",
     "StartNewCampaignAsync 删除已确认的旧记录后创建初始营地，并只发布一次首轮年度事件。",
     "ContinueCampaignAsync 先解析并验证 Settlement 或 Active Hunt 候选，成功后才提交对应阶段运行图。",
     "失败路径释放 Campaign/Settlement/Hunt Session、Installer 租约和临时表现，关闭 FSM 并回到 AwaitingChoice。",
@@ -89,6 +109,7 @@
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupLifecycle.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PhaseManager.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ICampaignPersistencePort.cs:1",
@@ -96,7 +117,7 @@
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/PlayableOpeningSequence3D.cs:1"
   ],
   "publishedBy": {
-    "mode": "legacy-formal-review-migration",
+    "mode": "direct-implementation-conformance",
     "changeId": ""
   }
 }
