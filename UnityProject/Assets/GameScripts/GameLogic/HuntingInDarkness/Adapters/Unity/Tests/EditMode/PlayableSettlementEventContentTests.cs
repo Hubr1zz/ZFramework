@@ -69,6 +69,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(manager.Timeline.RandomEventPool, Has.Count.GreaterThanOrEqualTo(5));
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.name == "random_stone_vigil"), Is.True);
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.name == "random_dark_bargain" && gameEvent.options.Exists(option => option.successEffects.Exists(effect => effect.effectType == EventEffectType.KillHunter))), Is.True);
+            Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.name == "random_falling_beam" && gameEvent.options.Exists(option => option.failEffects.Exists(effect => effect.effectType == EventEffectType.AddRecoverableWound && effect.bodyPart == "arms"))), Is.True);
             Assert.That(manager.Timeline.RandomEventPool.FindAll(gameEvent => gameEvent != null && gameEvent.eventType == GameEventType.Choice && gameEvent.maxYear <= 0), Has.Count.GreaterThanOrEqualTo(3));
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.options.Exists(option => option != null && option.checkType != CheckType.None && option.successEffects.Count > 0 && option.failEffects.Count > 0)), Is.True);
             foreach (EventData gameEvent in manager.Timeline.RandomEventPool)

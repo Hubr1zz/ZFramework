@@ -36,6 +36,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(events, Has.Count.GreaterThanOrEqualTo(3));
             Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.checkPresentation == EventCheckPresentationKind.PhysicalDice)), Is.True);
             Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.checkPresentation == EventCheckPresentationKind.DrawCards)), Is.True);
+            Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.failEffects.Exists(effect => effect.effectType == EventEffectType.AddRecoverableWound && effect.targetName == "selected" && effect.bodyPart == "legs"))), Is.True);
         }
 
         [Test]

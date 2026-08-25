@@ -12,7 +12,7 @@ namespace HuntingInDarkness.ActionFlow.Events
 
     public readonly struct PlayableEventEffectResult
     {
-        public PlayableEventEffectResult(int effectIndex, EventEffect effect, PlayableEventEffectStatus status, string reason, string eventId = "", string resolvedTargetId = "", int targetActorId = 0, bool stateChanged = false)
+        public PlayableEventEffectResult(int effectIndex, EventEffect effect, PlayableEventEffectStatus status, string reason, string eventId = "", string resolvedTargetId = "", int targetActorId = 0, bool stateChanged = false, int previousValue = 0, int currentValue = 0)
         {
             EventId = eventId ?? string.Empty;
             EffectIndex = effectIndex;
@@ -23,6 +23,8 @@ namespace HuntingInDarkness.ActionFlow.Events
             ResolvedTargetId = resolvedTargetId ?? string.Empty;
             TargetActorId = targetActorId;
             StateChanged = stateChanged;
+            PreviousValue = previousValue;
+            CurrentValue = currentValue;
         }
 
         public string EventId { get; }
@@ -34,6 +36,8 @@ namespace HuntingInDarkness.ActionFlow.Events
         public string ResolvedTargetId { get; }
         public int TargetActorId { get; }
         public bool StateChanged { get; }
+        public int PreviousValue { get; }
+        public int CurrentValue { get; }
         public bool Succeeded => Status == PlayableEventEffectStatus.Applied;
     }
 
@@ -72,5 +76,15 @@ namespace HuntingInDarkness.ActionFlow.Events
         public int HunterId;
         public string SymptomId;
         public string SymptomName;
+    }
+
+    public struct HunterWoundedEvent
+    {
+        public string SourceEventId;
+        public int EffectIndex;
+        public int HunterId;
+        public string BodyPartId;
+        public int PreviousHealth;
+        public int CurrentHealth;
     }
 }

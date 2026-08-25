@@ -47,6 +47,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             HunterData template = CreateAsset<HunterData>("hunter-template");
             var hunter = new HunterInstance(template, 101);
+            hunter.HP.arms = 1;
             var settlement = new SettlementInstance { CurrentYear = 3 };
             settlement.Hunters.Add(hunter);
             HexTileData starting = CreateTile("starting", TileType.Starting);
@@ -65,6 +66,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(destination.CurrentYear, Is.EqualTo(3));
             Assert.That(destination.ActiveHunters, Has.Count.EqualTo(1));
             Assert.That(destination.ActiveHunters[0].InstanceId, Is.EqualTo(101));
+            Assert.That(destination.ActiveHunters[0].HP.arms, Is.EqualTo(1));
             Assert.That(destination.Map.Count, Is.EqualTo(source.Map.Count));
             Assert.That(destination.SquadPosition, Is.EqualTo(source.SquadPosition));
             Assert.That(destination.CaptureRandomState().Value, Is.EqualTo(source.CaptureRandomState().Value));

@@ -14,6 +14,7 @@ namespace HuntingInDarkness.ContentTables
     {
         public string effectType;
         public string targetName;
+        public string bodyPart;
         public int value = 1;
         public string description;
     }
@@ -492,7 +493,7 @@ namespace HuntingInDarkness.ContentTables
             return true;
         }
 
-        private static bool ValidateEffects(IReadOnlyList<EventEffectTableRecord> records, bool allowHunterDeath, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent)
+        private static bool ValidateEffects(IReadOnlyList<EventEffectTableRecord> records, bool allowSelectedHunterEffects, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent)
         {
             if (records == null)
                 return true;
@@ -506,7 +507,9 @@ namespace HuntingInDarkness.ContentTables
                     return false;
                 if (effectType == EventEffectType.AddAilment && (symptomCatalog == null || !symptomCatalog.TryGetById(record.targetName, out _)))
                     return false;
-                if (effectType == EventEffectType.KillHunter && (!allowHunterDeath || !IsValidHunterDeathCauseId(record.targetName)))
+                if (effectType == EventEffectType.AddRecoverableWound && (!allowSelectedHunterEffects || !string.Equals(record.targetName?.Trim(), "selected", StringComparison.OrdinalIgnoreCase) || record.value <= 0 || !HunterRecoveryRules.TryParseBodyPart(record.bodyPart, out _)))
+                    return false;
+                if (effectType == EventEffectType.KillHunter && (!allowSelectedHunterEffects || !IsValidHunterDeathCauseId(record.targetName)))
                     return false;
             }
             return true;
@@ -657,7 +660,7 @@ namespace HuntingInDarkness.ContentTables
                     Debug.LogError($"[ContentTable] 事件 {eventId} 含无效效果类型。 ");
                     continue;
                 }
-                effects.Add(new EventEffect { effectType = effectType, targetName = record.targetName ?? string.Empty, value = record.value, description = record.description ?? string.Empty });
+                effects.Add(new EventEffect { effectType = effectType, targetName = record.targetName ?? string.Empty, bodyPart = record.bodyPart ?? string.Empty, value = record.value, description = record.description ?? string.Empty });
             }
             return effects;
         }

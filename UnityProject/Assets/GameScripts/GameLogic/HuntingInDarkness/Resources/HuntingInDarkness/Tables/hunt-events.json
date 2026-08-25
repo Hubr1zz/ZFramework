@@ -22,7 +22,8 @@
           ],
           "failText": "回声追上了脚步。带队猎人强迫自己继续前进，压抑 +1。",
           "failEffects": [
-            { "effectType": "AddInsanity", "targetName": "selected", "value": 1, "description": "压抑 +1" }
+            { "effectType": "AddInsanity", "targetName": "selected", "value": 1, "description": "压抑 +1" },
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "legs", "value": 1, "description": "腿部生命 -1" }
           ],
           "alwaysAvailable": true,
           "conditions": []

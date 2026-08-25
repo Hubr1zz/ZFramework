@@ -50,5 +50,30 @@ namespace HuntingInDarkness.GameCore.Tests
             Assert.That(result.RecoveredHealth, Is.EqualTo(1));
             Assert.That(hunter.HP.body, Is.EqualTo(1));
         }
+
+        [Test]
+        public void TryApplyRecoverableWound_DamagesExplicitPartAndClampsAboveFatalState()
+        {
+            var hunter = new HunterState();
+            hunter.HP.arms = 3;
+
+            Assert.That(HunterRecoveryRules.TryApplyRecoverableWound(hunter, "arms", 5, out HunterRecoverableWoundResult result, out string reason), Is.True, reason);
+            Assert.That(result.PreviousHealth, Is.EqualTo(3));
+            Assert.That(result.CurrentHealth, Is.EqualTo(1));
+            Assert.That(result.HealthLost, Is.EqualTo(2));
+            Assert.That(hunter.HP.arms, Is.EqualTo(1));
+            Assert.That(hunter.IsDead, Is.False);
+        }
+
+        [Test]
+        public void TryApplyRecoverableWound_RejectsInvalidDamagePartAndFatalState()
+        {
+            var hunter = new HunterState();
+
+            Assert.That(HunterRecoveryRules.TryApplyRecoverableWound(hunter, "wings", 1, out _, out _), Is.False);
+            Assert.That(HunterRecoveryRules.TryApplyRecoverableWound(hunter, "head", 0, out _, out _), Is.False);
+            hunter.HP.head = 0;
+            Assert.That(HunterRecoveryRules.TryApplyRecoverableWound(hunter, "head", 1, out _, out _), Is.False);
+        }
     }
 }

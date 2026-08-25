@@ -54,6 +54,37 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task InteractTileAsync_EventWoundCommitsThroughHuntRoot()
+        {
+            using var rig = new HuntRig(includeSurvivor: true);
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddRecoverableWound, targetName = "selected", bodyPart = "legs", value = 1 });
+            HunterWoundedEvent received = default;
+            int receivedCount = 0;
+            Action<HunterWoundedEvent> handler = evt =>
+            {
+                received = evt;
+                receivedCount++;
+            };
+            EventBus.Subscribe(handler);
+            try
+            {
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(rig.Hunter.HP.legs, Is.EqualTo(2));
+                Assert.That(receivedCount, Is.EqualTo(1));
+                Assert.That(received.HunterId, Is.EqualTo(rig.Hunter.InstanceId));
+                Assert.That(received.BodyPartId, Is.EqualTo("legs"));
+                Assert.That(received.PreviousHealth, Is.EqualTo(3));
+                Assert.That(received.CurrentHealth, Is.EqualTo(2));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
         public async Task CommitReactor_PreventionLeavesTileAndFactsUntouched()
         {
             using var rig = new HuntRig();

@@ -167,6 +167,69 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void TableRecoverableWound_RequiresSelectedHunterPositiveDamageAndKnownPart()
+        {
+            MethodInfo validateEffects = typeof(PlayableEventTableRuntime).GetMethod("ValidateEffects", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(validateEffects, Is.Not.Null);
+            var valid = new List<EventEffectTableRecord> { new() { effectType = nameof(EventEffectType.AddRecoverableWound), targetName = "selected", bodyPart = "arms", value = 1 } };
+            var immediate = new List<EventEffectTableRecord> { new() { effectType = nameof(EventEffectType.AddRecoverableWound), targetName = "selected", bodyPart = "arms", value = 1 } };
+            var invalidPart = new List<EventEffectTableRecord> { new() { effectType = nameof(EventEffectType.AddRecoverableWound), targetName = "selected", bodyPart = "wings", value = 1 } };
+            var invalidDamage = new List<EventEffectTableRecord> { new() { effectType = nameof(EventEffectType.AddRecoverableWound), targetName = "selected", bodyPart = "arms", value = 0 } };
+
+            Assert.That(validateEffects.Invoke(null, new object[] { valid, true, catalog, PlayableBloodlineRuntime.Content }), Is.True);
+            Assert.That(validateEffects.Invoke(null, new object[] { immediate, false, catalog, PlayableBloodlineRuntime.Content }), Is.False);
+            Assert.That(validateEffects.Invoke(null, new object[] { invalidPart, true, catalog, PlayableBloodlineRuntime.Content }), Is.False);
+            Assert.That(validateEffects.Invoke(null, new object[] { invalidDamage, true, catalog, PlayableBloodlineRuntime.Content }), Is.False);
+        }
+
+        [Test]
+        public void EventEffectType_PreservesSerializedValuesWhenWoundIsAppended()
+        {
+            Assert.That((int)EventEffectType.AddAilment, Is.EqualTo(9));
+            Assert.That((int)EventEffectType.KillHunter, Is.EqualTo(10));
+            Assert.That((int)EventEffectType.ActivateBloodline, Is.EqualTo(15));
+            Assert.That((int)EventEffectType.AddRecoverableWound, Is.EqualTo(16));
+        }
+
+        [Test]
+        public async Task RecoverableWound_CommitsThroughSettlementRootAndPublishesBeforeTransaction()
+        {
+            SettlementInstance settlement = CreateSettlement();
+            HunterInstance hunter = settlement.Hunters[0];
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "event_recoverable_wound_asset";
+            gameEvent.ConfigureContentId("event_recoverable_wound");
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption { optionText = "撑住横梁", alwaysAvailable = true, successText = "横梁擦伤了手臂。", successEffects = new List<EventEffect> { new() { effectType = EventEffectType.AddRecoverableWound, targetName = "selected", bodyPart = "arms", value = 2 } } });
+            var received = new List<string>();
+            Action<HunterWoundedEvent> woundHandler = evt => received.Add($"wound:{evt.BodyPartId}:{evt.PreviousHealth}>{evt.CurrentHealth}");
+            Action<SettlementTransactionCommittedEvent> transactionHandler = evt =>
+            {
+                if (evt.Kind == SettlementTransactionKind.EventResolution) received.Add("transaction:event");
+            };
+            EventBus.Subscribe(woundHandler);
+            EventBus.Subscribe(transactionHandler);
+            try
+            {
+                using var session = CreateSession(settlement);
+
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(hunter.HP.arms, Is.EqualTo(1));
+                Assert.That(result.EffectResults.Effects[0].ResolvedTargetId, Is.EqualTo("arms"));
+                Assert.That(result.EffectResults.Effects[0].StateChanged, Is.True);
+                Assert.That(received, Is.EqualTo(new[] { "wound:arms:3>1", "transaction:event" }));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(woundHandler);
+                EventBus.Unsubscribe(transactionHandler);
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
         public void TableCache_ExplicitlyRebuildsWhenSymptomCatalogBecomesAvailable()
         {
             Type runtimeType = typeof(PlayableEventTableRuntime);

@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "event-recoverable-wounds",
+  "specHash": "45934583d35aaf4ca6471280f54cae369671b6da09400ca40af1ba269297b2d5",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "营地与狩猎事件可从表配置显式普通部位伤势；规则限制非致命伤势，阶段 ActionQueue 提交状态与伤势事实，既有 3D 营地休养及存档模型直接复用。",
+    "validatedAgainstSpecHash": "45934583d35aaf4ca6471280f54cae369671b6da09400ca40af1ba269297b2d5",
+    "evidence": [
+      {
+        "guid": "8d372adc6cf50c8409fe49ae90ca6f80",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterRecoveryRules.cs",
+        "line": 24,
+        "fileHash": "e32e6d2a657ff0c459935e95db79e47e7c3eac46c69bdd4530030e97188ecb32",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:31:52-07:00",
+        "feature": "复用部位模型校验普通伤势并将生命最低限制为一。"
+      },
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "line": 13,
+        "fileHash": "bc077fdc1292539fae7d2f33406c7fd496bbc17985903be5099dc2fe78617888",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:31:52-07:00",
+        "feature": "事件表读取并 fail-closed 校验选中猎人、正伤害和稳定部位 ID。"
+      },
+      {
+        "guid": "415d8d7b8cbb06540ad790f520dafbde",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+        "line": 296,
+        "fileHash": "35b2588072416aa505f02d9c0cd10d7ebc4611d43781128075483523df3f3acb",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:31:52-07:00",
+        "feature": "共享事件规则端口二次校验营地猎人并返回部位伤势结果。"
+      },
+      {
+        "guid": "d94d370a430db9b41b025aedfeb3a471",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+        "line": 216,
+        "fileHash": "1c3b64ae95de55bb90f2286adddf679feef3f584e7f0bf4a98366671199937ae",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:31:52-07:00",
+        "feature": "事件 Action 根在 resolution checkpoint 发布伤势事实。"
+      },
+      {
+        "guid": "85f60544b7e9b004d9def05c16cdabd1",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
+        "line": 51,
+        "fileHash": "1167563b232d350e111b9f368d1f65af7c3b0beba435d8ab44f55a84d43c507e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:31:52-07:00",
+        "feature": "狩猎事件伤势在 Hunt ActionQueue 内提交并发布事实。"
+      },
+      {
+        "guid": "a61a5c63f2764aa98fb12323a8c94f3a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
+        "line": 46,
+        "fileHash": "b8b13418a251652a0e50349f3ad43778829b0f5e2dc28b2a8751dc9826fe27dd",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:31:52-07:00",
+        "feature": "狩猎快照往返保持普通部位生命。"
+      }
+    ],
+    "tests": [
+      "Unity CLI compile: passed",
+      "HunterRecoveryRulesTests: 5/5 passed",
+      "Playable event table and content fixtures: 21/21 passed",
+      "PlayableHuntActionSessionTests: 19/19 passed",
+      "ActiveHuntPersistenceTests: 4/4 passed",
+      "PlayableSettlementCareActionTests: 11/11 passed"
+    ],
+    "verifiedAt": "2026-08-25T00:31:52-07:00"
+  },
+  "implementationOutline": [
+    "事件表用 AddRecoverableWound、selected、正伤害与稳定 bodyPart 描述普通伤势。",
+    "HunterRecoveryRules 复用同一部位模型，将非决战事件伤势限制在一生命以上。",
+    "Settlement 与 Hunt 的事件 Action 根提交状态，并在 checkpoint 发布 HunterWoundedEvent。",
+    "既有 Hunter HP 存档和世界空间营地休养命令直接承接伤势。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterRecoveryRules.cs:24",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs:13",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs:216"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation",
+    "changeId": ""
+  }
+}

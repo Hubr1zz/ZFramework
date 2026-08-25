@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core;
 using HuntingInDarkness.ActionFlow.Events;
@@ -292,6 +293,18 @@ namespace HuntingInDarkness.Settlement
                     return FailedEffect(effectIndex, effect, reason, eventId);
                 return SucceededEffect(effectIndex, effect, eventId, definition.Id, actor.InstanceId, added);
             }
+            if (effect.effectType == EventEffectType.AddRecoverableWound)
+            {
+                HunterInstance actor = target ?? eventActor;
+                if (actor == null || !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))
+                    return FailedEffect(effectIndex, effect, "事件没有属于当前营地的猎人执行者。", eventId);
+                if (!string.Equals(effect.targetName?.Trim(), "selected", StringComparison.OrdinalIgnoreCase))
+                    return FailedEffect(effectIndex, effect, "普通伤势必须明确作用于选中猎人。", eventId);
+                if (!HunterRecoveryRules.TryApplyRecoverableWound(actor, effect.bodyPart, effect.value, out HunterRecoverableWoundResult wound, out string reason))
+                    return FailedEffect(effectIndex, effect, reason, eventId);
+                string bodyPartId = HunterRecoveryRules.GetBodyPartId(wound.BodyPart);
+                return SucceededEffect(effectIndex, effect, eventId, bodyPartId, actor.InstanceId, wound.Changed, wound.PreviousHealth, wound.CurrentHealth);
+            }
 
             if (resourceCommand != null && (effect.effectType == EventEffectType.AddResource || effect.effectType == EventEffectType.RemoveResource))
             {
@@ -362,6 +375,8 @@ namespace HuntingInDarkness.Settlement
         private static PlayableEventEffectResult SucceededEffect(int effectIndex, EventEffect effect, string eventId) => new(effectIndex, effect, PlayableEventEffectStatus.Applied, string.Empty, eventId);
 
         private static PlayableEventEffectResult SucceededEffect(int effectIndex, EventEffect effect, string eventId, string resolvedTargetId, int targetActorId, bool stateChanged) => new(effectIndex, effect, PlayableEventEffectStatus.Applied, string.Empty, eventId, resolvedTargetId, targetActorId, stateChanged);
+
+        private static PlayableEventEffectResult SucceededEffect(int effectIndex, EventEffect effect, string eventId, string resolvedTargetId, int targetActorId, bool stateChanged, int previousValue, int currentValue) => new(effectIndex, effect, PlayableEventEffectStatus.Applied, string.Empty, eventId, resolvedTargetId, targetActorId, stateChanged, previousValue, currentValue);
 
         private static PlayableEventEffectResult FailedEffect(int effectIndex, EventEffect effect, string reason, string eventId) => new(effectIndex, effect, PlayableEventEffectStatus.Failed, reason, eventId);
 

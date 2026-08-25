@@ -216,7 +216,7 @@ namespace HuntingInDarkness.ActionFlow.Events
         private void PublishCommitCheckpoint(PlayableEventCommitKind kind, HunterInstance actor, IReadOnlyList<EventData> chainedEvents = null)
         {
             if (kind == PlayableEventCommitKind.Resolution)
-                StageSymptomFacts();
+                StageCommittedEffectFacts();
             var chainedEventIds = new List<string>();
             if (chainedEvents != null)
                 foreach (EventData chainedEvent in chainedEvents)
@@ -230,13 +230,18 @@ namespace HuntingInDarkness.ActionFlow.Events
             eventOutbox.PublishCheckpoint();
         }
 
-        private void StageSymptomFacts()
+        private void StageCommittedEffectFacts()
         {
             foreach (PlayableEventEffectResult effect in EffectResults.Effects)
             {
-                if (!effect.Succeeded || !effect.StateChanged || effect.EffectType != EventEffectType.AddAilment || effect.TargetActorId <= 0 || string.IsNullOrWhiteSpace(effect.ResolvedTargetId)) continue;
-                string symptomName = PlayableSymptomRuntime.Catalog != null && PlayableSymptomRuntime.Catalog.TryGetById(effect.ResolvedTargetId, out SymptomDefinition definition) ? definition.DisplayName : string.Empty;
-                eventOutbox.Stage(new HunterSymptomAcquiredEvent { SourceEventId = effect.EventId, EffectIndex = effect.EffectIndex, HunterId = effect.TargetActorId, SymptomId = effect.ResolvedTargetId, SymptomName = symptomName });
+                if (!effect.Succeeded || !effect.StateChanged || effect.TargetActorId <= 0 || string.IsNullOrWhiteSpace(effect.ResolvedTargetId)) continue;
+                if (effect.EffectType == EventEffectType.AddAilment)
+                {
+                    string symptomName = PlayableSymptomRuntime.Catalog != null && PlayableSymptomRuntime.Catalog.TryGetById(effect.ResolvedTargetId, out SymptomDefinition definition) ? definition.DisplayName : string.Empty;
+                    eventOutbox.Stage(new HunterSymptomAcquiredEvent { SourceEventId = effect.EventId, EffectIndex = effect.EffectIndex, HunterId = effect.TargetActorId, SymptomId = effect.ResolvedTargetId, SymptomName = symptomName });
+                }
+                if (effect.EffectType == EventEffectType.AddRecoverableWound)
+                    eventOutbox.Stage(new HunterWoundedEvent { SourceEventId = effect.EventId, EffectIndex = effect.EffectIndex, HunterId = effect.TargetActorId, BodyPartId = effect.ResolvedTargetId, PreviousHealth = effect.PreviousValue, CurrentHealth = effect.CurrentValue });
             }
         }
     }

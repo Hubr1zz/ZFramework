@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "b26c7736a54b4efb5569368496938520dbcb456ee252c0937e2af1c41b923695",
-  "inputManifestDigest": "376e9f1b4546b32778cb6b8d98d0cd3b0efdedb00700a2daa9a78eb70ab4644c",
-  "outputDigest": "f3279a5ea2a9cdc054fdb557d5b2589afb7533bdfc28c730bf23fb4b19c12d84",
+  "inputDigest": "67cd03ec841181145fe8179c603cbe120f02c7a3f672941b197661d281e9c169",
+  "inputManifestDigest": "6fc5e5aa7c38acc168af88e84f235d74e4b08569406cfcc30c3fa05b78297c91",
+  "outputDigest": "aa35d44c7c7bb697339ae6ae4e2e76b00f367ab8e0cebce740b4869952107fa3",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -42,7 +42,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
-      "sha256": "89e5f5a7f8d95c9f30776c8689a9ae3c20ae76ce762c2f3843cae83b03c21088",
+      "sha256": "1c3b64ae95de55bb90f2286adddf679feef3f584e7f0bf4a98366671199937ae",
       "state": "current"
     },
     {
@@ -112,7 +112,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
-      "sha256": "6c52990394b6c09608b72b0b951994c1ad18dc5eb0fe129119d61db9ef35227d",
+      "sha256": "bc077fdc1292539fae7d2f33406c7fd496bbc17985903be5099dc2fe78617888",
       "state": "current"
     },
     {
@@ -161,6 +161,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+      "sha256": "35b2588072416aa505f02d9c0cd10d7ebc4611d43781128075483523df3f3acb",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/SettlementManager.cs",
       "sha256": "ed30e919f5a85f78ab2a54c1e5ecc809b75f232b39bd178d6b46bf6ccbcbc265",
       "state": "current"
@@ -197,7 +202,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
-      "sha256": "8c31c0e4dc81e7f932e11f02f823795724b8edaf3bae167a87856c74c8d6203d",
+      "sha256": "b8b13418a251652a0e50349f3ad43778829b0f5e2dc28b2a8751dc9826fe27dd",
       "state": "current"
     },
     {
@@ -213,6 +218,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventTableCacheLifecycleTests.cs",
       "sha256": "41bd71fe0d9d77dfccf53d2abfc1b6bacea0360611ad712b0251ba48db771a7a",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
+      "sha256": "1167563b232d350e111b9f368d1f65af7c3b0beba435d8ab44f55a84d43c507e",
       "state": "current"
     },
     {
@@ -283,6 +293,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HuntReturnRules.cs",
       "sha256": "3fed7b918163ce630a96b46b780776a211dcb2daa8bf8ed0d03ff5e6a1418a9c",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterRecoveryRules.cs",
+      "sha256": "e32e6d2a657ff0c459935e95db79e47e7c3eac46c69bdd4530030e97188ecb32",
       "state": "current"
     },
     {
@@ -468,6 +483,16 @@
     {
       "path": "openspec/specs/event-occurrence-checkpoint-core/spec.md",
       "sha256": "f6fa640b014bc7e098e11fdb6d6763373886759f03842db9513f02493b35880c",
+      "state": "current"
+    },
+    {
+      "path": "openspec/specs/event-recoverable-wounds/implementation.json",
+      "sha256": "2956a9c6f18289d57098227c498281fa87bb6ed6a7f3510b53975193ee759270",
+      "state": "current"
+    },
+    {
+      "path": "openspec/specs/event-recoverable-wounds/spec.md",
+      "sha256": "45934583d35aaf4ca6471280f54cae369671b6da09400ca40af1ba269297b2d5",
       "state": "current"
     },
     {
@@ -978,7 +1003,7 @@
     "planned": 0,
     "unknown": 38,
     "blocked": 0,
-    "stale": 20
+    "stale": 21
   },
   "attentionRequired": [
     "action-environment-lifecycle",
@@ -1002,6 +1027,7 @@
     "hunt-phase-orchestration",
     "hunt-return-outcome-checkpoint",
     "hunt-route-entry-context",
+    "hunt-session-event-occurrence-recovery",
     "hunt-squad-action-availability",
     "hunt-tabletop-harvest",
     "hunt-tile-reveal-events",
@@ -1055,6 +1081,11 @@
     {
       "capability": "active-hunt-persistence",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "active-hunt-persistence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
       "state": "stale"
     },
     {
@@ -1210,6 +1241,11 @@
     {
       "capability": "hunt-route-entry-context",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-session-event-occurrence-recovery",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
       "state": "stale"
     },
     {
@@ -1391,7 +1427,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -1651,6 +1687,46 @@
       "evidence": []
     },
     {
+      "id": "event-recoverable-wounds",
+      "label": "事件普通伤势与营地休养闭环",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "营地与狩猎事件可从表配置显式普通部位伤势；规则限制非致命伤势，阶段 ActionQueue 提交状态与伤势事实，既有 3D 营地休养及存档模型直接复用。",
+      "designSources": [],
+      "sources": [
+        "openspec/specs/event-recoverable-wounds/spec.md",
+        "openspec/specs/event-recoverable-wounds/implementation.json"
+      ],
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterRecoveryRules.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
+          "state": "current"
+        }
+      ]
+    },
+    {
       "id": "expedition-build-progression-loop",
       "label": "远征奖励与营地构筑闭环",
       "status": "verified",
@@ -1907,8 +1983,8 @@
       "id": "hunt-session-event-occurrence-recovery",
       "label": "狩猎会话事件链恢复",
       "status": "verified",
-      "effectiveStatus": "verified",
-      "progress": 100,
+      "effectiveStatus": "stale",
+      "progress": 0,
       "verificationStatus": "verified",
       "summary": "Hunt session 已覆盖 pre-commit 保留、post-commit 子链续接、重复 sibling、稳定 ActorId、祖先循环、容量截断、恢复停滞保护与遭遇交接失败解锁。",
       "designSources": [],
@@ -1932,7 +2008,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },

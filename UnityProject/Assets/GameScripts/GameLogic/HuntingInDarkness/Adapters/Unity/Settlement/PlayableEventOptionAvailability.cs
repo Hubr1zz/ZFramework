@@ -47,6 +47,7 @@ namespace HuntingInDarkness.Settlement
                     case EventEffectType.AddUnderstanding:
                     case EventEffectType.AddTrait:
                     case EventEffectType.AddAilment:
+                    case EventEffectType.AddRecoverableWound:
                     case EventEffectType.KillHunter:
                     case EventEffectType.ActivateBloodline:
                         return true;

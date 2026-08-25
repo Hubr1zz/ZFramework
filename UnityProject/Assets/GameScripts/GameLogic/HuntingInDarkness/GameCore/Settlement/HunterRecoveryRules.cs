@@ -20,9 +20,87 @@ namespace HuntingInDarkness.GameCore.Settlement
         }
     }
 
+    public readonly struct HunterRecoverableWoundResult
+    {
+        public HunterBodyPart BodyPart { get; }
+        public int PreviousHealth { get; }
+        public int CurrentHealth { get; }
+        public int HealthLost => PreviousHealth - CurrentHealth;
+        public bool Changed => HealthLost > 0;
+
+        public HunterRecoverableWoundResult(HunterBodyPart bodyPart, int previousHealth, int currentHealth)
+        {
+            BodyPart = bodyPart;
+            PreviousHealth = previousHealth;
+            CurrentHealth = currentHealth;
+        }
+    }
+
     /// <summary>营地休养只恢复普通部位生命，不触碰死亡牌、症状或永久损伤。</summary>
     public static class HunterRecoveryRules
     {
+        public static bool TryApplyRecoverableWound(HunterState hunter, string bodyPartId, int damage, out HunterRecoverableWoundResult result, out string reason)
+        {
+            result = default;
+            if (!TryParseBodyPart(bodyPartId, out HunterBodyPart bodyPart))
+            {
+                reason = "未知的受伤部位。";
+                return false;
+            }
+            if (hunter == null || !hunter.IsAlive)
+            {
+                reason = "事件没有可承受伤势的猎人。";
+                return false;
+            }
+            if (hunter.HP == null || hunter.MaxHP == null)
+            {
+                reason = "猎人的伤势记录不完整。";
+                return false;
+            }
+            if (damage <= 0)
+            {
+                reason = "普通伤势值必须大于零。";
+                return false;
+            }
+
+            GetHealth(hunter, bodyPart, out int currentHealth, out _);
+            if (currentHealth <= 0)
+            {
+                reason = "已经失去生命值的致命部位不能追加普通伤势。";
+                return false;
+            }
+
+            int newHealth = Math.Max(1, currentHealth - damage);
+            SetHealth(hunter.HP, bodyPart, newHealth);
+            result = new HunterRecoverableWoundResult(bodyPart, currentHealth, newHealth);
+            reason = string.Empty;
+            return true;
+        }
+
+        public static bool TryParseBodyPart(string bodyPartId, out HunterBodyPart bodyPart)
+        {
+            bodyPart = bodyPartId?.Trim().ToLowerInvariant() switch
+            {
+                "head" => HunterBodyPart.Head,
+                "torso" => HunterBodyPart.Torso,
+                "arms" => HunterBodyPart.Arms,
+                "legs" => HunterBodyPart.Legs,
+                _ => default
+            };
+            return IsSupportedBodyPartId(bodyPartId);
+        }
+
+        public static string GetBodyPartId(HunterBodyPart bodyPart)
+        {
+            return bodyPart switch
+            {
+                HunterBodyPart.Head => "head",
+                HunterBodyPart.Torso => "torso",
+                HunterBodyPart.Arms => "arms",
+                HunterBodyPart.Legs => "legs",
+                _ => string.Empty
+            };
+        }
         public static bool CanRecover(HunterState hunter, HunterBodyPart bodyPart, out string reason)
         {
             if (!IsSupportedBodyPart(bodyPart))
@@ -120,6 +198,12 @@ namespace HuntingInDarkness.GameCore.Settlement
         private static bool IsSupportedBodyPart(HunterBodyPart bodyPart)
         {
             return bodyPart == HunterBodyPart.Head || bodyPart == HunterBodyPart.Torso || bodyPart == HunterBodyPart.Arms || bodyPart == HunterBodyPart.Legs;
+        }
+
+        private static bool IsSupportedBodyPartId(string bodyPartId)
+        {
+            string normalized = bodyPartId?.Trim().ToLowerInvariant();
+            return normalized == "head" || normalized == "torso" || normalized == "arms" || normalized == "legs";
         }
     }
 }

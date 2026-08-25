@@ -189,6 +189,37 @@
       "category": "Random"
     },
     {
+      "id": "random_falling_beam",
+      "eventName": "倾倒的横梁",
+      "eventType": "Choice",
+      "displayText": "营火旁的旧横梁突然松脱，向堆放资源卡的桌面倒下。必须有人在它砸落前撑住它。",
+      "hiddenText": "横梁被重新绑紧，但营地的每一处庇护都需要人付出代价。",
+      "options": [
+        {
+          "optionText": "撑住横梁，让同伴搬走桌上的资源",
+          "checkType": "Strength",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在支撑横梁的猎人旁投掷一枚 d10",
+          "successText": "横梁被稳稳撑住，资源和猎人都安然无恙。",
+          "successEffects": [],
+          "failText": "横梁擦过猎人的手臂。伤口不致命，但回营后需要休养。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "arms", "value": 1, "description": "手臂生命 -1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    },
+    {
       "id": "active_prayer_night_vigil",
       "eventName": "无火夜祷",
       "eventType": "Choice",

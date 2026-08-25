@@ -145,27 +145,29 @@ namespace HuntingInDarkness.Data
     {
         public EventEffectType effectType = EventEffectType.AddResource;
         public string          targetName = ""; // 兼容字段；AddAilment 等跨内容引用保存稳定 ContentId，显示名仅用于旧内容迁移
+        public string          bodyPart   = ""; // 普通伤势使用稳定部位 ID：head/torso/arms/legs
         public int             value      = 1;
         [TextArea] public string description = "";
     }
 
     public enum EventEffectType
     {
-        AddResource,        // 增加资源：targetName=资源名, value=数量
-        RemoveResource,     // 减少资源
-        AddWillpower,       // 指定猎人增加意志点
-        RemoveWillpower,    // 减少意志点
-        AddLuck,            // 增加命运值
-        AddInsanity,        // 增加压抑值
-        AddCourage,         // 增加胆识
-        AddUnderstanding,   // 增加知识
-        AddTrait,           // 添加特性：targetName=特性名
-        AddAilment,         // 添加症状
-        KillHunter,         // 选中猎人永久死亡：targetName=稳定死因ID，description=玩家可见死因
-        UnlockInvention,    // 解锁发明：targetName=稳定发明 ContentId
-        TriggerCombat,      // 触发战斗
-        AdvanceYear,        // 推进年份
-        ScheduleEvent,      // 安排未来事件：targetName=稳定事件ID, value=延迟年数
-        ActivateBloodline   // 激活血脉：targetName=稳定血脉ID
+        AddResource = 0,         // 增加资源：targetName=资源名, value=数量
+        RemoveResource = 1,      // 减少资源
+        AddWillpower = 2,        // 指定猎人增加意志点
+        RemoveWillpower = 3,     // 减少意志点
+        AddLuck = 4,             // 增加命运值
+        AddInsanity = 5,         // 增加压抑值
+        AddCourage = 6,          // 增加胆识
+        AddUnderstanding = 7,    // 增加知识
+        AddTrait = 8,            // 添加特性：targetName=特性名
+        AddAilment = 9,          // 添加症状
+        KillHunter = 10,         // 选中猎人永久死亡：targetName=稳定死因ID，description=玩家可见死因
+        UnlockInvention = 11,    // 解锁发明：targetName=稳定发明 ContentId
+        TriggerCombat = 12,      // 触发战斗
+        AdvanceYear = 13,        // 推进年份
+        ScheduleEvent = 14,      // 安排未来事件：targetName=稳定事件ID, value=延迟年数
+        ActivateBloodline = 15,  // 激活血脉：targetName=稳定血脉ID
+        AddRecoverableWound = 16 // 添加可在营地休养的普通部位伤势
     }
 }
