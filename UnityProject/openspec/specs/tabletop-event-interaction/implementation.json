@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "tabletop-event-interaction",
-  "specHash": "5dedf8fe6c914feafbb94ba14afd1f32e83dc10424e650cc831c7c86444a5ee8",
+  "specHash": "08cc90ddad35a0af4d80fa29d3bf07e7ab52b8bda53277edde2020ad1d240f20",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "营地与狩猎事件共用独立安装的世界空间 3D 卡牌输入端口；View 仅返回玩家决定，旧 2D HUD 的直接 EventSystem 结算入口已移除，玩法状态仍由阶段 ActionQueue 提交。",
-    "validatedAgainstSpecHash": "5dedf8fe6c914feafbb94ba14afd1f32e83dc10424e650cc831c7c86444a5ee8",
+    "summary": "营地与狩猎事件共用世界空间 3D 卡牌输入端口；权威事件条件以读表的命运上下限改变未来选项，高命运风险分支继续由阶段 ActionQueue 结算。",
+    "validatedAgainstSpecHash": "08cc90ddad35a0af4d80fa29d3bf07e7ab52b8bda53277edde2020ad1d240f20",
     "evidence": [
       {
         "guid": "25254317ab4fe1e47b3a1e2216557176",
@@ -54,26 +54,69 @@
         "status": "verified",
         "checkedAt": "2026-08-25T00:20:00-07:00",
         "feature": "运行时验证实体事件卡创建、物理选择完成以及输入锁释放。"
+      },
+      {
+        "guid": "7d08fa612005acb448957a59099ec9d8",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/EventOptionAvailabilityRules.cs",
+        "line": 7,
+        "fileHash": "18b978b0787258d1cef7989620306b722db6027437c4d341dd098260ccf20364",
+        "status": "verified",
+        "checkedAt": "2026-08-25T16:24:31-07:00",
+        "feature": "以包含边界的最小与最大命运条件读取权威猎人状态，并生成玩家可读的命运要求。"
+      },
+      {
+        "guid": "2a32e230eed309144a69d91ec3f752f4",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
+        "line": 297,
+        "fileHash": "b7c9d714bbed1569b68e9c9d193ebab9d608ae038c3ae3141040b9cae41e52ea",
+        "status": "verified",
+        "checkedAt": "2026-08-25T16:24:31-07:00",
+        "feature": "缠命之结按命运阈值提供安全收益或高风险抽鬼牌，并保留始终可用的离开选项。"
+      },
+      {
+        "guid": "44ed4e78f8f953e46bca08cb371b551a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/EventOptionAvailabilityRulesTests.cs",
+        "line": 1,
+        "fileHash": "c52b48ef6d5532d113b20b0558d8aac5a994b223d2b8596d6e857482406eda46",
+        "status": "verified",
+        "checkedAt": "2026-08-25T16:24:31-07:00",
+        "feature": "验证命运最小值和最大值均使用包含边界，越界时返回对应要求。"
+      },
+      {
+        "guid": "2b17ff3d52628a04b81c7873108ecf6f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
+        "line": 125,
+        "fileHash": "4b3fb7673619018a31c182bee947149fc64fdb60861e611c284c2b88b836176b",
+        "status": "verified",
+        "checkedAt": "2026-08-25T16:24:31-07:00",
+        "feature": "验证低命运与高命运猎人看到互斥分支，并由现有事件事务提交高风险收益。"
       }
     ],
     "tests": [
       "Unity CLI compile: passed",
       "PlayableSettlementWorldSpacePortInstallerTests: 2/2 passed",
       "PlayableSettlementEventViewPlayModeTests: 1/1 passed",
-      "PlayableSettlementActionSessionTests: 33/33 passed"
+      "PlayableSettlementActionSessionTests: 33/33 passed",
+      "EventOptionAvailabilityRulesTests: 5/5 passed",
+      "PlayableConditionalEventOptionTests: 12/12 passed",
+      "PlayableEventTableCacheLifecycleTests: 5/5 passed",
+      "PlayableSettlementEventContentTests: 2/2 passed"
     ],
-    "verifiedAt": "2026-08-25T10:59:07-07:00"
+    "verifiedAt": "2026-08-25T16:24:31-07:00"
   },
   "implementationOutline": [
     "Playable bootstrap 始终安装共享 PlayableSettlementEventView，不受旧 HUD 开关控制。",
     "世界空间事件卡持有输入表现和玩家决定，阶段 ActionQueue 持有随机请求、规则执行与提交。",
+    "EventOptionAvailabilityRules 从持久猎人状态重验命运上下限，读表内容只声明阈值和结果。",
     "旧 EventPopup 与 EventOptionButton 已删除，SettlementUIManager 不再具备事件规则入口。",
     "PlayMode smoke 验证实体卡点击完成提示并恢复全局输入所有权。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableSettlementWorldSpacePortInstaller.cs:1",
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/UI/SettlementUIManager.cs:1"
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/UI/SettlementUIManager.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/EventOptionAvailabilityRules.cs:7",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json:297"
   ],
   "publishedBy": {
     "mode": "direct-implementation",

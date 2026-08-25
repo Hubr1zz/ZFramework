@@ -78,22 +78,22 @@
         "guid": "2a32e230eed309144a69d91ec3f752f4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
         "line": 1,
-        "fileHash": "a41fc1412f957565bac8cb05dcd192a27f99518ee31e2068630a0c65475b2a80",
+        "fileHash": "b7c9d714bbed1569b68e9c9d193ebab9d608ae038c3ae3141040b9cae41e52ea",
         "status": "verified",
-        "checkedAt": "2026-08-25T14:50:04-07:00",
-        "feature": "提供事件级、成功与失败直接分支的基础可玩内容，并保持延迟事件为独立 ScheduleEvent 效果。"
+        "checkedAt": "2026-08-25T16:24:31-07:00",
+        "feature": "提供事件级、成功与失败直接分支及命运条件基础内容，并保持延迟事件为独立 ScheduleEvent 效果。"
       }
     ],
     "tests": [
       "PlayableEventChainOccurrenceQueueTests: 10/10 passed",
       "SettlementEventRestoreProjectionTests: 14/14 passed",
       "PlayableHuntEventOccurrenceStoreTests: 12/12 passed",
-      "PlayableConditionalEventOptionTests: 11/11 passed",
+      "PlayableConditionalEventOptionTests: 12/12 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed",
       "PlayableEventChoiceTransactionTests: 6/6 passed",
       "C# derived index: 989/989, 100% coverage"
     ],
-    "verifiedAt": "2026-08-25T14:55:53-07:00"
+    "verifiedAt": "2026-08-25T16:24:31-07:00"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 在共享事件世代完成合并后校验并绑定事件级、成功与失败分支，错误依赖传递拒绝。",

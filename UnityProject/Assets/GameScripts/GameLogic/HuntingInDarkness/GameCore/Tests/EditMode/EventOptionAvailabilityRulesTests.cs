@@ -57,5 +57,21 @@ namespace HuntingInDarkness.GameCore.Tests
             Assert.That(reason, Does.Contain("听石之血"));
             Assert.That(reason, Does.Not.Contain("stone-listener"));
         }
+
+        [Test]
+        public void Evaluate_FateRangeUsesInclusiveBounds()
+        {
+            var hunter = new HunterState { Luck = 3 };
+            var minimum = new EventOptionConditionDefinition(EventOptionConditionKind.MinimumLuck, "", 3, false);
+            var maximum = new EventOptionConditionDefinition(EventOptionConditionKind.MaximumLuck, "", 3, false);
+
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { minimum, maximum }, hunter, null, null, out string reason), Is.True, reason);
+            hunter.Luck = 4;
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { maximum }, hunter, null, null, out reason), Is.False);
+            Assert.That(reason, Does.Contain("命运不高于 3"));
+            hunter.Luck = 2;
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { minimum }, hunter, null, null, out reason), Is.False);
+            Assert.That(reason, Does.Contain("命运至少 3"));
+        }
     }
 }

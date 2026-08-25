@@ -122,6 +122,32 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void FateKnotEvent_OffersSafeAndRiskyBranchesAtConfiguredFateThresholds()
+        {
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_fate_knots");
+            EventOption safeOption = gameEvent.options.First(option => option.conditions.Any(condition => condition.conditionKind == EventOptionConditionKind.MaximumLuck));
+            EventOption riskyOption = gameEvent.options.First(option => option.conditions.Any(condition => condition.conditionKind == EventOptionConditionKind.MinimumLuck));
+            var settlement = new SettlementInstance();
+            var lowFateHunter = new HunterInstance(null, 9113) { Name = "未缠命者", Luck = 1 };
+            var highFateHunter = new HunterInstance(null, 9114) { Name = "缠命者", Luck = 2 };
+            settlement.Hunters.Add(lowFateHunter);
+            settlement.Hunters.Add(highFateHunter);
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+
+            Assert.That(PlayableEventOptionAvailability.CanUse(safeOption, lowFateHunter, settlement, out string reason), Is.True, reason);
+            Assert.That(PlayableEventOptionAvailability.CanUse(safeOption, highFateHunter, settlement, out reason), Is.False);
+            Assert.That(PlayableEventOptionAvailability.CanUse(riskyOption, lowFateHunter, settlement, out reason), Is.False);
+            Assert.That(PlayableEventOptionAvailability.CanUse(riskyOption, highFateHunter, settlement, out reason), Is.True, reason);
+            Assert.That(riskyOption.checkPresentation, Is.EqualTo(EventCheckPresentationKind.OldMaid));
+
+            PlayableEventChoiceTransaction transaction = eventSystem.PrepareChoice(gameEvent, gameEvent.options.IndexOf(riskyOption), highFateHunter, riskyOption.checkSides);
+
+            Assert.That(transaction, Is.Not.Null);
+            Assert.That(transaction.CommitStandalone().Result.Success, Is.True);
+            Assert.That(settlement.GetResource("black_salt"), Is.EqualTo(3));
+        }
+
+        [Test]
         public void BloodlineEvent_ActivatesOnlyMatchingInactiveHunter()
         {
             var settlement = new SettlementInstance();

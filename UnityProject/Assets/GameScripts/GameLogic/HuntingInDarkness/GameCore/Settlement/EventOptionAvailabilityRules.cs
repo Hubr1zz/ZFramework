@@ -19,7 +19,8 @@ namespace HuntingInDarkness.GameCore.Settlement
         HasEquippedItem,
         HasKeyword,
         HasBloodline,
-        HasActiveBloodline
+        HasActiveBloodline,
+        MinimumLuck
     }
 
     public readonly struct EventOptionConditionDefinition
@@ -84,6 +85,7 @@ namespace HuntingInDarkness.GameCore.Settlement
                 EventOptionConditionKind.MinimumAccuracy => $"技巧至少 {condition.Value}",
                 EventOptionConditionKind.MinimumEvasion => $"敏捷至少 {condition.Value}",
                 EventOptionConditionKind.MinimumWillpower => $"意志至少 {condition.Value}",
+                EventOptionConditionKind.MinimumLuck => $"命运至少 {condition.Value}",
                 EventOptionConditionKind.MaximumLuck => $"命运不高于 {condition.Value}",
                 EventOptionConditionKind.HasTrait => $"拥有特性“{condition.Key}”",
                 EventOptionConditionKind.HasAilment => $"拥有症状“{condition.Key}”",
@@ -115,6 +117,8 @@ namespace HuntingInDarkness.GameCore.Settlement
                     return hunter?.Stats != null && hunter.Stats.evasion >= condition.Value;
                 case EventOptionConditionKind.MinimumWillpower:
                     return hunter != null && hunter.Willpower >= condition.Value;
+                case EventOptionConditionKind.MinimumLuck:
+                    return hunter != null && hunter.Luck >= condition.Value;
                 case EventOptionConditionKind.MaximumLuck:
                     return hunter != null && hunter.Luck <= condition.Value;
                 case EventOptionConditionKind.HasTrait:

@@ -43,6 +43,17 @@ Unavailable options and hunters SHALL remain visible as disabled cards with a re
 - **WHEN** the player reviews the event
 - **THEN** that option cannot be clicked and explains why it is unavailable
 
+### Requirement: Accumulated Fate changes future event choices
+Event option conditions SHALL support inclusive minimum and maximum Fate thresholds against the selected hunter's authoritative persisted state. Thresholds SHALL be table-configurable, player-readable as Fate requirements, and revalidated by the event transaction rather than the View.
+
+#### Scenario: A low-Fate hunter approaches a Fate-sensitive event
+- **WHEN** the hunter's Fate is at or below the configured safe threshold
+- **THEN** the safe option is available and the high-risk Fate option remains disabled with its minimum Fate requirement
+
+#### Scenario: Repeated rerolls have raised a hunter's Fate
+- **WHEN** the hunter reaches the configured minimum Fate threshold
+- **THEN** the safe option is disabled and the high-risk option becomes available through the existing ActionQueue event flow
+
 ### Requirement: Physical randomness remains between selection and check confirmation
 The event presenter SHALL only return the selected option, actor, reroll decision, and confirmation. Event table content SHALL select physical dice, draw cards, flip cards, or Old Maid through configuration; the owning ActionQueue SHALL map that configuration to a tabletop request, await a validated result, and only then prepare or reroll the rule transaction.
 

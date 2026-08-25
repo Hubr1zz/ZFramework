@@ -292,6 +292,68 @@
       "maxYear": 0,
       "drawWeight": 2,
       "category": "Random"
+    },
+    {
+      "id": "random_fate_knots",
+      "eventName": "缠命之结",
+      "eventType": "Choice",
+      "displayText": "三根发黑的细线悬在营火外，线头分别朝向过去、现在和一个尚未发生的伤口。它们只在被命运反复触碰的人靠近时收紧。",
+      "hiddenText": "线结散开时，灰烬里留下几粒黑盐。没人能确认那道尚未发生的伤口是否也随之消失。",
+      "options": [
+        {
+          "optionText": "趁命运尚轻，剪下一段松弛的细线",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "细线没有反抗，只在断口凝出一粒黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "MaximumLuck", "key": "", "value": 1, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "让命运已扭曲的猎人从线结中抽出一张牌",
+          "checkType": "Luck",
+          "checkTarget": 2,
+          "checkPresentation": "OldMaid",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "fate-knots",
+          "checkInstruction": "从缠命之结中抽出一张背面相同的牌；不要抽到指向伤口的鬼牌",
+          "successText": "线结把未来的代价吐了出来，灰烬里凝出三粒黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 3, "description": "黑盐 +3" }
+          ],
+          "failText": "鬼牌上的线刺入猎人的躯干。那道未来的伤口提前成为现实。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "torso", "value": 1, "description": "躯干生命 -1" }
+          ],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "MinimumLuck", "key": "", "value": 2, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "不要触碰这些线",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "猎人退回营火旁，细线重新垂入黑暗。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
     }
   ]
 }

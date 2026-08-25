@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "88c8b4efe865d7b381244f385e9b8bb131fd55f2e05b0d5658db42be6c8e7fe2",
-  "inputManifestDigest": "fc31ec0bcf29c903b6fc608b4ad7612840154726db17450bfe31eaa559c02dc0",
-  "outputDigest": "4f9c6f1db1386216f73872f938f3363164134aac3ba995bad6980b1b3145ffa2",
+  "inputDigest": "6f37253eb31f9842c2cdf330eae1427ac5d1691be864f1bd7adb6c40d8fe7cf0",
+  "inputManifestDigest": "9cd7ff48b26b7978965dbd9a04ff35db92e298c03270883c478d7928735ae2f2",
+  "outputDigest": "6796fcf9f340f40edf26722f75bc0812239109740d8c6a22b00fe5d87125a552",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -407,7 +407,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
-      "sha256": "a030126fcc800fc4031776004f49bf62e69ca99ab545c1002328df353c81db80",
+      "sha256": "4b3fb7673619018a31c182bee947149fc64fdb60861e611c284c2b88b836176b",
       "state": "current"
     },
     {
@@ -616,6 +616,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/EventOptionAvailabilityRules.cs",
+      "sha256": "18b978b0787258d1cef7989620306b722db6027437c4d341dd098260ccf20364",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HuntReturnRules.cs",
       "sha256": "3fed7b918163ce630a96b46b780776a211dcb2daa8bf8ed0d03ff5e6a1418a9c",
       "state": "current"
@@ -646,6 +651,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/EventOptionAvailabilityRulesTests.cs",
+      "sha256": "c52b48ef6d5532d113b20b0558d8aac5a994b223d2b8596d6e857482406eda46",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/EventRerollRulesTests.cs",
       "sha256": "37ab31117a36551d1a2f961f9789f82ea640a4ee161fcf4a7aab0ff4e5b00b3e",
       "state": "current"
@@ -662,7 +672,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
-      "sha256": "a41fc1412f957565bac8cb05dcd192a27f99518ee31e2068630a0c65475b2a80",
+      "sha256": "b7c9d714bbed1569b68e9c9d193ebab9d608ae038c3ae3141040b9cae41e52ea",
       "state": "current"
     },
     {
@@ -1202,7 +1212,7 @@
     },
     {
       "path": "openspec/specs/table-driven-event-chains/implementation.json",
-      "sha256": "80a4908066fba0c8169ad523be2aa108122463d90c1e70de3805506b5a198cca",
+      "sha256": "92e47335ec112f5972ab3aa764f5e7ddc8b91205ab65663a2d2e92296ea6615b",
       "state": "current"
     },
     {
@@ -1272,12 +1282,12 @@
     },
     {
       "path": "openspec/specs/tabletop-event-interaction/implementation.json",
-      "sha256": "ebef9618190c37d990b9900840d0e08086567993b7cf75c5dec2e2d61359102b",
+      "sha256": "9838161f93823fefee3a62cb2cd6218a620eaa4f4291d14050a08562b09e0788",
       "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-event-interaction/spec.md",
-      "sha256": "5dedf8fe6c914feafbb94ba14afd1f32e83dc10424e650cc831c7c86444a5ee8",
+      "sha256": "08cc90ddad35a0af4d80fa29d3bf07e7ab52b8bda53277edde2020ad1d240f20",
       "state": "current"
     },
     {
@@ -1382,7 +1392,7 @@
     },
     {
       "path": "openspec/specs/tabletop-random-interaction/implementation.json",
-      "sha256": "beb38750a17b8de32f85450202301cb83559eb39cc3bb7d3fe165b8cf3aa820f",
+      "sha256": "9abb7636a2463b418e107df55155141baf97ec3002146598a08de6000675c54f",
       "state": "current"
     },
     {
@@ -3316,7 +3326,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "营地与狩猎事件共用独立安装的世界空间 3D 卡牌输入端口；View 仅返回玩家决定，旧 2D HUD 的直接 EventSystem 结算入口已移除，玩法状态仍由阶段 ActionQueue 提交。",
+      "summary": "营地与狩猎事件共用世界空间 3D 卡牌输入端口；权威事件条件以读表的命运上下限改变未来选项，高命运风险分支继续由阶段 ActionQueue 结算。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-event-interaction/spec.md",
@@ -3342,6 +3352,22 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventViewPlayModeTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/EventOptionAvailabilityRules.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/EventOptionAvailabilityRulesTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
           "state": "current"
         }
       ]
