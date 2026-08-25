@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "d9214897ecb20d9c9e8a338dc9cadf93852a70f580c197cf796ce5ac6eb5465d",
-  "inputManifestDigest": "a91fe9ee2ab3faa73b48115a79e34fe792099fff65df95057bea5978d5ce6bfb",
+  "inputDigest": "4251f3552086f3b6e77c6aada85e4b3901d72ba027f11ef919b05e5dbf9a3612",
+  "inputManifestDigest": "2074bcaa29aa4dea68c88e1a06d6dd794630b995cff6c7973e8509b9e5da74be",
   "outputDigest": "719ce9308aa8fdecd66169405ecfb20b4b34ad5a62be163357d81e7607b477db",
   "inputManifest": [
     {
@@ -302,7 +302,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "319962f5eeb8c6a6b2da513287d69a8783e6e63c14428126667f8bcd992bcc02",
+      "sha256": "800b680bc2988375f447035ad5318df18d0d842ac91f725314b70ad87ed977c7",
       "state": "current"
     },
     {

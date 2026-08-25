@@ -9,6 +9,7 @@
 - [x] 2.1 等待可靠删除并先写入候选稳定快照
 - [x] 2.2 以 Settlement/Hunt generation CAS 和阶段归位发布新战役
 - [x] 2.3 失败/取消释放候选并恢复旧稳定载荷
+- [x] 2.4 将存档与 generation 事务从 GameManager 下沉到独立 Core 生命周期服务
 
 ## 3. 世界空间交互与验证
 
