@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "event-driven-hunter-symptom-acquisition",
+  "specHash": "fe9446f2f6220e5b5af1c765d5bfc36b9069491bb6824eacbbf6ace9e64cc2b6",
+  "title": "事件驱动猎人症状获得",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "事件表只接受稳定症状 ID；旧显示名与别名在恢复时迁移为唯一症状状态，Settlement/Hunt 事件节点幂等写入并在提交检查点发布获得事实，3D 症状板读取同一权威状态。",
+    "validatedAgainstSpecHash": "fe9446f2f6220e5b5af1c765d5bfc36b9069491bb6824eacbbf6ace9e64cc2b6",
+    "evidence": [
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "line": 497,
+        "fileHash": "c99a4146eccb975790d101e46640426fe539702cad863f986dbc360b7972b5d9",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "发布前以 PlayableSymptomCatalog 精确校验 AddAilment 的稳定 ID。"
+      },
+      {
+        "guid": "ca1956f2d5908d74f92586c7cac6ecb2",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSymptomRuntime.cs",
+        "line": 16,
+        "fileHash": "1e2176d43eb9951a3cf72eb921e49781ff51c84a56f3b5f9991031507aea488d",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "迁移旧引用、保留未知 token，并通过 HunterSymptomRules 幂等注册稳定症状状态。"
+      },
+      {
+        "guid": "415d8d7b8cbb06540ad790f520dafbde",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+        "line": 287,
+        "fileHash": "559eb29812814097b73940b62b513a47cf7d192d0d21ec4e9bcb7c37c6c5b2b2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "要求存活且属于当前营地的猎人，并返回稳定目标 ID、actor 与是否真实改写状态。"
+      },
+      {
+        "guid": "d94d370a430db9b41b025aedfeb3a471",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+        "line": 211,
+        "fileHash": "1c3b64ae95de55bb90f2286adddf679feef3f584e7f0bf4a98366671199937ae",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "只在事件解析检查点为真实状态变化暂存症状获得事实。"
+      },
+      {
+        "guid": "f7f201254cb1b2f478922ae7a3df818d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterSymptomPanel3D.cs",
+        "line": 1,
+        "fileHash": "759a4e3f4d52bfeb95632c6e3a6a345dba2176ca8bd0b68c22f1a25760c52afc",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "世界空间症状板从猎人稳定症状状态投影卡牌，不拥有第二份玩法数据。"
+      }
+    ],
+    "tests": ["PlayableEventSymptomAcquisitionTests: 11/11 passed"],
+    "verifiedAt": "2026-08-25T15:05:28-07:00"
+  },
+  "implementationOutline": [
+    "读表内容使用稳定症状 ID，显示名与 alias 仅用于旧存档迁移。",
+    "EventSystem 校验权威营地猎人后调用 PlayableSymptomRuntime，重复获得不重复应用状态或修正值。",
+    "事件节点在 ActionQueue 检查点发布症状事实，3D 猎人症状板读取同一状态。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs:497",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSymptomRuntime.cs:16",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs:287",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs:211"
+  ],
+  "publishedBy": { "mode": "direct-implementation-conformance", "changeId": "" }
+}

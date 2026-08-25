@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "event-driven-hunter-death",
+  "specHash": "9d1e1397b559aa0cdac8ec4efcc8e1029cb0fae7472a0d7927a42f070a6fd7fa",
+  "title": "事件驱动猎人永久死亡",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "致死效果只允许带稳定原因的猎人选项，缺少死亡端口时整项选择不可提交；Settlement 与 Hunt 共用 HunterManagement 死亡事务，幂等处理装备、年鉴、激励和事实，并在最后猎人死亡后截断事件链与遭遇。",
+    "validatedAgainstSpecHash": "9d1e1397b559aa0cdac8ec4efcc8e1029cb0fae7472a0d7927a42f070a6fd7fa",
+    "evidence": [
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "line": 497,
+        "fileHash": "c99a4146eccb975790d101e46640426fe539702cad863f986dbc360b7972b5d9",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "拒绝叙事即时死亡及空白、超长或含控制字符的死亡原因。"
+      },
+      {
+        "guid": "e24a7f7a44be0924f9b1fa39df37c424",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventOptionAvailability.cs",
+        "line": 9,
+        "fileHash": "fd9018cbcd642d2cf03dfc19a9cdfb17a256af829ed47746d074951ca3c38fbd",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "把永久死亡识别为必须选择权威猎人的效果。"
+      },
+      {
+        "guid": "b53d54014d826bd4fb6897de7a6c4c83",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
+        "line": 80,
+        "fileHash": "f9eb7335c28666b7f4679ef5315b248e4f24f37db2010aeaed8a4bbd24c28030",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "在任何奖励提交前校验 actor 归属与死亡命令端口。"
+      },
+      {
+        "guid": "415d8d7b8cbb06540ad790f520dafbde",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+        "line": 276,
+        "fileHash": "559eb29812814097b73940b62b513a47cf7d192d0d21ec4e9bcb7c37c6c5b2b2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "事件效果仅通过 IHunterDeathCommand 请求死亡，并在战役终局后清空后续事件与遭遇。"
+      },
+      {
+        "guid": "098359c4ec83d724f9c32ec50c2f2b34",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/HunterManagementSystem.cs",
+        "line": 145,
+        "fileHash": "ccf35f79495b2033e6c7ecdd2a5a2c40999687f32eb507558b7cbebb7082cb42",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "唯一死亡事务校验营地实例并幂等提交装备返还、年鉴、激励、死亡与名册事实。"
+      },
+      {
+        "guid": "49defc1c58ea64e44875f3a790412007",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs",
+        "line": 120,
+        "fileHash": "fffff3426fec3d53557b0e59cf1079faf21bc5eab40a21e5e2604f55899d2e24",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "在世界空间桌面通知中展示猎人姓名与死亡原因，不修改名册。"
+      }
+    ],
+    "tests": [
+      "PlayableEventChoiceTransactionTests: 6/6 passed",
+      "HunterDeathAftermathTests: 2/2 passed"
+    ],
+    "verifiedAt": "2026-08-25T15:05:28-07:00"
+  },
+  "implementationOutline": [
+    "读表校验只允许猎人选项携带合法稳定死亡原因。",
+    "选择事务在提交其他效果前校验权威 actor 与死亡命令端口。",
+    "所有永久死亡复用 HunterManagementSystem；ActionQueue 只调用端口并在全员死亡后停止后续玩法。",
+    "死亡事实由既有 3D 桌面通知和战役失败流程展示。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs:497",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs:80",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs:276",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/HunterManagementSystem.cs:145",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs:120"
+  ],
+  "publishedBy": { "mode": "direct-implementation-conformance", "changeId": "" }
+}

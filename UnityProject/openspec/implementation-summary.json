@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "75593280fc7d85e64edeff830b0131e548d5ae102d35ce2e5815179e48a9d7e4",
-  "inputManifestDigest": "a0c818d4379bde0fa83fd447248b45c3a149373ef816688d028f44fb15295c03",
-  "outputDigest": "42eb8fa51aed273b9b04b29c154f296694e10d2aa57bfcdbb13a030c8e2b2a3c",
+  "inputDigest": "ff6d76e4c95b8a0e70e3750fedff597d1f57c77291546cc7362b44f08282de83",
+  "inputManifestDigest": "eb170c128ae8aee9418d5f16e7e07086482aa46422f783644cf6b794be7e17f1",
+  "outputDigest": "4d2943dc729c16fa1bb40b2579abec58741bd2cf02c1cd42299a04c10c72f639",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -43,6 +43,16 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventChainOccurrenceQueue.cs",
       "sha256": "ecd8fa53f05d9c1e91f072c821f638cf5125626509f5cf3a667987bab267097b",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventEffectResult.cs",
+      "sha256": "b9d2b14672fad808e8b7b8f817e5f16d404010c934734db3bb97b91e4ee5b248",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventResourceCommand.cs",
+      "sha256": "bdb10263fb8a7add1d27413b9f4236f795364b10d9c8cf0f48c933c9f3141284",
       "state": "current"
     },
     {
@@ -221,6 +231,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntEventResourceCommand.cs",
+      "sha256": "404785c5a599a0944dd351a7bdbc00e73ad1a8825596d2398efcf9ffba19705e",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
       "sha256": "a53abd9bb772af48f3bf0307430055fb40f94920d92df4def01b4d79f95ab5e5",
       "state": "current"
@@ -281,6 +296,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/HunterManagementSystem.cs",
+      "sha256": "ccf35f79495b2033e6c7ecdd2a5a2c40999687f32eb507558b7cbebb7082cb42",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/SettlementManager.cs",
       "sha256": "ed30e919f5a85f78ab2a54c1e5ecc809b75f232b39bd178d6b46bf6ccbcbc265",
       "state": "current"
@@ -293,6 +313,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
       "sha256": "f9eb7335c28666b7f4679ef5315b248e4f24f37db2010aeaed8a4bbd24c28030",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventOptionAvailability.cs",
+      "sha256": "fd9018cbcd642d2cf03dfc19a9cdfb17a256af829ed47746d074951ca3c38fbd",
       "state": "current"
     },
     {
@@ -313,6 +338,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs",
       "sha256": "4e49ad477fd034f16ee3b86210085ddff92a526e7000fd8d824486571fb6166d",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSymptomRuntime.cs",
+      "sha256": "1e2176d43eb9951a3cf72eb921e49781ff51c84a56f3b5f9991031507aea488d",
       "state": "current"
     },
     {
@@ -362,7 +392,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
-      "sha256": "1167563b232d350e111b9f368d1f65af7c3b0beba435d8ab44f55a84d43c507e",
+      "sha256": "7a104beabca6d94f6873cfcedd6956836bd31122cb29687518341f7e83846304",
       "state": "current"
     },
     {
@@ -827,8 +857,8 @@
     },
     {
       "path": "openspec/specs/event-driven-hunter-death/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "93e36258a43cf8b6c779ca4ea90b592446198ce7e83038bf4a400366cd9fc364",
+      "state": "current"
     },
     {
       "path": "openspec/specs/event-driven-hunter-death/spec.md",
@@ -837,8 +867,8 @@
     },
     {
       "path": "openspec/specs/event-driven-hunter-symptom-acquisition/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "638df8ebb08a67f3b9286a7e90d1778c3ac38f365d7d7a61b55cb745db53bf6a",
+      "state": "current"
     },
     {
       "path": "openspec/specs/event-driven-hunter-symptom-acquisition/spec.md",
@@ -847,8 +877,8 @@
     },
     {
       "path": "openspec/specs/event-effect-resolution-reporting/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "a4aab4acce07f84695d9207e663777a236de71be1b0da055ecf4a2e1c4498415",
+      "state": "current"
     },
     {
       "path": "openspec/specs/event-effect-resolution-reporting/spec.md",
@@ -907,8 +937,8 @@
     },
     {
       "path": "openspec/specs/hunt-event-resource-staging/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "0e9733913f1b0270e1e79573fcae77e2871d5b20449ba2b3d3b08687342ad43a",
+      "state": "current"
     },
     {
       "path": "openspec/specs/hunt-event-resource-staging/spec.md",
@@ -1377,13 +1407,13 @@
     }
   ],
   "counts": {
-    "verified": 31,
+    "verified": 33,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 13,
+    "unknown": 9,
     "blocked": 0,
-    "stale": 18
+    "stale": 20
   },
   "attentionRequired": [
     "action-environment-lifecycle",
@@ -1393,19 +1423,17 @@
     "campaign-persistence",
     "campaign-year-loop",
     "csharp-derived-index",
-    "event-driven-hunter-death",
-    "event-driven-hunter-symptom-acquisition",
-    "event-effect-resolution-reporting",
     "event-occurrence-checkpoint-core",
+    "event-recoverable-wounds",
     "game-manager-orchestration",
     "hunt-content-bundle-lifecycle",
-    "hunt-event-resource-staging",
     "hunt-map-generation",
     "hunt-map-presentation-queue",
     "hunt-phase-orchestration",
     "hunt-return-outcome-checkpoint",
     "hunt-route-entry-context",
     "hunt-session-event-occurrence-recovery",
+    "hunt-squad-action-availability",
     "hunt-tile-reveal-events",
     "settlement-content-plan-lifecycle",
     "settlement-phase-orchestration",
@@ -1506,6 +1534,11 @@
       "state": "unverified"
     },
     {
+      "capability": "event-recoverable-wounds",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
+      "state": "stale"
+    },
+    {
       "capability": "game-manager-orchestration",
       "path": "Assets/Scripts/Core/GameManager.cs",
       "state": "missing"
@@ -1578,6 +1611,11 @@
     {
       "capability": "hunt-session-event-occurrence-recovery",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-squad-action-availability",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
       "state": "stale"
     },
     {
@@ -1996,44 +2034,113 @@
     {
       "id": "event-driven-hunter-death",
       "label": "事件驱动猎人永久死亡",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "致死效果只允许带稳定原因的猎人选项，缺少死亡端口时整项选择不可提交；Settlement 与 Hunt 共用 HunterManagement 死亡事务，幂等处理装备、年鉴、激励和事实，并在最后猎人死亡后截断事件链与遭遇。",
+      "designSources": [],
       "sources": [
         "openspec/specs/event-driven-hunter-death/spec.md",
-        "openspec/specs/event-driven-hunter-death/implementation.json"
+        "openspec/specs/event-driven-hunter-death/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventOptionAvailability.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/HunterManagementSystem.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "event-driven-hunter-symptom-acquisition",
       "label": "事件驱动猎人症状获得",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "事件表只接受稳定症状 ID；旧显示名与别名在恢复时迁移为唯一症状状态，Settlement/Hunt 事件节点幂等写入并在提交检查点发布获得事实，3D 症状板读取同一权威状态。",
+      "designSources": [],
       "sources": [
         "openspec/specs/event-driven-hunter-symptom-acquisition/spec.md",
-        "openspec/specs/event-driven-hunter-symptom-acquisition/implementation.json"
+        "openspec/specs/event-driven-hunter-symptom-acquisition/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSymptomRuntime.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterSymptomPanel3D.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "event-effect-resolution-reporting",
       "label": "事件效果结构化结算结果",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "每个尝试的事件效果产生稳定有序结果，包含事件、索引、类型、目标、应用状态与拒绝原因；Settlement/Hunt 根聚合并暴露失败数量，批次构造时复制快照避免后续累积器改写历史结果。",
+      "designSources": [],
       "sources": [
         "openspec/specs/event-effect-resolution-reporting/spec.md",
-        "openspec/specs/event-effect-resolution-reporting/implementation.json"
+        "openspec/specs/event-effect-resolution-reporting/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventEffectResult.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "event-occurrence-checkpoint-core",
@@ -2053,7 +2160,7 @@
       "id": "event-recoverable-wounds",
       "label": "事件普通伤势与营地休养闭环",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "营地与狩猎事件可从表配置显式普通部位伤势；规则限制非致命伤势，阶段 ActionQueue 提交状态与伤势事实，既有 3D 营地休养及存档模型直接复用。",
@@ -2081,7 +2188,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
@@ -2187,16 +2294,39 @@
     {
       "id": "hunt-event-resource-staging",
       "label": "狩猎事件资源暂存与回营提交",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "共享事件节点通过阶段资源端口把狩猎奖励写入存活小队携带物；显式 actor 必须是当前出猎实例，扣除先做全队原子校验，正式回营才转入营地并清空携带物。",
+      "designSources": [],
       "sources": [
         "openspec/specs/hunt-event-resource-staging/spec.md",
-        "openspec/specs/hunt-event-resource-staging/implementation.json"
+        "openspec/specs/hunt-event-resource-staging/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventResourceCommand.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntEventResourceCommand.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "hunt-map-generation",
@@ -2383,7 +2513,7 @@
       "id": "hunt-squad-action-availability",
       "label": "狩猎小队行动资格与失能交接",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "地图、资源点、采集事务、事件提交与 3D 状态桌共用同一存活远征猎人资格；当前行动猎人死亡时在提交事实前交接给存活队员，全员失能后停止探索与采集但保留实体回营路径。",
@@ -2416,7 +2546,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntHarvestActionSessionTests.cs",

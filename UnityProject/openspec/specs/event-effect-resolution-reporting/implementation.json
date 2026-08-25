@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "event-effect-resolution-reporting",
+  "specHash": "f9e4171a4c4c5e64d13cdfefdca97577ffaea7a04f1156ded69ff94bbee97fec",
+  "title": "事件效果结构化结算结果",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "每个尝试的事件效果产生稳定有序结果，包含事件、索引、类型、目标、应用状态与拒绝原因；Settlement/Hunt 根聚合并暴露失败数量，批次构造时复制快照避免后续累积器改写历史结果。",
+    "validatedAgainstSpecHash": "f9e4171a4c4c5e64d13cdfefdca97577ffaea7a04f1156ded69ff94bbee97fec",
+    "evidence": [
+      {
+        "guid": "1c66ea7d2c7d43638d980d103a39566c",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventEffectResult.cs",
+        "line": 13,
+        "fileHash": "b9d2b14672fad808e8b7b8f817e5f16d404010c934734db3bb97b91e4ee5b248",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "定义单项结构化结果并在批次构造时复制只读快照、统计应用与失败数量。"
+      },
+      {
+        "guid": "415d8d7b8cbb06540ad790f520dafbde",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+        "line": 110,
+        "fileHash": "559eb29812814097b73940b62b513a47cf7d192d0d21ec4e9bcb7c37c6c5b2b2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "按配置顺序为所有叙事与选项效果收集成功或可读拒绝结果，不隐藏后续效果。"
+      },
+      {
+        "guid": "b53d54014d826bd4fb6897de7a6c4c83",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
+        "line": 112,
+        "fileHash": "f9eb7335c28666b7f4679ef5315b248e4f24f37db2010aeaed8a4bbd24c28030",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "选择事务把效果批次连同文字、分支和遭遇作为一次提交结果返回。"
+      },
+      {
+        "guid": "d94d370a430db9b41b025aedfeb3a471",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+        "line": 65,
+        "fileHash": "1c3b64ae95de55bb90f2286adddf679feef3f584e7f0bf4a98366671199937ae",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "feature": "共享事件节点向 Settlement 与 Hunt Runner 暴露同一效果批次。"
+      }
+    ],
+    "tests": [
+      "PlayableEventChoiceTransactionTests: 6/6 passed",
+      "PlayableHuntActionSessionTests: 21/21 passed",
+      "PlayableSettlementActionSessionTests: 33/33 passed"
+    ],
+    "verifiedAt": "2026-08-25T15:05:28-07:00"
+  },
+  "implementationOutline": [
+    "EventSystem 为每个尝试效果创建一项结果并继续收集后续可执行效果。",
+    "批次复制源列表并预先统计 Applied/Failed，后续父级累积不改变已发布结果。",
+    "共享事件节点把批次交给阶段 Runner，SettlementEventCommandResult 与 HuntTileCommandResult 暴露失败数量。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventEffectResult.cs:13",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs:110",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs:112",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs:65"
+  ],
+  "publishedBy": { "mode": "direct-implementation-conformance", "changeId": "" }
+}

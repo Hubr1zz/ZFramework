@@ -72,9 +72,13 @@ namespace HuntingInDarkness.Hunt
         private static HunterInstance ResolveReceiver(IReadOnlyList<HunterInstance> hunters, HunterInstance actor)
         {
             if (hunters == null) return null;
-            foreach (HunterInstance hunter in hunters)
-                if (ReferenceEquals(hunter, actor) && hunter.IsAlive)
-                    return hunter;
+            if (actor != null)
+            {
+                foreach (HunterInstance hunter in hunters)
+                    if (ReferenceEquals(hunter, actor) && hunter.IsAlive)
+                        return hunter;
+                return null;
+            }
             foreach (HunterInstance hunter in hunters)
                 if (hunter != null && hunter.IsAlive)
                     return hunter;
@@ -91,7 +95,7 @@ namespace HuntingInDarkness.Hunt
             }
             foreach (HunterInstance hunter in hunters)
             {
-                if (hunter?.Collectibles == null) continue;
+                if (hunter?.IsAlive != true || hunter.Collectibles == null) continue;
                 foreach (ItemInstance item in hunter.Collectibles)
                 {
                     if (item?.Data != null && string.Equals(item.Data.ContentId, resourceId, StringComparison.Ordinal))
@@ -113,7 +117,7 @@ namespace HuntingInDarkness.Hunt
             if (remaining == 0) return;
             foreach (HunterInstance hunter in hunters)
             {
-                if (hunter == null || ReferenceEquals(hunter, receiver)) continue;
+                if (hunter?.IsAlive != true || ReferenceEquals(hunter, receiver)) continue;
                 remaining = RemoveFromHunter(hunter, resourceId, remaining);
                 if (remaining == 0) return;
             }

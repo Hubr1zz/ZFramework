@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "hunt-event-resource-staging",
+  "specHash": "307a9229d9010408e30f53898d506c8f9ee99706afb1fed7d9ba9c3f6c283bf6",
+  "title": "狩猎事件资源暂存与回营提交",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "共享事件节点通过阶段资源端口把狩猎奖励写入存活小队携带物；显式 actor 必须是当前出猎实例，扣除先做全队原子校验，正式回营才转入营地并清空携带物。",
+    "validatedAgainstSpecHash": "307a9229d9010408e30f53898d506c8f9ee99706afb1fed7d9ba9c3f6c283bf6",
+    "evidence": [
+      {
+        "guid": "c69849a980c8d95489c33ade2db2602b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventResourceCommand.cs",
+        "line": 5,
+        "fileHash": "bdb10263fb8a7add1d27413b9f4236f795364b10d9c8cf0f48c933c9f3141284",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:02:27-07:00",
+        "feature": "定义 Settlement 与 HuntCollectibles 阶段作用域、资源变化快照和注入端口。"
+      },
+      {
+        "guid": "415d8d7b8cbb06540ad790f520dafbde",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+        "line": 309,
+        "fileHash": "559eb29812814097b73940b62b513a47cf7d192d0d21ec4e9bcb7c37c6c5b2b2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:02:27-07:00",
+        "feature": "共享事件效果把资源写入委托给阶段端口，并只发布端口返回的作用域事实。"
+      },
+      {
+        "guid": "de5813d39d5b6a345899708ac1487dfe",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntEventResourceCommand.cs",
+        "line": 19,
+        "fileHash": "404785c5a599a0944dd351a7bdbc00e73ad1a8825596d2398efcf9ffba19705e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:02:27-07:00",
+        "feature": "只接受注册资源、正数量和存活小队 actor；拒绝外来或死亡 actor、溢出和不足，并原子修改携带物。"
+      },
+      {
+        "guid": "8601354706c5d2243a2c3ad182a5a99a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs",
+        "line": 55,
+        "fileHash": "6e3740cdc8e8424d92491492d7d5158c5c85d25b62d33a886406d4517e5f698e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:02:27-07:00",
+        "feature": "撤退准备在 Hunt Runner 内冻结参战猎人及携带资源快照，不直接写入营地库存。"
+      },
+      {
+        "guid": "5cb50ad3443a70f45af1ce3608fd42be",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs",
+        "line": 74,
+        "fileHash": "da225a7419738369b7ad3e633ba595fe558d6576651bea623207adbfd3cfabc2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:02:27-07:00",
+        "feature": "Campaign 接受的归来记录在 Settlement Runner 内转入库存、发现素材并清空参战猎人携带物。"
+      }
+    ],
+    "tests": [
+      "PlayableHuntActionSessionTests: 21/21 passed",
+      "PlayableSettlementActionSessionTests: 33/33 passed"
+    ],
+    "verifiedAt": "2026-08-25T15:02:27-07:00"
+  },
+  "implementationOutline": [
+    "共享 EventSystem 只调用注入的 IPlayableEventResourceCommand，不决定狩猎资源的存储位置。",
+    "HuntEventResourceCommand 以当前出猎小队为权限边界；显式 actor 不可回退到另一名猎人。",
+    "AddResource 检查总量溢出，RemoveResource 在任何修改前校验存活小队总量并按携带者确定顺序扣除。",
+    "狩猎资源变化发布 HuntCollectibles 作用域事实，不冒充营地 ResourceChangedEvent。",
+    "撤退准备冻结携带物快照，只有 Settlement 回营事务将其加入库存并清空携带物。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventResourceCommand.cs:5",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs:309",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntEventResourceCommand.cs:19",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs:55",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs:74"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-conformance",
+    "changeId": ""
+  }
+}

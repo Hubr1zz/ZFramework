@@ -440,6 +440,34 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void HuntEventResourceReward_RejectsForeignActorInsteadOfRedirectingToSquad()
+        {
+            using var rig = new HuntRig();
+            var foreignActor = new HunterInstance(null, 9911) { IsAlive = true };
+            var command = new HuntEventResourceCommand(rig.Manager);
+
+            bool applied = command.TryApply(EventEffectType.AddResource, rig.Resource.ContentId, 1, foreignActor, out _, out string reason);
+
+            Assert.That(applied, Is.False);
+            Assert.That(reason, Does.Contain("没有可携带资源的猎人"));
+            Assert.That(rig.Hunter.Collectibles, Is.Empty);
+        }
+
+        [Test]
+        public void HuntEventResourceReward_RejectsDeadActorInsteadOfRedirectingToSurvivor()
+        {
+            using var rig = new HuntRig(includeSurvivor: true);
+            rig.Hunter.IsAlive = false;
+            var command = new HuntEventResourceCommand(rig.Manager);
+
+            bool applied = command.TryApply(EventEffectType.AddResource, rig.Resource.ContentId, 1, rig.Hunter, out _, out string reason);
+
+            Assert.That(applied, Is.False);
+            Assert.That(reason, Does.Contain("没有可携带资源的猎人"));
+            Assert.That(rig.Survivor.Collectibles, Is.Empty);
+        }
+
+        [Test]
         public async Task CombatEvent_PublishesOneContextualRequestAfterRootAndStopsLaterChain()
         {
             using var rig = new HuntRig();
