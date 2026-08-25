@@ -142,10 +142,21 @@ namespace HuntingInDarkness.Adapter.Tests
             List<InventionData> inventions = PlayableInventionTableRuntime.Build(new[] { colliding, missing, cycleA, cycleB, overflow }, new[] { stone }, new[] { existing }, errors.Add);
 
             Assert.That(inventions, Is.Empty);
-            Assert.That(errors.Exists(error => error.Contains("身份冲突")), Is.True);
+            Assert.That(errors.Exists(error => error.Contains("稳定身份 ID 冲突")), Is.True);
             Assert.That(errors.Exists(error => error.Contains("未知发明")), Is.True);
             Assert.That(errors.Exists(error => error.Contains("循环")), Is.True);
             Assert.That(errors.Exists(error => error.Contains("溢出")), Is.True);
+        }
+
+        [Test]
+        public void Build_AllowsSharedDisplayNamesWhenStableIdsDiffer()
+        {
+            InventionTableRecord first = CreateRecord("first-path", "共同理念");
+            InventionTableRecord second = CreateRecord("second-path", "共同理念");
+
+            List<InventionData> inventions = Track(PlayableInventionTableRuntime.Build(new[] { first, second }, null));
+
+            Assert.That(inventions.ConvertAll(invention => invention.ContentId), Is.EqualTo(new[] { "first-path", "second-path" }));
         }
 
         [Test]

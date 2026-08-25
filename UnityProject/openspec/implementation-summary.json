@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "32cbe529f4c7d9d58163d6a7ef92f28be18c2f61a04151694f27cf07bb63976c",
-  "inputManifestDigest": "fc1954847972918765caa59c6732d45849e1bd123604a37e1f0b70654f096fe4",
-  "outputDigest": "dbe45002d3f37b0f94199a44fbadd7fdda2e32e02c6074621f6fd0a3b89940b4",
+  "inputDigest": "3ea6d4a395bdd04117857810fffb655ce0aef51410d0e80be74576faa4675be9",
+  "inputManifestDigest": "8c80887f5527077a341a62c2f94e90a89c15f18cc1924b9e6f60ea034416ca87",
+  "outputDigest": "62fac08f717bdeb53214b361ee51cc071c27fbc8a39f96718e04dab7fffb53ce",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -73,6 +73,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
       "sha256": "bdba1a6c67383af5067bcb5ff0dcea8901794c1cf574e5738afea9f605929c01",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Inventions/InventionActionEffectInstaller.cs",
+      "sha256": "b9969c855e850761dd756b6c9dda587735342d8046535f4f4e872367f17f2326",
       "state": "current"
     },
     {
@@ -178,6 +183,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableHunterTemplateTable.cs",
       "sha256": "2a173bda9a00ab216453aecc270a50b43c6171b94cdb211025f5da9942aee643",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableInventionTable.cs",
+      "sha256": "8970c29103acb24cb96f31ad112c466b0b176eb2e7b6cb41e6697d2875609815",
       "state": "current"
     },
     {
@@ -297,7 +307,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs",
-      "sha256": "ae66cbd7ec0ba9b4fce7ee2fb6a3459314b14f1f7e2b7ff3fa0e0e09faf8a911",
+      "sha256": "4e49ad477fd034f16ee3b86210085ddff92a526e7000fd8d824486571fb6166d",
       "state": "current"
     },
     {
@@ -463,6 +473,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableSettlementWorldSpacePortInstaller.cs",
       "sha256": "2961c6863b1eddb3b7de4e677742a780e63c5aa16c980e3b0e6e537f8b8beb4a",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Tables/inventions.json",
+      "sha256": "fe88e62ad9e5781ec875f32e77fdb3100dcdfcbb3b3f0a0cd027d6d3fb2c2ed3",
       "state": "current"
     },
     {
@@ -1092,8 +1107,8 @@
     },
     {
       "path": "openspec/specs/table-driven-invention-content/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "d3af5d661f7f8b1d4ccd50fd56a65f53e7f297ff0a884eaeb647e7d60d6a8364",
+      "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-invention-content/spec.md",
@@ -1352,11 +1367,11 @@
     }
   ],
   "counts": {
-    "verified": 29,
+    "verified": 30,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 15,
+    "unknown": 14,
     "blocked": 0,
     "stale": 18
   },
@@ -1388,7 +1403,6 @@
     "showdown-phase-orchestration",
     "table-driven-event-chains",
     "table-driven-hunt-events",
-    "table-driven-invention-content",
     "tabletop-chinese-font-fallback",
     "tabletop-hunt-harvest",
     "tabletop-opening-sequence",
@@ -1575,6 +1589,11 @@
     {
       "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "settlement-content-plan-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs",
       "state": "stale"
     },
     {
@@ -2450,7 +2469,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
@@ -2767,16 +2786,51 @@
     {
       "id": "table-driven-invention-content",
       "label": "读表发明与信仰分支",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "序列化 TextAsset 发明表以稳定 ID 构建并预检发明图；信仰、仪式、祈祷和植物知识复用 Settlement/Hunt ActionQueue、跨环境 Reactor、年度主动事件与世界空间 3D 卡牌流程。",
+      "designSources": [],
       "sources": [
         "openspec/specs/table-driven-invention-content/spec.md",
-        "openspec/specs/table-driven-invention-content/implementation.json"
+        "openspec/specs/table-driven-invention-content/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableInventionTable.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Inventions/InventionActionEffectInstaller.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActiveEffectActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Tables/inventions.json",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionUnlockPanel3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionActiveEffectPanel3D.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "table-driven-item-keywords",

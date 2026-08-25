@@ -72,15 +72,44 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void Configure_RejectsStableIdAndLegacyAliasCollisions()
+        public void Configure_StableIdentityWinsOverLegacyAliasCollision()
         {
             InventionData first = CreateInvention("first", "First", "second");
             InventionData second = CreateInvention("second", "Second", "第二发明");
 
             PlayableSettlementInventionRegistry.Configure(new[] { first, second });
 
-            Assert.That(PlayableSettlementInventionRegistry.Inventions, Is.Empty);
-            Assert.That(PlayableSettlementInventionRegistry.TryGet("second", out _), Is.False);
+            Assert.That(PlayableSettlementInventionRegistry.Inventions, Has.Count.EqualTo(2));
+            Assert.That(PlayableSettlementInventionRegistry.TryGet("second", out InventionData resolved), Is.True);
+            Assert.That(resolved, Is.SameAs(second));
+        }
+
+        [Test]
+        public void Configure_AmbiguousDisplayAliasDoesNotRejectStableIdentities()
+        {
+            InventionData first = CreateInvention("first", "First", "共同理念");
+            InventionData second = CreateInvention("second", "Second", "共同理念");
+
+            PlayableSettlementInventionRegistry.Configure(new[] { first, second });
+
+            Assert.That(PlayableSettlementInventionRegistry.Inventions, Has.Count.EqualTo(2));
+            Assert.That(PlayableSettlementInventionRegistry.TryGet("first", out _), Is.True);
+            Assert.That(PlayableSettlementInventionRegistry.TryGet("second", out _), Is.True);
+            Assert.That(PlayableSettlementInventionRegistry.TryGet("共同理念", out _), Is.False);
+        }
+
+        [Test]
+        public void Configure_RejectedContentDoesNotPoisonAcceptedLegacyAlias()
+        {
+            InventionData accepted = CreateInvention("accepted", "Accepted", "旧理念");
+            InventionData rejected = CreateInvention("rejected", "Rejected", "旧理念");
+            rejected.activeEffects.Add(new InventionActiveEffect { effectId = "invalid", effectName = "无效效果", eventId = string.Empty, maxUsesPerYear = 1 });
+
+            PlayableSettlementInventionRegistry.Configure(new[] { accepted, rejected });
+
+            Assert.That(PlayableSettlementInventionRegistry.Inventions, Is.EqualTo(new[] { accepted }));
+            Assert.That(PlayableSettlementInventionRegistry.TryGet("旧理念", out InventionData resolved), Is.True);
+            Assert.That(resolved, Is.SameAs(accepted));
         }
 
         [Test]

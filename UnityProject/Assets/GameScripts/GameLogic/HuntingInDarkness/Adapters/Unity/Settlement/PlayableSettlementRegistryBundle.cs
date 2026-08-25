@@ -100,7 +100,8 @@ namespace HuntingInDarkness.Settlement
             inventions = new List<InventionData>();
             index = new Dictionary<string, InventionData>(StringComparer.Ordinal);
             var candidates = new List<InventionData>();
-            var owners = new Dictionary<string, HashSet<InventionData>>(StringComparer.Ordinal);
+            var stableOwners = new Dictionary<string, HashSet<InventionData>>(StringComparer.Ordinal);
+            var aliasOwners = new Dictionary<string, HashSet<InventionData>>(StringComparer.Ordinal);
             var effectOwners = new Dictionary<string, HashSet<InventionData>>(StringComparer.Ordinal);
             var invalid = new HashSet<InventionData>();
             var occurrences = new Dictionary<InventionData, int>();
@@ -109,9 +110,7 @@ namespace HuntingInDarkness.Settlement
                 if (invention == null || !invention.HasExplicitContentId || string.IsNullOrWhiteSpace(invention.inventionName)) continue;
                 candidates.Add(invention);
                 occurrences[invention] = occurrences.TryGetValue(invention, out int count) ? count + 1 : 1;
-                AddOwner(owners, invention.ContentId, invention);
-                AddOwner(owners, invention.inventionName, invention);
-                AddOwner(owners, invention.name, invention);
+                AddOwner(stableOwners, invention.ContentId, invention);
                 var localEffects = new HashSet<string>(StringComparer.Ordinal);
                 foreach (InventionActiveEffect effect in invention.activeEffects ?? new List<InventionActiveEffect>())
                 {
@@ -124,13 +123,23 @@ namespace HuntingInDarkness.Settlement
                     AddOwner(effectOwners, effectId, invention);
                 }
             }
+            var stableIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (InventionData invention in candidates)
             {
-                if (occurrences[invention] != 1 || invalid.Contains(invention) || !IsUniqueOwner(owners, invention.ContentId, invention) || !IsUniqueOwner(owners, invention.inventionName, invention) || !IsOptionalUniqueOwner(owners, invention.name, invention) || HasSharedEffect(invention, effectOwners)) continue;
+                if (occurrences[invention] != 1 || invalid.Contains(invention) || !IsUniqueOwner(stableOwners, invention.ContentId, invention) || HasSharedEffect(invention, effectOwners)) continue;
                 AddAlias(index, invention.ContentId, invention);
-                AddAlias(index, invention.inventionName, invention);
-                AddAlias(index, invention.name, invention);
+                stableIds.Add(Normalize(invention.ContentId));
                 inventions.Add(invention);
+            }
+            foreach (InventionData invention in inventions)
+            {
+                AddOwner(aliasOwners, invention.inventionName, invention);
+                AddOwner(aliasOwners, invention.name, invention);
+            }
+            foreach (InventionData invention in inventions)
+            {
+                AddLegacyAlias(index, aliasOwners, stableIds, invention.inventionName, invention);
+                AddLegacyAlias(index, aliasOwners, stableIds, invention.name, invention);
             }
         }
 
@@ -210,15 +219,17 @@ namespace HuntingInDarkness.Settlement
             return key.Length > 0 && owners.TryGetValue(key, out HashSet<T> values) && values.Count == 1 && values.Contains(owner);
         }
 
-        private static bool IsOptionalUniqueOwner<T>(IReadOnlyDictionary<string, HashSet<T>> owners, string identifier, T owner) where T : class
-        {
-            return string.IsNullOrWhiteSpace(identifier) || IsUniqueOwner(owners, identifier, owner);
-        }
-
         private static void AddAlias<T>(IDictionary<string, T> index, string identifier, T value) where T : class
         {
             string key = Normalize(identifier);
             if (key.Length > 0 && !index.ContainsKey(key)) index.Add(key, value);
+        }
+
+        private static void AddLegacyAlias<T>(IDictionary<string, T> index, IReadOnlyDictionary<string, HashSet<T>> owners, ISet<string> stableIds, string identifier, T value) where T : class
+        {
+            string key = Normalize(identifier);
+            if (stableIds.Contains(key) || !IsUniqueOwner(owners, key, value)) return;
+            AddAlias(index, key, value);
         }
 
         private static string Normalize(string value) => value?.Trim() ?? string.Empty;

@@ -194,16 +194,11 @@ namespace HuntingInDarkness.ContentTables
                 {
                     if (invention == null) continue;
                     AddIdentity(baseIdentities, invention.ContentId);
-                    AddIdentity(baseIdentities, invention.inventionName);
-                    AddIdentity(baseIdentities, invention.name);
                 }
             }
 
             for (int index = 0; index < records.Count; index++)
-            {
                 AddOwner(owners, records[index]?.id, index);
-                AddOwner(owners, records[index]?.inventionName, index);
-            }
 
             var invalid = new HashSet<int>();
             var reported = new HashSet<string>(StringComparer.Ordinal);
@@ -212,7 +207,7 @@ namespace HuntingInDarkness.ContentTables
                 bool conflictsWithBase = baseIdentities.Contains(pair.Key);
                 if (pair.Value.Count <= 1 && !conflictsWithBase) continue;
                 foreach (int owner in pair.Value) invalid.Add(owner);
-                if (reported.Add(pair.Key)) reportError?.Invoke($"发明表身份冲突：{pair.Key}");
+                if (reported.Add(pair.Key)) reportError?.Invoke($"发明表稳定身份 ID 冲突：{pair.Key}");
             }
             return invalid;
         }

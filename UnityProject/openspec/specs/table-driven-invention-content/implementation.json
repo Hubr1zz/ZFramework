@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "table-driven-invention-content",
+  "specHash": "8c1fb64807ef07bbce7cbb10e6f44b5adca1da0b10c1e16c63d8427e855b2dec",
+  "title": "读表发明与信仰分支",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "序列化 TextAsset 发明表以稳定 ID 构建并预检发明图；信仰、仪式、祈祷和植物知识复用 Settlement/Hunt ActionQueue、跨环境 Reactor、年度主动事件与世界空间 3D 卡牌流程。",
+    "validatedAgainstSpecHash": "8c1fb64807ef07bbce7cbb10e6f44b5adca1da0b10c1e16c63d8427e855b2dec",
+    "evidence": [
+      {
+        "guid": "c3f9c402ed6527e419f1dc04f339d4bb",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableInventionTable.cs",
+        "line": 1,
+        "fileHash": "8970c29103acb24cb96f31ad112c466b0b176eb2e7b6cb41e6697d2875609815",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:39:11-07:00",
+        "feature": "校验稳定 ID、图引用、成本、结构化效果与事件目标；显示名不再参与跨内容身份冲突。"
+      },
+      {
+        "guid": "2f98d69be2fc4c94a20a1fc42af18f44",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs",
+        "line": 98,
+        "fileHash": "4e49ad477fd034f16ee3b86210085ddff92a526e7000fd8d824486571fb6166d",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:39:11-07:00",
+        "feature": "稳定 ID 始终优先；歧义或冲突的旧显示别名只被排除出迁移索引，不再拒绝合法发明。"
+      },
+      {
+        "guid": "b35ef5ce1484f2643a78746521ea1183",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActions.cs",
+        "line": 47,
+        "fileHash": "d386a9917354ec2198ef612a9c1438ff36045ff13a32cb5ff538517d19536b57",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:39:11-07:00",
+        "feature": "在 Settlement Root 中提交成本、掌握状态、年鉴与持续修正，并把逐猎人效果展开为独立 Action 子节点。"
+      },
+      {
+        "guid": "13a9074add3fdad46870dd7661af2bf3",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Inventions/InventionActionEffectInstaller.cs",
+        "line": 11,
+        "fileHash": "b9969c855e850761dd756b6c9dda587735342d8046535f4f4e872367f17f2326",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:39:11-07:00",
+        "feature": "把已掌握发明的跨阶段效果安装到匹配环境，并在每次采集 Action 执行时重读当前掌握状态与关键词。"
+      },
+      {
+        "guid": "309b40db87929db4ebff56d54119f818",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActiveEffectActions.cs",
+        "line": 44,
+        "fileHash": "a7fc150413a047a93bda9dbf1b3f181ed05ddca3efc0c6e5c8082afd3197d9ba",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:39:11-07:00",
+        "feature": "在 Settlement ActionQueue 中重验主动效果身份、年度次数和 Triggered 事件，并沿统一事件流程提交。"
+      },
+      {
+        "guid": "644686d452642234cb73944616376d89",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Tables/inventions.json",
+        "line": 1,
+        "fileHash": "fe88e62ad9e5781ec875f32e77fdb3100dcdfcbb3b3f0a0cd027d6d3fb2c2ed3",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:39:11-07:00",
+        "feature": "提供纸和笔、植物知识、信仰、仪式与祈祷的基础可玩分支及稳定效果引用。"
+      },
+      {
+        "guid": "e3df2eb09bbcb35488d82b426d770f39",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionUnlockPanel3D.cs",
+        "line": 1,
+        "fileHash": "6676a94c116b5fc5c0957b4c98f9bd6f356b5afa5d24bf7e2e483eb30a61b210",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:39:11-07:00",
+        "feature": "以通用世界空间卡牌面板展示发明条件、成本、效果与确认操作，不包含内容专属规则。"
+      },
+      {
+        "guid": "60291e388da048a40ae64c0c6d448aca",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionActiveEffectPanel3D.cs",
+        "line": 1,
+        "fileHash": "92da78a65d4b8b43ac338ad5c8f7dcea537929416f7fbb2e678346c531e519ae",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:39:11-07:00",
+        "feature": "分页投影通用主动效果和年度可用次数，并只向 Settlement 会话提交玩家意图。"
+      }
+    ],
+    "tests": [
+      "PlayableInventionTableTests: 10/10 passed",
+      "PlayableInventionIdentityMigrationTests: 8/8 passed",
+      "PlayableSettlementInventionActionTests: 8/8 passed",
+      "InventionActionEffectInstallerTests: 2/2 passed",
+      "PlayableInventionActiveEffectActionTests: 2/2 passed",
+      "InventionEffectRulesTests: 2/2 passed",
+      "InventionActiveEffectRulesTests: 3/3 passed",
+      "PlayableCampaignContentAssemblerTests: 14/14 passed",
+      "C# derived index: 989/989, 100% coverage"
+    ],
+    "verifiedAt": "2026-08-25T14:39:11-07:00"
+  },
+  "implementationOutline": [
+    "PlayableSettlementContentCatalog 以序列化 TextAsset 注入发明表，缺失时仅保留已配置 ScriptableObject 发明。",
+    "PlayableInventionTableRuntime 在发布玩法前拒绝身份、图、成本和效果错误，并按表顺序生成普通 InventionData。",
+    "稳定 ID 是唯一规则身份；显示名和资产名仅作为无歧义的旧存档迁移别名。",
+    "UnlockSettlementInventionAction 原子提交掌握状态和资源，并为每名猎人展开可被 Reactor 独立覆盖或阻止的效果子节点。",
+    "InventionActionEffectInstaller 把植物知识等长期规则投影到对应阶段环境，运行时重读掌握状态。",
+    "祈祷主动效果通过统一 Triggered 事件和世界空间 3D 卡牌交互执行，不引入内容专属 View。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableInventionTable.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs:98",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActions.cs:47",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Inventions/InventionActionEffectInstaller.cs:11",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActiveEffectActions.cs:44",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Tables/inventions.json:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-conformance",
+    "changeId": ""
+  }
+}
