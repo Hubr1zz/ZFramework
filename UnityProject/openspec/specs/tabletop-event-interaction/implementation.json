@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-event-interaction",
+  "specHash": "5dedf8fe6c914feafbb94ba14afd1f32e83dc10424e650cc831c7c86444a5ee8",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "营地与狩猎事件共用独立安装的世界空间 3D 卡牌输入端口；View 仅返回玩家决定，旧 2D HUD 的直接 EventSystem 结算入口已移除，玩法状态仍由阶段 ActionQueue 提交。",
+    "validatedAgainstSpecHash": "5dedf8fe6c914feafbb94ba14afd1f32e83dc10424e650cc831c7c86444a5ee8",
+    "evidence": [
+      {
+        "guid": "25254317ab4fe1e47b3a1e2216557176",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs",
+        "line": 1,
+        "fileHash": "fa8d5351a4b139be83f392aace1f725f92f4c390f674bc8e6a570f83d91fc8a0",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:20:00-07:00",
+        "feature": "共享叙事、选择、判定与结果的 3D 卡牌输入，只返回决定并在全部退出路径释放输入所有权。"
+      },
+      {
+        "guid": "93d2e5f2378e4a4780fb7d8f6e103b7a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableSettlementWorldSpacePortInstaller.cs",
+        "line": 1,
+        "fileHash": "2961c6863b1eddb3b7de4e677742a780e63c5aa16c980e3b0e6e537f8b8beb4a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:20:00-07:00",
+        "feature": "不依赖旧 Settlement HUD 可见性安装唯一的事件输入端口。"
+      },
+      {
+        "guid": "e08ad505ff47158459a96b58ce743a25",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/UI/SettlementUIManager.cs",
+        "line": 1,
+        "fileHash": "86a771d95c03f5cdb45970e82c8dff2d340f02c9a491d0dd4a6b60477e7a218f",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:20:00-07:00",
+        "feature": "兼容 2D HUD 不再引用事件面板或暴露直接事件结算入口。"
+      },
+      {
+        "guid": "71235a96b1d644968d2d3c3bf1c6b6fc",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorldSpacePortInstallerTests.cs",
+        "line": 1,
+        "fileHash": "01363a44bd096529761e67ee62f10dc45c36734072a8fd2d742f1d4e097d5de6",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:20:00-07:00",
+        "feature": "验证端口唯一安装以及旧 HUD 事件旁路类型与方法均不存在。"
+      },
+      {
+        "guid": "bbd59ca8e05e4e3cb134164dd2d92184",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventViewPlayModeTests.cs",
+        "line": 1,
+        "fileHash": "f1e22a6bacd94a3ef43993eff271376ad5d24b38030f81df8d820642ff93a666",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:20:00-07:00",
+        "feature": "运行时验证实体事件卡创建、物理选择完成以及输入锁释放。"
+      }
+    ],
+    "tests": [
+      "Unity CLI compile: passed",
+      "PlayableSettlementWorldSpacePortInstallerTests: 2/2 passed",
+      "PlayableSettlementEventViewPlayModeTests: 1/1 passed",
+      "PlayableSettlementActionSessionTests: 33/33 passed"
+    ],
+    "verifiedAt": "2026-08-25T00:20:00-07:00"
+  },
+  "implementationOutline": [
+    "Playable bootstrap 始终安装共享 PlayableSettlementEventView，不受旧 HUD 开关控制。",
+    "世界空间事件卡持有输入表现和玩家决定，阶段 ActionQueue 持有随机请求、规则执行与提交。",
+    "旧 EventPopup 与 EventOptionButton 已删除，SettlementUIManager 不再具备事件规则入口。",
+    "PlayMode smoke 验证实体卡点击完成提示并恢复全局输入所有权。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableSettlementWorldSpacePortInstaller.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/UI/SettlementUIManager.cs:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation",
+    "changeId": ""
+  }
+}

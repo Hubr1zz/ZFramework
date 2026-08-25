@@ -12,6 +12,7 @@ namespace UI.Settlement
     /// 营地阶段 2D HUD（精简版）。
     /// 只保留：顶部年份标签、底部「年鉴 / 出发狩猎」按钮、以及叠加详情面板。
     /// 主内容区（猎人/资源/工坊/发明）已迁移至 SettlementTable3D（世界空间 3D 卡牌）。
+    /// 事件输入由独立的 PlayableSettlementEventView 处理，本兼容 HUD 不持有事件结算权限。
     ///
     /// 骨架在场景中预先搭好，所有引用通过 Inspector 连线；缺任何一项会在 Init 明确报错，
     /// 便于一眼看出本场景必须配置哪些组件。
@@ -25,7 +26,6 @@ namespace UI.Settlement
         [SerializeField] private Button          _annalsButton;   // 年鉴按钮
 
         [Header("子面板（预放在 overlay 下）")]
-        [SerializeField] private EventPopup             _eventPopup;
         [SerializeField] private HunterDetailPanel      _detailPanel;
         [SerializeField] private DepartureConfirmWindow _departureConfirmWindow;
 
@@ -41,7 +41,6 @@ namespace UI.Settlement
 
             if (!ValidateSceneRefs()) return;
 
-            _eventPopup.OnResolved = CloseOverlay;
             _detailPanel.OnClose   = CloseOverlay;
             _annalsButton.onClick.AddListener(() => Debug.Log("[UI] 年鉴面板尚未实现"));
 
@@ -64,21 +63,12 @@ namespace UI.Settlement
             Req(_yearLabel,              nameof(_yearLabel));
             Req(_panelOverlay,           nameof(_panelOverlay));
             Req(_annalsButton,           nameof(_annalsButton));
-            Req(_eventPopup,             nameof(_eventPopup));
             Req(_detailPanel,            nameof(_detailPanel));
             Req(_departureConfirmWindow, nameof(_departureConfirmWindow));
             return ok;
         }
 
         // ─── 面板显示 ────────────────────────────────────────────
-
-        public void ShowEvent(EventData evt, HunterInstance hunter)
-        {
-            _panelOverlay.SetActive(true);
-            HideAllPanels();
-            _eventPopup.gameObject.SetActive(true);
-            _eventPopup.Show(evt, hunter, _settlementMgr.Events);
-        }
 
         public void ShowHunterDetail(HunterInstance hunter)
         {
@@ -113,7 +103,6 @@ namespace UI.Settlement
 
         private void HideAllPanels()
         {
-            _eventPopup.gameObject.SetActive(false);
             _detailPanel.gameObject.SetActive(false);
             _departureConfirmWindow.gameObject.SetActive(false);
         }

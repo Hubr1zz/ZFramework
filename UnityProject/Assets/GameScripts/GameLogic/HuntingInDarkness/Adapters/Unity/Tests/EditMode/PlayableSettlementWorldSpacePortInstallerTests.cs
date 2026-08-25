@@ -60,6 +60,16 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(GetPrivateField<PlayableHuntDestinationCatalog>(destinationViews[0], "catalog"), Is.SameAs(settings.HuntDestinations));
         }
 
+        [Test]
+        public void LegacySettlementHud_DoesNotExposeEventResolutionPanel()
+        {
+            System.Type hudType = typeof(UI.Settlement.SettlementUIManager);
+
+            Assert.That(hudType.GetMethod("ShowEvent", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic), Is.Null);
+            Assert.That(hudType.Assembly.GetType("UI.Settlement.EventPopup"), Is.Null);
+            Assert.That(hudType.Assembly.GetType("UI.Settlement.EventOptionButton"), Is.Null);
+        }
+
         private static T GetPrivateField<T>(object target, string fieldName) => (T)target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(target);
 
         private static void SetPrivateField(object target, string fieldName, object value) => target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);

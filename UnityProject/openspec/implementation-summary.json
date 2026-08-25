@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "4dab6d2f08eaa3c1a4ebd7939f7cfa0318af164f1a05412b66c831b7cf6399f8",
-  "inputManifestDigest": "6cfa92bc989b2b6ea171b965e2681ed243397603b837f63acae29a140676bac2",
-  "outputDigest": "028768ce89f721011f5e4a0e078e8234b4778e129060aac276d329cdf9978c15",
+  "inputDigest": "b26c7736a54b4efb5569368496938520dbcb456ee252c0937e2af1c41b923695",
+  "inputManifestDigest": "376e9f1b4546b32778cb6b8d98d0cd3b0efdedb00700a2daa9a78eb70ab4644c",
+  "outputDigest": "f3279a5ea2a9cdc054fdb557d5b2589afb7533bdfc28c730bf23fb4b19c12d84",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -237,7 +237,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorldSpacePortInstallerTests.cs",
-      "sha256": "8802e46c0c8b595354544d89c3a0d69d68b96cf206b6910712830834e47bfa19",
+      "sha256": "01363a44bd096529761e67ee62f10dc45c36734072a8fd2d742f1d4e097d5de6",
       "state": "current"
     },
     {
@@ -246,8 +246,18 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventViewPlayModeTests.cs",
+      "sha256": "f1e22a6bacd94a3ef43993eff271376ad5d24b38030f81df8d820642ff93a666",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs",
       "sha256": "92fc39284a62751a80ba6ee753d78c51ca312dab3f4ba9b07226e458a6163d6e",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableSettlementWorldSpacePortInstaller.cs",
+      "sha256": "2961c6863b1eddb3b7de4e677742a780e63c5aa16c980e3b0e6e537f8b8beb4a",
       "state": "current"
     },
     {
@@ -283,6 +293,16 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
       "sha256": "008d3407a165c200a6f3a699b1153616fcd94b76fdd969aa24910b8b38d8c366",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs",
+      "sha256": "fa8d5351a4b139be83f392aace1f725f92f4c390f674bc8e6a570f83d91fc8a0",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/UI/SettlementUIManager.cs",
+      "sha256": "86a771d95c03f5cdb45970e82c8dff2d340f02c9a491d0dd4a6b60477e7a218f",
       "state": "current"
     },
     {
@@ -722,8 +742,8 @@
     },
     {
       "path": "openspec/specs/tabletop-event-interaction/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "0e05ea1617d9374ca9946b7c55e67227b4534646cb6ec6ec744e33658cd1820a",
+      "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-event-interaction/spec.md",
@@ -952,11 +972,11 @@
     }
   ],
   "counts": {
-    "verified": 2,
+    "verified": 3,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 39,
+    "unknown": 38,
     "blocked": 0,
     "stale": 20
   },
@@ -998,7 +1018,6 @@
     "table-driven-invention-content",
     "table-driven-item-keywords",
     "tabletop-chinese-font-fallback",
-    "tabletop-event-interaction",
     "tabletop-game-over",
     "tabletop-hunt-departure",
     "tabletop-hunt-harvest",
@@ -1256,6 +1275,11 @@
     {
       "capability": "tabletop-hunt-tile-cards",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-opening-sequence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorldSpacePortInstallerTests.cs",
       "state": "stale"
     },
     {
@@ -2227,16 +2251,39 @@
     {
       "id": "tabletop-event-interaction",
       "label": "跨阶段桌面事件交互",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "营地与狩猎事件共用独立安装的世界空间 3D 卡牌输入端口；View 仅返回玩家决定，旧 2D HUD 的直接 EventSystem 结算入口已移除，玩法状态仍由阶段 ActionQueue 提交。",
+      "designSources": [],
       "sources": [
         "openspec/specs/tabletop-event-interaction/spec.md",
-        "openspec/specs/tabletop-event-interaction/implementation.json"
+        "openspec/specs/tabletop-event-interaction/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableSettlementWorldSpacePortInstaller.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/UI/SettlementUIManager.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorldSpacePortInstallerTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventViewPlayModeTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "tabletop-game-over",
@@ -2391,7 +2438,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorldSpacePortInstallerTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
