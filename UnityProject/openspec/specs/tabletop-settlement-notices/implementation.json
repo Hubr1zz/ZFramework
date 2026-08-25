@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-settlement-notices",
+  "specHash": "d86e72b03781aee832cf0b58a96cfb449a9b1bac882146ee9272b73a415a4952",
+  "title": "3D 营地消息记录",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "成长、损失、熟练度与远征完成事实按提交顺序进入世界空间通知卡；通知只在营地计时，可手动或自动关闭，并在可靠战役重开成功后清空旧战役队列。",
+    "validatedAgainstSpecHash": "d86e72b03781aee832cf0b58a96cfb449a9b1bac882146ee9272b73a415a4952",
+    "evidence": [
+      {
+        "guid": "49defc1c58ea64e44875f3a790412007",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs",
+        "line": 1,
+        "fileHash": "fffff3426fec3d53557b0e59cf1079faf21bc5eab40a21e5e2604f55899d2e24",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "按事件发布顺序排队实体通知，只在 Settlement 推进非缩放计时，关闭不触发游戏性事务。"
+      },
+      {
+        "guid": "551fe81197a6ca545a686a0c536f2646",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+        "line": 1,
+        "fileHash": "8a5a696d314a5225f901e54174423ca7269322ed891d239d18547d68189ae65e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "仅在可靠删除与新战役运行时替换成功后重置通知投影，失败或等待期间保留旧战役反馈。"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "line": 481,
+        "fileHash": "2b3fcd25ec6b542f5b4233601e0d99c878cb671e47550b55024504e532cba939",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "验证删除未确认时通知继续存在，重开事务成功后活动卡和排队内容同时清空。"
+      }
+    ],
+    "tests": [
+      "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
+    ],
+    "verifiedAt": "2026-08-25T13:52:11-07:00"
+  },
+  "implementationOutline": [
+    "通知 presenter 订阅已提交的长期进展事实并按发布顺序投影实体卡，不写入任何游戏状态。",
+    "离开营地时冻结展示时长，返回后继续；玩家关闭和超时只推进本地展示队列。",
+    "战役重开事务成功后由组合根清除旧运行时通知，可靠删除失败时不提前清理。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs:481"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

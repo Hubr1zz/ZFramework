@@ -13,7 +13,7 @@
     "evidence": [
       { "guid": "67a5966455d4e8a408f92232c0bcb8d2", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHuntResourceMarker3D.cs", "line": 1, "fileHash": "f0912021678c10980228e157f3038e04f0ef1aa6b5e4a10065cacdc1de96e5b0", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "资源棋子显示名称、抽取数、移动提示和可采集 hover，不写入玩法状态。" },
       { "guid": "e438b7e087c13ce4ca8653a1701f8f0a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs", "line": 190, "fileHash": "008d3407a165c200a6f3a699b1153616fcd94b76fdd969aa24910b8b38d8c366", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "地图按资源点原始索引布局棋子并在移动与耗尽提交后刷新。" },
-      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "4bd72f0d50821c5aeef62285fcae61c5d9f0f14fbabd9c78ef06b700b3b54989", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "端到端验证小队落位后资源棋子进入可采集状态并打开对应实体素材池。" }
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "2b3fcd25ec6b542f5b4233601e0d99c878cb671e47550b55024504e532cba939", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "端到端验证小队落位后资源棋子进入可采集状态并打开对应实体素材池。" }
     ],
     "tests": ["PlayableHuntResourceMarker3DTests: 1/1 passed", "GameManagerCampaignLoopPlayModeTests: 14/14 passed"],
     "verifiedAt": "2026-08-25T11:54:00-07:00"

@@ -13,7 +13,7 @@
     "evidence": [
       { "guid": "ebb448198a81de643bb81b0ceab402cb", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs", "line": 1, "fileHash": "19d8ebd96a223032b1916c3ba5c3761cc18673dbe0ed1312762d22c015949bc6", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "世界空间摘要卡和猎人卡读取权威状态并只提交行动猎人选择。" },
       { "guid": "9ecc7b5ba61f1a3469e8ce81fed5056e", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs", "line": 1, "fileHash": "e8c590f599cb09d6ad600d4afdcbc58b55effcd6d13291598d9d2a506e530951", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "3D 地图路径不创建旧屏幕 HUD，并订阅地块、采集与事件提交事实刷新状态桌。" },
-      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "4bd72f0d50821c5aeef62285fcae61c5d9f0f14fbabd9c78ef06b700b3b54989", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "生产狩猎入口验证状态桌及部署猎人卡数量。" }
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "2b3fcd25ec6b542f5b4233601e0d99c878cb671e47550b55024504e532cba939", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "生产狩猎入口验证状态桌及部署猎人卡数量。" }
     ],
     "tests": ["GameManagerCampaignLoopPlayModeTests: 14/14 passed"],
     "verifiedAt": "2026-08-25T11:54:00-07:00"

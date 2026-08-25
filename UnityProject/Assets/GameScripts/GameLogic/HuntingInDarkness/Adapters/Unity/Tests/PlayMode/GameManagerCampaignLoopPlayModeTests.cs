@@ -20,6 +20,7 @@ using HuntingInDarkness.Settlement;
 using HuntingInDarkness.ViewLayer.Hunt;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using NUnit.Framework;
+using UI;
 using UI.Hunt;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -477,6 +478,13 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return null;
             yield return WaitForSettlementIdle(manager);
             SettlementInstance previousSettlement = manager.SettlementData;
+            SettlementNoticePresenter3D noticePresenter = managerObject.GetComponent<SettlementNoticePresenter3D>();
+            Assert.That(noticePresenter, Is.Not.Null);
+            EventBus.Publish(new HuntCompletedEvent { CompletedYear = 1, AdvancedToYear = 2, TotalHunts = 1 });
+            EventBus.Publish(new HuntCompletedEvent { CompletedYear = 2, AdvancedToYear = 3, TotalHunts = 2 });
+            yield return null;
+            Assert.That(noticePresenter.IsPresenting, Is.True);
+            Assert.That(noticePresenter.PendingNoticeCount, Is.EqualTo(1));
 
             UniTask<CampaignRestartResult>.Awaiter restart = manager.RestartCampaignAsync().GetAwaiter();
             yield return null;
@@ -484,6 +492,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(restart.IsCompleted, Is.False, "删除仍在等待时不得提前完成重启命令。");
             Assert.That(manager.SettlementData, Is.SameAs(previousSettlement), "删除确认前不得替换权威营地。");
             Assert.That(persistence.DeleteCount, Is.EqualTo(1));
+            Assert.That(noticePresenter.IsPresenting, Is.True, "删除确认前不得清空当前战役的营地消息。");
+            Assert.That(noticePresenter.PendingNoticeCount, Is.EqualTo(1));
 
             persistence.CompleteDelete(true);
             yield return WaitForCompletion(restart);
@@ -495,6 +505,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(manager.SettlementData.GetAliveHunters(), Is.Not.Empty);
             Assert.That(persistence.Payload, Is.Not.Null.And.Not.Empty, "删除完成后必须先建立新战役稳定快照。");
             yield return WaitForSettlementIdle(manager);
+            Assert.That(noticePresenter.IsPresenting, Is.False, "成功重启后不得展示上一战役的营地消息。");
+            Assert.That(noticePresenter.PendingNoticeCount, Is.Zero);
         }
 
         [UnityTest]

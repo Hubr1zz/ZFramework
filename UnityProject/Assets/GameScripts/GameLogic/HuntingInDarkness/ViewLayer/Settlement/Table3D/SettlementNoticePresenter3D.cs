@@ -37,6 +37,15 @@ namespace UI
             EventBus.Subscribe<HuntCompletedEvent>(OnHuntCompleted);
         }
 
+        public void ResetForCampaignChange()
+        {
+            pendingNotices.Clear();
+            activeNotice = null;
+            remainingSeconds = 0f;
+            if (presentationRoot != null)
+                presentationRoot.SetActive(false);
+        }
+
         private void Update()
         {
             if (manager == null || manager.CurrentGamePhase != GamePhase.Settlement)

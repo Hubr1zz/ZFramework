@@ -22,7 +22,7 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "cdc9ec0901561c2df19f7deafb4e092f9f759a4b160243a9954247e616bcf8ae",
+        "fileHash": "8a5a696d314a5225f901e54174423ca7269322ed891d239d18547d68189ae65e",
         "status": "verified",
         "checkedAt": "2026-08-25T10:46:52-07:00",
         "feature": "仅作为组合根调用活动狩猎恢复事务，并在事务结果成为权威后接管稳定载荷与场景表现。"

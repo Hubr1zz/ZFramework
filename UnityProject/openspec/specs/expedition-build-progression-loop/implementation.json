@@ -13,7 +13,7 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "26a6feda350c60e9d6ed817f0ef354c8a335a65e35508d0b1f6c353d1985374d",
+        "fileHash": "8a5a696d314a5225f901e54174423ca7269322ed891d239d18547d68189ae65e",
         "status": "verified",
         "checkedAt": "2026-08-24T23:45:06-07:00",
         "feature": "组合根只向 3D 营地桌绑定 Settlement runner 命令，并移除可直接取得遗留可变系统的公开旁路。"
@@ -31,7 +31,7 @@
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 1,
-        "fileHash": "4bd72f0d50821c5aeef62285fcae61c5d9f0f14fbabd9c78ef06b700b3b54989",
+        "fileHash": "2b3fcd25ec6b542f5b4233601e0d99c878cb671e47550b55024504e532cba939",
         "status": "verified",
         "checkedAt": "2026-08-25T00:55:19-07:00",
         "feature": "使用生产表内容验证奖励、回营、制造、装备、稳定恢复、再次出猎生效与卸装闭环。"

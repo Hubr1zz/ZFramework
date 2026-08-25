@@ -31,7 +31,7 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "1f69f185f38b4313caa3959115ddb419bf9d2a9b6b57e5c8c68b00625cbd55c1",
+        "fileHash": "8a5a696d314a5225f901e54174423ca7269322ed891d239d18547d68189ae65e",
         "status": "verified",
         "checkedAt": "2026-08-24T09:28:30-07:00",
         "feature": "在组合根重新验证同年令牌和路线身份，原子绑定、提交与回滚 Hunt 运行图。"

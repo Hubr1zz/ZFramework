@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-settlement-advancement-ledger",
+  "specHash": "7d8c9e7dd646fe3cec3a894d734401b39751373bea91204c8afe32ac76fa5374",
+  "title": "营地桌面成长训练与年鉴",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "猎人卡可进入世界空间成长训练板，成长与武器训练仅向 Settlement ActionQueue 提交；年鉴把时间线、远征历史与长期记录合并为分页实体卡，并投影玩家可读的内容名称。",
+    "validatedAgainstSpecHash": "7d8c9e7dd646fe3cec3a894d734401b39751373bea91204c8afe32ac76fa5374",
+    "evidence": [
+      {
+        "guid": "a00f8e52699658140a5c2cd7defab427",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterAdvancementPanel3D.cs",
+        "line": 1,
+        "fileHash": "b51ffcfe42d6a8519a88964996c7ca7b7729c6608c5281b6bb8af688862288bf",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "以成长方向卡和分页武器流派卡呈现规则状态，只通过命令回调提交玩家意图。"
+      },
+      {
+        "guid": "b078e9c3adef30e4b91de4eb86eaa250",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/CampLedgerPanel3D.cs",
+        "line": 1,
+        "fileHash": "4a643f990107ac08289588bbb22a2828ad1b26561e9691ae0502fe9c29f642ee",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "将时间线与狩猎历史按年份合并为八条一页的实体年鉴，并在 View 边界解析内容显示名。"
+      },
+      {
+        "guid": "fb9594e88d344864f92704a352c1cb37",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SpendHunterGrowthAction.cs",
+        "line": 1,
+        "fileHash": "6787274460d40b4d536f5ccfe88a403609b75505b23b9101275670325932ece8",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "串行重验成长余额与上限，在同一游戏性 Action 中提交属性、里程碑和事务事实。"
+      },
+      {
+        "guid": "5723f1b99acd8fa4893e287c2ca1ed80",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/TrainWeaponAction.cs",
+        "line": 1,
+        "fileHash": "8f88089bef13a653c314f801aeabfd8d28fd5333a54c2f8af197ce257e28ecc5",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "原子重验训练前置、资源与上限，并提交熟练度和统一营地事务事实。"
+      },
+      {
+        "guid": "3983952169a25304b8e29fef9d9ad350",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableGrowthMilestoneTests.cs",
+        "line": 1,
+        "fileHash": "c7c51fe6e3c17e10da227d0fb77de2a0f8a14061aa18f539147d2d3d3dfe72a3",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "验证成长里程碑奖励只在达到阈值时提交且不可重复领取。"
+      },
+      {
+        "guid": "d07835cf66f11f94fa3862a7975ff642",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementTimelineJournalTests.cs",
+        "line": 1,
+        "fileHash": "a6cf54298510fd5514dbd3784a3cf456820378f264232749d1e8dfb341546f71",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "验证年鉴记录排序、未来状态、稳定去重与持久化读取。"
+      }
+    ],
+    "tests": [
+      "PlayableGrowthMilestoneTests: 2/2 passed",
+      "SettlementTimelineJournalTests: 4/4 passed"
+    ],
+    "verifiedAt": "2026-08-25T13:52:11-07:00"
+  },
+  "implementationOutline": [
+    "猎人装备桌通过世界空间入口打开成长训练板，View 只维护选择和可用状态投影。",
+    "成长分配与武器训练分别由 Settlement ActionQueue 原子重验和提交，Reactor 可阻止或改写游戏性 Action。",
+    "年鉴把时间线、发明与远征历史投影为分页实体卡，长期状态继续由既有数据层持久化。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterAdvancementPanel3D.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/CampLedgerPanel3D.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SpendHunterGrowthAction.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/TrainWeaponAction.cs:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

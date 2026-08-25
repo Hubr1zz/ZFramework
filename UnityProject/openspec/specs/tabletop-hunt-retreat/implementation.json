@@ -13,7 +13,7 @@
     "evidence": [
       { "guid": "304969fc70fda6f468fd46f7a274ad94", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntRetreatPanel3D.cs", "line": 1, "fileHash": "d16df03a365cf3bed026962a85fa1c649f9c9358b525a89bf050d24b906cf553", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "实体启动、确认与继续探索卡只提交回营意图并维护桌面输入所有权。" },
       { "guid": "8601354706c5d2243a2c3ad182a5a99a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs", "line": 1, "fileHash": "6e3740cdc8e8424d92491492d7d5158c5c85d25b62d33a886406d4517e5f698e", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "Hunt runner 在离开前生成稳定、可幂等消费的回营快照。" },
-      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "4bd72f0d50821c5aeef62285fcae61c5d9f0f14fbabd9c78ef06b700b3b54989", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "端到端测试通过实体确认卡完成回营、结算、年份推进及下一轮出发。" }
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "2b3fcd25ec6b542f5b4233601e0d99c878cb671e47550b55024504e532cba939", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "端到端测试通过实体确认卡完成回营、结算、年份推进及下一轮出发。" }
     ],
     "tests": ["PlayableHuntRetreatActionTests: 4/4 passed", "GameManagerCampaignLoopPlayModeTests: 14/14 passed"],
     "verifiedAt": "2026-08-25T11:54:00-07:00"

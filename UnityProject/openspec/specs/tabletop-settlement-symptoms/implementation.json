@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-settlement-symptoms",
+  "specHash": "b33dcff0f5ea35fa22530ebb735bdb754e9b7e827ce27fa74f0eccddb1f9363c",
+  "title": "营地桌面症状成长",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "猎人装备桌只为未克服症状提供世界空间入口，症状板分页展示权威持久状态及两种选择；Settlement ActionQueue 在执行时重验年份、费用和 Reactor 结果后提交长期状态。",
+    "validatedAgainstSpecHash": "b33dcff0f5ea35fa22530ebb735bdb754e9b7e827ce27fa74f0eccddb1f9363c",
+    "evidence": [
+      {
+        "guid": "f7f201254cb1b2f478922ae7a3df818d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterSymptomPanel3D.cs",
+        "line": 1,
+        "fileHash": "759a4e3f4d52bfeb95632c6e3a6a345dba2176ca8bd0b68c22f1a25760c52afc",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "以四条一页的症状实体卡展示内化进度、条件和不可用原因，仅提交稳定 ID 与玩家选择。"
+      },
+      {
+        "guid": "b3e119d518054a444aa5c1849a11aea8",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/ResolveHunterSymptomAction.cs",
+        "line": 1,
+        "fileHash": "d57428de448e659f0376314b82ef98e0d5762a08d07f0801a6463c320279e88c",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "按 Reactor 后的最终选择重新验证猎人、症状、年份与费用，并原子提交症状及营地事务事实。"
+      },
+      {
+        "guid": "62d8502ec95a8c94a8adfe8e8f5520fc",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementSymptomActionTests.cs",
+        "line": 1,
+        "fileHash": "1192e1fa40a77626ae3385a169fefa85f1fc9b03905cdb897085b22407c26cdf",
+        "status": "verified",
+        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "feature": "验证内化、年度门禁、克服、Reactor 改写及阻止时无权威状态泄漏。"
+      }
+    ],
+    "tests": [
+      "PlayableSettlementSymptomActionTests: 5/5 passed"
+    ],
+    "verifiedAt": "2026-08-25T13:52:11-07:00"
+  },
+  "implementationOutline": [
+    "猎人装备桌从同一持久症状集合决定入口可见性，症状板不维护第二份规则状态。",
+    "View 只投影选择条件，Settlement ActionQueue 在执行边界重验并提交内化或克服。",
+    "事件写入、旧存档迁移与营地处理共享稳定症状 ID，兼容名称只用于显示。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterSymptomPanel3D.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/ResolveHunterSymptomAction.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs:199"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

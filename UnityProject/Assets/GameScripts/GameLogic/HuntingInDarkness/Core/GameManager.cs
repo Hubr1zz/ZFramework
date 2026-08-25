@@ -2090,6 +2090,7 @@ namespace Core
             preparedHuntExit = false;
             encounterCheckpointRollbackFailed = false;
             stableCampaignPayload = restart.StablePayload;
+            GetComponent<SettlementNoticePresenter3D>()?.ResetForCampaignChange();
             EnsureSettlementUI();
             QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
             return CampaignRestartResult.Success();
