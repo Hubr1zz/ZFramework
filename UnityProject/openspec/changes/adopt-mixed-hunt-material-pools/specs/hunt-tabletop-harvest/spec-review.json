@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-tabletop-harvest",
+  "title": "狩猎桌面资源采集",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "混合素材牌池、有限任意选择、逐素材 Reactor、3D 表现与存档兼容已经实现并通过定向验证。",
+    "codeEvidence": [
+      {
+        "guid": "8b25c0de202607140000000000000007",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntResourceRules.cs",
+        "fileHash": "73719e7e08ba2b454e162f49495e74efeb3c294a700a9f07f48e51bbe057d916",
+        "line": 53,
+        "feature": "冻结混合素材牌池、逐卡命中结果与翻牌上限",
+        "status": "verified",
+        "checkedAt": "2026-08-25T01:47:26-07:00"
+      },
+      {
+        "guid": "6887176cf1b6e0647bd5c71e552c3967",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntHarvestPanel3D.cs",
+        "fileHash": "f718d515ce64c6e8d22a4e63a45aa876551aad4b69eacbbe479973ca7f68192c",
+        "line": 106,
+        "feature": "完整 3D 牌池中的任意未翻牌选择",
+        "status": "verified",
+        "checkedAt": "2026-08-25T01:47:26-07:00"
+      },
+      {
+        "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
+        "fileHash": "82a1588168902d3b846aecfa6e93fb7ee59185b07cfc591e4c81917d8fa114ba",
+        "line": 198,
+        "feature": "保存和恢复完整素材池并兼容旧 ItemId",
+        "status": "verified",
+        "checkedAt": "2026-08-25T01:47:26-07:00"
+      }
+    ],
+    "evidence": [
+      "Unity CLI 编译通过。",
+      "EditMode 采集、内容 Bundle 与活动狩猎存档职责簇 49/49 通过。",
+      "3D campaign loop PlayMode 目标用例通过。"
+    ],
+    "differences": [
+      "正式 Spec 仍描述按顺序揭示下一张卡，本 Delta 改为从完整混合牌池中任意选择有限张数。"
+    ],
+    "verifiedAt": "2026-08-25T01:47:26-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": [
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/狩猎阶段 Hunt Phase/地图 Map.md",
+    "C:/Users/leonz/Desktop/GameDesignVault/内容设计案例/石森林资源点 案例.md"
+  ],
+  "implementationOutline": [
+    "资源点配置展开为带重复素材身份的运行时牌池，旧 resource 字段只做兼容回退。",
+    "BeginHarvestAction 冻结逐素材结果；AdvanceHarvestAction 验证 View 提交的卡索引并达到 RevealLimit 后原子提交。",
+    "HuntHarvestPanel3D 展示完整牌池；ActiveHuntSnapshotAdapter 保存并恢复有序素材 ID。"
+  ],
+  "reviewIssues": [
+    {
+      "id": "ISSUE-MIXED-HUNT-POOL-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "实现已把正式 Spec 的顺序翻牌改为有限任意选牌，需人类确认后才能同步为权威。",
+      "details": "设计文档支持该变化，代码与验证已经存在；当前 Change 仅等待权威收养决定。",
+      "sourceId": "conversation::2026-08-25",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ]
+}

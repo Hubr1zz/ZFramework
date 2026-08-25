@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.Settlement;
 using UnityEngine;
 
@@ -249,19 +250,75 @@ namespace HuntingInDarkness.Hunt
             clone.resourcePoints = new List<ResourcePointConfig>();
             foreach (ResourcePointConfig point in source.resourcePoints ?? new List<ResourcePointConfig>())
             {
-                if (point?.resource == null || point.resource.itemType != ItemType.Resource || point.spawnWeight <= 0 || point.drawCount <= 0 || point.maxPerTile < 0 || !RegistryBundle.TryGetItem(point.resource.ContentId, out ItemData registered) || !ReferenceEquals(registered, point.resource))
+                if (!TryCloneResourcePoint(point, out ResourcePointConfig clonedPoint, out reason))
                 {
-                    reason = $"狩猎地块 {source.ContentId} 引用了计划外资源或无效生成规则。";
+                    reason = $"狩猎地块 {source.ContentId} 的资源点无效：{reason}";
                     DestroyOwnedObject(clone);
                     clone = null;
                     return false;
                 }
-                clone.resourcePoints.Add(new ResourcePointConfig { resource = point.resource, spawnWeight = point.spawnWeight, drawCount = point.drawCount, maxPerTile = point.maxPerTile });
+                clone.resourcePoints.Add(clonedPoint);
             }
             ownedObjects.Add(clone);
             reason = string.Empty;
             return true;
         }
+
+        private bool TryCloneResourcePoint(ResourcePointConfig source, out ResourcePointConfig clone, out string reason)
+        {
+            clone = null;
+            if (source == null || source.spawnWeight <= 0 || source.drawCount <= 0 || source.maxPerTile < 0)
+            {
+                reason = "生成规则无效。";
+                return false;
+            }
+            clone = new ResourcePointConfig
+            {
+                resourcePointId = source.resourcePointId?.Trim() ?? string.Empty,
+                displayName = source.displayName,
+                resource = source.resource,
+                spawnWeight = source.spawnWeight,
+                drawCount = source.drawCount,
+                maxPerTile = source.maxPerTile,
+                materialPool = new List<ResourceMaterialConfig>()
+            };
+            int cardCount = 0;
+            foreach (ResourceMaterialConfig material in source.materialPool ?? new List<ResourceMaterialConfig>())
+            {
+                if (material?.material == null || material.copies <= 0 || !IsCanonicalResource(material.material))
+                {
+                    reason = "素材池引用了计划外素材或数量无效。";
+                    return false;
+                }
+                cardCount += material.copies;
+                if (cardCount > HarvestDrawPlan.MaximumCardCount)
+                {
+                    reason = $"素材池超过 {HarvestDrawPlan.MaximumCardCount} 张上限。";
+                    return false;
+                }
+                clone.materialPool.Add(new ResourceMaterialConfig { material = material.material, copies = material.copies });
+            }
+            if (cardCount == 0)
+            {
+                if (!IsCanonicalResource(source.resource))
+                {
+                    reason = "旧单素材配置引用了计划外资源或非资源物品。";
+                    return false;
+                }
+                cardCount = source.drawCount;
+            }
+            if (source.drawCount > cardCount)
+            {
+                reason = "允许翻牌数超过素材池卡牌数。";
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(clone.resourcePointId)) clone.resourcePointId = source.resource?.ContentId ?? clone.materialPool[0].material.ContentId;
+            reason = string.Empty;
+            return true;
+        }
+
+        private bool IsCanonicalResource(ItemData item)
+            => item != null && item.itemType == ItemType.Resource && RegistryBundle.TryGetItem(item.ContentId, out ItemData registered) && ReferenceEquals(registered, item);
 
         private static bool ValidateEvents(HexTileData startingTile, IReadOnlyList<HexTileData> tilePool, IReadOnlyList<EventData> huntEvents, PlayableHuntNoiseProfile noiseProfile, int firstYear, out string reason)
         {
@@ -427,10 +484,18 @@ namespace HuntingInDarkness.Hunt
             AppendToken(manifest, tile.resourcePoints?.Count ?? 0);
             foreach (ResourcePointConfig resourcePoint in tile.resourcePoints ?? new List<ResourcePointConfig>())
             {
+                AppendToken(manifest, resourcePoint?.resourcePointId);
+                AppendToken(manifest, resourcePoint?.displayName);
                 AppendItemManifest(manifest, resourcePoint?.resource);
                 AppendToken(manifest, resourcePoint?.spawnWeight ?? 0);
                 AppendToken(manifest, resourcePoint?.drawCount ?? 0);
                 AppendToken(manifest, resourcePoint?.maxPerTile ?? 0);
+                AppendToken(manifest, resourcePoint?.materialPool?.Count ?? 0);
+                foreach (ResourceMaterialConfig material in resourcePoint?.materialPool ?? new List<ResourceMaterialConfig>())
+                {
+                    AppendItemManifest(manifest, material?.material);
+                    AppendToken(manifest, material?.copies ?? 0);
+                }
             }
         }
 

@@ -38,10 +38,13 @@ namespace HuntingInDarkness.Hunt
         private readonly Action release;
         private readonly List<ItemInstance> obtained = new();
         private readonly IReadOnlyList<ItemInstance> visibleObtained;
+        private readonly bool[] revealedCards;
+        private readonly List<HarvestCardResult> revealedResults = new();
         private int revealedCount;
         private bool isReleased;
 
         public int CardCount => plan.CardCount;
+        public int RevealLimit => plan.RevealLimit;
         public double HitChance => plan.HitChance;
         public int RevealedCount => revealedCount;
         public int RevealedHitCount { get; private set; }
@@ -50,8 +53,8 @@ namespace HuntingInDarkness.Hunt
         public int HunterId => hunter?.InstanceId ?? -1;
         public string HunterName => hunter?.Name ?? "?";
         public bool HunterIsAlive => hunter != null && hunter.IsAlive;
-        public bool CanReveal => !IsCommitted && !IsCancelled && revealedCount < plan.CardCount;
-        public bool IsComplete => revealedCount >= plan.CardCount;
+        public bool CanReveal => !IsCommitted && !IsCancelled && revealedCount < plan.RevealLimit;
+        public bool IsComplete => revealedCount >= plan.RevealLimit;
         public bool IsCommitted { get; private set; }
         public bool IsCancelled { get; private set; }
         public IReadOnlyList<ItemInstance> Obtained => visibleObtained;
@@ -64,14 +67,26 @@ namespace HuntingInDarkness.Hunt
             this.plan = plan ?? throw new ArgumentNullException(nameof(plan));
             this.release = release;
             visibleObtained = obtained.AsReadOnly();
+            revealedCards = new bool[plan.CardCount];
         }
 
         public HarvestCardResult RevealNext()
         {
-            if (!CanReveal)
-                throw new InvalidOperationException("No harvest card remains to reveal.");
+            for (int index = 0; index < revealedCards.Length; index++)
+                if (!revealedCards[index])
+                    return Reveal(index);
+            throw new InvalidOperationException("No harvest card remains to reveal.");
+        }
 
-            HarvestCardResult result = plan.Cards[revealedCount++];
+        public bool CanRevealCard(int cardIndex) => CanReveal && cardIndex >= 0 && cardIndex < revealedCards.Length && !revealedCards[cardIndex];
+
+        public HarvestCardResult Reveal(int cardIndex)
+        {
+            if (!CanRevealCard(cardIndex)) throw new InvalidOperationException("The harvest card cannot be revealed.");
+            HarvestCardResult result = plan.Cards[cardIndex];
+            revealedCards[cardIndex] = true;
+            revealedCount++;
+            revealedResults.Add(result);
             if (result.IsHit)
                 RevealedHitCount++;
             return result;
@@ -93,11 +108,16 @@ namespace HuntingInDarkness.Hunt
                 throw new InvalidOperationException("A lost hunter cannot commit a harvest transaction.");
             }
 
-            for (int i = 0; i < plan.HitCount; i++)
+            var stagedItems = new List<ItemInstance>();
+            foreach (HarvestCardResult result in revealedResults)
             {
-                if (point.Resource == null)
-                    break;
-                var item = new ItemInstance(point.Resource);
+                if (!result.IsHit) continue;
+                ItemData material = point.ResolveMaterial(result.MaterialId);
+                if (material == null) throw new InvalidOperationException($"Harvest material is no longer available: {result.MaterialId}");
+                stagedItems.Add(new ItemInstance(material));
+            }
+            foreach (ItemInstance item in stagedItems)
+            {
                 obtained.Add(item);
                 hunter?.Collectibles?.Add(item);
             }

@@ -37,9 +37,11 @@ namespace HuntingInDarkness.Hunt
             var configs = new Dictionary<ResourcePointDefinition, ResourcePointConfig>();
             foreach (ResourcePointConfig config in tile.Config.resourcePoints)
             {
-                if (config?.resource == null) continue;
+                List<ItemData> materialPool = CreateMaterialPool(config);
+                if (materialPool.Count == 0) continue;
+                string pointId = string.IsNullOrWhiteSpace(config.resourcePointId) ? materialPool[0].ContentId : config.resourcePointId.Trim();
                 var definition = new ResourcePointDefinition(
-                    config.resource.itemName,
+                    pointId,
                     config.spawnWeight,
                     config.drawCount,
                     config.maxPerTile);
@@ -51,12 +53,16 @@ namespace HuntingInDarkness.Hunt
             foreach (ResourcePointDefinition definition in spawned)
             {
                 ResourcePointConfig cfg = configs[definition];
+                List<ItemData> materialPool = CreateMaterialPool(cfg);
+                ItemData primaryMaterial = materialPool.Count > 0 ? materialPool[0] : null;
                 var point = new ResourcePointInstance
                 {
-                    ResourceName = definition.ResourceId,
-                    Resource     = cfg.resource,
-                    DrawCount    = definition.DrawCount,
-                    IsExhausted  = false
+                    ResourcePointId = definition.ResourceId,
+                    ResourceName = string.IsNullOrWhiteSpace(cfg.displayName) ? primaryMaterial?.itemName ?? definition.ResourceId : cfg.displayName.Trim(),
+                    Resource = primaryMaterial,
+                    MaterialPool = materialPool,
+                    DrawCount = definition.DrawCount,
+                    IsExhausted = false
                 };
                 tile.ResourcePoints.Add(point);
             }
@@ -89,14 +95,22 @@ namespace HuntingInDarkness.Hunt
             return obtained;
         }
 
-        public PlayableHarvestTransaction PrepareHarvest(ResourcePointInstance point, HunterInstance hunter, float hitChance = 0.6f, int? drawCount = null)
+        public PlayableHarvestTransaction PrepareHarvest(ResourcePointInstance point, HunterInstance hunter, float hitChance = 0.6f, int? drawCount = null, IReadOnlyDictionary<string, float> materialHitChances = null)
         {
-            if (hunter == null || !hunter.IsAlive || point == null || point.IsExhausted || point.Resource == null) return null;
+            if (hunter == null || !hunter.IsAlive || point == null || point.IsExhausted) return null;
+            List<ItemData> materials = GetRuntimeMaterialPool(point, drawCount ?? point.DrawCount);
+            if (materials.Count == 0) return null;
             if (!pendingHarvests.Add(point)) return null;
 
             try
             {
-                HarvestDrawPlan plan = HuntResourceRules.CreateHarvestPlan(drawCount ?? point.DrawCount, hitChance, _rng);
+                var definitions = new List<HarvestMaterialDefinition>(materials.Count);
+                foreach (ItemData material in materials)
+                {
+                    float resolvedHitChance = materialHitChances != null && materialHitChances.TryGetValue(material.ContentId, out float configuredChance) ? configuredChance : hitChance;
+                    definitions.Add(new HarvestMaterialDefinition(material.ContentId, material.itemName, resolvedHitChance));
+                }
+                HarvestDrawPlan plan = HuntResourceRules.CreateMaterialPoolPlan(definitions, drawCount ?? point.DrawCount, _rng);
                 return new PlayableHarvestTransaction(this, point, hunter, plan, () => pendingHarvests.Remove(point));
             }
             catch
@@ -125,6 +139,38 @@ namespace HuntingInDarkness.Hunt
                 Debug.Log($"[ResourceSystem] {hunterName} 采集 {resourceName} ×{obtainedCount}");
             else
                 Debug.Log($"[ResourceSystem] {hunterName} 采集 {resourceName} — 空");
+        }
+
+        private static List<ItemData> CreateMaterialPool(ResourcePointConfig config)
+        {
+            var materials = new List<ItemData>();
+            if (config?.materialPool != null)
+                foreach (ResourceMaterialConfig entry in config.materialPool)
+                {
+                    if (entry?.material == null) continue;
+                    if (materials.Count >= HarvestDrawPlan.MaximumCardCount) break;
+                    int copies = Mathf.Clamp(entry.copies, 1, HarvestDrawPlan.MaximumCardCount - materials.Count);
+                    for (int index = 0; index < copies && materials.Count < HarvestDrawPlan.MaximumCardCount; index++)
+                        materials.Add(entry.material);
+                }
+            if (materials.Count > 0 || config?.resource == null) return materials;
+            int legacyCopies = Mathf.Clamp(config.drawCount, 1, HarvestDrawPlan.MaximumCardCount);
+            for (int index = 0; index < legacyCopies; index++) materials.Add(config.resource);
+            return materials;
+        }
+
+        private static List<ItemData> GetRuntimeMaterialPool(ResourcePointInstance point, int fallbackCount)
+        {
+            var materials = new List<ItemData>();
+            if (point?.MaterialPool != null)
+                foreach (ItemData material in point.MaterialPool)
+                    if (material != null && materials.Count < HarvestDrawPlan.MaximumCardCount)
+                        materials.Add(material);
+            if (materials.Count > 0 || point?.Resource == null) return materials;
+            int copies = Mathf.Clamp(fallbackCount, 1, HarvestDrawPlan.MaximumCardCount);
+            for (int index = 0; index < copies; index++) materials.Add(point.Resource);
+            point.MaterialPool = new List<ItemData>(materials);
+            return materials;
         }
 
         /// <summary>

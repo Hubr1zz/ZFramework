@@ -308,14 +308,14 @@ namespace HuntingInDarkness.Hunt
             var point = tile.ResourcePoints[pointIndex];
             if (!IsHarvestablePoint(point)) return;
 
-            OnResourcePointPresentationRequested?.Invoke(new HuntResourcePointPresentationRequest(tileCoord, pointIndex, point.ResourceName, point.DrawCount));
+            OnResourcePointPresentationRequested?.Invoke(new HuntResourcePointPresentationRequest(tileCoord, pointIndex, point.ResourceName, point.DrawCount, point.MaterialPool?.Count ?? 0));
             OnResourcePointClicked?.Invoke(point, SelectedHunter);
         }
 
         public bool IsHarvestablePoint(ResourcePointInstance point)
         {
             if (!HasLivingHunter) return false;
-            if (point == null || point.IsExhausted || point.Resource == null) return false;
+            if (point == null || point.IsExhausted || !point.HasMaterialPool && point.Resource == null) return false;
             if (!Map.TryGetValue(SquadPosition, out HexTileInstance squadTile)) return false;
             return squadTile.State == TileState.Revealed && squadTile.ResourcePoints.Contains(point);
         }

@@ -23,6 +23,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public string ResourceName;
         public int CardIndex;
         public bool IsHit;
+        public string MaterialId;
+        public string MaterialName;
         public int RevealedCount;
         public int CardCount;
     }
@@ -32,6 +34,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public int HunterId;
         public string ResourceName;
         public int ObtainedCount;
+        public string[] MaterialIds;
     }
 
     /// <summary>锁定资源点并生成不可变采集牌序；规则可在执行前覆盖牌数和命中率。</summary>
@@ -41,6 +44,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly ResourcePointInstance point;
         private readonly HunterInstance hunter;
         private readonly ActionEventOutbox eventOutbox;
+        private readonly Dictionary<string, float> materialHitChanceBonuses = new(StringComparer.Ordinal);
 
         public BeginHarvestAction(HuntManager manager, ResourcePointInstance point, HunterInstance hunter, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
         {
@@ -56,18 +60,32 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public float HitChance { get; private set; } = 0.6f;
         public int DrawCount { get; private set; }
         public ItemData Resource => point?.Resource;
+        public IReadOnlyList<ItemData> Materials => point?.HasMaterialPool == true ? point.MaterialPool : point?.Resource != null ? new[] { point.Resource } : Array.Empty<ItemData>();
         public PlayableHarvestTransaction Transaction { get; private set; }
         public IReactorEntity Source { get; }
         public IReactorEntity Target { get; }
 
         public void SetHitChance(float value) => HitChance = Mathf.Clamp01(value);
         public void SetDrawCount(int value) => DrawCount = Mathf.Clamp(value, 0, HarvestDrawPlan.MaximumCardCount);
+        public void AddMaterialHitChance(ItemData material, float value)
+        {
+            if (material == null || string.IsNullOrWhiteSpace(material.ContentId) || value == 0f) return;
+            materialHitChanceBonuses.TryGetValue(material.ContentId, out float current);
+            materialHitChanceBonuses[material.ContentId] = current + value;
+        }
 
         protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
             if (!manager.IsHarvestablePoint(point)) return UniTask.FromResult(ActionOutcome.Failure("资源点不可采集"));
             if (hunter == null || !hunter.IsAlive) return UniTask.FromResult(ActionOutcome.Failure("没有可执行采集的存活猎人"));
-            Transaction = manager.Resources.PrepareHarvest(point, hunter, HitChance, DrawCount);
+            var materialHitChances = new Dictionary<string, float>(StringComparer.Ordinal);
+            foreach (ItemData material in Materials)
+            {
+                if (material == null || materialHitChances.ContainsKey(material.ContentId)) continue;
+                materialHitChanceBonuses.TryGetValue(material.ContentId, out float bonus);
+                materialHitChances[material.ContentId] = Mathf.Clamp01(HitChance + bonus);
+            }
+            Transaction = manager.Resources.PrepareHarvest(point, hunter, HitChance, DrawCount, materialHitChances);
             if (Transaction == null) return UniTask.FromResult(ActionOutcome.Failure("资源点已被占用或状态已经改变"));
             eventOutbox.Stage(new HarvestPreparedEvent
             {
@@ -85,15 +103,17 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly HuntManager manager;
         private readonly PlayableHarvestTransaction transaction;
         private readonly ActionEventOutbox eventOutbox;
+        private readonly int cardIndex;
         private RevealHarvestCardAction revealAction;
         private CommitHarvestAction commitAction;
         private GameAction lastAction;
 
-        public AdvanceHarvestAction(HuntManager manager, PlayableHarvestTransaction transaction, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+        public AdvanceHarvestAction(HuntManager manager, PlayableHarvestTransaction transaction, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, int cardIndex = -1)
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.transaction = transaction;
             this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
+            this.cardIndex = cardIndex;
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
         }
@@ -108,7 +128,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             if (transaction == null || transaction.IsCommitted) return null;
             if (transaction.CanReveal && revealAction == null)
             {
-                revealAction = new RevealHarvestCardAction(transaction, eventOutbox, Source, Target);
+                revealAction = new RevealHarvestCardAction(transaction, eventOutbox, Source, Target, cardIndex);
                 lastAction = revealAction;
                 return lastAction;
             }
@@ -154,11 +174,13 @@ namespace HuntingInDarkness.ActionFlow.Hunt
     {
         private readonly PlayableHarvestTransaction transaction;
         private readonly ActionEventOutbox eventOutbox;
+        private readonly int cardIndex;
 
-        internal RevealHarvestCardAction(PlayableHarvestTransaction transaction, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+        internal RevealHarvestCardAction(PlayableHarvestTransaction transaction, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, int cardIndex = -1)
         {
             this.transaction = transaction;
             this.eventOutbox = eventOutbox;
+            this.cardIndex = cardIndex;
             Source = source;
             Target = target;
         }
@@ -169,8 +191,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
         protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
-            if (transaction == null || !transaction.CanReveal) return UniTask.FromResult(ActionOutcome.Failure("没有可揭示的采集牌"));
-            HarvestCardResult card = transaction.RevealNext();
+            if (transaction == null || !transaction.CanReveal || cardIndex >= 0 && !transaction.CanRevealCard(cardIndex)) return UniTask.FromResult(ActionOutcome.Failure("没有可揭示的采集牌"));
+            HarvestCardResult card = cardIndex >= 0 ? transaction.Reveal(cardIndex) : transaction.RevealNext();
             RevealedCard = card;
             eventOutbox.Stage(new HarvestCardRevealedEvent
             {
@@ -178,6 +200,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 ResourceName = transaction.ResourceName,
                 CardIndex = card.CardIndex,
                 IsHit = card.IsHit,
+                MaterialId = card.MaterialId,
+                MaterialName = card.MaterialName,
                 RevealedCount = transaction.RevealedCount,
                 CardCount = transaction.CardCount
             });
@@ -227,10 +251,18 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             {
                 HunterId = transaction.HunterId,
                 ResourceName = transaction.ResourceName,
-                ObtainedCount = Obtained.Count
+                ObtainedCount = Obtained.Count,
+                MaterialIds = GetMaterialIds(Obtained)
             });
             eventOutbox.PublishCheckpoint();
             return UniTask.FromResult(ActionOutcome.Success());
+        }
+
+        private static string[] GetMaterialIds(IReadOnlyList<ItemInstance> items)
+        {
+            var ids = new string[items?.Count ?? 0];
+            for (int index = 0; index < ids.Length; index++) ids[index] = items[index]?.Data?.ContentId ?? string.Empty;
+            return ids;
         }
     }
 }

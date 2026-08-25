@@ -12,16 +12,25 @@ namespace HuntingInDarkness.Adapter.Tests
     public sealed class PlayableHarvestTransactionTests
     {
         private ItemData resource;
+        private ItemData secondaryResource;
 
         [SetUp]
         public void SetUp()
         {
             resource = ScriptableObject.CreateInstance<ItemData>();
             resource.itemName = "测试素材";
+            resource.ConfigureContentId("test-material");
+            secondaryResource = ScriptableObject.CreateInstance<ItemData>();
+            secondaryResource.itemName = "第二素材";
+            secondaryResource.ConfigureContentId("second-material");
         }
 
         [TearDown]
-        public void TearDown() => UnityEngine.Object.DestroyImmediate(resource);
+        public void TearDown()
+        {
+            UnityEngine.Object.DestroyImmediate(resource);
+            UnityEngine.Object.DestroyImmediate(secondaryResource);
+        }
 
         [Test]
         public void RevealAndCommit_DelaysMutationUntilEveryCardIsShown()
@@ -124,6 +133,28 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.Throws<InvalidOperationException>(() => secondSystem.CommitHarvest(transaction));
         }
 
+        [Test]
+        public void RevealSelectedCards_CommitsOnlySelectedMaterialsAtRevealLimit()
+        {
+            var system = new ResourceSystem(new SequenceRandom(0d));
+            var hunter = new HunterInstance(null, 1);
+            ResourcePointInstance point = CreatePoint(2);
+            point.MaterialPool = new List<ItemData> { resource, secondaryResource, resource };
+            PlayableHarvestTransaction transaction = system.PrepareHarvest(point, hunter, 1f);
+
+            HarvestCardResult first = transaction.Reveal(1);
+            HarvestCardResult second = transaction.Reveal(2);
+            IReadOnlyList<ItemInstance> obtained = system.CommitHarvest(transaction);
+
+            Assert.That(first.MaterialId, Is.EqualTo(secondaryResource.ContentId));
+            Assert.That(second.MaterialId, Is.EqualTo(resource.ContentId));
+            Assert.That(transaction.RevealLimit, Is.EqualTo(2));
+            Assert.That(transaction.CanRevealCard(0), Is.False);
+            Assert.That(obtained, Has.Count.EqualTo(2));
+            Assert.That(obtained[0].Data, Is.SameAs(secondaryResource));
+            Assert.That(obtained[1].Data, Is.SameAs(resource));
+        }
+
         private ResourcePointInstance CreatePoint(int drawCount) => new()
         {
             ResourceName = resource.itemName,
@@ -142,7 +173,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 lastValue = values.Length > 0 ? values[values.Length - 1] : 0d;
             }
 
-            public int Next(int minInclusive, int maxExclusive) => minInclusive;
+            public int Next(int minInclusive, int maxExclusive) => maxExclusive - 1;
 
             public double NextDouble()
             {

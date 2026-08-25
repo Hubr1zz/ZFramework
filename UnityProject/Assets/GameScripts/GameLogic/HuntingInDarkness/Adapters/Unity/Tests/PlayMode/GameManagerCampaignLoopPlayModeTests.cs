@@ -253,10 +253,11 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             HuntHarvestPanel3D harvestPanel = visualizer.GetComponentInChildren<HuntHarvestPanel3D>(true);
             Assert.That(harvestPanel, Is.Not.Null);
             Assert.That(harvestPanel.IsOpen, Is.True);
-            Assert.That(harvestPanel.CardCount, Is.EqualTo(exploredTile.ResourcePoints[0].DrawCount));
+            int poolCardCount = exploredTile.ResourcePoints[0].MaterialItemIds?.Count > 0 ? exploredTile.ResourcePoints[0].MaterialItemIds.Count : exploredTile.ResourcePoints[0].DrawCount;
+            Assert.That(harvestPanel.CardCount, Is.EqualTo(poolCardCount));
             Assert.That(harvestPanel.CardCount, Is.GreaterThan(0));
 
-            for (int cardIndex = 0; cardIndex < harvestPanel.CardCount; cardIndex++)
+            for (int cardIndex = 0; cardIndex < exploredTile.ResourcePoints[0].DrawCount; cardIndex++)
             {
                 HuntHarvestCard3D harvestCard = harvestPanel.GetComponentsInChildren<HuntHarvestCard3D>(true).Single(card => card.CardIndex == cardIndex);
                 Assert.That(harvestCard.RevealRequested, Is.Not.Null);
@@ -269,11 +270,10 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             HuntHarvestControlCard3D controlCard = harvestPanel.GetComponentInChildren<HuntHarvestControlCard3D>(true);
             Assert.That(controlCard, Is.Not.Null);
             Assert.That(controlCard.Clicked, Is.Not.Null);
-            Assert.That(harvestPanel.TryActivateControlCard(), Is.True);
-            yield return WaitForHarvestStep(harvestPanel, harvestPanel.CardCount);
             Assert.That(harvestPanel.IsOperationRunning, Is.False);
-            harvestPanel.RequestClose();
+            Assert.That(harvestPanel.TryActivateControlCard(), Is.True);
             yield return null;
+            Assert.That(harvestPanel.IsOpen, Is.False);
             Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
 
             yield return WaitForActiveHuntSnapshot(persistence, coordinate, true);

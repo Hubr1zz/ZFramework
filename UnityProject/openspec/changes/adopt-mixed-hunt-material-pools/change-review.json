@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-mixed-hunt-material-pools",
+  "title": "收养狩猎混合素材牌池",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现已完成；本 Change 只负责让人类审查行为差异，未自动改写正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "Unity 编译、49 项 EditMode 职责簇与目标 3D PlayMode 闭环通过。",
+    "codeEvidence": [],
+    "evidence": [
+      "C# 派生索引覆盖 977/977，parsed=18、reused=959。",
+      "Unity CLI EditMode 49/49。",
+      "Unity CLI 目标 PlayMode 用例通过。"
+    ],
+    "differences": [
+      "正式 hunt-tabletop-harvest Spec 仍是顺序翻牌；实现与本 Delta 为完整混合牌池中的有限任意选牌。"
+    ],
+    "verifiedAt": "2026-08-25T01:47:26-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-MIXED-HUNT-POOL-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认以有限任意选牌替换正式 Spec 的顺序翻牌语义。",
+      "details": "若接受，批准后同步；若不接受，需要回调代码与 3D 交互。",
+      "sourceId": "conversation::2026-08-25",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": [
+    "hunt-tabletop-harvest"
+  ],
+  "syncTargets": [
+    {
+      "capability": "hunt-tabletop-harvest",
+      "title": "狩猎桌面资源采集",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-mixed-hunt-material-pools/specs/hunt-tabletop-harvest/spec.md",
+      "targetSpecPath": "openspec/specs/hunt-tabletop-harvest/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "6a9b5f11ad7cff0f8a1f895f26a4716639c6c159cdea103f65f9249db189e2e8",
+      "baseSnapshotPath": ""
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "正式 Spec 基线哈希已记录，尚未同步。",
+    "changes": [
+      "顺序翻牌改为完整混合牌池中的有限任意选牌。",
+      "增加逐素材 Reactor 与活动狩猎存档兼容契约。"
+    ],
+    "conflicts": [],
+    "validatedAt": "2026-08-25T01:47:26-07:00"
+  },
+  "createdAt": "2026-08-25T01:47:26-07:00"
+}

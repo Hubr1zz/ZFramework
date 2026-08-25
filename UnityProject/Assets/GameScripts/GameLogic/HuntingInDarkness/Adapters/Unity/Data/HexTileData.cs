@@ -30,14 +30,26 @@ namespace HuntingInDarkness.Data
 
     // ─── 资源点配置 ──────────────────────────────────────────────
 
+    [System.Serializable]
+    public sealed class ResourceMaterialConfig
+    {
+        public ItemData material;
+        [Min(1)] public int copies = 1;
+    }
+
     /// <summary>地块上的资源点配置（翻开时按概率生成）</summary>
     [System.Serializable]
     public class ResourcePointConfig
     {
-        public ItemData   resource;
-        public int        spawnWeight  = 1; // 生成权重
-        public int        drawCount    = 2; // 采集时抽取卡数
-        public int        maxPerTile   = 1; // 同一地块最多几个（0=无限）
+        [Tooltip("稳定资源点 ID；为空时兼容使用旧单素材 ContentId。")]
+        public string resourcePointId;
+        public string displayName;
+        [Tooltip("旧单素材配置；materialPool 为空时按 drawCount 生成同素材卡。")]
+        public ItemData resource;
+        public List<ResourceMaterialConfig> materialPool = new();
+        public int spawnWeight = 1; // 生成权重
+        public int drawCount = 2; // 允许翻开的素材卡数
+        public int maxPerTile = 1; // 同一地块最多几个（0=无限）
     }
 
     // ─── 地块配置 SO ─────────────────────────────────────────────
@@ -132,12 +144,41 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class ResourcePointInstance
     {
+        public string ResourcePointId;
         public string ResourceName;  // 采集过程中的玩家可见名称；持久化时改用 Resource.ContentId
 
         [System.NonSerialized]
         public ItemData Resource;
 
+        [System.NonSerialized]
+        public List<ItemData> MaterialPool = new();
+
         public int  DrawCount   = 2;  // 采集时可抽取的卡数
         public bool IsExhausted = false; // 已被完全采集
+
+        public bool HasMaterialPool => MaterialPool != null && MaterialPool.Exists(material => material != null);
+        public string StableId
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(ResourcePointId)) return ResourcePointId.Trim();
+                if (Resource != null) return Resource.ContentId;
+                if (MaterialPool != null)
+                    foreach (ItemData material in MaterialPool)
+                        if (material != null)
+                            return material.ContentId;
+                return string.Empty;
+            }
+        }
+
+        public ItemData ResolveMaterial(string contentId)
+        {
+            if (string.IsNullOrWhiteSpace(contentId)) return null;
+            if (MaterialPool != null)
+                foreach (ItemData material in MaterialPool)
+                    if (material != null && string.Equals(material.ContentId, contentId, System.StringComparison.Ordinal))
+                        return material;
+            return Resource != null && string.Equals(Resource.ContentId, contentId, System.StringComparison.Ordinal) ? Resource : null;
+        }
     }
 }

@@ -1,0 +1,12 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的收养对账：设计文档要求资源点拥有混合素材牌池，玩家只翻开允许数量的任意牌。",
+  "sourceRoots": [
+    "C:/Users/leonz/Desktop/GameDesignVault"
+  ],
+  "sourceReferences": [
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/狩猎阶段 Hunt Phase/地图 Map.md",
+    "C:/Users/leonz/Desktop/GameDesignVault/内容设计案例/石森林资源点 案例.md",
+    "conversation::2026-08-25"
+  ]
+}

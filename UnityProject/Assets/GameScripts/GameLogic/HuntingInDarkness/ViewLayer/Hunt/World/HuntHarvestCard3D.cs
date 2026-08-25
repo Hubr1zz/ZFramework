@@ -61,7 +61,8 @@ namespace UI.Hunt
                 }
                 isRevealed = true;
                 revealedHit = result.IsHit;
-                resultText.text = result.IsHit ? $"获得\n{resourceName}" : "落空";
+                string materialName = string.IsNullOrWhiteSpace(result.MaterialName) ? resourceName : result.MaterialName;
+                resultText.text = result.IsHit ? $"获得\n{materialName}" : $"{materialName}\n落空";
                 ApplyVisuals();
                 for (float elapsed = 0f; elapsed < halfDuration; elapsed += Time.deltaTime)
                 {

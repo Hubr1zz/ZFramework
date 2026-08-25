@@ -129,7 +129,7 @@ namespace UI.Hunt
                 ? markerPosition
                 : huntVisualizer.TabletopInteractionAnchor.position + new Vector3(0f, 0.58f, -1.55f);
             harvestPanel3D ??= HuntHarvestPanel3D.Create(huntVisualizer.transform);
-            harvestPanel3D.Show(target, request.ResourceName, request.DrawCount, explorationPort, position);
+            harvestPanel3D.Show(target, request.ResourceName, request.DrawCount, request.PoolCardCount, explorationPort, position);
         }
 
         private void OnGameEvent(GameEventTriggeredEvent e)

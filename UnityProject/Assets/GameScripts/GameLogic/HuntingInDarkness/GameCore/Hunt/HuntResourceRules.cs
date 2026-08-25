@@ -49,6 +49,35 @@ namespace HuntingInDarkness.GameCore.Hunt
                 cards.Add(new HarvestCardResult(i, random.NextDouble() < safeHitChance));
             return new HarvestDrawPlan(cards.AsReadOnly(), safeHitChance);
         }
+
+        public static HarvestDrawPlan CreateMaterialPoolPlan(IReadOnlyList<HarvestMaterialDefinition> materials, int revealLimit, IRandomSource random)
+        {
+            if (random == null) throw new ArgumentNullException(nameof(random));
+            var shuffled = new List<HarvestMaterialDefinition>();
+            if (materials != null)
+                foreach (HarvestMaterialDefinition material in materials)
+                    if (!string.IsNullOrWhiteSpace(material.MaterialId) && shuffled.Count < HarvestDrawPlan.MaximumCardCount)
+                        shuffled.Add(material);
+
+            for (int index = shuffled.Count - 1; index > 0; index--)
+            {
+                int target = random.Next(0, index + 1);
+                HarvestMaterialDefinition swap = shuffled[index];
+                shuffled[index] = shuffled[target];
+                shuffled[target] = swap;
+            }
+
+            var cards = new List<HarvestCardResult>(shuffled.Count);
+            double totalChance = 0d;
+            for (int index = 0; index < shuffled.Count; index++)
+            {
+                HarvestMaterialDefinition material = shuffled[index];
+                cards.Add(new HarvestCardResult(index, random.NextDouble() < material.HitChance, material.MaterialId, material.DisplayName));
+                totalChance += material.HitChance;
+            }
+            double averageChance = shuffled.Count > 0 ? totalChance / shuffled.Count : 0d;
+            return new HarvestDrawPlan(cards.AsReadOnly(), averageChance, revealLimit);
+        }
     }
 
     public static class HuntEventRules

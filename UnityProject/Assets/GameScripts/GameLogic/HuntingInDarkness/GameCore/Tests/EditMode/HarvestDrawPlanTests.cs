@@ -47,6 +47,27 @@ namespace HuntingInDarkness.GameCore.Tests.EditMode
             Assert.Throws<ArgumentNullException>(() => HuntResourceRules.CreateHarvestPlan(1, 0.5, null));
         }
 
+        [Test]
+        public void CreateMaterialPoolPlan_PreservesMaterialIdentityAndLimitsSelection()
+        {
+            var materials = new[]
+            {
+                new HarvestMaterialDefinition("stone", "碎石", 1d),
+                new HarvestMaterialDefinition("organ", "柔软器官", 0d),
+                new HarvestMaterialDefinition("fungus", "菌肉", 1d)
+            };
+
+            HarvestDrawPlan plan = HuntResourceRules.CreateMaterialPoolPlan(materials, 2, new SequenceRandom(0d));
+
+            Assert.That(plan.CardCount, Is.EqualTo(3));
+            Assert.That(plan.RevealLimit, Is.EqualTo(2));
+            Assert.That(plan.Cards[0].MaterialId, Is.EqualTo("stone"));
+            Assert.That(plan.Cards[1].MaterialId, Is.EqualTo("organ"));
+            Assert.That(plan.Cards[2].MaterialId, Is.EqualTo("fungus"));
+            Assert.That(plan.Cards[0].IsHit, Is.True);
+            Assert.That(plan.Cards[1].IsHit, Is.False);
+        }
+
         private sealed class SequenceRandom : IRandomSource
         {
             private readonly Queue<double> values;
@@ -58,7 +79,7 @@ namespace HuntingInDarkness.GameCore.Tests.EditMode
                 lastValue = values.Length > 0 ? values[values.Length - 1] : 0d;
             }
 
-            public int Next(int minInclusive, int maxExclusive) => minInclusive;
+            public int Next(int minInclusive, int maxExclusive) => maxExclusive - 1;
 
             public double NextDouble()
             {

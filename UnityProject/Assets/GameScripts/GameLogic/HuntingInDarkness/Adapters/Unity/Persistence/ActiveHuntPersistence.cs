@@ -61,7 +61,10 @@ namespace Core
     [Serializable]
     public sealed class ActiveHuntResourcePointSnapshot
     {
+        public string ResourcePointId;
+        public string DisplayName;
         public string ItemId;
+        public List<string> MaterialItemIds = new();
         public int DrawCount;
         public bool IsExhausted;
     }
@@ -195,12 +198,23 @@ namespace Core
                 };
                 foreach (ResourcePointInstance point in tile.ResourcePoints)
                 {
-                    if (point?.Resource == null || string.IsNullOrWhiteSpace(point.Resource.ContentId) || !boundRoute.TryResolveItem(point.Resource.ContentId, out ItemData canonicalItem) || !ReferenceEquals(canonicalItem, point.Resource))
+                    var materialIds = new List<string>();
+                    IReadOnlyList<ItemData> materials = point?.HasMaterialPool == true ? point.MaterialPool : point?.Resource != null ? new[] { point.Resource } : Array.Empty<ItemData>();
+                    foreach (ItemData material in materials)
                     {
-                        reason = $"地块 {coordinate} 的资源点缺少同代稳定物品 ID。";
+                        if (material == null || string.IsNullOrWhiteSpace(material.ContentId) || !boundRoute.TryResolveItem(material.ContentId, out ItemData canonicalItem) || !ReferenceEquals(canonicalItem, material))
+                        {
+                            reason = $"地块 {coordinate} 的资源点缺少同代稳定素材 ID。";
+                            return false;
+                        }
+                        materialIds.Add(material.ContentId);
+                    }
+                    if (point == null || string.IsNullOrWhiteSpace(point.StableId) || materialIds.Count == 0 || point.DrawCount < 0 || point.DrawCount > materialIds.Count)
+                    {
+                        reason = $"地块 {coordinate} 的资源点身份、牌池或允许翻牌数无效。";
                         return false;
                     }
-                    tileSnapshot.ResourcePoints.Add(new ActiveHuntResourcePointSnapshot { ItemId = point.Resource.ContentId, DrawCount = point.DrawCount, IsExhausted = point.IsExhausted });
+                    tileSnapshot.ResourcePoints.Add(new ActiveHuntResourcePointSnapshot { ResourcePointId = point.StableId, DisplayName = point.ResourceName, ItemId = materialIds[0], MaterialItemIds = materialIds, DrawCount = point.DrawCount, IsExhausted = point.IsExhausted });
                 }
                 active.Tiles.Add(tileSnapshot);
             }
@@ -302,12 +316,33 @@ namespace Core
                 }
                 foreach (ActiveHuntResourcePointSnapshot savedPoint in savedTile.ResourcePoints)
                 {
-                    if (savedPoint == null || savedPoint.DrawCount < 0 || !boundRoute.TryResolveItem(savedPoint.ItemId, out ItemData item) || item == null || item.itemType != ItemType.Resource)
+                    if (savedPoint == null || savedPoint.DrawCount < 0)
                     {
                         reason = $"无法恢复地块资源：{savedPoint?.ItemId}";
                         return false;
                     }
-                    tile.ResourcePoints.Add(new ResourcePointInstance { ResourceName = item.itemName, Resource = item, DrawCount = savedPoint.DrawCount, IsExhausted = savedPoint.IsExhausted });
+                    var materials = new List<ItemData>();
+                    IReadOnlyList<string> materialIds = savedPoint.MaterialItemIds != null && savedPoint.MaterialItemIds.Count > 0 ? savedPoint.MaterialItemIds : new[] { savedPoint.ItemId };
+                    foreach (string materialId in materialIds)
+                    {
+                        if (!boundRoute.TryResolveItem(materialId, out ItemData material) || material == null || material.itemType != ItemType.Resource)
+                        {
+                            reason = $"无法恢复地块资源素材：{materialId}";
+                            return false;
+                        }
+                        materials.Add(material);
+                    }
+                    if (savedPoint.MaterialItemIds == null || savedPoint.MaterialItemIds.Count == 0)
+                        while (materials.Count < savedPoint.DrawCount) materials.Add(materials[0]);
+                    if (materials.Count == 0 || savedPoint.DrawCount > materials.Count)
+                    {
+                        reason = $"地块 {coordinate} 的资源点牌池小于允许翻牌数。";
+                        return false;
+                    }
+                    ItemData primary = materials[0];
+                    string pointId = string.IsNullOrWhiteSpace(savedPoint.ResourcePointId) ? primary.ContentId : savedPoint.ResourcePointId;
+                    string displayName = string.IsNullOrWhiteSpace(savedPoint.DisplayName) ? primary.itemName : savedPoint.DisplayName;
+                    tile.ResourcePoints.Add(new ResourcePointInstance { ResourcePointId = pointId, ResourceName = displayName, Resource = primary, MaterialPool = materials, DrawCount = savedPoint.DrawCount, IsExhausted = savedPoint.IsExhausted });
                 }
                 map.Add(coordinate, tile);
             }

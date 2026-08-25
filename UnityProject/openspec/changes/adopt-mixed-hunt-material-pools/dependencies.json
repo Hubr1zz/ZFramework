@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {
+      "id": "hunt-tabletop-harvest",
+      "label": "狩猎桌面资源采集",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/adopt-mixed-hunt-material-pools/specs/hunt-tabletop-harvest/spec.md"
+    }
+  ],
+  "edges": []
+}

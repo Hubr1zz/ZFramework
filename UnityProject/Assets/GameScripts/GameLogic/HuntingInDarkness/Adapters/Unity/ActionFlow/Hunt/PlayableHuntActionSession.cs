@@ -142,6 +142,9 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         }
 
         public async UniTask<PlayableHarvestStepResult> AdvanceHarvestAsync(PlayableHarvestTransaction transaction)
+            => await AdvanceHarvestAsync(transaction, -1);
+
+        public async UniTask<PlayableHarvestStepResult> AdvanceHarvestAsync(PlayableHarvestTransaction transaction, int cardIndex)
         {
             if (!IsActive) return PlayableHarvestStepResult.Failed("狩猎会话已经结束");
             if (gameplayLocked) return PlayableHarvestStepResult.Failed("遭遇事件正在等待交接，当前狩猎操作已暂停");
@@ -151,7 +154,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle hunter = GetHunterHandle(transaction.HunterId, transaction.HunterName);
             ReactorEntityHandle resourcePoint = GetResourcePointHandle(transaction.Point);
-            var action = new AdvanceHarvestAction(manager, transaction, outbox, hunter, resourcePoint);
+            var action = new AdvanceHarvestAction(manager, transaction, outbox, hunter, resourcePoint, cardIndex);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (transaction.IsCommitted || transaction.IsCancelled)
                 activeHarvests.Remove(transaction);

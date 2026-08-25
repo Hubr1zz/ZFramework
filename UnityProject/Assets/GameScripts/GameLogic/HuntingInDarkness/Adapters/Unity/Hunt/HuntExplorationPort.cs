@@ -10,20 +10,22 @@ namespace HuntingInDarkness.Hunt
     /// <summary>由世界空间 Hunt View 提交的不可变交互快照。</summary>
     public readonly struct HuntExplorationSnapshot
     {
-        public HuntExplorationSnapshot(Guid sessionId, Vector2Int coordinate, int resourcePointIndex = -1, string resourceContentId = null, int resourceDrawCount = 0)
+        public HuntExplorationSnapshot(Guid sessionId, Vector2Int coordinate, int resourcePointIndex = -1, string resourcePointId = null, int resourceDrawCount = 0, int resourcePoolCount = 0)
         {
             SessionId = sessionId;
             Coordinate = coordinate;
             ResourcePointIndex = resourcePointIndex;
-            ResourceContentId = resourceContentId ?? string.Empty;
+            ResourcePointId = resourcePointId ?? string.Empty;
             ResourceDrawCount = Math.Max(0, resourceDrawCount);
+            ResourcePoolCount = Math.Max(0, resourcePoolCount);
         }
 
         public Guid SessionId { get; }
         public Vector2Int Coordinate { get; }
         public int ResourcePointIndex { get; }
-        public string ResourceContentId { get; }
+        public string ResourcePointId { get; }
         public int ResourceDrawCount { get; }
+        public int ResourcePoolCount { get; }
         public bool IsResourcePointSelection => ResourcePointIndex >= 0;
     }
 
@@ -35,7 +37,7 @@ namespace HuntingInDarkness.Hunt
         UniTask<HuntTileCommandResult> SubmitTileAsync(HuntExplorationSnapshot snapshot);
         UniTask<bool> SubmitResourcePointAsync(HuntExplorationSnapshot snapshot);
         UniTask<PlayableHarvestTransaction> PrepareHarvestAsync(HuntExplorationSnapshot target);
-        UniTask<PlayableHarvestStepResult> AdvanceHarvestAsync(Guid sessionId, PlayableHarvestTransaction transaction);
+        UniTask<PlayableHarvestStepResult> AdvanceHarvestAsync(Guid sessionId, PlayableHarvestTransaction transaction, int cardIndex);
     }
 
     /// <summary>一次狩猎会话的能力租约；旧世界物件无法借组合根为新会话重新签名。</summary>
@@ -54,7 +56,7 @@ namespace HuntingInDarkness.Hunt
         public UniTask<HuntTileCommandResult> SubmitTileAsync(HuntExplorationSnapshot snapshot) => runtime.SubmitTileAsync(SessionId, snapshot);
         public UniTask<bool> SubmitResourcePointAsync(HuntExplorationSnapshot snapshot) => runtime.SubmitResourcePointAsync(SessionId, snapshot);
         public UniTask<PlayableHarvestTransaction> PrepareHarvestAsync(HuntExplorationSnapshot target) => runtime.PrepareHarvestAsync(SessionId, target);
-        public UniTask<PlayableHarvestStepResult> AdvanceHarvestAsync(Guid sessionId, PlayableHarvestTransaction transaction) => runtime.AdvanceHarvestAsync(SessionId, sessionId, transaction);
+        public UniTask<PlayableHarvestStepResult> AdvanceHarvestAsync(Guid sessionId, PlayableHarvestTransaction transaction, int cardIndex) => runtime.AdvanceHarvestAsync(SessionId, sessionId, transaction, cardIndex);
     }
 
     /// <summary>持有单次狩猎的权威交互租约与快照校验；组合根只负责装配和释放。</summary>
@@ -79,8 +81,8 @@ namespace HuntingInDarkness.Hunt
             if (!IsCurrentLease(leaseSessionId) || resourcePointIndex < -1 || !manager.Map.TryGetValue(coordinate, out HexTileInstance tile)) return false;
             if (resourcePointIndex >= 0 && (tile.ResourcePoints == null || resourcePointIndex >= tile.ResourcePoints.Count)) return false;
             ResourcePointInstance point = resourcePointIndex >= 0 ? tile.ResourcePoints[resourcePointIndex] : null;
-            if (resourcePointIndex >= 0 && (point?.Resource == null || string.IsNullOrWhiteSpace(point.Resource.ContentId))) return false;
-            snapshot = new HuntExplorationSnapshot(leaseSessionId, coordinate, resourcePointIndex, point?.Resource.ContentId, point?.DrawCount ?? 0);
+            if (resourcePointIndex >= 0 && (point == null || string.IsNullOrWhiteSpace(point.StableId) || !point.HasMaterialPool && point.Resource == null)) return false;
+            snapshot = new HuntExplorationSnapshot(leaseSessionId, coordinate, resourcePointIndex, point?.StableId, point?.DrawCount ?? 0, point?.MaterialPool?.Count ?? 0);
             return true;
         }
 
@@ -102,11 +104,11 @@ namespace HuntingInDarkness.Hunt
             return session.PrepareHarvestAsync(target.Coordinate, target.ResourcePointIndex);
         }
 
-        internal UniTask<PlayableHarvestStepResult> AdvanceHarvestAsync(Guid leaseSessionId, Guid targetSessionId, PlayableHarvestTransaction transaction)
+        internal UniTask<PlayableHarvestStepResult> AdvanceHarvestAsync(Guid leaseSessionId, Guid targetSessionId, PlayableHarvestTransaction transaction, int cardIndex)
         {
             if (!IsCurrentLease(leaseSessionId) || targetSessionId != leaseSessionId || transaction == null)
                 return UniTask.FromResult(PlayableHarvestStepResult.Failed("采集事务属于旧的狩猎会话。"));
-            return session.AdvanceHarvestAsync(transaction);
+            return session.AdvanceHarvestAsync(transaction, cardIndex);
         }
 
         private bool IsCurrentLease(Guid leaseSessionId) => session.IsActive && session.SessionId == leaseSessionId && Port.SessionId == leaseSessionId;
@@ -141,7 +143,7 @@ namespace HuntingInDarkness.Hunt
                 return false;
             }
             ResourcePointInstance point = tile.ResourcePoints[snapshot.ResourcePointIndex];
-            if (point?.Resource != null && string.Equals(point.Resource.ContentId, snapshot.ResourceContentId, StringComparison.Ordinal) && point.DrawCount == snapshot.ResourceDrawCount) return true;
+            if (point != null && string.Equals(point.StableId, snapshot.ResourcePointId, StringComparison.Ordinal) && point.DrawCount == snapshot.ResourceDrawCount && (point.MaterialPool?.Count ?? 0) == snapshot.ResourcePoolCount) return true;
             reason = "狩猎资源点内容已经改变。";
             return false;
         }
@@ -149,17 +151,19 @@ namespace HuntingInDarkness.Hunt
 
     public readonly struct HuntResourcePointPresentationRequest
     {
-        public HuntResourcePointPresentationRequest(Vector2Int coordinate, int pointIndex, string resourceName, int drawCount)
+        public HuntResourcePointPresentationRequest(Vector2Int coordinate, int pointIndex, string resourceName, int drawCount, int poolCardCount)
         {
             Coordinate = coordinate;
             PointIndex = pointIndex;
             ResourceName = resourceName ?? string.Empty;
             DrawCount = Math.Max(0, drawCount);
+            PoolCardCount = Math.Max(0, poolCardCount);
         }
 
         public Vector2Int Coordinate { get; }
         public int PointIndex { get; }
         public string ResourceName { get; }
         public int DrawCount { get; }
+        public int PoolCardCount { get; }
     }
 }

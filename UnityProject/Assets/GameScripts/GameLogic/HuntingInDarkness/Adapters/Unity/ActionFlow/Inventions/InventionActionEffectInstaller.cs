@@ -45,21 +45,25 @@ namespace HuntingInDarkness.ActionFlow.Inventions
             {
                 SettlementInstance settlement = getSettlement.Invoke();
                 IReadOnlyList<InventionData> inventions = getInventions.Invoke();
-                if (settlement == null || inventions == null || action.Resource == null) return;
+                if (settlement == null || inventions == null || action.Materials == null) return;
 
-                float bonus = 0f;
-                var appliedEffectIds = new HashSet<string>(StringComparer.Ordinal);
-                foreach (InventionData invention in inventions)
+                foreach (ItemData material in action.Materials)
                 {
-                    if (invention == null || !settlement.IsInventionUnlocked(invention.ContentId) || invention.actionEffects == null) continue;
-                    foreach (InventionActionEffect effect in invention.actionEffects)
+                    if (material == null) continue;
+                    float bonus = 0f;
+                    var appliedEffectIds = new HashSet<string>(StringComparer.Ordinal);
+                    foreach (InventionData invention in inventions)
                     {
-                        string effectId = effect?.effectId?.Trim() ?? string.Empty;
-                        if (effect == null || effectId.Length == 0 || float.IsNaN(effect.value) || float.IsInfinity(effect.value) || effect.kind != InventionActionEffectKind.ModifyHarvestHitChance || !appliedEffectIds.Add(effectId)) continue;
-                        if (ContainsKeyword(action.Resource, effect.targetKeyword)) bonus += effect.value;
+                        if (invention == null || !settlement.IsInventionUnlocked(invention.ContentId) || invention.actionEffects == null) continue;
+                        foreach (InventionActionEffect effect in invention.actionEffects)
+                        {
+                            string effectId = effect?.effectId?.Trim() ?? string.Empty;
+                            if (effect == null || effectId.Length == 0 || float.IsNaN(effect.value) || float.IsInfinity(effect.value) || effect.kind != InventionActionEffectKind.ModifyHarvestHitChance || !appliedEffectIds.Add(effectId)) continue;
+                            if (ContainsKeyword(material, effect.targetKeyword)) bonus += effect.value;
+                        }
                     }
+                    action.AddMaterialHitChance(material, bonus);
                 }
-                if (bonus != 0f) action.SetHitChance(action.HitChance + bonus);
             }
 
             private static bool ContainsKeyword(ItemData item, string expected)
