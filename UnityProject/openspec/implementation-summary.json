@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "cd7d0fe935e882b5910d80b6022624a96a00c52f1151ba335fcae8e7e82bcf7b",
-  "inputManifestDigest": "5ffd3a4842870c65c58407979f5e0d0c1ef623b4b3a665946bb24c97e77e49db",
-  "outputDigest": "aa75a083ffdbe0441ab1caae6d15f7b2f2ac5697fda7415cc02540a9dbe1af70",
+  "inputDigest": "1eb54f07b25196d9d7b6a84e50f36f03716339457bebae83d6a64378a3d5aee6",
+  "inputManifestDigest": "e96f63ba3c0447279be4197b79dbdd931b8c871da3e10da3009aa899cc726284",
+  "outputDigest": "3b7b220df67a50b26a3e5eb0ed5cf1080ed24c43273cf1284430e83f24d3b1e2",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -57,7 +57,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-      "sha256": "3b5472767838ce57d0fb72ac11ced33d4b3aa80ec8b6a09abe81bf5f45afe176",
+      "sha256": "a1b2d87b8ea6e04aefea0ca506bdff56c4d78e9fbfc49dcfb8264d96e395cfd7",
       "state": "current"
     },
     {
@@ -237,7 +237,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "7a36fa7214e60c2af6c13429f9c582e5f0886ee4fb800685a91f759f5a945dbd",
+      "sha256": "9ad6f6cf2d8090ff9f3b5cadb0cfc3ad579103ee737ba3050e205586aebff809",
       "state": "current"
     },
     {
@@ -537,7 +537,7 @@
     },
     {
       "path": "openspec/specs/hunt-session-event-occurrence-recovery/implementation.json",
-      "sha256": "7d7f8f139630144cba83379784c2f7c21daf72ecb831c40de0a66ff14e8fe2f0",
+      "sha256": "955df5badcc97591effbf9270bf5038241487fdd742fa4355d47d7acf664ac24",
       "state": "current"
     },
     {
@@ -946,6 +946,7 @@
     "stale": 20
   },
   "attentionRequired": [
+    "action-environment-lifecycle",
     "active-hunt-persistence",
     "campaign-content-cache-lifecycle",
     "campaign-content-preflight-assembly",
@@ -966,7 +967,6 @@
     "hunt-phase-orchestration",
     "hunt-return-outcome-checkpoint",
     "hunt-route-entry-context",
-    "hunt-session-event-occurrence-recovery",
     "hunt-squad-action-availability",
     "hunt-tabletop-harvest",
     "hunt-tile-reveal-events",
@@ -1008,6 +1008,11 @@
   ],
   "verificationRequired": [],
   "staleEvidence": [
+    {
+      "capability": "action-environment-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
+      "state": "stale"
+    },
     {
       "capability": "active-hunt-persistence",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
@@ -1174,26 +1179,6 @@
       "state": "stale"
     },
     {
-      "capability": "hunt-session-event-occurrence-recovery",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-session-event-occurrence-recovery",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-session-event-occurrence-recovery",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-session-event-occurrence-recovery",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
-      "state": "stale"
-    },
-    {
       "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs",
       "state": "stale"
@@ -1289,7 +1274,7 @@
       "id": "action-environment-lifecycle",
       "label": "ActionQueue 全生命周期环境",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "Campaign、Settlement、Hunt 与 Combat 各自持有明确生命周期的 ActionEnvironment；Installer Registry 跨环境安装并回滚租约，GameCore 不依赖执行包，战斗命令统一经专属会话进入 Combat Root/Child GameAction。",
@@ -1318,7 +1303,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Combat/PlayableCombatActionSession.cs",
@@ -1854,10 +1839,10 @@
       "id": "hunt-session-event-occurrence-recovery",
       "label": "狩猎会话事件链恢复",
       "status": "verified",
-      "effectiveStatus": "stale",
-      "progress": 0,
+      "effectiveStatus": "verified",
+      "progress": 100,
       "verificationStatus": "verified",
-      "summary": "Hunt session 已覆盖 pre-commit 保留、post-commit 子链续接、重复 sibling、稳定 ActorId、祖先循环、容量截断与遭遇交接门禁。",
+      "summary": "Hunt session 已覆盖 pre-commit 保留、post-commit 子链续接、重复 sibling、稳定 ActorId、祖先循环、容量截断、恢复停滞保护与遭遇交接失败解锁。",
       "designSources": [],
       "sources": [
         "openspec/specs/hunt-session-event-occurrence-recovery/spec.md",
@@ -1867,19 +1852,19 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
-          "state": "stale"
+          "state": "current"
         }
       ]
     },

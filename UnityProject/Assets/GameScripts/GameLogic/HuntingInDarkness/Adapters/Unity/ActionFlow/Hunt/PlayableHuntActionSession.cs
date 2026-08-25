@@ -215,9 +215,11 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 var syntheticCommit = new HuntTileInteractionCommit(HuntTileInteractionKind.None, pending.Coordinate, null, null);
                 var action = new ResolveHuntTileEventAction(manager, syntheticCommit, default, outbox, encounterAccumulator, squad, tile, ResolveEventEntity, randomInteractionPresenter, occurrenceStore, pending, true, LockEncounterHandoff);
                 ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
-                if (action.HasCommittedCheckpoint || !occurrenceStore.ContainsPendingSequence(pending.Sequence))
+                bool pendingConsumed = !occurrenceStore.ContainsPendingSequence(pending.Sequence);
+                if (action.HasCommittedCheckpoint || pendingConsumed)
                     await NotifyCheckpointWhenIdleAsync();
                 if (!outcome.IsSuccess || action.EncounterRequested) return false;
+                if (!pendingConsumed) return false;
             }
             return true;
         }

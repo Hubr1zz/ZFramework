@@ -228,6 +228,35 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator RejectedEncounterHandoff_ReleasesHuntLockAndAllowsRetreat()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            yield return WaitForSettlementIdle(manager);
+            int initialYear = manager.SettlementData.CurrentYear;
+            int hunterId = manager.SettlementData.GetAliveHunters()[0].InstanceId;
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { hunterId }, GetDestination(initialYear)).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            SettlementDepartureCommandResult departureResult = departure.GetResult();
+            Assert.That(departureResult.Succeeded, Is.True, departureResult.Reason);
+
+            PlayableHuntActionSession huntSession = GetPrivateField<PlayableHuntActionSession>(manager, "huntActionSession");
+            InvokePrivate(huntSession, "LockEncounterHandoff");
+            Assert.That(GetPrivateField<bool>(huntSession, "gameplayLocked"), Is.True);
+            var request = new CampaignEncounterRequest(huntSession.SessionId, "missing-encounter", CampaignEncounterSourceKind.HuntEvent, GamePhase.Hunt, Vector2Int.zero, "test-event", GetDestination(initialYear).DestinationId);
+            EventBus.Publish(new CampaignEncounterRequestedEvent { Request = request });
+            yield return WaitForEncounterLockRelease(huntSession);
+
+            Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
+            Assert.That(manager.IsHuntActionSessionActive, Is.True);
+            UniTask<HuntRetreatCommandResult>.Awaiter retreat = manager.RequestRetreatAsync().GetAwaiter();
+            yield return WaitForCompletion(retreat);
+            HuntRetreatCommandResult retreatResult = retreat.GetResult();
+            Assert.That(retreatResult.Succeeded, Is.True, retreatResult.Reason);
+        }
+
+        [UnityTest]
         public IEnumerator DelayedAppliedReturnSave_BlocksNextDepartureUntilPersistenceCompletes()
         {
             var persistence = new MemoryCampaignPersistence { DelayAppliedReturn = true };
@@ -578,6 +607,17 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.Fail($"等待已应用回营状态存档开始超时：{persistence.DescribeSnapshots()}。");
         }
 
+        private static IEnumerator WaitForEncounterLockRelease(PlayableHuntActionSession session)
+        {
+            for (int frame = 0; frame < FrameTimeout; frame++)
+            {
+                if (!GetPrivateField<bool>(session, "gameplayLocked"))
+                    yield break;
+                yield return new WaitForFixedUpdate();
+            }
+            Assert.Fail("等待遭遇交接失败后释放狩猎锁超时。");
+        }
+
         private static void ResetContentAssembly()
         {
             InvokeReset(typeof(PlayableCampaignContentAssembler));
@@ -591,6 +631,20 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         {
             MethodInfo method = type.GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
             method?.Invoke(null, null);
+        }
+
+        private static T GetPrivateField<T>(object target, string fieldName)
+        {
+            FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null, $"缺少字段 {fieldName}。");
+            return (T)field.GetValue(target);
+        }
+
+        private static void InvokePrivate(object target, string methodName)
+        {
+            MethodInfo method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null, $"缺少方法 {methodName}。");
+            method.Invoke(target, null);
         }
 
         private sealed class ImmediateEventInput : IPlayableEventInput
