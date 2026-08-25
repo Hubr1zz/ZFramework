@@ -459,6 +459,57 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator RestartCampaign_WaitsForReliableDeleteBeforeReplacingRuntime()
+        {
+            var persistence = new MemoryCampaignPersistence { DelayDelete = true };
+            GameManager manager = CreateProductionManager(persistence);
+            yield return null;
+            yield return WaitForSettlementIdle(manager);
+            SettlementInstance previousSettlement = manager.SettlementData;
+
+            UniTask<CampaignRestartResult>.Awaiter restart = manager.RestartCampaignAsync().GetAwaiter();
+            yield return null;
+
+            Assert.That(restart.IsCompleted, Is.False, "删除仍在等待时不得提前完成重启命令。");
+            Assert.That(manager.SettlementData, Is.SameAs(previousSettlement), "删除确认前不得替换权威营地。");
+            Assert.That(persistence.DeleteCount, Is.EqualTo(1));
+
+            persistence.CompleteDelete(true);
+            yield return WaitForCompletion(restart);
+            CampaignRestartResult result = restart.GetResult();
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Settlement));
+            Assert.That(manager.SettlementData, Is.Not.SameAs(previousSettlement));
+            Assert.That(manager.SettlementData.GetAliveHunters(), Is.Not.Empty);
+            Assert.That(persistence.Payload, Is.Not.Null.And.Not.Empty, "删除完成后必须先建立新战役稳定快照。");
+            yield return WaitForSettlementIdle(manager);
+        }
+
+        [UnityTest]
+        public IEnumerator RestartCampaign_DeleteFailureKeepsCurrentRuntimeRetryable()
+        {
+            var persistence = new MemoryCampaignPersistence { RejectDelete = true };
+            GameManager manager = CreateProductionManager(persistence);
+            yield return null;
+            yield return WaitForSettlementIdle(manager);
+            SettlementInstance previousSettlement = manager.SettlementData;
+
+            UniTask<CampaignRestartResult>.Awaiter restart = manager.RestartCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(restart);
+
+            Assert.That(restart.GetResult().Succeeded, Is.False);
+            Assert.That(manager.SettlementData, Is.SameAs(previousSettlement));
+            Assert.That(manager.IsCampaignActionSessionActive, Is.True);
+
+            persistence.RejectDelete = false;
+            UniTask<CampaignRestartResult>.Awaiter retry = manager.RestartCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(retry);
+            Assert.That(retry.GetResult().Succeeded, Is.True, retry.GetResult().Reason);
+            Assert.That(manager.SettlementData, Is.Not.SameAs(previousSettlement));
+        }
+
+        [UnityTest]
         public IEnumerator ContinueCampaign_PublishesPreparedSettlementWithoutNewYearProjection()
         {
             var source = new SettlementManager();
@@ -795,6 +846,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             public bool RejectPendingReturn { get; set; }
             public bool DelayAppliedReturn { get; set; }
             public bool DelayLoad { get; set; }
+            public bool DelayDelete { get; set; }
             public CampaignSnapshot SnapshotToLoad { get; set; }
             public int DeleteCount { get; private set; }
             public int LoadCount { get; private set; }
@@ -804,6 +856,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             public bool IsAppliedReturnSavePending => appliedReturnSaveCompletion != null;
             private UniTaskCompletionSource<bool> appliedReturnSaveCompletion;
             private UniTaskCompletionSource<CampaignSnapshot> loadCompletion;
+            private UniTaskCompletionSource<bool> deleteCompletion;
             private bool hasDelayedAppliedReturn;
 
             public UniTask<bool> TrySavePayloadAsync(string payload, CancellationToken cancellationToken = default)
@@ -851,9 +904,27 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             {
                 DeleteCount++;
                 if (RejectDelete) return UniTask.FromResult(false);
+                if (DelayDelete)
+                {
+                    deleteCompletion = new UniTaskCompletionSource<bool>();
+                    return deleteCompletion.Task;
+                }
                 Payload = null;
                 SnapshotToLoad = null;
                 return UniTask.FromResult(true);
+            }
+
+            public void CompleteDelete(bool succeeded)
+            {
+                if (succeeded)
+                {
+                    Payload = null;
+                    SnapshotToLoad = null;
+                }
+                UniTaskCompletionSource<bool> completion = deleteCompletion;
+                deleteCompletion = null;
+                DelayDelete = false;
+                completion?.TrySetResult(succeeded);
             }
 
             public void CompleteLoad(CampaignSnapshot snapshot)

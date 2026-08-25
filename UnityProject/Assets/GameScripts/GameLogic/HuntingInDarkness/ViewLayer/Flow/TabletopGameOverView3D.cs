@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using UnityEngine;
 
@@ -14,7 +16,9 @@ namespace HuntingInDarkness.ViewLayer.Flow
         private readonly List<TabletopBackgroundInputBlocker> inputBlockers = new();
         private readonly HashSet<Collider> blockedColliders = new();
 
-        public System.Action OnRestart;
+        private bool restartInFlight;
+
+        public System.Func<UniTask<CampaignRestartResult>> RestartCommand;
         public bool IsOpen => panel != null && panel.IsOpen;
         public int BlockedColliderCount => blockedColliders.Count;
 
@@ -42,10 +46,34 @@ namespace HuntingInDarkness.ViewLayer.Flow
 
         public void Restart()
         {
-            if (!IsOpen)
+            if (!IsOpen || restartInFlight) return;
+            RestartAsync().Forget();
+        }
+
+        private async UniTaskVoid RestartAsync()
+        {
+            restartInFlight = true;
+            CampaignRestartResult result;
+            try
+            {
+                result = RestartCommand != null ? await RestartCommand() : CampaignRestartResult.Failed("重新开始命令尚未接入。");
+            }
+            catch (System.Exception exception)
+            {
+                result = CampaignRestartResult.Failed($"重新开始失败：{exception.Message}");
+            }
+            finally
+            {
+                restartInFlight = false;
+            }
+
+            if (this == null) return;
+            if (result.Succeeded)
+            {
+                Hide();
                 return;
-            Hide();
-            OnRestart?.Invoke();
+            }
+            Show(result.Reason);
         }
 
         private void LateUpdate()

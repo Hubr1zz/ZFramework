@@ -1,0 +1,6 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的收养对账：终局重启必须等待可靠删除、经 Campaign ActionQueue 串行执行，并在失败时保持可重试实体卡。",
+  "sourceRoots": [],
+  "sourceReferences": ["conversation::2026-08-25"]
+}

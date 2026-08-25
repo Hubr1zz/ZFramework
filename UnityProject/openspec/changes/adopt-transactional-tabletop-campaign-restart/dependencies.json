@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "tabletop-game-over", "label": "3D 桌面战役终局", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-transactional-tabletop-campaign-restart/specs/tabletop-game-over/spec.md" },
+    { "id": "campaign-persistence", "label": "战役持久化与恢复", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-transactional-tabletop-campaign-restart/specs/campaign-persistence/spec.md" }
+  ],
+  "edges": [
+    { "from": "campaign-persistence", "to": "tabletop-game-over", "type": "supports" }
+  ]
+}

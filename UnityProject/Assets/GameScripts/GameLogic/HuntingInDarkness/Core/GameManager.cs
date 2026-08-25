@@ -46,7 +46,7 @@ namespace Core
     /// 管理三个游戏大阶段（Settlement / Hunt / BossFight）的根物体开关，
     /// 以及 Boss决战子系统的初始化与运行。
     /// </summary>
-    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, ICampaignPhaseTransitionHost, ICampaignPhaseTransitionRequestHost, IPlayableHuntRetreatInput, ISettlementDepartureRequestPort
+    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, ICampaignPhaseTransitionHost, ICampaignPhaseTransitionRequestHost, ICampaignRestartHost, IPlayableHuntRetreatInput, ISettlementDepartureRequestPort
     {
         // ─── 单例 ─────────────────────────────────────────────────────
         public static GameManager Instance { get; private set; }
@@ -1805,6 +1805,15 @@ namespace Core
             return campaignRuntime.BeginEncounterAsync(request, this.GetCancellationTokenOnDestroy());
         }
 
+        public UniTask<CampaignRestartResult> RestartCampaignAsync()
+        {
+            if (!campaignStarted)
+                return UniTask.FromResult(CampaignRestartResult.Failed("战役入口尚未完成。"));
+            if (campaignRuntime?.IsActionSessionActive != true)
+                return UniTask.FromResult(CampaignRestartResult.Failed("战役玩法运行态尚未启动。"));
+            return campaignRuntime.RestartAsync(this.GetCancellationTokenOnDestroy());
+        }
+
         GamePhase ICampaignPhaseTransitionHost.CurrentPhase => CurrentGamePhase;
 
         bool ICampaignPhaseTransitionHost.TryApplyPhaseTransition(GamePhase targetPhase, out string reason) => TryApplyPhaseTransition(targetPhase, out reason);
@@ -1849,6 +1858,8 @@ namespace Core
         }
 
         bool ICampaignPhaseTransitionHost.TryBeginEncounter(CampaignEncounterRequest request, out string reason) => TryBeginEncounter(request, out reason);
+
+        UniTask<CampaignRestartResult> ICampaignRestartHost.RestartCampaignFromActionAsync(CancellationToken cancellationToken) => RestartCampaignFromActionAsync(cancellationToken);
 
         private bool TryBeginEncounter(CampaignEncounterRequest request, out string reason)
         {
@@ -2253,38 +2264,121 @@ namespace Core
             var viewObject = new GameObject("TabletopGameOverView3D");
             viewObject.transform.SetParent(transform, false);
             gameOverView = viewObject.AddComponent<TabletopGameOverView3D>();
-            gameOverView.OnRestart = () =>
+            gameOverView.RestartCommand = RestartCampaignAsync;
+        }
+
+        private async UniTask<CampaignRestartResult> RestartCampaignFromActionAsync(CancellationToken cancellationToken)
+        {
+            if (huntDepartureInFlight || huntRetreatInFlight || huntReturnRecoveryInFlight || settlementActionSession?.IsRunning == true || huntActionSession?.IsRunning == true)
+                return CampaignRestartResult.Failed("当前玩法流程仍在结算，请稍后重试。");
+
+            IPlayableSettlementRuntime previousSettlement = settlementRuntime;
+            IPlayableHuntRuntime previousHunt = huntRuntime;
+            string previousStablePayload = stableCampaignPayload;
+            if (!campaignRuntime.TryPrepareNewSettlement(out IPlayableSettlementRuntime candidateSettlement, out string reason))
+                return CampaignRestartResult.Failed(reason);
+
+            candidateSettlement.Manager.EnsureStartingConditions();
+            CampaignSnapshot candidateSnapshot = ActiveHuntSnapshotAdapter.CaptureSettlement(candidateSettlement.Data);
+            if (!SaveLoadSystem.TryCreatePayload(candidateSnapshot, out string candidatePayload, out reason))
             {
-                // 删除存档后重置到营地开头
-                campaignPersistence.TryDeleteAsync(this.GetCancellationTokenOnDestroy()).Forget();
-                // 重置 SettlementManager，重新初始化
-                DisposeSettlementActionSession();
-                DisposeHuntActionSession();
-                CleanupHuntPresentation();
-                ReleaseCurrentHuntRuntime();
-                stableCampaignPayload = string.Empty;
-                IPlayableSettlementRuntime previousSettlement = settlementRuntime;
-                if (!campaignRuntime.TryPrepareNewSettlement(out IPlayableSettlementRuntime candidateSettlement, out string prepareReason))
-                    throw new System.InvalidOperationException(prepareReason);
-                if (!campaignRuntime.TrySwapSettlement(previousSettlement, candidateSettlement, out string swapReason))
+                campaignRuntime.ReleaseSettlement(candidateSettlement);
+                return CampaignRestartResult.Failed(reason);
+            }
+            bool deletionConfirmed = false;
+            try
+            {
+                deletionConfirmed = await campaignPersistence.TryDeleteAsync(cancellationToken);
+                if (!deletionConfirmed)
                 {
                     campaignRuntime.ReleaseSettlement(candidateSettlement);
-                    throw new System.InvalidOperationException(swapReason);
+                    return CampaignRestartResult.Failed("旧战役记录未能可靠删除，请重试。");
                 }
-                if (previousSettlement != null)
-                    campaignRuntime.ReleaseSettlement(previousSettlement);
-                _settlementManager.EnsureStartingConditions();
-                if (CurrentGamePhase == GamePhase.Settlement)
+                if (!await campaignPersistence.TrySavePayloadAsync(candidatePayload, cancellationToken))
                 {
-                    StartSettlementActionSession();
-                    EnsureSettlementUI();
-                    QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
+                    campaignRuntime.ReleaseSettlement(candidateSettlement);
+                    RestoreStablePayloadAfterFailedRestart(previousStablePayload);
+                    return CampaignRestartResult.Failed("新战役记录未能可靠建立，请重试。");
                 }
-                else
-                {
-                    TransitionToPhase(GamePhase.Settlement);
-                }
-            };
+            }
+            catch (System.OperationCanceledException)
+            {
+                campaignRuntime.ReleaseSettlement(candidateSettlement);
+                if (deletionConfirmed)
+                    RestoreStablePayloadAfterFailedRestart(previousStablePayload);
+                throw;
+            }
+            catch (System.Exception exception)
+            {
+                campaignRuntime.ReleaseSettlement(candidateSettlement);
+                if (deletionConfirmed)
+                    RestoreStablePayloadAfterFailedRestart(previousStablePayload);
+                return CampaignRestartResult.Failed($"重建战役记录时发生异常：{exception.Message}");
+            }
+            if (!campaignRuntime.TrySwapSettlement(previousSettlement, candidateSettlement, out reason))
+            {
+                campaignRuntime.ReleaseSettlement(candidateSettlement);
+                RestoreStablePayloadAfterFailedRestart(previousStablePayload);
+                return CampaignRestartResult.Failed(reason);
+            }
+            if (previousHunt != null && !campaignRuntime.TrySwapHunt(previousHunt, null, out reason))
+            {
+                campaignRuntime.TrySwapSettlement(candidateSettlement, previousSettlement, out _);
+                campaignRuntime.ReleaseSettlement(candidateSettlement);
+                RestoreStablePayloadAfterFailedRestart(previousStablePayload);
+                return CampaignRestartResult.Failed(reason);
+            }
+            if (!candidateSettlement.TryActivateActionSession(out reason))
+                return RollbackFailedRestart(candidateSettlement, previousSettlement, previousHunt, previousStablePayload, reason);
+
+            try
+            {
+                if (CurrentGamePhase != GamePhase.Settlement && !campaignRuntime.TransitionTo(GamePhase.Settlement))
+                    return RollbackFailedRestart(candidateSettlement, previousSettlement, previousHunt, previousStablePayload, "无法切换到新战役的营地阶段。");
+            }
+            catch (System.Exception exception)
+            {
+                if (CurrentGamePhase != GamePhase.Settlement)
+                    return RollbackFailedRestart(candidateSettlement, previousSettlement, previousHunt, previousStablePayload, $"切换到新战役营地阶段时发生异常：{exception.Message}");
+                Debug.LogWarning($"[GameManager] 新战役营地阶段已经切换，但阶段通知存在异常：{exception.Message}");
+            }
+
+            DisposeCombatSession();
+            CleanupHuntPresentation();
+            previousHunt?.DeactivateActionSession();
+            previousSettlement?.DeactivateActionSession();
+            if (previousHunt != null)
+                campaignRuntime.ReleaseHunt(previousHunt);
+            if (previousSettlement != null)
+                campaignRuntime.ReleaseSettlement(previousSettlement);
+            _pendingHuntRecord = null;
+            pendingEncounterHunters = null;
+            _pendingSetup = null;
+            preparedHuntExit = false;
+            encounterCheckpointRollbackFailed = false;
+            stableCampaignPayload = candidatePayload;
+            EnsureSettlementUI();
+            QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
+            return CampaignRestartResult.Success();
+        }
+
+        private CampaignRestartResult RollbackFailedRestart(IPlayableSettlementRuntime candidateSettlement, IPlayableSettlementRuntime previousSettlement, IPlayableHuntRuntime previousHunt, string previousStablePayload, string reason)
+        {
+            if (previousHunt != null)
+                campaignRuntime.TrySwapHunt(null, previousHunt, out _);
+            campaignRuntime.TrySwapSettlement(candidateSettlement, previousSettlement, out _);
+            campaignRuntime.ReleaseSettlement(candidateSettlement);
+            RestoreStablePayloadAfterFailedRestart(previousStablePayload);
+            return CampaignRestartResult.Failed(reason);
+        }
+
+        private void RestoreStablePayloadAfterFailedRestart(string previousStablePayload)
+        {
+            if (string.IsNullOrWhiteSpace(previousStablePayload)) return;
+            if (campaignPersistence.TrySavePayloadImmediate(previousStablePayload))
+                stableCampaignPayload = previousStablePayload;
+            else
+                Debug.LogError("[GameManager] 重启失败后无法恢复上一份稳定战役记录。");
         }
 
         // ═══════════════════════════════════════════

@@ -123,7 +123,43 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(host.EncounterRequests, Is.Empty);
         }
 
-        private sealed class RecordingHost : ICampaignPhaseTransitionHost
+        [Test]
+        public async Task RestartAsync_UsesCampaignRunnerAndPublishesCommittedFact()
+        {
+            var host = new RecordingHost(GamePhase.BossFight);
+            using var session = new PlayableCampaignActionSession(host);
+            int committedCount = 0;
+            Action<CampaignRestartCommittedEvent> handler = _ => committedCount++;
+            EventBus.Subscribe(handler);
+            try
+            {
+                CampaignRestartResult result = await session.RestartAsync();
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(host.RestartCount, Is.EqualTo(1));
+                Assert.That(committedCount, Is.EqualTo(1));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
+        public async Task RestartReactor_PreventionLeavesHostUntouched()
+        {
+            var host = new RecordingHost(GamePhase.BossFight);
+            using var session = new PlayableCampaignActionSession(host);
+            session.Reactors.RegisterGlobal(new PreventRestartReactor());
+
+            CampaignRestartResult result = await session.RestartAsync();
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Reason, Is.EqualTo("测试规则阻止重写战役"));
+            Assert.That(host.RestartCount, Is.Zero);
+        }
+
+        private sealed class RecordingHost : ICampaignPhaseTransitionHost, ICampaignRestartHost
         {
             public RecordingHost(GamePhase currentPhase)
             {
@@ -133,6 +169,7 @@ namespace HuntingInDarkness.Adapter.Tests
             public GamePhase CurrentPhase { get; private set; }
             public List<GamePhase> AppliedPhases { get; } = new();
             public List<CampaignEncounterRequest> EncounterRequests { get; } = new();
+            public int RestartCount { get; private set; }
 
             public bool TryApplyPhaseTransition(GamePhase targetPhase, out string reason)
             {
@@ -149,6 +186,13 @@ namespace HuntingInDarkness.Adapter.Tests
                 reason = string.Empty;
                 return true;
             }
+
+            public UniTask<CampaignRestartResult> RestartCampaignFromActionAsync(System.Threading.CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                RestartCount++;
+                return UniTask.FromResult(CampaignRestartResult.Success());
+            }
         }
 
         private sealed class PreventEncounterReactor : GameActionReactor<BeginCampaignEncounterAction>
@@ -162,6 +206,12 @@ namespace HuntingInDarkness.Adapter.Tests
             public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
             public override bool Matches(ReactionContext context) => ((TransitionCampaignPhaseAction)context.Action).TargetPhase == GamePhase.Hunt;
             protected override void React(TransitionCampaignPhaseAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试规则阻止远征");
+        }
+
+        private sealed class PreventRestartReactor : GameActionReactor<RestartCampaignAction>
+        {
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+            protected override void React(RestartCampaignAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试规则阻止重写战役");
         }
     }
 }

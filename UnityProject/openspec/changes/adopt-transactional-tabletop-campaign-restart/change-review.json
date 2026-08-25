@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-transactional-tabletop-campaign-restart",
+  "title": "收养事务化桌面战役重启",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现与定向验证已完成；本 Change 等待人类确认后再同步正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "Campaign 重启经 ActionQueue 串行执行，等待可靠删除并以 generation CAS 发布；相关 EditMode 8/8、GameManager PlayMode 14/14、终局 View PlayMode 1/1。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity CLI Campaign ActionSession EditMode 8/8。",
+      "Unity CLI GameManager 战役循环 PlayMode 14/14。",
+      "Unity CLI 终局 View 重启 PlayMode 1/1。"
+    ],
+    "differences": [
+      "正式 tabletop-game-over Spec 要求先关闭终局表现再调用重置；实现改为权威重启成功后才关闭，失败保留重试。",
+      "正式 campaign-persistence Spec 尚未定义删除、新快照写入与 generation 发布的重启事务顺序。"
+    ],
+    "verifiedAt": "2026-08-25T10:10:00-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-CAMPAIGN-RESTART-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认终局卡应在 typed 重启成功后关闭，并由 Campaign ActionQueue 管理玩法重启事务。",
+      "details": "批准后同步两个 Delta；若坚持先关闭表现，需要另行设计失败反馈与重试入口。",
+      "sourceId": "conversation::2026-08-25",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": ["tabletop-game-over", "campaign-persistence"],
+  "syncTargets": [
+    { "capability": "tabletop-game-over", "title": "3D 桌面战役终局", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-transactional-tabletop-campaign-restart/specs/tabletop-game-over/spec.md", "targetSpecPath": "openspec/specs/tabletop-game-over/spec.md", "targetExisted": true, "baseFileHash": "6d8fb5758de836b031738bebf42c963e81bce7518773762616312153279adee1", "baseSnapshotPath": "" },
+    { "capability": "campaign-persistence", "title": "战役持久化与恢复", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-transactional-tabletop-campaign-restart/specs/campaign-persistence/spec.md", "targetSpecPath": "openspec/specs/campaign-persistence/spec.md", "targetExisted": true, "baseFileHash": "ca9163e9c69d9baa50b149cbbca8627bdb77426a15c08bdf7506347399a82508", "baseSnapshotPath": "" }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "两个正式 Spec 基线哈希已记录，尚未同步。",
+    "changes": ["终局卡等待 typed 重启结果。", "重启删除、候选保存和 generation 发布形成顺序事务。"],
+    "conflicts": [],
+    "validatedAt": "2026-08-25T10:10:00-07:00"
+  },
+  "createdAt": "2026-08-25T10:10:00-07:00"
+}

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "f33c99a8d9a24b38d461ae2f3cb6df7507ead791bbc2376bcc9b014e597ed625",
-  "inputManifestDigest": "a60668ac0dd1a75509180290f9def6a1350e96f31dea6dacc87bab33a5c058c3",
-  "outputDigest": "77a1d2b43efeaf23c5c31019f0a9b4b0cbb814060636d8fdcfc3cfe4d8d3bc2e",
+  "inputDigest": "d9214897ecb20d9c9e8a338dc9cadf93852a70f580c197cf796ce5ac6eb5465d",
+  "inputManifestDigest": "a91fe9ee2ab3faa73b48115a79e34fe792099fff65df95057bea5978d5ce6bfb",
+  "outputDigest": "719ce9308aa8fdecd66169405ecfb20b4b34ad5a62be163357d81e7607b477db",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -27,7 +27,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
-      "sha256": "274a35fc475bd42bb82953441cc804e5fccdd9c8678d1c29213b74340c29576a",
+      "sha256": "d16729f08ff461356e2f98eb7051b485ec6ea40389ee9498f5b4a27345ca9697",
       "state": "current"
     },
     {
@@ -277,7 +277,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "dee30d03c94b7ba9b53e88860f6e4dc4fe738a295ce6d4c466448f6e22a27dc0",
+      "sha256": "f006a3dd7e60fb3c212b4369f1ed94f330e1fe5350d5fa05686ea8957bc8069e",
       "state": "current"
     },
     {
@@ -302,7 +302,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "b421f183b341caa243c71bba4124623e5fbf2f162eec00279181348ca1cbfffc",
+      "sha256": "319962f5eeb8c6a6b2da513287d69a8783e6e63c14428126667f8bcd992bcc02",
       "state": "current"
     },
     {
@@ -1037,13 +1037,13 @@
     }
   ],
   "counts": {
-    "verified": 4,
+    "verified": 3,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
     "unknown": 37,
     "blocked": 0,
-    "stale": 21
+    "stale": 22
   },
   "attentionRequired": [
     "action-environment-lifecycle",
@@ -1051,6 +1051,7 @@
     "campaign-content-cache-lifecycle",
     "campaign-content-preflight-assembly",
     "campaign-persistence",
+    "campaign-startup-transaction",
     "campaign-year-loop",
     "csharp-derived-index",
     "event-driven-hunter-death",
@@ -1110,6 +1111,11 @@
     {
       "capability": "action-environment-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironmentInstallerRegistry.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "action-environment-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
       "state": "stale"
     },
     {
@@ -1180,6 +1186,16 @@
     {
       "capability": "campaign-content-preflight-assembly",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "campaign-startup-transaction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "campaign-startup-transaction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
     },
     {
@@ -1281,6 +1297,11 @@
       "capability": "hunt-return-outcome-checkpoint",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HuntReturnRules.cs",
       "state": "unverified"
+    },
+    {
+      "capability": "hunt-route-entry-context",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
+      "state": "stale"
     },
     {
       "capability": "hunt-route-entry-context",
@@ -1434,7 +1455,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
@@ -1583,8 +1604,8 @@
       "id": "campaign-startup-transaction",
       "label": "战役开场启动事务",
       "status": "verified",
-      "effectiveStatus": "verified",
-      "progress": 100,
+      "effectiveStatus": "stale",
+      "progress": 0,
       "verificationStatus": "verified",
       "summary": "纯 C# CampaignStartupLifecycle 统一维护等待、启动、加载与激活状态；GameManager 通过 typed single-flight 命令发布 Settlement 或 Active Hunt 候选，失败撤销 FSM、ActionSession 与表现并允许重试。",
       "designSources": [],
@@ -1596,7 +1617,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupLifecycle.cs",
@@ -1624,7 +1645,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignStartupLifecycleTests.cs",
@@ -2039,7 +2060,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntDestinationCatalog.cs",

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-game-over",
+  "title": "3D 桌面战役终局",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "终局 View 等待 typed Campaign 重启结果，失败保留实体卡，成功才释放后台输入。",
+    "codeEvidence": [
+      { "guid": "b77cd377765078342ab98d3f7eac5d6e", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/TabletopGameOverView3D.cs", "fileHash": "3ab7dc1531f68831f3079412c5ea39ee252a917e33ffea9606ffaff256fdb010", "line": 18, "feature": "等待 typed 重启结果并在失败时保持可重试终局卡", "status": "verified", "checkedAt": "2026-08-25T10:10:00-07:00" },
+      { "guid": "270004bfcb494451860de2293c06f54b", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopGameOverRestartPlayModeTests.cs", "fileHash": "51bba38fad395e3f92bf21bcde8c8e17ed0a154b8480cb3bc19471a43e2e1877", "line": 11, "feature": "验证终局卡失败保留与成功关闭", "status": "verified", "checkedAt": "2026-08-25T10:10:00-07:00" }
+    ],
+    "evidence": ["Unity CLI 终局 View PlayMode 1/1。"],
+    "differences": ["正式 Spec 的关闭顺序与当前可重试实现相反。"],
+    "verifiedAt": "2026-08-25T10:10:00-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["campaign-persistence"],
+  "sourceReferences": ["conversation::2026-08-25"],
+  "implementationOutline": ["View 保持 collider 门禁，提交 Campaign restart command，typed 成功后关闭，失败时重绘原因。"],
+  "reviewIssues": [
+    { "id": "ISSUE-CAMPAIGN-RESTART-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认终局表现只在权威重启成功后关闭。", "details": "失败继续阻断后台输入并允许重试。", "sourceId": "conversation::2026-08-25", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

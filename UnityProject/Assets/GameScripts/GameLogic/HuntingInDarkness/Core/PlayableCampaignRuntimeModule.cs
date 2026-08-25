@@ -39,6 +39,7 @@ namespace Core
         UniTask<CampaignPhaseTransitionResult> TransitionAsync(GamePhase phase, CancellationToken cancellationToken = default);
         UniTask<CampaignPhaseTransitionResult> TransitionAsync(CampaignPhaseTransitionRequest request, CancellationToken cancellationToken = default);
         UniTask<CampaignEncounterStartResult> BeginEncounterAsync(CampaignEncounterRequest request, CancellationToken cancellationToken = default);
+        UniTask<CampaignRestartResult> RestartAsync(CancellationToken cancellationToken = default);
         void Reset();
     }
 
@@ -287,6 +288,13 @@ namespace Core
                 ThrowIfDisposed();
                 if (IsActionSessionActive) return actionSession.BeginEncounterAsync(request, cancellationToken);
                 return UniTask.FromResult(CampaignEncounterStartResult.Failed(request.EncounterId, "战役玩法运行态尚未启动"));
+            }
+
+            public UniTask<CampaignRestartResult> RestartAsync(CancellationToken cancellationToken = default)
+            {
+                ThrowIfDisposed();
+                if (IsActionSessionActive) return actionSession.RestartAsync(cancellationToken);
+                return UniTask.FromResult(CampaignRestartResult.Failed("战役玩法运行态尚未启动"));
             }
 
             public void Reset()

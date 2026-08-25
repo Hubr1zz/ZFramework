@@ -20,6 +20,29 @@ namespace HuntingInDarkness.ActionFlow.Campaign
         bool TryApplyPhaseTransition(CampaignPhaseTransitionRequest request, out string reason);
     }
 
+    public interface ICampaignRestartHost
+    {
+        UniTask<CampaignRestartResult> RestartCampaignFromActionAsync(CancellationToken cancellationToken);
+    }
+
+    public readonly struct CampaignRestartResult
+    {
+        public CampaignRestartResult(bool succeeded, string reason)
+        {
+            Succeeded = succeeded;
+            Reason = reason ?? string.Empty;
+        }
+
+        public bool Succeeded { get; }
+        public string Reason { get; }
+        public static CampaignRestartResult Success() => new(true, string.Empty);
+        public static CampaignRestartResult Failed(string reason) => new(false, reason);
+    }
+
+    public struct CampaignRestartCommittedEvent
+    {
+    }
+
     public readonly struct CampaignHuntEntryContext
     {
         public CampaignHuntEntryContext(PlayableHuntRoutePlan routePlan, int year, string departurePreparationToken)
@@ -148,7 +171,52 @@ namespace HuntingInDarkness.ActionFlow.Campaign
             return CampaignEncounterStartResult.Failed(request.EncounterId, string.IsNullOrWhiteSpace(action.Result.Reason) ? outcome.Reason : action.Result.Reason);
         }
 
+        public async UniTask<CampaignRestartResult> RestartAsync(CancellationToken cancellationToken = default)
+        {
+            if (!IsActive) return CampaignRestartResult.Failed("战役流程已经结束");
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle campaign = environment.EntityHandles.GetOrCreate("campaign", "active", "当前战役");
+            var action = new RestartCampaignAction(host, outbox, campaign);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            if (outcome.IsSuccess) return action.Result;
+            return CampaignRestartResult.Failed(string.IsNullOrWhiteSpace(action.Result.Reason) ? outcome.Reason : action.Result.Reason);
+        }
+
         public void Dispose() => environment.Dispose();
+    }
+
+    /// <summary>重新建立整场战役的唯一玩家命令；Before Reactor 可阻止或注入重启前流程。</summary>
+    public sealed class RestartCampaignAction : CommandAction, ISourceAction, ITargetAction
+    {
+        private readonly ICampaignPhaseTransitionHost host;
+        private readonly ActionEventOutbox eventOutbox;
+
+        public RestartCampaignAction(ICampaignPhaseTransitionHost host, ActionEventOutbox eventOutbox, IReactorEntity campaign)
+        {
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
+            Source = campaign ?? throw new ArgumentNullException(nameof(campaign));
+            Target = campaign;
+        }
+
+        public CampaignRestartResult Result { get; private set; }
+        public IReactorEntity Source { get; }
+        public IReactorEntity Target { get; }
+
+        protected override async UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (host is not ICampaignRestartHost restartHost)
+            {
+                Result = CampaignRestartResult.Failed("战役宿主不支持重新开始。");
+                return ActionOutcome.Failure(Result.Reason);
+            }
+
+            Result = await restartHost.RestartCampaignFromActionAsync(cancellationToken);
+            if (!Result.Succeeded) return ActionOutcome.Failure(Result.Reason);
+            eventOutbox.StageAfterCommit(new CampaignRestartCommittedEvent());
+            return ActionOutcome.Success();
+        }
     }
 
     /// <summary>验证来源远征、解析遭遇并切入战斗的战役级命令。</summary>
