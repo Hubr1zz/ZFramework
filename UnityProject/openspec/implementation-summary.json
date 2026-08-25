@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "6f4884dfdb43b3b8ea5145d368e8a4284bdbbb0d53b59a2ec85581b0458e7e34",
-  "inputManifestDigest": "f7eae99f6c6ae56613eba45dbab2934b6efed77406aa250b8e649f86b49c52de",
-  "outputDigest": "0e1651f74b3b31bc19b3173ac47550d8699c74c59c63780679b2c6a33451306a",
+  "inputDigest": "ef586ea8baec5b390ecc015d35d3c42a32a3b264f1f7b14a0fd6ba51558c9835",
+  "inputManifestDigest": "81079a6491a3aed9a1e0c2349e3e64692bc312dd06ac78e6e7fcf933f5a3d820",
+  "outputDigest": "b8d20878482841b038388b366e651fac287d07972bd531ae093042928c85fe63",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -76,6 +76,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs",
+      "sha256": "59b022407b12f1acc87a38c4fefd2b67d0be6e3a11ac524b281c9c54c1be6c43",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs",
       "sha256": "b997d4659b46766b4dea1d09d60a3c5315e679ace45f37f50472e8fd7ee6a3fd",
       "state": "current"
@@ -128,6 +133,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
       "sha256": "224e84ad0d1704b2e0751c3e7667991c92691853582b26e614a29f3d560a0ee3",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableRecipeTable.cs",
+      "sha256": "5b9b4ba3966da7dfc507a38f800e6e4902c2a98425ec65f7c0616b7536125f77",
       "state": "current"
     },
     {
@@ -266,6 +276,21 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
+      "sha256": "d8dfedcd121e598d5e3163ccf7dbee1c62e0512e01a56be48fbd0402b615a4c8",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementCraftActionTests.cs",
+      "sha256": "65fca19c7a521992818cf0d63e993efed9a34d725b2bf55b6b09bdf021894b27",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEquipmentActionTests.cs",
+      "sha256": "dd8a35d18af42d1f1ae53151afd8a55a41017ff2799da1b17eea8ebd521a2ab9",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementProjectionTransactionTests.cs",
       "sha256": "4cf5ed397e940c9c7ab8318b1f86eec3454c231097f8f547a58aac6e782b8618",
       "state": "current"
@@ -361,6 +386,16 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
+      "sha256": "cfd8945d87ca8d861abd282b33c8308e0bf54e38720474fe853a3c44771ba1b9",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
+      "sha256": "6bd9bb528bb867c6986e306816da5c17a48e642c0356bd31273ba8b36d35a5c6",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/PlayableOpeningSequence3D.cs",
       "sha256": "2245c81021bcddbc6c86fb82bec6624fbb1191e33729423ec0c9961b86ce02d5",
       "state": "current"
@@ -373,6 +408,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs",
       "sha256": "009c57ed94cf4c605686b43b6ffba31147177d246e92515cf3bec3b08a9ce112",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs",
+      "sha256": "e2788d27d9e5209e0b1935a4cc4f6a414ea5e27281a9f6d535fd9c5f7c9fd41c",
       "state": "current"
     },
     {
@@ -747,8 +787,8 @@
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "f91e53acd322aebb5bb12179ca53a9fcaf4bf7b151bb455d1bd1d007291f8bac",
+      "state": "current"
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/spec.md",
@@ -767,8 +807,8 @@
     },
     {
       "path": "openspec/specs/table-driven-crafting-content/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "4ffa3e1835e97e6d1d493e6c627267f8268ee12ba68be0cd0beed90f379c601d",
+      "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-crafting-content/spec.md",
@@ -827,8 +867,8 @@
     },
     {
       "path": "openspec/specs/table-driven-item-keywords/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "d68a19bfc6bc577750f2d5dab3e477ae4d2c2ab19a6808744e03cfa5b29bcf37",
+      "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-item-keywords/spec.md",
@@ -977,8 +1017,8 @@
     },
     {
       "path": "openspec/specs/tabletop-settlement-equipment/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "7b1375696de318620f0a6c61debcd28c015d37c9f3a351c70bc16501688bafe2",
+      "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-settlement-equipment/spec.md",
@@ -1077,11 +1117,11 @@
     }
   ],
   "counts": {
-    "verified": 5,
+    "verified": 9,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 36,
+    "unknown": 32,
     "blocked": 0,
     "stale": 21
   },
@@ -1114,15 +1154,12 @@
     "settlement-content-plan-lifecycle",
     "settlement-phase-orchestration",
     "settlement-timeline-event-identity",
-    "settlement-workshop-crafting",
     "showdown-phase-orchestration",
-    "table-driven-crafting-content",
     "table-driven-event-chains",
     "table-driven-hunt-events",
     "table-driven-hunter-bloodlines",
     "table-driven-hunter-templates",
     "table-driven-invention-content",
-    "table-driven-item-keywords",
     "tabletop-chinese-font-fallback",
     "tabletop-game-over",
     "tabletop-hunt-departure",
@@ -1135,7 +1172,6 @@
     "tabletop-hunt-tile-cards",
     "tabletop-opening-sequence",
     "tabletop-settlement-advancement-ledger",
-    "tabletop-settlement-equipment",
     "tabletop-settlement-invention",
     "tabletop-settlement-notices",
     "tabletop-settlement-recovery",
@@ -2299,16 +2335,38 @@
     {
       "id": "settlement-workshop-crafting",
       "label": "营地桌面工坊制作",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，提交后刷新资源卡、装备桌与存档边界。",
+      "designSources": [],
       "sources": [
         "openspec/specs/settlement-workshop-crafting/spec.md",
         "openspec/specs/settlement-workshop-crafting/implementation.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementCraftActionTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "showdown-phase-orchestration",
@@ -2338,16 +2396,35 @@
     {
       "id": "table-driven-crafting-content",
       "label": "读表配方与事件奖励制造链",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；事件奖励黑盐可被原子消费并制造为可装备护符。",
+      "designSources": [],
       "sources": [
         "openspec/specs/table-driven-crafting-content/spec.md",
-        "openspec/specs/table-driven-crafting-content/implementation.json"
+        "openspec/specs/table-driven-crafting-content/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableRecipeTable.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "table-driven-event-chains",
@@ -2422,16 +2499,35 @@
     {
       "id": "table-driven-item-keywords",
       "label": "读表物品与跨内容关键词",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "物品表以稳定 ContentId 扩展现有 ItemData，统一标签与关键词后进入营地注册表；事件选项从权威猎人装备解析关键词，奖励仍在所属阶段 ActionQueue 事务内提交。",
+      "designSources": [],
       "sources": [
         "openspec/specs/table-driven-item-keywords/spec.md",
-        "openspec/specs/table-driven-item-keywords/implementation.json"
+        "openspec/specs/table-driven-item-keywords/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "tabletop-chinese-font-fallback",
@@ -2719,16 +2815,39 @@
     {
       "id": "tabletop-settlement-equipment",
       "label": "营地桌面猎人装备",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "点击 3D 猎人卡可打开九槽世界空间装备桌，仓库卡与精确装备实例通过拖放提交命令；Settlement ActionQueue 原子维护库存、稳定身份、部位与双武器限制并触发保存刷新。",
+      "designSources": [],
       "sources": [
         "openspec/specs/tabletop-settlement-equipment/spec.md",
-        "openspec/specs/tabletop-settlement-equipment/implementation.json"
+        "openspec/specs/tabletop-settlement-equipment/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEquipmentActionTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "tabletop-settlement-invention",

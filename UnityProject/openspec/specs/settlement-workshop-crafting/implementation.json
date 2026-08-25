@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "settlement-workshop-crafting",
+  "specHash": "b602b9c49d998a6088ad255010ae565211ea335cc5a5153c0ddb38437c58dd0a",
+  "title": "营地桌面工坊制作",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，提交后刷新资源卡、装备桌与存档边界。",
+    "validatedAgainstSpecHash": "b602b9c49d998a6088ad255010ae565211ea335cc5a5153c0ddb38437c58dd0a",
+    "evidence": [
+      {
+        "guid": "59e65c28f501e7944b628d6f642a2c36",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
+        "line": 1,
+        "fileHash": "0ae307a69bb2712f822136e6c2da336495131bbe76195d8f7d83a4befcf6217d",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "feature": "按 requiredWorkshopId 投影工坊与配方 3D 卡，并把激活转换为既有制作命令。"
+      },
+      {
+        "guid": "bd23a30b0d55c684abacd81e4792ed64",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
+        "line": 300,
+        "fileHash": "8a63ac11386f101c7783ef8fc3a7af563a3ef27493f6c543c413bafcf8adae7c",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "feature": "把制作请求作为 Settlement root GameAction 送入专属 runner 串行执行。"
+      },
+      {
+        "guid": "0dedb93c94f43e746b5dce4fc1eb02d3",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs",
+        "line": 1,
+        "fileHash": "59b022407b12f1acc87a38c4fefd2b67d0be6e3a11ac524b281c9c54c1be6c43",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "feature": "原子校验和提交资源、产物及制作事实，竞争请求和 Reactor 阻止不产生重复产物。"
+      },
+      {
+        "guid": "fae66be113c0f1b4aa8e8601a20f1b18",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+        "line": 466,
+        "fileHash": "ce1de17d82c77b0d037bbde1e0bba51845252261e55fae93705b1cab0e760595",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "feature": "资源事实耗尽或新增时重建实体卡，并在制作事务后刷新工坊与装备上下文。"
+      },
+      {
+        "guid": "f13dbbb521f1d294f806269bea89e1f2",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementCraftActionTests.cs",
+        "line": 1,
+        "fileHash": "65fca19c7a521992818cf0d63e993efed9a34d725b2bf55b6b09bdf021894b27",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "feature": "覆盖成功事实、并发资源竞争、Reactor 阻止及未注册配方拒绝。"
+      }
+    ],
+    "tests": [
+      "PlayableSettlementCraftActionTests: 4/4 passed",
+      "PlayableRecipeTableTests: 5/5 passed",
+      "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
+    ],
+    "verifiedAt": "2026-08-25T11:28:56-07:00"
+  },
+  "implementationOutline": [
+    "WorkshopZone 从配置目录生成工坊和配方实体卡，View 不消费资源或创建产物。",
+    "PlayableSettlementActionSession 将命令送入 Settlement runner，Action 在执行时重验所有权、解锁、工坊和资源。",
+    "提交事实驱动 GameManager 保存和 SettlementTable3D 刷新，资源卡耗尽后移除、重新获得后恢复。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs:466"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

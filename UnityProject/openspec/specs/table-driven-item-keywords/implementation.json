@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "table-driven-item-keywords",
+  "specHash": "256d96bf9bc8459a5a7b8ae95261bc950bf203dc1f7294b51c5d4fbb4b46b111",
+  "title": "读表物品与跨内容关键词",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "物品表以稳定 ContentId 扩展现有 ItemData，统一标签与关键词后进入营地注册表；事件选项从权威猎人装备解析关键词，奖励仍在所属阶段 ActionQueue 事务内提交。",
+    "validatedAgainstSpecHash": "256d96bf9bc8459a5a7b8ae95261bc950bf203dc1f7294b51c5d4fbb4b46b111",
+    "evidence": [
+      {
+        "guid": "225e7c7bd61caa7459086fbb53fa80e5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
+        "line": 1,
+        "fileHash": "224e84ad0d1704b2e0751c3e7667991c92691853582b26e614a29f3d560a0ee3",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "feature": "校验稳定 ID、显示名、标签、关键词和装备数据，并映射为普通 ItemData。"
+      },
+      {
+        "guid": "b53d54014d826bd4fb6897de7a6c4c83",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
+        "line": 1,
+        "fileHash": "f9eb7335c28666b7f4679ef5315b248e4f24f37db2010aeaed8a4bbd24c28030",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "feature": "从当前猎人的权威装备、特性和症状解析条件关键词，并在事件事务中提交效果。"
+      },
+      {
+        "guid": "fe099c7b81392504dbdb631b0d972301",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
+        "line": 1,
+        "fileHash": "88664ac68dbd9c8e89886b3bd92d2e7ae292248aae0388cda0c24c4608de2aa5",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "feature": "覆盖生产表加载、稳定身份、重复内容拒绝及关键词归一化。"
+      },
+      {
+        "guid": "8c2b910c19609904ea5a547a1ec3d80d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
+        "line": 1,
+        "fileHash": "cfd8945d87ca8d861abd282b33c8308e0bf54e38720474fe853a3c44771ba1b9",
+        "status": "verified",
+        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "feature": "提供可被事件奖励、制作和装备闭环消费的黑盐与盐纹护符基础内容。"
+      }
+    ],
+    "tests": [
+      "PlayableItemTableTests: 5/5 passed",
+      "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
+    ],
+    "verifiedAt": "2026-08-25T11:28:56-07:00"
+  },
+  "implementationOutline": [
+    "PlayableItemTable 将外部记录转换为现有 ItemData，不改变装备、事件或 View 命令契约。",
+    "内容组装阶段把读表物品与 ScriptableObject 物品合并到单一权威注册表，并在进入玩法前拒绝歧义。",
+    "事件条件只读取猎人稳定装备身份和规范化关键词，结果继续由阶段 ActionQueue 原子提交。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}
