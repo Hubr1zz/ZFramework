@@ -165,7 +165,22 @@ namespace Core
         private HuntRecord           _pendingHuntRecord;
         private PlayableCombatSession _combatSession;
         private PlayableSettlementActionSession settlementActionSession;
-        private SettlementEventRestoreProjection settlementEventRestoreProjection;
+        private SettlementEventRestoreProjection settlementEventRestoreProjection
+        {
+            get => campaignRuntime?.SettlementEventRestore;
+            set
+            {
+                if (campaignRuntime == null)
+                {
+                    if (value != null) throw new System.InvalidOperationException("战役运行态尚未初始化，无法发布营地事件恢复投影。");
+                    return;
+                }
+                if (value == null)
+                    campaignRuntime.ClearSettlementEventRestore();
+                else
+                    campaignRuntime.PublishSettlementEventRestore(value);
+            }
+        }
         private PlayableHuntActionSession huntActionSession;
         private HuntExplorationRuntime huntExplorationRuntime;
         private IPlayableEventInput playableEventInput;
@@ -1051,7 +1066,7 @@ namespace Core
             settlementActionSession = null;
             huntActionSession = null;
             _huntMgr = candidateHuntManager;
-            settlementEventRestoreProjection = new SettlementEventRestoreProjection(candidateSettlementManager.Data, candidateSettlementManager.Timeline.ResolveEvent);
+            settlementEventRestoreProjection = campaignRuntime.CreateSettlementEventRestoreCandidate(candidateSettlementManager.Data, candidateSettlementManager.Timeline.ResolveEvent);
             activeExpeditionId = active.ExpeditionId;
             try
             {
@@ -1109,7 +1124,7 @@ namespace Core
             if (!TryRollbackPhase(previousPhase, out string rollbackReason))
             {
                 reason = $"{reason}；阶段回滚失败：{rollbackReason}";
-                RestoreActiveHuntRuntime(candidateSettlementManager, candidateHuntManager, null, null, new SettlementEventRestoreProjection(candidateSettlementManager.Data, candidateSettlementManager.Timeline.ResolveEvent), active.ExpeditionId, candidateDestinationState);
+                RestoreActiveHuntRuntime(candidateSettlementManager, candidateHuntManager, null, null, campaignRuntime.CreateSettlementEventRestoreCandidate(candidateSettlementManager.Data, candidateSettlementManager.Timeline.ResolveEvent), active.ExpeditionId, candidateDestinationState);
                 stableCampaignPayload = candidatePayload;
                 return false;
             }
@@ -1456,7 +1471,7 @@ namespace Core
                 SettlementEventRestorePlan restorePlan = default;
                 if (queueAnnualEvents)
                 {
-                    projection = new SettlementEventRestoreProjection(settlement, _settlementManager.Timeline.ResolveEvent);
+                    projection = campaignRuntime.CreateSettlementEventRestoreCandidate(settlement, _settlementManager.Timeline.ResolveEvent);
                     restorePlan = projection.Prepare();
                     if (!restorePlan.Succeeded)
                     {
@@ -2355,7 +2370,7 @@ namespace Core
             if (!ReferenceEquals(data, _settlementManager?.Data) || CurrentGamePhase != GamePhase.Settlement || settlementActionSession?.IsActive != true) return false;
             _huntMgr = null;
             stableCampaignPayload = candidatePayload;
-            settlementEventRestoreProjection = new SettlementEventRestoreProjection(data, _settlementManager.Timeline.ResolveEvent);
+            settlementEventRestoreProjection = campaignRuntime.CreateSettlementEventRestoreCandidate(data, _settlementManager.Timeline.ResolveEvent);
             if (data.PendingHuntReturn != null)
             {
                 _pendingHuntRecord = data.PendingHuntReturn;
@@ -2466,7 +2481,7 @@ namespace Core
             _huntMgr = null;
             stableCampaignPayload = candidatePayload;
             data = candidateSettlementManager.Data;
-            settlementEventRestoreProjection = new SettlementEventRestoreProjection(data, candidateSettlementManager.Timeline.ResolveEvent);
+            settlementEventRestoreProjection = campaignRuntime.CreateSettlementEventRestoreCandidate(data, candidateSettlementManager.Timeline.ResolveEvent);
             if (CurrentGamePhase == GamePhase.Settlement)
                 StartSettlementActionSession();
 

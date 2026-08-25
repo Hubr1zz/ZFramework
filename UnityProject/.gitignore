@@ -117,4 +117,5 @@ __pycache__/
 /zWorkFlow/zWorkFlow Pack/
 !/zWorkFlow/bin/
 !/zWorkFlow/bin/zworkflow.mjs
+/TestResults/
 # <<< zWorkFlow local preferences <<<

@@ -5,6 +5,8 @@ using GameplayBase;
 using HuntingInDarkness.ActionFlow;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Hunt;
+using HuntingInDarkness.Data;
+using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 
 namespace HuntingInDarkness.Adapter.PlayModeTests
@@ -83,6 +85,32 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
             Assert.That(result.Succeeded, Is.False);
             Assert.That(host.CurrentPhase, Is.EqualTo(GamePhase.Settlement));
+        }
+
+        [Test]
+        public void SettlementEventRestoreCandidate_IsInvisibleUntilPublishedAndClearedByReset()
+        {
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            var settlement = new SettlementInstance();
+
+            SettlementEventRestoreProjection candidate = runtime.CreateSettlementEventRestoreCandidate(settlement, _ => null);
+
+            Assert.That(runtime.SettlementEventRestore, Is.Null);
+            runtime.PublishSettlementEventRestore(candidate);
+            Assert.That(runtime.SettlementEventRestore, Is.SameAs(candidate));
+
+            runtime.Reset();
+
+            Assert.That(runtime.SettlementEventRestore, Is.Null);
+        }
+
+        [Test]
+        public void SettlementEventRestorePublication_RejectsNullCandidate()
+        {
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+
+            Assert.Throws<ArgumentNullException>(() => runtime.PublishSettlementEventRestore(null));
+            Assert.That(runtime.SettlementEventRestore, Is.Null);
         }
 
         private sealed class RecordingHost : ICampaignPhaseTransitionHost

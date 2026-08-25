@@ -43,6 +43,22 @@ title: GameManager管理器
 - **WHEN** 当前 GameManager 销毁并释放 phase lease
 - **THEN** 后续 GameManager 可获取具有更大 GenerationId 的新 lease
 
+### Requirement: Campaign runtime owns settlement event restore gate
+
+项目 SHALL 由当前 Campaign Runtime Generation 持有唯一已发布的营地事件恢复投影。读档、活动狩猎恢复或回营年度事件 MUST 先创建不可见候选，再显式发布；`GameManager` 不得保留平行投影字段。Reset、Dispose 与框架 Shutdown MUST 清除已发布投影。
+
+#### Scenario: 恢复候选尚未发布
+
+- **WHEN** 系统为候选营地数据创建事件恢复投影
+- **THEN** 当前出猎门禁仍读取旧的已发布投影
+- **AND** 候选只有显式发布后才成为当前权威
+
+#### Scenario: 当前运行世代重置
+
+- **WHEN** 启动或恢复失败并重置当前 Campaign Runtime Generation
+- **THEN** 已发布的营地事件恢复投影被清除
+- **AND** 后续启动不会继承旧存档的恢复门禁
+
 ### Requirement: Player campaign commands always use ActionQueue
 
 战役启动完成后，玩家请求的阶段切换和遭遇开始 MUST 通过 runtime 内的 Campaign ActionSession 执行。若该 Session 不可用，命令 MUST 失败，不得直接调用阶段 Host 绕过 Reactor、Gate 或串行执行。

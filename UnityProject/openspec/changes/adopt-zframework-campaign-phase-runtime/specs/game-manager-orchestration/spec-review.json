@@ -6,34 +6,34 @@
   "readiness": "implemented",
   "verification": {
     "status": "implemented",
-    "summary": "ZFramework Campaign Runtime Module 已独占阶段 FSM、共享 registry 和 Campaign Runner，GameManager 通过当前代际 lease 保持原有非决战流程。",
+    "summary": "ZFramework Campaign Runtime Module 已独占阶段 FSM、共享 registry、Campaign Runner 和营地事件恢复投影，GameManager 通过当前代际 lease 保持原有非决战流程。",
     "codeEvidence": [
       {
         "guid": "14ce1f834e26c5e4092eee2a5a0b887d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
-        "fileHash": "1e8aecbb958f4b16de7fc1c97aa73fc308b884b6e1164e282da24230398cb890",
+        "fileHash": "495bdb915bf8d6f85f4801eb3794c3a14b4ddf659a1974e52c9a442733868127",
         "line": 22,
-        "feature": "Module 独占阶段 FSM、共享 ActionEnvironment scope 与代际 lease",
+        "feature": "Module 独占阶段 FSM、共享 ActionEnvironment scope、营地事件恢复投影与代际 lease",
         "status": "verified",
-        "checkedAt": "2026-08-25T02:25:18-07:00"
+        "checkedAt": "2026-08-25T02:38:57-07:00"
       },
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-        "fileHash": "88789928610f7ad24138dd39b7dcf6259cfa41c506df1758fcb1472fc77a5880",
+        "fileHash": "593973069b18f42f9d310cea733db7714de53e1eac88fdbcc9b73a87999e9c52",
         "line": 153,
-        "feature": "GameManager 只持有当前 runtime lease 并把玩家阶段命令转发给 Campaign ActionQueue",
+        "feature": "GameManager 只持有当前 runtime lease，并转发玩家阶段命令与营地恢复投影访问",
         "status": "verified",
-        "checkedAt": "2026-08-25T02:25:18-07:00"
+        "checkedAt": "2026-08-25T02:38:57-07:00"
       },
       {
         "guid": "860c7509a68a0ad4a85b4210d362c813",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
-        "fileHash": "027fa64fe8adf0b89835a5647671e4261529b462d0faaf912f7bd326a67d28f5",
+        "fileHash": "1f597af7676eed3629d350185e779ef95aea3e29a92f88f7d252b080a714f184",
         "line": 19,
-        "feature": "验证 lease 独占、代际递增、registry Reset 与无 ActionQueue 旁路语义",
+        "feature": "验证 lease 独占、代际递增、registry Reset、恢复候选发布与无 ActionQueue 旁路语义",
         "status": "verified",
-        "checkedAt": "2026-08-25T02:25:18-07:00"
+        "checkedAt": "2026-08-25T02:38:57-07:00"
       },
       {
         "guid": "10a5fdf3ba146c94ea83e0afd4a0131a",
@@ -48,13 +48,14 @@
     "evidence": [
       "Unity CLI 编译通过。",
       "ActionEnvironment/Campaign Runner EditMode 13/13。",
-      "Campaign Runtime Module PlayMode 4/4。",
+      "Campaign Runtime Module PlayMode 6/6。",
+      "Settlement 事件恢复投影 EditMode 11/11。",
       "GameManager 非决战战役循环 PlayMode 12/12。"
     ],
     "differences": [
       "正式 Spec 尚未表达 Module 对共享 ActionEnvironment scope 的所有权、代际 lease 和玩家命令无旁路。"
     ],
-    "verifiedAt": "2026-08-25T02:25:18-07:00"
+    "verifiedAt": "2026-08-25T02:38:57-07:00"
   },
   "gapIds": [],
   "dependencyIds": [],
@@ -64,7 +65,7 @@
   ],
   "implementationOutline": [
     "GameModule 暴露唯一 Campaign Runtime Module。",
-    "Module 建立独占 runtime lease，并在 lease 内创建、重置和销毁 PhaseManager、registry 与 Campaign Runner。",
+    "Module 建立独占 runtime lease，并在 lease 内创建、重置和销毁 PhaseManager、registry、Campaign Runner 与营地事件恢复投影。",
     "Settlement/Hunt/Combat Session attach 到同一个 registry；GameManager 通过 lease 请求玩家阶段命令。"
   ],
   "reviewIssues": [
@@ -74,7 +75,7 @@
       "severity": "warning",
       "status": "open",
       "blocksApproval": true,
-      "summary": "正式 Spec 需确认阶段 FSM 与跨阶段 ActionEnvironment scope 的 ZFramework Module 所有权。",
+      "summary": "正式 Spec 需确认阶段 FSM、跨阶段 ActionEnvironment scope 与营地事件恢复投影的 ZFramework Module 所有权。",
       "details": "批准后才能把本 Delta 同步为正式权威。",
       "sourceId": "conversation::2026-08-25",
       "acceptedBy": "",

@@ -5,6 +5,8 @@ using Cysharp.Threading.Tasks;
 using GameplayBase;
 using HuntingInDarkness.ActionFlow;
 using HuntingInDarkness.ActionFlow.Campaign;
+using HuntingInDarkness.Data;
+using HuntingInDarkness.Settlement;
 using TEngine;
 
 namespace Core
@@ -16,8 +18,12 @@ namespace Core
         bool IsStarted { get; }
         bool IsActionSessionActive { get; }
         bool IsActionSessionRunning { get; }
+        SettlementEventRestoreProjection SettlementEventRestore { get; }
         IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers { get; }
         ReactorRegistry ActionReactors { get; }
+        SettlementEventRestoreProjection CreateSettlementEventRestoreCandidate(SettlementInstance settlement, Func<string, EventData> resolveEvent);
+        void PublishSettlementEventRestore(SettlementEventRestoreProjection candidate);
+        void ClearSettlementEventRestore();
         void EnsureGameplayRuntime(IActionEnvironmentInstaller gameplayInstaller);
         void Start(GamePhase initialPhase);
         bool TransitionTo(GamePhase phase);
@@ -76,6 +82,7 @@ namespace Core
             private PhaseManager phaseManager;
             private PlayableCampaignActionSession actionSession;
             private IDisposable gameplayInstallation;
+            private SettlementEventRestoreProjection settlementEventRestore;
             private bool disposed;
 
             public long GenerationId { get; }
@@ -83,6 +90,7 @@ namespace Core
             public bool IsStarted => phaseManager?.IsStarted == true;
             public bool IsActionSessionActive => actionSession?.IsActive == true;
             public bool IsActionSessionRunning => actionSession?.IsRunning == true;
+            public SettlementEventRestoreProjection SettlementEventRestore => settlementEventRestore;
             public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers => actionEnvironmentInstallers;
             public ReactorRegistry ActionReactors => actionSession?.Reactors;
 
@@ -115,6 +123,24 @@ namespace Core
                     gameplayInstallation = null;
                     throw;
                 }
+            }
+
+            public SettlementEventRestoreProjection CreateSettlementEventRestoreCandidate(SettlementInstance settlement, Func<string, EventData> resolveEvent)
+            {
+                ThrowIfDisposed();
+                return new SettlementEventRestoreProjection(settlement, resolveEvent);
+            }
+
+            public void PublishSettlementEventRestore(SettlementEventRestoreProjection candidate)
+            {
+                ThrowIfDisposed();
+                settlementEventRestore = candidate ?? throw new ArgumentNullException(nameof(candidate));
+            }
+
+            public void ClearSettlementEventRestore()
+            {
+                ThrowIfDisposed();
+                settlementEventRestore = null;
             }
 
             public void Start(GamePhase initialPhase)
@@ -154,6 +180,7 @@ namespace Core
             {
                 ThrowIfDisposed();
                 ResetGameplayRuntime();
+                settlementEventRestore = null;
                 phaseManager.Shutdown();
                 phaseManager = CreatePhaseManager();
             }
@@ -164,6 +191,7 @@ namespace Core
 
                 disposed = true;
                 ResetGameplayRuntime();
+                settlementEventRestore = null;
                 actionEnvironmentInstallers.Dispose();
                 phaseManager?.Shutdown();
                 phaseManager = null;
@@ -180,6 +208,7 @@ namespace Core
 
                 disposed = true;
                 ResetGameplayRuntime();
+                settlementEventRestore = null;
                 actionEnvironmentInstallers.Dispose();
                 phaseManager?.Shutdown();
                 phaseManager = null;
