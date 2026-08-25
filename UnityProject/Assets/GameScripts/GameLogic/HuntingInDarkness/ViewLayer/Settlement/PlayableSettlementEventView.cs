@@ -142,7 +142,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                 string optionTitle = string.IsNullOrWhiteSpace(option.optionText) ? $"选项 {index + 1}" : option.optionText;
                 string requirements = PlayableEventOptionAvailability.GetRequirements(option);
                 string body = optionTitle;
-                body += option.checkType == CheckType.None ? "\n\n无需判定 · 直接结算" : $"\n\n{GetCheckName(option.checkType)}判定 · 目标 {option.checkTarget}";
+                body += option.checkType == CheckType.None ? "\n\n无需判定 · 直接结算" : option.checkPresentation == EventCheckPresentationKind.OldMaid ? "\n\n抽鬼牌 · 避开无面牌" : $"\n\n{GetCheckName(option.checkType)}判定 · 目标 {option.checkTarget}";
                 if (!string.IsNullOrWhiteSpace(requirements))
                     body += $"\n{requirements}";
                 choices.Add(new TabletopEventChoicePresentation(optionTitle, body, available, available ? "点击选择" : reason, () => SelectOption(optionIndex)));
@@ -170,29 +170,38 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private void PresentHunterSelection(int optionIndex)
         {
             EventOption option = currentEvent.options[optionIndex];
+            bool oldMaid = option.checkPresentation == EventCheckPresentationKind.OldMaid;
             var choices = new List<TabletopEventChoicePresentation>();
             foreach (HunterInstance hunter in candidateHunters)
             {
                 if (hunter == null) continue;
                 HunterInstance selectedHunter = hunter;
                 bool available = PlayableEventOptionAvailability.CanUse(option, hunter, manager.SettlementData, out string reason);
-                string body = option.checkType == CheckType.None
+                string body = oldMaid
+                    ? $"抽鬼牌不使用属性\n意志 {hunter.Willpower}/{hunter.WillpowerMax}"
+                    : option.checkType == CheckType.None
                     ? $"意志 {hunter.Willpower}/{hunter.WillpowerMax}"
                     : $"{GetCheckName(option.checkType)} {GetCheckBonus(hunter, option.checkType)}\n意志 {hunter.Willpower}/{hunter.WillpowerMax}";
                 choices.Add(new TabletopEventChoicePresentation(hunter.Name, body, available, available ? "点击派出" : reason, () => choiceSource?.TrySetResult(new PlayableEventChoiceSelection(optionIndex, selectedHunter))));
             }
             choices.Add(new TabletopEventChoicePresentation("返回", "重新查看事件选项", true, string.Empty, PresentChoices));
-            string bodyText = $"{option.optionText}\n\n选择执行{(option.checkType == CheckType.None ? "行动" : GetCheckName(option.checkType) + "判定")}的猎人。";
+            string hunterAction = $"执行{GetCheckName(option.checkType)}判定";
+            if (oldMaid)
+                hunterAction = "抽牌";
+            else if (option.checkType == CheckType.None)
+                hunterAction = "执行行动";
+            string bodyText = $"{option.optionText}\n\n选择{hunterAction}的猎人。";
             PresentPanel(currentEvent.eventName, bodyText, "猎人选择", TabletopEventPrimaryTone.Check, choices);
         }
 
         private void PresentCheck(PlayableEventChoiceTransaction transaction)
         {
+            bool oldMaid = transaction.Option.checkPresentation == EventCheckPresentationKind.OldMaid;
             bool usesCards = transaction.Option.checkPresentation != EventCheckPresentationKind.PhysicalDice;
             string valueLabel = usesCards ? "牌面" : "骰值";
-            string body = $"{transaction.Option.optionText}\n\n{valueLabel} {transaction.RollValue} + 属性 {transaction.Bonus} = {transaction.Total}\n目标 {transaction.Target}\n\n{(transaction.Success ? "判定成功" : "判定失败")}";
+            string body = oldMaid ? $"{transaction.Option.optionText}\n\n抽牌结果：{(transaction.Success ? "安全牌" : "无面牌")}\n\n{(transaction.Success ? "避开鬼牌" : "抽中鬼牌")}" : $"{transaction.Option.optionText}\n\n{valueLabel} {transaction.RollValue} + 属性 {transaction.Bonus} = {transaction.Total}\n目标 {transaction.Target}\n\n{(transaction.Success ? "判定成功" : "判定失败")}";
             if (transaction.HasRerolled)
-                body += $"\n已消耗 1 意志重新{(usesCards ? "抽牌" : "投掷")}并保留较高结果。";
+                body += oldMaid ? "\n已消耗 1 意志重抽并保留安全结果。" : $"\n已消耗 1 意志重新{(usesCards ? "抽牌" : "投掷")}并保留较高结果。";
             var choices = new List<TabletopEventChoicePresentation>
             {
                 new("接受结果", "提交当前判定", true, string.Empty, () => checkSource?.TrySetResult(PlayableEventCheckDecision.Accept))

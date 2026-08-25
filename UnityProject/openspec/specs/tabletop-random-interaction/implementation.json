@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-random-interaction",
+  "specHash": "8521bbf401886837dfecbdc2e59b721da7e6ae8de6c1f4bd9fd83cd46894156d",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "营地与狩猎 ActionQueue 通过统一请求协议等待物理骰子、抽牌、翻牌和抽鬼牌；规则层按配置范围验证总值，抽鬼牌由事件事务判定而不受属性加值或 View 逻辑影响。",
+    "validatedAgainstSpecHash": "8521bbf401886837dfecbdc2e59b721da7e6ae8de6c1f4bd9fd83cd46894156d",
+    "evidence": [
+      {
+        "guid": "34685fdd176f42e4b321833f2d1a3a9a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Presentation/TabletopRandomInteraction.cs",
+        "line": 1,
+        "fileHash": "3e7f30fd8e0343731b8e4cd615bf73703e71e1cd11a00a14107fd1eb22f04690",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "定义跨阶段随机请求、结果校验和骰子/卡牌串行路由。"
+      },
+      {
+        "guid": "70eac79bb44895b4ea52166cf322e81f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/PhysicalDiceTabletopPresenter.cs",
+        "line": 1,
+        "fileHash": "89c3c561bfff4b4b463c2cd2c9ebd891844677fd854a5a3347abd87351351076",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "在目标锚点生成物理 d6/d10，等待刚体稳定后返回面值。"
+      },
+      {
+        "guid": "b336b4bfea4a3204cb10ffec3f323626",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCardInteractionPresenter.cs",
+        "line": 1,
+        "fileHash": "a53ac7cfb416f588155246d931e1184e73781c27a235bec9ccb4ad1f480fb5e8",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "以可点击 3D 牌组实现抽牌、翻牌和包含一个稳定鬼牌身份的简化抽鬼牌。"
+      },
+      {
+        "guid": "d94d370a430db9b41b025aedfeb3a471",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+        "line": 1,
+        "fileHash": "1c3b64ae95de55bb90f2286adddf679feef3f584e7f0bf4a98366671199937ae",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "事件 Action 在提交前等待桌面随机结果并拒绝无效或取消的返回。"
+      },
+      {
+        "guid": "b53d54014d826bd4fb6897de7a6c4c83",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
+        "line": 1,
+        "fileHash": "f9eb7335c28666b7f4679ef5315b248e4f24f37db2010aeaed8a4bbd24c28030",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "按配置的牌数与面数验证初投和重投范围，并以鬼牌结果直接决定 OldMaid 成败。"
+      },
+      {
+        "guid": "415d8d7b8cbb06540ad790f520dafbde",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+        "line": 1,
+        "fileHash": "559eb29812814097b73940b62b513a47cf7d192d0d21ec4e9bcb7c37c6c5b2b2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "无 Presenter 的兼容流程按事件配置的数量与面数生成结果，并复用同一 OldMaid 规则。"
+      },
+      {
+        "guid": "8b25c0de20260714000000000000000a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementRules.cs",
+        "line": 1,
+        "fileHash": "07ff54dd361da8f9bc83e21eec29e38ad15aa8a445fa8d657ddf23f15edccf65",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "准备式重投支持调用方提供的合法总值范围，并在校验成功后才消费意志。"
+      },
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "line": 1,
+        "fileHash": "c99a4146eccb975790d101e46640426fe539702cad863f986dbc360b7972b5d9",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "读表校验桌面随机参数，并限制 OldMaid 每次只抽取一张。"
+      },
+      {
+        "guid": "2a2dffcbb02a04c46aaa6a1985bbe5d9",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/card-interaction-events.json",
+        "line": 1,
+        "fileHash": "44fb08f90c3e9f721a35050eb0d6ed8a1bbedfa357f4d354b0fe1a2afaa1ed57",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "提供可从营地随机池抽到的骨兆翻牌和无面人抽鬼牌基础事件。"
+      },
+      {
+        "guid": "25254317ab4fe1e47b3a1e2216557176",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs",
+        "line": 1,
+        "fileHash": "009c57ed94cf4c605686b43b6ffba31147177d246e92515cf3bec3b08a9ce112",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "选项、猎人选择和结果卡均把 OldMaid 显示为无属性的抽牌玩法，并明确反馈安全牌或鬼牌。"
+      },
+      {
+        "guid": "2b17ff3d52628a04b81c7873108ecf6f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
+        "line": 1,
+        "fileHash": "c54a2582486bef72baf321b3b9e001f82d275954b2f59f4c25c430348e594970",
+        "status": "verified",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "验证 OldMaid 内容可达、鬼牌忽略属性加值以及多牌总值和重投范围。"
+      }
+    ],
+    "tests": [
+      "PlayableConditionalEventOptionTests: 10/10 passed",
+      "PlayableSettlementActionSessionTests: 33/33 passed",
+      "TabletopRandomInteractionTests: 5/5 passed",
+      "PlayableSettlementEventViewPlayModeTests: 1/1 passed"
+    ],
+    "verifiedAt": "2026-08-25T10:59:07-07:00"
+  },
+  "implementationOutline": [
+    "阶段 ActionQueue 从执行环境获取统一随机表现端口，并在规则提交前等待结果。",
+    "专用 3D Presenter 分别拥有物理骰子和卡牌交互，Router 串行化桌面输入所有权。",
+    "PlayableEventChoiceTransaction 按读表参数处理总值、重投与 OldMaid 成败，不把玩法规则放入 View。",
+    "读表营地事件让 FlipCards 与 OldMaid 均进入正式随机事件池；无 Presenter 时继续使用可注入随机源。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Presentation/TabletopRandomInteraction.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/PhysicalDiceTabletopPresenter.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCardInteractionPresenter.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementRules.cs:239",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/card-interaction-events.json:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation",
+    "changeId": ""
+  }
+}

@@ -23,18 +23,18 @@
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
         "line": 13,
-        "fileHash": "bc077fdc1292539fae7d2f33406c7fd496bbc17985903be5099dc2fe78617888",
+        "fileHash": "c99a4146eccb975790d101e46640426fe539702cad863f986dbc360b7972b5d9",
         "status": "verified",
-        "checkedAt": "2026-08-25T00:31:52-07:00",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
         "feature": "事件表读取并 fail-closed 校验选中猎人、正伤害和稳定部位 ID。"
       },
       {
         "guid": "415d8d7b8cbb06540ad790f520dafbde",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
         "line": 296,
-        "fileHash": "35b2588072416aa505f02d9c0cd10d7ebc4611d43781128075483523df3f3acb",
+        "fileHash": "559eb29812814097b73940b62b513a47cf7d192d0d21ec4e9bcb7c37c6c5b2b2",
         "status": "verified",
-        "checkedAt": "2026-08-25T00:31:52-07:00",
+        "checkedAt": "2026-08-25T10:59:07-07:00",
         "feature": "共享事件规则端口二次校验营地猎人并返回部位伤势结果。"
       },
       {
@@ -66,6 +66,8 @@
       }
     ],
     "tests": [
+      "PlayableConditionalEventOptionTests: 10/10 passed",
+      "PlayableSettlementActionSessionTests: 33/33 passed",
       "Unity CLI compile: passed",
       "HunterRecoveryRulesTests: 5/5 passed",
       "Playable event table and content fixtures: 21/21 passed",
@@ -73,7 +75,7 @@
       "ActiveHuntPersistenceTests: 4/4 passed",
       "PlayableSettlementCareActionTests: 11/11 passed"
     ],
-    "verifiedAt": "2026-08-25T00:31:52-07:00"
+    "verifiedAt": "2026-08-25T10:59:07-07:00"
   },
   "implementationOutline": [
     "事件表用 AddRecoverableWound、selected、正伤害与稳定 bodyPart 描述普通伤势。",

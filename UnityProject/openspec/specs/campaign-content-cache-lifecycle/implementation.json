@@ -13,10 +13,10 @@
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
         "line": 1,
-        "fileHash": "dea13d1b1306344874225c2ada4e7799bc151b7295c91163cfc4840de70cc65c",
+        "fileHash": "c99a4146eccb975790d101e46640426fe539702cad863f986dbc360b7972b5d9",
         "status": "verified",
-        "checkedAt": "2026-08-24T07:21:34-07:00",
-        "feature": "暂存、验证、交换并回收事件对象世代；活动 Plan 租约期间拒绝独立重建或清理。"
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "暂存、验证、交换并回收事件对象世代；活动 Plan 租约期间拒绝独立重建或清理，并在发布前校验卡牌交互参数。"
       },
       {
         "guid": "3036f45e4a7fd284caf46b4750249551",
@@ -38,12 +38,13 @@
       }
     ],
     "tests": [
+      "PlayableConditionalEventOptionTests: 10/10 passed",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventTableCacheLifecycleTests.cs",
       "Unity CLI targeted: 5/5 passed",
       "Unity CLI targeted: settlement content assembly 13/13 passed",
       "Unity CLI EditMode: 609/609 passed"
     ],
-    "verifiedAt": "08/24/2026 07:21:34"
+    "verifiedAt": "2026-08-25T10:59:07-07:00"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 以独立集合记录其创建的 EventData。",

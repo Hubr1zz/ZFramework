@@ -128,6 +128,69 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void OldMaidEvent_IsReachableFromRandomPoolWithStableDeckRules()
+        {
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_faceless_hand");
+            EventOption option = gameEvent.options.First(item => item.checkType != CheckType.None);
+
+            Assert.That(gameEvent.category, Is.EqualTo(EventCategory.Random));
+            Assert.That(gameEvent.maxYear, Is.LessThanOrEqualTo(0));
+            Assert.That(option.checkPresentation, Is.EqualTo(EventCheckPresentationKind.OldMaid));
+            Assert.That(option.checkCount, Is.EqualTo(1));
+            Assert.That(option.checkSides, Is.EqualTo(10));
+            Assert.That(option.checkDeckId, Is.EqualTo("faceless-hand"));
+            Assert.That(option.successEffects.Any(effect => effect.effectType == EventEffectType.AddResource), Is.True);
+            Assert.That(option.failEffects.Any(effect => effect.effectType == EventEffectType.AddRecoverableWound), Is.True);
+        }
+
+        [Test]
+        public void OldMaidCheck_IgnoresAttributeBonusAndUsesCardOutcome()
+        {
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_faceless_hand");
+            EventOption option = gameEvent.options.First(item => item.checkPresentation == EventCheckPresentationKind.OldMaid);
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 9108) { Name = "幸运者", Luck = 99 };
+            settlement.Hunters.Add(hunter);
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            int optionIndex = gameEvent.options.IndexOf(option);
+
+            PlayableEventChoiceTransaction oldMaid = eventSystem.PrepareChoice(gameEvent, optionIndex, hunter, 1);
+            PlayableEventChoiceTransaction safeCard = eventSystem.PrepareChoice(gameEvent, optionIndex, hunter, option.checkSides);
+
+            Assert.That(oldMaid, Is.Not.Null);
+            Assert.That(oldMaid.Total, Is.EqualTo(1));
+            Assert.That(oldMaid.Success, Is.False);
+            Assert.That(safeCard, Is.Not.Null);
+            Assert.That(safeCard.Success, Is.True);
+        }
+
+        [Test]
+        public void MultiCardCheck_AcceptsConfiguredTotalRangeAndReroll()
+        {
+            var gameEvent = UnityEngine.ScriptableObject.CreateInstance<EventData>();
+            var option = new EventOption { optionText = "翻两张牌", checkType = CheckType.Luck, checkTarget = 12, checkPresentation = EventCheckPresentationKind.FlipCards, checkCount = 2, checkSides = 10, checkDeckId = "test-deck" };
+            gameEvent.options.Add(option);
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 9109) { Name = "翻牌者", Willpower = 1, WillpowerMax = 1 };
+            settlement.Hunters.Add(hunter);
+
+            try
+            {
+                PlayableEventChoiceTransaction transaction = new EventSystem(settlement, new FirstRandom()).PrepareChoice(gameEvent, 0, hunter, 15);
+
+                Assert.That(transaction, Is.Not.Null);
+                Assert.That(transaction.RollValue, Is.EqualTo(15));
+                Assert.That(transaction.TryReroll(20), Is.True);
+                Assert.That(transaction.RollValue, Is.EqualTo(20));
+                Assert.That(hunter.Willpower, Is.Zero);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
         public void HunterTargetedEffect_RequiresActorEvenWithoutCheckOrCondition()
         {
             EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_dark_bargain");

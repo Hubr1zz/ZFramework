@@ -46,6 +46,51 @@
       "maxYear": 0,
       "drawWeight": 1,
       "category": "Random"
+    },
+    {
+      "id": "random_faceless_hand",
+      "eventName": "无面人的手牌",
+      "eventType": "Choice",
+      "displayText": "一个戴着骨面具的旅人把十张背面相同的旧牌铺成扇形。九张画着熄灭的灯，剩下一张没有脸。",
+      "hiddenText": "旅人收回手牌，没有解释那张无面牌究竟代表谁。",
+      "options": [
+        {
+          "optionText": "让一名猎人从手牌中抽出一张",
+          "checkType": "Luck",
+          "checkTarget": 10,
+          "checkPresentation": "OldMaid",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "faceless-hand",
+          "checkInstruction": "从无面人的手牌中抽一张，避开无面牌",
+          "successText": "牌面是一盏熄灭的灯。旅人留下几块黑盐，像是在支付一场没有发生的葬礼。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "黑盐", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "无面牌贴在猎人的掌心，直到皮肤渗血才肯脱落。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "arms", "value": 1, "description": "手臂受到 1 点普通伤势" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "拒绝这场没有赌注说明的游戏",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "旅人耸了耸肩，把牌收回斗篷深处。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
     }
   ]
 }

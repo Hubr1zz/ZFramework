@@ -460,6 +460,7 @@ namespace HuntingInDarkness.ContentTables
             int sides = record.checkSides == 0 ? 10 : record.checkSides;
             if (count < 1 || count > 12 || sides < 2 || sides > 20 || count > sides) return false;
             if (presentation == EventCheckPresentationKind.PhysicalDice) return sides == 6 || sides == 10;
+            if (presentation == EventCheckPresentationKind.OldMaid && count != 1) return false;
             return !string.IsNullOrWhiteSpace(record.checkDeckId);
         }
 

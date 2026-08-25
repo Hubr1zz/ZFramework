@@ -155,9 +155,9 @@ namespace HuntingInDarkness.Settlement
             // 判定（有 checkType 时）
             if (option.checkType != CheckType.None)
             {
-                rollValue = RollDice(1, 10);
+                rollValue = RollDice(PlayableEventCheckRules.ResolveCount(option), PlayableEventCheckRules.ResolveSides(option));
                 int bonus = GetCheckBonus(actor, option.checkType);
-                success = EventRules.CheckSucceeded(rollValue, bonus, option.checkTarget);
+                success = PlayableEventCheckRules.IsSuccessful(option, rollValue, bonus);
             }
 
             // 执行效果
@@ -227,10 +227,10 @@ namespace HuntingInDarkness.Settlement
             return new RerollResult { Success = true, NewRoll = newRoll, FinalRoll = best };
         }
 
-        public RerollResult TryReroll(HunterInstance hunter, int currentRoll, int newRoll)
+        public RerollResult TryReroll(HunterInstance hunter, int currentRoll, int newRoll, int minimumRoll = 1, int maximumRoll = 10)
         {
-            if (newRoll < 1 || newRoll > 10) return new RerollResult { Success = false, FinalRoll = currentRoll };
-            RerollOutcome outcome = EventRules.TryReroll(hunter, currentRoll, newRoll);
+            if (newRoll < minimumRoll || newRoll > maximumRoll) return new RerollResult { Success = false, FinalRoll = currentRoll };
+            RerollOutcome outcome = EventRules.TryReroll(hunter, currentRoll, newRoll, minimumRoll, maximumRoll);
             if (!outcome.Success) return new RerollResult { Success = false, FinalRoll = currentRoll };
             Debug.Log($"[EventSystem] 物理重投 {hunter.Name}：{currentRoll} → {outcome.NewRoll}（取最高 {outcome.FinalRoll}）");
             return new RerollResult { Success = true, NewRoll = outcome.NewRoll, FinalRoll = outcome.FinalRoll };

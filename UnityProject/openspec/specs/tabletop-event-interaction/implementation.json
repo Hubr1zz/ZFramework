@@ -14,10 +14,10 @@
         "guid": "25254317ab4fe1e47b3a1e2216557176",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs",
         "line": 1,
-        "fileHash": "fa8d5351a4b139be83f392aace1f725f92f4c390f674bc8e6a570f83d91fc8a0",
+        "fileHash": "009c57ed94cf4c605686b43b6ffba31147177d246e92515cf3bec3b08a9ce112",
         "status": "verified",
-        "checkedAt": "2026-08-25T00:20:00-07:00",
-        "feature": "共享叙事、选择、判定与结果的 3D 卡牌输入，只返回决定并在全部退出路径释放输入所有权。"
+        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "feature": "共享叙事、选择、判定与结果的 3D 卡牌输入；OldMaid 以无属性抽牌和安全牌/鬼牌直观显示，View 只返回决定并在全部退出路径释放输入所有权。"
       },
       {
         "guid": "93d2e5f2378e4a4780fb7d8f6e103b7a",
@@ -62,7 +62,7 @@
       "PlayableSettlementEventViewPlayModeTests: 1/1 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed"
     ],
-    "verifiedAt": "2026-08-25T00:20:00-07:00"
+    "verifiedAt": "2026-08-25T10:59:07-07:00"
   },
   "implementationOutline": [
     "Playable bootstrap 始终安装共享 PlayableSettlementEventView，不受旧 HUD 开关控制。",

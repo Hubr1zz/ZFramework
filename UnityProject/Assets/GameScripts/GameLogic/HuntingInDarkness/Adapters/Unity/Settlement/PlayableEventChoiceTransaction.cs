@@ -26,9 +26,9 @@ namespace HuntingInDarkness.Settlement
         public bool RequiresCheck => option.checkType != CheckType.None;
         public int RollValue { get; private set; }
         public int Bonus { get; }
-        public int Total => RollValue + Bonus;
+        public int Total => PlayableEventCheckRules.ResolveTotal(option, RollValue, Bonus);
         public int Target => option.checkTarget;
-        public bool Success => !RequiresCheck || EventRules.CheckSucceeded(RollValue, Bonus, Target);
+        public bool Success => !RequiresCheck || PlayableEventCheckRules.IsSuccessful(option, RollValue, Bonus);
         public bool HasRerolled { get; private set; }
         public bool IsCommitted { get; private set; }
         public bool CanReroll => RequiresCheck && !HasRerolled && !IsCommitted && actor != null && actor.Willpower > 0;
@@ -49,7 +49,9 @@ namespace HuntingInDarkness.Settlement
         {
             if (!CanReroll) return false;
 
-            RerollResult result = preparedRoll.HasValue ? eventSystem.TryReroll(actor, RollValue, preparedRoll.Value) : eventSystem.TryReroll(actor, RollValue, 1, 10);
+            int count = PlayableEventCheckRules.ResolveCount(option);
+            int sides = PlayableEventCheckRules.ResolveSides(option);
+            RerollResult result = preparedRoll.HasValue ? eventSystem.TryReroll(actor, RollValue, preparedRoll.Value, count, count * sides) : eventSystem.TryReroll(actor, RollValue, count, sides);
             if (!result.Success) return false;
 
             RollValue = result.FinalRoll;
@@ -94,15 +96,14 @@ namespace HuntingInDarkness.Settlement
         public PlayableEventChoiceTransaction PrepareChoice(EventData gameEvent, int optionIndex, HunterInstance actor = null, int? preparedRoll = null, IPlayableEventResourceCommand resourceCommand = null)
         {
             if (gameEvent?.options == null || optionIndex < 0 || optionIndex >= gameEvent.options.Count) return null;
-            if (preparedRoll.HasValue && (preparedRoll.Value < 1 || preparedRoll.Value > 10)) return null;
-
             EventOption option = gameEvent.options[optionIndex];
+            if (preparedRoll.HasValue && !PlayableEventCheckRules.IsValidRoll(option, preparedRoll.Value)) return null;
             actor ??= _selectedHunter;
             bool requiresHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
             if (requiresHunter && (actor == null || !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))) return null;
             if (PlayableEventOptionAvailability.HasHunterDeathEffect(option) && hunterDeathCommand == null) return null;
             if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, out _)) return null;
-            int rollValue = option.checkType == CheckType.None ? 0 : preparedRoll ?? RollDice(1, 10);
+            int rollValue = option.checkType == CheckType.None ? 0 : preparedRoll ?? RollDice(PlayableEventCheckRules.ResolveCount(option), PlayableEventCheckRules.ResolveSides(option));
             int bonus = GetCheckBonus(actor, option.checkType);
             return new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, rollValue, bonus, resourceCommand);
         }
@@ -150,6 +151,31 @@ namespace HuntingInDarkness.Settlement
         }
 
         internal void ContinuePreparedChoice() => ProcessNextInChain();
+    }
+
+    internal static class PlayableEventCheckRules
+    {
+        public static int ResolveCount(EventOption option) => option?.checkCount > 0 ? option.checkCount : 1;
+
+        public static int ResolveSides(EventOption option) => option?.checkSides > 1 ? option.checkSides : 10;
+
+        public static bool IsValidRoll(EventOption option, int roll)
+        {
+            int count = ResolveCount(option);
+            int sides = ResolveSides(option);
+            return roll >= count && roll <= count * sides;
+        }
+
+        public static int ResolveTotal(EventOption option, int roll, int bonus)
+        {
+            return option?.checkPresentation == EventCheckPresentationKind.OldMaid ? roll : roll + bonus;
+        }
+
+        public static bool IsSuccessful(EventOption option, int roll, int bonus)
+        {
+            if (option?.checkPresentation == EventCheckPresentationKind.OldMaid) return roll > 1;
+            return EventRules.CheckSucceeded(roll, bonus, option?.checkTarget ?? 0);
+        }
     }
 
     public readonly struct PlayableEventCommitResult
