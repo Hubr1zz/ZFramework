@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "c7e011109c697137381e5caa3ba8fed8d48fae348985dada2514f19f1492a50d",
-  "inputManifestDigest": "69c377ab62345c1a2e26b080623e9f31383e499d886a74859269822fb2a0adab",
-  "outputDigest": "b1d8ec92931875dbc181f1a2d4f67548156e5b5754ff3a26da03c2bc22d7dc98",
+  "inputDigest": "a9c7d60a4f37053a63272dabd269fcc1d455ac5a31c754ca536d4c48247bec59",
+  "inputManifestDigest": "8cf13c9d909c7992956081fad18df29ad275aaa5878630fa83fbd5d00919df07",
+  "outputDigest": "15ced9ec918c2a16ac23c9ec1d7f2d5d770bf7fe81a8937bda8b298a1a1cca1d",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -386,6 +386,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopGameOverRestartPlayModeTests.cs",
+      "sha256": "96715ead32ded847b8de8ade062b07ac87f5b2260d57a713f9b289316d8fa823",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopHuntDeparturePanel3DTests.cs",
       "sha256": "db119e5ab74ba215f085577b5c650ee4aa98a9beca6070f69fd842ee8d7a8648",
       "state": "current"
@@ -403,6 +408,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/ActiveHuntRestoreTransaction.cs",
       "sha256": "a35af268ca69811087d653d3c76117c21c025934f9542b4f4f3c3fed65468be5",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignRestartTransaction.cs",
+      "sha256": "766cdd893d676e6f491fbd49a92fea9ea6ddc5c4f4c95e699f3aa17862bceb64",
       "state": "current"
     },
     {
@@ -463,6 +473,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/PlayableOpeningSequence3D.cs",
       "sha256": "2245c81021bcddbc6c86fb82bec6624fbb1191e33729423ec0c9961b86ce02d5",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/TabletopGameOverView3D.cs",
+      "sha256": "f60a03aea6e2e036eeed3f669b5b51036c55ddf26514437e3eb6bc6765a70c39",
       "state": "current"
     },
     {
@@ -1042,8 +1057,8 @@
     },
     {
       "path": "openspec/specs/tabletop-game-over/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "e5c6e839ea99cc49a21a77e84f08d456d06d17aff0a963efe705a2046256ff75",
+      "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-game-over/spec.md",
@@ -1262,11 +1277,11 @@
     }
   ],
   "counts": {
-    "verified": 24,
+    "verified": 25,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 20,
+    "unknown": 19,
     "blocked": 0,
     "stale": 18
   },
@@ -1303,7 +1318,6 @@
     "table-driven-hunter-templates",
     "table-driven-invention-content",
     "tabletop-chinese-font-fallback",
-    "tabletop-game-over",
     "tabletop-hunt-harvest",
     "tabletop-hunt-map-intro",
     "tabletop-opening-sequence",
@@ -2683,16 +2697,43 @@
     {
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "任何阶段发布的战役失败事实都会打开摄像机中心的实体终局卡；终局展示持续冻结既有及后创建的背景 Collider，重开时先释放桌面，再由 Campaign ActionQueue 和可靠持久化事务重建战役，失败则恢复可重试终局卡。",
+      "designSources": [],
       "sources": [
         "openspec/specs/tabletop-game-over/spec.md",
-        "openspec/specs/tabletop-game-over/implementation.json"
+        "openspec/specs/tabletop-game-over/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/TabletopGameOverView3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignRestartTransaction.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopGameOverRestartPlayModeTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "tabletop-hunt-departure",

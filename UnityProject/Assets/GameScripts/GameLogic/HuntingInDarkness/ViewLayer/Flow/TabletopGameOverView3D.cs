@@ -53,6 +53,7 @@ namespace HuntingInDarkness.ViewLayer.Flow
         private async UniTaskVoid RestartAsync()
         {
             restartInFlight = true;
+            Hide();
             CampaignRestartResult result;
             try
             {

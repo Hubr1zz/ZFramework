@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-game-over",
+  "specHash": "6d8fb5758de836b031738bebf42c963e81bce7518773762616312153279adee1",
+  "title": "3D 桌面战役终局",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "任何阶段发布的战役失败事实都会打开摄像机中心的实体终局卡；终局展示持续冻结既有及后创建的背景 Collider，重开时先释放桌面，再由 Campaign ActionQueue 和可靠持久化事务重建战役，失败则恢复可重试终局卡。",
+    "validatedAgainstSpecHash": "6d8fb5758de836b031738bebf42c963e81bce7518773762616312153279adee1",
+    "evidence": [
+      {
+        "guid": "b77cd377765078342ab98d3f7eac5d6e",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/TabletopGameOverView3D.cs",
+        "line": 1,
+        "fileHash": "f60a03aea6e2e036eeed3f669b5b51036c55ddf26514437e3eb6bc6765a70c39",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:02:39-07:00",
+        "feature": "以世界空间失败卡和重开选择独占交互，逐帧捕获背景 Collider，并在调用重开命令前释放所有输入租约。"
+      },
+      {
+        "guid": "551fe81197a6ca545a686a0c536f2646",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+        "line": 1974,
+        "fileHash": "8a5a696d314a5225f901e54174423ca7269322ed891d239d18547d68189ae65e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:02:39-07:00",
+        "feature": "把跨阶段 GameOverEvent 投影到唯一终局桌，并把重开意图接入正式 Campaign runner。"
+      },
+      {
+        "guid": "c6eeb30cbc2c2c342adfac7c46c6607b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
+        "line": 174,
+        "fileHash": "d16729f08ff461356e2f98eb7051b485ec6ea40389ee9498f5b4a27345ca9697",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:02:39-07:00",
+        "feature": "把战役重开作为可由 Reactor 阻止的游戏性 CommandAction 串行执行并发布提交事实。"
+      },
+      {
+        "guid": "773077903485428b881a15f1b1340f6b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignRestartTransaction.cs",
+        "line": 44,
+        "fileHash": "766cdd893d676e6f491fbd49a92fea9ea6ddc5c4f4c95e699f3aa17862bceb64",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:02:39-07:00",
+        "feature": "通过持久化 Adapter 可靠删除旧记录、建立新战役稳定快照，并在任一步失败时回滚权威运行态。"
+      },
+      {
+        "guid": "270004bfcb494451860de2293c06f54b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopGameOverRestartPlayModeTests.cs",
+        "line": 14,
+        "fileHash": "96715ead32ded847b8de8ade062b07ac87f5b2260d57a713f9b289316d8fa823",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:02:39-07:00",
+        "feature": "验证调用重开事务前释放输入、失败后恢复终局所有权、成功后保持释放，以及动态 Collider 捕获。"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "line": 474,
+        "fileHash": "2b3fcd25ec6b542f5b4233601e0d99c878cb671e47550b55024504e532cba939",
+        "status": "verified",
+        "checkedAt": "2026-08-25T14:02:39-07:00",
+        "feature": "验证生产组合根等待可靠删除、失败可重试、成功替换运行时并回到 Settlement。"
+      }
+    ],
+    "tests": [
+      "TabletopGameOverRestartPlayModeTests: 2/2 passed",
+      "PlayableCampaignActionSessionTests: 8/8 passed",
+      "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
+    ],
+    "verifiedAt": "2026-08-25T14:02:39-07:00"
+  },
+  "implementationOutline": [
+    "GameManager 订阅跨阶段 GameOverEvent，并把失败原因投影到常驻的世界空间终局桌。",
+    "终局桌以输入租约冻结背景实体；LateUpdate 捕获展示期间新出现的 Collider，同时排除自身选择卡。",
+    "玩家选择重开时先关闭终局桌并释放输入，再由 Campaign ActionQueue 调用可靠重开事务；失败时重新展示原因并恢复交互独占。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/TabletopGameOverView3D.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1974",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs:174",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignRestartTransaction.cs:44"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}
