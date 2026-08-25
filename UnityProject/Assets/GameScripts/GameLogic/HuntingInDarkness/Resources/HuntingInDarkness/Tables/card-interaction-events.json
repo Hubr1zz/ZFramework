@@ -19,7 +19,7 @@
           "checkInstruction": "选择一枚骨兆并将它翻开",
           "successText": "骨片上的眼睛朝向石堆。你们在那里找到了可用的材料，解读者也理解了这种征兆。",
           "successEffects": [
-            { "effectType": "AddResource", "targetName": "碎石", "value": 2, "description": "碎石 +2" },
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" },
             { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
           ],
           "failText": "光痕彼此抵消，留下一个无法解释的空洞。猎人强迫自己记下这种失败。",
@@ -65,7 +65,7 @@
           "checkInstruction": "从无面人的手牌中抽一张，避开无面牌",
           "successText": "牌面是一盏熄灭的灯。旅人留下几块黑盐，像是在支付一场没有发生的葬礼。",
           "successEffects": [
-            { "effectType": "AddResource", "targetName": "黑盐", "value": 1, "description": "黑盐 +1" }
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
           ],
           "failText": "无面牌贴在猎人的掌心，直到皮肤渗血才肯脱落。",
           "failEffects": [

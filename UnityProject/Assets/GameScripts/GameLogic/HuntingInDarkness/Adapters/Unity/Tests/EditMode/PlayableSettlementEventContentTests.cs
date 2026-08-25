@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -74,6 +75,43 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.options.Exists(option => option != null && option.checkType != CheckType.None && option.successEffects.Count > 0 && option.failEffects.Count > 0)), Is.True);
             foreach (EventData gameEvent in manager.Timeline.RandomEventPool)
                 Assert.That(gameEvent.options == null || gameEvent.options.TrueForAll(option => option != null && !string.IsNullOrWhiteSpace(option.optionText)), Is.True);
+        }
+
+        [Test]
+        public void TableEvents_ReferenceResourcesByCanonicalContentId()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<PlayableSettlementContentCatalog>(CatalogPath);
+            var manager = new SettlementManager(1);
+
+            Assert.That(catalog, Is.Not.Null);
+            Assert.That(catalog.ApplyTo(manager), Is.True);
+
+            var resourceEffects = new List<EventEffect>();
+            foreach (EventData gameEvent in PlayableEventTableRuntime.GetEvents())
+            {
+                CollectResourceEffects(gameEvent.immediateEffects, resourceEffects);
+                foreach (EventOption option in gameEvent.options ?? new List<EventOption>())
+                {
+                    if (option == null) continue;
+                    CollectResourceEffects(option.successEffects, resourceEffects);
+                    CollectResourceEffects(option.failEffects, resourceEffects);
+                }
+            }
+
+            Assert.That(resourceEffects, Is.Not.Empty);
+            foreach (EventEffect effect in resourceEffects)
+            {
+                Assert.That(PlayableSettlementItemRegistry.TryGet(effect.targetName, out ItemData item), Is.True, $"未知资源引用：{effect.targetName}");
+                Assert.That(effect.targetName, Is.EqualTo(item.ContentId), $"事件资源必须使用稳定 ID：{effect.targetName}");
+            }
+        }
+
+        private static void CollectResourceEffects(IReadOnlyList<EventEffect> effects, ICollection<EventEffect> destination)
+        {
+            if (effects == null) return;
+            foreach (EventEffect effect in effects)
+                if (effect != null && effect.effectType == EventEffectType.AddResource)
+                    destination.Add(effect);
         }
 
         private static EventData CreateEvent(string name)

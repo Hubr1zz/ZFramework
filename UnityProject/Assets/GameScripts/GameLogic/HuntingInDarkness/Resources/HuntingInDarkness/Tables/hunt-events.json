@@ -110,7 +110,7 @@
           "checkInstruction": "在采集者旁投掷一枚 d6",
           "successText": "菌盖完整脱落，冷光熄灭前照出了一份可用材料。",
           "successEffects": [
-            { "effectType": "AddResource", "targetName": "柔软器官", "value": 1, "description": "柔软器官 +1" }
+            { "effectType": "AddResource", "targetName": "soft_organ", "value": 1, "description": "柔软器官 +1" }
           ],
           "failText": "孢子钻入口鼻，采集者看见黑暗中多出一个自己。压抑 +1。",
           "failEffects": [

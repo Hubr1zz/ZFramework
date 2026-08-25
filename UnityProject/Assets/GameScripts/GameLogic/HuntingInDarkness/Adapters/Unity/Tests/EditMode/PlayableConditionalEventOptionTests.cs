@@ -76,7 +76,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 PlayableEventChoiceTransaction transaction = new EventSystem(settlement, new FirstRandom()).PrepareChoice(gameEvent, gameEvent.options.IndexOf(option), hunter);
                 Assert.That(transaction, Is.Not.Null);
                 Assert.That(transaction.CommitStandalone().Result.Success, Is.True);
-                Assert.That(settlement.GetResource("黑盐"), Is.EqualTo(1));
+                Assert.That(settlement.GetResource("black_salt"), Is.EqualTo(1));
                 Assert.That(hunter.Understanding, Is.EqualTo(1));
             }
             finally

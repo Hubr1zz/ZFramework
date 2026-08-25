@@ -54,6 +54,17 @@ Event option conditions SHALL support inclusive minimum and maximum Fate thresho
 - **WHEN** the hunter reaches the configured minimum Fate threshold
 - **THEN** the safe option is disabled and the high-risk option becomes available through the existing ActionQueue event flow
 
+### Requirement: Table-driven resource rewards use stable item identity
+Every table-driven `AddResource` effect shared by Settlement or Hunt SHALL reference a registered Resource item's stable ContentId. Display names SHALL remain presentation text and MAY be accepted only by legacy migration boundaries.
+
+#### Scenario: A localized resource name changes
+- **WHEN** an event grants that resource after its player-facing name has changed
+- **THEN** the same stable ContentId is committed to Settlement inventory or Hunt collectibles without changing the table reference
+
+#### Scenario: Event tables are validated as one content generation
+- **WHEN** Settlement, Hunt, and card-interaction event sources have been merged
+- **THEN** every configured resource reward resolves to a registered item and its stored target equals that item's ContentId
+
 ### Requirement: Physical randomness remains between selection and check confirmation
 The event presenter SHALL only return the selected option, actor, reroll decision, and confirmation. Event table content SHALL select physical dice, draw cards, flip cards, or Old Maid through configuration; the owning ActionQueue SHALL map that configuration to a tabletop request, await a validated result, and only then prepare or reroll the rule transaction.
 

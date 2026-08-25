@@ -72,7 +72,7 @@
       "hiddenText": "你们收起石片。石脸重新闭眼，但营地里再没有人认为它只是一块普通的岩石。",
       "options": [],
       "immediateEffects": [
-        { "effectType": "AddResource", "targetName": "碎石", "value": 2, "description": "碎石 +2" }
+        { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" }
       ],
       "chainedEventIds": ["triggered_face_memory"],
       "minYear": 1,
@@ -119,7 +119,7 @@
           "checkTarget": 0,
           "successText": "装备上的石纹与盐晶彼此呼应。你们收集到一小撮黑盐，猎人也记住了石头传递讯息的方式。",
           "successEffects": [
-            { "effectType": "AddResource", "targetName": "黑盐", "value": 1, "description": "黑盐 +1" },
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" },
             { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
           ],
           "failText": "",

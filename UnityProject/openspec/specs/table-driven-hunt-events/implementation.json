@@ -51,10 +51,10 @@
         "guid": "6a052d984b59f624f9a084bb3ee4204f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
         "line": 1,
-        "fileHash": "b43c63c80c85fb574452444ecac58e61cdd52c7db35f07ccaaf0656e3caacc4c",
+        "fileHash": "4836dcd4120500660edb4925d5fbc4aedbab2e08713fd3098e6e3bf58c6edd0d",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:01:38-07:00",
-        "feature": "提供包含物理骰子、抽卡、资源、伤势、装备词条条件和直接分支的基础 Hunt 内容。"
+        "checkedAt": "2026-08-25T16:34:28-07:00",
+        "feature": "提供物理骰子、抽卡、稳定 ID 资源、伤势、装备词条条件和直接分支的基础 Hunt 内容。"
       }
     ],
     "tests": [
@@ -62,7 +62,7 @@
       "PlayableHuntContentBundleTests: 7/7 passed",
       "PlayableHuntActionSessionTests: 21/21 passed"
     ],
-    "verifiedAt": "2026-08-25T15:14:24-07:00"
+    "verifiedAt": "2026-08-25T16:34:28-07:00"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 先发布稳定表事件世代，再与路线 Hunt 事件按稳定 ID 合并。",

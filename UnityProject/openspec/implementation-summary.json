@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "6f37253eb31f9842c2cdf330eae1427ac5d1691be864f1bd7adb6c40d8fe7cf0",
-  "inputManifestDigest": "9cd7ff48b26b7978965dbd9a04ff35db92e298c03270883c478d7928735ae2f2",
-  "outputDigest": "6796fcf9f340f40edf26722f75bc0812239109740d8c6a22b00fe5d87125a552",
+  "inputDigest": "0d425c07b49f5e06c81a2d5fc764214970496219d8c0555f5a214c8ed7739196",
+  "inputManifestDigest": "dc21f6686688eaf010fafe283591ee3a6088d4a50bdda1b4eb3a7ef73ff4a388",
+  "outputDigest": "056dd584d3299470540ff1f4a51b68da4c5b96cdb94304a95cbef7d4fa0372eb",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -407,7 +407,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
-      "sha256": "4b3fb7673619018a31c182bee947149fc64fdb60861e611c284c2b88b836176b",
+      "sha256": "14f04701663293a5690edc3986da6d30da82092d9611fb4f4c7cc224680f1ad0",
       "state": "current"
     },
     {
@@ -488,6 +488,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEquipmentActionTests.cs",
       "sha256": "dd8a35d18af42d1f1ae53151afd8a55a41017ff2799da1b17eea8ebd521a2ab9",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEventContentTests.cs",
+      "sha256": "e3160582c53c4900a6f2803894df3fddc42afa8be6265d6ec60e31690b0f61a1",
       "state": "current"
     },
     {
@@ -667,17 +672,17 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/card-interaction-events.json",
-      "sha256": "44fb08f90c3e9f721a35050eb0d6ed8a1bbedfa357f4d354b0fe1a2afaa1ed57",
+      "sha256": "b1f784e902a8dbd984842dd881d7f6abdddee89e4bb15ff0f2ac82342af665b5",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
-      "sha256": "b7c9d714bbed1569b68e9c9d193ebab9d608ae038c3ae3141040b9cae41e52ea",
+      "sha256": "d2ea17b3f01b8775e97505d2eb8fe3b117bf1157170c6aaea639b4ade06c210f",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
-      "sha256": "b43c63c80c85fb574452444ecac58e61cdd52c7db35f07ccaaf0656e3caacc4c",
+      "sha256": "4836dcd4120500660edb4925d5fbc4aedbab2e08713fd3098e6e3bf58c6edd0d",
       "state": "current"
     },
     {
@@ -1212,7 +1217,7 @@
     },
     {
       "path": "openspec/specs/table-driven-event-chains/implementation.json",
-      "sha256": "92e47335ec112f5972ab3aa764f5e7ddc8b91205ab65663a2d2e92296ea6615b",
+      "sha256": "cf22fda5f753bac77fab1020b4a7284f29147d4ff4254ea23ef2fb9222471250",
       "state": "current"
     },
     {
@@ -1222,7 +1227,7 @@
     },
     {
       "path": "openspec/specs/table-driven-hunt-events/implementation.json",
-      "sha256": "f70303f32adf3a47bb7fc02e56396fa0774a5dc15ed9b1860867f370b1d67d0d",
+      "sha256": "d1be03af3dc21034b9a52eba78aeefe4f2a78d852897868da4afdb0a660c8c77",
       "state": "current"
     },
     {
@@ -1282,12 +1287,12 @@
     },
     {
       "path": "openspec/specs/tabletop-event-interaction/implementation.json",
-      "sha256": "9838161f93823fefee3a62cb2cd6218a620eaa4f4291d14050a08562b09e0788",
+      "sha256": "3ada1c44ebde7f7c974dc8b314567b6f0530d5dcc6ef3229ebd4f35c79b1e8eb",
       "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-event-interaction/spec.md",
-      "sha256": "08cc90ddad35a0af4d80fa29d3bf07e7ab52b8bda53277edde2020ad1d240f20",
+      "sha256": "126b72105995738c1b9f958d9450dd961b483b3aea748a41f554e4dcd0111648",
       "state": "current"
     },
     {
@@ -1392,7 +1397,7 @@
     },
     {
       "path": "openspec/specs/tabletop-random-interaction/implementation.json",
-      "sha256": "9abb7636a2463b418e107df55155141baf97ec3002146598a08de6000675c54f",
+      "sha256": "a6ceafb640a96ad663fb1ab85c79883d59c038e87d246cbb783d8d97bad67780",
       "state": "current"
     },
     {
@@ -3326,7 +3331,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "营地与狩猎事件共用世界空间 3D 卡牌输入端口；权威事件条件以读表的命运上下限改变未来选项，高命运风险分支继续由阶段 ActionQueue 结算。",
+      "summary": "营地与狩猎事件共用世界空间 3D 卡牌输入端口；命运条件与资源奖励都由表声明，奖励使用稳定物品 ID，并由阶段 ActionQueue 写入对应库存。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-event-interaction/spec.md",
@@ -3368,6 +3373,18 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/card-interaction-events.json",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEventContentTests.cs",
           "state": "current"
         }
       ]
