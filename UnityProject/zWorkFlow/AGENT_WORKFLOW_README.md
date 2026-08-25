@@ -56,11 +56,13 @@
 
 先判断拆分是否会导致重复读取。一次设计导入、同一系统的诊断+方案或紧密耦合审查默认由一个负责人贯穿；只有子任务上下文独立，或主 Agent 能提供足够的已读摘要而无需重读时才分 Agent。项目存在 `project-context/references/PROJECT-INDEX.md` 时先读索引，否则先读 setup 映射出的等价项目速查。
 
-工程代码任务采用有界双 Agent 复用制，避免按读取、审查、测试或单个文件继续细分：
+工程代码任务采用有界双 Agent 复用制，避免按读取、审查、测试或单个文件继续细分；Spark 是执行模型档位，不是第三个长期 Agent：
 
 - 最多维护 `solution-architect` 与 `code-implementer` 两个长期角色；已有角色通过 follow-up 复用，不按功能重新创建。
 - `solution-architect` 使用 `advanced-reasoning`，负责宏观架构以及具体到接口、状态、失败路径和验收接缝的方案，不执行写入。
 - `code-implementer` 使用 `efficient-execution`，合并原先独立的事实读取、源码切片、文件读写、命令输入输出、Unity CLI 和验证职责。
+- 已知文件和方法只改局部逻辑，或只需快速数据/编译验证时，`code-implementer` 可临时选择 `realtime-execution`，在 Codex 中映射到 `gpt-5.3-codex-spark`；它必须使用源码切片，不负责宏观设计、跨模块探索或默认全量测试。
+- Spark 不增加 Agent 数量、不派生子任务；不可用或独立 rate limit 达到上限时自动回退 `efficient-execution`（GPT‑5.6‑Luna High）。
 - 同一任务只生成一次代码索引事实包，两者共同复用。不得为了读取、审查、测试、Spec 投影再创建辅助 Agent；这些工作由根 Agent 或上述两个角色承担。
 - 禁止子 Agent 再派生子 Agent。目标模型或额度不可用时，由根 Agent 单独继续，不创建注定失败的占位节点。
 
@@ -84,7 +86,7 @@
 6. 行为保持型重构、工具改动和边界清晰的小修改直接实现；会改变非平凡产品行为或公共运行契约时才进入 `openspec-intake-gate` 并读取相关正式 Spec。
 7. 功能簇完成后统一执行一次后置审查和风险相称的验证，再提交 Git。实现进度 skill、Summary、Review 与 Workbench 只在完成后投影，不在任务开始时读取。
 
-- 共享需求使用 `economy`、`coding`、`efficient-read`、`efficient-execution`、`advanced-reasoning` profile，并分别表达推理强度、写权限和成本/质量优先级；权威结构位于 `setup/adapters/registry.json`。
+- 共享需求使用 `economy`、`coding`、`efficient-read`、`efficient-execution`、`realtime-execution`、`advanced-reasoning` profile，并分别表达推理强度、写权限和成本/质量优先级；权威结构位于 `setup/adapters/registry.json`。
 - Codex 与 Claude 的模型名只是经过验证的平台映射示例，不作为其他平台的模型名翻译表。
 - setup 只在当前运行时确认模型可用且映射唯一时自动选择；候选不唯一、账号策略不可见或价格偏好未确定时，让当前成员确认一次，并把决定写入 Git 忽略的本地 tool selection。
 - 平台仅支持原生 Auto、主/次模型或继承时，按 adapter 声明降级；无法验证逐 Agent 选模时不得宣称已经节省模型费用。
@@ -94,6 +96,7 @@
 
 - `project-query-agent` / `wiki-query-agent` → `efficient-read`，`code-implementer` / `code-simplifier` → `efficient-execution`：Codex 均为 `gpt-5.6-luna` + `high`；Claude 均为 `sonnet` + `high`。两者分别保持只读与写入权限，负责索引、定向阅读、执行、输入输出和实现，不承担独立宏观架构决策。
 - `solution-architect` → `advanced-reasoning`：Codex `gpt-5.6-sol` + `high`；Claude `sonnet`。
+- `realtime-execution` → 可选低延迟执行档：Codex `gpt-5.3-codex-spark`；其他工具回退 `efficient-execution`。该档只适用于已知目标的局部修改和快速验证。
 
 ## 迁移到新项目
 

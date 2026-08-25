@@ -23,6 +23,7 @@
     "reuseExistingRoleBeforeCreate": true,
     "sharedFactPacket": "single-codebase-query-context-per-task",
     "roles": ["solution-architect", "code-implementer"],
+    "optionalExecutionProfiles": ["realtime-execution"],
     "auxiliaryWork": "performed-by-root-or-one-of-the-two-roles",
     "quotaFallback": "single-root-agent-without-creating-failed-nodes"
   },
@@ -54,6 +55,14 @@
       "writeAccess": true,
       "optimizationPriority": ["coding-quality", "cost", "latency"],
       "maxTurnsHint": 40
+    },
+    "realtime-execution": {
+      "capabilityTier": "realtime-execution",
+      "reasoningEffort": "low",
+      "writeAccess": true,
+      "optimizationPriority": ["latency", "cost", "bounded-edit-quality"],
+      "maxTurnsHint": 16,
+      "usageBoundary": "known-file-local-edit-or-quick-validation-only"
     },
     "advanced-reasoning": {
       "capabilityTier": "advanced-reasoning",
@@ -89,11 +98,12 @@
         "reasoningEffort": "supported",
         "automaticSelection": "verified-mapping",
         "fallback": "warn-and-suggest",
-        "profileMappings": {
+      "profileMappings": {
           "economy": { "selector": "gpt-5.5", "reasoningEffort": "low", "fallbackSelectors": ["gpt-5.6-terra"] },
           "coding": { "selector": "gpt-5.6-sol", "reasoningEffort": "medium" },
           "efficient-read": { "selector": "gpt-5.6-luna", "reasoningEffort": "high" },
           "efficient-execution": { "selector": "gpt-5.6-luna", "reasoningEffort": "high" },
+          "realtime-execution": { "selector": "gpt-5.3-codex-spark", "fallbackSelectors": ["gpt-5.6-luna"] },
           "advanced-reasoning": { "selector": "gpt-5.6-sol", "reasoningEffort": "high" }
         },
         "notes": ["Only apply a configured selector after the active Codex runtime confirms it is available."]
