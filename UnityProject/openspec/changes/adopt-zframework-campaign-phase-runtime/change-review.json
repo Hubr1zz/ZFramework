@@ -10,20 +10,21 @@
   "approvalStatus": "draft",
   "approvedBy": "",
   "approvedAt": "",
-  "implementationNotes": "阶段 FSM 所有权迁移已完成；其他 GameManager 职责后续按簇迁移，本 Change 未自动改写正式 Spec。",
+  "implementationNotes": "阶段 FSM 与跨阶段 ActionEnvironment scope 所有权迁移已完成；阶段领域状态后续按簇迁移，本 Change 未自动改写正式 Spec。",
   "verification": {
     "status": "implemented",
-    "summary": "Unity 编译、Campaign Runtime lease 2 项与非决战战役循环 12 项 PlayMode 验证通过。",
+    "summary": "Unity 编译、ActionEnvironment/Campaign Runner 13 项、Campaign Runtime lease 4 项与非决战战役循环 12 项验证通过。",
     "codeEvidence": [],
     "evidence": [
       "Unity CLI Compile 通过。",
-      "PlayableCampaignRuntimeModuleTests 2/2。",
+      "ActionEnvironment/Campaign Runner EditMode 13/13。",
+      "PlayableCampaignRuntimeModuleTests 4/4。",
       "GameManagerCampaignLoopPlayModeTests 12/12。"
     ],
     "differences": [
-      "正式 Spec 仍表述 GameManager 直接委托 PhaseManager；实现增加 ZFramework Module 与代际 lease 作为唯一 FSM 所有者。"
+      "正式 Spec 仍表述 GameManager 直接委托 PhaseManager；实现增加 ZFramework Module 与代际 lease，统一拥有 FSM、共享 registry 和 Campaign Runner。"
     ],
-    "verifiedAt": "2026-08-25T02:07:11-07:00"
+    "verifiedAt": "2026-08-25T02:25:18-07:00"
   },
   "reviewIssues": [
     {
@@ -32,8 +33,8 @@
       "severity": "warning",
       "status": "open",
       "blocksApproval": true,
-      "summary": "确认由 ZFramework Campaign Runtime Module 取代 GameManager 对阶段 FSM 的直接所有权。",
-      "details": "本阶段仅迁移 FSM；批准本 Change 不表示 Settlement/Hunt ActionSession 已完成迁移。",
+      "summary": "确认由 ZFramework Campaign Runtime Module 取代 GameManager 对阶段 FSM 与跨阶段 ActionEnvironment scope 的直接所有权。",
+      "details": "批准本 Change 不表示 Settlement/Hunt 阶段 Session 或领域状态已完成迁移。",
       "sourceId": "conversation::2026-08-25",
       "acceptedBy": "",
       "acceptedAt": "",
@@ -62,11 +63,11 @@
     "status": "baseline-captured",
     "summary": "正式 Spec 基线哈希已记录，尚未同步。",
     "changes": [
-      "阶段 FSM 改由 ZFramework Module 独占持有。",
-      "增加代际 lease、失败 Reset 与幂等释放契约。"
+      "阶段 FSM、共享 registry 与 Campaign Runner 改由 ZFramework Module 独占持有。",
+      "增加代际 lease、失败 Reset、ActionQueue 无旁路与幂等释放契约。"
     ],
     "conflicts": [],
-    "validatedAt": "2026-08-25T02:07:11-07:00"
+    "validatedAt": "2026-08-25T02:25:18-07:00"
   },
   "createdAt": "2026-08-25T02:07:11-07:00"
 }

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "964f76781cc61f4633a8a2408fafe381b12761fc6f7108d2efe25efd15075b35",
-  "inputManifestDigest": "ef77dea02a3f9e3b6d46941f9ae143f1d8e2d6122f21a1532ce856dc24d2a083",
-  "outputDigest": "d7f98fa50e99e5d96598c2e0b0443fcb78f7c900a777a1f4f9296ca8b4afefdf",
+  "inputDigest": "81724c24a29f7bc8bf79dffc1d9edb8b3eee08eacee71032e0bfdb9ecfa55fe3",
+  "inputManifestDigest": "de98de526f516173d8f0becb22dc0d2d713e601cd435d29c59ef867107b44cfe",
+  "outputDigest": "1dd487903cabf06e140e8e6f45ecc317a0a7f3efeb92c1807bf25a7959070c3d",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -22,7 +22,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironmentInstallerRegistry.cs",
-      "sha256": "ba3780f35f32055178857450affd3c2e86adf0ecc5704adb3f94d43ced6410ad",
+      "sha256": "50110e2894d1b7b00831af579c62ebcf467e15b8439106db58af909e3d4b2633",
       "state": "current"
     },
     {
@@ -292,7 +292,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "f42ba331e2636ad9035730f02bc9dfe539fc6e9bd450900e3c5904cbccbe7a91",
+      "sha256": "88789928610f7ad24138dd39b7dcf6259cfa41c506df1758fcb1472fc77a5880",
       "state": "current"
     },
     {
@@ -1099,6 +1099,11 @@
   "staleEvidence": [
     {
       "capability": "action-environment-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironmentInstallerRegistry.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "action-environment-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
       "state": "stale"
     },
@@ -1420,7 +1425,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironmentInstallerRegistry.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",

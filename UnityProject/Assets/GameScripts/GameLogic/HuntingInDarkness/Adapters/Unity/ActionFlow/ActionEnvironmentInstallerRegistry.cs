@@ -11,7 +11,7 @@ namespace HuntingInDarkness.ActionFlow
         void Install(IActionEnvironment environment, ActionEnvironmentInstallation installation);
     }
 
-    public interface IActionEnvironmentInstallerRegistry : IDisposable
+    public interface IActionEnvironmentInstallerRegistry
     {
         int InstallerCount { get; }
         int AttachedEnvironmentCount { get; }
@@ -58,7 +58,7 @@ namespace HuntingInDarkness.ActionFlow
     /// 战役生命周期内的环境装配目录。Installer 注册一次后会投影到所有匹配的现有环境，
     /// 也会自动进入之后创建的阶段环境；环境退出时只释放该环境的安装租约。
     /// </summary>
-    public sealed class ActionEnvironmentInstallerRegistry : IActionEnvironmentInstallerRegistry
+    public sealed class ActionEnvironmentInstallerRegistry : IActionEnvironmentInstallerRegistry, IDisposable
     {
         private readonly List<InstallerRegistration> installers = new();
         private readonly List<EnvironmentRegistration> environments = new();

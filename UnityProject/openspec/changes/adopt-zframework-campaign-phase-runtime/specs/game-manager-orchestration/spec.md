@@ -6,15 +6,21 @@ title: GameManager管理器
 
 ## MODIFIED Requirements
 
-### Requirement: ZFramework Module owns global phase runtime
+### Requirement: ZFramework Module owns global campaign runtime
 
-项目 SHALL 使用一个 ZFramework Campaign Runtime Module 独占持有 Settlement、Hunt 与 BossFight 的阶段 FSM。`GameManager` SHALL 作为当前运行世代的场景宿主，通过 lease 请求阶段切换并根据结果激活目标阶段根，不得自行创建平行阶段 FSM。
+项目 SHALL 使用一个 ZFramework Campaign Runtime Module 独占持有 Settlement、Hunt 与 BossFight 的阶段 FSM、跨阶段 ActionEnvironment installer registry 和 Campaign ActionSession。`GameManager` SHALL 作为当前运行世代的场景宿主，通过 lease 请求阶段切换并根据结果激活目标阶段根，不得自行创建平行阶段 FSM 或共享 registry。
 
 #### Scenario: GameManager 获取阶段运行世代
 
 - **WHEN** 场景中的权威 GameManager 完成基础表现装配
 - **THEN** 它从 Campaign Runtime Module 获取唯一活动 phase lease
 - **AND** 第二个并发 lease 请求被拒绝
+
+#### Scenario: 阶段 Runner 使用共享效果环境
+
+- **WHEN** Settlement、Hunt 或 Combat Session 创建自己的 ActionEnvironment
+- **THEN** 它 attach 到当前 runtime 的唯一 installer registry
+- **AND** 阶段 Session 只能注册或使用效果，不得销毁整个 registry
 
 #### Scenario: Transitioning between game phases
 
@@ -36,3 +42,13 @@ title: GameManager管理器
 
 - **WHEN** 当前 GameManager 销毁并释放 phase lease
 - **THEN** 后续 GameManager 可获取具有更大 GenerationId 的新 lease
+
+### Requirement: Player campaign commands always use ActionQueue
+
+战役启动完成后，玩家请求的阶段切换和遭遇开始 MUST 通过 runtime 内的 Campaign ActionSession 执行。若该 Session 不可用，命令 MUST 失败，不得直接调用阶段 Host 绕过 Reactor、Gate 或串行执行。
+
+#### Scenario: Campaign Runner 不可用
+
+- **WHEN** 玩家在战役标记为活动但 Campaign ActionSession 不可用时请求阶段切换
+- **THEN** 请求返回失败
+- **AND** 当前阶段不发生变化

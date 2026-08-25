@@ -6,45 +6,55 @@
   "readiness": "implemented",
   "verification": {
     "status": "implemented",
-    "summary": "ZFramework Campaign Runtime Module 已独占阶段 FSM，GameManager 通过当前代际 lease 保持原有非决战流程。",
+    "summary": "ZFramework Campaign Runtime Module 已独占阶段 FSM、共享 registry 和 Campaign Runner，GameManager 通过当前代际 lease 保持原有非决战流程。",
     "codeEvidence": [
       {
         "guid": "14ce1f834e26c5e4092eee2a5a0b887d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
-        "fileHash": "22a591aca52e4048316677fbec6e82bbb7b5b76fffacbde19d7e6319203f60ce",
+        "fileHash": "1e8aecbb958f4b16de7fc1c97aa73fc308b884b6e1164e282da24230398cb890",
         "line": 22,
-        "feature": "Module 独占阶段运行态并管理代际 lease",
+        "feature": "Module 独占阶段 FSM、共享 ActionEnvironment scope 与代际 lease",
         "status": "verified",
-        "checkedAt": "2026-08-25T02:07:11-07:00"
+        "checkedAt": "2026-08-25T02:25:18-07:00"
       },
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-        "fileHash": "f42ba331e2636ad9035730f02bc9dfe539fc6e9bd450900e3c5904cbccbe7a91",
+        "fileHash": "88789928610f7ad24138dd39b7dcf6259cfa41c506df1758fcb1472fc77a5880",
         "line": 153,
-        "feature": "GameManager 只持有当前 phase lease 并转发阶段命令",
+        "feature": "GameManager 只持有当前 runtime lease 并把玩家阶段命令转发给 Campaign ActionQueue",
         "status": "verified",
-        "checkedAt": "2026-08-25T02:07:11-07:00"
+        "checkedAt": "2026-08-25T02:25:18-07:00"
       },
       {
         "guid": "860c7509a68a0ad4a85b4210d362c813",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
-        "fileHash": "e18d9a5a48b4c226014d1cb0b3961d1827cf2ef21e4c1938414ef9531c049239",
+        "fileHash": "027fa64fe8adf0b89835a5647671e4261529b462d0faaf912f7bd326a67d28f5",
         "line": 19,
-        "feature": "验证 lease 独占、代际递增与 Reset 语义",
+        "feature": "验证 lease 独占、代际递增、registry Reset 与无 ActionQueue 旁路语义",
         "status": "verified",
-        "checkedAt": "2026-08-25T02:07:11-07:00"
+        "checkedAt": "2026-08-25T02:25:18-07:00"
+      },
+      {
+        "guid": "10a5fdf3ba146c94ea83e0afd4a0131a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironmentInstallerRegistry.cs",
+        "fileHash": "50110e2894d1b7b00831af579c62ebcf467e15b8439106db58af909e3d4b2633",
+        "line": 14,
+        "feature": "消费者 registry 接口不暴露整个 scope 的 Dispose 权限",
+        "status": "verified",
+        "checkedAt": "2026-08-25T02:25:18-07:00"
       }
     ],
     "evidence": [
       "Unity CLI 编译通过。",
-      "Campaign Runtime Module PlayMode 2/2。",
+      "ActionEnvironment/Campaign Runner EditMode 13/13。",
+      "Campaign Runtime Module PlayMode 4/4。",
       "GameManager 非决战战役循环 PlayMode 12/12。"
     ],
     "differences": [
-      "正式 Spec 尚未表达 Module 所有权和代际 lease。"
+      "正式 Spec 尚未表达 Module 对共享 ActionEnvironment scope 的所有权、代际 lease 和玩家命令无旁路。"
     ],
-    "verifiedAt": "2026-08-25T02:07:11-07:00"
+    "verifiedAt": "2026-08-25T02:25:18-07:00"
   },
   "gapIds": [],
   "dependencyIds": [],
@@ -54,8 +64,8 @@
   ],
   "implementationOutline": [
     "GameModule 暴露唯一 Campaign Runtime Module。",
-    "Module 建立独占 phase lease，并在 lease 内创建、重置和销毁 PhaseManager。",
-    "GameManager 通过 lease 请求阶段转换，继续只负责场景根和现有流程编排。"
+    "Module 建立独占 runtime lease，并在 lease 内创建、重置和销毁 PhaseManager、registry 与 Campaign Runner。",
+    "Settlement/Hunt/Combat Session attach 到同一个 registry；GameManager 通过 lease 请求玩家阶段命令。"
   ],
   "reviewIssues": [
     {
@@ -64,7 +74,7 @@
       "severity": "warning",
       "status": "open",
       "blocksApproval": true,
-      "summary": "正式 Spec 需确认阶段 FSM 的 ZFramework Module 所有权。",
+      "summary": "正式 Spec 需确认阶段 FSM 与跨阶段 ActionEnvironment scope 的 ZFramework Module 所有权。",
       "details": "批准后才能把本 Delta 同步为正式权威。",
       "sourceId": "conversation::2026-08-25",
       "acceptedBy": "",
