@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "621bf862c8f6caf62246cc99287a40531eca9e2aabd220a2c8a037506e34487e",
-  "inputManifestDigest": "377f457fea377f107dd8d4760ac86a14ec0b480bf8f530d283b93b20ca32b8b3",
-  "outputDigest": "a594817a54ded045fbab3021db7f66cde34bb7b50bc16e3cb20975c954ceb323",
+  "inputDigest": "88c8b4efe865d7b381244f385e9b8bb131fd55f2e05b0d5658db42be6c8e7fe2",
+  "inputManifestDigest": "fc31ec0bcf29c903b6fc608b4ad7612840154726db17450bfe31eaa559c02dc0",
+  "outputDigest": "4f9c6f1db1386216f73872f938f3363164134aac3ba995bad6980b1b3145ffa2",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -472,7 +472,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
-      "sha256": "594db626e6f1a8f71ccd3a83f989479cada7ced55aaaf0edbdc6ea119f57c4bb",
+      "sha256": "66892e3f44492ab2907ee63e7cfe516f3e968b56a78b867ab75e0e6af817bd60",
       "state": "current"
     },
     {
@@ -631,8 +631,23 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterSymptomRules.cs",
+      "sha256": "48ef448aa55d6c51e511c0cc0d3c19db2b5a5d00f1224631f3f0509128e6fef2",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementModels.cs",
+      "sha256": "c1c3df3e16f06333d7e805f49f44b151a82f885f5aab5285f5622ccf82bd1b4c",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementRules.cs",
-      "sha256": "07ff54dd361da8f9bc83e21eec29e38ad15aa8a445fa8d657ddf23f15edccf65",
+      "sha256": "ed24e06ab9a26fd72c74212238cb09fa4be0b470e68dccfb20cf31cad93b439f",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/EventRerollRulesTests.cs",
+      "sha256": "37ab31117a36551d1a2f961f9789f82ea640a4ee161fcf4a7aab0ff4e5b00b3e",
       "state": "current"
     },
     {
@@ -897,7 +912,7 @@
     },
     {
       "path": "openspec/specs/campaign-persistence/implementation.json",
-      "sha256": "49e910f204fda512c4ef3825e6a5558ad91f5f5844c30eeb656a375e4969b23f",
+      "sha256": "9a51cd618d5d655086f4a2767103fdc3b8b6b357540b63f8c73723404ad250cc",
       "state": "current"
     },
     {
@@ -1367,12 +1382,12 @@
     },
     {
       "path": "openspec/specs/tabletop-random-interaction/implementation.json",
-      "sha256": "e31c733a7ea80aca6f8f58ae08054794d58122246d1dbc996dfd952a999a5658",
+      "sha256": "beb38750a17b8de32f85450202301cb83559eb39cc3bb7d3fe165b8cf3aa820f",
       "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-random-interaction/spec.md",
-      "sha256": "8521bbf401886837dfecbdc2e59b721da7e6ae8de6c1f4bd9fd83cd46894156d",
+      "sha256": "f42b3dfb1fad79bca59aaed2f93bae96d76bab6fef23a0b25fe97191c6072e90",
       "state": "current"
     },
     {
@@ -3633,7 +3648,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "营地与狩猎 ActionQueue 通过统一请求协议等待物理骰子、抽牌、翻牌和抽鬼牌；规则层按配置范围验证总值，抽鬼牌由事件事务判定而不受属性加值或 View 逻辑影响。",
+      "summary": "营地与狩猎 ActionQueue 通过统一请求协议等待物理骰子与卡牌交互；事件重投以显式事务同时提交一份意志成本和一份命运成长，普通意志成本不会误增命运。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-random-interaction/spec.md",
@@ -3667,6 +3682,22 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementRules.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementModels.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterSymptomRules.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/EventRerollRulesTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
           "state": "current"
         },
         {

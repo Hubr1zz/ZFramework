@@ -116,11 +116,18 @@ namespace HuntingInDarkness.GameCore.Settlement
             return died;
         }
 
-        public bool SpendWillpower(int amount = 1)
+        public bool TrySpendWillpower(int amount = 1)
         {
-            if (Willpower < amount) return false;
+            if (amount < 0 || Willpower < amount) return false;
             Willpower -= amount;
-            Luck++;
+            return true;
+        }
+
+        public bool TrySpendWillpowerForReroll()
+        {
+            if (!TrySpendWillpower()) return false;
+            if (Luck < int.MaxValue)
+                Luck++;
             return true;
         }
     }

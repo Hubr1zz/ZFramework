@@ -89,7 +89,11 @@ namespace HuntingInDarkness.GameCore.Settlement
             HunterSymptomState state = Find(hunter, definition?.Id);
             if (!CanInternalize(hunter, definition, currentYear, out reason)) return false;
 
-            hunter.Willpower -= definition.ReflectionWillpowerCost;
+            if (!hunter.TrySpendWillpower(definition.ReflectionWillpowerCost))
+            {
+                reason = "意志不足。";
+                return false;
+            }
             state.LastReflectionYear = currentYear;
             state.InternalizationProgress++;
             if (state.InternalizationProgress >= definition.InternalizationThreshold)

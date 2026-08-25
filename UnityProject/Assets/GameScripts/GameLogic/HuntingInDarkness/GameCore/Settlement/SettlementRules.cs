@@ -256,7 +256,7 @@ namespace HuntingInDarkness.GameCore.Settlement
             int sides,
             IRandomSource random)
         {
-            if (!hunter.SpendWillpower())
+            if (!hunter.TrySpendWillpowerForReroll())
                 return new RerollOutcome(false, 0, currentRoll);
             int newRoll = RollDice(random, diceCount, sides);
             return new RerollOutcome(true, newRoll, Math.Max(currentRoll, newRoll));
@@ -268,7 +268,7 @@ namespace HuntingInDarkness.GameCore.Settlement
         public static RerollOutcome TryReroll(HunterState hunter, int currentRoll, int newRoll, int minimumRoll, int maximumRoll)
         {
             if (minimumRoll > maximumRoll || newRoll < minimumRoll || newRoll > maximumRoll) return new RerollOutcome(false, 0, currentRoll);
-            if (!hunter.SpendWillpower()) return new RerollOutcome(false, 0, currentRoll);
+            if (!hunter.TrySpendWillpowerForReroll()) return new RerollOutcome(false, 0, currentRoll);
             return new RerollOutcome(true, newRoll, Math.Max(currentRoll, newRoll));
         }
 

@@ -759,6 +759,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
                 Assert.That(result.Succeeded, Is.False);
                 Assert.That(hunter.Willpower, Is.Zero);
+                Assert.That(hunter.Luck, Is.EqualTo(1));
                 Assert.That(commits, Is.EqualTo(new[] { SettlementTransactionKind.EventReroll }));
             }
             finally
@@ -853,6 +854,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(result.Succeeded, Is.True, result.Reason);
                 Assert.That(presenter.Requests, Has.Count.EqualTo(1));
                 Assert.That(hunter.Willpower, Is.Zero);
+                Assert.That(hunter.Luck, Is.Zero);
             }
             finally
             {

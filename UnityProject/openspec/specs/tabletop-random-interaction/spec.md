@@ -44,6 +44,21 @@ The event flow SHALL present a reroll only when the actor can pay its rule cost,
 - **WHEN** the player requests a reroll but the actor cannot pay its cost
 - **THEN** no second dice presentation is started and the existing roll remains authoritative
 
+### Requirement: Reroll payment is the only Willpower cost that grants Fate
+A successfully paid event reroll SHALL spend exactly one Willpower and permanently increase the actor's Fate by one, up to the representable bound. The payment and Fate growth SHALL commit together at the reroll checkpoint. Other Willpower costs SHALL NOT change Fate, and an invalid or unaffordable reroll SHALL mutate neither resource.
+
+#### Scenario: Actor pays for a valid reroll
+- **WHEN** an actor with available Willpower accepts a valid event reroll
+- **THEN** exactly one Willpower is spent and exactly one Fate is gained before the rerolled result is resolved
+
+#### Scenario: Event flow is cancelled after a paid reroll
+- **WHEN** the reroll checkpoint has committed and a later presentation step is cancelled
+- **THEN** the paid Willpower and gained Fate remain authoritative while the unresolved event result is not committed
+
+#### Scenario: Willpower is spent outside a reroll
+- **WHEN** an actor pays Willpower for symptom internalization or another non-reroll rule
+- **THEN** the payment succeeds without increasing Fate
+
 ### Requirement: Card interactions share an extensible presentation port
 DrawCards, FlipCards, and OldMaid interactions SHALL use the same request and result presenter contract without placing event rules in the View layer. Card requests SHALL carry a stable deck ID, selected-card count, bounded value range, and player-facing instruction; results SHALL return the same number of unique stable card IDs and bounded values.
 

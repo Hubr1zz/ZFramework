@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "tabletop-random-interaction",
-  "specHash": "8521bbf401886837dfecbdc2e59b721da7e6ae8de6c1f4bd9fd83cd46894156d",
+  "specHash": "f42b3dfb1fad79bca59aaed2f93bae96d76bab6fef23a0b25fe97191c6072e90",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "营地与狩猎 ActionQueue 通过统一请求协议等待物理骰子、抽牌、翻牌和抽鬼牌；规则层按配置范围验证总值，抽鬼牌由事件事务判定而不受属性加值或 View 逻辑影响。",
-    "validatedAgainstSpecHash": "8521bbf401886837dfecbdc2e59b721da7e6ae8de6c1f4bd9fd83cd46894156d",
+    "summary": "营地与狩猎 ActionQueue 通过统一请求协议等待物理骰子与卡牌交互；事件重投以显式事务同时提交一份意志成本和一份命运成长，普通意志成本不会误增命运。",
+    "validatedAgainstSpecHash": "f42b3dfb1fad79bca59aaed2f93bae96d76bab6fef23a0b25fe97191c6072e90",
     "evidence": [
       {
         "guid": "34685fdd176f42e4b321833f2d1a3a9a",
@@ -68,10 +68,46 @@
         "guid": "8b25c0de20260714000000000000000a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementRules.cs",
         "line": 1,
-        "fileHash": "07ff54dd361da8f9bc83e21eec29e38ad15aa8a445fa8d657ddf23f15edccf65",
+        "fileHash": "ed24e06ab9a26fd72c74212238cb09fa4be0b470e68dccfb20cf31cad93b439f",
         "status": "verified",
-        "checkedAt": "2026-08-25T10:59:07-07:00",
-        "feature": "准备式重投支持调用方提供的合法总值范围，并在校验成功后才消费意志。"
+        "checkedAt": "2026-08-25T16:17:48-07:00",
+        "feature": "准备式重投在合法范围校验后调用专用支付语义，使意志消耗与命运成长原子发生。"
+      },
+      {
+        "guid": "8b25c0de202607140000000000000009",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementModels.cs",
+        "line": 119,
+        "fileHash": "c1c3df3e16f06333d7e805f49f44b151a82f885f5aab5285f5622ccf82bd1b4c",
+        "status": "verified",
+        "checkedAt": "2026-08-25T16:17:48-07:00",
+        "feature": "区分普通意志支付与事件重投支付，拒绝负成本并让命运在数值上界安全饱和。"
+      },
+      {
+        "guid": "d1692c393b9b9ae419868a8da65e374f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterSymptomRules.cs",
+        "line": 87,
+        "fileHash": "48ef448aa55d6c51e511c0cc0d3c19db2b5a5d00f1224631f3f0509128e6fef2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T16:17:48-07:00",
+        "feature": "症状内化复用普通意志支付接口，因此不会触发只属于重投的命运成长。"
+      },
+      {
+        "guid": "fb77056ebf65ef744bb596468c80959e",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/EventRerollRulesTests.cs",
+        "line": 1,
+        "fileHash": "37ab31117a36551d1a2f961f9789f82ea640a4ee161fcf4a7aab0ff4e5b00b3e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T16:17:48-07:00",
+        "feature": "覆盖成功、无意志、非法结果、非重投支付与命运数值上界。"
+      },
+      {
+        "guid": "927a97e1c0cf3c443ab526fe87f671e4",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
+        "line": 736,
+        "fileHash": "66892e3f44492ab2907ee63e7cfe516f3e968b56a78b867ab75e0e6af817bd60",
+        "status": "verified",
+        "checkedAt": "2026-08-25T16:17:48-07:00",
+        "feature": "验证重投检查点在后续取消时仍保留意志与命运，并在无意志时不呈现第二次骰子。"
       },
       {
         "guid": "5aaad4b60ab84a34193791e0287c1542",
@@ -113,15 +149,19 @@
     "tests": [
       "PlayableConditionalEventOptionTests: 11/11 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed",
+      "PlayableEventChoiceTransactionTests: 6/6 passed",
+      "PlayableSettlementSymptomActionTests: 5/5 passed",
+      "EventRerollRulesTests: 5/5 passed",
       "TabletopRandomInteractionTests: 5/5 passed",
       "PlayableSettlementEventViewPlayModeTests: 1/1 passed"
     ],
-    "verifiedAt": "2026-08-25T10:59:07-07:00"
+    "verifiedAt": "2026-08-25T16:17:48-07:00"
   },
   "implementationOutline": [
     "阶段 ActionQueue 从执行环境获取统一随机表现端口，并在规则提交前等待结果。",
     "专用 3D Presenter 分别拥有物理骰子和卡牌交互，Router 串行化桌面输入所有权。",
     "PlayableEventChoiceTransaction 按读表参数处理总值、重投与 OldMaid 成败，不把玩法规则放入 View。",
+    "HunterState 将普通意志支付与重投支付分离，重投检查点原子记录意志成本和命运成长。",
     "读表营地事件让 FlipCards 与 OldMaid 均进入正式随机事件池；无 Presenter 时继续使用可注入随机源。"
   ],
   "sourceReferences": [
@@ -132,6 +172,8 @@
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementRules.cs:239",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementModels.cs:119",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterSymptomRules.cs:87",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/card-interaction-events.json:1"
   ],
