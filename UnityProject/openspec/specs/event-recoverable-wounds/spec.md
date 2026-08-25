@@ -13,7 +13,7 @@ title: "事件普通伤势与营地休养闭环"
 ## Requirements
 
 ### Requirement: Event wounds are explicit and table-driven
-An event option MAY configure a recoverable wound with the selected hunter, a positive damage value, and one stable body-part ID from `head`, `torso`, `arms`, or `legs`.
+Each configured recoverable wound SHALL identify the selected hunter, a positive damage value, and one stable body-part ID from `head`, `torso`, `arms`, or `legs`; configuring such a wound remains optional for an event option.
 
 #### Scenario: Valid wound content is loaded
 - **WHEN** a choice effect declares `AddRecoverableWound`, `targetName=selected`, positive damage, and a supported body part
@@ -47,4 +47,3 @@ Ordinary body-part health SHALL survive campaign and active-Hunt save round trip
 #### Scenario: A wounded expedition is restored
 - **WHEN** a Hunt snapshot containing reduced body-part health is saved and restored
 - **THEN** the restored hunter retains that health and the existing 3D recovery flow can treat it after returning to Settlement
-

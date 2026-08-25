@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "bf1bf108f9060881ea369f4624d892b61c50e9b0cac405b758930f8e5cee1c40",
-  "inputManifestDigest": "dd9405d58dd5e45f2a7c9251f24d816d637e070d535bb966dc48a134312d0a6d",
+  "inputDigest": "0afc7184f218699686895cc15a457b3907c7a3a3489f55236ae56bb3614c6ae7",
+  "inputManifestDigest": "c39a8f662d79f0ad48aed66e463a188b58e60dbb1c7f65c39477050fbe9090d8",
   "outputDigest": "e67dd9a266b779a2073aceaee648256816b47634a0bda3da8b877b36093dc314",
   "inputManifest": [
     {
@@ -532,12 +532,12 @@
     },
     {
       "path": "openspec/specs/event-recoverable-wounds/implementation.json",
-      "sha256": "2956a9c6f18289d57098227c498281fa87bb6ed6a7f3510b53975193ee759270",
+      "sha256": "5b378a31b8a0f93985e208a7d9c4ecec3e2115b229e10f86488ee6fb362a0c0f",
       "state": "current"
     },
     {
       "path": "openspec/specs/event-recoverable-wounds/spec.md",
-      "sha256": "45934583d35aaf4ca6471280f54cae369671b6da09400ca40af1ba269297b2d5",
+      "sha256": "caf74da3ac8e39191b61f23e96caa919c94fe1b9e8a798a40ac7d8c01a6f00ff",
       "state": "current"
     },
     {

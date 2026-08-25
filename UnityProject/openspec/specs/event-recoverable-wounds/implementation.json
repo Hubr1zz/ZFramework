@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "event-recoverable-wounds",
-  "specHash": "45934583d35aaf4ca6471280f54cae369671b6da09400ca40af1ba269297b2d5",
+  "specHash": "caf74da3ac8e39191b61f23e96caa919c94fe1b9e8a798a40ac7d8c01a6f00ff",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
     "summary": "营地与狩猎事件可从表配置显式普通部位伤势；规则限制非致命伤势，阶段 ActionQueue 提交状态与伤势事实，既有 3D 营地休养及存档模型直接复用。",
-    "validatedAgainstSpecHash": "45934583d35aaf4ca6471280f54cae369671b6da09400ca40af1ba269297b2d5",
+    "validatedAgainstSpecHash": "caf74da3ac8e39191b61f23e96caa919c94fe1b9e8a798a40ac7d8c01a6f00ff",
     "evidence": [
       {
         "guid": "8d372adc6cf50c8409fe49ae90ca6f80",
