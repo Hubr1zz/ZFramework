@@ -8,7 +8,8 @@
 - `skills/<功能>/references/`：该功能的完整规则、项目事实和可变工作台数据；保护清单与待处理重构项分别位于 `project-refactor-queue/references/PROTECTED_FILES.md`、`REFACTOR_QUEUE.md`，按需读取。
 - 项目读取先走 `project-context/references/PROJECT-INDEX.md`，再按需打开一个参考小节与目标脚本。
 - Agent 拆分是可选项：若事实检索与方案设计会重复读取同一来源/代码，由单一负责人完成；只有上下文不重叠时才拆分。
-- `project-query-agent` 可做独立、只读事实检索；`solution-architect` 可处理独立架构/Spec；`code-implementer` 负责实现。
+- 工程代码任务最多复用两个长期角色：`solution-architect` 负责架构与接口方案，`code-implementer` 合并事实检索、源码切片、读写、命令输入输出和验证；不得为读取、审查、测试或单个文件另建 Agent。
+- 两个角色只通过 follow-up 复用，禁止子 Agent 再派生；目标模型或额度不可用时由根 Agent 单独完成，不创建失败占位节点。
 - 未知结构的 C# 任务先由执行 Agent 用 `codebase-query context` 形成一次性事实包，再交给方案 Agent 和实现复用；准确文件/符号已知且无需关系分析时直接定点读取。不要让多个 Agent 重复查询或读取同一批源码。
 - Change Review、Summary 和 Workbench 状态是实现后的进度投影，不是普通开发启动依赖；全局实现 Ledger 已废止。相关职责按功能簇完成后统一审查与定向验证；全量测试只用于跨系统/L4 里程碑、公共契约、发布门禁或显式要求。
 - `openspec-derive-design-specs` 只允许显式调用。

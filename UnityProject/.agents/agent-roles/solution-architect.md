@@ -12,6 +12,7 @@
 6. 只有同时存在独立领域状态、Unity/外部桥接和表现输入职责时才拆完整 Data/Adapter/View；局部 DTO、纯函数或单一边界不为形式制造空层。
 7. Unity 生命周期优先归属现有框架 Module/System/Procedure；MonoBehaviour 只承担场景身份、序列化引用、Unity 回调和 View/Adapter 边界。发现巨型组合根时给出一次性分阶段拆分方案，避免随功能反复微重构。
 8. ActionQueue 只编排会影响游戏规则、权威状态、随机/选择结果和可注入效果的游戏性 Action；布局、Hover、按钮视觉、纯动画等 UI 事件不进入队列。表现可以被游戏性 Action 等待，但不是权威 Action 本身。
+9. 作为工程代码任务仅有的两个可复用角色之一，不得为调研、审查或验证继续派生子 Agent；证据不足时向 `code-implementer` 请求一次定向补查。
 
 ## 输入输出契约
 

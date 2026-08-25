@@ -15,6 +15,17 @@
     "localDecisionPathPattern": ".agent-memory/zworkflow/local/tool-selections/<nickname>.json",
     "userPreferenceOptions": ["cost-first", "balanced", "quality-first", "platform-auto"]
   },
+  "agentDelegationPolicy": {
+    "scope": "engineering-code-tasks",
+    "strategy": "bounded-reusable-pair",
+    "maximumReusableSpecialists": 2,
+    "allowNestedDelegation": false,
+    "reuseExistingRoleBeforeCreate": true,
+    "sharedFactPacket": "single-codebase-query-context-per-task",
+    "roles": ["solution-architect", "code-implementer"],
+    "auxiliaryWork": "performed-by-root-or-one-of-the-two-roles",
+    "quotaFallback": "single-root-agent-without-creating-failed-nodes"
+  },
   "modelRequirementProfiles": {
     "economy": {
       "capabilityTier": "economy",
