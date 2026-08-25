@@ -1,5 +1,6 @@
 ﻿using GameLogic;
 using TEngine;
+using Core;
 using Object = UnityEngine.Object;
 
 public class GameModule
@@ -91,6 +92,13 @@ public class GameModule
     public static ILocalizationModule Localization => _localization ??= Get<ILocalizationModule>();
     
     private static ILocalizationModule _localization;
+
+    /// <summary>
+    /// 获取 Hunting in Darkness 战役运行态模块。
+    /// </summary>
+    public static IPlayableCampaignRuntimeModule Campaign => _campaign ??= Get<IPlayableCampaignRuntimeModule>();
+
+    private static IPlayableCampaignRuntimeModule _campaign;
     #endregion
     
     /// <summary>
@@ -121,5 +129,6 @@ public class GameModule
         _scene = null;
         _timer = null;
         _localization = null;
+        _campaign = null;
     }
 }

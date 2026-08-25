@@ -1,0 +1,9 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的收养对账：ZFramework 负责权威生命周期，GameManager 优先拆分为场景宿主。",
+  "sourceRoots": [],
+  "sourceReferences": [
+    "conversation::2026-08-25",
+    "openspec/specs/game-manager-orchestration/spec.md"
+  ]
+}

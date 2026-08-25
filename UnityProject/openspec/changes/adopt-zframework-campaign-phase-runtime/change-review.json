@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-zframework-campaign-phase-runtime",
+  "title": "收养 ZFramework 战役阶段运行态",
+  "category": "architecture",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "阶段 FSM 所有权迁移已完成；其他 GameManager 职责后续按簇迁移，本 Change 未自动改写正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "Unity 编译、Campaign Runtime lease 2 项与非决战战役循环 12 项 PlayMode 验证通过。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity CLI Compile 通过。",
+      "PlayableCampaignRuntimeModuleTests 2/2。",
+      "GameManagerCampaignLoopPlayModeTests 12/12。"
+    ],
+    "differences": [
+      "正式 Spec 仍表述 GameManager 直接委托 PhaseManager；实现增加 ZFramework Module 与代际 lease 作为唯一 FSM 所有者。"
+    ],
+    "verifiedAt": "2026-08-25T02:07:11-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-CAMPAIGN-RUNTIME-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认由 ZFramework Campaign Runtime Module 取代 GameManager 对阶段 FSM 的直接所有权。",
+      "details": "本阶段仅迁移 FSM；批准本 Change 不表示 Settlement/Hunt ActionSession 已完成迁移。",
+      "sourceId": "conversation::2026-08-25",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": [
+    "game-manager-orchestration"
+  ],
+  "syncTargets": [
+    {
+      "capability": "game-manager-orchestration",
+      "title": "GameManager管理器",
+      "category": "architecture",
+      "deltaSpecPath": "openspec/changes/adopt-zframework-campaign-phase-runtime/specs/game-manager-orchestration/spec.md",
+      "targetSpecPath": "openspec/specs/game-manager-orchestration/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "1c4e968147fdf2612000ac7c08d6bcd54f32f0f4a720ea419facb8f885258cc6",
+      "baseSnapshotPath": ""
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "正式 Spec 基线哈希已记录，尚未同步。",
+    "changes": [
+      "阶段 FSM 改由 ZFramework Module 独占持有。",
+      "增加代际 lease、失败 Reset 与幂等释放契约。"
+    ],
+    "conflicts": [],
+    "validatedAt": "2026-08-25T02:07:11-07:00"
+  },
+  "createdAt": "2026-08-25T02:07:11-07:00"
+}

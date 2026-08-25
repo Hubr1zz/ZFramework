@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "97d008a37470a2563f9efd426dee1ff19faa07445a9f51d3f6f547f75092edf4",
-  "inputManifestDigest": "f5159b4624d2419eea6688042d646f4a5b19a66830fb109a956255d693a79aad",
-  "outputDigest": "47618f9322751f702846b361acc1a23256f98360c5f36234550de5e3ae16edf2",
+  "inputDigest": "964f76781cc61f4633a8a2408fafe381b12761fc6f7108d2efe25efd15075b35",
+  "inputManifestDigest": "ef77dea02a3f9e3b6d46941f9ae143f1d8e2d6122f21a1532ce856dc24d2a083",
+  "outputDigest": "d7f98fa50e99e5d96598c2e0b0443fcb78f7c900a777a1f4f9296ca8b4afefdf",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -57,7 +57,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-      "sha256": "a1b2d87b8ea6e04aefea0ca506bdff56c4d78e9fbfc49dcfb8264d96e395cfd7",
+      "sha256": "6f9b0042acc85f59cec623de00775ea09d4ca858728e7494be9879cb54c15681",
       "state": "current"
     },
     {
@@ -137,12 +137,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
-      "sha256": "c7eb941b151d8b4304c0c396af1a63f8ae8eba85df5838652eadcb211d93cdcf",
+      "sha256": "a53abd9bb772af48f3bf0307430055fb40f94920d92df4def01b4d79f95ab5e5",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
-      "sha256": "20b62f94c778154250e12867579febc02956607af76a73c72fd201dd93415194",
+      "sha256": "42b3c7d6fe521236a57645920bb725f2172a42fdd8888ca6169567dbd7d790be",
       "state": "current"
     },
     {
@@ -157,7 +157,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
-      "sha256": "8fc0a4ea611941c3500798a8740b163aa88526da348891ee685a5079d33ccb80",
+      "sha256": "82a1588168902d3b846aecfa6e93fb7ee59185b07cfc591e4c81917d8fa114ba",
       "state": "current"
     },
     {
@@ -272,7 +272,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "0901b10fe61edd5e9ecc29fc5a3cc35a00aef17fbe8d91298301c8cb63794c3e",
+      "sha256": "a00bcd2f1570dc5ecde638c5db6dd6e1a549f7264f83776bf5ed3d005d9c5280",
       "state": "current"
     },
     {
@@ -292,7 +292,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "26a6feda350c60e9d6ed817f0ef354c8a335a65e35508d0b1f6c353d1985374d",
+      "sha256": "f42ba331e2636ad9035730f02bc9dfe539fc6e9bd450900e3c5904cbccbe7a91",
       "state": "current"
     },
     {
@@ -1027,13 +1027,13 @@
     }
   ],
   "counts": {
-    "verified": 5,
+    "verified": 4,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
     "unknown": 37,
     "blocked": 0,
-    "stale": 20
+    "stale": 21
   },
   "attentionRequired": [
     "action-environment-lifecycle",
@@ -1048,6 +1048,7 @@
     "event-driven-hunter-symptom-acquisition",
     "event-effect-resolution-reporting",
     "event-occurrence-checkpoint-core",
+    "expedition-build-progression-loop",
     "game-manager-orchestration",
     "hunt-content-bundle-lifecycle",
     "hunt-event-resource-staging",
@@ -1109,6 +1110,11 @@
     {
       "capability": "active-hunt-persistence",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "active-hunt-persistence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
       "state": "stale"
     },
     {
@@ -1202,6 +1208,16 @@
       "state": "unverified"
     },
     {
+      "capability": "expedition-build-progression-loop",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "expedition-build-progression-loop",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "state": "stale"
+    },
+    {
       "capability": "game-manager-orchestration",
       "path": "Assets/Scripts/Core/GameManager.cs",
       "state": "missing"
@@ -1214,6 +1230,11 @@
     {
       "capability": "hunt-content-bundle-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-content-bundle-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
       "state": "stale"
     },
     {
@@ -1269,6 +1290,11 @@
     {
       "capability": "hunt-session-event-occurrence-recovery",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-session-event-occurrence-recovery",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
       "state": "stale"
     },
     {
@@ -1439,7 +1465,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
@@ -1758,8 +1784,8 @@
       "id": "expedition-build-progression-loop",
       "label": "远征奖励与营地构筑闭环",
       "status": "verified",
-      "effectiveStatus": "verified",
-      "progress": 100,
+      "effectiveStatus": "stale",
+      "progress": 0,
       "verificationStatus": "verified",
       "summary": "black_salt 通过真实远征回营边界进入营地，经 Settlement ActionQueue 制作、装备、保存与恢复；恢复后的 salt_ward 会在下一次狩猎中通过 Hunt ActionQueue 的风险计划产生实际构筑收益。",
       "designSources": [],
@@ -1771,7 +1797,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs",
@@ -1779,7 +1805,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
@@ -1829,7 +1855,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
@@ -2032,7 +2058,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",

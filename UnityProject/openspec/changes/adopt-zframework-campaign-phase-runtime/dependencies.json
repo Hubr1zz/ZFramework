@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {
+      "id": "game-manager-orchestration",
+      "label": "GameManager管理器",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/adopt-zframework-campaign-phase-runtime/specs/game-manager-orchestration/spec.md"
+    }
+  ],
+  "edges": []
+}
