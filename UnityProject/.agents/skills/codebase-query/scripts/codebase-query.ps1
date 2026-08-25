@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('build', 'status', 'architecture', 'search', 'callers', 'impact', 'changed')]
+    [ValidateSet('build', 'status', 'architecture', 'search', 'callers', 'impact', 'changed', 'context')]
     [string]$Command = 'status',
 
     [string]$Query,
@@ -15,13 +15,22 @@ param(
     [string[]]$ExcludeRoots = @(),
     [switch]$IncludeAll,
     [ValidateRange(1, 200)]
-    [int]$Limit = 30,
+    [int]$Limit = 8,
+    [switch]$IncludeLexical,
+    [switch]$IncludeMethods,
+    [ValidateRange(2048, 1048576)]
+    [int]$MaxOutputBytes = 12288,
     [switch]$Pretty
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:IndexVersion = 6
+$script:IndexVersion = 7
+$script:CommonLexicalSymbols = @(
+    'Awake', 'Start', 'Update', 'FixedUpdate', 'LateUpdate', 'OnEnable', 'OnDisable', 'OnDestroy',
+    'Dispose', 'Initialize', 'Shutdown', 'Execute', 'Run', 'Tick', 'Handle', 'Create', 'Add', 'Remove',
+    'Get', 'Set', 'Clear', 'Reset', 'Load', 'Save', 'Open', 'Close', 'Show', 'Hide'
+)
 $script:PathComparison = if ($IsWindows) {
     [StringComparison]::OrdinalIgnoreCase
 }
@@ -436,7 +445,7 @@ function Find-Impact {
 
     $results = foreach ($file in $Index.files) {
         if (Test-PortablePathInCollection -Path $file.path -Candidates $DefinitionPaths) { continue }
-        $lexicalMatches = @($file.calls + $file.typeReferences |
+        $lexicalMatches = @($file.calls + $file.typeReferences + $file.identifiers |
             Where-Object { $symbolSet.ContainsKey($_) } | Sort-Object -Unique)
         $resolvedTargets = @($file.resolvedCalls | Where-Object {
             $qualifiedTypeSet.ContainsKey($_.targetType) -or $qualifiedMethodSet.ContainsKey($_.targetQualifiedName)
@@ -451,7 +460,7 @@ function Find-Impact {
                     else { 'lexical' }
                 resolvedTargets = $resolvedTargets
                 referencedTypes = $referencedTypes
-                lexicalSymbols = $lexicalMatches
+                lexicalSymbols = if ($resolvedTargets.Count -gt 0 -or $referencedTypes.Count -gt 0) { @() } else { $lexicalMatches }
             }
         }
     }
@@ -460,17 +469,74 @@ function Find-Impact {
         Select-Object -First $MaxResults)
 }
 
+function Get-HighSignalSymbols {
+    param([string[]]$Symbols)
+
+    if ($IncludeLexical) { return @($Symbols | Where-Object { $_ } | Sort-Object -Unique) }
+    return @($Symbols | Where-Object { $_ -and $script:CommonLexicalSymbols -notcontains $_ } | Sort-Object -Unique)
+}
+
+function Select-LexicalFallback {
+    param([object[]]$Candidates)
+
+    $lexical = @($Candidates | Where-Object { $_.confidence -eq 'lexical' })
+    return [pscustomobject]@{
+        count = $lexical.Count
+        sample = @($lexical | Select-Object -First 3)
+        expanded = [bool]$IncludeLexical
+    }
+}
+
+function Get-MethodDefinitions {
+    param([object]$Index, [string]$Target)
+
+    $methodName = if ($Target.Contains('.')) { ($Target -split '\.')[-1] } else { $Target }
+    return @($Index.files | ForEach-Object {
+        $file = $_
+        $_.methodDefinitions | Where-Object {
+            $_.name -eq $methodName -and (-not $Target.Contains('.') -or $_.qualifiedName.EndsWith($Target, [StringComparison]::Ordinal))
+        } | ForEach-Object {
+            [pscustomobject]@{
+                path = $file.path
+                name = $_.name
+                qualifiedName = $_.qualifiedName
+                declaringType = $_.declaringType
+                returnType = $_.returnType
+                startLine = $_.startLine
+                endLine = $_.endLine
+            }
+        }
+    })
+}
+
 function Write-Result {
     param([object]$Value)
 
     if (-not $Value.PSObject.Properties['engine']) {
-        $Value | Add-Member -NotePropertyName engine -NotePropertyValue 'codebase-query-regex-binding-v6'
+        $Value | Add-Member -NotePropertyName engine -NotePropertyValue 'codebase-query-regex-binding-v7'
     }
     if (-not $Value.PSObject.Properties['schemaVersion']) {
         $Value | Add-Member -NotePropertyName schemaVersion -NotePropertyValue $script:IndexVersion
     }
     $arguments = @{ Depth = 8; Compress = -not $Pretty }
-    $Value | ConvertTo-Json @arguments
+    $json = $Value | ConvertTo-Json @arguments
+    $outputBytes = [Text.Encoding]::UTF8.GetByteCount($json)
+    if ($outputBytes -le $MaxOutputBytes) {
+        $json
+        return
+    }
+    [pscustomobject]@{
+        command = $Value.command
+        query = if ($Value.PSObject.Properties['query']) { $Value.query } else { $null }
+        target = if ($Value.PSObject.Properties['target']) { $Value.target } else { $null }
+        truncated = $true
+        reason = 'max-output-bytes'
+        outputBytes = $outputBytes
+        maxOutputBytes = $MaxOutputBytes
+        hint = 'Lower -Limit or omit -IncludeLexical/-IncludeMethods; raise -MaxOutputBytes only when expansion is intentional.'
+        engine = 'codebase-query-regex-binding-v7'
+        schemaVersion = $script:IndexVersion
+    } | ConvertTo-Json @arguments
 }
 
 $projectRoot = [System.IO.Path]::GetFullPath($Root).TrimEnd('\', '/')
@@ -584,21 +650,32 @@ switch ($Command) {
             Select-Object -First $Limit -ExpandProperty path)
         $typeMatches = @($index.files | ForEach-Object {
             $file = $_
-            $_.types | Where-Object { $_.name -match $escaped } |
+            $_.types | Where-Object { $_.name -match $escaped -or $_.qualifiedName -match $escaped } |
                 ForEach-Object {
+                    $type = $_
                     [pscustomobject]@{
-                        name = $_.name
-                        qualifiedName = $_.qualifiedName
-                        kind = $_.kind
-                        baseTypes = @($_.baseTypes)
+                        name = $type.name
+                        qualifiedName = $type.qualifiedName
+                        kind = $type.kind
+                        baseTypes = @($type.baseTypes)
                         path = $file.path
+                        startLine = $type.startLine
+                        endLine = $type.endLine
+                        methodCount = @($file.methodDefinitions | Where-Object { $_.declaringType -eq $type.qualifiedName }).Count
                     }
                 }
         } | Select-Object -First $Limit)
-        $methodMatches = @($index.files | ForEach-Object {
+        $exactTypeMatch = @($typeMatches | Where-Object { $_.name -eq $Query -or $_.qualifiedName -eq $Query }).Count -gt 0
+        $methodMatches = @()
+        if (-not $exactTypeMatch -or $IncludeMethods) {
+            $methodMatches = @($index.files | ForEach-Object {
             $file = $_
             $_.methodDefinitions | Where-Object {
-                $_.name -match $escaped -or $_.qualifiedName -match $escaped
+                if ($IncludeMethods -and $exactTypeMatch) {
+                    $_.declaringType -and ($_.declaringType -eq $Query -or $_.declaringType.EndsWith(".$Query", [StringComparison]::Ordinal))
+                }
+                elseif ($Query.Contains('.')) { $_.qualifiedName.EndsWith($Query, [StringComparison]::Ordinal) }
+                else { $_.name -match $escaped }
             } | ForEach-Object {
                 [pscustomobject]@{
                     name = $_.name
@@ -606,27 +683,24 @@ switch ($Command) {
                     declaringType = $_.declaringType
                     returnType = $_.returnType
                     path = $file.path
+                    startLine = $_.startLine
+                    endLine = $_.endLine
                 }
             }
-        } | Select-Object -First $Limit)
+            } | Select-Object -First $Limit)
+        }
         Write-Result ([pscustomobject]@{
             command = 'search'; query = $Query
             files = $fileMatches; types = $typeMatches; methods = $methodMatches
+            limit = $Limit
+            methodsIncluded = [bool]($IncludeMethods -or -not $exactTypeMatch)
         })
     }
     'callers' {
         if ([string]::IsNullOrWhiteSpace($Query)) { throw 'callers requires -Query.' }
         $queryMethodName = if ($Query.Contains('.')) { ($Query -split '\.')[-1] } else { $Query }
-        $definitions = @($index.files | ForEach-Object {
-            $file = $_
-            $_.methodDefinitions | Where-Object {
-                $_.name -eq $queryMethodName -and
-                (-not $Query.Contains('.') -or $_.qualifiedName.EndsWith($Query, [StringComparison]::Ordinal))
-            } | ForEach-Object {
-                [pscustomobject]@{ path = $file.path; qualifiedName = $_.qualifiedName; declaringType = $_.declaringType }
-            }
-        })
-        $resolvedCallers = @($index.files | ForEach-Object {
+        $definitions = @(Get-MethodDefinitions -Index $index -Target $Query)
+        $allResolvedCallers = @($index.files | ForEach-Object {
             $file = $_
             $_.resolvedCalls | Where-Object {
                 $_.method -eq $queryMethodName -and
@@ -639,20 +713,27 @@ switch ($Command) {
                     bindingSource = $_.bindingSource
                 }
             }
-        } | Select-Object -First $Limit)
+        })
+        $resolvedCallers = @($allResolvedCallers | Select-Object -First $Limit)
         $resolvedPaths = @($resolvedCallers | Select-Object -ExpandProperty path -Unique)
         $definitionPathsForQuery = @($definitions | Select-Object -ExpandProperty path -Unique)
-        $candidates = @($index.files | Where-Object {
-            $_.calls -contains $queryMethodName -and
+        $allCandidates = @($index.files | Where-Object {
+            ($_.calls -contains $queryMethodName -or $_.identifiers -contains $queryMethodName) -and
             -not (Test-PortablePathInCollection -Path $_.path -Candidates $resolvedPaths) -and
             -not (Test-PortablePathInCollection -Path $_.path -Candidates $definitionPathsForQuery)
-        } | Select-Object -First $Limit -ExpandProperty path)
+        } | Select-Object -ExpandProperty path)
+        $candidateOutput = if ($IncludeLexical) { @($allCandidates | Select-Object -First $Limit) } else { @($allCandidates | Select-Object -First 3) }
         Write-Result ([pscustomobject]@{
             command = 'callers'; query = $Query
-            definitionFiles = $definitions
+            definitionFiles = @($definitions | Select-Object -First $Limit)
+            definitionCount = $definitions.Count
+            definitionsTruncated = $definitions.Count -gt $Limit
             resolvedCallers = $resolvedCallers
-            lexicalFallbackFiles = $candidates
-            resolvedBindingCount = $resolvedCallers.Count
+            lexicalFallbackFiles = $candidateOutput
+            lexicalFallbackCount = $allCandidates.Count
+            lexicalFallbackExpanded = [bool]$IncludeLexical
+            resolvedBindingCount = $allResolvedCallers.Count
+            resolvedCallersTruncated = $allResolvedCallers.Count -gt $Limit
             bindingCoverage = 'partial'
         })
     }
@@ -669,7 +750,7 @@ switch ($Command) {
             })
             if ($definitions.Count -eq 0) { throw "Indexed C# file not found: $Path" }
             $definitionPaths = @($definitions.path)
-            $symbols = @(
+            $symbols = Get-HighSignalSymbols -Symbols @(
                 @($definitions | ForEach-Object { $_.types | ForEach-Object { $_.name } }) +
                 @($definitions | ForEach-Object { $_.methods }) |
                 Sort-Object -Unique
@@ -681,12 +762,14 @@ switch ($Command) {
             } | Sort-Object -Unique)
         }
         else {
+            $methodDefinitions = @(Get-MethodDefinitions -Index $index -Target $Query)
             $definitionPaths = @($index.files | Where-Object {
                 @($_.types | ForEach-Object { $_.name }) -contains $Query -or
                 @($_.types | ForEach-Object { $_.qualifiedName }) -contains $Query -or
                 $_.methods -contains $Query
-            } | Select-Object -ExpandProperty path)
-            $symbols = @($Query)
+            } | Select-Object -ExpandProperty path) + @($methodDefinitions | Select-Object -ExpandProperty path)
+            $definitionPaths = @($definitionPaths | Sort-Object -Unique)
+            $symbols = @($(if ($Query.Contains('.')) { ($Query -split '\.')[-1] } else { $Query }))
             $qualifiedTypes = @($index.files | ForEach-Object { $_.types } | Where-Object {
                 $_.name -eq $Query -or $_.qualifiedName -eq $Query
             } | Select-Object -ExpandProperty qualifiedName -Unique)
@@ -697,13 +780,20 @@ switch ($Command) {
             } | Select-Object -ExpandProperty qualifiedName -Unique)
         }
 
+        $allImpactCandidates = @(Find-Impact -Index $index -Symbols $symbols -DefinitionPaths $definitionPaths `
+            -QualifiedTypes $qualifiedTypes -QualifiedMethods $qualifiedMethods -MaxResults $index.fileCount)
+        $resolvedImpactCandidates = @($allImpactCandidates | Where-Object { $_.confidence -ne 'lexical' })
+        $visibleCandidates = @()
+        if ($IncludeLexical) { $visibleCandidates = @($allImpactCandidates | Select-Object -First $Limit) }
+        else { $visibleCandidates = @($resolvedImpactCandidates | Select-Object -First $Limit) }
         Write-Result ([pscustomobject]@{
             command = 'impact'
             target = if ($Path) { $Path } else { $Query }
             definitionFiles = $definitionPaths
             symbols = @($symbols | Select-Object -First $Limit)
-            candidates = @(Find-Impact -Index $index -Symbols $symbols -DefinitionPaths $definitionPaths `
-                -QualifiedTypes $qualifiedTypes -QualifiedMethods $qualifiedMethods -MaxResults $Limit)
+            candidates = $visibleCandidates
+            candidatesTruncated = $(if ($IncludeLexical) { $allImpactCandidates.Count -gt $Limit } else { $resolvedImpactCandidates.Count -gt $Limit })
+            lexicalFallback = Select-LexicalFallback -Candidates $allImpactCandidates
             bindingCoverage = 'partial'
         })
     }
@@ -726,7 +816,7 @@ switch ($Command) {
                 $_.path.Equals($changedPath, $script:PathComparison)
             })
             if ($definition.Count -eq 0) { continue }
-            $symbols = @(
+            $symbols = Get-HighSignalSymbols -Symbols @(
                 @($definition | ForEach-Object { $_.types | ForEach-Object { $_.name } }) +
                 @($definition | ForEach-Object { $_.methods }) |
                 Sort-Object -Unique
@@ -735,8 +825,10 @@ switch ($Command) {
             $qualifiedMethods = @($definition | ForEach-Object {
                 $_.methodDefinitions | ForEach-Object { $_.qualifiedName }
             })
-            foreach ($candidate in (Find-Impact -Index $index -Symbols $symbols -DefinitionPaths @($changedPath) `
-                -QualifiedTypes $qualifiedTypes -QualifiedMethods $qualifiedMethods -MaxResults $Limit)) {
+            $changedCandidates = @(Find-Impact -Index $index -Symbols $symbols -DefinitionPaths @($changedPath) `
+                -QualifiedTypes $qualifiedTypes -QualifiedMethods $qualifiedMethods -MaxResults $index.fileCount)
+            if (-not $IncludeLexical) { $changedCandidates = @($changedCandidates | Where-Object { $_.confidence -ne 'lexical' }) }
+            foreach ($candidate in @($changedCandidates | Select-Object -First $Limit)) {
                 $allCandidates.Add([pscustomobject]@{
                     changedPath = $changedPath
                     affectedPath = $candidate.path
@@ -753,7 +845,85 @@ switch ($Command) {
             changedCSharpFiles = @($changedPaths | Select-Object -First $Limit)
             changedFilesTruncated = $changedPaths.Count -gt $Limit
             candidates = @($allCandidates | Select-Object -First $Limit)
+            lexicalIncluded = [bool]$IncludeLexical
             bindingCoverage = 'partial'
+        })
+    }
+    'context' {
+        if ([string]::IsNullOrWhiteSpace($Query)) { throw 'context requires -Query.' }
+        $methodDefinitions = @(Get-MethodDefinitions -Index $index -Target $Query)
+        $typeDefinitions = @($index.files | ForEach-Object {
+            $file = $_
+            $_.types | Where-Object { $_.name -eq $Query -or $_.qualifiedName -eq $Query } | ForEach-Object {
+                $type = $_
+                [pscustomobject]@{
+                    path = $file.path
+                    name = $type.name
+                    qualifiedName = $type.qualifiedName
+                    kind = $type.kind
+                    baseTypes = @($type.baseTypes)
+                    startLine = $type.startLine
+                    endLine = $type.endLine
+                    methodCount = @($file.methodDefinitions | Where-Object { $_.declaringType -eq $type.qualifiedName }).Count
+                }
+            }
+        })
+        $targetKind = if ($methodDefinitions.Count -gt 0) { 'method' } elseif ($typeDefinitions.Count -gt 0) { 'type' } else { 'unresolved' }
+        $methodName = if ($Query.Contains('.')) { ($Query -split '\.')[-1] } else { $Query }
+        $qualifiedMethods = @($methodDefinitions | Select-Object -ExpandProperty qualifiedName -Unique)
+        $qualifiedTypes = if ($methodDefinitions.Count -gt 0) { @($methodDefinitions | Select-Object -ExpandProperty declaringType -Unique) } else { @($typeDefinitions | Select-Object -ExpandProperty qualifiedName -Unique) }
+        $definitionPaths = @(@($methodDefinitions | Select-Object -ExpandProperty path) + @($typeDefinitions | Select-Object -ExpandProperty path) | Sort-Object -Unique)
+        $resolvedCallers = @($index.files | ForEach-Object {
+            $file = $_
+            $_.resolvedCalls | Where-Object { $qualifiedMethods -contains $_.targetQualifiedName } | ForEach-Object {
+                [pscustomobject]@{ path = $file.path; target = $_.targetQualifiedName; receiver = $_.receiver; bindingSource = $_.bindingSource }
+            }
+        })
+        $lexicalPaths = @($index.files | Where-Object {
+            ($_.calls -contains $methodName -or $_.identifiers -contains $methodName) -and
+            -not (Test-PortablePathInCollection -Path $_.path -Candidates $definitionPaths) -and
+            -not (Test-PortablePathInCollection -Path $_.path -Candidates @($resolvedCallers | Select-Object -ExpandProperty path))
+        } | Select-Object -ExpandProperty path)
+        $typeReferences = @($index.files | ForEach-Object {
+            $file = $_
+            $matchedTypes = @($file.qualifiedTypeReferences | Where-Object { $qualifiedTypes -contains $_ } | Sort-Object -Unique)
+            if ($matchedTypes.Count -gt 0 -and -not (Test-PortablePathInCollection -Path $file.path -Candidates $definitionPaths)) {
+                [pscustomobject]@{ path = $file.path; referencedTypes = $matchedTypes }
+            }
+        })
+        $sameDefinitionFileLexicalPossible = @($index.files | Where-Object {
+            (Test-PortablePathInCollection -Path $_.path -Candidates $definitionPaths) -and $_.identifiers -contains $methodName
+        }).Count -gt 0
+        $relatedTests = @($index.files | Where-Object {
+            $_.path -match '(?i)(test|tests)' -and (
+                @($_.resolvedCalls | Where-Object { $qualifiedMethods -contains $_.targetQualifiedName }).Count -gt 0 -or
+                @($_.qualifiedTypeReferences | Where-Object { $qualifiedTypes -contains $_ }).Count -gt 0 -or
+                $_.calls -contains $methodName -or $_.identifiers -contains $methodName)
+        } | Select-Object -First 4 -ExpandProperty path)
+        $visibleDefinitions = @()
+        if ($targetKind -eq 'method') { $visibleDefinitions = @($methodDefinitions | Select-Object -First $Limit) }
+        else { $visibleDefinitions = @($typeDefinitions | Select-Object -First $Limit) }
+        Write-Result ([pscustomobject]@{
+            command = 'context'
+            query = $Query
+            targetKind = $targetKind
+            definitions = $visibleDefinitions
+            directResolvedCallers = @($resolvedCallers | Select-Object -First $Limit)
+            resolvedCallerCount = $resolvedCallers.Count
+            directTypeReferences = @($typeReferences | Select-Object -First $Limit)
+            typeReferenceCount = $typeReferences.Count
+            lexicalFallback = [pscustomobject]@{
+                count = $lexicalPaths.Count
+                sample = @($lexicalPaths | Select-Object -First 3)
+                expanded = $false
+                sameDefinitionFileMayContainUnresolvedReferences = $sameDefinitionFileLexicalPossible
+                verification = 'Use exact rg only for unresolved method groups, delegates, reflection, or same-file references.'
+            }
+            relatedTests = $relatedTests
+            recommendedReads = @($(if ($targetKind -eq 'method') { $methodDefinitions } else { $typeDefinitions }) | Select-Object -First $Limit | ForEach-Object {
+                [pscustomobject]@{ path = $_.path; startLine = $_.startLine; endLine = $_.endLine }
+            })
+            bindingCoverage = 'partial; resolved receiver calls and type references are authoritative, method groups and dynamic/reflection calls require lexical verification'
         })
     }
 }

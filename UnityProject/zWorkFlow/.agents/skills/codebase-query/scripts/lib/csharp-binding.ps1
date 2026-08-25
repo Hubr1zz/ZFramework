@@ -68,6 +68,46 @@ function Get-MatchingCSharpBrace {
     return -1
 }
 
+function Get-CSharpLineNumber {
+    param([string]$Text, [int]$Offset)
+
+    if ($Offset -le 0) { return 1 }
+    return 1 + ([regex]::Matches($Text.Substring(0, [Math]::Min($Offset, $Text.Length)), "`n")).Count
+}
+
+function Get-CSharpMethodEnd {
+    param([string]$Text, [int]$StartIndex, [int]$SignatureEndIndex)
+
+    $openParenthesis = $Text.IndexOf('(', $StartIndex)
+    if ($openParenthesis -lt 0) { return $SignatureEndIndex }
+    $depth = 0
+    $closeParenthesis = -1
+    for ($i = $openParenthesis; $i -lt $Text.Length; $i++) {
+        if ($Text[$i] -eq '(') { $depth++ }
+        elseif ($Text[$i] -eq ')') {
+            $depth--
+            if ($depth -eq 0) {
+                $closeParenthesis = $i
+                break
+            }
+        }
+    }
+    if ($closeParenthesis -lt 0) { return $SignatureEndIndex }
+
+    $braceIndex = $Text.IndexOf('{', $closeParenthesis)
+    $semicolonIndex = $Text.IndexOf(';', $closeParenthesis)
+    $expressionIndex = $Text.IndexOf('=>', $closeParenthesis, [StringComparison]::Ordinal)
+    $terminators = @($braceIndex, $semicolonIndex, $expressionIndex | Where-Object { $_ -ge 0 })
+    if ($terminators.Count -eq 0) { return $closeParenthesis }
+    $firstTerminator = @($terminators | Sort-Object | Select-Object -First 1)[0]
+    if ($firstTerminator -ne $braceIndex) {
+        if ($semicolonIndex -ge 0) { return $semicolonIndex }
+        return $firstTerminator
+    }
+    $bodyEnd = Get-MatchingCSharpBrace -Text $Text -OpenIndex $braceIndex
+    return $(if ($bodyEnd -ge 0) { $bodyEnd } else { $braceIndex })
+}
+
 function Resolve-CSharpTypeName {
     param(
         [string]$RawType,
@@ -170,6 +210,7 @@ function New-CSharpFileRecord {
             baseTypes = @()
             bodyStart = $openIndex
             bodyEnd = Get-MatchingCSharpBrace -Text $code -OpenIndex $openIndex
+            startLine = Get-CSharpLineNumber -Text $code -Offset $_.Index
         }
     })
 
@@ -180,22 +221,28 @@ function New-CSharpFileRecord {
             $_.bodyStart -lt $match.Index -and $_.bodyEnd -ge $match.Index
         } | Sort-Object { $_.bodyEnd - $_.bodyStart })
         $declaringType = if ($containingTypes.Count -gt 0) { $containingTypes[0].qualifiedName } else { $null }
+        $methodEnd = Get-CSharpMethodEnd -Text $code -StartIndex $match.Index -SignatureEndIndex ($match.Index + $match.Length)
         $methodDefinitions.Add([pscustomobject]@{
             name = $match.Groups[2].Value
             declaringType = $declaringType
             qualifiedName = if ($declaringType) { "$declaringType.$($match.Groups[2].Value)" } else { $match.Groups[2].Value }
             returnType = $match.Groups[1].Value
+            startLine = Get-CSharpLineNumber -Text $code -Offset $match.Index
+            endLine = Get-CSharpLineNumber -Text $code -Offset $methodEnd
         })
     }
     foreach ($type in $parsedTypes) {
         $constructorPattern = '(?m)^\s*(?:(?:public|private|protected|internal|static|extern|unsafe)\s+)+' + [regex]::Escape($type.name) + '\s*\('
         foreach ($match in [regex]::Matches($code, $constructorPattern)) {
             if ($match.Index -le $type.bodyStart -or $match.Index -gt $type.bodyEnd) { continue }
+            $methodEnd = Get-CSharpMethodEnd -Text $code -StartIndex $match.Index -SignatureEndIndex ($match.Index + $match.Length)
             $methodDefinitions.Add([pscustomobject]@{
                 name = $type.name
                 declaringType = $type.qualifiedName
                 qualifiedName = "$($type.qualifiedName).$($type.name)"
                 returnType = $type.qualifiedName
+                startLine = Get-CSharpLineNumber -Text $code -Offset $match.Index
+                endLine = Get-CSharpLineNumber -Text $code -Offset $methodEnd
             })
         }
     }
@@ -224,6 +271,8 @@ function New-CSharpFileRecord {
             qualifiedName = $_.qualifiedName
             rawBaseTypes = @($_.rawBaseTypes)
             baseTypes = @()
+            startLine = $_.startLine
+            endLine = Get-CSharpLineNumber -Text $code -Offset $_.bodyEnd
         }
     })
 
