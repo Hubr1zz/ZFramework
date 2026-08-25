@@ -39,6 +39,15 @@ title: 远征奖励与营地构筑闭环
 - **WHEN** 玩家在装备 `salt_ward` 后保存并继续战役
 - **THEN** 恢复的猎人 SHALL 拥有一个对应运行时装备实例，并 SHALL 能通过 Settlement ActionQueue 卸下该实例并返还仓库
 
+### Requirement: The restored build changes the next expedition
+
+表驱动装备属性 SHALL 参与下一次狩猎的权威玩法结算，而不只是存档或展示数据。狩猎风险 SHALL 只读取本次已出发且仍存活猎人的运行时装备，并在普通地块提交前由 Hunt ActionQueue 冻结。
+
+#### Scenario: A restored salt ward protects the next expedition
+
+- **WHEN** 装备 `salt_ward` 的单人队伍在继续战役后再次出猎
+- **THEN** 护符的负噪音修正 SHALL 抵消该猎人的一点基础噪音，最终风险 SHALL 不低于零，且未出发或死亡猎人的装备 SHALL NOT 参与结算
+
 ### Requirement: Legacy screen-space settlement UI is not authoritative
 
 正式营地交互 SHALL 以 3D 桌面入口为准；遗留屏幕空间详情若仍存在 SHALL 只读展示，不得持有可绕过 Settlement ActionQueue 的游戏性写接口。

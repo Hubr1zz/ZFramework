@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "expedition-build-progression-loop",
-  "specHash": "abb8490228bc2d14769822ca3bc92d00ee138d926ecdb5e56c4740b6ea4cc92c",
+  "specHash": "17dfba2113c22c3337e1b18dbc03e585dbba31dd2c681ba3d0cd158d66c95cf2",
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "生产内容中的 black_salt 已通过真实远征回营边界进入营地，并经 Settlement ActionQueue 制作、装备、保存、恢复和卸下；遗留屏幕空间营地入口不再持有游戏性写接口。",
-    "validatedAgainstSpecHash": "abb8490228bc2d14769822ca3bc92d00ee138d926ecdb5e56c4740b6ea4cc92c",
+    "summary": "black_salt 通过真实远征回营边界进入营地，经 Settlement ActionQueue 制作、装备、保存与恢复；恢复后的 salt_ward 会在下一次狩猎中通过 Hunt ActionQueue 的风险计划产生实际构筑收益。",
+    "validatedAgainstSpecHash": "17dfba2113c22c3337e1b18dbc03e585dbba31dd2c681ba3d0cd158d66c95cf2",
     "evidence": [
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
@@ -31,23 +31,33 @@
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 1,
-        "fileHash": "ffc505b58c934d958ab41edeb841d27f985f721fbb4067479de776946527a9b0",
+        "fileHash": "0901b10fe61edd5e9ecc29fc5a3cc35a00aef17fbe8d91298301c8cb63794c3e",
         "status": "verified",
-        "checkedAt": "2026-08-24T23:45:06-07:00",
-        "feature": "使用生产表内容和真实 GameManager 公共流程验证奖励、回营、制造、装备、稳定存档恢复与卸装闭环。"
+        "checkedAt": "2026-08-25T00:55:19-07:00",
+        "feature": "使用生产表内容验证奖励、回营、制造、装备、稳定恢复、再次出猎生效与卸装闭环。"
+      },
+      {
+        "guid": "225e7c7bd61caa7459086fbb53fa80e5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
+        "line": 30,
+        "fileHash": "224e84ad0d1704b2e0751c3e7667991c92691853582b26e614a29f3d560a0ee3",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:55:19-07:00",
+        "feature": "把物品表中的有符号狩猎噪音映射到稳定运行时物品。"
       }
     ],
     "tests": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "Unity CLI PlayMode GameManagerCampaignLoopPlayModeTests: 12/12 passed",
-      "Unity CLI targeted settlement EditMode: 17/17 passed"
+      "Unity CLI PlayMode ExpeditionReward_CraftsEquipsAndRestoresStableBuild: 1/1 passed",
+      "Unity CLI targeted equipment and noise EditMode: 27/27 passed"
     ],
-    "verifiedAt": "08/24/2026 23:45:06"
+    "verifiedAt": "08/25/2026 00:55:19"
   },
   "implementationOutline": [
     "狩猎奖励先进入远征携带物，撤退记录通过 Settlement 回营 Action 一次性写入营地并推进年份。",
     "制造使用当前营地工坊拥有的生产配方，装备使用稳定 ContentId，二者均由 Settlement runner 串行提交。",
     "营地事务提交后保存稳定装备 ID；继续战役由内容注册表重建运行时装备实例，并允许精确实例卸装。",
+    "表驱动的 salt_ward 以负噪音修正影响下一次出猎队伍，风险计划仍由 Hunt ActionQueue 在揭图前冻结。",
     "正式写入口保留在 3D 营地桌；遗留屏幕空间详情降级为只读，并移除未被场景引用的旧 HUD。"
   ],
   "sourceReferences": [

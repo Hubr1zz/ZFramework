@@ -20,7 +20,8 @@
       "armorStats": {
         "armorBody": 1
       },
-      "stackLimit": 1
+      "stackLimit": 1,
+      "huntNoise": -1
     }
   ]
 }

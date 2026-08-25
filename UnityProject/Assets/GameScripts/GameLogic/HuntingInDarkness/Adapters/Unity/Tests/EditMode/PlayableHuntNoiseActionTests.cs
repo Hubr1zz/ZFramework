@@ -67,6 +67,19 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async System.Threading.Tasks.Task EquippedItem_AdjustsActionQueueNoisePlan()
+        {
+            using var rig = new NoiseRig(10, false, -1);
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.Target.AxialCoord);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(result.NoiseResolution.Plan.NoiseScore, Is.Zero);
+            Assert.That(result.NoiseResolution.Plan.DangerCardCount, Is.Zero);
+            Assert.That(rig.Presenter.LastRequest.Instruction, Does.Contain("没有危险牌"));
+        }
+
+        [Test]
         public async System.Threading.Tasks.Task MissingNoiseProfile_RejectsOrdinaryReveal()
         {
             using var rig = new NoiseRig(10, false);
@@ -132,7 +145,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             private readonly HunterData hunterTemplate;
 
-            public NoiseRig(int cardValue, bool cancelled)
+            public NoiseRig(int cardValue, bool cancelled, int equipmentNoise = 0)
             {
                 PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
                 PlayableHuntDestination destination = settings.HuntDestinations.GetAvailable(1)[0];
@@ -142,6 +155,15 @@ namespace HuntingInDarkness.Adapter.Tests
                 hunterTemplate = ScriptableObject.CreateInstance<HunterData>();
                 hunterTemplate.hunterName = "噪音测试猎人";
                 var hunter = new HunterInstance(hunterTemplate);
+                if (equipmentNoise != 0)
+                {
+                    ItemData equipment = ScriptableObject.CreateInstance<ItemData>();
+                    equipment.ConfigureContentId("noise-test-equipment");
+                    equipment.itemType = ItemType.Armor;
+                    equipment.ConfigureHuntNoise(equipmentNoise);
+                    hunter.Equipment.Add(new ItemInstance(equipment));
+                    ownedEquipment = equipment;
+                }
                 var settlement = new SettlementInstance();
                 settlement.Hunters.Add(hunter);
                 var eventSystem = new EventSystem(settlement, new SystemRandomSource(27));
@@ -156,10 +178,12 @@ namespace HuntingInDarkness.Adapter.Tests
             public HexTileInstance Target { get; }
             public FixedCardPresenter Presenter { get; }
             public PlayableHuntActionSession Session { get; }
+            private readonly ItemData ownedEquipment;
 
             public void Dispose()
             {
                 Session.Dispose();
+                if (ownedEquipment != null) UnityEngine.Object.DestroyImmediate(ownedEquipment);
                 UnityEngine.Object.DestroyImmediate(hunterTemplate);
             }
         }

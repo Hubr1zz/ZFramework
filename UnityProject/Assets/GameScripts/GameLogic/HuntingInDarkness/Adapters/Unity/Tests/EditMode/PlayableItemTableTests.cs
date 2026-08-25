@@ -31,7 +31,8 @@ namespace HuntingInDarkness.Adapter.Tests
                 itemType = "Consumable",
                 tags = new List<string> { "Stone", "Rare" },
                 keywords = new List<string> { " Ritual ", "ritual" },
-                stackLimit = 0
+                stackLimit = 0,
+                huntNoise = -2
             };
 
             List<ItemData> items = Build(record);
@@ -41,6 +42,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(items[0].tags, Is.EquivalentTo(new[] { ItemTag.Stone, ItemTag.Rare }));
             Assert.That(items[0].keywords, Is.EqualTo(new[] { "ritual" }));
             Assert.That(items[0].stackLimit, Is.EqualTo(1));
+            Assert.That(items[0].HuntNoise, Is.EqualTo(-2));
         }
 
         [Test]
@@ -74,6 +76,18 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(item.itemName, Is.EqualTo("黑盐"));
             Assert.That(item.itemType, Is.EqualTo(ItemType.Resource));
             Assert.That(item.keywords, Does.Contain("ritual"));
+        }
+
+        [Test]
+        public void RuntimeTable_ProvidesQuietingSaltWard()
+        {
+            ItemData item = null;
+            foreach (ItemData candidate in PlayableItemTableRuntime.GetItems())
+                if (candidate != null && candidate.ContentId == "salt_ward")
+                    item = candidate;
+
+            Assert.That(item, Is.Not.Null);
+            Assert.That(item.HuntNoise, Is.EqualTo(-1));
         }
 
         [Test]

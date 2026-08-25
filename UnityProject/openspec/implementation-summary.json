@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "67cd03ec841181145fe8179c603cbe120f02c7a3f672941b197661d281e9c169",
-  "inputManifestDigest": "6fc5e5aa7c38acc168af88e84f235d74e4b08569406cfcc30c3fa05b78297c91",
-  "outputDigest": "aa35d44c7c7bb697339ae6ae4e2e76b00f367ab8e0cebce740b4869952107fa3",
+  "inputDigest": "ecc451d0b4fd5ffaa84a2961c33fc44d2225486b51cd93c5c03d98f48998dc26",
+  "inputManifestDigest": "5615ace9b93d5d99c01d09028dc30cf422b8ce7be207acd3563ab248a219c16a",
+  "outputDigest": "730833c64b87a25f7d6754e177129c01a41a1e965bbb227c76756bc09c79a168",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -116,8 +116,13 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
+      "sha256": "224e84ad0d1704b2e0751c3e7667991c92691853582b26e614a29f3d560a0ee3",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/ItemData.cs",
-      "sha256": "04fab09e2d85191a4b178834e5a356a8a57645493147eb6d49430997d7ed8553",
+      "sha256": "215b0ae2f9380490532ea3811415b7c984449e54cbbcebc3eaec876c29477eac",
       "state": "current"
     },
     {
@@ -142,7 +147,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs",
-      "sha256": "33ef2ef956c655eab351adff0120f1d9f05d756ce20e5c40d6b07808e02dbc59",
+      "sha256": "1cb58a552a64ccf614da083873a373379f6b71ba03385ba91f42b798d2d5a14a",
       "state": "current"
     },
     {
@@ -227,12 +232,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
-      "sha256": "fc65bd46f5a0fd60ca54ec14d92ce28bb7169f396d79d9857bdeea360a8737dd",
+      "sha256": "b44df6d66694a195dcf16dbf65cfffec4fb68fabf5cea5151bf8669041b75ba1",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-      "sha256": "2055b3c6d0201edd045c37853198fc7a5678c4d0a70185e3d660f2df7a41ecb6",
+      "sha256": "88664ac68dbd9c8e89886b3bd92d2e7ae292248aae0388cda0c24c4608de2aa5",
       "state": "current"
     },
     {
@@ -252,7 +257,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "ffc505b58c934d958ab41edeb841d27f985f721fbb4067479de776946527a9b0",
+      "sha256": "0901b10fe61edd5e9ecc29fc5a3cc35a00aef17fbe8d91298301c8cb63794c3e",
       "state": "current"
     },
     {
@@ -282,7 +287,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntNoiseRules.cs",
-      "sha256": "ccc92adab32a8ddc8775510ced630967f3c6a96040c702ed8aa86533ca0007e5",
+      "sha256": "6037a09dc138ef48ce3d52059725d4bd1503190af3e7a0910ac75942af29eddc",
       "state": "current"
     },
     {
@@ -497,12 +502,12 @@
     },
     {
       "path": "openspec/specs/expedition-build-progression-loop/implementation.json",
-      "sha256": "31c1e1843984dc885bb49da8757bbdef4e439a8baecbe00ed2a61c799e8b457a",
+      "sha256": "37961bdc8952b3ed42d25d3537767e776d8c69f9923d158f2c7dc7132e5f2323",
       "state": "current"
     },
     {
       "path": "openspec/specs/expedition-build-progression-loop/spec.md",
-      "sha256": "abb8490228bc2d14769822ca3bc92d00ee138d926ecdb5e56c4740b6ea4cc92c",
+      "sha256": "17dfba2113c22c3337e1b18dbc03e585dbba31dd2c681ba3d0cd158d66c95cf2",
       "state": "current"
     },
     {
@@ -557,12 +562,12 @@
     },
     {
       "path": "openspec/specs/hunt-noise-risk-deck/implementation.json",
-      "sha256": "6c66a8f95c2f7f0bbbda76be98edaa32ea3c431a3d50d9d75f566fae61f2e283",
+      "sha256": "9d44db16e2aadc61f48f887e19eb7c563e02ad4b5d604f5a015a6e82acd51ec1",
       "state": "current"
     },
     {
       "path": "openspec/specs/hunt-noise-risk-deck/spec.md",
-      "sha256": "a27fd6f60e0663dcca66a92f871e7b05d0998deb7b382ad6d4dfd89999c153cb",
+      "sha256": "66e4f6f87234adc34dc3262f69e35886d1ae297f4b67dc25eb2bc62121b01332",
       "state": "current"
     },
     {
@@ -997,13 +1002,13 @@
     }
   ],
   "counts": {
-    "verified": 3,
+    "verified": 4,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
     "unknown": 38,
     "blocked": 0,
-    "stale": 21
+    "stale": 20
   },
   "attentionRequired": [
     "action-environment-lifecycle",
@@ -1023,7 +1028,6 @@
     "hunt-event-resource-staging",
     "hunt-map-generation",
     "hunt-map-presentation-queue",
-    "hunt-noise-risk-deck",
     "hunt-phase-orchestration",
     "hunt-return-outcome-checkpoint",
     "hunt-route-entry-context",
@@ -1190,23 +1194,13 @@
     },
     {
       "capability": "hunt-content-bundle-lifecycle",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
       "state": "stale"
     },
     {
-      "capability": "hunt-noise-risk-deck",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs",
-      "state": "unverified"
-    },
-    {
-      "capability": "hunt-noise-risk-deck",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs",
-      "state": "unverified"
-    },
-    {
-      "capability": "hunt-noise-risk-deck",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntNoiseRules.cs",
-      "state": "unverified"
+      "capability": "hunt-content-bundle-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "state": "stale"
     },
     {
       "capability": "hunt-phase-orchestration",
@@ -1240,6 +1234,11 @@
     },
     {
       "capability": "hunt-route-entry-context",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-route-entry-context",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
     },
@@ -1266,6 +1265,11 @@
     {
       "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "settlement-content-plan-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
       "state": "stale"
     },
     {
@@ -1733,7 +1737,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "生产内容中的 black_salt 已通过真实远征回营边界进入营地，并经 Settlement ActionQueue 制作、装备、保存、恢复和卸下；遗留屏幕空间营地入口不再持有游戏性写接口。",
+      "summary": "black_salt 通过真实远征回营边界进入营地，经 Settlement ActionQueue 制作、装备、保存与恢复；恢复后的 salt_ward 会在下一次狩猎中通过 Hunt ActionQueue 的风险计划产生实际构筑收益。",
       "designSources": [],
       "sources": [
         "openspec/specs/expedition-build-progression-loop/spec.md",
@@ -1751,6 +1755,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
           "state": "current"
         }
       ]
@@ -1813,7 +1821,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -1863,10 +1871,10 @@
       "id": "hunt-noise-risk-deck",
       "label": "狩猎噪音风险牌堆",
       "status": "verified",
-      "effectiveStatus": "stale",
-      "progress": 0,
+      "effectiveStatus": "verified",
+      "progress": 100,
       "verificationStatus": "verified",
-      "summary": "GameCore 规则、Hunt ActionQueue、共享实体抽牌端口、路线内容与 EditMode 回归共同覆盖噪音风险牌堆；普通揭图仅在抽牌成功后提交，取消或非法结果不改变地图。",
+      "summary": "GameCore 以有符号装备修正生成不低于零的风险计划；Hunt ActionQueue 在普通揭图前冻结存活出猎队伍、实体抽牌与事件池，取消或非法结果不会改变地图。",
       "designSources": [],
       "sources": [
         "openspec/specs/hunt-noise-risk-deck/spec.md",
@@ -1876,15 +1884,15 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntNoiseRules.cs",
-          "state": "unverified"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs",
-          "state": "unverified"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs",
-          "state": "unverified"
+          "state": "current"
         }
       ]
     },
@@ -1975,7 +1983,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -2107,7 +2115,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },

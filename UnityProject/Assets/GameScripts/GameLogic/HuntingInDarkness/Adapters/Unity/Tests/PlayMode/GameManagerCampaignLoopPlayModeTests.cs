@@ -14,6 +14,7 @@ using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -160,6 +161,22 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             HunterInstance restoredHunter = restoredManager.SettlementData.GetHunter(hunterId);
             ItemInstance restoredWard = restoredHunter.Equipment.Single(item => item.Data?.ContentId == saltWard.ContentId);
             Assert.That(restoredHunter.EquippedItemIds.Count(itemId => itemId == saltWard.ContentId), Is.EqualTo(1));
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter buildDeparture = restoredManager.DepartForHuntAsync(new[] { hunterId }, GetDestination(restoredManager.SettlementData.CurrentYear)).GetAwaiter();
+            yield return WaitForCompletion(buildDeparture);
+            SettlementDepartureCommandResult buildDepartureResult = buildDeparture.GetResult();
+            Assert.That(buildDepartureResult.Succeeded, Is.True, buildDepartureResult.Reason);
+            HuntManager restoredHuntManager = GetPrivateField<HuntManager>(restoredManager, "_huntMgr");
+            Assert.That(restoredHuntManager.NoiseProfile.TryCreatePlan(restoredManager.ActiveHuntHunters, out NoiseCheckPlan buildNoisePlan), Is.True);
+            Assert.That(buildNoisePlan.NoiseScore, Is.Zero, "盐纹护符应在下一次狩猎中抵消单人队伍的基础噪音。");
+            Assert.That(buildNoisePlan.DangerCardCount, Is.Zero);
+
+            UniTask<HuntRetreatCommandResult>.Awaiter buildRetreat = restoredManager.RequestRetreatAsync().GetAwaiter();
+            yield return WaitForCompletion(buildRetreat);
+            HuntRetreatCommandResult buildRetreatResult = buildRetreat.GetResult();
+            Assert.That(buildRetreatResult.Succeeded, Is.True, buildRetreatResult.Reason);
+            yield return WaitForSettlementIdle(restoredManager);
+
             PlayableSettlementActionSession restoredSession = GetPrivateField<PlayableSettlementActionSession>(restoredManager, "settlementActionSession");
             UniTask<SettlementEquipmentCommandResult>.Awaiter unequip = restoredSession.UnequipItemAsync(hunterId, restoredWard.InstanceId).GetAwaiter();
             yield return WaitForCompletion(unequip);

@@ -13,7 +13,7 @@ title: "狩猎噪音风险牌堆"
 ## Requirements
 
 ### Requirement: Hunt noise produces a bounded risk deck
-Each playable route SHALL define a noise deck. The effective noise score SHALL combine living hunter count, equipped-item noise, and additive Reactor modifiers, while the danger-card count remains within the configured deck and danger limits.
+Each playable route SHALL define a noise deck. The effective noise score SHALL combine living hunter count, signed equipped-item noise modifiers, and additive Reactor modifiers, while the effective score never falls below zero and the danger-card count remains within the configured deck and danger limits.
 
 #### Scenario: A noisy party prepares to reveal an ordinary tile
 - **WHEN** the active Hunt runner evaluates the party before tile commit
@@ -23,6 +23,10 @@ Each playable route SHALL define a noise deck. The effective noise score SHALL c
 #### Scenario: Multiple effects modify noise
 - **WHEN** more than one Reactor contributes a noise modifier
 - **THEN** the modifiers compose additively and the final result remains bounded
+
+#### Scenario: Quiet equipment offsets party noise
+- **WHEN** a living deployed hunter equips an item with a negative noise modifier
+- **THEN** that modifier reduces the frozen risk plan without making its effective noise or danger-card count negative
 
 ### Requirement: Playable routes have valid year-eligible danger content
 A destination SHALL NOT be available unless its route content has an enabled noise profile and at least one unique, stable-ID danger event eligible for the current year.

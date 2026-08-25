@@ -50,7 +50,7 @@ namespace HuntingInDarkness.Hunt
                     {
                         if (item?.Data == null) continue;
                         int count = Math.Max(1, item.Count);
-                        equipmentNoiseValues.Add((int)Math.Min(int.MaxValue, (long)item.Data.HuntNoise * count));
+                        equipmentNoiseValues.Add((int)Math.Max(int.MinValue, Math.Min(int.MaxValue, (long)item.Data.HuntNoise * count)));
                     }
                 }
             plan = HuntNoiseRules.CreatePlan(livingHunterCount, equipmentNoiseValues, new HuntNoiseDefinition(deckSize, baseNoisePerHunter, maxDangerCards));

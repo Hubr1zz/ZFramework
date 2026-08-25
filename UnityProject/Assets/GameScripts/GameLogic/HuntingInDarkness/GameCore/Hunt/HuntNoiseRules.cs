@@ -47,9 +47,9 @@ namespace HuntingInDarkness.GameCore.Hunt
             long equipmentNoise = 0;
             if (equipmentNoiseValues != null)
                 foreach (int value in equipmentNoiseValues)
-                    equipmentNoise = Math.Min(int.MaxValue, equipmentNoise + Math.Max(0, value));
+                    equipmentNoise = SaturatingAdd(equipmentNoise, value);
 
-            int noiseScore = ClampToInt((long)safeHunterCount * definition.BaseNoisePerHunter + equipmentNoise);
+            int noiseScore = ClampToInt(SaturatingAdd((long)safeHunterCount * definition.BaseNoisePerHunter, equipmentNoise));
             int dangerCardCount = Math.Min(noiseScore, Math.Min(definition.MaxDangerCards, definition.DeckSize));
             return new NoiseCheckPlan(noiseScore, dangerCardCount, definition.DeckSize, definition.IsEnabled);
         }
@@ -60,6 +60,13 @@ namespace HuntingInDarkness.GameCore.Hunt
             int noiseScore = ClampToInt((long)plan.NoiseScore + modifier);
             int dangerCardCount = Math.Min(noiseScore, Math.Min(Math.Max(0, maxDangerCards), plan.DeckSize));
             return new NoiseCheckPlan(noiseScore, dangerCardCount, plan.DeckSize, true);
+        }
+
+        private static long SaturatingAdd(long left, long right)
+        {
+            if (right > 0 && left > long.MaxValue - right) return long.MaxValue;
+            if (right < 0 && left < long.MinValue - right) return long.MinValue;
+            return left + right;
         }
 
         private static int ClampToInt(long value) => (int)Math.Max(0L, Math.Min(int.MaxValue, value));

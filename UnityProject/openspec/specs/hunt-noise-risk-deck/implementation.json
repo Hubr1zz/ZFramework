@@ -2,49 +2,61 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "hunt-noise-risk-deck",
-  "specHash": "a27fd6f60e0663dcca66a92f871e7b05d0998deb7b382ad6d4dfd89999c153cb",
+  "specHash": "66e4f6f87234adc34dc3262f69e35886d1ae297f4b67dc25eb2bc62121b01332",
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "GameCore 规则、Hunt ActionQueue、共享实体抽牌端口、路线内容与 EditMode 回归共同覆盖噪音风险牌堆；普通揭图仅在抽牌成功后提交，取消或非法结果不改变地图。",
-    "validatedAgainstSpecHash": "a27fd6f60e0663dcca66a92f871e7b05d0998deb7b382ad6d4dfd89999c153cb",
+    "summary": "GameCore 以有符号装备修正生成不低于零的风险计划；Hunt ActionQueue 在普通揭图前冻结存活出猎队伍、实体抽牌与事件池，取消或非法结果不会改变地图。",
+    "validatedAgainstSpecHash": "66e4f6f87234adc34dc3262f69e35886d1ae297f4b67dc25eb2bc62121b01332",
     "evidence": [
       {
         "guid": "ea2f729a26af71648a0a63ff22ebb51a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntNoiseRules.cs",
-        "line": 1
+        "line": 42,
+        "fileHash": "6037a09dc138ef48ce3d52059725d4bd1503190af3e7a0910ac75942af29eddc",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:55:19-07:00",
+        "feature": "把存活人数与有符号装备修正安全合成为有界风险牌堆。"
       },
       {
         "guid": "ac21caade4403c24c9ccd64315ab02d5",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs",
-        "line": 27
+        "line": 27,
+        "fileHash": "d41ff0535af21d237967170c04e88f0e8cb993fde1503ae0cbe3a059620ea7d4",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:55:19-07:00",
+        "feature": "在地图提交前冻结风险计划并等待共享桌面抽牌结果。"
       },
       {
         "guid": "9e71694e151da1e46b76151a78867a1a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs",
-        "line": 8
+        "line": 37,
+        "fileHash": "1cb58a552a64ccf614da083873a373379f6b71ba03385ba91f42b798d2d5a14a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T00:55:19-07:00",
+        "feature": "只从当前存活出猎猎人的运行时装备投影噪音修正。"
       }
     ],
     "tests": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/HuntNoiseRulesTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntNoiseActionTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs"
+      "Unity CLI targeted EditMode: 27/27 passed"
     ],
-    "verifiedAt": "08/24/2026 00:00:00"
+    "verifiedAt": "08/25/2026 00:55:19"
   },
   "implementationOutline": [
-    "GameCore 将存活队伍、装备噪音和可组合修正投影为有界风险牌堆。",
-    "Hunt Runner 在普通地块提交前冻结年度可用事件池并等待共享 3D 抽牌接口。",
-    "提交节点原子记录地图与噪音结果，再通过 EventBus outbox 发布事实并按权重进入事件链。",
-    "目的地门禁拒绝缺失配置或当前年份没有危险内容的路线。"
+    "GameCore 将存活队伍与有符号装备噪音安全累加，最终风险限制在零、牌堆与危险上限之间。",
+    "Hunt runner 在普通地块提交前冻结当前队伍、年度事件池，并等待共享 3D 抽牌接口。",
+    "动态规则覆盖继续通过 PrepareHuntNoiseAction 的 BeforeExecution Reactor 叠加，不把静态物品属性重复建模为 Reactor。",
+    "内容指纹包含装备噪音，活动狩猎不会静默接受已变化的规则。"
   ],
   "sourceReferences": [
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntNoiseRules.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntNoiseRules.cs:42",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs:27",
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs:8"
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs:37"
   ],
   "publishedBy": {
-    "mode": "legacy-formal-review-migration",
+    "mode": "direct-implementation",
     "changeId": ""
   }
 }

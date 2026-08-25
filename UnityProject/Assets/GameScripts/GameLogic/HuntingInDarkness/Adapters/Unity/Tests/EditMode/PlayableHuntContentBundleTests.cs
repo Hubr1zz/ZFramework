@@ -151,6 +151,11 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(changedRegistry.BundleId, Is.Not.EqualTo(bundle.BundleId));
 
             unreferencedItem.stackLimit = 1;
+            unreferencedItem.ConfigureHuntNoise(-1);
+            Assert.That(PlayableHuntContentBundle.TryCreateSnapshot(catalog, new List<PlayableHuntDestination>(), out PlayableHuntContentBundle changedEquipmentNoise, out reason), Is.True, reason);
+            Assert.That(changedEquipmentNoise.BundleId, Is.Not.EqualTo(bundle.BundleId));
+
+            unreferencedItem.ConfigureHuntNoise(0);
             invention.actionEffects[0].value = 0.2f;
             Assert.That(PlayableHuntContentBundle.TryCreateSnapshot(catalog, new List<PlayableHuntDestination>(), out PlayableHuntContentBundle changedInvention, out reason), Is.True, reason);
             Assert.That(changedInvention.BundleId, Is.Not.EqualTo(bundle.BundleId));
@@ -159,6 +164,7 @@ namespace HuntingInDarkness.Adapter.Tests
             reordered.Dispose();
             changedRule.Dispose();
             changedRegistry.Dispose();
+            changedEquipmentNoise.Dispose();
             changedInvention.Dispose();
         }
 

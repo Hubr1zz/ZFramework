@@ -21,6 +21,18 @@ namespace HuntingInDarkness.GameCore.Tests
         }
 
         [Test]
+        public void CreatePlan_EquipmentCanReduceNoiseWithoutGoingBelowZero()
+        {
+            NoiseCheckPlan quieter = HuntNoiseRules.CreatePlan(3, new[] { -2 }, new HuntNoiseDefinition(12, 1, 5));
+            NoiseCheckPlan silent = HuntNoiseRules.CreatePlan(1, new[] { int.MinValue }, new HuntNoiseDefinition(12, 1, 5));
+
+            Assert.That(quieter.NoiseScore, Is.EqualTo(1));
+            Assert.That(quieter.DangerCardCount, Is.EqualTo(1));
+            Assert.That(silent.NoiseScore, Is.Zero);
+            Assert.That(silent.DangerCardCount, Is.Zero);
+        }
+
+        [Test]
         public void CreatePlan_ClampsDangerCardsToConfiguredLimits()
         {
             NoiseCheckPlan plan = HuntNoiseRules.CreatePlan(10, new[] { 8 }, new HuntNoiseDefinition(4, 3, 20));

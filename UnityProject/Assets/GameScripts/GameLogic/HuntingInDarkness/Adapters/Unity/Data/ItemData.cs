@@ -48,10 +48,10 @@ namespace HuntingInDarkness.Data
         public int stackLimit = 99;
 
         [Header("狩猎")]
-        [SerializeField, Min(0), Tooltip("装备后为每次普通地块揭露增加的队伍噪音；资源与旧内容默认为 0。")]
+        [SerializeField, Tooltip("装备后对每次普通地块揭露的队伍噪音修正；负值降低风险，资源与旧内容默认为 0。")]
         private int huntNoise;
 
-        public int HuntNoise => Mathf.Max(0, huntNoise);
+        public int HuntNoise => huntNoise;
 
         public string ContentId
         {
@@ -65,6 +65,7 @@ namespace HuntingInDarkness.Data
 
         public bool HasExplicitContentId => !string.IsNullOrWhiteSpace(contentId);
         public void ConfigureContentId(string value) => contentId = value?.Trim() ?? string.Empty;
+        public void ConfigureHuntNoise(int value) => huntNoise = value;
 
         /// <summary>是否含有指定词条标签</summary>
         public bool HasTag(ItemTag tag) => tags.Contains(tag);

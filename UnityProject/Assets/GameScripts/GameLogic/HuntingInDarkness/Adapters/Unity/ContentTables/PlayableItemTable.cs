@@ -38,6 +38,7 @@ namespace HuntingInDarkness.ContentTables
         public WeaponStatsTableRecord weaponStats = new();
         public ArmorStatsTableRecord armorStats = new();
         public int stackLimit = 99;
+        public int huntNoise;
 
         public string Id => id;
     }
@@ -160,6 +161,7 @@ namespace HuntingInDarkness.ContentTables
             item.weaponStats = ToWeaponStats(record.weaponStats);
             item.armorStats = ToArmorStats(record.armorStats);
             item.stackLimit = Mathf.Max(1, record.stackLimit);
+            item.ConfigureHuntNoise(record.huntNoise);
             error = string.Empty;
             return true;
         }
