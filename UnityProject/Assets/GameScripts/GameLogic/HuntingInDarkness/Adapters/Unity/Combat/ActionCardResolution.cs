@@ -8,68 +8,6 @@ using HuntingInDarkness.Combat;
 
 namespace Core
 {
-    public interface IAsyncActionQueueAction : IActionQueueAction
-    {
-        UniTask<ActionQueueActionResult> ExecuteAsync(ActionQueue queue);
-    }
-
-    public sealed class DelegateActionQueueAction : IAsyncActionQueueAction
-    {
-        private readonly Func<ActionQueue, UniTask<ActionQueueActionResult>> _execute;
-
-        public string Name { get; }
-
-        public DelegateActionQueueAction(
-            string name,
-            Func<ActionQueue, UniTask<ActionQueueActionResult>> execute)
-        {
-            Name = string.IsNullOrWhiteSpace(name) ? "action" : name;
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-        }
-
-        public UniTask<ActionQueueActionResult> ExecuteAsync(ActionQueue queue) =>
-            _execute(queue);
-    }
-
-    /// <summary>Compatibility-only runner for legacy combat cards. New gameplay uses ActionEnvironment.</summary>
-    [Obsolete("Compatibility-only combat card runner. New gameplay must use ActionEnvironment.")]
-    public sealed class ActionQueueRunner
-    {
-        public async UniTask<ActionQueueStatus> RunAsync(ActionQueue queue)
-        {
-            if (queue == null) throw new ArgumentNullException(nameof(queue));
-            queue.Start();
-
-            while (queue.TryBeginNext(out IActionQueueAction action))
-            {
-                if (!(action is IAsyncActionQueueAction asyncAction))
-                {
-                    queue.CompleteCurrent(ActionQueueActionResult.Failed);
-                    break;
-                }
-
-                queue.Pause();
-                ActionQueueActionResult result;
-                try
-                {
-                    result = await asyncAction.ExecuteAsync(queue);
-                }
-                catch (Exception exception)
-                {
-                    UnityEngine.Debug.LogException(exception);
-                    result = ActionQueueActionResult.Failed;
-                }
-
-                if (queue.Status == ActionQueueStatus.Paused)
-                    queue.Resume();
-                if (queue.Status == ActionQueueStatus.Running)
-                    queue.CompleteCurrent(result);
-            }
-
-            return queue.Status;
-        }
-    }
-
     /// <summary>
     /// Maps prepared card costs to timeline, combat-resource and card-state adapters.
     /// All mutable costs are revalidated as one set immediately before commit.

@@ -147,8 +147,9 @@ BossAttackEffect.ExecuteAsync()
 - `CharacterActionCardData.costs` 集中配置行动卡费用；旧资产未配置列表时继续将 `timePointCost` 映射为时点费用。
 - 运行时费用统一映射为 `ActionCardCostDefinition`，当前支持时点、战斗灵感、意志和“翻转其他卡牌”等特殊费用。
 - `ActionCardCostTransaction` 在全部资源与特殊选择重新校验通过后一次提交；取消选择或目标失效不会执行卡牌效果，也不会留下部分支付。
-- `ActionQueue` 是 GameCore 中的确定性队列状态，支持队首/队尾追加、暂停、恢复、取消与失败短路；`ActionQueueRunner` 在 Unity Adapter 中负责等待输入、攻击管线与动画。
-- 普通出牌、主动恢复和爆发奖励均通过队列顺序结算。攻击与移动效果的权威入口使用 `ExecuteAsync`，不得从 Resolver 以 fire-and-forget 越过未完成步骤。
+- `PlayableCombatSession` 是单场战斗专属管理器，持有角色、Boss、棋盘、卡牌、回合与组合生命周期；它不自行解释队列协议。
+- `PlayableCombatActionSession` 独占 Combat `ActionEnvironment`，把出牌、主动恢复、爆发、玩家回合开始和 Boss 回合转换为根 `GameAction`。费用提交、效果 child、卡牌状态和事实 outbox 在同一因果链中顺序结算，并开放 Reactor/Gate 注入。
+- GameCore 只保存确定性状态和规则，不再定义战斗专用 ActionQueue 或异步 runner。攻击与移动效果的权威入口由 typed `GameAction` 调度，不得从 Resolver 以 fire-and-forget 越过未完成步骤。
 - 基础行动卡仍是 `CharacterConfigSO.startingCards` 配置产生的普通行动卡。包含意志费用的卡自动按意志行动处理：不可爆发、每个玩家回合重置可用状态，但已消耗意志不自动恢复。
 
 ---
@@ -157,7 +158,7 @@ BossAttackEffect.ExecuteAsync()
 
 - GameCore 不引用 UniTask；规则保持同步、确定性，通过返回值/状态表达结果。
 - 等待玩家输入、动画和 Unity 生命周期属于 Adapter / ViewLayer，可继续使用 UniTask。
-- 角色行动卡由 `ActionQueueRunner` 顺序等待 `ExecuteAsync()`；兼容同步入口不得用于推进权威结算。Boss 行动效果使用 `ExecuteAsync()`，由 BossController 顺序等待
+- 角色行动卡和 Boss 行动统一由 Combat `ActionEnvironment` 顺序等待 typed `GameAction`；兼容同步入口不得用于推进权威结算。
 - `CombatTurnFlow` 在 Boss 回合持有完成门禁；只有全部 Boss 效果完成并发出信号后才能返回玩家回合
 - 攻击管线（AttackPipeline）全程 `async UniTask`
 - `RequestSelectTile` 返回 `UniTask<Vector2Int?>`，null = 右键取消

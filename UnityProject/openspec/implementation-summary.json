@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "8a3425437015a63d3e89c994a183e24b4242ec3e1f86e1f050db6b3f47e33664",
-  "inputManifestDigest": "2474fd0e47cb844f2f446f9779a4e177bc97f1b4879859202fb061c9a260fcc1",
-  "outputDigest": "8447b6b0dc2f0d299102378a229f7fe2946d6e180a3ed9430e18c66432a35291",
+  "inputDigest": "cd7d0fe935e882b5910d80b6022624a96a00c52f1151ba335fcae8e7e82bcf7b",
+  "inputManifestDigest": "5ffd3a4842870c65c58407979f5e0d0c1ef623b4b3a665946bb24c97e77e49db",
+  "outputDigest": "aa75a083ffdbe0441ab1caae6d15f7b2f2ac5697fda7415cc02540a9dbe1af70",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -16,6 +16,16 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironment.cs",
+      "sha256": "08d0f1ad592168161ff20d064d9edaa611946374689346eb3ff579d4a8c0e69b",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironmentInstallerRegistry.cs",
+      "sha256": "ba3780f35f32055178857450affd3c2e86adf0ecc5704adb3f94d43ced6410ad",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
       "sha256": "274a35fc475bd42bb82953441cc804e5fccdd9c8678d1c29213b74340c29576a",
       "state": "current"
@@ -23,6 +33,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignLoopContract.cs",
       "sha256": "ca64c6785d9ed19db1786020d35dd9aa0a306a8c97eb696ba9643e36b66d9efd",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Combat/PlayableCombatActionSession.cs",
+      "sha256": "4e188879f5da5ca1e692d0b062669818179134c3bded610e935cebd699f82a52",
       "state": "current"
     },
     {
@@ -48,6 +63,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
       "sha256": "bdba1a6c67383af5067bcb5ff0dcea8901794c1cf574e5738afea9f605929c01",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
+      "sha256": "8a63ac11386f101c7783ef8fc3a7af563a3ef27493f6c543c413bafcf8adae7c",
       "state": "current"
     },
     {
@@ -78,6 +98,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignRuntimeSnapshot.cs",
       "sha256": "279af0c1df800389c8c4f2fe957c37179487200f9b16d4856369a6638cfee804",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableCombatSession.cs",
+      "sha256": "b1312fe3683c91d166fff13c6e548b5471c09c9b5e6daf32dea610f8ba221b11",
       "state": "current"
     },
     {
@@ -236,6 +261,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/HuntingInDarkness.GameCore.asmdef",
+      "sha256": "bc1bcf3c588352e0ed732f224ac9c12cf33122cc8f9aa41031b915d7af4834a2",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HuntReturnRules.cs",
       "sha256": "3fed7b918163ce630a96b46b780776a211dcb2daa8bf8ed0d03ff5e6a1418a9c",
       "state": "current"
@@ -297,8 +327,8 @@
     },
     {
       "path": "openspec/specs/action-environment-lifecycle/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "e8bfe605b8680b2c8c9c7351d566bc0b616149286996641bb35931d0cc5306f9",
+      "state": "current"
     },
     {
       "path": "openspec/specs/action-environment-lifecycle/spec.md",
@@ -907,16 +937,15 @@
     }
   ],
   "counts": {
-    "verified": 0,
+    "verified": 1,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 40,
+    "unknown": 39,
     "blocked": 0,
     "stale": 20
   },
   "attentionRequired": [
-    "action-environment-lifecycle",
     "active-hunt-persistence",
     "campaign-content-cache-lifecycle",
     "campaign-content-preflight-assembly",
@@ -1259,16 +1288,51 @@
     {
       "id": "action-environment-lifecycle",
       "label": "ActionQueue 全生命周期环境",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "Campaign、Settlement、Hunt 与 Combat 各自持有明确生命周期的 ActionEnvironment；Installer Registry 跨环境安装并回滚租约，GameCore 不依赖执行包，战斗命令统一经专属会话进入 Combat Root/Child GameAction。",
+      "designSources": [],
       "sources": [
         "openspec/specs/action-environment-lifecycle/spec.md",
-        "openspec/specs/action-environment-lifecycle/implementation.json"
+        "openspec/specs/action-environment-lifecycle/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironment.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironmentInstallerRegistry.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Combat/PlayableCombatActionSession.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableCombatSession.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/HuntingInDarkness.GameCore.asmdef",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "active-hunt-persistence",

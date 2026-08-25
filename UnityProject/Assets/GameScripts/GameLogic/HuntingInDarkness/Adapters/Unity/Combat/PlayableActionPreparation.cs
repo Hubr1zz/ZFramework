@@ -6,7 +6,6 @@ using Cysharp.Threading.Tasks;
 using GameplayBase;
 using GameplayBase.Card.CharacterActionCard;
 using HuntingInDarkness.ActionFlow;
-using HuntingInDarkness.GameCore.Cards;
 
 namespace HuntingInDarkness.Combat
 {
@@ -32,54 +31,6 @@ namespace HuntingInDarkness.Combat
 
     public static class PlayableActionPreparation
     {
-        public static void EnqueuePreparation(ActionQueue queue, IReadOnlyList<CharacterActionCardEffect> effects, ActionCardContext context)
-        {
-            queue.EnqueueBack(new DelegateActionQueueAction("prepare-effects", async _ =>
-            {
-                try
-                {
-                    foreach (var effect in effects)
-                    {
-                        if (effect is not IPlayablePreparedActionEffect prepared) continue;
-                        prepared.ResetPreparation();
-                        if (!effect.CanExecute(context) || !await prepared.PrepareAsync(context))
-                        {
-                            Reset(effects);
-                            return ActionQueueActionResult.Cancelled;
-                        }
-                    }
-                    return ActionQueueActionResult.Completed;
-                }
-                catch
-                {
-                    Reset(effects);
-                    throw;
-                }
-            }));
-        }
-
-        public static async UniTask<ActionQueueActionResult> ExecuteAsync(CharacterActionCardEffect effect, ActionCardContext context)
-        {
-            if (effect == null) return ActionQueueActionResult.Completed;
-            if (effect is not IPlayablePreparedActionEffect prepared)
-            {
-                if (!effect.CanExecute(context)) return ActionQueueActionResult.Completed;
-                await effect.ExecuteAsync(context);
-                return ActionQueueActionResult.Completed;
-            }
-            if (!prepared.IsPrepared) return ActionQueueActionResult.Failed;
-
-            try
-            {
-                await prepared.ExecutePreparedAsync(context);
-                return ActionQueueActionResult.Completed;
-            }
-            finally
-            {
-                prepared.ResetPreparation();
-            }
-        }
-
         public static void Reset(IReadOnlyList<CharacterActionCardEffect> effects)
         {
             foreach (var effect in effects)

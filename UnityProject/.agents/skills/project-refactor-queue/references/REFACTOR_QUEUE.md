@@ -129,15 +129,15 @@
 - **维护时间**: 2026-08-20
 - **维护备注**: 本阶段只隔离测试日志，不扩大为跨视图材质重构。
 
-### [优先级: 中] 收敛战斗兼容代码中的旧 ActionQueue
+### [已完成] 收敛战斗兼容代码中的旧 ActionQueue
 - **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Cards/ActionQueue.cs`、`Adapters/Unity/Combat/{ActionCardResolution,CardSystem,PlayableActionCardLifecycle}.cs`
 - **类型**: 架构边界 / 兼容代码
-- **描述**: 正式可玩流程已使用 `CardGame.ActionQueue`、分功能 `ActionEnvironment`、Reactor 与提交后 Outbox，但战斗兼容代码仍保留独立的 `HuntingInDarkness.GameCore.Cards.ActionQueue` 和 `Core.ActionQueueRunner`。当前源码调用集中在未被正式组合根创建的旧卡牌 Resolver/生命周期入口；若后续内容误接旧 API，会绕过统一 Reactor、ReactionGate、环境 Installer 与提交后事件边界。应在决战玩法稳定后一次确认 Scene/Prefab/外部程序集引用，删除或改为只委托 `PlayableCombatActionSession`，避免维持两套权威执行器。
+- **描述**: 已删除独立的 `HuntingInDarkness.GameCore.Cards.ActionQueue`、旧 Runner 与无生产调用者的 Resolver/生命周期入口。战斗玩法统一由 `PlayableCombatSession` 管理单场状态和生命周期，由 `PlayableCombatActionSession` 的 Combat `ActionEnvironment` 执行 Root/Child `GameAction`；纯 UI 事件不进入 ActionQueue。
 - **来源**: 2026-08-20 ActionQueue 全生命周期评估
-- **状态**: 待处理
+- **状态**: 已完成
 - **维护人**: codex
-- **维护时间**: 2026-08-20
-- **维护备注**: 用户已暂停决战阶段推进，本阶段仅记录；不要局部迁移单个旧方法造成第三套兼容桥。
+- **维护时间**: 2026-08-24
+- **维护备注**: 本次只收敛高复用战斗流程底座，不推进决战细节；通过战斗 ActionSession、共享 ActionEnvironment 与战斗适配器定向验证。
 
 ### [优先级: 中] 内容表改由 ZFramework 资源模块预加载并注入
 - **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/{PlayableEventTable,PlayableItemTable,PlayableRecipeTable}.cs`、正式 Bootstrap 组合根

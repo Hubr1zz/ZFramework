@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using GameplayBase.CombatSystem;
-using HuntingInDarkness.GameCore.Cards;
 using SO.Boss.ActionCard;
 using UnityEngine;
 
@@ -43,8 +42,6 @@ namespace GameplayBase
         public IGameContext    GameContext;
         public IBoardQuery     BoardQuery;
         public IBoardCommand   BoardCommand;
-        [System.Obsolete("Compatibility-only combat card queue. New effects receive the active CardGame.ActionQueue execution context.")]
-        public ActionQueue ActionQueue;
     }
     
     public class FlipConditionContext

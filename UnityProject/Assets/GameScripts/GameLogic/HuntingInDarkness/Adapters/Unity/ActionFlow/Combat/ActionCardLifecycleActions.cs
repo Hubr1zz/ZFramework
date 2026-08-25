@@ -235,8 +235,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
             {
                 SourceCharacterId = card.OwnerCharacterId,
                 TargetEntityId = card.OwnerCharacterId,
-                GameContext = gameContext,
-                ActionQueue = null
+                GameContext = gameContext
             };
             effects.Clear();
             effectActions.Clear();

@@ -144,8 +144,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
                 TargetEntityId = targetEntityId,
                 GameContext = gameContext,
                 BoardQuery = boardQuery,
-                BoardCommand = boardCommand,
-                ActionQueue = null
+                BoardCommand = boardCommand
             };
 
             ActionCardCostTransaction transaction = await costService.PrepareAsync(card, cancellationToken);

@@ -9,7 +9,6 @@ using GameplayBase.CombatSystem;
 using GameplayBase.Card.Effect;
 using HuntingInDarkness.Combat;
 using HuntingInDarkness.Data;
-using HuntingInDarkness.GameCore.Cards;
 using HuntingInDarkness.GameCore.Combat;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Hunters;
@@ -165,48 +164,6 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(attackCard.faceUpEffects, Has.Count.EqualTo(1));
             Assert.That(attackCard.faceUpEffects[0].CreateRuntime(), Is.TypeOf<PlayablePreparedAttackEffect>());
             Assert.That(attackCard.IsDiscardable, Is.True);
-        }
-
-        [Test]
-        public void PlayableActionPreparation_CancelledSelectionStopsBeforeCommit()
-        {
-            var trace = new List<string>();
-            var effect = new PreparedProbeEffect(false, trace);
-            var queue = new ActionQueue();
-            var context = new ActionCardContext();
-            PlayableActionPreparation.EnqueuePreparation(queue, new CharacterActionCardEffect[] { effect }, context);
-            queue.EnqueueBack(new DelegateActionQueueAction("commit", _ =>
-            {
-                trace.Add("commit");
-                return UniTask.FromResult(ActionQueueActionResult.Completed);
-            }));
-
-            ActionQueueStatus status = new ActionQueueRunner().RunAsync(queue).GetAwaiter().GetResult();
-
-            Assert.That(status, Is.EqualTo(ActionQueueStatus.Cancelled));
-            Assert.That(trace, Is.EqualTo(new[] { "prepare" }));
-        }
-
-        [Test]
-        public void PlayableActionPreparation_SuccessCommitsBeforeStateMutation()
-        {
-            var trace = new List<string>();
-            var effect = new PreparedProbeEffect(true, trace);
-            var queue = new ActionQueue();
-            var context = new ActionCardContext();
-            PlayableActionPreparation.EnqueuePreparation(queue, new CharacterActionCardEffect[] { effect }, context);
-            queue.EnqueueBack(new DelegateActionQueueAction("commit", _ =>
-            {
-                trace.Add("commit");
-                return UniTask.FromResult(ActionQueueActionResult.Completed);
-            }));
-            queue.EnqueueBack(new DelegateActionQueueAction("effect", _ => PlayableActionPreparation.ExecuteAsync(effect, context)));
-
-            ActionQueueStatus status = new ActionQueueRunner().RunAsync(queue).GetAwaiter().GetResult();
-
-            Assert.That(status, Is.EqualTo(ActionQueueStatus.Completed));
-            Assert.That(trace, Is.EqualTo(new[] { "prepare", "commit", "execute" }));
-            Assert.That(effect.IsPrepared, Is.False);
         }
 
         [Test]
@@ -437,41 +394,6 @@ namespace HuntingInDarkness.Adapter.Tests
             var value = ScriptableObject.CreateInstance<T>();
             createdObjects.Add(value);
             return value;
-        }
-
-        private sealed class PreparedProbeEffect : CharacterActionCardEffect, IPlayablePreparedActionEffect
-        {
-            private readonly bool prepareResult;
-            private readonly List<string> trace;
-
-            public override string Description => "Probe";
-            public override TargetType TargetType => TargetType.Self;
-            public bool IsPrepared { get; private set; }
-
-            public PreparedProbeEffect(bool prepareResult, List<string> trace)
-            {
-                this.prepareResult = prepareResult;
-                this.trace = trace;
-            }
-
-            public override bool CanExecute(ActionCardContext context) => true;
-            public override void Execute(ActionCardContext context) { }
-            public override UniTask ExecuteAsync(ActionCardContext context) => ExecutePreparedAsync(context);
-
-            public UniTask<bool> PrepareAsync(ActionCardContext context, CancellationToken cancellationToken = default)
-            {
-                trace.Add("prepare");
-                IsPrepared = prepareResult;
-                return UniTask.FromResult(prepareResult);
-            }
-
-            public UniTask ExecutePreparedAsync(ActionCardContext context, CancellationToken cancellationToken = default)
-            {
-                trace.Add("execute");
-                return UniTask.CompletedTask;
-            }
-
-            public void ResetPreparation() => IsPrepared = false;
         }
 
         private sealed class FirstCardRandom : IRandomSource
