@@ -116,6 +116,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(duplicate.Succeeded, Is.True, duplicate.Reason);
                 Assert.That(duplicate.Applied, Is.False);
                 Assert.That(settlement.GetResource("resource.stone"), Is.EqualTo(11));
+                Assert.That(settlement.HasDiscoveredMaterial("resource.stone"), Is.True);
                 Assert.That(hunter.Age, Is.EqualTo(2));
                 Assert.That(hunter.Collectibles, Is.Empty);
                 Assert.That(settlement.CurrentYear, Is.EqualTo(3));

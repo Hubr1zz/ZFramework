@@ -166,18 +166,19 @@ namespace HuntingInDarkness.GameCore.Settlement
         public static bool IsUnlocked(
             CraftRecipeDefinition recipe,
             Func<string, bool> isInventionUnlocked,
-            Func<string, int> getResource)
+            Func<string, bool> hasDiscoveredMaterial)
         {
             if (recipe == null) return false;
             if (!string.IsNullOrEmpty(recipe.RequiredInventionId) &&
                 !isInventionUnlocked(recipe.RequiredInventionId)) return false;
             if (!recipe.UnlockedByMaterial) return true;
-            return recipe.Ingredients.Any(cost => getResource(cost.ResourceId) > 0);
+            return recipe.Ingredients.Any(cost => hasDiscoveredMaterial(cost.ResourceId));
         }
 
         public static bool CanCraft(
             CraftRecipeDefinition recipe,
             Func<string, bool> isInventionUnlocked,
+            Func<string, bool> hasDiscoveredMaterial,
             Func<string, int> getResource,
             out string reason)
         {
@@ -186,7 +187,7 @@ namespace HuntingInDarkness.GameCore.Settlement
                 reason = "无效配方";
                 return false;
             }
-            if (!IsUnlocked(recipe, isInventionUnlocked, getResource))
+            if (!IsUnlocked(recipe, isInventionUnlocked, hasDiscoveredMaterial))
             {
                 reason = "配方未解锁";
                 return false;

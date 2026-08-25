@@ -161,6 +161,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             {
                 int oldAmount = settlement.GetResource(grant.ResourceId);
                 settlement.AddResource(grant.ResourceId, grant.Amount);
+                settlement.DiscoverMaterial(grant.ResourceId);
                 eventOutbox.Stage(new ResourceChangedEvent { ResourceName = grant.ResourceId, OldAmount = oldAmount, NewAmount = settlement.GetResource(grant.ResourceId) });
             }
         }

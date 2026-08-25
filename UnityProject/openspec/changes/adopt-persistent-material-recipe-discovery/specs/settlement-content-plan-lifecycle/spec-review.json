@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 5,
+  "capability": "settlement-content-plan-lifecycle",
+  "title": "营地内容计划生命周期",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "工坊目录跨 Plan 校验和素材发现 schema 迁移已接入 Campaign 安装预检。",
+    "codeEvidence": [
+      { "guid": "1fe2a038f26904a43830decc79c61546", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableWorkshopCatalog.cs", "fileHash": "99bb322869604ecc3ea3f4e65499fe355abbb881f3dc7747be55a231750bdd55", "line": 55, "feature": "工坊目录与营地内容世代交叉校验", "status": "verified", "checkedAt": "2026-08-25T03:33:56-07:00" }
+    ],
+    "evidence": ["Unity CLI Campaign 内容安装与工坊内容职责簇通过。", "旧正库存素材补种测试通过。"],
+    "differences": ["正式 Spec 的跨表失败关闭尚未明确列出独立工坊目录。"],
+    "verifiedAt": "2026-08-25T03:33:56-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["settlement-workshop-crafting"],
+  "sourceReferences": ["conversation::2026-08-25"],
+  "implementationOutline": ["Campaign 候选发布后、正式运行前验证 WorkshopCatalog 与 SettlementPlan 对象身份和工坊引用。", "内容投影迁移旧素材发现状态并拒绝未来 schema。"],
+  "reviewIssues": [
+    { "id": "ISSUE-MATERIAL-DISCOVERY-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认旧存档从正库存补种素材知识。", "details": "迁移只在旧 schema 执行一次，之后库存归零不删除知识。", "sourceId": "conversation::2026-08-25", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

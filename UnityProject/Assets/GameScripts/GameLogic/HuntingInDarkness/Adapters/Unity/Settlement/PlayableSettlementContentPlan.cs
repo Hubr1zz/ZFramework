@@ -107,7 +107,7 @@ namespace HuntingInDarkness.Settlement
                 reason = "营地管理器为空。";
                 return false;
             }
-            if (manager.Data.ItemIdentitySchemaVersion > PlayableSettlementItemRegistry.CurrentIdentitySchemaVersion || manager.Data.InventionIdentitySchemaVersion > PlayableSettlementInventionRegistry.CurrentIdentitySchemaVersion || manager.Data.TimelineEventIdentitySchemaVersion > PlayableSettlementEventRegistry.CurrentIdentitySchemaVersion || manager.Data.CampaignPacingSchemaVersion > SettlementInstance.CurrentCampaignPacingSchemaVersion || manager.Data.SettlementModifierSchemaVersion > PlayableSettlementModifierRuntime.CurrentSchemaVersion)
+            if (manager.Data.ItemIdentitySchemaVersion > PlayableSettlementItemRegistry.CurrentIdentitySchemaVersion || manager.Data.InventionIdentitySchemaVersion > PlayableSettlementInventionRegistry.CurrentIdentitySchemaVersion || manager.Data.TimelineEventIdentitySchemaVersion > PlayableSettlementEventRegistry.CurrentIdentitySchemaVersion || manager.Data.CampaignPacingSchemaVersion > SettlementInstance.CurrentCampaignPacingSchemaVersion || manager.Data.SettlementModifierSchemaVersion > PlayableSettlementModifierRuntime.CurrentSchemaVersion || manager.Data.MaterialDiscoverySchemaVersion > SettlementInstance.CurrentMaterialDiscoverySchemaVersion)
             {
                 reason = "营地存档 schema 高于当前内容版本。";
                 return false;
@@ -115,6 +115,7 @@ namespace HuntingInDarkness.Settlement
 
             manager.HunterMgmt.ConfigureDeathInspiration(deathInspirationGrowth, deathInspirationMinimumAge);
             PlayableSettlementItemRegistry.MigratePersistentState(manager.Data);
+            MigrateMaterialDiscovery(manager.Data);
             PlayableSettlementInventionRegistry.MigratePersistentState(manager.Data);
             PlayableSettlementEventRegistry.MigratePersistentState(manager.Data);
             manager.Timeline.RandomEventPool = new List<EventData>(RandomEvents);
@@ -138,10 +139,34 @@ namespace HuntingInDarkness.Settlement
                 if (hunter != null)
                     manager.HunterMgmt.AddStartingHunter(hunter.hunterName, hunter);
             foreach (StartingResourceSnapshot resource in startingResources)
+            {
                 manager.Data.AddResource(resource.Item, resource.Amount);
+                manager.Data.DiscoverMaterial(resource.Item.ContentId);
+            }
             SynchronizeExistingRoster(manager);
             reason = manager.Data.Hunters.Count > 0 ? string.Empty : "营地内容没有产生可用的初始猎人。";
             return manager.Data.Hunters.Count > 0;
+        }
+
+        private static void MigrateMaterialDiscovery(SettlementInstance settlement)
+        {
+            settlement.DiscoveredMaterialIds ??= new List<string>();
+            var normalizedIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string materialId in settlement.DiscoveredMaterialIds)
+            {
+                string normalizedId = PlayableSettlementItemRegistry.ResolveContentId(materialId);
+                if (!string.IsNullOrWhiteSpace(normalizedId)) normalizedIds.Add(normalizedId);
+            }
+            if (settlement.MaterialDiscoverySchemaVersion < SettlementInstance.CurrentMaterialDiscoverySchemaVersion)
+                foreach (ResourceEntry resource in settlement.Resources ?? new List<ResourceEntry>())
+                {
+                    string normalizedId = PlayableSettlementItemRegistry.ResolveContentId(resource?.Key);
+                    if (resource != null && resource.Value > 0 && !string.IsNullOrWhiteSpace(normalizedId)) normalizedIds.Add(normalizedId);
+                }
+            var orderedIds = new List<string>(normalizedIds);
+            orderedIds.Sort(StringComparer.Ordinal);
+            settlement.DiscoveredMaterialIds = orderedIds;
+            settlement.MaterialDiscoverySchemaVersion = SettlementInstance.CurrentMaterialDiscoverySchemaVersion;
         }
 
         public void Dispose()

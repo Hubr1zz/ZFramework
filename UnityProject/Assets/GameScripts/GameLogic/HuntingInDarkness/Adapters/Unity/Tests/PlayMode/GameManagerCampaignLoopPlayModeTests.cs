@@ -112,6 +112,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(resourceCommand.TryApply(EventEffectType.AddResource, blackSalt.ContentId, 1, activeHunter, out PlayableEventResourceChange reward, out string rewardReason), Is.True, rewardReason);
             Assert.That(reward.Scope, Is.EqualTo(PlayableEventResourceScope.HuntCollectibles));
             Assert.That(manager.SettlementData.GetResource(blackSalt.ContentId), Is.Zero, "狩猎奖励不得提前写入营地库存。");
+            Assert.That(manager.SettlementData.HasDiscoveredMaterial(blackSalt.ContentId), Is.False, "未回营的携带物不得提前解锁素材知识。");
 
             UniTask<HuntRetreatCommandResult>.Awaiter retreat = manager.RequestRetreatAsync().GetAwaiter();
             yield return WaitForCompletion(retreat);
@@ -120,6 +121,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return WaitForSettlementIdle(manager);
             Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear + 1));
             Assert.That(manager.SettlementData.GetResource(blackSalt.ContentId), Is.EqualTo(1));
+            Assert.That(manager.SettlementData.HasDiscoveredMaterial(blackSalt.ContentId), Is.True);
             Assert.That(manager.SettlementData.PendingHuntReturn, Is.Null);
 
             IReadOnlyList<CraftRecipe> recipes = manager.SettlementRecipes;
@@ -130,6 +132,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(craftResult.Succeeded, Is.True, craftResult.Reason);
             ItemData saltWard = recipe.outputItem;
             Assert.That(manager.SettlementData.GetResource(blackSalt.ContentId), Is.Zero);
+            Assert.That(manager.SettlementData.HasDiscoveredMaterial(blackSalt.ContentId), Is.True, "耗尽素材不得遗忘已发现配方。");
             Assert.That(manager.SettlementData.GetStoredEquipment(saltWard.ContentId), Is.EqualTo(1));
 
             UniTask<SettlementEquipmentCommandResult>.Awaiter equip = manager.EquipItemAsync(hunterId, saltWard).GetAwaiter();
@@ -143,6 +146,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(saved.Settlement.PendingHuntReturn?.RecordId, Is.Null.Or.Empty, "最终存档不得保留有效的回营检查点。");
             Assert.That(saved.Settlement.HuntHistory, Has.Count.EqualTo(1));
             Assert.That(saved.Settlement.GetResource(blackSalt.ContentId), Is.Zero);
+            Assert.That(saved.Settlement.HasDiscoveredMaterial(blackSalt.ContentId), Is.True);
             Assert.That(saved.Settlement.GetStoredEquipment(saltWard.ContentId), Is.Zero);
             Assert.That(saved.Settlement.GetHunter(hunterId).EquippedItemIds.Count(itemId => itemId == saltWard.ContentId), Is.EqualTo(1));
 
@@ -158,6 +162,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return WaitForSettlementIdle(restoredManager);
 
             HunterInstance restoredHunter = restoredManager.SettlementData.GetHunter(hunterId);
+            Assert.That(restoredManager.SettlementData.HasDiscoveredMaterial(blackSalt.ContentId), Is.True);
             ItemInstance restoredWard = restoredHunter.Equipment.Single(item => item.Data?.ContentId == saltWard.ContentId);
             Assert.That(restoredHunter.EquippedItemIds.Count(itemId => itemId == saltWard.ContentId), Is.EqualTo(1));
 

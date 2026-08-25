@@ -355,6 +355,8 @@ namespace HuntingInDarkness.Settlement
 
             if (outcome.ResourceChanged)
             {
+                if (effect.effectType == EventEffectType.AddResource && outcome.NewAmount > outcome.OldAmount)
+                    _settlement.DiscoverMaterial(outcome.ResourceId);
                 EventBus.Publish(new ResourceChangedEvent
                 {
                     ResourceName = outcome.ResourceId,

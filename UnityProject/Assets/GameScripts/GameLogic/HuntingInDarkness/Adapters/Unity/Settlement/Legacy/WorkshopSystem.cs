@@ -43,7 +43,7 @@ namespace HuntingInDarkness.Settlement
             return WorkshopRules.IsUnlocked(
                 ToDefinition(recipe),
                 _settlement.IsInventionUnlocked,
-                _settlement.GetResource);
+                _settlement.HasDiscoveredMaterial);
         }
 
         public bool CanCraft(CraftRecipe recipe, out string reason)
@@ -56,6 +56,7 @@ namespace HuntingInDarkness.Settlement
             return WorkshopRules.CanCraft(
                 ToDefinition(recipe),
                 _settlement.IsInventionUnlocked,
+                _settlement.HasDiscoveredMaterial,
                 _settlement.GetResource,
                 out reason);
         }

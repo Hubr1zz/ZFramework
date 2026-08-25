@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-persistent-material-recipe-discovery",
+  "title": "收养持久素材配方知识",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现与定向验证已完成；本 Change 等待人类确认后再同步正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "Unity 编译、63 项相关 EditMode 测试及黑盐构筑 PlayMode 黄金路径通过。",
+    "codeEvidence": [],
+    "evidence": [
+      "代码索引 v7 测试 32/32，索引覆盖 981/981。",
+      "Unity CLI EditMode 63/63。",
+      "Unity CLI PlayMode 黄金路径 1/1。"
+    ],
+    "differences": [
+      "正式 Spec 尚未明确区分素材知识与当前库存，也未列出工坊目录跨 Plan 校验。"
+    ],
+    "verifiedAt": "2026-08-25T03:33:56-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-MATERIAL-DISCOVERY-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认素材发现是永久战役知识，并接受旧存档从正库存补种。",
+      "details": "批准后同步三个 Delta；若不接受，需要回调素材配方解锁与迁移代码。",
+      "sourceId": "conversation::2026-08-25",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": ["expedition-build-progression-loop", "settlement-workshop-crafting", "settlement-content-plan-lifecycle"],
+  "syncTargets": [
+    { "capability": "expedition-build-progression-loop", "title": "远征奖励与营地构筑闭环", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-persistent-material-recipe-discovery/specs/expedition-build-progression-loop/spec.md", "targetSpecPath": "openspec/specs/expedition-build-progression-loop/spec.md", "targetExisted": true, "baseFileHash": "17dfba2113c22c3337e1b18dbc03e585dbba31dd2c681ba3d0cd158d66c95cf2", "baseSnapshotPath": "" },
+    { "capability": "settlement-workshop-crafting", "title": "营地桌面工坊制作", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-persistent-material-recipe-discovery/specs/settlement-workshop-crafting/spec.md", "targetSpecPath": "openspec/specs/settlement-workshop-crafting/spec.md", "targetExisted": true, "baseFileHash": "b602b9c49d998a6088ad255010ae565211ea335cc5a5153c0ddb38437c58dd0a", "baseSnapshotPath": "" },
+    { "capability": "settlement-content-plan-lifecycle", "title": "营地内容计划生命周期", "category": "architecture", "deltaSpecPath": "openspec/changes/adopt-persistent-material-recipe-discovery/specs/settlement-content-plan-lifecycle/spec.md", "targetSpecPath": "openspec/specs/settlement-content-plan-lifecycle/spec.md", "targetExisted": true, "baseFileHash": "3248aee00ff8611a7ec5f4ca540623392e15d141d3aa9c41d5d9d45d7766738e", "baseSnapshotPath": "" }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "三个正式 Spec 基线哈希已记录，尚未同步。",
+    "changes": ["增加持久素材知识边界。", "增加工坊目录跨内容世代预检。"],
+    "conflicts": [],
+    "validatedAt": "2026-08-25T03:33:56-07:00"
+  },
+  "createdAt": "2026-08-25T03:33:56-07:00"
+}

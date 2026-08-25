@@ -138,6 +138,16 @@ namespace HuntingInDarkness.Bootstrap
                 reason = "狩猎内容 Bundle 尚未发布。";
                 return false;
             }
+            if (WorkshopContent == null)
+            {
+                reason = "工坊内容预检失败：工坊目录为空。";
+                return false;
+            }
+            if (!WorkshopContent.TryValidateAgainst(SettlementPlan.Items, SettlementPlan.Inventions, SettlementPlan.Recipes, out reason))
+            {
+                reason = $"工坊内容预检失败：{reason}";
+                return false;
+            }
             var settlementProbe = new SettlementManager(1979);
             if (!SettlementPlan.TryApplyTo(settlementProbe, out reason))
             {

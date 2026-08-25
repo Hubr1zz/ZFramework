@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.ContentTables;
@@ -285,11 +286,14 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(FindByName(PlayableSettlementItemRegistry.Items, "black_salt"), Is.SameAs(planItem));
             var firstManager = new SettlementManager(101);
             var secondManager = new SettlementManager(202);
+            firstManager.Data.AddResource(planItem, 1);
             Assert.That(PlayableSettlementContentRuntime.TryApplyTo(firstManager), Is.True);
             Assert.That(PlayableSettlementContentRuntime.TryApplyTo(secondManager), Is.True);
             Assert.That(FindByName(PlayableSettlementItemRegistry.Items, "black_salt"), Is.SameAs(planItem));
             Assert.That(firstManager.Data.Hunters, Is.Not.Empty);
             Assert.That(secondManager.Data.Hunters, Is.Not.Empty);
+            Assert.That(firstManager.Data.HasDiscoveredMaterial(planItem.ContentId), Is.True, "旧存档的正库存素材必须补种为已发现知识。");
+            Assert.That(secondManager.Data.Resources.Where(resource => resource != null && resource.Value > 0).All(resource => secondManager.Data.HasDiscoveredMaterial(resource.Key)), Is.True, "初始资源必须立即进入素材知识。 ");
             object huntBundle = typeof(PlayableCampaignContentCandidate).GetProperty("HuntBundle", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(candidate);
             Assert.That(PlayableHuntContentRuntime.CurrentBundle, Is.SameAs(huntBundle));
             Assert.That(PlayableHuntContentRuntime.CurrentBundle.DefaultRoute.IsUsable, Is.True);
@@ -320,6 +324,27 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(manager.Data.CurrentYear, Is.EqualTo(7));
             Assert.That(manager.Data.CampaignPacingSchemaVersion, Is.EqualTo(SettlementInstance.CurrentCampaignPacingSchemaVersion + 1));
             Assert.That(manager.Data.Hunters, Is.Empty);
+            Assert.That(manager.Timeline.RandomEventPool, Is.Empty);
+        }
+
+        [Test]
+        public void PublishedPlan_RejectsFutureMaterialDiscoverySchemaBeforeMutation()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSymptomRuntime.Configure(settings.Symptoms);
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
+            var manager = new SettlementManager(304);
+            manager.Data.CurrentYear = 9;
+            manager.Data.MaterialDiscoverySchemaVersion = SettlementInstance.CurrentMaterialDiscoverySchemaVersion + 1;
+
+            bool applied = PlayableSettlementContentRuntime.TryApplyTo(manager);
+
+            Assert.That(applied, Is.False);
+            Assert.That(manager.Data.CurrentYear, Is.EqualTo(9));
+            Assert.That(manager.Data.MaterialDiscoverySchemaVersion, Is.EqualTo(SettlementInstance.CurrentMaterialDiscoverySchemaVersion + 1));
+            Assert.That(manager.Data.Hunters, Is.Empty);
+            Assert.That(manager.Data.DiscoveredMaterialIds, Is.Empty);
             Assert.That(manager.Timeline.RandomEventPool, Is.Empty);
         }
 

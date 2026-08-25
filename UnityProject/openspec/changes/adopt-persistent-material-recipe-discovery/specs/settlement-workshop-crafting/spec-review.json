@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 5,
+  "capability": "settlement-workshop-crafting",
+  "title": "营地桌面工坊制作",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "配方知识与当前库存已分离，耗尽素材后仍保留配方。",
+    "codeEvidence": [
+      { "guid": "8b25c0de20260714000000000000000a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementRules.cs", "fileHash": "b444c49d154c74e008b7864c71d8ba7cfbec3d78cd4b360b8896c4666c05a075", "line": 166, "feature": "素材知识与制造库存的纯规则分离", "status": "verified", "checkedAt": "2026-08-25T03:33:56-07:00" }
+    ],
+    "evidence": ["Unity CLI EditMode 规则与制造职责簇通过。", "Unity CLI PlayMode 存档恢复后知识保留。"],
+    "differences": ["正式 Spec 尚未定义库存归零后的配方知识。"],
+    "verifiedAt": "2026-08-25T03:33:56-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["expedition-build-progression-loop"],
+  "sourceReferences": ["conversation::2026-08-25"],
+  "implementationOutline": ["WorkshopRules 使用发现谓词决定解锁，使用库存函数决定能否制造。"],
+  "reviewIssues": [
+    { "id": "ISSUE-MATERIAL-DISCOVERY-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认耗尽素材不会遗忘配方。", "details": "配方保持可见，再次制造返回资源不足。", "sourceId": "conversation::2026-08-25", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

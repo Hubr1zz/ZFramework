@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "expedition-build-progression-loop", "label": "远征奖励与营地构筑闭环", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-persistent-material-recipe-discovery/specs/expedition-build-progression-loop/spec.md" },
+    { "id": "settlement-workshop-crafting", "label": "营地桌面工坊制作", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-persistent-material-recipe-discovery/specs/settlement-workshop-crafting/spec.md" },
+    { "id": "settlement-content-plan-lifecycle", "label": "营地内容计划生命周期", "category": "architecture", "readiness": "implemented", "specPath": "openspec/changes/adopt-persistent-material-recipe-discovery/specs/settlement-content-plan-lifecycle/spec.md" }
+  ],
+  "edges": [
+    { "from": "settlement-workshop-crafting", "to": "expedition-build-progression-loop", "type": "supports" },
+    { "from": "settlement-content-plan-lifecycle", "to": "settlement-workshop-crafting", "type": "supports" }
+  ]
+}

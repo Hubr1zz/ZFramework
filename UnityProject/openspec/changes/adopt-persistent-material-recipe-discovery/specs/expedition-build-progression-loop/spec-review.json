@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 5,
+  "capability": "expedition-build-progression-loop",
+  "title": "远征奖励与营地构筑闭环",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "回营提交素材时登记发现，Hunt 携带阶段不登记，黄金路径已验证。",
+    "codeEvidence": [
+      { "guid": "e159b3c1d6bfcce4082b45e63fc28083", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs", "fileHash": "8f36fc3025b3dfd23e35a5620f0dbb105b3bb5d9e3d6d404ca9b652d0f018af0", "line": 296, "feature": "战役级素材知识状态", "status": "verified", "checkedAt": "2026-08-25T03:33:56-07:00" }
+    ],
+    "evidence": ["Unity CLI PlayMode 黑盐构筑闭环 1/1。"],
+    "differences": ["正式 Spec 尚未明确素材发现事实。"],
+    "verifiedAt": "2026-08-25T03:33:56-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["conversation::2026-08-25"],
+  "implementationOutline": ["Settlement 回营 Action 在资源正式进入库存时登记稳定素材 ID。"],
+  "reviewIssues": [
+    { "id": "ISSUE-MATERIAL-DISCOVERY-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认素材发现只在权威营地提交后产生。", "details": "Hunt 携带阶段明确不登记。", "sourceId": "conversation::2026-08-25", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

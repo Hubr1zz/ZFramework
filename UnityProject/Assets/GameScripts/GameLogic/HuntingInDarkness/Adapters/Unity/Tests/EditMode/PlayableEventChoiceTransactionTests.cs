@@ -38,6 +38,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 transaction.Commit();
                 transaction.Commit();
                 Assert.That(settlement.GetResource("碎石"), Is.EqualTo(2));
+                Assert.That(settlement.HasDiscoveredMaterial("碎石"), Is.True);
                 Assert.That(completedCount, Is.Zero);
 
                 transaction.Continue();
@@ -67,6 +68,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(result.Success, Is.False);
                 Assert.That(hunter.Insanity, Is.EqualTo(1));
                 Assert.That(settlement.GetResource("碎石"), Is.Zero);
+                Assert.That(settlement.HasDiscoveredMaterial("碎石"), Is.False);
             }
             finally
             {

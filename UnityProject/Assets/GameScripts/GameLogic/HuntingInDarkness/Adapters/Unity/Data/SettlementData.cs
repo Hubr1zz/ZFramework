@@ -184,6 +184,7 @@ namespace HuntingInDarkness.Data
     public class SettlementInstance
     {
         public const int CurrentCampaignPacingSchemaVersion = 1;
+        public const int CurrentMaterialDiscoverySchemaVersion = 1;
         public const int MaxLegacyHuntsPerYear = 8;
         public const int MaxPendingEventChainOccurrences = 64;
         [Header("内容存档版本")]
@@ -192,6 +193,7 @@ namespace HuntingInDarkness.Data
         public int TimelineEventIdentitySchemaVersion;
         public string TimelineEventIdentityMigrationDiagnostic;
         public int SettlementModifierSchemaVersion;
+        public int MaterialDiscoverySchemaVersion;
 
         [Header("时间线")]
         public int CurrentYear = 1;
@@ -206,6 +208,9 @@ namespace HuntingInDarkness.Data
 
         [Header("资源存储（稳定物品 ID → 数量）")]
         public List<ResourceEntry> Resources = new();
+
+        [Header("已发现素材（稳定物品 ID）")]
+        public List<string> DiscoveredMaterialIds = new();
 
         [Header("装备仓库（稳定物品 ID → 数量）")]
         public List<ResourceEntry> EquipmentStorage = new();
@@ -285,6 +290,21 @@ namespace HuntingInDarkness.Data
             if (item != null) AddResource(item.ContentId, amount);
         }
         public bool SpendResource(ItemData item, int amount) => item != null && SpendResource(item.ContentId, amount);
+
+        public bool HasDiscoveredMaterial(string materialId)
+        {
+            string normalizedId = materialId?.Trim() ?? string.Empty;
+            return normalizedId.Length > 0 && DiscoveredMaterialIds != null && DiscoveredMaterialIds.Exists(id => string.Equals(id?.Trim(), normalizedId, System.StringComparison.Ordinal));
+        }
+
+        public bool DiscoverMaterial(string materialId)
+        {
+            string normalizedId = materialId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 || HasDiscoveredMaterial(normalizedId)) return false;
+            DiscoveredMaterialIds ??= new List<string>();
+            DiscoveredMaterialIds.Add(normalizedId);
+            return true;
+        }
 
         // ─── 发明操作 ─────────────────────────────────────────────
 
