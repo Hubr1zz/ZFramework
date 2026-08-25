@@ -343,9 +343,66 @@
       "category": "architecture",
       "readiness": "implemented",
       "specPath": "openspec/specs/hunt-route-entry-context/spec.md"
+    },
+    {
+      "id": "expedition-build-progression-loop",
+      "label": "远征奖励与营地构筑闭环",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/expedition-build-progression-loop/spec.md"
     }
   ],
   "edges": [
+    {
+      "id": "expedition-build-progression-loop--requires--tabletop-hunt-retreat",
+      "from": "expedition-build-progression-loop",
+      "to": "tabletop-hunt-retreat",
+      "type": "requires",
+      "status": "defined",
+      "reason": "远征奖励必须通过可靠回营记录一次性转入营地并推进年份",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "expedition-build-progression-loop--requires--table-driven-hunt-events",
+      "from": "expedition-build-progression-loop",
+      "to": "table-driven-hunt-events",
+      "type": "requires",
+      "status": "defined",
+      "reason": "可获得的远征奖励使用表驱动事件效果和稳定资源 ContentId",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "expedition-build-progression-loop--requires--table-driven-crafting-content",
+      "from": "expedition-build-progression-loop",
+      "to": "table-driven-crafting-content",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地构筑使用当前内容计划拥有的表驱动配方和物品身份",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "expedition-build-progression-loop--requires--tabletop-settlement-equipment",
+      "from": "expedition-build-progression-loop",
+      "to": "tabletop-settlement-equipment",
+      "type": "requires",
+      "status": "defined",
+      "reason": "制造产物通过 3D 营地装备意图和 Settlement ActionQueue 进入猎人构筑",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "expedition-build-progression-loop--requires--campaign-persistence",
+      "from": "expedition-build-progression-loop",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "稳定装备 ID、年度结果和已清除回营检查点必须跨继续战役恢复",
+      "gapId": "",
+      "blocksImplementation": false
+    },
     {
       "id": "hunt-content-bundle-lifecycle--requires--campaign-content-preflight-assembly",
       "from": "hunt-content-bundle-lifecycle",

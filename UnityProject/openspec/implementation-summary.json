@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "1eb54f07b25196d9d7b6a84e50f36f03716339457bebae83d6a64378a3d5aee6",
-  "inputManifestDigest": "e96f63ba3c0447279be4197b79dbdd931b8c871da3e10da3009aa899cc726284",
-  "outputDigest": "3b7b220df67a50b26a3e5eb0ed5cf1080ed24c43273cf1284430e83f24d3b1e2",
+  "inputDigest": "4dab6d2f08eaa3c1a4ebd7939f7cfa0318af164f1a05412b66c831b7cf6399f8",
+  "inputManifestDigest": "6cfa92bc989b2b6ea171b965e2681ed243397603b837f63acae29a140676bac2",
+  "outputDigest": "028768ce89f721011f5e4a0e078e8234b4778e129060aac276d329cdf9978c15",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -73,6 +73,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs",
       "sha256": "b997d4659b46766b4dea1d09d60a3c5315e679ace45f37f50472e8fd7ee6a3fd",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs",
+      "sha256": "6ddc25caa38dfb629f80b1087c81479485b7e7e6432d7c51d6658d1ce035ad3f",
       "state": "current"
     },
     {
@@ -237,7 +242,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "9ad6f6cf2d8090ff9f3b5cadb0cfc3ad579103ee737ba3050e205586aebff809",
+      "sha256": "ffc505b58c934d958ab41edeb841d27f985f721fbb4067479de776946527a9b0",
       "state": "current"
     },
     {
@@ -247,7 +252,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "18d4448b84e84dae48217fa7fcbc6ad295488b92d73a4b7aaa2590c2e4561e64",
+      "sha256": "26a6feda350c60e9d6ed817f0ef354c8a335a65e35508d0b1f6c353d1985374d",
       "state": "current"
     },
     {
@@ -322,7 +327,7 @@
     },
     {
       "path": "openspec/spec-metadata/dependencies.json",
-      "sha256": "779e55e6d36488cbbbc2383f0f59194c9e148de75a7e418014bc9938ff1bfa0d",
+      "sha256": "d89792626d3d7d56cf0bf12e80190b6678b021f563ebb36b913caaf8f232f036",
       "state": "current"
     },
     {
@@ -443,6 +448,16 @@
     {
       "path": "openspec/specs/event-occurrence-checkpoint-core/spec.md",
       "sha256": "f6fa640b014bc7e098e11fdb6d6763373886759f03842db9513f02493b35880c",
+      "state": "current"
+    },
+    {
+      "path": "openspec/specs/expedition-build-progression-loop/implementation.json",
+      "sha256": "31c1e1843984dc885bb49da8757bbdef4e439a8baecbe00ed2a61c799e8b457a",
+      "state": "current"
+    },
+    {
+      "path": "openspec/specs/expedition-build-progression-loop/spec.md",
+      "sha256": "abb8490228bc2d14769822ca3bc92d00ee138d926ecdb5e56c4740b6ea4cc92c",
       "state": "current"
     },
     {
@@ -937,7 +952,7 @@
     }
   ],
   "counts": {
-    "verified": 1,
+    "verified": 2,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
@@ -1610,6 +1625,35 @@
         "openspec/specs/event-occurrence-checkpoint-core/implementation.json"
       ],
       "evidence": []
+    },
+    {
+      "id": "expedition-build-progression-loop",
+      "label": "远征奖励与营地构筑闭环",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "生产内容中的 black_salt 已通过真实远征回营边界进入营地，并经 Settlement ActionQueue 制作、装备、保存、恢复和卸下；遗留屏幕空间营地入口不再持有游戏性写接口。",
+      "designSources": [],
+      "sources": [
+        "openspec/specs/expedition-build-progression-loop/spec.md",
+        "openspec/specs/expedition-build-progression-loop/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
+      ],
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "game-manager-orchestration",

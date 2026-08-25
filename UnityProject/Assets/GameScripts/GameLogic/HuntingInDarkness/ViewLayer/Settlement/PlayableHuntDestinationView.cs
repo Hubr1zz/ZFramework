@@ -16,7 +16,6 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private readonly List<int> pendingHunterIds = new();
         private readonly List<PlayableHuntDestination> availableDestinations = new();
         private GameManager manager;
-        private PlayableSettlementHud settlementHud;
         private PlayableHuntDestinationCatalog catalog;
         private TabletopHuntDeparturePanel3D panel;
         private UI.SettlementTable3D settlementTable;
@@ -28,13 +27,10 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         public bool IsPresenting => panel != null && panel.IsOpen;
         public TabletopHuntDeparturePanel3D ActivePanel => panel;
 
-        public void Initialize(GameManager gameManager, PlayableSettlementHud hud, PlayableHuntDestinationCatalog destinationCatalog)
+        public void Initialize(GameManager gameManager, PlayableHuntDestinationCatalog destinationCatalog)
         {
             manager = gameManager;
-            settlementHud = hud;
             catalog = destinationCatalog;
-            if (settlementHud != null)
-                settlementHud.DepartureRequested += RequestDepartureFromHud;
             manager?.SetPlayableHuntDepartureInput(this);
         }
 
@@ -55,8 +51,6 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             panel.PresentSquad(GetPanelAnchor(), hunters, pendingHunterIds, OpenDestinations, Close);
             HideSettlementTable();
         }
-
-        private void RequestDepartureFromHud(List<int> hunterIds) => RequestDeparture(hunterIds);
 
         private void OpenDestinations(IReadOnlyList<int> hunterIds)
         {
@@ -188,8 +182,6 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private void OnDestroy()
         {
             requestInFlight = false;
-            if (settlementHud != null)
-                settlementHud.DepartureRequested -= RequestDepartureFromHud;
             manager?.ClearPlayableHuntDepartureInput(this);
             panel?.Close();
             RestoreSettlementTable();

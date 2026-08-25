@@ -1,5 +1,4 @@
 using HuntingInDarkness.Data;
-using HuntingInDarkness.Settlement;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +6,7 @@ using UnityEngine.UI;
 namespace UI.Settlement
 {
     /// <summary>
-    /// 猎人详情面板：查看属性、管理装备。
+    /// 猎人详情面板：只读查看属性与装备；装备操作由世界空间 3D 装备桌负责。
     ///
     /// 面板骨架（背景 / 头部 / 属性文本 / 装备滚动容器 / 关闭按钮）在 Prefab 中预先搭好，
     /// 引用通过 Inspector 注入；装备行按数据实例化 <see cref="HunterEquipmentSlotView"/> 模板。
@@ -28,7 +27,6 @@ namespace UI.Settlement
         [SerializeField] private int _equipmentSlotCount = 10;              // 装备格数量上限
 
         private HunterInstance    _hunter;
-        private SettlementManager _mgr;
 
         private void Awake()
         {
@@ -36,10 +34,9 @@ namespace UI.Settlement
                 _closeButton.onClick.AddListener(() => OnClose?.Invoke());
         }
 
-        public void Show(HunterInstance hunter, SettlementManager mgr)
+        public void Show(HunterInstance hunter)
         {
             _hunter = hunter;
-            _mgr    = mgr;
             Refresh();
         }
 
@@ -72,7 +69,7 @@ namespace UI.Settlement
             for (int i = 0; i < _equipmentSlotCount; i++)
             {
                 var slot = Instantiate(_equipSlotPrefab, _equipContent);
-                slot.Bind(i, _hunter, _mgr, RefreshEquipment);
+                slot.Bind(i, _hunter);
             }
         }
     }

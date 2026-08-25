@@ -1286,9 +1286,6 @@ namespace Core
         public CardGame.ActionQueue.ReactorRegistry CampaignActionReactors => campaignStarted ? campaignActionSession?.Reactors : null;
         public CardGame.ActionQueue.ReactorRegistry HuntActionReactors => huntActionSession?.Reactors;
         public IHuntExplorationPort ActiveHuntExplorationPort => campaignStarted && CurrentGamePhase == GamePhase.Hunt && huntExplorationRuntime?.IsActive == true ? huntExplorationRuntime.Port : null;
-        public InventionSystem SettlementInventions => campaignStarted ? _settlementManager?.Inventions : null;
-        public WorkshopSystem SettlementWorkshop => campaignStarted ? _settlementManager?.Workshop : null;
-        public HunterManagementSystem SettlementHunters => campaignStarted ? _settlementManager?.HunterMgmt : null;
         public event System.Action<EventData, HunterInstance> SettlementEventPresented;
         public event System.Action<bool> SettlementProgressLoadCompleted;
 
@@ -1589,16 +1586,6 @@ namespace Core
                 Debug.LogWarning($"[GameManager] 营地事件链未完成：{result.Reason}");
         }
 
-        public void ResolveSettlementNarrative(EventData gameEvent)
-        {
-            if (campaignStarted)
-                _settlementManager?.Events.ResolveNarrative(gameEvent);
-        }
-
-        public EventResolutionResult ResolveSettlementChoice(EventData gameEvent, int optionIndex, HunterInstance hunter = null) => campaignStarted && _settlementManager != null ? _settlementManager.Events.ResolveChoice(gameEvent, optionIndex, hunter) : default;
-
-        public PlayableEventChoiceTransaction PrepareSettlementChoice(EventData gameEvent, int optionIndex, HunterInstance hunter = null) => campaignStarted ? _settlementManager?.Events.PrepareChoice(gameEvent, optionIndex, hunter) : null;
-
         public void SaveSettlementProgress()
         {
             if (campaignStarted)
@@ -1693,14 +1680,6 @@ namespace Core
             if (settlementActionSession == null || !settlementActionSession.IsActive)
                 return UniTask.FromResult(RecoverHunterCommandResult.Failed("仅可在营地阶段休养。"));
             return settlementActionSession.RecoverHunterAsync(hunterId, bodyPart);
-        }
-
-        public bool TrySpendHunterGrowth(int hunterId, HunterGrowthChoice choice)
-        {
-            if (!campaignStarted) return false;
-            if (!PlayableHunterAdvancementAdapter.TrySpendGrowth(_settlementManager?.Data.GetHunter(hunterId), choice)) return false;
-            SaveSettlementProgress();
-            return true;
         }
 
         public UniTask<HunterGrowthCommandResult> SpendHunterGrowthAsync(int hunterId, HunterGrowthChoice choice)

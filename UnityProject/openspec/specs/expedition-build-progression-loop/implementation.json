@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "expedition-build-progression-loop",
+  "specHash": "abb8490228bc2d14769822ca3bc92d00ee138d926ecdb5e56c4740b6ea4cc92c",
+  "codeReadiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "生产内容中的 black_salt 已通过真实远征回营边界进入营地，并经 Settlement ActionQueue 制作、装备、保存、恢复和卸下；遗留屏幕空间营地入口不再持有游戏性写接口。",
+    "validatedAgainstSpecHash": "abb8490228bc2d14769822ca3bc92d00ee138d926ecdb5e56c4740b6ea4cc92c",
+    "evidence": [
+      {
+        "guid": "551fe81197a6ca545a686a0c536f2646",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+        "line": 1,
+        "fileHash": "26a6feda350c60e9d6ed817f0ef354c8a335a65e35508d0b1f6c353d1985374d",
+        "status": "verified",
+        "checkedAt": "2026-08-24T23:45:06-07:00",
+        "feature": "组合根只向 3D 营地桌绑定 Settlement runner 命令，并移除可直接取得遗留可变系统的公开旁路。"
+      },
+      {
+        "guid": "c6c33c3c6c4846ea8f3f33df45de9ad2",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs",
+        "line": 1,
+        "fileHash": "6ddc25caa38dfb629f80b1087c81479485b7e7e6432d7c51d6658d1ce035ad3f",
+        "status": "verified",
+        "checkedAt": "2026-08-24T23:45:06-07:00",
+        "feature": "装备与卸装在 Action 内原子维护仓库、运行时实例及稳定 ContentId，并提交事务事实。"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "line": 1,
+        "fileHash": "ffc505b58c934d958ab41edeb841d27f985f721fbb4067479de776946527a9b0",
+        "status": "verified",
+        "checkedAt": "2026-08-24T23:45:06-07:00",
+        "feature": "使用生产表内容和真实 GameManager 公共流程验证奖励、回营、制造、装备、稳定存档恢复与卸装闭环。"
+      }
+    ],
+    "tests": [
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "Unity CLI PlayMode GameManagerCampaignLoopPlayModeTests: 12/12 passed",
+      "Unity CLI targeted settlement EditMode: 17/17 passed"
+    ],
+    "verifiedAt": "08/24/2026 23:45:06"
+  },
+  "implementationOutline": [
+    "狩猎奖励先进入远征携带物，撤退记录通过 Settlement 回营 Action 一次性写入营地并推进年份。",
+    "制造使用当前营地工坊拥有的生产配方，装备使用稳定 ContentId，二者均由 Settlement runner 串行提交。",
+    "营地事务提交后保存稳定装备 ID；继续战役由内容注册表重建运行时装备实例，并允许精确实例卸装。",
+    "正式写入口保留在 3D 营地桌；遗留屏幕空间详情降级为只读，并移除未被场景引用的旧 HUD。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs:280"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation",
+    "changeId": ""
+  }
+}

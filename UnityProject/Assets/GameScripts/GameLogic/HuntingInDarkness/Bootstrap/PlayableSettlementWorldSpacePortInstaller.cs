@@ -12,7 +12,7 @@ namespace HuntingInDarkness.Bootstrap
             if (host == null) return;
 
             PlayableHuntDestinationView destinationView = host.GetComponent<PlayableHuntDestinationView>() ?? host.AddComponent<PlayableHuntDestinationView>();
-            destinationView.Initialize(manager, null, settings?.HuntDestinations);
+            destinationView.Initialize(manager, settings?.HuntDestinations);
 
             PlayableSettlementEventView eventView = host.GetComponent<PlayableSettlementEventView>() ?? host.AddComponent<PlayableSettlementEventView>();
             eventView.Initialize(manager);

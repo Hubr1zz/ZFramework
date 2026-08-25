@@ -91,6 +91,85 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator ExpeditionReward_CraftsEquipsAndRestoresStableBuild()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            yield return WaitForSettlementIdle(manager);
+            int initialYear = manager.SettlementData.CurrentYear;
+            int hunterId = manager.SettlementData.GetAliveHunters()[0].InstanceId;
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { hunterId }, GetDestination(initialYear)).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            SettlementDepartureCommandResult departureResult = departure.GetResult();
+            Assert.That(departureResult.Succeeded, Is.True, departureResult.Reason);
+
+            HuntManager huntManager = GetPrivateField<HuntManager>(manager, "_huntMgr");
+            ItemData blackSalt = PlayableSettlementItemRegistry.Items.Single(item => item.ContentId == "black_salt");
+            HunterInstance activeHunter = manager.ActiveHuntHunters.Single(hunter => hunter.InstanceId == hunterId);
+            var resourceCommand = new HuntEventResourceCommand(huntManager);
+            Assert.That(resourceCommand.TryApply(EventEffectType.AddResource, blackSalt.ContentId, 1, activeHunter, out PlayableEventResourceChange reward, out string rewardReason), Is.True, rewardReason);
+            Assert.That(reward.Scope, Is.EqualTo(PlayableEventResourceScope.HuntCollectibles));
+            Assert.That(manager.SettlementData.GetResource(blackSalt.ContentId), Is.Zero, "狩猎奖励不得提前写入营地库存。");
+
+            UniTask<HuntRetreatCommandResult>.Awaiter retreat = manager.RequestRetreatAsync().GetAwaiter();
+            yield return WaitForCompletion(retreat);
+            HuntRetreatCommandResult retreatResult = retreat.GetResult();
+            Assert.That(retreatResult.Succeeded, Is.True, retreatResult.Reason);
+            yield return WaitForSettlementIdle(manager);
+            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear + 1));
+            Assert.That(manager.SettlementData.GetResource(blackSalt.ContentId), Is.EqualTo(1));
+            Assert.That(manager.SettlementData.PendingHuntReturn, Is.Null);
+
+            IReadOnlyList<CraftRecipe> recipes = GetPrivateField<SettlementManager>(manager, "_settlementManager").Workshop.AllRecipes;
+            CraftRecipe recipe = recipes.Single(candidate => candidate.outputItem?.ContentId == "salt_ward" && candidate.ingredients.Any(ingredient => ingredient.item?.ContentId == blackSalt.ContentId));
+            UniTask<SettlementCraftCommandResult>.Awaiter craft = manager.CraftAsync(recipe).GetAwaiter();
+            yield return WaitForCompletion(craft);
+            SettlementCraftCommandResult craftResult = craft.GetResult();
+            Assert.That(craftResult.Succeeded, Is.True, craftResult.Reason);
+            ItemData saltWard = recipe.outputItem;
+            Assert.That(manager.SettlementData.GetResource(blackSalt.ContentId), Is.Zero);
+            Assert.That(manager.SettlementData.GetStoredEquipment(saltWard.ContentId), Is.EqualTo(1));
+
+            PlayableSettlementActionSession settlementSession = GetPrivateField<PlayableSettlementActionSession>(manager, "settlementActionSession");
+            UniTask<SettlementEquipmentCommandResult>.Awaiter equip = settlementSession.EquipItemAsync(hunterId, saltWard).GetAwaiter();
+            yield return WaitForCompletion(equip);
+            SettlementEquipmentCommandResult equipResult = equip.GetResult();
+            Assert.That(equipResult.Succeeded, Is.True, equipResult.Reason);
+            yield return WaitForPersistedEquipment(persistence, hunterId, saltWard.ContentId);
+
+            CampaignSnapshot saved = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+            Assert.That(saved.Settlement.CurrentYear, Is.EqualTo(initialYear + 1));
+            Assert.That(saved.Settlement.PendingHuntReturn?.RecordId, Is.Null.Or.Empty, "最终存档不得保留有效的回营检查点。");
+            Assert.That(saved.Settlement.HuntHistory, Has.Count.EqualTo(1));
+            Assert.That(saved.Settlement.GetResource(blackSalt.ContentId), Is.Zero);
+            Assert.That(saved.Settlement.GetStoredEquipment(saltWard.ContentId), Is.Zero);
+            Assert.That(saved.Settlement.GetHunter(hunterId).EquippedItemIds.Count(itemId => itemId == saltWard.ContentId), Is.EqualTo(1));
+
+            persistence.SnapshotToLoad = saved;
+            Object.Destroy(managerObject);
+            managerObject = null;
+            yield return null;
+            GameManager restoredManager = CreateProductionManager(persistence, true);
+            UniTask<CampaignStartupResult>.Awaiter restore = restoredManager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(restore);
+            CampaignStartupResult restoreResult = restore.GetResult();
+            Assert.That(restoreResult.Succeeded, Is.True, restoreResult.Reason);
+            yield return WaitForSettlementIdle(restoredManager);
+
+            HunterInstance restoredHunter = restoredManager.SettlementData.GetHunter(hunterId);
+            ItemInstance restoredWard = restoredHunter.Equipment.Single(item => item.Data?.ContentId == saltWard.ContentId);
+            Assert.That(restoredHunter.EquippedItemIds.Count(itemId => itemId == saltWard.ContentId), Is.EqualTo(1));
+            PlayableSettlementActionSession restoredSession = GetPrivateField<PlayableSettlementActionSession>(restoredManager, "settlementActionSession");
+            UniTask<SettlementEquipmentCommandResult>.Awaiter unequip = restoredSession.UnequipItemAsync(hunterId, restoredWard.InstanceId).GetAwaiter();
+            yield return WaitForCompletion(unequip);
+            SettlementEquipmentCommandResult unequipResult = unequip.GetResult();
+            Assert.That(unequipResult.Succeeded, Is.True, unequipResult.Reason);
+            Assert.That(restoredManager.SettlementData.GetStoredEquipment(saltWard.ContentId), Is.EqualTo(1));
+            Assert.That(restoredHunter.EquippedItemIds, Does.Not.Contain(saltWard.ContentId));
+        }
+
+        [UnityTest]
         public IEnumerator ExplorationPort_CompletesTabletopRevealMoveHarvestReturnAndRejectsStaleSession()
         {
             var persistence = new MemoryCampaignPersistence();
@@ -569,6 +648,19 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 yield return null;
             }
             Assert.Fail("等待活动狩猎检查点持久化超时。");
+        }
+
+        private static IEnumerator WaitForPersistedEquipment(MemoryCampaignPersistence persistence, int hunterId, string itemId)
+        {
+            for (int frame = 0; frame < FrameTimeout; frame++)
+            {
+                CampaignSnapshot snapshot = string.IsNullOrWhiteSpace(persistence.Payload) ? null : JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+                HunterInstance hunter = snapshot?.Settlement?.GetHunter(hunterId);
+                if (hunter?.EquippedItemIds?.Count(candidate => candidate == itemId) == 1 && snapshot.Settlement.GetStoredEquipment(itemId) == 0)
+                    yield break;
+                yield return new WaitForFixedUpdate();
+            }
+            Assert.Fail($"等待装备 {itemId} 的营地检查点持久化超时。");
         }
 
         private static IEnumerator WaitForSettlementIdle(GameManager manager)

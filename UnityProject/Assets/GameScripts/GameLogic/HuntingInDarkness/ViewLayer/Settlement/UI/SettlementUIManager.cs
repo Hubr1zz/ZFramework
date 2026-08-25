@@ -85,7 +85,7 @@ namespace UI.Settlement
             _panelOverlay.SetActive(true);
             HideAllPanels();
             _detailPanel.gameObject.SetActive(true);
-            _detailPanel.Show(hunter, _settlementMgr);
+            _detailPanel.Show(hunter);
         }
 
         /// <summary>由 SettlementTable3D 的出发卡点击触发：展示队伍并询问确认。</summary>
