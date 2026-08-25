@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "hunt-map-generation",
+  "specHash": "ce26e78d957d6ba941cd28edf5add3e0ca186115a175288543d80b2d98bd8256",
+  "title": "狩猎地图生成",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "GameCore 以权重填满配置半径内的轴向坐标，先保留起始地块，再按相邻或分散规则放置成组地形；Unity Adapter 完整映射生成字段并只投影权威地图状态。",
+    "validatedAgainstSpecHash": "ce26e78d957d6ba941cd28edf5add3e0ca186115a175288543d80b2d98bd8256",
+    "evidence": [
+      {
+        "guid": "8b25c0de202607140000000000000005",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntMapRules.cs",
+        "line": 9,
+        "fileHash": "9a894a293a9e00af41ba13a076f4d1a0a836f2a2477f7c7ebb584959b25ecb8e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "生成完整径向坐标、预留原点、保持成组地形并初始化可交互邻居。"
+      },
+      {
+        "guid": "92a58d5a73847d7439d9f84c9fb4518d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HexMapGenerator.cs",
+        "line": 15,
+        "fileHash": "98c571ced5800921e24afeb21d621b9cff5f78b59e2b10259a1891aa5cf04484",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "把 HexTileData 映射为 GameCore 定义，并将生成结果附着到 Unity 地块实例。"
+      },
+      {
+        "guid": "0d25335dd52dca34c810d641f9fe498b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HexTileData.cs",
+        "line": 58,
+        "fileHash": "b8b506a73256bbe56914ec71319aad6c2351f1634445a455706e30c0d15b22ff",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "以可编辑字段提供稳定 ID、权重、组大小、相邻约束和资源点配置。"
+      }
+    ],
+    "tests": ["HuntMapRulesTests: 3/3 passed", "PlayableHuntContentBundleTests: 7/7 passed"],
+    "verifiedAt": "2026-08-25T15:14:24-07:00"
+  },
+  "implementationOutline": [
+    "GameCore HuntMapGenerator 拥有地图布局和可见性规则，随机源由阶段环境注入。",
+    "原点在任何组放置前写入起始地块，邻居仅初始化为可交互。",
+    "Unity HexMapGenerator 只转换 ScriptableObject、坐标与实例表现字段。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntMapRules.cs:9",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HexMapGenerator.cs:15",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HexTileData.cs:58"
+  ],
+  "publishedBy": { "mode": "direct-implementation-conformance", "changeId": "" }
+}

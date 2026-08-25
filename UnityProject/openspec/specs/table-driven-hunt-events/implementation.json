@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "table-driven-hunt-events",
+  "specHash": "7a47d7fc3da5a388ad0f76946aef71719abe76ade761aefbbe17f18a752cc3f9",
+  "title": "读表狩猎事件内容",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "共享 Hunt 事件从合并表目录装配到路线内容池；稳定 ID 决定覆盖，重复路线 ID 全部 fail closed，表事件仍可成为唯一权威覆盖，最终事件由 Hunt Runner 与 3D 随机交互端口结算。",
+    "validatedAgainstSpecHash": "7a47d7fc3da5a388ad0f76946aef71719abe76ade761aefbbe17f18a752cc3f9",
+    "evidence": [
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "line": 251,
+        "fileHash": "00002da14b73d64fd84b946e7222c63a26e106c9619990648b0cab0224cc10e2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "合并 Hunt 内容，排除空白、错误类别和所有重复路线 ID，并以合法表事件按稳定 ID 覆盖。"
+      },
+      {
+        "guid": "4bb049696c876dd4e924fe3b28dfb4bb",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentCatalog.cs",
+        "line": 8,
+        "fileHash": "168f5c35809d623c8b478ce454de5b297ac0267e58dbcc6bf100904ea9313ed2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "将路线 ScriptableObject 内容与共享表事件合并后应用到 HuntManager。"
+      },
+      {
+        "guid": "89490a49f05b77b4a9a21777e1d11eb1",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntEventSystem.cs",
+        "line": 1,
+        "fileHash": "d092b9b8d7d9bcf4684b6180f42ae2a861508ce5119f25039be2ca6d0b7dc911",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "只为明确揭示语义或噪音结果选择 Hunt 事件，不恢复隐藏概率入口。"
+      },
+      {
+        "guid": "9c726607d6f6843489ac06114f3cc299",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
+        "line": 252,
+        "fileHash": "691232f89713a636f92e8de69c886e2f440b1294df6ebe2c8d5ba786bec2de7a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "由活动 Hunt Runner 等待选择、物理判定、效果、子链与遭遇检查点。"
+      },
+      {
+        "guid": "2a32e230eed309144a69d91ec3f752f4",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
+        "line": 1,
+        "fileHash": "e0187edaff7afb1afebb7fbf0b0e08d2f9ef2caec8c9080de4434256244aabdb",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "提供包含物理骰子、抽卡、资源、伤势和直接分支的基础 Hunt 内容。"
+      }
+    ],
+    "tests": [
+      "PlayableHuntEventFlowTests: 10/10 passed",
+      "PlayableHuntContentBundleTests: 7/7 passed",
+      "PlayableHuntActionSessionTests: 21/21 passed"
+    ],
+    "verifiedAt": "2026-08-25T15:14:24-07:00"
+  },
+  "implementationOutline": [
+    "PlayableEventTableRuntime 先发布稳定表事件世代，再与路线 Hunt 事件按稳定 ID 合并。",
+    "重复路线 ID 不以列表顺序选赢家；合法表事件可对同 ID 提供唯一权威覆盖。",
+    "HuntEventSystem 只选择内容，ResolveHuntTileEventAction 通过共享事件节点和 3D 随机交互提交玩法。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs:251",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentCatalog.cs:8",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntEventSystem.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs:252"
+  ],
+  "publishedBy": { "mode": "direct-implementation-conformance", "changeId": "" }
+}

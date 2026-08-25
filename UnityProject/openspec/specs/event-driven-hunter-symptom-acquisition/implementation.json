@@ -15,7 +15,7 @@
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
         "line": 497,
-        "fileHash": "c99a4146eccb975790d101e46640426fe539702cad863f986dbc360b7972b5d9",
+        "fileHash": "00002da14b73d64fd84b946e7222c63a26e106c9619990648b0cab0224cc10e2",
         "status": "verified",
         "checkedAt": "2026-08-25T15:05:28-07:00",
         "feature": "发布前以 PlayableSymptomCatalog 精确校验 AddAilment 的稳定 ID。"

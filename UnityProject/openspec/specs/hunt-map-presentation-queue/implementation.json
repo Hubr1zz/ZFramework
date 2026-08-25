@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "hunt-map-presentation-queue",
+  "specHash": "d11c4cf9e11b638bc788e513ad5985208bdc1894f47ef27159a3bcc7c2f27b76",
+  "title": "狩猎地图表现队列",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "Hunt ActionQueue 在地图状态提交后等待 3D 地块翻转或小队棋子移动，再继续事件链；表现端口不拥有状态，缺失或非取消异常不会回滚玩法，环境销毁会取消等待。",
+    "validatedAgainstSpecHash": "d11c4cf9e11b638bc788e513ad5985208bdc1894f47ef27159a3bcc7c2f27b76",
+    "evidence": [
+      {
+        "guid": "f59af7da43d4e994cbd0a291174b35c2",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Presentation/HuntTileInteractionPresentation.cs",
+        "line": 6,
+        "fileHash": "9b708c3bfa0343b6300a3cf8ca084a14ca72657573e151e8754e48409a694582",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "定义只接收坐标、交互类型和取消令牌的非权威表现端口。"
+      },
+      {
+        "guid": "9c726607d6f6843489ac06114f3cc299",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
+        "line": 167,
+        "fileHash": "691232f89713a636f92e8de69c886e2f440b1294df6ebe2c8d5ba786bec2de7a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "先提交地图和检查点，再通过 Action 上下文等待表现；普通表现异常不回滚已提交状态。"
+      },
+      {
+        "guid": "e438b7e087c13ce4ca8653a1701f8f0a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
+        "line": 24,
+        "fileHash": "b1b62885027430ef3c90facc928379297d5861fc989798e20877959f45645d20",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "等待 3D 地块卡翻转和小队棋子移动完成，只监听状态回调刷新表现。"
+      },
+      {
+        "guid": "9eb1228d72f192e40b07243362c9b2a0",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileCard3D.cs",
+        "line": 1,
+        "fileHash": "6a7049da7c21295eb218f9df9045082b38a5c27bb0077dce4e1648d2bd4647cd",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "以世界空间 3D 卡牌表现锁定、可交互和翻开状态。"
+      }
+    ],
+    "tests": ["PlayableHuntActionSessionTests: 21/21 passed"],
+    "verifiedAt": "2026-08-25T15:14:24-07:00"
+  },
+  "implementationOutline": [
+    "CommitHuntTileInteractionAction 提交权威状态并发布检查点后才请求表现。",
+    "HuntMapVisualizer 作为 MonoBehaviour 场景边界等待物理 3D 动画，不写玩法状态。",
+    "无 presenter 时立即继续；生命周期取消向上传播，普通表现异常记录后继续安全收尾。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Presentation/HuntTileInteractionPresentation.cs:6",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs:167",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs:24"
+  ],
+  "publishedBy": { "mode": "direct-implementation-conformance", "changeId": "" }
+}

@@ -257,11 +257,18 @@ namespace HuntingInDarkness.ContentTables
         {
             var result = new List<EventData>();
             var knownIds = new HashSet<string>(StringComparer.Ordinal);
+            var duplicateBaseIds = new HashSet<string>(StringComparer.Ordinal);
             if (baseEvents != null)
             {
                 foreach (EventData baseEvent in baseEvents)
                 {
-                    if (baseEvent == null || baseEvent.category != EventCategory.Hunt || !baseEvent.HasExplicitContentId || !knownIds.Add(baseEvent.ContentId)) continue;
+                    if (baseEvent == null || baseEvent.category != EventCategory.Hunt || !baseEvent.HasExplicitContentId) continue;
+                    if (!knownIds.Add(baseEvent.ContentId)) duplicateBaseIds.Add(baseEvent.ContentId);
+                }
+                knownIds.Clear();
+                foreach (EventData baseEvent in baseEvents)
+                {
+                    if (baseEvent == null || baseEvent.category != EventCategory.Hunt || !baseEvent.HasExplicitContentId || duplicateBaseIds.Contains(baseEvent.ContentId) || !knownIds.Add(baseEvent.ContentId)) continue;
                     result.Add(baseEvent);
                 }
             }

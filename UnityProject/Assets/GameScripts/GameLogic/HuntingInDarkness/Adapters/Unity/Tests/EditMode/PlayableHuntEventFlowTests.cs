@@ -43,7 +43,9 @@ namespace HuntingInDarkness.Adapter.Tests
         public void ExtendHunt_MergesRouteContentAndOverridesByStableId()
         {
             EventData routeEvent = CreateEvent("hunt_echoing_tracks");
+            routeEvent.ConfigureContentId("hunt_echoing_tracks");
             EventData settlementEvent = CreateEvent("settlement-only");
+            settlementEvent.ConfigureContentId("settlement-only");
             settlementEvent.category = EventCategory.Settlement;
 
             try
@@ -59,6 +61,50 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 Object.DestroyImmediate(routeEvent);
                 Object.DestroyImmediate(settlementEvent);
+            }
+        }
+
+        [Test]
+        public void ExtendHunt_RejectsEveryRouteEventSharingADuplicateStableId()
+        {
+            EventData first = CreateEvent("route-duplicate-first");
+            EventData second = CreateEvent("route-duplicate-second");
+            first.ConfigureContentId("route-duplicate");
+            second.ConfigureContentId("route-duplicate");
+
+            try
+            {
+                List<EventData> merged = PlayableEventTableRuntime.ExtendHunt(new[] { first, second });
+
+                Assert.That(merged.Exists(gameEvent => gameEvent.ContentId == "route-duplicate"), Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(first);
+                Object.DestroyImmediate(second);
+            }
+        }
+
+        [Test]
+        public void ExtendHunt_TableEventCanAuthoritativelyReplaceRejectedRouteDuplicates()
+        {
+            EventData first = CreateEvent("route-duplicate-first");
+            EventData second = CreateEvent("route-duplicate-second");
+            first.ConfigureContentId("hunt_echoing_tracks");
+            second.ConfigureContentId("hunt_echoing_tracks");
+
+            try
+            {
+                List<EventData> merged = PlayableEventTableRuntime.ExtendHunt(new[] { first, second });
+                EventData resolved = merged.Single(gameEvent => gameEvent.ContentId == "hunt_echoing_tracks");
+
+                Assert.That(resolved, Is.Not.SameAs(first));
+                Assert.That(resolved, Is.Not.SameAs(second));
+            }
+            finally
+            {
+                Object.DestroyImmediate(first);
+                Object.DestroyImmediate(second);
             }
         }
 

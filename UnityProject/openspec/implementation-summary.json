@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "ff6d76e4c95b8a0e70e3750fedff597d1f57c77291546cc7362b44f08282de83",
-  "inputManifestDigest": "eb170c128ae8aee9418d5f16e7e07086482aa46422f783644cf6b794be7e17f1",
-  "outputDigest": "4d2943dc729c16fa1bb40b2579abec58741bd2cf02c1cd42299a04c10c72f639",
+  "inputDigest": "42b710dd241a9827ced22c9b95c1a66c9673fe9a5c3560f897dea99a08031114",
+  "inputManifestDigest": "6c7eb4c499ff231e0e29a6a38ad982428ad381e9fb42c8b3b18103d4aff6e068",
+  "outputDigest": "83392de0ad4b69853b7fc536019996c14e18aa3769cc3f6495575e71a9c41474",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -93,6 +93,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Inventions/InventionActionEffectInstaller.cs",
       "sha256": "b9969c855e850761dd756b6c9dda587735342d8046535f4f4e872367f17f2326",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Presentation/HuntTileInteractionPresentation.cs",
+      "sha256": "9b708c3bfa0343b6300a3cf8ca084a14ca72657573e151e8754e48409a694582",
       "state": "current"
     },
     {
@@ -192,7 +197,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
-      "sha256": "c99a4146eccb975790d101e46640426fe539702cad863f986dbc360b7972b5d9",
+      "sha256": "00002da14b73d64fd84b946e7222c63a26e106c9619990648b0cab0224cc10e2",
       "state": "current"
     },
     {
@@ -216,6 +221,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HexTileData.cs",
+      "sha256": "b8b506a73256bbe56914ec71319aad6c2351f1634445a455706e30c0d15b22ff",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HunterData.cs",
       "sha256": "129b6675c1aff96b668673cc683a48054b226f7047dfbed333843448116c34ef",
       "state": "current"
@@ -236,6 +246,16 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HexMapGenerator.cs",
+      "sha256": "98c571ced5800921e24afeb21d621b9cff5f78b59e2b10259a1891aa5cf04484",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntEventSystem.cs",
+      "sha256": "d092b9b8d7d9bcf4684b6180f42ae2a861508ce5119f25039be2ca6d0b7dc911",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
       "sha256": "a53abd9bb772af48f3bf0307430055fb40f94920d92df4def01b4d79f95ab5e5",
       "state": "current"
@@ -243,6 +263,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
       "sha256": "42b3c7d6fe521236a57645920bb725f2172a42fdd8888ca6169567dbd7d790be",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentCatalog.cs",
+      "sha256": "168f5c35809d623c8b478ce454de5b297ac0267e58dbcc6bf100904ea9313ed2",
       "state": "current"
     },
     {
@@ -541,6 +566,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntMapRules.cs",
+      "sha256": "9a894a293a9e00af41ba13a076f4d1a0a836f2a2477f7c7ebb584959b25ecb8e",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntNoiseRules.cs",
       "sha256": "6037a09dc138ef48ce3d52059725d4bd1503190af3e7a0910ac75942af29eddc",
       "state": "current"
@@ -628,6 +658,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs",
       "sha256": "19d8ebd96a223032b1916c3ba5c3761cc18673dbe0ed1312762d22c015949bc6",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileCard3D.cs",
+      "sha256": "6a7049da7c21295eb218f9df9045082b38a5c27bb0077dce4e1648d2bd4647cd",
       "state": "current"
     },
     {
@@ -797,7 +832,7 @@
     },
     {
       "path": "openspec/specs/campaign-content-cache-lifecycle/implementation.json",
-      "sha256": "fb14cd99558fa18c7c08bcafdabd2749df64b605b75d6248e94836418f9e68e7",
+      "sha256": "7ac68668208fb23ddd7e5e12f01aca339052a974eb0720d66d4b1c6685cb1173",
       "state": "current"
     },
     {
@@ -857,7 +892,7 @@
     },
     {
       "path": "openspec/specs/event-driven-hunter-death/implementation.json",
-      "sha256": "93e36258a43cf8b6c779ca4ea90b592446198ce7e83038bf4a400366cd9fc364",
+      "sha256": "edf031e33274149ec921da16c879ea27b5a25341fe14d7f2ef6e3bdad5736bf7",
       "state": "current"
     },
     {
@@ -867,7 +902,7 @@
     },
     {
       "path": "openspec/specs/event-driven-hunter-symptom-acquisition/implementation.json",
-      "sha256": "638df8ebb08a67f3b9286a7e90d1778c3ac38f365d7d7a61b55cb745db53bf6a",
+      "sha256": "eeda360306af9e20201d53de8de5bff6317aeef4afdfcceb2ac932a4a9ff20d7",
       "state": "current"
     },
     {
@@ -897,7 +932,7 @@
     },
     {
       "path": "openspec/specs/event-recoverable-wounds/implementation.json",
-      "sha256": "1f24ba6bcefe1776668ee9d55aa946f3a66b285940bcf769563d6b3ae7f537c9",
+      "sha256": "10a84a26887d9ff7f618ae509afbaf34d152897c7faa01daa5e45d75854e5723",
       "state": "current"
     },
     {
@@ -947,8 +982,8 @@
     },
     {
       "path": "openspec/specs/hunt-map-generation/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "3907f3fe7e3c116a2c9d280da3cfe770faec520270233dd645ac2b3ee43cb40d",
+      "state": "current"
     },
     {
       "path": "openspec/specs/hunt-map-generation/spec.md",
@@ -957,8 +992,8 @@
     },
     {
       "path": "openspec/specs/hunt-map-presentation-queue/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "267c31fa103b52094abb5fd6d63511a62c457341db50c4d903aada4468e87b47",
+      "state": "current"
     },
     {
       "path": "openspec/specs/hunt-map-presentation-queue/spec.md",
@@ -1037,8 +1072,8 @@
     },
     {
       "path": "openspec/specs/hunt-tile-reveal-events/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "c9cc8b633f51a349bf2e531633c03345a9f4bbc651c62928e9806c727fe0e724",
+      "state": "current"
     },
     {
       "path": "openspec/specs/hunt-tile-reveal-events/spec.md",
@@ -1107,7 +1142,7 @@
     },
     {
       "path": "openspec/specs/table-driven-event-chains/implementation.json",
-      "sha256": "dea39b863640352fd339fae21c1357701d577a195f25c75b43701981a45f636c",
+      "sha256": "92ed87e12bf2d02d4cc4d04d8b06524eb3debbf694af2eade81ff04f3d9214cf",
       "state": "current"
     },
     {
@@ -1117,17 +1152,17 @@
     },
     {
       "path": "openspec/specs/table-driven-hunt-events/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "441e9b2eace9309092ef8933db6651546eea7b7cb41b5f3501fc83c1a200f0a8",
+      "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-hunt-events/spec.md",
-      "sha256": "fa8a13b59aa3edba2cf4402617739ae99b942b64a16fe0c308b7f7b7969ba00b",
+      "sha256": "7a47d7fc3da5a388ad0f76946aef71719abe76ade761aefbbe17f18a752cc3f9",
       "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-hunter-bloodlines/implementation.json",
-      "sha256": "1f50fd3183ce705d6bcb8390dadb492cdb8cd3efb22ba7e23d4ceb9e16bee1cf",
+      "sha256": "5e7c41109a5707f3eba334fb1570c503846b971ea727d2afe414a2cbdc717ce5",
       "state": "current"
     },
     {
@@ -1287,7 +1322,7 @@
     },
     {
       "path": "openspec/specs/tabletop-random-interaction/implementation.json",
-      "sha256": "8a3b61ba15b2cf0d87daf6cd26bfc2f4743b77cf34e71a1d19b9a5e70ef4ff9c",
+      "sha256": "a1f5d4c2dad50460623a608d0e6f64f8b807799388da32015744fda34e5e3a6b",
       "state": "current"
     },
     {
@@ -1407,11 +1442,11 @@
     }
   ],
   "counts": {
-    "verified": 33,
+    "verified": 37,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 9,
+    "unknown": 5,
     "blocked": 0,
     "stale": 20
   },
@@ -1427,19 +1462,15 @@
     "event-recoverable-wounds",
     "game-manager-orchestration",
     "hunt-content-bundle-lifecycle",
-    "hunt-map-generation",
-    "hunt-map-presentation-queue",
     "hunt-phase-orchestration",
     "hunt-return-outcome-checkpoint",
     "hunt-route-entry-context",
     "hunt-session-event-occurrence-recovery",
     "hunt-squad-action-availability",
-    "hunt-tile-reveal-events",
     "settlement-content-plan-lifecycle",
     "settlement-phase-orchestration",
     "settlement-timeline-event-identity",
     "showdown-phase-orchestration",
-    "table-driven-hunt-events",
     "tabletop-chinese-font-fallback",
     "tabletop-hunt-harvest",
     "tabletop-opening-sequence",
@@ -2331,30 +2362,62 @@
     {
       "id": "hunt-map-generation",
       "label": "狩猎地图生成",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "GameCore 以权重填满配置半径内的轴向坐标，先保留起始地块，再按相邻或分散规则放置成组地形；Unity Adapter 完整映射生成字段并只投影权威地图状态。",
+      "designSources": [],
       "sources": [
         "openspec/specs/hunt-map-generation/spec.md",
         "openspec/specs/hunt-map-generation/implementation.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntMapRules.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HexMapGenerator.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HexTileData.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "hunt-map-presentation-queue",
       "label": "狩猎地图表现队列",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "Hunt ActionQueue 在地图状态提交后等待 3D 地块翻转或小队棋子移动，再继续事件链；表现端口不拥有状态，缺失或非取消异常不会回滚玩法，环境销毁会取消等待。",
+      "designSources": [],
       "sources": [
         "openspec/specs/hunt-map-presentation-queue/spec.md",
         "openspec/specs/hunt-map-presentation-queue/implementation.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Presentation/HuntTileInteractionPresentation.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileCard3D.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "hunt-noise-risk-deck",
@@ -2586,16 +2649,39 @@
     {
       "id": "hunt-tile-reveal-events",
       "label": "狩猎地块揭示事件",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "普通地块在显式揭示事件与噪音风险牌堆之间只选择一个来源；Runner 提交揭示并等待 3D 翻牌与完整事件根后才解锁邻居，表现失败仍进入安全 finalized 状态。",
+      "designSources": [],
       "sources": [
         "openspec/specs/hunt-tile-reveal-events/spec.md",
-        "openspec/specs/hunt-tile-reveal-events/implementation.json"
+        "openspec/specs/hunt-tile-reveal-events/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntMapRules.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HexTileData.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "settlement-content-plan-lifecycle",
@@ -2862,16 +2948,39 @@
     {
       "id": "table-driven-hunt-events",
       "label": "读表狩猎事件内容",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "共享 Hunt 事件从合并表目录装配到路线内容池；稳定 ID 决定覆盖，重复路线 ID 全部 fail closed，表事件仍可成为唯一权威覆盖，最终事件由 Hunt Runner 与 3D 随机交互端口结算。",
+      "designSources": [],
       "sources": [
         "openspec/specs/table-driven-hunt-events/spec.md",
-        "openspec/specs/table-driven-hunt-events/implementation.json"
+        "openspec/specs/table-driven-hunt-events/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentCatalog.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntEventSystem.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "table-driven-hunter-bloodlines",

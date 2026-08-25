@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "hunt-tile-reveal-events",
+  "specHash": "57f792a9a34f2ccc2cfb9139c5cda6954f142f0c944d739f9328a24c4a4b2b2c",
+  "title": "狩猎地块揭示事件",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "普通地块在显式揭示事件与噪音风险牌堆之间只选择一个来源；Runner 提交揭示并等待 3D 翻牌与完整事件根后才解锁邻居，表现失败仍进入安全 finalized 状态。",
+    "validatedAgainstSpecHash": "57f792a9a34f2ccc2cfb9139c5cda6954f142f0c944d739f9328a24c4a4b2b2c",
+    "evidence": [
+      {
+        "guid": "6dce6ba7b65af9c42821b85a0555ac17",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
+        "line": 245,
+        "fileHash": "a53abd9bb772af48f3bf0307430055fb40f94920d92df4def01b4d79f95ab5e5",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "提交揭示但延迟邻居解锁，并按显式地块事件优先、噪音结果回退选择唯一事件。"
+      },
+      {
+        "guid": "ac21caade4403c24c9ccd64315ab02d5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs",
+        "line": 27,
+        "fileHash": "d41ff0535af21d237967170c04e88f0e8cb993fde1503ae0cbe3a059620ea7d4",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "Boss 或显式事件地块跳过通用风险牌；普通地块只从冻结的年份危险池产生一个事件。"
+      },
+      {
+        "guid": "9c726607d6f6843489ac06114f3cc299",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
+        "line": 63,
+        "fileHash": "691232f89713a636f92e8de69c886e2f440b1294df6ebe2c8d5ba786bec2de7a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "把噪音、揭示、3D 表现、事件 occurrence 与邻居解锁串成一个 Hunt Root。"
+      },
+      {
+        "guid": "8b25c0de202607140000000000000005",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntMapRules.cs",
+        "line": 70,
+        "fileHash": "9a894a293a9e00af41ba13a076f4d1a0a836f2a2477f7c7ebb584959b25ecb8e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "将 RevealOnly 与 UnlockNeighbors 分成两个明确提交步骤。"
+      },
+      {
+        "guid": "0d25335dd52dca34c810d641f9fe498b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HexTileData.cs",
+        "line": 58,
+        "fileHash": "b8b506a73256bbe56914ec71319aad6c2351f1634445a455706e30c0d15b22ff",
+        "status": "verified",
+        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "feature": "以稳定地块与事件引用配置专属揭示语义和资源点池。"
+      }
+    ],
+    "tests": [
+      "PlayableHuntTileRevealContentTests: 2/2 passed",
+      "PlayableHuntActionSessionTests: 21/21 passed",
+      "PlayableHuntEventFlowTests: 10/10 passed"
+    ],
+    "verifiedAt": "2026-08-25T15:14:24-07:00"
+  },
+  "implementationOutline": [
+    "显式地块事件、Boss 和普通噪音风险在准备阶段互斥。",
+    "地图揭示先提交并驱动 3D 翻牌，事件链结束后 Finalize 才解锁邻居。",
+    "事件效果继续通过 Hunt ActionQueue 与携带物端口结算，View 只提供输入和表现。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs:245",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs:27",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs:63",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntMapRules.cs:70"
+  ],
+  "publishedBy": { "mode": "direct-implementation-conformance", "changeId": "" }
+}

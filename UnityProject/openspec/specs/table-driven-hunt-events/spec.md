@@ -21,7 +21,7 @@ The event table runtime SHALL load `Hunt` records from a dedicated table source 
 - **AND** no View-specific content branch is required
 
 ### Requirement: Stable IDs define deterministic overrides
-A table-driven Hunt event SHALL replace a route event with the same stable Unity object name. Null entries, non-Hunt categories, blank IDs, and duplicate route IDs SHALL NOT enter the resulting Hunt pool.
+A table-driven Hunt event SHALL replace route content with the same explicit stable ContentId. Null entries, non-Hunt categories, blank IDs, and every route entry sharing a duplicate ID SHALL NOT enter the resulting Hunt pool.
 
 #### Scenario: Route content and table content share an ID
 - **WHEN** the Hunt event pool is assembled
