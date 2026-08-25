@@ -133,9 +133,10 @@ setup 开始时先建立只读基线，列出已有入口、skills、commands、
 
 根据 Phase 2 的能力映射决定是否需要 zWorkFlow 自己的能力：
 
-- 已有等价项目速查时只记录引用，不创建重复 `project-context`。
+- setup 完成时必须存在且只存在一个可达的项目路由入口：已有等价项目速查时记录其具体入口并标记 `reuse-existing`；否则生成 `.agents/skills/project-context/SKILL.md` 与 `references/PROJECT-INDEX.md`。不得交付“没有等价入口且没有 Project Index”的中间状态。
+- 已有等价项目速查时不创建重复 `project-context`。若外部同名 `project-context` 已占用但缺少可用索引或等价路由，不覆盖其正文；将该能力标记为 `conflict` 并停止依赖项目路由的后续薄化，等待用户决定迁移或补全。
 - 已有等价重构队列、文档同步或成员偏好流程时标记复用，不创建重复能力。
-- 没有等价能力时，从 [PROJECT_CONTENT_TEMPLATE.md](PROJECT_CONTENT_TEMPLATE.md) 创建最小 `project-context`、`project-architecture` 与命中的 `project-domain-*`；通用核心已经提供空的 `project-refactor-queue` 与可配置的 `project-doc-sync`。只写 Phase 1 已确认事实，不复制安装源所在项目的内容。
+- 没有等价能力时，从 [PROJECT_CONTENT_TEMPLATE.md](PROJECT_CONTENT_TEMPLATE.md) 成对创建最小 `project-context` 与 `PROJECT-INDEX.md`，再按需创建 `project-architecture` 与命中的 `project-domain-*`；通用核心已经提供空的 `project-refactor-queue` 与可配置的 `project-doc-sync`。只写 Phase 1 已确认事实，不复制安装源所在项目的内容。
 - 通用 `project-tooling` 安装后，把 Phase 1 已确认的 Plugin/System 候选写入其 `references/tooling-catalog.json`。Plugin 的 `decisionBasis` 保持空白，除非用户本次明确给出依据；Architecture 只有经用户确认才能创建，且必须 `usagePolicy=required`、`locked=true`。
 - 若目标项目有明确代码分层，在目录顶层声明项目自定义 `layers`，并用条目 `layerIds` 标记一个能力横跨的零到多个实现层。`kind` 仍只表示 Plugin/Architecture/System 的归属与复用边界，不把 Data/Adapter/View 或 MVC 等项目分层编码成 System 子类型；没有分层约束的项目省略这些可选字段。
 - 写入目录前先按稳定模块边界拆分：一个条目必须拥有可单独路由的职责、证据、约束和依赖；禁止用“整个引擎/整个框架”条目代替 README 与代码已明确区分的核心模块。生命周期、启动编排或状态管线在剥离玩法/UI/内容数据后仍可独立复用时归为 Architecture；具体项目接入另归 System。文档存在但实现缺失的条目只能以明确 partial 约束写入，不得宣称已实现。

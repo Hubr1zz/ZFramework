@@ -23,7 +23,7 @@
 - 团队可同时使用不同工具；不得在共享配置中保存唯一 active tool，成员当前工具与版本只保存在 `.agent-memory/zworkflow/local/`。
 - 任务可能修改项目文件且已安装 `project-refactor-queue` 时，只读取其 `references/PROTECTED_FILES.md`；普通任务不要加载 `REFACTOR_QUEUE.md`。
 - 任务开始时使用 `team-member-preferences` 解析当前成员昵称；只读取 `.agent-memory/zworkflow/team/MAINTAINERS.md` 和当前成员对应的 `.agent-memory/zworkflow/team/members/<nickname>.md`，不要读取全员规范。
-- 项目读取先走 setup 生成或复用的 `project-context`；其中存在 `references/PROJECT-INDEX.md` 时先读索引。任务命中序列化、动画、资源、启动、依赖注入、异步或编辑器扩展时再读取 `project-tooling` 中的相关条目。若拆分会让事实检索、Spec 设计或代码核验重复读取同一来源/脚本，合并为单一负责人；只有上下文独立时才使用专门 Agent。
+- 项目读取先走 setup 生成或复用的项目速查；zWorkFlow 自有内容存在 `project-context/references/PROJECT-INDEX.md` 时，以该索引作为稳定入口，只在命中“项目概况”行时读取 `project-context/SKILL.md` 正文。任务命中序列化、动画、资源、启动、依赖注入、异步或编辑器扩展时再读取 `project-tooling` 中的相关条目。若拆分会让事实检索、Spec 设计或代码核验重复读取同一来源/脚本，合并为单一负责人；只有上下文独立时才使用专门 Agent。
 - 涉及 C# 项目结构、类型/方法定位、候选调用者或改动影响时，若 `codebase-query` 已安装且 PowerShell 7 可用，必须先执行其索引命令收敛候选，再读取命中源码核验。只有工具不可用、执行失败或查询超出契约时才回退 `rg`/原生检索，并说明回退原因。
 - 普通开发任务不得以 Change Review、Summary 或 Workbench 状态作为启动前置；全局实现 Ledger 已废止。这些工件只在显式 OpenSpec/zWorkFlow 生命周期或实现验证完成后的进度投影阶段读写。代码索引例外，它必须在 C# 方案设计前用于形成紧凑事实包。
 - 相关职责组成一个功能簇时，先连续实现，再统一执行一次后置审查和定向验证；不要按文件或小函数反复审查、重复测试。全量测试仅用于跨系统/L4 里程碑、公共运行契约变化、发布门禁或用户明确要求。

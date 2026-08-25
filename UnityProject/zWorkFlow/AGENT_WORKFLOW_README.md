@@ -64,6 +64,18 @@
 4. 每个功能簇完成后统一做一次后置审查和定向测试。全量测试只用于跨系统/L4 里程碑、公共运行契约变更、发布门禁或用户明确要求；普通功能簇使用编译、数据验证和命中测试组。
 5. OpenSpec Change、Review、Summary 和 Workbench 进度只在实现与验证完成后投影，或在用户显式操作其生命周期时读取。经过 digest 校验的 Summary 只负责定位，不能替代命中的 Spec、实现状态与源码；除代码索引外，zWorkFlow 产物不得成为普通开发任务的启动依赖。
 
+### 直接代码任务的最小读取顺序
+
+用户直接要求实现、修复或重构代码，并不等于绕过项目规则；它只表示不默认启动 OpenSpec Change。Agent 按以下顺序读取，命中后停止扩张：
+
+1. 工具先自动注入系统 / 开发者规则和根入口（例如 `AGENTS.md`），并按 skill 元数据选择本阶段明确命中的通用 skill；方案分析类 skill 在设计前读取，后置审查类 skill 留到产出完成后读取或执行。
+2. 读取根入口为普通开发明确列出的保护清单和当前成员偏好；这些是入口规则，不是领域 skill。完整 zWorkFlow 维护说明只在工作流修改、setup、路由诊断或显式生命周期任务中读取。
+3. 读取 setup 记录的等价项目速查；若使用 zWorkFlow 自有项目内容，则先读 `project-context/references/PROJECT-INDEX.md`，只选择任务命中的领域、框架或工程能力行。
+4. 任何 C# 修改先读项目代码流程（若存在）并完成风险分级；涉及类型、调用者、生命周期或影响范围时先用 `codebase-query` 形成紧凑事实包，再读取命中源码。
+5. 只加载索引命中的领域 skill 和当前阶段确实触发的其他 skill。角色说明只在该角色实际调度时加载；`solution-architect` 不属于所有代码任务的必读项。
+6. 行为保持型重构、工具改动和边界清晰的小修改直接实现；会改变非平凡产品行为或公共运行契约时才进入 `openspec-intake-gate` 并读取相关正式 Spec。
+7. 功能簇完成后统一执行一次后置审查和风险相称的验证，再提交 Git。实现进度 skill、Summary、Review 与 Workbench 只在完成后投影，不在任务开始时读取。
+
 - 共享需求使用 `economy`、`coding`、`efficient-read`、`efficient-execution`、`advanced-reasoning` profile，并分别表达推理强度、写权限和成本/质量优先级；权威结构位于 `setup/adapters/registry.json`。
 - Codex 与 Claude 的模型名只是经过验证的平台映射示例，不作为其他平台的模型名翻译表。
 - setup 只在当前运行时确认模型可用且映射唯一时自动选择；候选不唯一、账号策略不可见或价格偏好未确定时，让当前成员确认一次，并把决定写入 Git 忽略的本地 tool selection。
