@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "9f502e76bda0771e586014b8a47ca5bb8771bebcdbec0ccb2b59f0654d0b6c09",
-  "inputManifestDigest": "9a13d21985c9fdcb0dfc4596d0a86ac35065c890718940e31d3cb8300b58f653",
-  "outputDigest": "b5b5e27a5aeaac7af235676a5dadbfbcfd553725f14b1725d5dc460e373c4c94",
+  "inputDigest": "fc5a8042e54ca556af7ab553b314463d2b47dd6afa775457c89d3d71124a51ca",
+  "inputManifestDigest": "904f06592fc5b5f1f14bdbfa37bad15b9189214bd12b2572735aaff0089c6158",
+  "outputDigest": "6e9a89e20c8e1fab80bd8f75a8c5e562f4abb7b7baa63f73bc6f589112888f2c",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -371,6 +371,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEquipmentStorage.cs",
+      "sha256": "03d91c3714edce3837c4b8e75d7ef96ba46595cbf96a0ac1a938ebd270ba65a4",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
       "sha256": "bfc477b2900bed82a57d14788fa5d31a6bc8211f7fec4906f3f6df14fa5f0a94",
       "state": "current"
@@ -441,6 +446,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemIdentityMigrationTests.cs",
+      "sha256": "b162df0359f9c84b3718914e49a4955f8bb04024de27d0bf161a69406fc89252",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
       "sha256": "88200bdae711d40566de367a675d0998d8badcf3444bafe0d3335d90145309ba",
       "state": "current"
@@ -448,6 +458,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
       "sha256": "217203263451b2ab9c9cd2ece67253822f33cde88750610f939b7eb9c19f473f",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
+      "sha256": "594db626e6f1a8f71ccd3a83f989479cada7ced55aaaf0edbdc6ea119f57c4bb",
       "state": "current"
     },
     {
@@ -857,8 +872,8 @@
     },
     {
       "path": "openspec/specs/campaign-persistence/implementation.json",
-      "sha256": "",
-      "state": "missing"
+      "sha256": "65d9ad09765ddc851d5d1312a9b3f0e6801842206bb1ea29f5cd18158d3ccb9e",
+      "state": "current"
     },
     {
       "path": "openspec/specs/campaign-persistence/spec.md",
@@ -1447,11 +1462,11 @@
     }
   ],
   "counts": {
-    "verified": 37,
+    "verified": 38,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
-    "unknown": 5,
+    "unknown": 4,
     "blocked": 0,
     "stale": 20
   },
@@ -1460,7 +1475,6 @@
     "active-hunt-persistence",
     "campaign-content-cache-lifecycle",
     "campaign-content-preflight-assembly",
-    "campaign-persistence",
     "campaign-year-loop",
     "csharp-derived-index",
     "event-occurrence-checkpoint-core",
@@ -1924,16 +1938,59 @@
     {
       "id": "campaign-persistence",
       "label": "战役持久化与恢复",
-      "status": "unknown",
-      "effectiveStatus": "unknown",
-      "progress": 0,
-      "verificationStatus": "unverified",
-      "summary": "缺少正式 implementation.json。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "Campaign Adapter 以带校验值的原子封套保存稳定营地或活动狩猎快照；版本门禁覆盖后台、退出和删除，继续战役在内容世代内恢复装备、年度、事件链与待回营检查点。",
+      "designSources": [],
       "sources": [
         "openspec/specs/campaign-persistence/spec.md",
-        "openspec/specs/campaign-persistence/implementation.json"
+        "openspec/specs/campaign-persistence/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/SaveLoadSystem.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEquipmentStorage.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignSaveStorageTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemIdentityMigrationTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
+          "state": "current"
+        }
+      ]
     },
     {
       "id": "campaign-startup-transaction",
