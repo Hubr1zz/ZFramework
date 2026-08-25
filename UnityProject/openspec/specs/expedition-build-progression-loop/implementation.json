@@ -31,7 +31,7 @@
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 1,
-        "fileHash": "0901b10fe61edd5e9ecc29fc5a3cc35a00aef17fbe8d91298301c8cb63794c3e",
+        "fileHash": "4bd72f0d50821c5aeef62285fcae61c5d9f0f14fbabd9c78ef06b700b3b54989",
         "status": "verified",
         "checkedAt": "2026-08-25T00:55:19-07:00",
         "feature": "使用生产表内容验证奖励、回营、制造、装备、稳定恢复、再次出猎生效与卸装闭环。"

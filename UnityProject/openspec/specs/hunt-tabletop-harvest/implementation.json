@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "hunt-tabletop-harvest",
+  "specHash": "6a9b5f11ad7cff0f8a1f895f26a4716639c6c159cdea103f65f9249db189e2e8",
+  "title": "3D 狩猎素材翻牌采集",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "玩家在资源棋子旁逐张翻开实体素材牌；准备、随机命中、奖励提交和未完成事务门禁全部由 Hunt ActionQueue 串行负责。",
+    "validatedAgainstSpecHash": "6a9b5f11ad7cff0f8a1f895f26a4716639c6c159cdea103f65f9249db189e2e8",
+    "evidence": [
+      { "guid": "6887176cf1b6e0647bd5c71e552c3967", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntHarvestPanel3D.cs", "line": 1, "fileHash": "f718d515ce64c6e8d22a4e63a45aa876551aad4b69eacbbe479973ca7f68192c", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "实体采集桌逐张提交翻牌意图并在会话切换时释放输入所有权。" },
+      { "guid": "50cb7b7c3f1a8824b9ced6e7a35d8b43", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntHarvestActions.cs", "line": 1, "fileHash": "b005c71d5df53e86f4c56c5bf5f7cf22a1a568808eab100ff21e69c409d092be", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "ActionQueue 准备素材池、解析翻牌并只在完整事务后提交奖励。" },
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "4bd72f0d50821c5aeef62285fcae61c5d9f0f14fbabd9c78ef06b700b3b54989", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "生产组合根真实完成资源棋子选择、实体素材牌翻面、提交和收起。" }
+    ],
+    "tests": ["PlayableHuntHarvestActionSessionTests: 10/10 passed", "GameManagerCampaignLoopPlayModeTests: 14/14 passed"],
+    "verifiedAt": "2026-08-25T11:54:00-07:00"
+  },
+  "publishedBy": { "mode": "direct-implementation-reconciliation", "changeId": "" }
+}

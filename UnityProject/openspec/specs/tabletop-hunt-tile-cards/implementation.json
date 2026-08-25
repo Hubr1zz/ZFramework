@@ -13,7 +13,7 @@
         "guid": "e438b7e087c13ce4ca8653a1701f8f0a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
         "line": 1,
-        "fileHash": "40bf9ca7175ecf2d927c2cc8c49dbd770688b71b93998fdac12f165f118ec859",
+        "fileHash": "008d3407a165c200a6f3a699b1153616fcd94b76fdd969aa24910b8b38d8c366",
         "status": "verified",
         "checkedAt": "2026-08-24T05:11:33-07:00",
         "feature": "按地块坐标创建、复用和移除 BossMarker，并在地图 View 清理时释放索引。"

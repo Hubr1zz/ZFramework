@@ -76,7 +76,7 @@
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 1,
-        "fileHash": "fc1a316a8524e2fdd02d802bd6f92d2987a54785941e148858efde2d97d199f0",
+        "fileHash": "4bd72f0d50821c5aeef62285fcae61c5d9f0f14fbabd9c78ef06b700b3b54989",
         "status": "verified",
         "checkedAt": "2026-08-24T10:50:00-07:00",
         "feature": "通过真实 GameManager 公共命令验证年度闭环、正式阶段门禁、检查点保存失败回滚及延迟持久化期间禁止抢跑。"

@@ -17,6 +17,8 @@ using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
+using HuntingInDarkness.ViewLayer.Hunt;
+using HuntingInDarkness.ViewLayer.Tabletop;
 using NUnit.Framework;
 using UI.Hunt;
 using UnityEngine;
@@ -206,6 +208,9 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
             HuntMapVisualizer visualizer = managerObject.GetComponentInChildren<HuntMapVisualizer>(true);
             Assert.That(visualizer, Is.Not.Null);
+            HuntStatusBoard3D statusBoard = visualizer.GetComponentInChildren<HuntStatusBoard3D>(true);
+            Assert.That(statusBoard, Is.Not.Null);
+            Assert.That(statusBoard.ActiveHunterCardCount, Is.EqualTo(1));
             PlayableHuntSquadPawn3D pawn = visualizer.GetComponentInChildren<PlayableHuntSquadPawn3D>(true);
             Assert.That(pawn, Is.Not.Null);
             Assert.That(pawn.HunterCount, Is.EqualTo(1));
@@ -241,6 +246,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return WaitForPresentationCompletion(move);
             HuntTileCommandResult moveResult = move.GetResult();
             Assert.That(moveResult.Succeeded, Is.True, moveResult.Reason);
+            PlayableHuntResourceMarker3D[] arrivedMarkers = visualizer.GetComponentsInChildren<PlayableHuntResourceMarker3D>(true);
+            Assert.That(arrivedMarkers.Any(marker => marker.IsAvailableForHarvest), Is.True, "小队落位后当前地块的实体资源棋子应提供采集交互。");
 
             yield return WaitForActiveHuntSnapshot(persistence, coordinate);
             CampaignSnapshot exploredSnapshot = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
@@ -284,10 +291,14 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             ActiveHuntTileSnapshot harvestedTile = harvestedSnapshot.ActiveHunt.Tiles.Single(tile => tile.X == coordinate.x && tile.Y == coordinate.y);
             Assert.That(harvestedTile.ResourcePoints[0].IsExhausted, Is.True);
 
-            UniTask<HuntRetreatCommandResult>.Awaiter retreat = manager.RequestRetreatAsync().GetAwaiter();
-            yield return WaitForCompletion(retreat);
-            HuntRetreatCommandResult retreatResult = retreat.GetResult();
-            Assert.That(retreatResult.Succeeded, Is.True, retreatResult.Reason);
+            HuntRetreatPanel3D retreatPanel = visualizer.GetComponentInChildren<HuntRetreatPanel3D>(true);
+            Assert.That(retreatPanel, Is.Not.Null);
+            retreatPanel.RequestOpen();
+            Assert.That(retreatPanel.IsConfirmationOpen, Is.True);
+            Assert.That(PlayableHuntInputGuard.IsBlocked, Is.True, "实体回营确认桌打开时应独占狩猎输入。");
+            TabletopEventChoiceCard3D confirmRetreat = retreatPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.DisplayName == "结算并回营");
+            Assert.That(confirmRetreat.IsInteractable, Is.True);
+            confirmRetreat.Clicked.Invoke();
             yield return WaitForSettlementIdle(manager);
             Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear + 1));
             Assert.That(manager.SettlementData.PendingHuntReturn, Is.Null);

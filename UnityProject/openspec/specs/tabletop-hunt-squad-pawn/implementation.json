@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-hunt-squad-pawn",
+  "specHash": "0cb6cb7cec19948cad32123c46923e2d758db7c31cb0f48beccf631e490a077e",
+  "title": "3D 狩猎小队棋子移动",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "狩猎地图用最多四个猎人棋子表示已部署小队；初始位置直接落位，后续已提交移动带受限跳跃动画并在表现期间独占 Hunt 输入。",
+    "validatedAgainstSpecHash": "0cb6cb7cec19948cad32123c46923e2d758db7c31cb0f48beccf631e490a077e",
+    "evidence": [
+      { "guid": "7a3d83435287d3c40ab149cf3d61ee51", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHuntSquadPawn3D.cs", "line": 1, "fileHash": "92ec7f9ebd326eb67710ad8af5f0387a9715e172246d19579546a6f0b521a4d7", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "棋子组消费已提交位置，移动时持有共享输入锁，禁用和销毁时安全释放。" },
+      { "guid": "e438b7e087c13ce4ca8653a1701f8f0a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs", "line": 190, "fileHash": "008d3407a165c200a6f3a699b1153616fcd94b76fdd969aa24910b8b38d8c366", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "地图首次直接放置小队，后续只把 ActionQueue 提交坐标传给棋子表现。" },
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "4bd72f0d50821c5aeef62285fcae61c5d9f0f14fbabd9c78ef06b700b3b54989", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "端到端验证棋子数量、移动输入锁以及 ActionQueue 等待棋子落位后完成命令。" }
+    ],
+    "tests": ["GameManagerCampaignLoopPlayModeTests: 14/14 passed"],
+    "verifiedAt": "2026-08-25T11:54:00-07:00"
+  },
+  "publishedBy": { "mode": "direct-implementation-reconciliation", "changeId": "" }
+}

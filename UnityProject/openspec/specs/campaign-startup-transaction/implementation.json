@@ -85,7 +85,7 @@
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 1,
-        "fileHash": "dee30d03c94b7ba9b53e88860f6e4dc4fe738a295ce6d4c466448f6e22a27dc0",
+        "fileHash": "4bd72f0d50821c5aeef62285fcae61c5d9f0f14fbabd9c78ef06b700b3b54989",
         "status": "verified",
         "checkedAt": "2026-08-25T09:21:00-07:00",
         "feature": "通过公开命令验证选择前零写入、新建单次发布、营地与活动狩猎恢复、延迟 Load 重入门禁及年度闭环。"
