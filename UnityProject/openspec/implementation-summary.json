@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "42b710dd241a9827ced22c9b95c1a66c9673fe9a5c3560f897dea99a08031114",
-  "inputManifestDigest": "6c7eb4c499ff231e0e29a6a38ad982428ad381e9fb42c8b3b18103d4aff6e068",
-  "outputDigest": "83392de0ad4b69853b7fc536019996c14e18aa3769cc3f6495575e71a9c41474",
+  "inputDigest": "9f502e76bda0771e586014b8a47ca5bb8771bebcdbec0ccb2b59f0654d0b6c09",
+  "inputManifestDigest": "9a13d21985c9fdcb0dfc4596d0a86ac35065c890718940e31d3cb8300b58f653",
+  "outputDigest": "b5b5e27a5aeaac7af235676a5dadbfbcfd553725f14b1725d5dc460e373c4c94",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -406,6 +406,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEquipmentRulesTests.cs",
+      "sha256": "76d9eb14e1c511f661820a1c6f1435711d7b826d4a84e9f5fea17342a81202c8",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventTableCacheLifecycleTests.cs",
       "sha256": "41bd71fe0d9d77dfccf53d2abfc1b6bacea0360611ad712b0251ba48db771a7a",
       "state": "current"
@@ -437,12 +442,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-      "sha256": "88664ac68dbd9c8e89886b3bd92d2e7ae292248aae0388cda0c24c4608de2aa5",
+      "sha256": "88200bdae711d40566de367a675d0998d8badcf3444bafe0d3335d90145309ba",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-      "sha256": "d8dfedcd121e598d5e3163ccf7dbee1c62e0512e01a56be48fbd0402b615a4c8",
+      "sha256": "217203263451b2ab9c9cd2ece67253822f33cde88750610f939b7eb9c19f473f",
       "state": "current"
     },
     {
@@ -617,12 +622,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
-      "sha256": "cfd8945d87ca8d861abd282b33c8308e0bf54e38720474fe853a3c44771ba1b9",
+      "sha256": "15be7aebdbd8e706dbed8521cba992627af59c2277f2d9f600192834fec7c020",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
-      "sha256": "6bd9bb528bb867c6986e306816da5c17a48e642c0356bd31273ba8b36d35a5c6",
+      "sha256": "e09c67c9d412151dafe3ead0320f9c49692801d11bb05e667ad0fec9123f7934",
       "state": "current"
     },
     {
@@ -1082,7 +1087,7 @@
     },
     {
       "path": "openspec/specs/settlement-content-plan-lifecycle/implementation.json",
-      "sha256": "7334f2d49126d7a20e7551fc5aea13839954dde37825824f0e61ba59a040291d",
+      "sha256": "8c5c22c8ff6640e59cc905462f3854499fb0ecfef1b6f3c00963f751b22a56c8",
       "state": "current"
     },
     {
@@ -1112,12 +1117,12 @@
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/implementation.json",
-      "sha256": "f91e53acd322aebb5bb12179ca53a9fcaf4bf7b151bb455d1bd1d007291f8bac",
+      "sha256": "cc88cceed1168859f5ef8e487445ea148a24758d221fb1df664f9ef8f450afa4",
       "state": "current"
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/spec.md",
-      "sha256": "b602b9c49d998a6088ad255010ae565211ea335cc5a5153c0ddb38437c58dd0a",
+      "sha256": "ae50601ac43149a843e1b1fea0141f9ff53efb03050b87ca82f32258cf6e71a0",
       "state": "current"
     },
     {
@@ -1132,7 +1137,7 @@
     },
     {
       "path": "openspec/specs/table-driven-crafting-content/implementation.json",
-      "sha256": "4ffa3e1835e97e6d1d493e6c627267f8268ee12ba68be0cd0beed90f379c601d",
+      "sha256": "91824b042c9ea3af2ea100133e2bbbb90f398675f03325b5b4bb62fdd81f1ea0",
       "state": "current"
     },
     {
@@ -1192,7 +1197,7 @@
     },
     {
       "path": "openspec/specs/table-driven-item-keywords/implementation.json",
-      "sha256": "d68a19bfc6bc577750f2d5dab3e477ae4d2c2ab19a6808744e03cfa5b29bcf37",
+      "sha256": "54a1f1c872d8879b9598e75b8ff1a7cd53ff29483637d3e9eb98a70b0bc58d60",
       "state": "current"
     },
     {
@@ -1677,11 +1682,6 @@
     {
       "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "settlement-content-plan-lifecycle",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
       "state": "stale"
     },
     {
@@ -2736,7 +2736,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-          "state": "stale"
+          "state": "current"
         }
       ]
     },
@@ -2809,7 +2809,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，提交后刷新资源卡、装备桌与存档边界。",
+      "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，三条基础装备路线把狩猎素材转化为不同噪音取向的下一轮构筑。",
       "designSources": [],
       "sources": [
         "openspec/specs/settlement-workshop-crafting/spec.md",
@@ -2834,6 +2834,18 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementCraftActionTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEquipmentRulesTests.cs",
           "state": "current"
         }
       ]
@@ -2870,7 +2882,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；事件奖励黑盐可被原子消费并制造为可装备护符。",
+      "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；狩猎素材可被原子消费并制造为具有不同噪音取向的装备。",
       "designSources": [],
       "sources": [
         "openspec/specs/table-driven-crafting-content/spec.md",

@@ -8,7 +8,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；事件奖励黑盐可被原子消费并制造为可装备护符。",
+    "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；狩猎素材可被原子消费并制造为具有不同噪音取向的装备。",
     "validatedAgainstSpecHash": "6a4ef60df7038afa3d184c09da3ad0b1cce241def704045feb91580b0dd4455b",
     "evidence": [
       {
@@ -33,32 +33,32 @@
         "guid": "b03cbb7b8c779d242836d8385b31e05b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
         "line": 1,
-        "fileHash": "d8dfedcd121e598d5e3163ccf7dbee1c62e0512e01a56be48fbd0402b615a4c8",
+        "fileHash": "217203263451b2ab9c9cd2ece67253822f33cde88750610f939b7eb9c19f473f",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:28:56-07:00",
-        "feature": "覆盖稳定绑定、重复原料合并、歧义拒绝、溢出拒绝和生产表制作闭环。"
+        "checkedAt": "2026-08-25T15:30:16-07:00",
+        "feature": "覆盖稳定绑定、重复原料合并、歧义拒绝、混合来源引用和生产表制作闭环。"
       },
       {
         "guid": "156c7bea2196d0047b84b06aa2342495",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
         "line": 1,
-        "fileHash": "6bd9bb528bb867c6986e306816da5c17a48e642c0356bd31273ba8b36d35a5c6",
+        "fileHash": "e09c67c9d412151dafe3ead0320f9c49692801d11bb05e667ad0fec9123f7934",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:28:56-07:00",
-        "feature": "提供黑盐到盐纹护符的基础事件奖励制造链。"
+        "checkedAt": "2026-08-25T15:30:16-07:00",
+        "feature": "提供护符、盐晶短刃和菌绒裹衣三条基础制造路线。"
       }
     ],
     "tests": [
-      "PlayableRecipeTableTests: 5/5 passed",
+      "PlayableRecipeTableTests: 6/6 passed",
       "PlayableSettlementCraftActionTests: 4/4 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
     ],
-    "verifiedAt": "2026-08-25T11:28:56-07:00"
+    "verifiedAt": "2026-08-25T15:30:16-07:00"
   },
   "implementationOutline": [
     "PlayableRecipeTable 在内容组装时把稳定 ID 记录解析成普通 CraftRecipe，并复用现有目录与验证。",
     "WorkshopZone 只投影可用配方并提交命令；制作状态、并发和 Reactor 门禁属于 Settlement ActionQueue。",
-    "生产内容把事件奖励黑盐转化为盐纹护符，后者进入装备仓库并可继续影响狩猎构筑。"
+    "生产内容把事件与采集奖励转化为三种基础装备，并以正负噪音修正形成下一次狩猎的构筑选择。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableRecipeTable.cs:1",

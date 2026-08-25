@@ -91,6 +91,23 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void RuntimeTable_ProvidesDistinctStarterHuntLoadoutChoices()
+        {
+            ItemData edge = FindRuntimeItem("salt_crystal_edge");
+            ItemData wrap = FindRuntimeItem("fungal_hush_wrap");
+
+            Assert.That(edge, Is.Not.Null);
+            Assert.That(edge.itemType, Is.EqualTo(ItemType.Weapon));
+            Assert.That(edge.weaponStats.power, Is.EqualTo(2));
+            Assert.That(edge.HuntNoise, Is.EqualTo(1));
+            Assert.That(wrap, Is.Not.Null);
+            Assert.That(wrap.itemType, Is.EqualTo(ItemType.Armor));
+            Assert.That(wrap.armorStats.armorBody, Is.EqualTo(1));
+            Assert.That(wrap.armorStats.armorArms, Is.EqualTo(1));
+            Assert.That(wrap.HuntNoise, Is.EqualTo(-1));
+        }
+
+        [Test]
         public void SettlementPlan_RejectsItemWithoutExplicitStableId()
         {
             ItemData item = ScriptableObject.CreateInstance<ItemData>();
@@ -112,6 +129,14 @@ namespace HuntingInDarkness.Adapter.Tests
             List<ItemData> items = PlayableItemTableRuntime.Build(records);
             createdItems.AddRange(items);
             return items;
+        }
+
+        private static ItemData FindRuntimeItem(string contentId)
+        {
+            foreach (ItemData item in PlayableItemTableRuntime.GetItems())
+                if (item != null && item.ContentId == contentId)
+                    return item;
+            return null;
         }
     }
 }

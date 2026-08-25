@@ -13,6 +13,42 @@
       "outputItemId": "salt_ward",
       "outputCount": 1,
       "requiredWorkshopId": ""
+    },
+    {
+      "id": "shape_salt_crystal_edge",
+      "recipeName": "打磨盐晶短刃",
+      "ingredients": [
+        {
+          "itemId": "black_salt",
+          "count": 1
+        },
+        {
+          "itemId": "broken_stone",
+          "count": 1
+        }
+      ],
+      "outputItemId": "salt_crystal_edge",
+      "outputCount": 1,
+      "requiredInventionId": "tools",
+      "requiredWorkshopId": ""
+    },
+    {
+      "id": "weave_fungal_hush_wrap",
+      "recipeName": "编制菌绒裹衣",
+      "ingredients": [
+        {
+          "itemId": "mushroom_flesh",
+          "count": 1
+        },
+        {
+          "itemId": "soft_organ",
+          "count": 1
+        }
+      ],
+      "outputItemId": "fungal_hush_wrap",
+      "outputCount": 1,
+      "requiredInventionId": "tools",
+      "requiredWorkshopId": ""
     }
   ]
 }

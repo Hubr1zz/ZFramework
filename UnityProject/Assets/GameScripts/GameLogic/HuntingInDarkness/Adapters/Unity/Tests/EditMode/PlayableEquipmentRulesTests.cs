@@ -50,7 +50,7 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public void PlayableArmorContent_IsDiscoverableCraftableAndMitigatesDamage()
         {
-            PlayableSettlementContentExtensions.Extend(new List<ItemData>(), new List<CraftRecipe>(), out List<ItemData> items, out List<CraftRecipe> recipes);
+            PlayableSettlementContentExtensions.Extend(CreateBaseHuntResources(), new List<CraftRecipe>(), new[] { CreateToolsInvention() }, out List<ItemData> items, out List<CraftRecipe> recipes);
             ItemData armor = items.Find(item => item != null && item.itemName == "韧膜胸甲");
             CraftRecipe recipe = recipes.Find(candidate => candidate != null && candidate.outputItem == armor);
 
@@ -75,7 +75,7 @@ namespace HuntingInDarkness.Adapter.Tests
             ItemData output = CreateArmor("仅配方引用的护甲", body: 1);
             var recipe = new CraftRecipe { recipeName = "测试配方", outputItem = output };
 
-            PlayableSettlementContentExtensions.Extend(new List<ItemData>(), new[] { recipe }, out List<ItemData> items, out _);
+            PlayableSettlementContentExtensions.Extend(CreateBaseHuntResources(), new[] { recipe }, new[] { CreateToolsInvention() }, out List<ItemData> items, out _);
 
             Assert.That(items, Does.Contain(output));
         }
@@ -88,6 +88,37 @@ namespace HuntingInDarkness.Adapter.Tests
             item.armorStats = new ArmorStats { armorHead = head, armorBody = body, armorArms = arms, armorLegs = legs };
             createdObjects.Add(item);
             return item;
+        }
+
+        private List<ItemData> CreateBaseHuntResources()
+        {
+            return new List<ItemData>
+            {
+                CreateResource("broken_stone", "碎石"),
+                CreateResource("mushroom_flesh", "蘑菇肉"),
+                CreateResource("soft_organ", "柔软器官")
+            };
+        }
+
+        private ItemData CreateResource(string id, string itemName)
+        {
+            ItemData item = ScriptableObject.CreateInstance<ItemData>();
+            item.name = id;
+            item.ConfigureContentId(id);
+            item.itemName = itemName;
+            item.itemType = ItemType.Resource;
+            createdObjects.Add(item);
+            return item;
+        }
+
+        private InventionData CreateToolsInvention()
+        {
+            InventionData invention = ScriptableObject.CreateInstance<InventionData>();
+            invention.name = "tools";
+            invention.ConfigureContentId("tools");
+            invention.inventionName = "工具";
+            createdObjects.Add(invention);
+            return invention;
         }
 
         private sealed class FirstRandom : HuntingInDarkness.GameCore.Foundation.IRandomSource

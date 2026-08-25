@@ -127,8 +127,9 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public async Task RuntimeRecipe_CommitsThroughSettlementActionQueue()
         {
-            IReadOnlyList<ItemData> items = PlayableItemTableRuntime.GetItems();
-            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, null);
+            List<ItemData> items = CreateRuntimeRecipeItems();
+            InventionData tools = CreateInvention("tools", "工具");
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
             CraftRecipe recipe = FindRecipe(recipes, "刻制盐纹护符");
             var settlement = new SettlementInstance();
             settlement.AddResource(recipe.ingredients[0].item, 1);
@@ -142,6 +143,41 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(settlement.GetStoredEquipment("salt_ward"), Is.EqualTo(1));
         }
 
+        [Test]
+        public async Task RuntimeStarterRecipe_CombinesHuntMaterialsAndCommitsEquipment()
+        {
+            List<ItemData> items = CreateRuntimeRecipeItems();
+            ItemData mushroom = items.Find(item => item.ContentId == "mushroom_flesh");
+            ItemData organ = items.Find(item => item.ContentId == "soft_organ");
+            InventionData tools = CreateInvention("tools", "工具");
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
+            CraftRecipe recipe = FindRecipe(recipes, "编制菌绒裹衣");
+            var settlement = new SettlementInstance();
+            settlement.AddResource(mushroom, 1);
+            settlement.AddResource(organ, 1);
+            settlement.UnlockInvention(tools.ContentId);
+            var workshop = new WorkshopSystem(settlement, new InventionSystem(settlement)) { AllRecipes = new List<CraftRecipe>(recipes) };
+            using var session = new PlayableSettlementActionSession(settlement, new EmptyWeaponTrainingContent(), workshopSystem: workshop);
+
+            SettlementCraftCommandResult result = await session.CraftAsync(recipe);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(settlement.GetResource("mushroom_flesh"), Is.Zero);
+            Assert.That(settlement.GetResource("soft_organ"), Is.Zero);
+            Assert.That(settlement.GetStoredEquipment("fungal_hush_wrap"), Is.EqualTo(1));
+        }
+
+        private List<ItemData> CreateRuntimeRecipeItems()
+        {
+            var items = new List<ItemData>(PlayableItemTableRuntime.GetItems())
+            {
+                CreateItem("broken_stone", "碎石", ItemType.Resource),
+                CreateItem("mushroom_flesh", "蘑菇肉", ItemType.Resource),
+                CreateItem("soft_organ", "柔软器官", ItemType.Resource)
+            };
+            return items;
+        }
+
         private ItemData CreateItem(string id, string itemName, ItemType itemType)
         {
             ItemData item = ScriptableObject.CreateInstance<ItemData>();
@@ -150,6 +186,16 @@ namespace HuntingInDarkness.Adapter.Tests
             item.itemType = itemType;
             createdObjects.Add(item);
             return item;
+        }
+
+        private InventionData CreateInvention(string id, string inventionName)
+        {
+            InventionData invention = ScriptableObject.CreateInstance<InventionData>();
+            invention.name = id;
+            invention.ConfigureContentId(id);
+            invention.inventionName = inventionName;
+            createdObjects.Add(invention);
+            return invention;
         }
 
         private static CraftRecipe FindRecipe(IReadOnlyList<CraftRecipe> recipes, string recipeName)

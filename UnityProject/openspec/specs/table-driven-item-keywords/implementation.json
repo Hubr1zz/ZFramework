@@ -33,26 +33,26 @@
         "guid": "fe099c7b81392504dbdb631b0d972301",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
         "line": 1,
-        "fileHash": "88664ac68dbd9c8e89886b3bd92d2e7ae292248aae0388cda0c24c4608de2aa5",
+        "fileHash": "88200bdae711d40566de367a675d0998d8badcf3444bafe0d3335d90145309ba",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:28:56-07:00",
-        "feature": "覆盖生产表加载、稳定身份、重复内容拒绝及关键词归一化。"
+        "checkedAt": "2026-08-25T15:30:16-07:00",
+        "feature": "覆盖生产表加载、稳定身份、重复内容拒绝、装备数据及关键词归一化。"
       },
       {
         "guid": "8c2b910c19609904ea5a547a1ec3d80d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
         "line": 1,
-        "fileHash": "cfd8945d87ca8d861abd282b33c8308e0bf54e38720474fe853a3c44771ba1b9",
+        "fileHash": "15be7aebdbd8e706dbed8521cba992627af59c2277f2d9f600192834fec7c020",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:28:56-07:00",
-        "feature": "提供可被事件奖励、制作和装备闭环消费的黑盐与盐纹护符基础内容。"
+        "checkedAt": "2026-08-25T15:30:16-07:00",
+        "feature": "提供可被事件奖励、制作和装备闭环消费的资源及三种不同狩猎噪音取向装备。"
       }
     ],
     "tests": [
-      "PlayableItemTableTests: 5/5 passed",
+      "PlayableItemTableTests: 6/6 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
     ],
-    "verifiedAt": "2026-08-25T11:28:56-07:00"
+    "verifiedAt": "2026-08-25T15:30:16-07:00"
   },
   "implementationOutline": [
     "PlayableItemTable 将外部记录转换为现有 ItemData，不改变装备、事件或 View 命令契约。",

@@ -58,3 +58,19 @@ Recipes and their required workshop identifiers SHALL continue to come from conf
 #### Scenario: A new configured recipe becomes available
 - **WHEN** its workshop and unlock requirements are satisfied
 - **THEN** it appears under the corresponding workshop card without adding a new View type
+
+### Requirement: Starter crafting closes the next-hunt preparation loop
+The configured starter content SHALL offer multiple equipment outcomes that consume materials obtainable during Hunt and produce different next-Hunt noise profiles. These recipes SHALL resolve mixed ScriptableObject and table item identities through stable ContentIds and SHALL use the existing Tools invention gate.
+
+#### Scenario: The player returns with fungal materials
+- **GIVEN** the Tools invention is mastered
+- **AND** the settlement owns mushroom flesh and a soft organ
+- **WHEN** the player crafts the configured fungal wrap from its physical recipe card
+- **THEN** both Hunt materials are consumed atomically
+- **AND** a quiet armor instance enters equipment storage for the next departure
+
+#### Scenario: The player chooses a louder weapon
+- **GIVEN** the Tools invention is mastered
+- **AND** the settlement owns black salt and broken stone
+- **WHEN** the player crafts the configured salt crystal edge
+- **THEN** the produced weapon exposes its positive Hunt noise modifier through the existing item contract

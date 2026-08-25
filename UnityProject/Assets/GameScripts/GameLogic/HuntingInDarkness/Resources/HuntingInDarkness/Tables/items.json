@@ -22,6 +22,37 @@
       },
       "stackLimit": 1,
       "huntNoise": -1
+    },
+    {
+      "id": "salt_crystal_edge",
+      "itemName": "盐晶短刃",
+      "itemType": "Weapon",
+      "description": "将黑盐晶嵌入打磨过的石刃，切割力更强，但晶体碰撞会在荒野中留下清脆声响。",
+      "tags": ["Gear", "Weapon", "Stone", "Mineral"],
+      "keywords": ["stone", "ritual"],
+      "weaponStats": {
+        "speed": 1,
+        "power": 2,
+        "accuracy": 1,
+        "range": 1,
+        "specialRule": "装备后队伍狩猎噪音 +1。"
+      },
+      "stackLimit": 1,
+      "huntNoise": 1
+    },
+    {
+      "id": "fungal_hush_wrap",
+      "itemName": "菌绒裹衣",
+      "itemType": "Armor",
+      "description": "以蘑菇纤维包裹柔软器官制成的贴身护衣，能吸收枝叶摩擦与装备碰撞的声响。",
+      "tags": ["Gear", "Cloth", "Herb", "Organ"],
+      "keywords": ["herb", "quiet"],
+      "armorStats": {
+        "armorBody": 1,
+        "armorArms": 1
+      },
+      "stackLimit": 1,
+      "huntNoise": -1
     }
   ]
 }
