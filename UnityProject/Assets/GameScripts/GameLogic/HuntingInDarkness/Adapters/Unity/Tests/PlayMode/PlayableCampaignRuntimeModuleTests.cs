@@ -1,20 +1,26 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Core;
+using Cysharp.Threading.Tasks;
 using GameplayBase;
 using HuntingInDarkness.ActionFlow;
 using HuntingInDarkness.ActionFlow.Campaign;
+using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 using UI;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace HuntingInDarkness.Adapter.PlayModeTests
 {
@@ -197,6 +203,12 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             method.Invoke(target, arguments);
         }
 
+        private static object InvokeInternalResult(object target, string methodName, params object[] arguments)
+        {
+            MethodInfo method = target.GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Single(candidate => candidate.Name == methodName && candidate.GetParameters().Length == arguments.Length);
+            return method.Invoke(target, arguments);
+        }
+
         [Test]
         public async Task TransitionWithoutGameplayRuntime_IsRejectedWithoutHostMutation()
         {
@@ -238,6 +250,45 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
             Assert.Throws<ArgumentNullException>(() => settlement.PublishEventRestore(null));
             Assert.That(runtime.Settlement.EventRestore, Is.Null);
+        }
+
+        [Test]
+        public async Task SettlementCoordinator_ResetCancelsStaleEventRunnerBeforeProjectionContinuation()
+        {
+            var input = new BlockingEventInput();
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            runtime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null), new EventSystem(manager.Data, new FirstRandom()), input)));
+            object phaseManagers = GetPhaseManagers(runtime);
+            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhaseManagerAccess", true);
+            object phaseManager = accessType.GetProperty("SettlementPhase").GetValue(phaseManagers);
+            object coordinator = phaseManager.GetType().GetProperty("Coordinator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(phaseManager);
+            InvokeInternal(coordinator, "ConfigureGameplay", new Func<IPlayableEventInput>(() => input), null, new Func<IActionEnvironmentInstallerRegistry>(() => runtime.ActionEnvironmentInstallers), new Func<IPlayableCampaignPersistentEffectProjection>(() => null));
+
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime settlement, out string prepareReason), Is.True, prepareReason);
+            Assert.That(runtime.TrySwapSettlement(null, settlement, out string swapReason), Is.True, swapReason);
+            Assert.That(settlement.TryActivateActionSession(out string activationReason), Is.True, activationReason);
+
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "stale-settlement-event";
+            gameEvent.eventName = gameEvent.name;
+            gameEvent.eventType = GameEventType.Narrative;
+            AnnalEntry timelineEntry = new() { EventId = gameEvent.ContentId, EventName = gameEvent.eventName, EntryType = TimelineEntryType.Random };
+            settlement.Data.Timeline.Add(timelineEntry);
+            var projection = new SettlementEventRestoreProjection(settlement.Data, id => id == gameEvent.ContentId ? gameEvent : null);
+            SettlementEventRestorePlan plan = projection.Prepare();
+            Assert.That(plan.Succeeded, Is.True, plan.FailureReason);
+
+            PlayableSettlementActionSession session = settlement.ActionSession;
+            UniTask<bool> resolve = (UniTask<bool>)InvokeInternalResult(coordinator, "ResolveEventsAsync", settlement, session, plan.WorkItems, projection, plan.ChainId);
+            await input.Started.Task;
+
+            LogAssert.Expect(LogType.Error, "[SettlementPhase] 拒绝并行执行营地事件链。");
+            Assert.That((bool)InvokeInternalResult(coordinator, "QueueEvents", settlement, session, plan.WorkItems, projection, plan.ChainId), Is.False);
+            runtime.Reset();
+            Assert.That(await resolve, Is.False);
+            Assert.That(timelineEntry.IsCompleted, Is.False);
+            Assert.That(projection.IsReady, Is.False);
+            UnityEngine.Object.DestroyImmediate(gameEvent);
         }
 
         [Test]
@@ -407,6 +458,29 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         private sealed class RecordingDeparturePort : ISettlementDepartureRequestPort
         {
             public bool RequestDeparture(IReadOnlyList<int> hunterIds) => true;
+        }
+
+        private sealed class FirstRandom : IRandomSource
+        {
+            public int Next(int minInclusive, int maxExclusive) => minInclusive;
+            public double NextDouble() => 0d;
+        }
+
+        private sealed class BlockingEventInput : IPlayableEventInput
+        {
+            private readonly UniTaskCompletionSource<bool> completion = new();
+            public UniTaskCompletionSource<bool> Started { get; } = new();
+
+            public async UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken)
+            {
+                Started.TrySetResult(true);
+                using CancellationTokenRegistration registration = cancellationToken.Register(() => completion.TrySetCanceled(cancellationToken));
+                await completion.Task;
+            }
+
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, IPlayableEventResourceAvailability resourceAvailability, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(-1, null));
+            public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
+            public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
         }
     }
 }

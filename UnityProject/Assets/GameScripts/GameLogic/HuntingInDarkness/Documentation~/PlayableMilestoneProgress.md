@@ -523,3 +523,6 @@
 336. Settlement 阶段新增由 ZFramework Campaign Runtime 持有的纯 C# coordinator，统一拥有 ActionSession、2D/3D 营地表现绑定与阶段内玩法命令；GameManager 只保留场景引用注入、出猎端口和跨阶段回营事务。
 337. Settlement generation 换代会立即释放旧 Session；旧 3D 桌面回调同时校验当前 runtime、SettlementManager 与活动 Session，读档重绑新 Manager 后旧 View 失败关闭，不会把命令写入新世代。
 338. 对抗验证覆盖 Session 换代/Reset 与旧出猎回调隔离；Runtime PlayMode 16/16、Campaign loop 16/16、生产营地事件 2/2、Settlement ActionSession EditMode 39/39、dotnet 编译 0 error 通过，未推进 Showdown 玩法且未使用截图。
+339. Settlement coordinator 现统一拥有 `SettlementEventWork` 的单一事件 runner、ActionQueue 执行与恢复 checkpoint 续跑；GameManager 继续持有回营提交、两阶段保存、pending record、projection 发布和跨阶段 FSM。
+340. runner 在每次异步返回后复核 runtime generation 与活动 Session；Reset、换代或 Dispose 后旧 continuation 不会调用 projection Complete/Prepare。并行请求显式失败且不能抢占当前链，同一活动 projection 保持原门禁状态。
+341. 对抗验证同时修复 Campaign loop 的测试输入：测试会选择第一个真实可用选项，不再把随机年度事件的 option 0 可用性当作前提。Runtime PlayMode 17/17、Campaign loop 16/16、生产营地事件 2/2、restore projection EditMode 14/14、dotnet 编译 0 error 通过，未使用截图。

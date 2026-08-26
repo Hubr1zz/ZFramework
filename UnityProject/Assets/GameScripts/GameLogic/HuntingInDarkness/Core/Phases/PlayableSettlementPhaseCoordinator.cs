@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow;
 using HuntingInDarkness.ActionFlow.Events;
@@ -34,6 +35,9 @@ namespace Core
         private Func<IPlayableCampaignPersistentEffectProjection> persistentEffectProjectionProvider;
         private Action<List<HunterInstance>> departureRequested;
         private SettlementManager presentationManager;
+        private CancellationTokenSource eventRunnerCancellation;
+        private SettlementEventRestoreProjection eventRunnerProjection;
+        private long eventRunnerId;
         private bool presentationConfigured;
         private bool missingUIWarningLogged;
         private bool disposed;
@@ -132,6 +136,7 @@ namespace Core
         internal void Deactivate(IPlayableSettlementRuntime runtime)
         {
             if (disposed || !ReferenceEquals(actionSessionOwner, runtime)) return;
+            CancelEventRunner();
             PlayableSettlementActionSession stale = actionSession;
             actionSession = null;
             actionSessionOwner = null;
@@ -215,9 +220,36 @@ namespace Core
             settlementTable?.RefreshCrafting();
         }
 
+        internal bool QueueEvents(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection = null, string restoredChainId = null)
+        {
+            if (works == null || works.Count == 0) return false;
+            if (!TryBeginEventRunner(runtime, session, restoreProjection, out long runnerId, out CancellationToken cancellationToken, out string reason))
+            {
+                FailRejectedProjection(restoreProjection, reason);
+                Debug.LogError($"[SettlementPhase] {reason}");
+                return false;
+            }
+            ResolveEventsAsync(runtime, session, works, restoreProjection, restoredChainId, runnerId, cancellationToken).Forget();
+            return true;
+        }
+
+        internal UniTask<bool> ResolveEventsAsync(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection = null, string restoredChainId = null)
+        {
+            if (works == null || works.Count == 0)
+                return UniTask.FromResult(true);
+            if (!TryBeginEventRunner(runtime, session, restoreProjection, out long runnerId, out CancellationToken cancellationToken, out string reason))
+            {
+                FailRejectedProjection(restoreProjection, reason);
+                Debug.LogError($"[SettlementPhase] {reason}");
+                return UniTask.FromResult(false);
+            }
+            return ResolveEventsAsync(runtime, session, works, restoreProjection, restoredChainId, runnerId, cancellationToken);
+        }
+
         internal void Reset()
         {
             if (disposed) return;
+            CancelEventRunner();
             if (actionSessionOwner != null) Deactivate(actionSessionOwner);
         }
 
@@ -243,6 +275,11 @@ namespace Core
             return runtime != null && ReferenceEquals(actionSessionOwner, runtime) && actionSession?.IsActive == true ? actionSession : null;
         }
 
+        private bool IsCurrentSession(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session)
+        {
+            return session != null && ReferenceEquals(GetSession(runtime), session);
+        }
+
         private bool IsCurrentManager(SettlementManager manager)
         {
             if (disposed) return false;
@@ -251,6 +288,92 @@ namespace Core
         }
 
         private bool HasCurrentSession() => IsCurrentManager(currentRuntimeProvider()?.Manager);
+
+        private bool TryBeginEventRunner(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, SettlementEventRestoreProjection restoreProjection, out long runnerId, out CancellationToken cancellationToken, out string reason)
+        {
+            runnerId = 0;
+            cancellationToken = default;
+            if (!IsCurrentSession(runtime, session))
+            {
+                reason = "营地事件请求不属于当前运行世代或活动 Session。";
+                return false;
+            }
+            if (eventRunnerCancellation != null)
+            {
+                reason = "拒绝并行执行营地事件链。";
+                return false;
+            }
+            eventRunnerCancellation = new CancellationTokenSource();
+            eventRunnerProjection = restoreProjection;
+            runnerId = ++eventRunnerId;
+            cancellationToken = eventRunnerCancellation.Token;
+            reason = string.Empty;
+            return true;
+        }
+
+        private void FailRejectedProjection(SettlementEventRestoreProjection restoreProjection, string reason)
+        {
+            if (restoreProjection == null || ReferenceEquals(eventRunnerProjection, restoreProjection)) return;
+            restoreProjection.Fail(reason);
+        }
+
+        private async UniTask<bool> ResolveEventsAsync(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection, string restoredChainId, long runnerId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                SettlementEventCommandResult result = await session.ResolveEventsAsync(works, restoredChainId);
+                if (!IsCurrentEventRunner(runtime, session, runnerId, cancellationToken)) return false;
+                if (restoreProjection != null)
+                {
+                    bool restoreCompleted = restoreProjection.Complete(result.Succeeded);
+                    if (result.Succeeded && !restoreCompleted && restoreProjection.HasRecoverableCheckpoint)
+                    {
+                        SettlementEventRestorePlan nextRestorePlan = restoreProjection.Prepare();
+                        if (!nextRestorePlan.Succeeded)
+                            Debug.LogError($"[SettlementPhase] 下一条营地事件链恢复失败：{nextRestorePlan.FailureReason}");
+                        else if (nextRestorePlan.HasPendingEvents)
+                            return await ResolveEventsAsync(runtime, session, nextRestorePlan.WorkItems, restoreProjection, nextRestorePlan.ChainId, runnerId, cancellationToken);
+                    }
+                }
+                if (!result.Succeeded)
+                    Debug.LogWarning($"[SettlementPhase] 营地事件链未完成：{result.Reason}");
+                return result.Succeeded;
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
+            }
+            catch (Exception exception)
+            {
+                if (IsCurrentEventRunner(runtime, session, runnerId, cancellationToken))
+                {
+                    restoreProjection?.Fail($"营地事件恢复异常：{exception.Message}");
+                    Debug.LogError($"[SettlementPhase] 营地事件链执行异常：{exception}");
+                }
+                return false;
+            }
+            finally
+            {
+                if (eventRunnerId == runnerId)
+                    CancelEventRunner();
+            }
+        }
+
+        private bool IsCurrentEventRunner(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, long runnerId, CancellationToken cancellationToken)
+        {
+            return eventRunnerId == runnerId && !cancellationToken.IsCancellationRequested && IsCurrentSession(runtime, session);
+        }
+
+        private void CancelEventRunner()
+        {
+            eventRunnerId++;
+            CancellationTokenSource cancellation = eventRunnerCancellation;
+            eventRunnerCancellation = null;
+            eventRunnerProjection = null;
+            cancellation?.Cancel();
+            cancellation?.Dispose();
+        }
 
         private PlayableSettlementActionSession GetSession(SettlementManager manager)
         {

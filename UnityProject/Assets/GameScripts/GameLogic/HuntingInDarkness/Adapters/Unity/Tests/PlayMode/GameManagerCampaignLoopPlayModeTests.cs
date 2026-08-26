@@ -752,7 +752,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             manager.ConfigureSettlementContent(contentCandidate.SettlementContent);
             manager.ConfigureWorkshopContent(contentCandidate.WorkshopContent);
             Assert.That(manager.ConfigurePlayableStartup(deferStartup), Is.True);
-            manager.SetPlayableEventInput(new ImmediateEventInput());
+            manager.SetPlayableEventInput(new ImmediateEventInput(() => manager.SettlementData));
             Assert.That(manager.ConfigureTabletopInteraction(new ImmediateTabletopInteraction()), Is.True);
             Assert.That(manager.ConfigureCampaignPersistence(persistence), Is.True);
             managerObject.SetActive(true);
@@ -943,12 +943,34 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
         private sealed class ImmediateEventInput : IPlayableEventInput
         {
+            private readonly System.Func<SettlementInstance> settlementProvider;
+
+            public ImmediateEventInput(System.Func<SettlementInstance> settlementProvider)
+            {
+                this.settlementProvider = settlementProvider ?? throw new System.ArgumentNullException(nameof(settlementProvider));
+            }
+
             public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
 
             public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, IPlayableEventResourceAvailability resourceAvailability, CancellationToken cancellationToken)
             {
-                HunterInstance selectedActor = actor ?? (hunters != null && hunters.Count > 0 ? hunters[0] : null);
-                return UniTask.FromResult(new PlayableEventChoiceSelection(0, selectedActor));
+                SettlementInstance settlement = settlementProvider();
+                if (gameEvent?.options == null || settlement == null)
+                    return UniTask.FromResult(new PlayableEventChoiceSelection(-1, null));
+                for (int optionIndex = 0; optionIndex < gameEvent.options.Count; optionIndex++)
+                {
+                    EventOption option = gameEvent.options[optionIndex];
+                    bool needsHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
+                    if (actor != null && PlayableEventOptionAvailability.CanUse(option, actor, settlement, resourceAvailability, out _))
+                        return UniTask.FromResult(new PlayableEventChoiceSelection(optionIndex, actor));
+                    if (!needsHunter && PlayableEventOptionAvailability.CanUse(option, null, settlement, resourceAvailability, out _))
+                        return UniTask.FromResult(new PlayableEventChoiceSelection(optionIndex, null));
+                    if (hunters == null) continue;
+                    foreach (HunterInstance hunter in hunters)
+                        if (hunter != null && PlayableEventOptionAvailability.CanUse(option, hunter, settlement, resourceAvailability, out _))
+                            return UniTask.FromResult(new PlayableEventChoiceSelection(optionIndex, hunter));
+                }
+                return UniTask.FromResult(new PlayableEventChoiceSelection(-1, null));
             }
 
             public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
