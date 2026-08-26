@@ -127,8 +127,86 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 reason = $"狩猎事件检查点超过待恢复 occurrence 上限 {MaxPendingOccurrences}。";
                 return false;
             }
+            IReadOnlyList<int> committedSequences = state.CommittedSequences ?? Array.Empty<int>();
+            var committedSet = new HashSet<int>();
+            int highestObservedPositiveSequence = 0;
+            int lowestObservedNegativeSequence = -1;
+            bool hasObservedNegativeSequence = false;
+            foreach (int sequence in committedSequences)
+            {
+                if (sequence == 0)
+                {
+                    reason = "狩猎事件检查点包含无效的 committed occurrence 序号 0。";
+                    return false;
+                }
+                if (!committedSet.Add(sequence))
+                {
+                    reason = $"狩猎事件检查点包含重复 committed occurrence 序号：{sequence}";
+                    return false;
+                }
+                if (sequence == int.MaxValue || sequence == int.MinValue)
+                {
+                    reason = $"无法恢复序号达到 {sequence} 的 committed occurrence。";
+                    return false;
+                }
+                if (sequence > 0)
+                    highestObservedPositiveSequence = Math.Max(highestObservedPositiveSequence, sequence);
+                else
+                {
+                    hasObservedNegativeSequence = true;
+                    lowestObservedNegativeSequence = Math.Min(lowestObservedNegativeSequence, sequence);
+                }
+            }
             var pendingQueue = new List<PlayableEventChainOccurrence>();
             var resolved = new List<(PlayableHuntEventOccurrenceRecord Record, EventData Event)>();
+            var pendingSequenceSet = new HashSet<int>();
+            foreach (PlayableHuntEventOccurrenceRecord record in pendingRecords)
+            {
+                int sequence = record.Occurrence.Sequence;
+                if (sequence == 0)
+                {
+                    reason = "无法恢复序号为 0 的狩猎事件 occurrence。";
+                    return false;
+                }
+                if (!pendingSequenceSet.Add(sequence))
+                {
+                    reason = $"狩猎事件检查点包含重复 occurrence 序号：{sequence}";
+                    return false;
+                }
+                if (committedSet.Contains(sequence))
+                {
+                    reason = $"狩猎事件 occurrence 序号同时存在于 pending 与 committed：{sequence}";
+                    return false;
+                }
+                if (sequence == int.MaxValue)
+                {
+                    reason = "无法恢复序号达到 int.MaxValue 的狩猎事件 occurrence。";
+                    return false;
+                }
+                if (sequence == int.MinValue)
+                {
+                    reason = "无法恢复序号达到 int.MinValue 的狩猎事件 occurrence。";
+                    return false;
+                }
+                if (sequence > 0)
+                    highestObservedPositiveSequence = Math.Max(highestObservedPositiveSequence, sequence);
+                else
+                {
+                    hasObservedNegativeSequence = true;
+                    lowestObservedNegativeSequence = Math.Min(lowestObservedNegativeSequence, sequence);
+                }
+                pendingQueue.Add(record.Occurrence);
+            }
+            if (state.NextSequence < 1 || state.NextSequence <= highestObservedPositiveSequence)
+            {
+                reason = $"狩猎事件检查点的 NextSequence 必须大于所有正序号：{state.NextSequence}";
+                return false;
+            }
+            if (state.NextRootSequence > -1 || hasObservedNegativeSequence && state.NextRootSequence >= lowestObservedNegativeSequence)
+            {
+                reason = $"狩猎事件检查点的 NextRootSequence 必须小于所有负序号：{state.NextRootSequence}";
+                return false;
+            }
             foreach (PlayableHuntEventOccurrenceRecord record in pendingRecords)
             {
                 EventData gameEvent = resolveEvent(record.Occurrence.EventId);
@@ -137,13 +215,23 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                     reason = $"无法解析待恢复狩猎事件：{record.Occurrence.EventId}";
                     return false;
                 }
-                pendingQueue.Add(record.Occurrence);
                 resolved.Add((record, gameEvent));
             }
-            var queue = new PlayableEventChainOccurrenceQueue(MaxPendingOccurrences, state.NextSequence, state.CommittedSequences, pendingQueue, state.Diagnostic, state.NextRootSequence);
+            var queue = new PlayableEventChainOccurrenceQueue(MaxPendingOccurrences, state.NextSequence, committedSequences, pendingQueue, state.Diagnostic, state.NextRootSequence);
+            if (queue.PendingOccurrences.Count != pendingRecords.Count)
+            {
+                reason = "狩猎事件检查点恢复后 occurrence 数量不一致。";
+                return false;
+            }
             store = new PlayableHuntEventOccurrenceStore(queue);
             foreach ((PlayableHuntEventOccurrenceRecord record, EventData gameEvent) in resolved)
                 store.AddOccurrence(record.Occurrence, gameEvent, record.Coordinate, new List<string>(record.AncestorContentIds ?? Array.Empty<string>()));
+            if (store.occurrences.Count != pendingRecords.Count)
+            {
+                store = null;
+                reason = "狩猎事件检查点恢复后 occurrence 身份数量不一致。";
+                return false;
+            }
             reason = string.Empty;
             return true;
         }

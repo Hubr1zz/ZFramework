@@ -87,6 +87,27 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void TryRestore_AllowsNegativeRootAndPreservesRootCursor()
+        {
+            EventData root = CreateEvent("restored-root");
+            var state = new PlayableHuntEventOccurrenceStoreState
+            {
+                NextSequence = 1,
+                NextRootSequence = -2,
+                PendingOccurrences = new[]
+                {
+                    new PlayableHuntEventOccurrenceRecord(new PlayableEventChainOccurrence(-1, root.ContentId, root.eventName, 2, 17), Vector2Int.zero, Array.Empty<string>())
+                }
+            };
+
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(state, id => id == root.ContentId ? root : null, out PlayableHuntEventOccurrenceStore restored, out string reason), Is.True, reason);
+            Assert.That(restored.TryGetNextPending(out PlayableHuntEventOccurrence pending), Is.True);
+            Assert.That(pending.Sequence, Is.EqualTo(-1));
+            Assert.That(restored.TryScheduleRoot(root, Vector2Int.one, 2, 17, out PlayableHuntEventOccurrence nextRoot), Is.True);
+            Assert.That(nextRoot.Sequence, Is.EqualTo(-2));
+        }
+
+        [Test]
         public void CaptureAndRestore_PreservesPendingIdentityCoordinateAndNextRootSequence()
         {
             var source = new PlayableHuntEventOccurrenceStore();

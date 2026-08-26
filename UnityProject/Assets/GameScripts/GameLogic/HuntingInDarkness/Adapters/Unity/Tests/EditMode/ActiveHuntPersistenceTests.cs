@@ -1,7 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Core;
+using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.ContentTables;
@@ -9,6 +13,7 @@ using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
+using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -18,7 +23,7 @@ namespace HuntingInDarkness.Adapter.Tests
     public sealed class ActiveHuntPersistenceTests
     {
         private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
-        private readonly List<Object> createdAssets = new();
+        private readonly List<UnityEngine.Object> createdAssets = new();
         private PlayableHuntDestination selectedDestination;
 
         [SetUp]
@@ -36,9 +41,9 @@ namespace HuntingInDarkness.Adapter.Tests
         [TearDown]
         public void TearDown()
         {
-            foreach (Object asset in createdAssets)
+            foreach (UnityEngine.Object asset in createdAssets)
                 if (asset != null)
-                    Object.DestroyImmediate(asset);
+                    UnityEngine.Object.DestroyImmediate(asset);
             createdAssets.Clear();
             ResetContentAssembly();
         }
@@ -195,6 +200,186 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Snapshot_RoundTripsRepeatedSiblingOccurrencesBySequenceAndOrder()
+        {
+            HunterData template = CreateAsset<HunterData>("hunter-template-repeated-siblings");
+            var hunter = new HunterInstance(template, 403);
+            var settlement = new SettlementInstance { CurrentYear = 3 };
+            settlement.Hunters.Add(hunter);
+            HuntManager source = CreateManager(settlement, null, null, 43);
+            source.OnEnter(new List<HunterInstance> { hunter }, settlement.CurrentYear);
+            Assert.That(source.BoundRoute.TryResolveEvent("hunt_rust_burial", out EventData parent), Is.True);
+            Assert.That(source.BoundRoute.TryResolveEvent("hunt_rust_burial_open_eyes", out EventData child), Is.True);
+            var occurrences = new PlayableHuntEventOccurrenceStore();
+            Assert.That(occurrences.TryScheduleRoot(parent, source.SquadPosition, settlement.CurrentYear, hunter.InstanceId, out PlayableHuntEventOccurrence root), Is.True);
+            PlayableHuntEventOccurrenceCommitResult committed = occurrences.Commit(root, new[] { child, child }, settlement.CurrentYear, hunter.InstanceId);
+            Assert.That(committed.AppendedOccurrences, Has.Count.EqualTo(2));
+            int firstSequence = committed.AppendedOccurrences[0].Sequence;
+            int secondSequence = committed.AppendedOccurrences[1].Sequence;
+            using var session = new PlayableHuntActionSession(source, "encounter", source.BoundRoute.DestinationId, restoredOccurrenceStore: occurrences);
+
+            Assert.That(ActiveHuntSnapshotAdapter.TryCapture(settlement, source, session, "expedition-repeated-siblings", out CampaignSnapshot captured, out string reason), Is.True, reason);
+            Assert.That(SaveLoadSystem.TryCreatePayload(captured, out string payload, out reason), Is.True, reason);
+            Assert.That(CampaignSaveRecovery.TryRestore(new CampaignSaveCandidates(CampaignSaveCodec.Encode(payload), null), out CampaignSnapshot saved, out _, out reason), Is.True, reason);
+            Assert.That(saved.ActiveHunt.EventStore.PendingOccurrences, Has.Count.EqualTo(2));
+            Assert.That(saved.ActiveHunt.EventStore.PendingOccurrences[0].EventId, Is.EqualTo(child.ContentId));
+            Assert.That(saved.ActiveHunt.EventStore.PendingOccurrences[1].EventId, Is.EqualTo(child.ContentId));
+            Assert.That(saved.ActiveHunt.EventStore.PendingOccurrences[0].Sequence, Is.EqualTo(firstSequence));
+            Assert.That(saved.ActiveHunt.EventStore.PendingOccurrences[1].Sequence, Is.EqualTo(secondSequence));
+
+            HuntManager destination = CreateManager(saved.Settlement, null, null, 44);
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(saved, destination, out _, out PlayableHuntEventOccurrenceStore restored, out reason), Is.True, reason);
+            PlayableHuntEventOccurrenceStoreState restoredState = restored.CaptureState();
+            Assert.That(restoredState.PendingOccurrences, Has.Count.EqualTo(2));
+            Assert.That(restoredState.PendingOccurrences[0].Occurrence.Sequence, Is.EqualTo(firstSequence));
+            Assert.That(restoredState.PendingOccurrences[1].Occurrence.Sequence, Is.EqualTo(secondSequence));
+            Assert.That(restoredState.PendingOccurrences[0].Occurrence.EventId, Is.EqualTo(child.ContentId));
+            Assert.That(restoredState.PendingOccurrences[1].Occurrence.EventId, Is.EqualTo(child.ContentId));
+        }
+
+        [Test]
+        public void EventStoreRestore_RejectsDuplicatePendingSequence()
+        {
+            EventData gameEvent = CreateAsset<EventData>("duplicate-pending-event");
+            gameEvent.ConfigureContentId("hunt:duplicate-pending-event");
+            var records = new List<PlayableHuntEventOccurrenceRecord>
+            {
+                new(new PlayableEventChainOccurrence(7, gameEvent.ContentId, gameEvent.eventName, 3, 403), Vector2Int.zero, new[] { "hunt_rust_burial" }),
+                new(new PlayableEventChainOccurrence(7, gameEvent.ContentId, gameEvent.eventName, 3, 403), Vector2Int.one, new[] { "hunt_rust_burial" })
+            };
+            var state = new PlayableHuntEventOccurrenceStoreState { PendingOccurrences = records };
+
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(state, id => id == gameEvent.ContentId ? gameEvent : null, out PlayableHuntEventOccurrenceStore restored, out string reason), Is.False);
+            Assert.That(restored, Is.Null);
+            Assert.That(reason, Does.Contain("重复 occurrence 序号"));
+        }
+
+        [Test]
+        public void EventStoreRestore_RejectsPendingSequenceCommittedInSameCheckpoint()
+        {
+            EventData gameEvent = CreateAsset<EventData>("committed-pending-event");
+            gameEvent.ConfigureContentId("hunt:committed-pending-event");
+            var records = new List<PlayableHuntEventOccurrenceRecord>
+            {
+                new(new PlayableEventChainOccurrence(9, gameEvent.ContentId, gameEvent.eventName, 3, 404), Vector2Int.zero, new[] { "hunt_rust_burial" })
+            };
+            var state = new PlayableHuntEventOccurrenceStoreState { CommittedSequences = new[] { 9 }, PendingOccurrences = records };
+
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(state, id => id == gameEvent.ContentId ? gameEvent : null, out PlayableHuntEventOccurrenceStore restored, out string reason), Is.False);
+            Assert.That(restored, Is.Null);
+            Assert.That(reason, Does.Contain("pending 与 committed"));
+        }
+
+        [Test]
+        public void EventStoreRestore_RejectsZeroAndDuplicateCommittedSequences()
+        {
+            EventData gameEvent = CreateAsset<EventData>("invalid-committed-event");
+            gameEvent.ConfigureContentId("hunt:invalid-committed-event");
+            var zeroState = new PlayableHuntEventOccurrenceStoreState { CommittedSequences = new[] { 0 } };
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(zeroState, id => id == gameEvent.ContentId ? gameEvent : null, out _, out string zeroReason), Is.False);
+            Assert.That(zeroReason, Does.Contain("committed occurrence 序号 0"));
+
+            var duplicateState = new PlayableHuntEventOccurrenceStoreState { CommittedSequences = new[] { 5, 5 } };
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(duplicateState, id => id == gameEvent.ContentId ? gameEvent : null, out _, out string duplicateReason), Is.False);
+            Assert.That(duplicateReason, Does.Contain("重复 committed occurrence 序号"));
+        }
+
+        [Test]
+        public void EventStoreRestore_RejectsInvalidPendingSequenceBoundsAndCursors()
+        {
+            EventData gameEvent = CreateAsset<EventData>("invalid-pending-event");
+            gameEvent.ConfigureContentId("hunt:invalid-pending-event");
+            static PlayableHuntEventOccurrenceRecord Record(int sequence, EventData content) => new(new PlayableEventChainOccurrence(sequence, content.ContentId, content.eventName, 3, 405), Vector2Int.zero, new string[0]);
+
+            var zeroState = new PlayableHuntEventOccurrenceStoreState { PendingOccurrences = new[] { Record(0, gameEvent) } };
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(zeroState, id => id == gameEvent.ContentId ? gameEvent : null, out _, out string zeroReason), Is.False);
+            Assert.That(zeroReason, Does.Contain("序号为 0"));
+
+            var maxState = new PlayableHuntEventOccurrenceStoreState { NextSequence = int.MaxValue, PendingOccurrences = new[] { Record(int.MaxValue, gameEvent) } };
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(maxState, id => id == gameEvent.ContentId ? gameEvent : null, out _, out string maxReason), Is.False);
+            Assert.That(maxReason, Does.Contain("int.MaxValue"));
+
+            var minState = new PlayableHuntEventOccurrenceStoreState { NextRootSequence = int.MinValue, PendingOccurrences = new[] { Record(int.MinValue, gameEvent) } };
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(minState, id => id == gameEvent.ContentId ? gameEvent : null, out _, out string minReason), Is.False);
+            Assert.That(minReason, Does.Contain("int.MinValue"));
+
+            var committedMaxState = new PlayableHuntEventOccurrenceStoreState { NextSequence = int.MaxValue, CommittedSequences = new[] { int.MaxValue } };
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(committedMaxState, id => id == gameEvent.ContentId ? gameEvent : null, out _, out string committedMaxReason), Is.False);
+            Assert.That(committedMaxReason, Does.Contain("committed occurrence"));
+
+            var committedMinState = new PlayableHuntEventOccurrenceStoreState { NextRootSequence = int.MinValue, CommittedSequences = new[] { int.MinValue } };
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(committedMinState, id => id == gameEvent.ContentId ? gameEvent : null, out _, out string committedMinReason), Is.False);
+            Assert.That(committedMinReason, Does.Contain("committed occurrence"));
+
+            var positiveCursorState = new PlayableHuntEventOccurrenceStoreState { NextSequence = 3, PendingOccurrences = new[] { Record(3, gameEvent) } };
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(positiveCursorState, id => id == gameEvent.ContentId ? gameEvent : null, out _, out string positiveReason), Is.False);
+            Assert.That(positiveReason, Does.Contain("NextSequence"));
+
+            var negativeCursorState = new PlayableHuntEventOccurrenceStoreState { NextRootSequence = -2, PendingOccurrences = new[] { Record(-2, gameEvent) } };
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(negativeCursorState, id => id == gameEvent.ContentId ? gameEvent : null, out _, out string negativeReason), Is.False);
+            Assert.That(negativeReason, Does.Contain("NextRootSequence"));
+
+            var negativeRootReuseState = new PlayableHuntEventOccurrenceStoreState { NextRootSequence = -1, PendingOccurrences = new[] { Record(-1, gameEvent) } };
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(negativeRootReuseState, id => id == gameEvent.ContentId ? gameEvent : null, out _, out string negativeRootReuseReason), Is.False);
+            Assert.That(negativeRootReuseReason, Does.Contain("NextRootSequence"));
+        }
+
+        [Test]
+        public async Task ProductionRustBurial_ResumesThroughHuntSessionAndPaysMetalCollectible()
+        {
+            HunterData template = CreateAsset<HunterData>("hunter-template-rust-burial-resume");
+            var hunter = new HunterInstance(template, 406) { Understanding = 7 };
+            var settlement = new SettlementInstance { CurrentYear = 3 };
+            settlement.Hunters.Add(hunter);
+            HuntManager source = CreateManager(settlement, null, null, 46);
+            source.OnEnter(new List<HunterInstance> { hunter }, settlement.CurrentYear);
+            Assert.That(source.BoundRoute.TryResolveEvent("hunt_rust_burial", out EventData parent), Is.True);
+            Assert.That(source.BoundRoute.TryResolveEvent("hunt_rust_burial_open_eyes", out EventData child), Is.True);
+            HexTileInstance target = source.Map.Values.First(tile => tile.State == TileState.Interactable && !tile.HasBossEncounter && tile.Config?.tileRevealEvent == null);
+            EventData originalRevealEvent = target.Config.tileRevealEvent;
+            target.Config.tileRevealEvent = parent;
+            var sourceInput = new ProductionRustBurialInput(hunter, true);
+            source.EventInput = sourceInput;
+            Assert.That(settlement.GetResource("metal_fragment"), Is.Zero);
+            try
+            {
+                using var sourceSession = new PlayableHuntActionSession(source, "encounter", source.BoundRoute.DestinationId, restoredOccurrenceStore: new PlayableHuntEventOccurrenceStore());
+                HuntTileCommandResult first = await sourceSession.InteractTileAsync(target.AxialCoord);
+
+                Assert.That(first.Succeeded, Is.False);
+                Assert.That(sourceSession.HasPendingEventOccurrences, Is.True);
+                Assert.That(sourceInput.ParentChoiceCount, Is.EqualTo(1));
+                Assert.That(sourceInput.ChildChoiceCount, Is.Zero);
+                Assert.That(hunter.Collectibles.Sum(item => item?.Data?.ContentId == "metal_fragment" ? item.Count : 0), Is.EqualTo(1));
+                Assert.That(settlement.GetResource("metal_fragment"), Is.Zero);
+                Assert.That(ActiveHuntSnapshotAdapter.TryCapture(settlement, source, sourceSession, "expedition-rust-burial-resume", out CampaignSnapshot captured, out string reason), Is.True, reason);
+                Assert.That(SaveLoadSystem.TryCreatePayload(captured, out string payload, out reason), Is.True, reason);
+                Assert.That(CampaignSaveRecovery.TryRestore(new CampaignSaveCandidates(CampaignSaveCodec.Encode(payload), null), out CampaignSnapshot saved, out _, out reason), Is.True, reason);
+
+                HuntManager destination = CreateManager(saved.Settlement, null, null, 47);
+                Assert.That(ActiveHuntSnapshotAdapter.TryRestore(saved, destination, out PlayableHuntRuntimeState runtime, out PlayableHuntEventOccurrenceStore restoredOccurrences, out reason), Is.True, reason);
+                Assert.That(destination.TryRestore(runtime, out reason), Is.True, reason);
+                var destinationInput = new ProductionRustBurialInput(destination.ActiveHunters[0], false);
+                destination.EventInput = destinationInput;
+                using var destinationSession = new PlayableHuntActionSession(destination, "encounter", destination.BoundRoute.DestinationId, restoredOccurrenceStore: restoredOccurrences);
+                HuntRetreatCommandResult retreat = await destinationSession.PrepareRetreatAsync(3);
+
+                Assert.That(retreat.Succeeded, Is.True, retreat.Reason);
+                Assert.That(destinationInput.ParentChoiceCount, Is.Zero);
+                Assert.That(destinationInput.ChildChoiceCount, Is.EqualTo(1));
+                Assert.That(destinationInput.ResourceScope, Is.EqualTo(PlayableEventResourceScope.HuntCollectibles));
+                Assert.That(destinationInput.ChildMetalAmount, Is.EqualTo(1));
+                Assert.That(destination.ActiveHunters[0].Collectibles.Sum(item => item?.Data?.ContentId == "metal_fragment" ? item.Count : 0), Is.Zero);
+                Assert.That(saved.Settlement.GetResource("metal_fragment"), Is.Zero);
+                Assert.That(destinationSession.HasPendingEventOccurrences, Is.False);
+            }
+            finally
+            {
+                target.Config.tileRevealEvent = originalRevealEvent;
+            }
+        }
+
+        [Test]
         public void Capture_RejectsPendingEventOutsideBoundRoute()
         {
             HunterData template = CreateAsset<HunterData>("hunter-template-foreign-event");
@@ -257,6 +442,47 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             public int Next(int minInclusive, int maxExclusive) => minInclusive;
             public double NextDouble() => 0d;
+        }
+
+        private sealed class ProductionRustBurialInput : IPlayableEventInput
+        {
+            private readonly HunterInstance hunter;
+            private bool failFirstResult;
+
+            public ProductionRustBurialInput(HunterInstance hunter, bool failFirstResult)
+            {
+                this.hunter = hunter;
+                this.failFirstResult = failFirstResult;
+            }
+
+            public int ParentChoiceCount { get; private set; }
+            public int ChildChoiceCount { get; private set; }
+            public PlayableEventResourceScope ResourceScope { get; private set; }
+            public int ChildMetalAmount { get; private set; }
+
+            public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
+
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, IPlayableEventResourceAvailability resourceAvailability, CancellationToken cancellationToken)
+            {
+                if (gameEvent.ContentId == "hunt_rust_burial")
+                {
+                    ParentChoiceCount++;
+                    return UniTask.FromResult(new PlayableEventChoiceSelection(1, hunter));
+                }
+                ChildChoiceCount++;
+                ResourceScope = resourceAvailability.Scope;
+                ChildMetalAmount = resourceAvailability.GetAvailableAmount("metal_fragment");
+                return UniTask.FromResult(new PlayableEventChoiceSelection(1, hunter));
+            }
+
+            public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
+
+            public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken)
+            {
+                if (!failFirstResult) return UniTask.CompletedTask;
+                failFirstResult = false;
+                return UniTask.FromException(new InvalidOperationException("测试中断父事件结果确认以保留子 occurrence"));
+            }
         }
     }
 }

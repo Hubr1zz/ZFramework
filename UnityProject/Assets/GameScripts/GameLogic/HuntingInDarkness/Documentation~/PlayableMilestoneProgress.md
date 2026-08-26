@@ -4,6 +4,7 @@
 
 ## 本轮完成
 
+- 加固活动狩猎事件 occurrence 恢复：pending/committed 序号与游标现在在内容解析前严格校验；重复 EventId sibling 按独立序号保留并按原序恢复，未扩大到遭遇或 3D 交互。
 - 通过 ZFramework 启动场景自动装配现有 `GameManager`，保留现有三阶段状态机作为唯一流程权威。
 - 增加可序列化的启动配置与狩猎内容目录，内容不再由测试入口或场景临时对象硬编码。
 - 配置无火营地、雕像平原、蘑菇林、破碎废墟、浅水沼泽五类地块，以及碎石、柔软器官、蘑菇肉三类基础素材。
@@ -526,3 +527,4 @@
 339. Settlement coordinator 现统一拥有 `SettlementEventWork` 的单一事件 runner、ActionQueue 执行与恢复 checkpoint 续跑；GameManager 继续持有回营提交、两阶段保存、pending record、projection 发布和跨阶段 FSM。
 340. runner 在每次异步返回后复核 runtime generation 与活动 Session；Reset、换代或 Dispose 后旧 continuation 不会调用 projection Complete/Prepare。并行请求显式失败且不能抢占当前链，同一活动 projection 保持原门禁状态。
 341. 对抗验证同时修复 Campaign loop 的测试输入：测试会选择第一个真实可用选项，不再把随机年度事件的 option 0 可用性当作前提。Runtime PlayMode 17/17、Campaign loop 16/16、生产营地事件 2/2、restore projection EditMode 14/14、dotnet 编译 0 error 通过，未使用截图。
+342. 正式 `rust_burial → open_eyes` 通过新的 Hunt Manager/ActionSession 恢复路径消费，并由 Hunt collectibles 资源端口支付金属碎片；同一 Change 仍未覆盖人工 3D 父子链跨重建验证。
