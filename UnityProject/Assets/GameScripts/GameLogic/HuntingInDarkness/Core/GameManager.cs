@@ -46,7 +46,7 @@ namespace Core
     /// 管理三个游戏大阶段（Settlement / Hunt / BossFight）的根物体开关，
     /// 以及 Boss决战子系统的初始化与运行。
     /// </summary>
-    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, ICampaignPhaseTransitionHost, ICampaignPhaseTransitionRequestHost, ICampaignRestartHost, IPlayableHuntRetreatInput, ISettlementDepartureRequestPort, ICampaignStartupTransactionHost
+    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, ICampaignPhaseTransitionHost, ICampaignPhaseTransitionRequestHost, ICampaignRestartHost, IPlayableHuntRetreatInput, ISettlementDepartureRequestPort, ICampaignStartupTransactionHost, ICampaignHuntReturnHost
     {
         // ─── 单例 ─────────────────────────────────────────────────────
         public static GameManager Instance { get; private set; }
@@ -142,8 +142,7 @@ namespace Core
         private IPlayableSettlementPhasePort settlementPhase;
         private DevModePanel         _devPanel;
         private TabletopGameOverView3D gameOverView;
-        /// <summary>狩猎结算记录，由 HuntManager 回调注入，供 TransitionToPhase(Settlement) 消费</summary>
-        private HuntRecord           _pendingHuntRecord;
+        private CampaignHuntReturnTransaction huntReturnTransaction;
         private IPlayableShowdownPhasePort showdownPhase;
         private PlayableSettlementActionSession settlementActionSession => settlementPhase?.CurrentSession;
         private SettlementEventRestoreProjection settlementEventRestoreProjection
@@ -165,10 +164,7 @@ namespace Core
         private IPlayableEventInput playableEventInput;
         private IPlayableHuntDepartureInput playableHuntDepartureInput;
         private bool huntDepartureInFlight;
-        private bool huntRetreatInFlight;
         private bool encounterCheckpointRollbackFailed;
-        private bool huntReturnRecoveryInFlight;
-        private bool preparedHuntExit;
         private string stableCampaignPayload;
         private bool hasAwakened;
         private readonly CampaignStartupTransaction campaignStartup = new(new SaveLoadSystemCampaignPersistenceAdapter());
@@ -218,6 +214,18 @@ namespace Core
         void ICampaignStartupTransactionHost.ResetFailedCampaignStartupRuntime() => ResetFailedCampaignStartupRuntime();
         UniTask<bool> ICampaignStartupTransactionHost.FinalizePreparedSettlementAsync(SettlementInstance settlement, string payload) => FinalizePreparedSettlementAsync(settlement, payload);
 
+        GamePhase ICampaignHuntReturnHost.CurrentPhase => CurrentGamePhase;
+        IPlayableHuntRuntime ICampaignHuntReturnHost.HuntRuntime => huntRuntime;
+        IPlayableSettlementRuntime ICampaignHuntReturnHost.SettlementRuntime => settlementRuntime;
+        PlayableHuntActionSession ICampaignHuntReturnHost.HuntActionSession => huntActionSession;
+        PlayableSettlementActionSession ICampaignHuntReturnHost.SettlementActionSession => settlementActionSession;
+        UniTask<bool> ICampaignHuntReturnHost.SaveCampaignAsync(bool includeActiveHunt, CancellationToken cancellationToken) => TrySaveCampaignAsync(includeActiveHunt, cancellationToken);
+        UniTask<CampaignPhaseTransitionResult> ICampaignHuntReturnHost.TransitionToSettlementAsync() => TransitionToPhaseAsync(GamePhase.Settlement);
+        SettlementEventRestoreProjection ICampaignHuntReturnHost.CreateEventRestoreCandidate() => settlementRuntime?.CreateEventRestoreCandidate();
+        void ICampaignHuntReturnHost.PublishEventRestore(SettlementEventRestoreProjection projection) => settlementEventRestoreProjection = projection;
+        bool ICampaignHuntReturnHost.TryClearAppliedReturnCheckpoint(SettlementInstance settlement, HuntRecord record, out string reason) => PlayableCampaignLoopContract.TryClearAppliedReturnCheckpoint(settlement, record, out reason);
+        UniTask<bool> ICampaignHuntReturnHost.ResolveSettlementEventsAsync(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, SettlementEventRestorePlan plan, SettlementEventRestoreProjection projection) => settlementPhase.ResolveEventsAsync(runtime, session, plan.WorkItems, projection, plan.ChainId);
+
         // ─── 运行时数据 ───────────────────────────────────────────────
 
         /// <summary>本场战斗的装配载荷（狩猎阶段注入；未注入时由序列化配置组装）</summary>
@@ -257,6 +265,7 @@ namespace Core
 
             // 权威阶段 FSM 由 ZFramework Campaign 模块持有；GameManager 只保留当前世代 lease。
             campaignRuntime = GameModule.Campaign.AcquireRuntime(this, ApplyPhaseRoots);
+            huntReturnTransaction = new CampaignHuntReturnTransaction(this);
             if (campaignRuntime is not IPlayableCampaignPhasePortAccess phaseManagers)
                 throw new System.InvalidOperationException("战役运行态未提供阶段管理器组合根访问接口。");
             settlementPhase = phaseManagers.SettlementPhase;
@@ -270,7 +279,7 @@ namespace Core
             {
                 if (_settlementManager?.HunterMgmt == null) throw new System.InvalidOperationException("营地猎人管理器未初始化，无法提交狩猎成长。");
                 PlayableHunterAdvancementAdapter.ApplyAfterHunt(_huntMgr.ActiveHunters, _settlementManager.HunterMgmt);
-                _pendingHuntRecord = record;
+                _settlementManager.Data.PendingHuntReturn = record;
                 TransitionToPhase(GamePhase.Settlement);
             }, OnHuntCheckpointCommitted);
             huntPhase.ConfigureRuntime();
@@ -384,9 +393,9 @@ namespace Core
 
         private void ResetFailedCampaignStartupRuntime()
         {
+            huntReturnTransaction?.Reset();
             DisposeSettlementActionSession();
             huntPhase?.DeactivateCurrentActionSession();
-            _pendingHuntRecord = null;
             stableCampaignPayload = null;
             campaignStartup.DeactivateRuntime();
             campaignRuntime?.Reset();
@@ -687,9 +696,9 @@ namespace Core
                 int oldAmount = _settlementManager.Data.GetResource(resourceId);
                 _settlementManager.Data.AddResource(resourceId, amount);
 
-                if (_pendingHuntRecord != null)
+                if (_settlementManager.Data.PendingHuntReturn != null)
                     for (int i = 0; i < amount; i++)
-                        _pendingHuntRecord.CollectedResources.Add(resourceId);
+                        _settlementManager.Data.PendingHuntReturn.CollectedResources.Add(resourceId);
 
                 EventBus.Publish(new ResourceChangedEvent
                 {
@@ -831,7 +840,7 @@ namespace Core
         public IPlayableHuntRuntime ActiveHuntRuntime => campaignStarted && CurrentGamePhase is GamePhase.Hunt or GamePhase.BossFight ? huntRuntime : null;
         public bool IsHuntActionSessionActive => huntActionSession?.IsActive == true;
         public bool IsHuntActionSessionRunning => huntActionSession?.IsRunning == true;
-        public bool IsHuntReturnInFlight => huntReturnRecoveryInFlight;
+        public bool IsHuntReturnInFlight => huntReturnTransaction?.IsRecoveryInFlight == true;
         bool IPlayableHuntRetreatInput.IsReturnCheckpointLocked => huntActionSession?.IsReturnCheckpointLocked == true;
         HuntRetreatPreview IPlayableHuntRetreatInput.GetRetreatPreview() => huntActionSession != null ? huntActionSession.GetRetreatPreview() : HuntRetreatPreview.Empty;
         public bool IsCampaignActionSessionActive => campaignStarted && campaignRuntime?.IsActionSessionActive == true;
@@ -876,7 +885,7 @@ namespace Core
         public void RequestHuntDeparture(IReadOnlyList<int> hunterIds)
         {
             if (!campaignStarted) return;
-            if (_pendingHuntRecord != null)
+            if (SettlementData?.PendingHuntReturn != null)
             {
                 PresentHuntDepartureBlocked("请先完成上一场远征的回营结算，再重新发起出猎。");
                 RetryPendingHuntReturnAsync().Forget();
@@ -903,12 +912,12 @@ namespace Core
                 reason = "战役入口尚未完成。";
                 return false;
             }
-            if (huntReturnRecoveryInFlight)
+            if (huntReturnTransaction?.IsRecoveryInFlight == true)
             {
                 reason = "请先完成上一场远征的回营结算，再重新发起出猎。";
                 return false;
             }
-            if (_pendingHuntRecord != null)
+            if (SettlementData?.PendingHuntReturn != null)
             {
                 reason = "请先完成上一场远征的回营结算，再重新发起出猎。";
                 return false;
@@ -950,11 +959,11 @@ namespace Core
         {
             if (!campaignStarted)
                 return SettlementDepartureCommandResult.Failed("战役入口尚未完成。");
-            if (huntReturnRecoveryInFlight)
+            if (huntReturnTransaction?.IsRecoveryInFlight == true)
                 return SettlementDepartureCommandResult.Failed("请先完成上一场远征的回营结算，再重新发起出猎。");
-            if (_pendingHuntRecord != null)
+            if (SettlementData?.PendingHuntReturn != null)
             {
-                if (!huntReturnRecoveryInFlight)
+                if (huntReturnTransaction?.IsRecoveryInFlight != true)
                     await RetryPendingHuntReturnAsync();
                 return SettlementDepartureCommandResult.Failed("请先完成上一场远征的回营结算，再重新发起出猎。");
             }
@@ -998,11 +1007,11 @@ namespace Core
         {
             if (!campaignStarted)
                 return false;
-            if (huntReturnRecoveryInFlight)
+            if (huntReturnTransaction?.IsRecoveryInFlight == true)
                 return false;
-            if (_pendingHuntRecord != null)
+            if (SettlementData?.PendingHuntReturn != null)
             {
-                if (!huntReturnRecoveryInFlight)
+                if (huntReturnTransaction?.IsRecoveryInFlight != true)
                     RetryPendingHuntReturnAsync().Forget();
                 return false;
             }
@@ -1044,91 +1053,18 @@ namespace Core
             settlementPhase?.QueueEvents(runtime, session, works, restoreProjection, restoredChainId);
         }
 
-        private async UniTask<SettlementHuntReturnCommandResult> ApplyHuntReturnAsync(PlayableSettlementActionSession session, HuntRecord record, bool queueAnnualEvents = true)
-        {
-            SettlementHuntReturnCommandResult result;
-            try
-            {
-                result = await session.ApplyHuntReturnAsync(record, this.GetCancellationTokenOnDestroy());
-            }
-            catch (System.Exception exception)
-            {
-                Debug.LogError($"[GameManager] 远征归来结算异常：{exception}");
-                return SettlementHuntReturnCommandResult.Failed("回营结算异常，已保留待恢复记录。");
-            }
-            if (!result.Succeeded)
-            {
-                Debug.LogError($"[GameManager] 远征归来结算失败：{result.Reason}");
-                return result;
-            }
-            if (ReferenceEquals(session, settlementActionSession))
-            {
-                SettlementInstance settlement = _settlementManager?.Data;
-                if (settlement == null)
-                    return SettlementHuntReturnCommandResult.Failed("营地数据已失效，回营记录仍保留在存档中。");
-                CancellationToken cancellationToken = this.GetCancellationTokenOnDestroy();
-                if (!await TrySaveCampaignAsync(false, cancellationToken))
-                    return SettlementHuntReturnCommandResult.Failed("回营结果尚未可靠保存，已保留待恢复记录。");
-
-                SettlementEventRestoreProjection projection = null;
-                SettlementEventRestorePlan restorePlan = default;
-                if (queueAnnualEvents)
-                {
-                    projection = settlementRuntime.CreateEventRestoreCandidate();
-                    restorePlan = projection.Prepare();
-                    if (!restorePlan.Succeeded)
-                    {
-                        settlementEventRestoreProjection = projection;
-                        Debug.LogError($"[GameManager] 回营年度事件投影失败：{restorePlan.FailureReason}");
-                        return SettlementHuntReturnCommandResult.Failed(restorePlan.FailureReason);
-                    }
-                }
-
-                if (!PlayableCampaignLoopContract.TryClearAppliedReturnCheckpoint(settlement, record, out string checkpointReason))
-                    return SettlementHuntReturnCommandResult.Failed(checkpointReason);
-                if (!await TrySaveCampaignAsync(false, cancellationToken))
-                {
-                    _pendingHuntRecord = record;
-                    settlement.PendingHuntReturn = record;
-                    return SettlementHuntReturnCommandResult.Failed("回营检查点尚未清除，请重试后再出猎。");
-                }
-                _pendingHuntRecord = null;
-
-                if (queueAnnualEvents)
-                {
-                    settlementEventRestoreProjection = projection;
-                    await settlementPhase.ResolveEventsAsync(settlementRuntime, session, restorePlan.WorkItems, projection, restorePlan.ChainId);
-                }
-            }
-            return result;
-        }
-
         private async UniTask<bool> RetryPendingHuntReturnAsync()
         {
-            if (_pendingHuntRecord == null)
-                return false;
-            return await ApplyHuntReturnGuardedAsync(settlementActionSession, _pendingHuntRecord);
+            if (huntReturnTransaction == null) return false;
+            SettlementHuntReturnCommandResult result = await huntReturnTransaction.ApplyPendingAsync(true, this.GetCancellationTokenOnDestroy());
+            return result.Succeeded;
         }
 
-        private async UniTask<bool> ApplyHuntReturnGuardedAsync(PlayableSettlementActionSession session, HuntRecord record)
+        private async UniTask<bool> ApplyHuntReturnGuardedAsync(bool queueAnnualEvents)
         {
-            if (record == null || session == null || !session.IsActive || huntReturnRecoveryInFlight)
-                return false;
-            huntReturnRecoveryInFlight = true;
-            try
-            {
-                SettlementHuntReturnCommandResult result = await ApplyHuntReturnAsync(session, record);
-                return result.Succeeded;
-            }
-            catch (System.Exception exception)
-            {
-                Debug.LogError($"[GameManager] 重试远征归来结算异常：{exception}");
-                return false;
-            }
-            finally
-            {
-                huntReturnRecoveryInFlight = false;
-            }
+            if (huntReturnTransaction == null) return false;
+            SettlementHuntReturnCommandResult result = await huntReturnTransaction.ApplyPendingAsync(queueAnnualEvents, this.GetCancellationTokenOnDestroy());
+            return result.Succeeded;
         }
 
         public void SaveSettlementProgress()
@@ -1267,84 +1203,8 @@ namespace Core
         public UniTask<HuntRetreatCommandResult> RequestRetreatAsync()
             => RequestRetreatAsync(HuntRetreatDecision.None);
 
-        public async UniTask<HuntRetreatCommandResult> RequestRetreatAsync(HuntRetreatDecision decision)
-        {
-            if (huntRetreatInFlight)
-                return HuntRetreatCommandResult.Failed("回营流程正在处理中。");
-            if (CurrentGamePhase != GamePhase.Hunt || huntActionSession == null || !huntActionSession.IsActive)
-                return HuntRetreatCommandResult.Failed("当前不在有效的狩猎阶段。");
-            if (IsHuntActionSessionRunning)
-                return HuntRetreatCommandResult.Failed("请先完成当前狩猎流程。");
-            if (_huntMgr == null || _settlementManager?.Data == null || _settlementManager.HunterMgmt == null)
-                return HuntRetreatCommandResult.Failed("狩猎结算依赖尚未准备完成。");
-
-            if (preparedHuntExit && _pendingHuntRecord != null)
-            {
-                CampaignPhaseTransitionResult retryTransition = await TransitionToPhaseAsync(GamePhase.Settlement);
-                return retryTransition.Succeeded ? HuntRetreatCommandResult.Success(_pendingHuntRecord) : HuntRetreatCommandResult.Failed(retryTransition.Reason);
-            }
-
-            IPlayableHuntRuntime sourceHunt = huntRuntime;
-            IPlayableSettlementRuntime sourceSettlement = settlementRuntime;
-            huntRetreatInFlight = true;
-            try
-            {
-                HuntRetreatCommandResult retreat = await sourceHunt.ActionSession.PrepareRetreatAsync(sourceSettlement.Manager.Data.CurrentYear, decision, this.GetCancellationTokenOnDestroy());
-                if (!retreat.Succeeded)
-                    return retreat;
-                if (!ReferenceEquals(huntRuntime, sourceHunt) || !ReferenceEquals(settlementRuntime, sourceSettlement))
-                    return HuntRetreatCommandResult.Failed("回营准备期间权威运行世代已经变化，请在当前阶段重试。");
-
-                _pendingHuntRecord = retreat.Record;
-                sourceSettlement.Manager.Data.PendingHuntReturn = retreat.Record;
-                if (!await TrySaveCampaignAsync(false, this.GetCancellationTokenOnDestroy()))
-                {
-                    sourceSettlement.Manager.Data.PendingHuntReturn = null;
-                    _pendingHuntRecord = null;
-                    return HuntRetreatCommandResult.Failed("无法建立可靠的回营检查点，请留在狩猎阶段重试。");
-                }
-                if (!ReferenceEquals(huntRuntime, sourceHunt) || !ReferenceEquals(settlementRuntime, sourceSettlement))
-                {
-                    sourceSettlement.Manager.Data.PendingHuntReturn = null;
-                    if (ReferenceEquals(_pendingHuntRecord, retreat.Record))
-                        _pendingHuntRecord = null;
-                    return HuntRetreatCommandResult.Failed("保存回营检查点期间权威运行世代已经变化。");
-                }
-
-                sourceHunt.ActionSession.SetReturnCheckpointLock(true);
-                preparedHuntExit = true;
-                CampaignPhaseTransitionResult transition = await TransitionToPhaseAsync(GamePhase.Settlement);
-                if (transition.Succeeded)
-                    return retreat;
-
-                preparedHuntExit = false;
-                _pendingHuntRecord = null;
-                sourceSettlement.Manager.Data.PendingHuntReturn = null;
-                if (!await TrySaveCampaignAsync(true, this.GetCancellationTokenOnDestroy()))
-                {
-                    preparedHuntExit = true;
-                    _pendingHuntRecord = retreat.Record;
-                    sourceSettlement.Manager.Data.PendingHuntReturn = retreat.Record;
-                    return HuntRetreatCommandResult.Failed("阶段切换被拒绝，且回营检查点尚未安全撤销；请直接重试回营。");
-                }
-                if (ReferenceEquals(huntRuntime, sourceHunt))
-                    sourceHunt.ActionSession.SetReturnCheckpointLock(false);
-                return HuntRetreatCommandResult.Failed(transition.Reason);
-            }
-            catch (System.OperationCanceledException)
-            {
-                return HuntRetreatCommandResult.Failed("回营流程已取消。");
-            }
-            catch (System.Exception exception)
-            {
-                Debug.LogException(exception);
-                return HuntRetreatCommandResult.Failed("回营结算失败，请保留当前狩猎并重试。");
-            }
-            finally
-            {
-                huntRetreatInFlight = false;
-            }
-        }
+        public UniTask<HuntRetreatCommandResult> RequestRetreatAsync(HuntRetreatDecision decision)
+            => huntReturnTransaction != null ? huntReturnTransaction.PrepareRetreatAsync(decision, this.GetCancellationTokenOnDestroy()) : UniTask.FromResult(HuntRetreatCommandResult.Failed("回营事务尚未初始化。"));
 
         /// <summary>
         /// 切换游戏大阶段。GameManager 负责 Enable/Disable 对应根物体，
@@ -1352,7 +1212,7 @@ namespace Core
         /// </summary>
         public void TransitionToPhase(GamePhase newPhase)
         {
-            if (CurrentGamePhase == GamePhase.Hunt && newPhase == GamePhase.Settlement && !preparedHuntExit && _pendingHuntRecord == null)
+            if (CurrentGamePhase == GamePhase.Hunt && newPhase == GamePhase.Settlement && huntReturnTransaction?.IsPreparedExit != true && SettlementData?.PendingHuntReturn == null)
             {
                 RequestRetreatAsync().Forget();
                 return;
@@ -1540,7 +1400,7 @@ namespace Core
                 return false;
             }
             if (newPhase == campaignRuntime.CurrentPhase) return true;
-            if (huntReturnRecoveryInFlight)
+            if (huntReturnTransaction?.IsRecoveryInFlight == true)
             {
                 reason = "上一场远征的回营保存与年度流程尚未完成";
                 return false;
@@ -1548,7 +1408,7 @@ namespace Core
             GamePhase previousPhase = campaignRuntime.CurrentPhase;
             if (previousPhase == GamePhase.Settlement && newPhase == GamePhase.Hunt)
             {
-                if (huntReturnRecoveryInFlight || _pendingHuntRecord != null || _settlementManager?.Data?.PendingHuntReturn != null)
+                if (huntReturnTransaction?.IsRecoveryInFlight == true || _settlementManager?.Data?.PendingHuntReturn != null)
                 {
                     reason = "上一场远征的回营结算尚未完成";
                     return false;
@@ -1560,7 +1420,7 @@ namespace Core
                     return false;
                 }
             }
-            if (previousPhase == GamePhase.Hunt && newPhase == GamePhase.Settlement && !preparedHuntExit && _pendingHuntRecord == null)
+            if (previousPhase == GamePhase.Hunt && newPhase == GamePhase.Settlement && huntReturnTransaction?.IsPreparedExit != true && SettlementData?.PendingHuntReturn == null)
             {
                 reason = "狩猎必须先通过 Hunt Runner 准备回营结算";
                 return false;
@@ -1600,8 +1460,14 @@ namespace Core
                 DisposeSettlementActionSession();
             if (previousPhase == GamePhase.Hunt)
             {
-                if (newPhase == GamePhase.Settlement && preparedHuntExit)
-                    CommitPreparedHuntExit();
+                if (newPhase == GamePhase.Settlement && huntReturnTransaction?.IsPreparedExit == true)
+                {
+                    if (!CommitPreparedHuntExit(out reason))
+                    {
+                        campaignRuntime.TransitionTo(previousPhase);
+                        return false;
+                    }
+                }
                 huntPhase?.DeactivateCurrentActionSession();
             }
 
@@ -1620,12 +1486,11 @@ namespace Core
                         }
                     }
                     // 若有待结算的狩猎记录（推进年份），否则普通进入
-                    var record = _pendingHuntRecord ?? _settlementManager.Data.PendingHuntReturn;
-                    _pendingHuntRecord = record;
+                    var record = _settlementManager.Data.PendingHuntReturn;
                     StartSettlementActionSession();
                     EnsureSettlementUI();
                     if (record != null)
-                        ApplyHuntReturnGuardedAsync(settlementActionSession, record).Forget();
+                        ApplyHuntReturnGuardedAsync(true).Forget();
                     else
                     {
                         QueueSettlementEvents(_settlementManager.OnEnterWorkItems());
@@ -1645,10 +1510,24 @@ namespace Core
             return true;
         }
 
-        private void CommitPreparedHuntExit()
+        private bool CommitPreparedHuntExit(out string reason)
         {
-            preparedHuntExit = false;
-            ReleaseCurrentHuntRuntime();
+            reason = string.Empty;
+            IPlayableHuntRuntime current = huntRuntime;
+            if (current == null)
+            {
+                reason = "已准备的狩猎退出缺少当前运行态。";
+                return false;
+            }
+            if (!campaignRuntime.TrySwapHunt(current, null, out string swapReason))
+            {
+                reason = swapReason;
+                Debug.LogWarning($"[GameManager] 无法提交已准备的狩猎退出：{reason}");
+                return false;
+            }
+            huntReturnTransaction?.CompletePreparedExit();
+            campaignRuntime.ReleaseHunt(current);
+            return true;
         }
 
         private void ReleaseCurrentHuntRuntime()
@@ -1719,6 +1598,7 @@ namespace Core
             EventBus.Unsubscribe<SettlementTransactionCommittedEvent>(OnSettlementTransactionCommitted);
             EventBus.Unsubscribe<CampaignEncounterRequestedEvent>(OnCampaignEncounterRequested);
             EventBus.Unsubscribe<PlayableEventEncounterRequestedEvent>(OnPlayableEventEncounterRequested);
+            huntReturnTransaction?.Reset();
             DisposeSettlementActionSession();
             campaignRuntime?.Dispose();
             campaignRuntime = null;
@@ -1851,7 +1731,7 @@ namespace Core
 
         private async UniTask<CampaignRestartResult> RestartCampaignFromActionAsync(CancellationToken cancellationToken)
         {
-            if (huntDepartureInFlight || huntRetreatInFlight || huntReturnRecoveryInFlight || settlementActionSession?.IsRunning == true || huntActionSession?.IsRunning == true)
+            if (huntDepartureInFlight || huntReturnTransaction?.IsRetreatInFlight == true || huntReturnTransaction?.IsRecoveryInFlight == true || settlementActionSession?.IsRunning == true || huntActionSession?.IsRunning == true)
                 return CampaignRestartResult.Failed("当前玩法流程仍在结算，请稍后重试。");
 
             CampaignRestartTransactionResult restart = await campaignRestartTransaction.ExecuteAsync(stableCampaignPayload, cancellationToken);
@@ -1859,10 +1739,9 @@ namespace Core
 
             DisposeCombatSession();
             huntPhase?.CleanupCurrentPresentation();
-            _pendingHuntRecord = null;
+            huntReturnTransaction?.Reset();
             pendingEncounterHunters = null;
             _pendingSetup = null;
-            preparedHuntExit = false;
             encounterCheckpointRollbackFailed = false;
             stableCampaignPayload = restart.StablePayload;
             GetComponent<SettlementNoticePresenter3D>()?.ResetForCampaignChange();
@@ -1966,9 +1845,8 @@ namespace Core
             settlementEventRestoreProjection = settlementRuntime.CreateEventRestoreCandidate();
             if (data.PendingHuntReturn != null)
             {
-                _pendingHuntRecord = data.PendingHuntReturn;
-                SettlementHuntReturnCommandResult pendingResult = await ApplyHuntReturnAsync(settlementActionSession, _pendingHuntRecord, queueAnnualEvents: false);
-                if (!pendingResult.Succeeded) return false;
+                bool pendingResult = await ApplyHuntReturnGuardedAsync(false);
+                if (!pendingResult) return false;
             }
 
             SettlementEventRestorePlan restorePlan = settlementEventRestoreProjection.Prepare();
@@ -2011,7 +1889,7 @@ namespace Core
                 SettlementProgressLoadCompleted?.Invoke(false);
                 return;
             }
-            if (huntDepartureInFlight || huntRetreatInFlight || huntReturnRecoveryInFlight || settlementActionSession?.IsRunning == true || huntActionSession?.IsRunning == true || campaignRuntime?.IsActionSessionRunning == true)
+            if (huntDepartureInFlight || huntReturnTransaction?.IsRetreatInFlight == true || huntReturnTransaction?.IsRecoveryInFlight == true || settlementActionSession?.IsRunning == true || huntActionSession?.IsRunning == true || campaignRuntime?.IsActionSessionRunning == true)
             {
                 Debug.LogWarning("[GameManager] DevLoad: 当前流程仍在执行，已拒绝替换运行态。");
                 SettlementProgressLoadCompleted?.Invoke(false);
@@ -2091,9 +1969,8 @@ namespace Core
             {
                 if (data.PendingHuntReturn != null)
                 {
-                    _pendingHuntRecord = data.PendingHuntReturn;
-                    SettlementHuntReturnCommandResult pendingResult = await ApplyHuntReturnAsync(settlementActionSession, _pendingHuntRecord, queueAnnualEvents: false);
-                    restoreSucceeded = pendingResult.Succeeded;
+                    bool pendingResult = await ApplyHuntReturnGuardedAsync(false);
+                    restoreSucceeded = pendingResult;
                 }
                 if (!restoreSucceeded)
                 {

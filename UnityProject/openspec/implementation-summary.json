@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "e659d81c523984433df2dea654278d171c9415172afe40764f3892318f2e2d3f",
-  "inputManifestDigest": "c10886fbfeffb05c125a654cd6a8808bfef2e30cbc0f9b9d33824bd260343893",
-  "outputDigest": "3c90974b18ab4fd7a66b41bf19ade4db0156b7f0f87789b87f70cce23bae5000",
+  "inputDigest": "577debbdffeea243e3e660124a9a7d66ece039980f5079111326c37dd390f923",
+  "inputManifestDigest": "4997918b3ebf5aa4d6131f35b1b140ad59368557068ca349fe8291be281c6120",
+  "outputDigest": "62229c45e150802704bf5e8b55791dd442d11c964c9304b21431aae78b18b76e",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -666,6 +666,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntReturnTransaction.cs",
+      "sha256": "2e931a1db569a649b41981fc2f0fb3864957fab4e346d107cbba1dbf8959f441",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignRestartTransaction.cs",
       "sha256": "766cdd893d676e6f491fbd49a92fea9ea6ddc5c4f4c95e699f3aa17862bceb64",
       "state": "current"
@@ -682,7 +687,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "135489f6a5927617058021e6c257eff35250ed0209b6e6f5b01b43fa64a7fc6c",
+      "sha256": "9f9908c3cc09ad1b68764400983bc1d8b248378c04bfc6eac3203160b7ea3696",
       "state": "current"
     },
     {
@@ -1142,7 +1147,7 @@
     },
     {
       "path": "openspec/specs/game-manager-orchestration/implementation.json",
-      "sha256": "2b9e8ddc86a2209eeefe4bedcbc0b5a91b6db3c6a1ce433ab5f7faa1b87c6014",
+      "sha256": "675362829243d340a8cd29a8e2ddc44dfd4f931f1739d6d8c413f2073b3a7b10",
       "state": "current"
     },
     {
@@ -3219,7 +3224,7 @@
       "effectiveStatus": "stale",
       "progress": 0,
       "verificationStatus": "verified",
-      "summary": "ZFramework CampaignRuntime 已唯一持有 Settlement、Hunt、Showdown 三个真实阶段管理者；GameManager 保留顶层 FSM、跨阶段事务和兼容 façade。",
+      "summary": "ZFramework CampaignRuntime 已唯一持有 Settlement、Hunt、Showdown 三个真实阶段管理者；GameManager 保留顶层 FSM，并把可靠的狩猎回营交接委托给独立 plain C# 跨阶段事务。",
       "designSources": [],
       "sources": [
         "openspec/specs/game-manager-orchestration/spec.md",
@@ -3234,6 +3239,10 @@
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
           "state": "stale"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntReturnTransaction.cs",
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
