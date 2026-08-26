@@ -86,6 +86,62 @@
         }
       ],
       "category": "Knowledge"
+    },
+    {
+      "id": "fire",
+      "inventionName": "火",
+      "description": "营地学会保存火种，并让每一次归来都能重新点亮同一处炉心。",
+      "prerequisiteIds": [],
+      "costs": [
+        { "itemId": "black_salt", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "解锁用火与烹饪分支。",
+      "category": "Basic"
+    },
+    {
+      "id": "cooking",
+      "inventionName": "烹饪",
+      "description": "猎人开始用稳定火候处理菌肉与器官，让食物不再只是勉强吞咽的补给。",
+      "prerequisiteIds": ["fire"],
+      "costs": [
+        { "itemId": "mushroom_flesh", "count": 1 },
+        { "itemId": "soft_organ", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "全体当前与未来猎人的意志点上限 +1。",
+      "effects": [
+        {
+          "lifetime": "Campaign",
+          "modifierId": "cooking:willpower-maximum",
+          "kind": "ModifyWillpowerMaximum",
+          "target": "AllLivingAndFutureHunters",
+          "value": 1
+        }
+      ],
+      "category": "Basic"
+    },
+    {
+      "id": "shelter",
+      "inventionName": "庇护所",
+      "description": "甲壳、毛发与石缝被组织成可反复修补的睡眠区，夜里的风不再直接穿过营地。",
+      "prerequisiteIds": ["tools"],
+      "costs": [
+        { "itemId": "carapace", "count": 2 },
+        { "itemId": "hair", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "全体当前与未来猎人的意志点上限 +1。",
+      "effects": [
+        {
+          "lifetime": "Campaign",
+          "modifierId": "shelter:willpower-maximum",
+          "kind": "ModifyWillpowerMaximum",
+          "target": "AllLivingAndFutureHunters",
+          "value": 1
+        }
+      ],
+      "category": "Basic"
     }
   ]
 }

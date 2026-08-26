@@ -62,6 +62,17 @@ The baseline table SHALL contain `faith` as a root node and `ritual` as its dire
 - **WHEN** the player inspects ritual before mastering faith
 - **THEN** the existing invention availability rule reports the unmet prerequisite and prevents resource consumption
 
+### Requirement: Baseline survival branches are playable
+The production table SHALL contain `fire` leading to `cooking` and the configured `tools` asset leading to `shelter`. Cooking and shelter SHALL each commit an independently identified campaign modifier that increases the willpower maximum of current and future living hunters by one.
+
+#### Scenario: The player develops cooking
+- **WHEN** fire is mastered and the configured mushroom-flesh and soft-organ costs are available
+- **THEN** the existing Settlement invention Action SHALL consume those costs, master cooking, and apply `cooking:willpower-maximum` without a content-specific executor
+
+#### Scenario: A future hunter joins after shelter is built
+- **WHEN** shelter is already mastered and a hunter enters the authoritative roster
+- **THEN** modifier reconciliation SHALL grant that hunter the shelter willpower contribution exactly once
+
 ### Requirement: Action effects inject rules into matching phase runners
 The table SHALL allow an invention to declare stable, uniquely identified Action effects. A campaign-level installer SHALL project those effects into matching phase environments as Reactors, and each Reactor SHALL re-read current mastery state when an Action executes so loading or unlocking does not require rebuilding the phase implementation.
 

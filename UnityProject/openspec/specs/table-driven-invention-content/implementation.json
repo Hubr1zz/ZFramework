@@ -2,23 +2,23 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "table-driven-invention-content",
-  "specHash": "8c1fb64807ef07bbce7cbb10e6f44b5adca1da0b10c1e16c63d8427e855b2dec",
+  "specHash": "96573291b6953cdff9eb0114d391400727fa727d33ba6e3735b2daefb180650d",
   "title": "读表发明与信仰分支",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "序列化 TextAsset 发明表以稳定 ID 构建并预检发明图；信仰、仪式、祈祷和植物知识复用 Settlement/Hunt ActionQueue、跨环境 Reactor、年度主动事件与世界空间 3D 卡牌流程。",
-    "validatedAgainstSpecHash": "8c1fb64807ef07bbce7cbb10e6f44b5adca1da0b10c1e16c63d8427e855b2dec",
+    "summary": "序列化 TextAsset 发明表以稳定 ID 构建并预检发明图；新增火、烹饪与庇护所长期分支，继续复用 Settlement/Hunt ActionQueue、战役修正、年度主动事件与世界空间 3D 卡牌流程。",
+    "validatedAgainstSpecHash": "96573291b6953cdff9eb0114d391400727fa727d33ba6e3735b2daefb180650d",
     "evidence": [
       {
         "guid": "c3f9c402ed6527e419f1dc04f339d4bb",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableInventionTable.cs",
         "line": 1,
-        "fileHash": "8970c29103acb24cb96f31ad112c466b0b176eb2e7b6cb41e6697d2875609815",
+        "fileHash": "62ba0ae9f0265273cabe94f72e8e05647d00ab32aebaa2390ba8a5dfa3360036",
         "status": "verified",
-        "checkedAt": "2026-08-25T14:39:11-07:00",
-        "feature": "校验稳定 ID、图引用、成本、结构化效果与事件目标；显示名不再参与跨内容身份冲突。"
+        "checkedAt": "2026-08-25T19:04:43-07:00",
+        "feature": "校验稳定 ID、图引用、成本、结构化效果与事件目标；无主动效果的兼容表不会提前构建无关事件目录。"
       },
       {
         "guid": "2f98d69be2fc4c94a20a1fc42af18f44",
@@ -60,10 +60,19 @@
         "guid": "644686d452642234cb73944616376d89",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Tables/inventions.json",
         "line": 1,
-        "fileHash": "fe88e62ad9e5781ec875f32e77fdb3100dcdfcbb3b3f0a0cd027d6d3fb2c2ed3",
+        "fileHash": "8a945e092132477ce268514a7f3e581587bccb4def65911c2b130672bc9256d7",
         "status": "verified",
-        "checkedAt": "2026-08-25T14:39:11-07:00",
-        "feature": "提供纸和笔、植物知识、信仰、仪式与祈祷的基础可玩分支及稳定效果引用。"
+        "checkedAt": "2026-08-25T19:04:43-07:00",
+        "feature": "提供纸笔、植物知识、信仰、火、烹饪与庇护所等八项表驱动发明及稳定效果引用。"
+      },
+      {
+        "guid": "5eaa1450eced42e88192267b931103e3",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEventContentTests.cs",
+        "line": 54,
+        "fileHash": "e6575f85ffe2ab6a7adfc0938721619d7373cb7ecf6ad54d5f7cc34f2eb35133",
+        "status": "verified",
+        "checkedAt": "2026-08-25T19:04:43-07:00",
+        "feature": "验证生产目录中火到烹饪、工具到庇护所的前置关系及独立战役修正。"
       },
       {
         "guid": "e3df2eb09bbcb35488d82b426d770f39",
@@ -85,17 +94,9 @@
       }
     ],
     "tests": [
-      "PlayableInventionTableTests: 10/10 passed",
-      "PlayableInventionIdentityMigrationTests: 8/8 passed",
-      "PlayableSettlementInventionActionTests: 8/8 passed",
-      "InventionActionEffectInstallerTests: 2/2 passed",
-      "PlayableInventionActiveEffectActionTests: 2/2 passed",
-      "InventionEffectRulesTests: 2/2 passed",
-      "InventionActiveEffectRulesTests: 3/3 passed",
-      "PlayableCampaignContentAssemblerTests: 14/14 passed",
-      "C# derived index: 989/989, 100% coverage"
+      "Unity CLI targeted settlement invention cluster: 38/38 passed"
     ],
-    "verifiedAt": "2026-08-25T14:39:11-07:00"
+    "verifiedAt": "2026-08-25T19:04:43-07:00"
   },
   "implementationOutline": [
     "PlayableSettlementContentCatalog 以序列化 TextAsset 注入发明表，缺失时仅保留已配置 ScriptableObject 发明。",
@@ -103,6 +104,7 @@
     "稳定 ID 是唯一规则身份；显示名和资产名仅作为无歧义的旧存档迁移别名。",
     "UnlockSettlementInventionAction 原子提交掌握状态和资源，并为每名猎人展开可被 Reactor 独立覆盖或阻止的效果子节点。",
     "InventionActionEffectInstaller 把植物知识等长期规则投影到对应阶段环境，运行时重读掌握状态。",
+    "火、烹饪与庇护所通过既有前置图和结构化修正提供新的长期生存分支，对当前及未来猎人保持幂等。",
     "祈祷主动效果通过统一 Triggered 事件和世界空间 3D 卡牌交互执行，不引入内容专属 View。"
   ],
   "sourceReferences": [

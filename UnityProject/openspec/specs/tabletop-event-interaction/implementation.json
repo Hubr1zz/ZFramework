@@ -113,9 +113,9 @@
         "guid": "a3e860c15c7c4aa4d9f7bcb6461bc06b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEventContentTests.cs",
         "line": 80,
-        "fileHash": "32ea4383a94d05e222df4034ee4518ae0d67e0a0d421328e846d3b9b07367f14",
+        "fileHash": "e6575f85ffe2ab6a7adfc0938721619d7373cb7ecf6ad54d5f7cc34f2eb35133",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:48:50-07:00",
+        "checkedAt": "2026-08-25T19:04:43-07:00",
         "feature": "合并全部正式事件来源后逐项证明 AddResource 目标可解析且等于 ItemData.ContentId。"
       }
     ],

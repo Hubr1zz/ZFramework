@@ -138,11 +138,18 @@ namespace HuntingInDarkness.ContentTables
         {
             if (tableAsset == null) return Array.Empty<InventionData>();
             string tableText = tableAsset.text ?? string.Empty;
-            IReadOnlyList<EventData> events = PlayableEventTableRuntime.GetEvents();
+            IReadOnlyList<InventionTableRecord> records = new JsonInventionTableSource(tableAsset).Load();
+            IReadOnlyList<EventData> events = Array.Empty<EventData>();
+            foreach (InventionTableRecord record in records)
+            {
+                if (record?.activeEffects == null || record.activeEffects.Count == 0) continue;
+                events = PlayableEventTableRuntime.GetEvents();
+                break;
+            }
             string dependencySignature = BuildDependencySignature(items, baseInventions, events);
             if (string.Equals(cachedTableText, tableText, StringComparison.Ordinal) && cachedDependencySignature == dependencySignature && cachedInventions != null && cachedInventions.TrueForAll(invention => invention != null)) return cachedInventions;
 
-            cachedInventions = Build(new JsonInventionTableSource(tableAsset).Load(), items, baseInventions, message => Debug.LogError($"[ContentTable] {message}"), BuildEventIds(events));
+            cachedInventions = Build(records, items, baseInventions, message => Debug.LogError($"[ContentTable] {message}"), BuildEventIds(events));
             cachedTableText = tableText;
             cachedDependencySignature = dependencySignature;
             return cachedInventions;
