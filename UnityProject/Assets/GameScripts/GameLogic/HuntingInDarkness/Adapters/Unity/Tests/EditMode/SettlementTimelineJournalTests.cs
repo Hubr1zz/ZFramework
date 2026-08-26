@@ -87,5 +87,82 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(summary, Is.EqualTo("碎石×2"));
         }
+
+        [Test]
+        public void EventMemory_RecordsStructuredChoiceAndRejectsConflictingFact()
+        {
+            var settlement = new SettlementInstance();
+            var memory = new SettlementEventMemory
+            {
+                MemoryId = "memory:1",
+                EventId = "event-1",
+                EventName = "事件一",
+                ResolutionMode = "Choice",
+                OptionId = "observe",
+                OptionText = "观察",
+                HasCheck = true,
+                CheckType = "Understanding",
+                Success = true,
+                Total = 8,
+                Target = 7,
+                ResultText = "你看懂了。",
+                Effects = new List<SettlementEventMemoryEffect> { new() { EffectType = "AddResource", TargetName = "broken_stone", Applied = true } }
+            };
+
+            Assert.That(settlement.TryRecordEventMemory(memory, out string reason), Is.True, reason);
+            Assert.That(settlement.TryRecordEventMemory(memory, out reason), Is.True, reason);
+            Assert.That(settlement.EventMemories, Has.Count.EqualTo(1));
+            memory.Success = false;
+            Assert.That(settlement.TryRecordEventMemory(memory, out reason), Is.False);
+            Assert.That(reason, Does.Contain("事实不一致"));
+        }
+
+        [Test]
+        public void EventMemory_JsonRoundTripAndLegacySaveHaveSafeDefaults()
+        {
+            var settlement = new SettlementInstance
+            {
+                EventMemorySchemaVersion = SettlementInstance.CurrentEventMemorySchemaVersion,
+                EventMemories = new List<SettlementEventMemory> { new() { MemoryId = "memory:1", EventId = "event-1", Success = false, RollValue = 4 } }
+            };
+            SettlementInstance restored = JsonUtility.FromJson<SettlementInstance>(JsonUtility.ToJson(settlement));
+            Assert.That(restored.EventMemories, Has.Count.EqualTo(1));
+            Assert.That(restored.EventMemories[0].MemoryId, Is.EqualTo("memory:1"));
+            Assert.That(restored.EventMemories[0].Success, Is.False);
+
+            SettlementInstance legacy = JsonUtility.FromJson<SettlementInstance>("{\"CurrentYear\":3,\"Timeline\":[]}");
+            Assert.That(legacy.EventMemorySchemaVersion, Is.Zero);
+            Assert.That(legacy.EventMemories == null || legacy.EventMemories.Count == 0, Is.True);
+        }
+
+        [Test]
+        public void CampLedgerPresentation_FormatsEventMemoryOutcome()
+        {
+            ItemData stone = ScriptableObject.CreateInstance<ItemData>();
+            stone.name = "broken_stone";
+            stone.ConfigureContentId("broken_stone");
+            stone.itemName = "碎石";
+            createdObjects.Add(stone);
+            PlayableSettlementItemRegistry.Configure(new[] { stone });
+            string text = CampLedgerPresentation.FormatEventMemory(new SettlementEventMemory
+            {
+                ResolutionMode = "Choice",
+                OptionText = "观察",
+                HasCheck = true,
+                CheckType = "Understanding",
+                Total = 8,
+                Target = 7,
+                Success = true,
+                ResultText = "你看懂了。",
+                Effects = new List<SettlementEventMemoryEffect> { new() { EffectType = "AddResource", TargetName = "broken_stone", Applied = true } }
+            });
+
+            Assert.That(text, Does.Contain("选择：观察"));
+            Assert.That(text, Does.Contain("理解 8/7"));
+            Assert.That(text, Does.Contain("获得资源（碎石）"));
+
+            text = CampLedgerPresentation.FormatEventMemory(new SettlementEventMemory { SelectionMode = EventResolutionSelectionMode.Automatic, OptionText = "直接带回" });
+            Assert.That(text, Does.Contain("自动结算：直接带回"));
+        }
     }
 }

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-advancement-ledger",
+  "title": "营地桌面年鉴事件记忆展示",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "本 Change 的增量行为已在事件记忆生产链中实现。",
+    "codeEvidence": [],
+    "evidence": [],
+    "differences": [],
+    "verifiedAt": "2026-08-26T15:25:00Z"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": [
+    "primary::事件 Events.md",
+    "conversation::2026-08-26"
+  ],
+  "implementationOutline": [],
+  "reviewIssues": []
+}

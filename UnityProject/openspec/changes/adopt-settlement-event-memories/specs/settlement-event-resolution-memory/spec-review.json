@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 5,
+  "capability": "settlement-event-resolution-memory",
+  "title": "营地事件结果记忆",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "事件记忆生产链与玩家展示已实现并通过定向验证。",
+    "codeEvidence": [
+      {
+        "guid": "e159b3c1d6bfcce4082b45e63fc28083",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
+        "fileHash": "4ee542340515cd4589071b7e96958039840f7706a1e6f9429755cbbf33c918a6",
+        "line": 120,
+        "feature": "保存并校验营地事件长期记忆",
+        "status": "verified",
+        "checkedAt": "2026-08-26T15:25:00Z"
+      },
+      {
+        "guid": "d94d370a430db9b41b025aedfeb3a471",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+        "fileHash": "a3bbcaa28567a069555a6953a0b7cfed26ecfdfc14d057d0124b9235f3d34de9",
+        "line": 20,
+        "feature": "在事件 Resolution checkpoint 生成不可变结果事实",
+        "status": "verified",
+        "checkedAt": "2026-08-26T15:25:00Z"
+      },
+      {
+        "guid": "e03f23b616fd5be46b68d164379dc2ef",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEventActions.cs",
+        "fileHash": "8885bad5967bf28ca7e8ffa2ebf48ce6c1957cd0bded76c9cfb6ebc6666ad6a3",
+        "line": 175,
+        "feature": "提交事件记忆、Timeline 链接与子 occurrence",
+        "status": "verified",
+        "checkedAt": "2026-08-26T15:25:00Z"
+      },
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "fileHash": "809040273770573d2e22f0b8c02781f0eccc57d0a4ff4bb1f2bb1e74fa83d9c3",
+        "line": 33,
+        "feature": "读取并校验稳定事件选项身份",
+        "status": "verified",
+        "checkedAt": "2026-08-26T15:25:00Z"
+      },
+      {
+        "guid": "b078e9c3adef30e4b91de4eb86eaa250",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/CampLedgerPanel3D.cs",
+        "fileHash": "0297a61851dab3905ace1c1a02efdcd13482ae30501b39829a281025ac5e7ebd",
+        "line": 78,
+        "feature": "把事件记忆投影为 3D 年鉴条目",
+        "status": "verified",
+        "checkedAt": "2026-08-26T15:25:00Z"
+      }
+    ],
+    "evidence": [
+      "Unity EditMode 50/50 passed",
+      "Settlement production PlayMode 2/2 passed",
+      "dotnet build 0 warnings / 0 errors"
+    ],
+    "differences": [],
+    "verifiedAt": "2026-08-26T15:25:00Z"
+  },
+  "gapIds": [],
+  "dependencyIds": [
+    "settlement-event-resolution-memory--integrates-with--settlement-timeline-event-identity",
+    "settlement-event-resolution-memory--presents--tabletop-settlement-advancement-ledger",
+    "settlement-event-resolution-memory--integrates-with--event-effect-resolution-reporting"
+  ],
+  "sourceReferences": [
+    "primary::事件 Events.md",
+    "conversation::2026-08-26"
+  ],
+  "implementationOutline": [
+    "Resolution checkpoint 生成不可变事件事实；Settlement 以稳定 MemoryId 深拷贝提交并链接精确 Timeline occurrence。",
+    "正式营地内容校验稳定 optionId；旧档初始化空记忆且未来 schema fail-closed。",
+    "3D 年鉴只读投影根记忆与未链接子事件，按稳定类型和目标格式化玩家文本。"
+  ],
+  "reviewIssues": []
+}

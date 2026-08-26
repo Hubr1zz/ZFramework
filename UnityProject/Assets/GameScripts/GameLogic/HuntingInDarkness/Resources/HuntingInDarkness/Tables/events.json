@@ -9,6 +9,7 @@
       "hiddenText": "石脸没有回答，但你确信它听见了。这里将成为你们第一次愿意回来的地方。",
       "options": [
         {
+          "optionId": "ask_name",
           "optionText": "站到它面前，高声询问它的名字",
           "checkType": "Courage",
           "checkTarget": 6,
@@ -25,6 +26,7 @@
           "conditions": []
         },
         {
+          "optionId": "observe_marks",
           "optionText": "谨慎靠近，观察它表面的痕迹",
           "checkType": "Understanding",
           "checkTarget": 6,
@@ -41,6 +43,7 @@
           "conditions": []
         },
         {
+          "optionId": "follow_gaze",
           "optionText": "让守望者沿着石脸的视线寻找它注视的方向",
           "checkType": "None",
           "checkTarget": 0,
@@ -72,6 +75,7 @@
       "hiddenText": "石脸重新闭眼，但营地里再没有人认为它只是一块普通的岩石。",
       "options": [
         {
+          "optionId": "read_stone_pattern",
           "optionText": "辨认碎石上的纹路",
           "checkType": "Understanding",
           "checkTarget": 7,
@@ -91,6 +95,7 @@
           "conditions": []
         },
         {
+          "optionId": "carry_stone_home",
           "optionText": "直接把碎石带回营地",
           "checkType": "None",
           "checkTarget": 0,
@@ -144,6 +149,7 @@
       "hiddenText": "并非所有石头都沉默。有些只是等待同类替它开口。",
       "options": [
         {
+          "optionId": "send_stone_listener",
           "optionText": "让携带石质装备的猎人辨认盐晶的走向",
           "checkType": "None",
           "checkTarget": 0,
@@ -160,6 +166,7 @@
           ]
         },
         {
+          "optionId": "sweep_salt_crystal",
           "optionText": "用木片扫开盐晶，避免惊动未知事物",
           "checkType": "None",
           "checkTarget": 0,
@@ -171,6 +178,7 @@
           "conditions": []
         },
         {
+          "optionId": "take_salt_crystal",
           "optionText": "带走盐晶，接受石头留下的回声",
           "checkType": "None",
           "checkTarget": 0,
@@ -199,6 +207,7 @@
       "hiddenText": "黑暗从不白白给予东西。拒绝它也并不意味着没有代价。",
       "options": [
         {
+          "optionId": "make_dark_bargain",
           "optionText": "选择一名猎人履行交易，换取三份黑盐",
           "checkType": "None",
           "checkTarget": 0,
@@ -213,6 +222,7 @@
           "conditions": []
         },
         {
+          "optionId": "reject_dark_bargain",
           "optionText": "选择一名猎人拒绝低语并守住营火",
           "checkType": "None",
           "checkTarget": 0,
@@ -240,6 +250,7 @@
       "hiddenText": "横梁被重新绑紧，但营地的每一处庇护都需要人付出代价。",
       "options": [
         {
+          "optionId": "hold_beam",
           "optionText": "撑住横梁，让同伴搬走桌上的资源",
           "checkType": "Strength",
           "checkTarget": 6,
@@ -271,6 +282,7 @@
       "hiddenText": "祷词散去后，黑暗仍在；但被选中的猎人重新握紧了武器。",
       "options": [
         {
+          "optionId": "lead_night_vigil",
           "optionText": "直面恐惧，带领同伴完成夜祷",
           "checkType": "Courage",
           "checkTarget": 7,
@@ -302,6 +314,7 @@
       "hiddenText": "你们没有找到编织它的人，却找到了几道从营地通往黑暗的旧足迹。",
       "options": [
         {
+          "optionId": "listen_echo_knot",
           "optionText": "让携带回声词条的猎人听完绳结的记忆",
           "checkType": "None",
           "checkTarget": 0,
@@ -318,6 +331,7 @@
           ]
         },
         {
+          "optionId": "cut_echo_knot",
           "optionText": "割下绳结，把它作为普通筋腱收藏",
           "checkType": "None",
           "checkTarget": 0,
@@ -345,6 +359,7 @@
       "hiddenText": "线结散开时，灰烬里留下几粒黑盐。没人能确认那道尚未发生的伤口是否也随之消失。",
       "options": [
         {
+          "optionId": "cut_fate_thread",
           "optionText": "趁命运尚轻，剪下一段松弛的细线",
           "checkType": "None",
           "checkTarget": 0,
@@ -360,6 +375,7 @@
           ]
         },
         {
+          "optionId": "draw_fate_card",
           "optionText": "让命运已扭曲的猎人从线结中抽出一张牌",
           "checkType": "Luck",
           "checkTarget": 2,
@@ -382,6 +398,7 @@
           ]
         },
         {
+          "optionId": "leave_fate_knots",
           "optionText": "不要触碰这些线",
           "checkType": "None",
           "checkTarget": 0,
@@ -407,6 +424,7 @@
       "hiddenText": "天亮后，桌腿上多出三道向内凹陷的指印。没人承认自己在夜里敲过桌子。",
       "options": [
         {
+          "optionId": "wrap_quiet_gear",
           "optionText": "用带有安静词条的装备包住桌腿，听清声音来源",
           "checkType": "None",
           "checkTarget": 0,
@@ -422,6 +440,7 @@
           ]
         },
         {
+          "optionId": "wait_for_knock",
           "optionText": "守在桌边直到声音停止",
           "checkType": "Courage",
           "checkTarget": 6,
@@ -441,6 +460,7 @@
           "conditions": []
         },
         {
+          "optionId": "move_resource_table",
           "optionText": "把资源桌移到营火另一侧",
           "checkType": "None",
           "checkTarget": 0,
@@ -466,6 +486,7 @@
       "hiddenText": "洞口重新封闭后，石面上留下了一圈像牙齿咬合的白痕。",
       "options": [
         {
+          "optionId": "read_wall_rhythm",
           "optionText": "让理解石头的猎人判断洞壁收拢的节奏",
           "checkType": "None",
           "checkTarget": 0,
@@ -481,6 +502,7 @@
           ]
         },
         {
+          "optionId": "hold_cave_wall",
           "optionText": "撑住洞壁，尽快拖出石料",
           "checkType": "Strength",
           "checkTarget": 5,
@@ -500,6 +522,7 @@
           "conditions": []
         },
         {
+          "optionId": "seal_cave",
           "optionText": "封住洞口，不冒险取走石料",
           "checkType": "None",
           "checkTarget": 0,
@@ -525,6 +548,7 @@
       "hiddenText": "低语停止时，墙灰里留下了一枚舌头形状的黑盐晶。",
       "options": [
         {
+          "optionId": "record_mortar_recipe",
           "optionText": "佩戴带有守护词条的装备记录配方",
           "checkType": "None",
           "checkTarget": 0,
@@ -541,6 +565,7 @@
           ]
         },
         {
+          "optionId": "draw_missing_recipe",
           "optionText": "从配方牌中翻出缺失的最后一张",
           "checkType": "Understanding",
           "checkTarget": 6,
@@ -561,6 +586,7 @@
           "conditions": []
         },
         {
+          "optionId": "seal_wall_gap",
           "optionText": "用泥封住墙缝",
           "checkType": "None",
           "checkTarget": 0,

@@ -32,6 +32,7 @@ namespace HuntingInDarkness.ContentTables
     [Serializable]
     public sealed class EventOptionTableRecord
     {
+        public string optionId;
         public string optionText;
         public string checkType;
         public int checkTarget;
@@ -387,7 +388,7 @@ namespace HuntingInDarkness.ContentTables
             }
             bool allowHuntWorldEffects = category == EventCategory.Hunt;
             bool allowSettlementEventEffects = category == EventCategory.Settlement || category == EventCategory.Random || category == EventCategory.Scheduled || category == EventCategory.Triggered;
-            if (!ValidateOptions(record.options, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateEffects(record.immediateEffects, false, symptomCatalog, bloodlineContent, allowHuntWorldEffects, false))
+            if (!ValidateOptions(record.options, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects, category != EventCategory.Hunt) || !ValidateEffects(record.immediateEffects, false, symptomCatalog, bloodlineContent, allowHuntWorldEffects, false))
             {
                 error = $"事件 {record.id} 含无效选项或效果。";
                 return false;
@@ -434,6 +435,7 @@ namespace HuntingInDarkness.ContentTables
                 }
                 options.Add(new EventOption
                 {
+                    optionId = record.optionId?.Trim() ?? string.Empty,
                     optionText = record.optionText,
                     checkType = checkType,
                     checkTarget = record.checkTarget,
@@ -453,12 +455,13 @@ namespace HuntingInDarkness.ContentTables
             return options;
         }
 
-        private static bool ValidateOptions(IReadOnlyList<EventOptionTableRecord> records, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent, bool allowHuntWorldEffects, bool allowSettlementEventEffects)
+        private static bool ValidateOptions(IReadOnlyList<EventOptionTableRecord> records, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent, bool allowHuntWorldEffects, bool allowSettlementEventEffects, bool requireOptionIds)
         {
             if (records == null)
                 return true;
+            var optionIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (EventOptionTableRecord record in records)
-                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateEffects(record.failEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateConditions(record.alwaysAvailable, record.conditions, bloodlineContent))
+                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || (requireOptionIds && (string.IsNullOrWhiteSpace(record.optionId) || !optionIds.Add(record.optionId.Trim()))) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateEffects(record.failEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateConditions(record.alwaysAvailable, record.conditions, bloodlineContent))
                     return false;
             return true;
         }

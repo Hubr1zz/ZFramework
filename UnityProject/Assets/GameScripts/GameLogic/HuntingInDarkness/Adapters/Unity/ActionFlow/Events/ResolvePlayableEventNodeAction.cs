@@ -17,15 +17,63 @@ namespace HuntingInDarkness.ActionFlow.Events
         Resolution
     }
 
+    public readonly struct PlayableEventResolutionFact
+    {
+        public PlayableEventResolutionFact(string eventId, string eventName, string resolutionMode, EventResolutionSelectionMode selectionMode, string optionId, string optionText, int year, int actorId, string checkType, bool hasCheck, bool success, int rollValue, int bonus, int total, int target, bool wasRerolled, string resultText, IReadOnlyList<PlayableEventEffectResult> effectResults)
+        {
+            EventId = eventId ?? string.Empty;
+            EventName = eventName ?? string.Empty;
+            ResolutionMode = resolutionMode ?? string.Empty;
+            SelectionMode = selectionMode;
+            OptionId = optionId ?? string.Empty;
+            OptionText = optionText ?? string.Empty;
+            Year = year;
+            ActorId = actorId;
+            CheckType = checkType ?? string.Empty;
+            HasCheck = hasCheck;
+            Success = success;
+            RollValue = rollValue;
+            Bonus = bonus;
+            Total = total;
+            Target = target;
+            WasRerolled = wasRerolled;
+            ResultText = resultText ?? string.Empty;
+            var snapshot = new PlayableEventEffectResult[effectResults?.Count ?? 0];
+            for (int index = 0; index < snapshot.Length; index++) snapshot[index] = effectResults[index];
+            EffectResults = Array.AsReadOnly(snapshot);
+        }
+
+        public string EventId { get; }
+        public string EventName { get; }
+        public string ResolutionMode { get; }
+        public EventResolutionSelectionMode SelectionMode { get; }
+        public string OptionId { get; }
+        public string OptionText { get; }
+        public int Year { get; }
+        public int ActorId { get; }
+        public string CheckType { get; }
+        public bool HasCheck { get; }
+        public bool Success { get; }
+        public int RollValue { get; }
+        public int Bonus { get; }
+        public int Total { get; }
+        public int Target { get; }
+        public bool WasRerolled { get; }
+        public string ResultText { get; }
+        public IReadOnlyList<PlayableEventEffectResult> EffectResults { get; }
+        public bool IsValid => !string.IsNullOrWhiteSpace(EventId);
+    }
+
     public readonly struct PlayableEventCommitCheckpoint
     {
-        public PlayableEventCommitCheckpoint(PlayableEventCommitKind kind, string eventId, int actorId, IReadOnlyList<string> chainedEventIds = null, IReadOnlyList<EventData> chainedEvents = null)
+        public PlayableEventCommitCheckpoint(PlayableEventCommitKind kind, string eventId, int actorId, IReadOnlyList<string> chainedEventIds = null, IReadOnlyList<EventData> chainedEvents = null, PlayableEventResolutionFact resolutionFact = default)
         {
             Kind = kind;
             EventId = eventId ?? string.Empty;
             ActorId = actorId;
             ChainedEventIds = chainedEventIds ?? Array.Empty<string>();
             ChainedEvents = chainedEvents ?? Array.Empty<EventData>();
+            ResolutionFact = resolutionFact;
         }
 
         public PlayableEventCommitKind Kind { get; }
@@ -33,6 +81,7 @@ namespace HuntingInDarkness.ActionFlow.Events
         public int ActorId { get; }
         public IReadOnlyList<string> ChainedEventIds { get; }
         public IReadOnlyList<EventData> ChainedEvents { get; }
+        public PlayableEventResolutionFact ResolutionFact { get; }
     }
 
     /// <summary>跨阶段复用的单事件节点；阶段 Runner 只注入提交事实，不复制选择、重投与效果流程。</summary>
@@ -108,11 +157,12 @@ namespace HuntingInDarkness.ActionFlow.Events
                 ChainedEvents = narrativeResult.ChainedEvents;
                 EncounterIds = narrativeResult.EncounterIds;
                 EffectResults = narrativeResult.EffectResults;
-                PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor, ChainedEvents);
+                PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor, ChainedEvents, new PlayableEventResolutionFact(gameEvent.ContentId, gameEvent.eventName, "Narrative", EventResolutionSelectionMode.None, string.Empty, string.Empty, eventSystem.Settlement.CurrentYear, defaultActor?.InstanceId ?? 0, CheckType.None.ToString(), false, true, 0, 0, 0, 0, false, string.IsNullOrWhiteSpace(gameEvent.hiddenText) ? gameEvent.displayText : gameEvent.hiddenText, EffectResults.Effects));
                 return ActionOutcome.Success();
             }
 
             bool hasPlayerInput = eventInput != null;
+            EventResolutionSelectionMode selectionMode = hasPlayerInput ? EventResolutionSelectionMode.Player : EventResolutionSelectionMode.Automatic;
             PlayableEventChoiceSelection selection = hasPlayerInput
                 ? await eventInput.SelectChoiceAsync(gameEvent, defaultActor, hunters, resourceAvailability, cancellationToken)
                 : FindAutomaticSelection();
@@ -123,6 +173,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                 return ActionOutcome.Failure("事件选项条件已经变化，请重新选择。");
             if (transaction == null)
             {
+                selectionMode = EventResolutionSelectionMode.Automatic;
                 selection = FindAutomaticSelection();
                 transaction = selection.IsValid ? await PrepareChoiceAsync(selection, cancellationToken) : null;
             }
@@ -132,7 +183,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                 ChainedEvents = fallbackResult.ChainedEvents;
                 EncounterIds = fallbackResult.EncounterIds;
                 EffectResults = fallbackResult.EffectResults;
-                PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor, ChainedEvents);
+                PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor, ChainedEvents, new PlayableEventResolutionFact(gameEvent.ContentId, gameEvent.eventName, "Automatic", EventResolutionSelectionMode.Automatic, string.Empty, string.Empty, eventSystem.Settlement.CurrentYear, defaultActor?.InstanceId ?? 0, CheckType.None.ToString(), false, true, 0, 0, 0, 0, false, string.IsNullOrWhiteSpace(gameEvent.hiddenText) ? gameEvent.displayText : gameEvent.hiddenText, EffectResults.Effects));
                 return ActionOutcome.Success();
             }
 
@@ -150,7 +201,8 @@ namespace HuntingInDarkness.ActionFlow.Events
             ChainedEvents = campaignEnded ? System.Array.Empty<EventData>() : result.ChainedEvents;
             EncounterIds = campaignEnded ? System.Array.Empty<string>() : result.EncounterIds;
             EffectResults = result.EffectResults;
-            PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, transaction.Actor, ChainedEvents);
+            EventOption selectedOption = transaction.Option;
+            PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, transaction.Actor, ChainedEvents, new PlayableEventResolutionFact(gameEvent.ContentId, gameEvent.eventName, "Choice", selectionMode, selectedOption.optionId, selectedOption.optionText, eventSystem.Settlement.CurrentYear, transaction.Actor?.InstanceId ?? 0, selectedOption.checkType.ToString(), transaction.RequiresCheck, result.Result.Success, transaction.RollValue, transaction.Bonus, transaction.Total, transaction.Target, transaction.HasRerolled, result.Result.ResultText, EffectResults.Effects));
             if (eventInput != null && !campaignEnded)
                 await eventInput.ConfirmResultAsync(gameEvent, result.Result, cancellationToken);
             return ActionOutcome.Success();
@@ -222,7 +274,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             return false;
         }
 
-        private void PublishCommitCheckpoint(PlayableEventCommitKind kind, HunterInstance actor, IReadOnlyList<EventData> chainedEvents = null)
+        private void PublishCommitCheckpoint(PlayableEventCommitKind kind, HunterInstance actor, IReadOnlyList<EventData> chainedEvents = null, PlayableEventResolutionFact resolutionFact = default)
         {
             if (kind == PlayableEventCommitKind.Resolution)
                 StageCommittedEffectFacts();
@@ -233,7 +285,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                     string eventId = chainedEvent?.ContentId ?? string.Empty;
                     if (eventId.Length > 0) chainedEventIds.Add(eventId);
                 }
-            stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.ContentId, actor?.InstanceId ?? 0, chainedEventIds, chainedEvents));
+            stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.ContentId, actor?.InstanceId ?? 0, chainedEventIds, chainedEvents, resolutionFact));
             if (kind == PlayableEventCommitKind.Resolution)
                 ResolutionCheckpointPublished = true;
             eventOutbox.PublishCheckpoint();

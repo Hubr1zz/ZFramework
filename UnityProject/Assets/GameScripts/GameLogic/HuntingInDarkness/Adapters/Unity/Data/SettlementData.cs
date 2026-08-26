@@ -117,6 +117,46 @@ namespace HuntingInDarkness.Data
         public bool   IsCompleted;
         public bool   IsMilestone;     // 主线事件（金色标记）
         public TimelineEntryType EntryType = TimelineEntryType.Random;
+        public string ResolutionMemoryId;
+    }
+
+    [System.Serializable]
+    public sealed class SettlementEventMemoryEffect
+    {
+        public int EffectIndex;
+        public string EffectType;
+        public string TargetName;
+        public string ResolvedTargetId;
+        public bool Applied;
+        public string Reason;
+        public int TargetActorId;
+        public bool StateChanged;
+        public int PreviousValue;
+        public int CurrentValue;
+    }
+
+    [System.Serializable]
+    public sealed class SettlementEventMemory
+    {
+        public string MemoryId;
+        public string EventId;
+        public string EventName;
+        public string ResolutionMode;
+        public EventResolutionSelectionMode SelectionMode;
+        public string OptionId;
+        public string OptionText;
+        public int Year;
+        public int ActorId;
+        public string CheckType;
+        public bool HasCheck;
+        public bool Success;
+        public int RollValue;
+        public int Bonus;
+        public int Total;
+        public int Target;
+        public bool WasRerolled;
+        public string ResultText;
+        public List<SettlementEventMemoryEffect> Effects = new();
     }
 
     /// <summary>
@@ -207,6 +247,9 @@ namespace HuntingInDarkness.Data
         public string TimelineEventIdentityMigrationDiagnostic;
         public int SettlementModifierSchemaVersion;
         public int MaterialDiscoverySchemaVersion;
+        public const int CurrentEventMemorySchemaVersion = 1;
+        public int EventMemorySchemaVersion;
+        public string EventMemoryMigrationDiagnostic;
 
         [Header("时间线")]
         public int CurrentYear = 1;
@@ -247,6 +290,7 @@ namespace HuntingInDarkness.Data
 
         [Header("Timeline")]
         public List<AnnalEntry> Timeline = new();
+        public List<SettlementEventMemory> EventMemories = new();
         public List<HuntRecord>    HuntHistory = new();
         [Header("待完成的远征归来结算")]
         public HuntRecord PendingHuntReturn;
@@ -370,6 +414,91 @@ namespace HuntingInDarkness.Data
         public List<HunterInstance> GetAvailableHunters() => Hunters.FindAll(h => h.IsAvailable);
 
         public bool HasPendingEventChainOccurrences => PendingEventChains != null && PendingEventChains.Exists(chain => chain != null && chain.PendingOccurrences != null && chain.PendingOccurrences.Count > 0);
+
+        public bool CanRecordEventMemory(SettlementEventMemory memory, out string reason)
+        {
+            reason = string.Empty;
+            if (memory == null || string.IsNullOrWhiteSpace(memory.MemoryId) || string.IsNullOrWhiteSpace(memory.EventId))
+            {
+                reason = "事件记忆缺少稳定身份。";
+                return false;
+            }
+            if (EventMemorySchemaVersion > CurrentEventMemorySchemaVersion)
+            {
+                reason = $"事件记忆 schema {EventMemorySchemaVersion} 高于当前版本 {CurrentEventMemorySchemaVersion}。";
+                return false;
+            }
+            SettlementEventMemory existing = EventMemories?.Find(candidate => candidate != null && string.Equals(candidate.MemoryId, memory.MemoryId, System.StringComparison.Ordinal));
+            if (existing == null) return true;
+            if (AreEventMemoriesEquivalent(existing, memory)) return true;
+            reason = $"事件记忆 {memory.MemoryId} 已存在但事实不一致。";
+            return false;
+        }
+
+        public bool TryRecordEventMemory(SettlementEventMemory memory, out string reason)
+        {
+            if (!CanRecordEventMemory(memory, out reason)) return false;
+            EventMemories ??= new List<SettlementEventMemory>();
+            if (EventMemories.Exists(candidate => candidate != null && string.Equals(candidate.MemoryId, memory.MemoryId, System.StringComparison.Ordinal))) return true;
+            EventMemories.Add(CloneEventMemory(memory));
+            EventMemorySchemaVersion = CurrentEventMemorySchemaVersion;
+            EventMemoryMigrationDiagnostic = string.Empty;
+            return true;
+        }
+
+        private static SettlementEventMemory CloneEventMemory(SettlementEventMemory source)
+        {
+            var clone = new SettlementEventMemory
+            {
+                MemoryId = source.MemoryId,
+                EventId = source.EventId,
+                EventName = source.EventName,
+                ResolutionMode = source.ResolutionMode,
+                SelectionMode = source.SelectionMode,
+                OptionId = source.OptionId,
+                OptionText = source.OptionText,
+                Year = source.Year,
+                ActorId = source.ActorId,
+                CheckType = source.CheckType,
+                HasCheck = source.HasCheck,
+                Success = source.Success,
+                RollValue = source.RollValue,
+                Bonus = source.Bonus,
+                Total = source.Total,
+                Target = source.Target,
+                WasRerolled = source.WasRerolled,
+                ResultText = source.ResultText
+            };
+            foreach (SettlementEventMemoryEffect effect in source.Effects ?? new List<SettlementEventMemoryEffect>())
+                if (effect != null)
+                    clone.Effects.Add(new SettlementEventMemoryEffect
+                    {
+                        EffectIndex = effect.EffectIndex,
+                        EffectType = effect.EffectType,
+                        TargetName = effect.TargetName,
+                        ResolvedTargetId = effect.ResolvedTargetId,
+                        Applied = effect.Applied,
+                        Reason = effect.Reason,
+                        TargetActorId = effect.TargetActorId,
+                        StateChanged = effect.StateChanged,
+                        PreviousValue = effect.PreviousValue,
+                        CurrentValue = effect.CurrentValue
+                    });
+            return clone;
+        }
+
+        private static bool AreEventMemoriesEquivalent(SettlementEventMemory left, SettlementEventMemory right)
+        {
+            if (left == null || right == null || !string.Equals(left.EventId, right.EventId, System.StringComparison.Ordinal) || !string.Equals(left.EventName, right.EventName, System.StringComparison.Ordinal) || !string.Equals(left.ResolutionMode, right.ResolutionMode, System.StringComparison.Ordinal) || left.SelectionMode != right.SelectionMode || !string.Equals(left.OptionId, right.OptionId, System.StringComparison.Ordinal) || !string.Equals(left.OptionText, right.OptionText, System.StringComparison.Ordinal) || left.Year != right.Year || left.ActorId != right.ActorId || !string.Equals(left.CheckType, right.CheckType, System.StringComparison.Ordinal) || left.HasCheck != right.HasCheck || left.Success != right.Success || left.RollValue != right.RollValue || left.Bonus != right.Bonus || left.Total != right.Total || left.Target != right.Target || left.WasRerolled != right.WasRerolled || !string.Equals(left.ResultText, right.ResultText, System.StringComparison.Ordinal)) return false;
+            if ((left.Effects?.Count ?? 0) != (right.Effects?.Count ?? 0)) return false;
+            for (int index = 0; index < (left.Effects?.Count ?? 0); index++)
+            {
+                SettlementEventMemoryEffect a = left.Effects[index];
+                SettlementEventMemoryEffect b = right.Effects[index];
+                if (a == null || b == null || a.EffectIndex != b.EffectIndex || !string.Equals(a.EffectType, b.EffectType, System.StringComparison.Ordinal) || !string.Equals(a.TargetName, b.TargetName, System.StringComparison.Ordinal) || !string.Equals(a.ResolvedTargetId, b.ResolvedTargetId, System.StringComparison.Ordinal) || a.Applied != b.Applied || !string.Equals(a.Reason, b.Reason, System.StringComparison.Ordinal) || a.TargetActorId != b.TargetActorId || a.StateChanged != b.StateChanged || a.PreviousValue != b.PreviousValue || a.CurrentValue != b.CurrentValue) return false;
+            }
+            return true;
+        }
 
         public IReadOnlyList<SettlementEventChainOccurrence> GetPendingEventChainOccurrences(string chainId)
         {

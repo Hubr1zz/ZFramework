@@ -108,6 +108,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(faceEcho.chainedEvents, Has.Count.EqualTo(1));
             Assert.That(faceEcho.chainedEvents[0].ContentId, Is.EqualTo("triggered_face_memory"));
             EventOption understandingOption = faceEcho.options[0];
+            Assert.That(understandingOption.optionId, Is.EqualTo("read_stone_pattern"));
             Assert.That(understandingOption.checkType, Is.EqualTo(CheckType.Understanding));
             Assert.That(understandingOption.checkTarget, Is.EqualTo(7));
             Assert.That(understandingOption.checkPresentation, Is.EqualTo(EventCheckPresentationKind.PhysicalDice));
@@ -117,6 +118,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(understandingOption.successEffects.Exists(effect => effect.effectType == EventEffectType.AddResource && effect.targetName == "broken_stone" && effect.value == 1), Is.True);
             Assert.That(understandingOption.failEffects.Exists(effect => effect.effectType == EventEffectType.AddRecoverableWound && effect.targetName == "selected" && effect.bodyPart == "arms" && effect.value == 1), Is.True);
             EventOption directResourceOption = faceEcho.options[1];
+            Assert.That(directResourceOption.optionId, Is.EqualTo("carry_stone_home"));
             Assert.That(directResourceOption.checkType, Is.EqualTo(CheckType.None));
             Assert.That(PlayableEventOptionAvailability.RequiresHunter(directResourceOption), Is.False);
             Assert.That(directResourceOption.successEffects.Exists(effect => effect.effectType == EventEffectType.AddResource && effect.targetName == "broken_stone" && effect.value == 2), Is.True);

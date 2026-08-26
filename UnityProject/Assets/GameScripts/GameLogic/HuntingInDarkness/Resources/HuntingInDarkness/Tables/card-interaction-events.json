@@ -9,6 +9,7 @@
       "hiddenText": "骨片重新黯淡。无论它是否说中了什么，翻牌的人都已经把那个征兆记在心里。",
       "options": [
         {
+          "optionId": "read_bone_omen",
           "optionText": "让一名猎人翻开骨兆，解读刻痕",
           "checkType": "Understanding",
           "checkTarget": 7,
@@ -30,6 +31,7 @@
           "conditions": []
         },
         {
+          "optionId": "reject_omen",
           "optionText": "不让未知征兆替你们做决定",
           "checkType": "None",
           "checkTarget": 0,
@@ -55,6 +57,7 @@
       "hiddenText": "旅人收回手牌，没有解释那张无面牌究竟代表谁。",
       "options": [
         {
+          "optionId": "draw_hand_card",
           "optionText": "让一名猎人从手牌中抽出一张",
           "checkType": "Luck",
           "checkTarget": 10,
@@ -75,6 +78,7 @@
           "conditions": []
         },
         {
+          "optionId": "reject_card_game",
           "optionText": "拒绝这场没有赌注说明的游戏",
           "checkType": "None",
           "checkTarget": 0,

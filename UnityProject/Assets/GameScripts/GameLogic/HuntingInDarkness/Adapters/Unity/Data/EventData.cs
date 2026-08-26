@@ -36,6 +36,13 @@ namespace HuntingInDarkness.Data
         OldMaid
     }
 
+    public enum EventResolutionSelectionMode
+    {
+        None,
+        Player,
+        Automatic
+    }
+
     /// <summary>
     /// 游戏事件 ScriptableObject 模板。
     /// 支持：叙事/抉择/战斗三种类型、子事件链、条件判定、结果隐藏/显示。
@@ -109,6 +116,9 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class EventOption
     {
+        [Header("稳定选项 ID")]
+        public string optionId = "";
+
         [Header("选项文本")]
         public string optionText = "选择此选项";
 

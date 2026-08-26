@@ -9,6 +9,7 @@
       "hiddenText": "旧梦已经醒来。它不会替猎人作出选择，却会跟随此后的每一次选择。",
       "options": [
         {
+          "optionId": "hold_ember",
           "optionText": "握住余烬，记住那些已经离开的人",
           "checkType": "None",
           "checkTarget": 0,
@@ -26,6 +27,7 @@
           ]
         },
         {
+          "optionId": "listen_stone",
           "optionText": "侧耳贴近石面，听清沉默中的回声",
           "checkType": "None",
           "checkTarget": 0,
@@ -43,6 +45,7 @@
           ]
         },
         {
+          "optionId": "close_eyes",
           "optionText": "闭上眼，让梦先一步走入黑暗",
           "checkType": "None",
           "checkTarget": 0,
@@ -60,6 +63,7 @@
           ]
         },
         {
+          "optionId": "release_shadow",
           "optionText": "让影子自行退回火光之外",
           "checkType": "None",
           "checkTarget": 0,

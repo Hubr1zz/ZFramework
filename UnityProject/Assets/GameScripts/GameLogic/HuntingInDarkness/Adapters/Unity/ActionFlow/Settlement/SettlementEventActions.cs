@@ -178,11 +178,29 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             lastCommitDiagnostic = string.Empty;
             if (checkpoint.Kind == PlayableEventCommitKind.Resolution)
             {
-                if (!eventSystem.TryMarkTimelineEntryCompleted(work.Work.TimelineEntry, checkpoint.EventId))
+                SettlementEventMemory memory = CreateEventMemory(checkpoint, work);
+                string memoryReason = string.Empty;
+                if (memory == null || !eventSystem.Settlement.CanRecordEventMemory(memory, out memoryReason))
+                {
+                    lastCommitDiagnostic = string.IsNullOrWhiteSpace(memoryReason) ? "营地事件结果记忆无效。" : memoryReason;
+                    return;
+                }
+                if (work.Work.TimelineEntry != null && work.Work.TimelineEntry.IsCompleted && !string.Equals(work.Work.TimelineEntry.ResolutionMemoryId, memory.MemoryId, StringComparison.Ordinal))
+                {
+                    lastCommitDiagnostic = "营地事件对应的年鉴 occurrence 已完成且结果记忆不一致。";
+                    return;
+                }
+                if (work.Work.TimelineEntry != null && !work.Work.TimelineEntry.IsCompleted && !eventSystem.TryMarkTimelineEntryCompleted(work.Work.TimelineEntry, checkpoint.EventId))
                 {
                     lastCommitDiagnostic = "营地事件对应的年鉴 occurrence 已失效。";
                     return;
                 }
+                if (!eventSystem.Settlement.TryRecordEventMemory(memory, out memoryReason))
+                {
+                    lastCommitDiagnostic = memoryReason;
+                    return;
+                }
+                if (work.Work.TimelineEntry != null) work.Work.TimelineEntry.ResolutionMemoryId = memory.MemoryId;
                 var chainedEventIds = new List<string>();
                 foreach (string chainedEventId in checkpoint.ChainedEventIds)
                 {
@@ -208,6 +226,47 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 TransactionId = checkpoint.Kind == PlayableEventCommitKind.Reroll ? $"settlement-event:{chainId}:{(work.PersistenceSequence >= 0 ? work.PersistenceSequence : resolvedCount)}:{checkpoint.EventId}:reroll" : $"settlement-event:{chainId}:{(work.PersistenceSequence >= 0 ? work.PersistenceSequence : resolvedCount)}:{checkpoint.EventId}",
                 Kind = checkpoint.Kind == PlayableEventCommitKind.Reroll ? SettlementTransactionKind.EventReroll : SettlementTransactionKind.EventResolution
             });
+        }
+
+        private SettlementEventMemory CreateEventMemory(PlayableEventCommitCheckpoint checkpoint, PendingEventWork work)
+        {
+            if (!checkpoint.ResolutionFact.IsValid) return null;
+            var memory = new SettlementEventMemory
+            {
+                MemoryId = $"settlement-event-memory:{chainId}:{work.PersistenceSequence}:{checkpoint.EventId}",
+                EventId = checkpoint.ResolutionFact.EventId,
+                EventName = checkpoint.ResolutionFact.EventName,
+                ResolutionMode = checkpoint.ResolutionFact.ResolutionMode,
+                SelectionMode = checkpoint.ResolutionFact.SelectionMode,
+                OptionId = checkpoint.ResolutionFact.OptionId,
+                OptionText = checkpoint.ResolutionFact.OptionText,
+                Year = checkpoint.ResolutionFact.Year,
+                ActorId = checkpoint.ResolutionFact.ActorId,
+                CheckType = checkpoint.ResolutionFact.CheckType,
+                HasCheck = checkpoint.ResolutionFact.HasCheck,
+                Success = checkpoint.ResolutionFact.Success,
+                RollValue = checkpoint.ResolutionFact.RollValue,
+                Bonus = checkpoint.ResolutionFact.Bonus,
+                Total = checkpoint.ResolutionFact.Total,
+                Target = checkpoint.ResolutionFact.Target,
+                WasRerolled = checkpoint.ResolutionFact.WasRerolled,
+                ResultText = checkpoint.ResolutionFact.ResultText
+            };
+            foreach (PlayableEventEffectResult effect in checkpoint.ResolutionFact.EffectResults)
+                memory.Effects.Add(new SettlementEventMemoryEffect
+                {
+                    EffectIndex = effect.EffectIndex,
+                    EffectType = effect.EffectType?.ToString() ?? string.Empty,
+                    TargetName = effect.TargetName,
+                    ResolvedTargetId = effect.ResolvedTargetId,
+                    Applied = effect.Succeeded,
+                    Reason = effect.Reason,
+                    TargetActorId = effect.TargetActorId,
+                    StateChanged = effect.StateChanged,
+                    PreviousValue = effect.PreviousValue,
+                    CurrentValue = effect.CurrentValue
+                });
+            return memory;
         }
 
         private void EnqueuePersistedChildren(IReadOnlyList<EventData> chainedEvents, IReadOnlyCollection<string> ancestorEventIds)

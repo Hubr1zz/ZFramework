@@ -672,6 +672,7 @@
       "hiddenText": "石片的眼睛终于闭合，留下的痕迹仍像是在记住每一个看过它的人。",
       "options": [
         {
+          "optionId": "understand_open_eyes",
           "optionText": "翻开两张石片，理解它们为何睁眼",
           "checkType": "Understanding",
           "checkTarget": 12,
@@ -692,6 +693,7 @@
           "conditions": []
         },
         {
+          "optionId": "seal_open_eyes",
           "optionText": "用一份金属碎片封住石片的缝隙",
           "checkType": "None",
           "checkTarget": 0,

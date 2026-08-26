@@ -18,7 +18,8 @@ MonoBehaviour:
   displayText: "\u98CE\u7A7F\u8FC7\u8352\u91CE\u4E2D\u7684\u9AA8\u5B54\uFF0C\u6574\u591C\u53D1\u51FA\u50CF\u4F4E\u8BED\u4E00\u6837\u7684\u58F0\u97F3\u3002\u5929\u4EAE\u540E\uFF0C\u8425\u5730\u5468\u56F4\u6563\u843D\u7740\u83CC\u5757\u4E0E\u98CE\u5316\u77F3\u7247\u3002"
   hiddenText: "\u4F60\u7684\u9009\u62E9\u4F1A\u6539\u53D8\u8425\u5730\u63A5\u4E0B\u6765\u80FD\u591F\u4F7F\u7528\u7684\u7269\u8D44\u3002"
   options:
-  - optionText: "\u6536\u96C6\u53EF\u4EE5\u71AC\u716E\u7684\u83CC\u5757"
+  - optionId: collect_mushroom_chunks
+    optionText: "\u6536\u96C6\u53EF\u4EE5\u71AC\u716E\u7684\u83CC\u5757"
     checkType: 0
     checkTarget: 0
     successText: "\u8425\u5730\u6536\u4E0B\u4E86\u8611\u83C7\u8089 \xD72\u3002"
@@ -32,7 +33,8 @@ MonoBehaviour:
     failEffects: []
     failChain: []
     alwaysAvailable: 1
-  - optionText: "\u6536\u96C6\u80FD\u52A0\u56FA\u5DE5\u5177\u7684\u77F3\u7247"
+  - optionId: collect_reinforcing_stone
+    optionText: "\u6536\u96C6\u80FD\u52A0\u56FA\u5DE5\u5177\u7684\u77F3\u7247"
     checkType: 0
     checkTarget: 0
     successText: "\u8425\u5730\u6536\u4E0B\u4E86\u788E\u77F3 \xD72\u3002"

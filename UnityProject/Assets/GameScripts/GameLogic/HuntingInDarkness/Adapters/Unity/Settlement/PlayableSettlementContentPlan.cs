@@ -115,7 +115,7 @@ namespace HuntingInDarkness.Settlement
                 reason = "营地管理器为空。";
                 return false;
             }
-            if (manager.Data.ItemIdentitySchemaVersion > PlayableSettlementItemRegistry.CurrentIdentitySchemaVersion || manager.Data.TraitIdentitySchemaVersion > PlayableTraitRegistry.CurrentIdentitySchemaVersion || manager.Data.InventionIdentitySchemaVersion > PlayableSettlementInventionRegistry.CurrentIdentitySchemaVersion || manager.Data.TimelineEventIdentitySchemaVersion > PlayableSettlementEventRegistry.CurrentIdentitySchemaVersion || manager.Data.CampaignPacingSchemaVersion > SettlementInstance.CurrentCampaignPacingSchemaVersion || manager.Data.SettlementModifierSchemaVersion > PlayableSettlementModifierRuntime.CurrentSchemaVersion || manager.Data.MaterialDiscoverySchemaVersion > SettlementInstance.CurrentMaterialDiscoverySchemaVersion)
+            if (manager.Data.ItemIdentitySchemaVersion > PlayableSettlementItemRegistry.CurrentIdentitySchemaVersion || manager.Data.TraitIdentitySchemaVersion > PlayableTraitRegistry.CurrentIdentitySchemaVersion || manager.Data.InventionIdentitySchemaVersion > PlayableSettlementInventionRegistry.CurrentIdentitySchemaVersion || manager.Data.TimelineEventIdentitySchemaVersion > PlayableSettlementEventRegistry.CurrentIdentitySchemaVersion || manager.Data.CampaignPacingSchemaVersion > SettlementInstance.CurrentCampaignPacingSchemaVersion || manager.Data.SettlementModifierSchemaVersion > PlayableSettlementModifierRuntime.CurrentSchemaVersion || manager.Data.MaterialDiscoverySchemaVersion > SettlementInstance.CurrentMaterialDiscoverySchemaVersion || manager.Data.EventMemorySchemaVersion > SettlementInstance.CurrentEventMemorySchemaVersion)
             {
                 reason = "营地存档 schema 高于当前内容版本。";
                 return false;
@@ -128,6 +128,7 @@ namespace HuntingInDarkness.Settlement
             PlayableSettlementItemRegistry.MigratePersistentState(manager.Data);
             PlayableTraitRegistry.MigratePersistentState(manager.Data);
             MigrateMaterialDiscovery(manager.Data);
+            MigrateEventMemories(manager.Data);
             PlayableSettlementInventionRegistry.MigratePersistentState(manager.Data);
             PlayableSettlementEventRegistry.MigratePersistentState(manager.Data);
             manager.Timeline.RandomEventPool = new List<EventData>(RandomEvents);
@@ -203,6 +204,16 @@ namespace HuntingInDarkness.Settlement
             orderedIds.Sort(StringComparer.Ordinal);
             settlement.DiscoveredMaterialIds = orderedIds;
             settlement.MaterialDiscoverySchemaVersion = SettlementInstance.CurrentMaterialDiscoverySchemaVersion;
+        }
+
+        private static void MigrateEventMemories(SettlementInstance settlement)
+        {
+            settlement.EventMemories ??= new List<SettlementEventMemory>();
+            if (settlement.EventMemorySchemaVersion < SettlementInstance.CurrentEventMemorySchemaVersion)
+            {
+                settlement.EventMemorySchemaVersion = SettlementInstance.CurrentEventMemorySchemaVersion;
+                settlement.EventMemoryMigrationDiagnostic = string.Empty;
+            }
         }
 
         public void Dispose()
@@ -322,6 +333,17 @@ namespace HuntingInDarkness.Settlement
                     }
             foreach (EventData gameEvent in events)
             {
+                var optionIds = new HashSet<string>(StringComparer.Ordinal);
+                if (gameEvent.eventType == GameEventType.Choice && gameEvent.category != EventCategory.Hunt)
+                    foreach (EventOption option in gameEvent.options ?? new List<EventOption>())
+                    {
+                        string optionId = option?.optionId?.Trim() ?? string.Empty;
+                        if (optionId.Length == 0 || !optionIds.Add(optionId))
+                        {
+                            reason = $"营地事件 {gameEvent.ContentId} 的 Choice optionId 缺失或重复：{optionId}";
+                            return false;
+                        }
+                    }
                 foreach (EventEffect effect in EnumerateEffects(gameEvent))
                 {
                     string target = effect?.targetName?.Trim() ?? string.Empty;

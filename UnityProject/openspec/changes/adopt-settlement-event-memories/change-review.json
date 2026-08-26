@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-settlement-event-memories",
+  "title": "营地事件结果记忆",
+  "category": "feature",
+  "sourceKind": "direct-code",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "implementationNotes": "实现已通过定向验证；Draft 仅供 Changes 人工审核，批准后再显式同步正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "稳定选项身份、结构化记忆、幂等提交、旧档兼容和 3D 年鉴投影已实现。",
+    "codeEvidence": [
+      {
+        "guid": "e159b3c1d6bfcce4082b45e63fc28083",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
+        "fileHash": "4ee542340515cd4589071b7e96958039840f7706a1e6f9429755cbbf33c918a6",
+        "line": 120,
+        "feature": "保存并校验营地事件长期记忆",
+        "status": "verified",
+        "checkedAt": "2026-08-26T15:25:00Z"
+      },
+      {
+        "guid": "d94d370a430db9b41b025aedfeb3a471",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+        "fileHash": "a3bbcaa28567a069555a6953a0b7cfed26ecfdfc14d057d0124b9235f3d34de9",
+        "line": 20,
+        "feature": "在事件 Resolution checkpoint 生成不可变结果事实",
+        "status": "verified",
+        "checkedAt": "2026-08-26T15:25:00Z"
+      },
+      {
+        "guid": "e03f23b616fd5be46b68d164379dc2ef",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEventActions.cs",
+        "fileHash": "8885bad5967bf28ca7e8ffa2ebf48ce6c1957cd0bded76c9cfb6ebc6666ad6a3",
+        "line": 175,
+        "feature": "提交事件记忆、Timeline 链接与子 occurrence",
+        "status": "verified",
+        "checkedAt": "2026-08-26T15:25:00Z"
+      },
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "fileHash": "809040273770573d2e22f0b8c02781f0eccc57d0a4ff4bb1f2bb1e74fa83d9c3",
+        "line": 33,
+        "feature": "读取并校验稳定事件选项身份",
+        "status": "verified",
+        "checkedAt": "2026-08-26T15:25:00Z"
+      },
+      {
+        "guid": "b078e9c3adef30e4b91de4eb86eaa250",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/CampLedgerPanel3D.cs",
+        "fileHash": "0297a61851dab3905ace1c1a02efdcd13482ae30501b39829a281025ac5e7ebd",
+        "line": 78,
+        "feature": "把事件记忆投影为 3D 年鉴条目",
+        "status": "verified",
+        "checkedAt": "2026-08-26T15:25:00Z"
+      }
+    ],
+    "evidence": [
+      "Unity EditMode 50/50 passed",
+      "Settlement production PlayMode 2/2 passed",
+      "dotnet build 0 warnings / 0 errors"
+    ],
+    "differences": [],
+    "verifiedAt": "2026-08-26T15:25:00Z"
+  },
+  "reviewIssues": [],
+  "gapIds": [],
+  "dependencyIds": [
+    "settlement-event-resolution-memory--integrates-with--settlement-timeline-event-identity",
+    "settlement-event-resolution-memory--presents--tabletop-settlement-advancement-ledger",
+    "settlement-event-resolution-memory--integrates-with--event-effect-resolution-reporting"
+  ],
+  "capabilities": [
+    "settlement-event-resolution-memory",
+    "settlement-timeline-event-identity",
+    "tabletop-settlement-advancement-ledger",
+    "event-effect-resolution-reporting"
+  ],
+  "syncTargets": [
+    {
+      "capability": "event-effect-resolution-reporting",
+      "title": "事件效果结构化结算结果",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-settlement-event-memories/specs/event-effect-resolution-reporting/spec.md",
+      "targetSpecPath": "openspec/specs/event-effect-resolution-reporting/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "f9e4171a4c4c5e64d13cdfefdca97577ffaea7a04f1156ded69ff94bbee97fec",
+      "baseSnapshotPath": "openspec/changes/adopt-settlement-event-memories/.sync-baseline/event-effect-resolution-reporting/spec.md"
+    },
+    {
+      "capability": "settlement-event-resolution-memory",
+      "title": "营地事件结果记忆",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-settlement-event-memories/specs/settlement-event-resolution-memory/spec.md",
+      "targetSpecPath": "openspec/specs/settlement-event-resolution-memory/spec.md",
+      "targetExisted": false,
+      "baseFileHash": "",
+      "baseSnapshotPath": ""
+    },
+    {
+      "capability": "settlement-timeline-event-identity",
+      "title": "营地时间线事件稳定身份",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-settlement-event-memories/specs/settlement-timeline-event-identity/spec.md",
+      "targetSpecPath": "openspec/specs/settlement-timeline-event-identity/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "b0d6c9fc881615c5e1ba62dad614be59a83d20d110011af4b65e3f40bb7673d3",
+      "baseSnapshotPath": "openspec/changes/adopt-settlement-event-memories/.sync-baseline/settlement-timeline-event-identity/spec.md"
+    },
+    {
+      "capability": "tabletop-settlement-advancement-ledger",
+      "title": "营地桌面年鉴事件记忆展示",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-settlement-event-memories/specs/tabletop-settlement-advancement-ledger/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-settlement-advancement-ledger/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "7d8c9e7dd646fe3cec3a894d734401b39751373bea91204c8afe32ac76fa5374",
+      "baseSnapshotPath": "openspec/changes/adopt-settlement-event-memories/.sync-baseline/tabletop-settlement-advancement-ledger/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "正式 Spec 基线已记录。",
+    "conflicts": [],
+    "validatedAt": "2026-08-26T08:34:47-07:00"
+  },
+  "createdAt": "2026-08-26T15:25:00Z"
+}

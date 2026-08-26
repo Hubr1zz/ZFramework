@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -288,6 +289,12 @@ namespace Core
                 foreach (HunterInstance hunter in data.Settlement.Hunters)
                     if (hunter != null)
                         hunter.OriginTemplateId = hunter.OriginTemplateId?.Trim() ?? string.Empty;
+            if (data?.Settlement != null && data.Settlement.EventMemorySchemaVersion == 0)
+            {
+                data.Settlement.EventMemories ??= new List<SettlementEventMemory>();
+                data.Settlement.EventMemorySchemaVersion = SettlementInstance.CurrentEventMemorySchemaVersion;
+                data.Settlement.EventMemoryMigrationDiagnostic = string.Empty;
+            }
             if (data != null && !data.HasActiveHuntState)
                 data.ActiveHunt = null;
         }

@@ -78,6 +78,7 @@ namespace UI
         private void BuildEntries()
         {
             entries.Clear();
+            var linkedMemoryIds = new HashSet<string>(StringComparer.Ordinal);
             if (settlement.Timeline != null)
             {
                 foreach (AnnalEntry entry in settlement.Timeline)
@@ -86,9 +87,21 @@ namespace UI
                     string eventName = string.IsNullOrWhiteSpace(entry.EventName) ? entry.EventId : entry.EventName;
                     string state = entry.IsCompleted ? "已发生" : "将发生";
                     string category = entry.EntryType == TimelineEntryType.Invention ? "发明 · 已掌握" : $"时间线 · {state}";
+                    SettlementEventMemory memory = settlement.EventMemories?.Find(candidate => candidate != null && string.Equals(candidate.MemoryId, entry.ResolutionMemoryId, StringComparison.Ordinal));
+                    if (memory != null)
+                    {
+                        linkedMemoryIds.Add(memory.MemoryId);
+                        category += $"\n{CampLedgerPresentation.FormatEventMemory(memory)}";
+                    }
                     entries.Add(new LedgerEntry(entry.Year, entry.IsMilestone ? $"★ {eventName}" : eventName, category, entry.IsCompleted));
                 }
             }
+            if (settlement.EventMemories != null)
+                foreach (SettlementEventMemory memory in settlement.EventMemories)
+                {
+                    if (memory == null || linkedMemoryIds.Contains(memory.MemoryId)) continue;
+                    entries.Add(new LedgerEntry(memory.Year, string.IsNullOrWhiteSpace(memory.EventName) ? memory.EventId : memory.EventName, $"事件余波\n{CampLedgerPresentation.FormatEventMemory(memory)}", true));
+                }
             if (settlement.HuntHistory != null)
             {
                 foreach (HuntRecord record in settlement.HuntHistory)

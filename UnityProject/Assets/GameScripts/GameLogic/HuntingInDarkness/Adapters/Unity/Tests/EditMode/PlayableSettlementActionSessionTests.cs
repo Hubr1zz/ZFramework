@@ -512,6 +512,9 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(settlement.GetResource("碎石"), Is.EqualTo(3));
                 Assert.That(committed, Is.EqualTo(new[] { SettlementTransactionKind.EventResolution, SettlementTransactionKind.EventResolution }));
                 Assert.That(settlement.HasPendingEventChainOccurrences, Is.False);
+                Assert.That(settlement.EventMemories, Has.Count.EqualTo(2));
+                Assert.That(settlement.EventMemories.Select(memory => memory.EventId), Is.EquivalentTo(new[] { "root", "child" }));
+                Assert.That(settlement.EventMemories.Single(memory => memory.EventId == "root").ResolutionMode, Is.EqualTo("Narrative"));
             }
             finally
             {
@@ -538,6 +541,8 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(result.ResolvedCount, Is.EqualTo(3));
             Assert.That(settlement.GetResource("碎石"), Is.EqualTo(3));
             Assert.That(settlement.HasPendingEventChainOccurrences, Is.False);
+            Assert.That(settlement.EventMemories, Has.Count.EqualTo(3));
+            Assert.That(settlement.EventMemories.Select(memory => memory.EventId), Is.EqualTo(new[] { "same-root", "same-child", "same-child" }));
         }
 
         [Test]
@@ -589,6 +594,13 @@ namespace HuntingInDarkness.Adapter.Tests
                 root.chainedEvents.Add(child);
             }
 
+            int eventCommitCount = 0;
+            Action<SettlementTransactionCommittedEvent> eventHandler = evt =>
+            {
+                if (evt.Kind == SettlementTransactionKind.EventResolution)
+                    eventCommitCount++;
+            };
+            EventBus.Subscribe(eventHandler);
             try
             {
                 using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), eventSystem);
@@ -606,9 +618,13 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(settlement.PendingEventChains[0].PendingOccurrences, Has.Count.EqualTo(SettlementInstance.MaxPendingEventChainOccurrences));
                 Assert.That(settlement.PendingEventChains[0].Diagnostic, Does.Contain("上限"));
                 Assert.That(settlement.PendingEventChains[0].PendingOccurrences[^1].EventId, Is.EqualTo("overflow-child-63"));
+                Assert.That(settlement.EventMemories, Has.Count.EqualTo(1));
+                Assert.That(settlement.EventMemories[0].EventId, Is.EqualTo(root.ContentId));
+                Assert.That(eventCommitCount, Is.EqualTo(1));
             }
             finally
             {
+                EventBus.Unsubscribe(eventHandler);
                 foreach (EventData child in children)
                     UnityEngine.Object.DestroyImmediate(child);
                 UnityEngine.Object.DestroyImmediate(root);
@@ -945,6 +961,12 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(presenter.Requests, Has.Count.EqualTo(1));
             Assert.That(presenter.Requests[0].Kind, Is.EqualTo(TabletopRandomInteractionKind.PhysicalDice));
             Assert.That(presenter.Requests[0].Sides, Is.EqualTo(10));
+            SettlementEventMemory successMemory = settlement.EventMemories.Single(memory => memory.EventId == "main_face_echo");
+            Assert.That(successMemory.OptionId, Is.EqualTo("read_stone_pattern"));
+            Assert.That(successMemory.SelectionMode, Is.EqualTo(EventResolutionSelectionMode.Player));
+            Assert.That(successMemory.HasCheck, Is.True);
+            Assert.That(successMemory.Success, Is.True);
+            Assert.That(successMemory.Effects, Has.Count.EqualTo(2));
         }
 
         [Test]
@@ -962,6 +984,11 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(hunter.Understanding, Is.Zero);
             Assert.That(hunter.HP.arms, Is.EqualTo(hunter.MaxHP.arms - 1));
             Assert.That(settlement.GetResource("broken_stone"), Is.Zero);
+            SettlementEventMemory failureMemory = settlement.EventMemories.Single(memory => memory.EventId == "main_face_echo");
+            Assert.That(failureMemory.OptionId, Is.EqualTo("read_stone_pattern"));
+            Assert.That(failureMemory.SelectionMode, Is.EqualTo(EventResolutionSelectionMode.Player));
+            Assert.That(failureMemory.Success, Is.False);
+            Assert.That(failureMemory.Effects.Single().EffectType, Is.EqualTo(nameof(EventEffectType.AddRecoverableWound)));
         }
 
         [Test]
@@ -975,6 +1002,9 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(result.Succeeded, Is.True, result.Reason);
             Assert.That(settlement.GetResource("broken_stone"), Is.EqualTo(2));
+            SettlementEventMemory safeMemory = settlement.EventMemories.Single(memory => memory.EventId == "main_face_echo");
+            Assert.That(safeMemory.OptionId, Is.EqualTo("carry_stone_home"));
+            Assert.That(safeMemory.SelectionMode, Is.EqualTo(EventResolutionSelectionMode.Player));
         }
 
         [Test]

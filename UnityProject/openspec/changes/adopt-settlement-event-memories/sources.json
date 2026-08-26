@@ -1,0 +1,12 @@
+{
+  "sourceRunId": "",
+  "source": "用户持续目标与事件设计文档；本 Change 由直接代码实现生成，等待人工审核。",
+  "sourceRoots": [
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用"
+  ],
+  "sourceReferences": [
+    "primary::事件 Events.md",
+    "conversation::2026-08-26",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEventActions.cs"
+  ]
+}

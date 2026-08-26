@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {
+      "id": "settlement-event-resolution-memory",
+      "label": "营地事件结果记忆",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/adopt-settlement-event-memories/specs/settlement-event-resolution-memory/spec.md"
+    },
+    {
+      "id": "settlement-timeline-event-identity",
+      "label": "营地时间线事件稳定身份",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/settlement-timeline-event-identity/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-advancement-ledger",
+      "label": "营地桌面成长与年鉴",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-advancement-ledger/spec.md"
+    },
+    {
+      "id": "event-effect-resolution-reporting",
+      "label": "事件效果结构化结算结果",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/event-effect-resolution-reporting/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "settlement-event-resolution-memory--integrates-with--settlement-timeline-event-identity",
+      "from": "settlement-event-resolution-memory",
+      "to": "settlement-timeline-event-identity",
+      "type": "integrates-with",
+      "status": "resolved",
+      "reason": "Timeline 根 occurrence 链接事件记忆",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-event-resolution-memory--presents--tabletop-settlement-advancement-ledger",
+      "from": "settlement-event-resolution-memory",
+      "to": "tabletop-settlement-advancement-ledger",
+      "type": "presents",
+      "status": "resolved",
+      "reason": "3D 年鉴展示事件记忆",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-event-resolution-memory--integrates-with--event-effect-resolution-reporting",
+      "from": "settlement-event-resolution-memory",
+      "to": "event-effect-resolution-reporting",
+      "type": "integrates-with",
+      "status": "resolved",
+      "reason": "持久化结构化效果结果",
+      "gapId": "",
+      "blocksImplementation": false
+    }
+  ]
+}
