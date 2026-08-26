@@ -100,6 +100,48 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void HuntNoiseLease_RequiresSettlementPortIsIdempotentAndRejectsConflict()
+        {
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 8131) { Name = "守夜者" };
+            settlement.Hunters.Add(hunter);
+            var gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "settlement-noise-lease";
+            gameEvent.category = EventCategory.Random;
+            gameEvent.options.Add(new EventOption
+            {
+                optionText = "接受回声",
+                alwaysAvailable = true,
+                successEffects = new List<EventEffect> { new() { effectType = EventEffectType.CreateHuntNoiseLease, targetName = "stone_vigil_risk", value = 2 } }
+            });
+
+            try
+            {
+                EventSystem eventSystem = new(settlement, new SequenceRandom(0));
+                PlayableEventCommitResult withoutPort = eventSystem.PrepareChoice(gameEvent, 0, hunter).CommitStandalone();
+                Assert.That(withoutPort.EffectResults.FailedCount, Is.EqualTo(1));
+
+                var command = new SettlementHuntNoiseLeaseCommand(settlement);
+                PlayableEventCommitResult first = eventSystem.PrepareChoice(gameEvent, 0, hunter, settlementCommand: command).CommitStandalone();
+                Assert.That(first.EffectResults.AppliedCount, Is.EqualTo(1));
+                Assert.That(settlement.PendingHuntNoiseLease.NoiseModifier, Is.EqualTo(2));
+                Assert.That(first.EffectResults.Effects[0].StateChanged, Is.True);
+
+                PlayableEventCommitResult second = eventSystem.PrepareChoice(gameEvent, 0, hunter, settlementCommand: command).CommitStandalone();
+                Assert.That(second.EffectResults.AppliedCount, Is.EqualTo(1));
+                Assert.That(second.EffectResults.Effects[0].StateChanged, Is.False);
+
+                var conflict = new EventEffect { effectType = EventEffectType.CreateHuntNoiseLease, targetName = "other", value = 1 };
+                Assert.That(command.TryApply(conflict, out _, out string reason), Is.False);
+                Assert.That(reason, Does.Contain("另一份"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
         public void CheckedChoice_AcceptsFailureWithoutApplyingSuccessEffects()
         {
             var settlement = new SettlementInstance();

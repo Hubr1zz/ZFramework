@@ -259,6 +259,7 @@ namespace Core
 
             // 权威阶段 FSM 由 ZFramework Campaign 模块持有；GameManager 只保留当前世代 lease。
             campaignRuntime = GameModule.Campaign.AcquireRuntime(this, ApplyPhaseRoots);
+            campaignRuntime.ConfigurePersistentEffectProjection(registry => new HuntNoiseLeaseProjection(registry));
             campaignRuntime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(this, CreateSettlementActionSession));
             campaignRuntime.ConfigureHuntRuntime(new PlayableHuntRuntimeConfiguration(CreateHuntManager, CreateHuntActionSession));
             campaignStartup.Bind(this);
@@ -686,7 +687,7 @@ namespace Core
         // 营地阶段子系统
         // ═══════════════════════════════════════════
 
-        private PlayableSettlementActionSession CreateSettlementActionSession(SettlementManager manager) => new(manager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), manager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementContentRuntime.Items), tabletopInteractionRouter, manager.Workshop, manager.Inventions, workshopContentCatalog, PlayableSymptomRuntime.Catalog, campaignRuntime.ActionEnvironmentInstallers, manager.Timeline.ResolveEvent, manager.Timeline, consumableContent: new PlayableSettlementConsumableContentAdapter(PlayableSettlementContentRuntime.Items));
+        private PlayableSettlementActionSession CreateSettlementActionSession(SettlementManager manager) => new(manager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), manager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementContentRuntime.Items), tabletopInteractionRouter, manager.Workshop, manager.Inventions, workshopContentCatalog, PlayableSymptomRuntime.Catalog, campaignRuntime.ActionEnvironmentInstallers, manager.Timeline.ResolveEvent, manager.Timeline, persistentEffectProjection: campaignRuntime.PersistentEffectProjection, hunterManagement: manager.HunterMgmt, consumableContent: new PlayableSettlementConsumableContentAdapter(PlayableSettlementContentRuntime.Items));
 
         private void StartSettlementActionSession()
         {

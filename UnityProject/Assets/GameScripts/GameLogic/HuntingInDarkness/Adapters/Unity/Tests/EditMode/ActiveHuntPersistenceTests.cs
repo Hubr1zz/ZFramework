@@ -50,6 +50,7 @@ namespace HuntingInDarkness.Adapter.Tests
             var hunter = new HunterInstance(template, 101);
             hunter.HP.arms = 1;
             var settlement = new SettlementInstance { CurrentYear = 3 };
+            settlement.PendingHuntNoiseLease = new PendingHuntNoiseLease { LeaseId = "hunt-noise:stone_vigil_risk", SourceEventId = "stone_vigil_risk", NoiseModifier = 2 };
             settlement.Hunters.Add(hunter);
             HexTileData starting = CreateTile("starting", TileType.Starting);
             HexTileData plain = CreateTile("plain", TileType.Plains);
@@ -86,6 +87,9 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(occurrences.HasPendingOccurrences, Is.False);
             Assert.That(captured.ActiveHunt.DestinationId, Is.EqualTo(source.BoundRoute.DestinationId));
             Assert.That(captured.ActiveHunt.ContentBundleId, Is.EqualTo(source.ContentBundleId));
+            Assert.That(saved.Settlement.PendingHuntNoiseLease, Is.Not.Null);
+            Assert.That(saved.Settlement.PendingHuntNoiseLease.LeaseId, Is.EqualTo("hunt-noise:stone_vigil_risk"));
+            Assert.That(saved.Settlement.PendingHuntNoiseLease.NoiseModifier, Is.EqualTo(2));
 
             saved.ActiveHunt.EncounterHandoffPending = true;
             saved.ActiveHunt.EncounterId = "boss-handoff";

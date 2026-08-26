@@ -47,6 +47,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly PlayableEventChainGuard chainGuard = new();
         private readonly Func<EventData, IReactorEntity> resolveEventEntity;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
+        private readonly IPlayableEventSettlementCommand settlementCommand;
         private ResolvePlayableEventNodeAction currentEntry;
         private PendingEventWork currentWork;
         private IReadOnlyList<PlayableEventChainOccurrence> lastCommittedChildren = Array.Empty<PlayableEventChainOccurrence>();
@@ -58,12 +59,12 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly List<PlayableEventEffectResult> effectResults = new();
         private readonly SettlementEventChainCheckpointAdapter checkpointAdapter;
 
-        public ResolveSettlementEventChainAction(EventSystem eventSystem, IPlayableEventInput eventInput, IReadOnlyList<EventData> events, Guid sessionId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, string restoredChainId = null, IReadOnlyList<SettlementEventChainOccurrence> restoredOccurrences = null)
-            : this(eventSystem, eventInput, ToWorkItems(events, restoredOccurrences), sessionId, eventOutbox, source, target, resolveEventEntity, randomInteractionPresenter, restoredChainId)
+        public ResolveSettlementEventChainAction(EventSystem eventSystem, IPlayableEventInput eventInput, IReadOnlyList<EventData> events, Guid sessionId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, string restoredChainId = null, IReadOnlyList<SettlementEventChainOccurrence> restoredOccurrences = null, IPlayableEventSettlementCommand settlementCommand = null)
+            : this(eventSystem, eventInput, ToWorkItems(events, restoredOccurrences), sessionId, eventOutbox, source, target, resolveEventEntity, randomInteractionPresenter, restoredChainId, settlementCommand)
         {
         }
 
-        public ResolveSettlementEventChainAction(EventSystem eventSystem, IPlayableEventInput eventInput, IReadOnlyList<SettlementEventWork> events, Guid sessionId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, string restoredChainId = null)
+        public ResolveSettlementEventChainAction(EventSystem eventSystem, IPlayableEventInput eventInput, IReadOnlyList<SettlementEventWork> events, Guid sessionId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, string restoredChainId = null, IPlayableEventSettlementCommand settlementCommand = null)
         {
             this.eventSystem = eventSystem ?? throw new ArgumentNullException(nameof(eventSystem));
             this.eventInput = eventInput;
@@ -71,6 +72,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
             this.resolveEventEntity = resolveEventEntity ?? throw new ArgumentNullException(nameof(resolveEventEntity));
             this.randomInteractionPresenter = randomInteractionPresenter;
+            this.settlementCommand = settlementCommand;
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
             checkpointAdapter = new SettlementEventChainCheckpointAdapter(eventSystem.Settlement);
@@ -151,7 +153,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             PendingEventWork nextWork = pendingEvents.Dequeue();
             EventData nextEvent = nextWork.Event;
             currentWork = nextWork;
-            currentEntry = new ResolvePlayableEventNodeAction(eventSystem, eventInput, nextEvent, null, eventSystem.Settlement.GetAvailableHunters(), eventOutbox, checkpoint => StageCommitCheckpoint(checkpoint, nextWork), Source, resolveEventEntity(nextEvent), randomInteractionPresenter);
+            currentEntry = new ResolvePlayableEventNodeAction(eventSystem, eventInput, nextEvent, null, eventSystem.Settlement.GetAvailableHunters(), eventOutbox, checkpoint => StageCommitCheckpoint(checkpoint, nextWork), Source, resolveEventEntity(nextEvent), randomInteractionPresenter, settlementCommand: settlementCommand);
             return currentEntry;
         }
 

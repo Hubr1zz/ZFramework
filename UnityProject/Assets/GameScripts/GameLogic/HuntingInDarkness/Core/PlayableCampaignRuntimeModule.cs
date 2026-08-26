@@ -21,9 +21,11 @@ namespace Core
         bool IsActionSessionRunning { get; }
         IPlayableSettlementRuntime Settlement { get; }
         IPlayableHuntRuntime Hunt { get; }
+        IPlayableCampaignPersistentEffectProjection PersistentEffectProjection { get; }
         IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers { get; }
         ReactorRegistry ActionReactors { get; }
         void ConfigureSettlementRuntime(PlayableSettlementRuntimeConfiguration configuration);
+        void ConfigurePersistentEffectProjection(Func<IActionEnvironmentInstallerRegistry, IPlayableCampaignPersistentEffectProjection> factory);
         bool TryPrepareNewSettlement(out IPlayableSettlementRuntime candidate, out string reason);
         bool TryPrepareSettlementRestore(SettlementInstance data, out IPlayableSettlementRuntime candidate, out string reason);
         bool TrySwapSettlement(IPlayableSettlementRuntime expectedCurrent, IPlayableSettlementRuntime replacement, out string reason);
@@ -96,6 +98,7 @@ namespace Core
             private IDisposable gameplayInstallation;
             private PlayableSettlementRuntimeConfiguration settlementConfiguration;
             private PlayableSettlementRuntime settlement;
+            private IPlayableCampaignPersistentEffectProjection persistentEffectProjection;
             private PlayableHuntRuntimeConfiguration huntConfiguration;
             private PlayableHuntRuntime hunt;
             private long nextSettlementGenerationId;
@@ -109,6 +112,7 @@ namespace Core
             public bool IsActionSessionRunning => actionSession?.IsRunning == true;
             public IPlayableSettlementRuntime Settlement => settlement;
             public IPlayableHuntRuntime Hunt => hunt;
+            public IPlayableCampaignPersistentEffectProjection PersistentEffectProjection => persistentEffectProjection;
             public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers => actionEnvironmentInstallers;
             public ReactorRegistry ActionReactors => actionSession?.Reactors;
 
@@ -150,6 +154,22 @@ namespace Core
                 settlementConfiguration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             }
 
+            public void ConfigurePersistentEffectProjection(Func<IActionEnvironmentInstallerRegistry, IPlayableCampaignPersistentEffectProjection> factory)
+            {
+                ThrowIfDisposed();
+                if (persistentEffectProjection != null)
+                    throw new InvalidOperationException("战役持久效果投影已经安装。");
+                if (factory == null)
+                    throw new ArgumentNullException(nameof(factory));
+                persistentEffectProjection = factory(actionEnvironmentInstallers) ?? throw new InvalidOperationException("战役持久效果投影工厂返回空结果。");
+                if (settlement != null && !persistentEffectProjection.TrySynchronize(settlement.Data, out string reason))
+                {
+                    persistentEffectProjection.Dispose();
+                    persistentEffectProjection = null;
+                    throw new InvalidOperationException(reason);
+                }
+            }
+
             public bool TryPrepareNewSettlement(out IPlayableSettlementRuntime candidate, out string reason)
             {
                 ThrowIfDisposed();
@@ -189,14 +209,30 @@ namespace Core
                     reason = "替换目标不是当前战役持有的可发布营地候选。";
                     return false;
                 }
-                if (next != null && !next.TryPreparePublication(out reason)) return false;
+                if (persistentEffectProjection != null && !persistentEffectProjection.TrySynchronize(next?.Data, out reason))
+                    return false;
+
+                if (next != null && !next.TryPreparePublication(out reason))
+                {
+                    persistentEffectProjection?.TrySynchronize(settlement?.Data, out _);
+                    return false;
+                }
 
                 PlayableSettlementRuntime previous = settlement;
-                previous?.Detach();
-                next?.Publish();
-                settlement = next;
-                reason = string.Empty;
-                return true;
+                try
+                {
+                    previous?.Detach();
+                    next?.Publish();
+                    settlement = next;
+                    reason = string.Empty;
+                    return true;
+                }
+                catch (Exception exception)
+                {
+                    persistentEffectProjection?.TrySynchronize(previous?.Data, out _);
+                    reason = $"提交营地运行世代失败：{exception.Message}";
+                    return false;
+                }
             }
 
             public void ReleaseSettlement(IPlayableSettlementRuntime runtime)
@@ -315,6 +351,8 @@ namespace Core
                 ResetGameplayRuntime();
                 ResetHuntRuntime();
                 ResetSettlementRuntime();
+                persistentEffectProjection?.Dispose();
+                persistentEffectProjection = null;
                 actionEnvironmentInstallers.Dispose();
                 phaseManager?.Shutdown();
                 phaseManager = null;
@@ -333,6 +371,8 @@ namespace Core
                 ResetGameplayRuntime();
                 ResetHuntRuntime();
                 ResetSettlementRuntime();
+                persistentEffectProjection?.Dispose();
+                persistentEffectProjection = null;
                 actionEnvironmentInstallers.Dispose();
                 phaseManager?.Shutdown();
                 phaseManager = null;
@@ -409,6 +449,7 @@ namespace Core
 
             private void ResetSettlementRuntime()
             {
+                persistentEffectProjection?.TrySynchronize(null, out _);
                 foreach (PlayableSettlementRuntime runtime in settlementRuntimes)
                     runtime.Dispose();
                 settlementRuntimes.Clear();

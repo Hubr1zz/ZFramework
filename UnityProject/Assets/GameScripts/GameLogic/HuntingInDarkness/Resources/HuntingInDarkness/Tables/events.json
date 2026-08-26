@@ -139,6 +139,20 @@
           "failEffects": [],
           "alwaysAvailable": true,
           "conditions": []
+        },
+        {
+          "optionText": "带走盐晶，接受石头留下的回声",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "黑盐在掌心发热。你们带回了更多盐晶，却也让某种回声记住了下一次出猎的脚步。",
+          "successEffects": [
+            { "effectType": "CreateHuntNoiseLease", "targetName": "stone_vigil_risk", "value": 2, "description": "下一次出猎风险 +2" },
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 2, "description": "黑盐 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
         }
       ],
       "immediateEffects": [],

@@ -169,6 +169,7 @@ namespace HuntingInDarkness.Data
         ScheduleEvent = 14,      // 安排未来事件：targetName=稳定事件ID, value=延迟年数
         ActivateBloodline = 15,  // 激活血脉：targetName=稳定血脉ID
         AddRecoverableWound = 16, // 添加可在营地休养的普通部位伤势
-        ExhaustCurrentHuntTileResources = 17 // 耗尽当前狩猎事件地块的全部资源点
+        ExhaustCurrentHuntTileResources = 17, // 耗尽当前狩猎事件地块的全部资源点
+        CreateHuntNoiseLease = 18 // 营地事件为下一次狩猎创建一次性风险修正
     }
 }

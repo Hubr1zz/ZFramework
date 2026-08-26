@@ -94,6 +94,8 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(shelter.unlockEffects[0].modifierId, Is.EqualTo("shelter:willpower-maximum"));
             Assert.That(manager.Timeline.RandomEventPool, Has.Count.GreaterThanOrEqualTo(5));
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.name == "random_stone_vigil"), Is.True);
+            EventData stoneVigil = manager.Timeline.RandomEventPool.Find(gameEvent => gameEvent != null && gameEvent.name == "random_stone_vigil");
+            Assert.That(stoneVigil.options.Exists(option => option.successEffects.Exists(effect => effect.effectType == EventEffectType.CreateHuntNoiseLease && effect.targetName == "stone_vigil_risk" && effect.value == 2)), Is.True);
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.name == "random_dark_bargain" && gameEvent.options.Exists(option => option.successEffects.Exists(effect => effect.effectType == EventEffectType.KillHunter))), Is.True);
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.name == "random_falling_beam" && gameEvent.options.Exists(option => option.failEffects.Exists(effect => effect.effectType == EventEffectType.AddRecoverableWound && effect.bodyPart == "arms"))), Is.True);
             Assert.That(manager.Timeline.RandomEventPool.FindAll(gameEvent => gameEvent != null && gameEvent.eventType == GameEventType.Choice && gameEvent.maxYear <= 0), Has.Count.GreaterThanOrEqualTo(3));

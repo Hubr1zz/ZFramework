@@ -146,6 +146,16 @@ namespace HuntingInDarkness.Data
         public List<string> AncestorEventIds = new();
     }
 
+    [System.Serializable]
+    public sealed class PendingHuntNoiseLease
+    {
+        public const int CurrentSchemaVersion = 1;
+        public int SchemaVersion = CurrentSchemaVersion;
+        public string LeaseId;
+        public string SourceEventId;
+        public int NoiseModifier;
+    }
+
     public enum TimelineEntryType
     {
         MainStory,  // 主线强制触发
@@ -223,6 +233,9 @@ namespace HuntingInDarkness.Data
 
         [Header("战役持续修正（稳定 ModifierId → 实际生效值）")]
         public List<SettlementModifierState> ActiveModifiers = new();
+
+        [Header("下一次狩猎一次性风险租约")]
+        public PendingHuntNoiseLease PendingHuntNoiseLease;
 
         [Header("发明主动效果年度使用状态")]
         public List<InventionActiveEffectUsage> InventionActiveEffectUses = new();

@@ -1,0 +1,9 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的收养对账：营地事件可创建持久的一次性玩法风险，并由 Campaign ActionEnvironment 生命周期投影到下一次狩猎。",
+  "sourceRoots": ["C:/Users/leonz/Desktop/GameDesignVault"],
+  "sourceReferences": [
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md",
+    "conversation::2026-08-26"
+  ]
+}

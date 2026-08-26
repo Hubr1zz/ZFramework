@@ -9,6 +9,7 @@ using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -22,8 +23,20 @@ namespace HuntingInDarkness.Adapter.Tests
     {
         private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
 
+        [SetUp]
+        public void SetUp()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            Assert.That(settings, Is.Not.Null);
+            PlayableSymptomRuntime.Configure(settings.Symptoms);
+        }
+
         [TearDown]
-        public void TearDown() => PlayableHuntDestinationRuntime.Configure(null, null);
+        public void TearDown()
+        {
+            PlayableHuntDestinationRuntime.Configure(null, null);
+            PlayableSymptomRuntime.Configure(null);
+        }
 
         [Test]
         public async System.Threading.Tasks.Task SafeCard_CommitsRevealAfterNoiseResult()
@@ -64,6 +77,26 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(result.NoiseResolution.Plan.NoiseScore, Is.Zero);
             Assert.That(result.NoiseResolution.Plan.DangerCardCount, Is.Zero);
             Assert.That(rig.Presenter.LastRequest.Instruction, Does.Contain("没有危险牌"));
+        }
+
+        [Test]
+        public async System.Threading.Tasks.Task PendingNoiseLease_ReactorAddsTwoOnlyToOwningSession()
+        {
+            using var rig = new NoiseRig(10, false);
+            Assert.That(rig.Manager.NoiseProfile.TryCreatePlan(rig.Manager.ActiveHunters, out NoiseCheckPlan basePlan), Is.True);
+            rig.Session.Reactors.RegisterGlobal(CreateNoiseLeaseReactor(2));
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.Target.AxialCoord);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(result.NoiseResolution.Plan.NoiseScore, Is.EqualTo(basePlan.NoiseScore + 2));
+
+            using var wrongSessionRig = new NoiseRig(10, false);
+            Assert.That(wrongSessionRig.Manager.NoiseProfile.TryCreatePlan(wrongSessionRig.Manager.ActiveHunters, out NoiseCheckPlan wrongBasePlan), Is.True);
+            HuntTileCommandResult wrongSessionResult = await wrongSessionRig.Session.InteractTileAsync(wrongSessionRig.Target.AxialCoord);
+
+            Assert.That(wrongSessionResult.Succeeded, Is.True, wrongSessionResult.Reason);
+            Assert.That(wrongSessionResult.NoiseResolution.Plan.NoiseScore, Is.EqualTo(wrongBasePlan.NoiseScore));
         }
 
         [Test]
@@ -139,6 +172,13 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(rig.Target.State, Is.EqualTo(TileState.Interactable));
             Assert.That(rig.Presenter.RequestCount, Is.Zero);
+        }
+
+        private static IGameActionReactor CreateNoiseLeaseReactor(int modifier)
+        {
+            Type reactorType = typeof(PlayableHuntActionSession).Assembly.GetType("HuntingInDarkness.ActionFlow.Hunt.HuntNoiseLeaseReactor");
+            Assert.That(reactorType, Is.Not.Null);
+            return (IGameActionReactor)Activator.CreateInstance(reactorType, "test-lease", modifier);
         }
 
         private sealed class NoiseRig : IDisposable

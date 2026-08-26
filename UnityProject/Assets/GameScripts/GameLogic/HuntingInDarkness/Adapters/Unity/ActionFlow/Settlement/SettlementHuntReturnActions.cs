@@ -36,19 +36,21 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly ActionEventOutbox eventOutbox;
         private readonly SettlementInstance settlement;
         private readonly HunterManagementSystem hunterManagement;
+        private readonly IPlayableCampaignPersistentEffectProjection persistentEffectProjection;
 
         public ApplySettlementHuntReturnAction(TimelineSystem timeline, HuntRecord huntRecord, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
-            : this(timeline, huntRecord, eventOutbox, null, null, source, target)
+            : this(timeline, huntRecord, eventOutbox, null, null, null, source, target)
         {
         }
 
-        public ApplySettlementHuntReturnAction(TimelineSystem timeline, HuntRecord huntRecord, ActionEventOutbox eventOutbox, SettlementInstance settlement, HunterManagementSystem hunterManagement, IReactorEntity source, IReactorEntity target)
+        public ApplySettlementHuntReturnAction(TimelineSystem timeline, HuntRecord huntRecord, ActionEventOutbox eventOutbox, SettlementInstance settlement, HunterManagementSystem hunterManagement, IPlayableCampaignPersistentEffectProjection persistentEffectProjection, IReactorEntity source, IReactorEntity target)
         {
             this.timeline = timeline ?? throw new ArgumentNullException(nameof(timeline));
             this.huntRecord = huntRecord ?? throw new ArgumentNullException(nameof(huntRecord));
             this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
             this.settlement = settlement;
             this.hunterManagement = hunterManagement;
+            this.persistentEffectProjection = persistentEffectProjection;
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
         }
@@ -63,14 +65,15 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             bool alreadyApplied = timeline.HasAppliedHuntRecord(huntRecord);
             if (!HuntReturnRules.TryCreatePlan(CreateInput(), timeline.CurrentYear, BuildParticipantStates(), BuildResourceStates(), alreadyApplied, out HuntReturnPlan plan, out string reason))
                 return Fail(reason);
+            if (!plan.IsAlreadyApplied && !plan.IsLegacyCompatibility && (settlement == null || hunterManagement == null))
+                return Fail("当前远征归来缺少 Settlement 提交环境。");
+            if (settlement != null && persistentEffectProjection != null && !persistentEffectProjection.TryClear(settlement, out reason))
+                return Fail(reason);
             if (plan.IsAlreadyApplied)
-            {
+                {
                 Result = new SettlementHuntReturnCommandResult(true, false, string.Empty, Array.Empty<EventData>());
                 return UniTask.FromResult(ActionOutcome.Success());
             }
-            if (!plan.IsLegacyCompatibility && (settlement == null || hunterManagement == null))
-                return Fail("当前远征归来缺少 Settlement 提交环境。");
-
             if (!plan.IsLegacyCompatibility)
             {
                 ApplyResourceGrants(plan.ResourceGrants);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using CardGame.ActionQueue;
 using Cysharp.Threading.Tasks;
+using Core;
 using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
@@ -27,13 +28,15 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly ISettlementSymptomContent symptomContent;
         private readonly PlayableWorkshopConstructionService workshopConstructionService;
         private readonly EventSystem eventSystem;
+        private readonly IPlayableEventSettlementCommand settlementEventCommand;
         private readonly Func<string, EventData> resolveEvent;
         private readonly TimelineSystem timelineSystem;
         private readonly HunterManagementSystem hunterManagement;
+        private readonly IPlayableCampaignPersistentEffectProjection persistentEffectProjection;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null, Func<string, EventData> resolveEvent = null, TimelineSystem timeline = null, HunterManagementSystem hunterManagement = null, ISettlementConsumableContent consumableContent = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null, Func<string, EventData> resolveEvent = null, TimelineSystem timeline = null, HunterManagementSystem hunterManagement = null, ISettlementConsumableContent consumableContent = null, IPlayableCampaignPersistentEffectProjection persistentEffectProjection = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
@@ -46,9 +49,11 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             this.symptomContent = symptomContent;
             workshopConstructionService = new PlayableWorkshopConstructionService(() => this.settlement);
             this.eventSystem = eventSystem;
+            settlementEventCommand = new SettlementHuntNoiseLeaseCommand(this.settlement, persistentEffectProjection);
             this.resolveEvent = resolveEvent;
             timelineSystem = timeline ?? new TimelineSystem(settlement, new SystemRandomSource());
             this.hunterManagement = hunterManagement ?? new HunterManagementSystem(settlement, new SystemRandomSource());
+            this.persistentEffectProjection = persistentEffectProjection;
             this.randomInteractionPresenter = randomInteractionPresenter;
             EventInput = eventInput;
             SessionId = Guid.NewGuid();
@@ -91,7 +96,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
             ReactorEntityHandle huntEntity = environment.EntityHandles.GetOrCreate("hunt-return", huntRecord.RecordId ?? "legacy", "远征归来");
-            var action = new ApplySettlementHuntReturnAction(timelineSystem, huntRecord, outbox, settlement, hunterManagement, settlementEntity, huntEntity);
+            var action = new ApplySettlementHuntReturnAction(timelineSystem, huntRecord, outbox, settlement, hunterManagement, persistentEffectProjection, settlementEntity, huntEntity);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementHuntReturnCommandResult.Failed(outcome.Reason) : action.Result;
@@ -492,7 +497,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
             ReactorEntityHandle chainEntity = environment.EntityHandles.GetOrCreate("settlement-event-chain", SessionId.ToString("N"), "营地事件链");
             IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("settlement-event", gameEvent != null ? gameEvent.ContentId : "unknown", gameEvent != null ? gameEvent.eventName : "营地事件");
-            var action = new ResolveSettlementEventChainAction(eventSystem, EventInput, works, SessionId, outbox, settlementEntity, chainEntity, ResolveEventEntity, randomInteractionPresenter, restoredChainId);
+            var action = new ResolveSettlementEventChainAction(eventSystem, EventInput, works, SessionId, outbox, settlementEntity, chainEntity, ResolveEventEntity, randomInteractionPresenter, restoredChainId, settlementCommand: settlementEventCommand);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementEventCommandResult.Failed(outcome.Reason, action.Result.ResolvedCount) : action.Result;

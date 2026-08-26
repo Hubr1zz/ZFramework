@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "settlement-next-hunt-risk-lease", "label": "营地事件下一次狩猎风险租约", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-settlement-next-hunt-risk-lease/specs/settlement-next-hunt-risk-lease/spec.md" },
+    { "id": "table-driven-event-chains", "label": "表驱动事件链", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/table-driven-event-chains/spec.md" },
+    { "id": "hunt-noise-risk-deck", "label": "狩猎噪音风险牌组", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/hunt-noise-risk-deck/spec.md" },
+    { "id": "campaign-persistence", "label": "战役持久化", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/campaign-persistence/spec.md" },
+    { "id": "action-environment-lifecycle", "label": "ActionEnvironment 生命周期", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/action-environment-lifecycle/spec.md" }
+  ],
+  "edges": [
+    { "from": "table-driven-event-chains", "to": "settlement-next-hunt-risk-lease", "type": "supports" },
+    { "from": "hunt-noise-risk-deck", "to": "settlement-next-hunt-risk-lease", "type": "supports" },
+    { "from": "campaign-persistence", "to": "settlement-next-hunt-risk-lease", "type": "supports" },
+    { "from": "action-environment-lifecycle", "to": "settlement-next-hunt-risk-lease", "type": "constrains" }
+  ]
+}

@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
@@ -22,6 +24,31 @@ namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableSettlementActionSessionTests
     {
+        [Test]
+        public async Task ApplyHuntReturnAsync_ClearsPersistentLeaseBeforeCommitAndKeepsItOnPlanFailure()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 5 };
+            settlement.PendingHuntNoiseLease = new PendingHuntNoiseLease { LeaseId = "hunt-noise:stone_vigil_risk", SourceEventId = "stone_vigil_risk", NoiseModifier = 2 };
+            using var registry = new ActionEnvironmentInstallerRegistry();
+            var projection = new HuntNoiseLeaseProjection(registry);
+            Assert.That(projection.TrySynchronize(settlement, out string syncReason), Is.True, syncReason);
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), installerRegistry: registry, persistentEffectProjection: projection);
+
+            SettlementHuntReturnCommandResult result = await session.ApplyHuntReturnAsync(new HuntRecord { RecordId = "projection-return", Year = 5 });
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(settlement.PendingHuntNoiseLease, Is.Null);
+            Assert.That(registry.InstallerCount, Is.Zero);
+
+            settlement.PendingHuntNoiseLease = new PendingHuntNoiseLease { LeaseId = "hunt-noise:stone_vigil_risk", SourceEventId = "stone_vigil_risk", NoiseModifier = 2 };
+            Assert.That(projection.TrySynchronize(settlement, out syncReason), Is.True, syncReason);
+            SettlementHuntReturnCommandResult failed = await session.ApplyHuntReturnAsync(new HuntRecord { Year = 5 });
+
+            Assert.That(failed.Succeeded, Is.False);
+            Assert.That(settlement.PendingHuntNoiseLease, Is.Not.Null);
+            Assert.That(registry.InstallerCount, Is.EqualTo(1));
+        }
+
         [Test]
         public async Task ApplyHuntReturnAsync_CommitsHistoryAndYearInsideSettlementRunner()
         {

@@ -68,6 +68,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public int NoiseModifier { get; private set; }
         public IReactorEntity Source { get; }
         public IReactorEntity Target { get; }
+        public Guid HuntSessionId => huntSessionId;
         public override ReactionPhases OpenReactionPhases => ReactionPhases.BeforeExecution | ReactionPhases.AfterResolved;
 
         public void AddNoiseModifier(int value) => NoiseModifier = (int)Math.Max(int.MinValue, Math.Min(int.MaxValue, (long)NoiseModifier + value));

@@ -187,6 +187,55 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [Test]
+        public void HuntNoiseLease_RequiresCanonicalIdentityAndIsIdempotent()
+        {
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            ConfigureSettlementRuntime();
+            runtime.ConfigurePersistentEffectProjection(registry => new HuntNoiseLeaseProjection(registry));
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime settlement, out string settlementReason), Is.True, settlementReason);
+            var lease = new PendingHuntNoiseLease { SchemaVersion = PendingHuntNoiseLease.CurrentSchemaVersion, SourceEventId = "stone_vigil_risk", LeaseId = "hunt-noise:stone_vigil_risk", NoiseModifier = 2 };
+            settlement.Data.PendingHuntNoiseLease = lease;
+            Assert.That(runtime.TrySwapSettlement(null, settlement, out string settlementSwapReason), Is.True, settlementSwapReason);
+            Assert.That(runtime.ActionEnvironmentInstallers.InstallerCount, Is.EqualTo(1));
+            Assert.That(runtime.PersistentEffectProjection.TrySynchronize(settlement.Data, out string repeatReason), Is.True, repeatReason);
+            Assert.That(runtime.ActionEnvironmentInstallers.InstallerCount, Is.EqualTo(1));
+
+            settlement.Data.PendingHuntNoiseLease = new PendingHuntNoiseLease { SchemaVersion = lease.SchemaVersion, SourceEventId = lease.SourceEventId, LeaseId = lease.LeaseId, NoiseModifier = 3 };
+            Assert.That(runtime.PersistentEffectProjection.TrySynchronize(settlement.Data, out string conflictReason), Is.True, conflictReason);
+            Assert.That(runtime.ActionEnvironmentInstallers.InstallerCount, Is.EqualTo(1));
+            Assert.That(runtime.PersistentEffectProjection.TrySynchronize(new SettlementInstance { PendingHuntNoiseLease = new PendingHuntNoiseLease { SchemaVersion = lease.SchemaVersion, SourceEventId = lease.SourceEventId, LeaseId = "wrong", NoiseModifier = lease.NoiseModifier } }, out string idReason), Is.False);
+            Assert.That(runtime.PersistentEffectProjection.TrySynchronize(new SettlementInstance { PendingHuntNoiseLease = new PendingHuntNoiseLease { SchemaVersion = 0, SourceEventId = lease.SourceEventId, LeaseId = lease.LeaseId, NoiseModifier = lease.NoiseModifier } }, out string versionReason), Is.False);
+            Assert.That(runtime.PersistentEffectProjection.TryClear(settlement.Data, out string clearReason), Is.True, clearReason);
+            Assert.That(settlement.Data.PendingHuntNoiseLease, Is.Null);
+            Assert.That(runtime.ActionEnvironmentInstallers.InstallerCount, Is.Zero);
+        }
+
+        [Test]
+        public void HuntNoiseProjection_ReattachesAfterSessionDisposeAndResetsWithCampaign()
+        {
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            ConfigureSettlementRuntime();
+            runtime.ConfigurePersistentEffectProjection(registry => new HuntNoiseLeaseProjection(registry));
+            runtime.ConfigureHuntRuntime(new PlayableHuntRuntimeConfiguration(settlement => new HuntManager(settlement.Events, bindInitialContent: false), (manager, _) => new PlayableHuntActionSession(manager, installerRegistry: runtime.ActionEnvironmentInstallers)));
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime settlement, out string settlementReason), Is.True, settlementReason);
+            settlement.Data.PendingHuntNoiseLease = new PendingHuntNoiseLease { LeaseId = "hunt-noise:stone_vigil_risk", SourceEventId = "stone_vigil_risk", NoiseModifier = 2 };
+            Assert.That(runtime.TrySwapSettlement(null, settlement, out string settlementSwapReason), Is.True, settlementSwapReason);
+            Assert.That(runtime.TryPrepareNewHunt(settlement, out IPlayableHuntRuntime hunt, out string huntReason), Is.True, huntReason);
+            Assert.That(runtime.TrySwapHunt(null, hunt, out string huntSwapReason), Is.True, huntSwapReason);
+            Assert.That(hunt.TryActivateActionSession(null, out string activationReason), Is.True, activationReason);
+            Assert.That(runtime.ActionEnvironmentInstallers.AttachedEnvironmentCount, Is.EqualTo(1));
+
+            hunt.DeactivateActionSession();
+            Assert.That(runtime.ActionEnvironmentInstallers.AttachedEnvironmentCount, Is.Zero);
+            Assert.That(hunt.TryActivateActionSession(null, out activationReason), Is.True, activationReason);
+            Assert.That(runtime.ActionEnvironmentInstallers.AttachedEnvironmentCount, Is.EqualTo(1));
+
+            runtime.Reset();
+            Assert.That(runtime.ActionEnvironmentInstallers.InstallerCount, Is.Zero);
+            Assert.That(runtime.ActionEnvironmentInstallers.AttachedEnvironmentCount, Is.Zero);
+        }
+
+        [Test]
         public void Reset_DisposesCurrentAndDetachedHuntGenerations()
         {
             runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);

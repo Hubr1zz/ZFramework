@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 5,
+  "capability": "settlement-next-hunt-risk-lease",
+  "title": "营地事件下一次狩猎风险租约",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "事件选项事务、持久租约、Campaign installer 投影、Hunt 噪音 Reactor 与回营消费边界已经实现并通过定向验证。",
+    "codeEvidence": [
+      { "guid": "83f9503c4ff3cab42a2c33c7af6cc789", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventSettlementCommand.cs", "fileHash": "ce513671510d13860a172a0bb625e60791b454c581fa5264172a656c22a14aa9", "line": 27, "feature": "营地事件租约命令与原子状态投影", "status": "verified", "checkedAt": "2026-08-26T12:00:00-07:00" },
+      { "guid": "64251f3fb46b78a4b9928a76e7e39033", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseLeaseProjection.cs", "fileHash": "3518e41e7208d51eb7ba59688a3bb51b541b2be1b25a3892b4d2ae4f26b92df6", "line": 8, "feature": "Campaign registry 的 Hunt-only installer 投影", "status": "verified", "checkedAt": "2026-08-26T12:00:00-07:00" },
+      { "guid": "cfcd2a5c08a767b4bb01d030c6bba126", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseLeaseReactor.cs", "fileHash": "ef8d34ce36abb5783747706646c6890584bc08b53e3a18c295babe69ce3aea95", "line": 5, "feature": "下一次 Hunt 噪音计划修正 Reactor", "status": "verified", "checkedAt": "2026-08-26T12:00:00-07:00" },
+      { "guid": "14ce1f834e26c5e4092eee2a5a0b887d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs", "fileHash": "b61097f5bf1fc414b2c42908b0ced88ee789198848ead978cbbd3719cca2ce98", "line": 157, "feature": "投影的 authority swap、Reset 与 Dispose 生命周期", "status": "verified", "checkedAt": "2026-08-26T12:00:00-07:00" },
+      { "guid": "5cb50ad3443a70f45af1ce3608fd42be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs", "fileHash": "c43c6516811910c1a61d2292bb2d1ac433b9c89b51772c861978652e40d74231", "line": 32, "feature": "成功回营前幂等消费租约", "status": "verified", "checkedAt": "2026-08-26T12:00:00-07:00" }
+    ],
+    "evidence": [
+      "Unity CLI EditMode 相关职责簇 78/78。",
+      "Unity CLI PlayMode Campaign projection 生命周期 2/2。",
+      "dotnet build 0 warnings、0 errors；git diff --check 通过。"
+    ],
+    "differences": ["该能力尚无正式 Spec；当前 Delta 完整描述已实现行为。"],
+    "verifiedAt": "2026-08-26T12:00:00-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["table-driven-event-chains", "hunt-noise-risk-deck", "campaign-persistence", "action-environment-lifecycle"],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md", "conversation::2026-08-26"],
+  "implementationOutline": [
+    "表驱动营地选项预检并提交单一持久风险租约。",
+    "Campaign-owned projection 通过 installer registry 向当前和未来 Hunt 环境安装 Reactor。",
+    "权威成功回营在其他 mutation 前消费租约，失败路径保持可重试。"
+  ],
+  "reviewIssues": [
+    { "id": "ISSUE-NEXT-HUNT-RISK-LEASE-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认单 pending 租约、+2 生产案例与 Campaign installer 投影成为正式能力。", "details": "当前没有定义多个租约的排序或叠加规则。", "sourceId": "conversation::2026-08-26", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}
