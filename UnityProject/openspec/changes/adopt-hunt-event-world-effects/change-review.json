@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-hunt-event-world-effects",
+  "title": "收养狩猎事件世界效果",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现与定向验证已完成；本 Change 等待人类确认后再同步正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "Unity 编译与当前 59 项相关 EditMode 测试通过；C# 索引完整覆盖。",
+    "codeEvidence": [],
+    "evidence": [
+      "C# 派生索引 v7 覆盖 996/996，parsed=17、reused=979。",
+      "Unity CLI EditMode 当前定向职责簇 59/59。"
+    ],
+    "differences": [
+      "正式 Spec 尚未授权事件修改当前地块资源状态，也未要求事件耗尽后刷新资源棋子。"
+    ],
+    "verifiedAt": "2026-08-25T22:38:10-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-HUNT-WORLD-EFFECT-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认事件只能修改当前已提交地块，并接受资源耗尽作为首个 world effect。",
+      "details": "批准后同步两个 Delta；若不接受，需要移除效果配置和对应执行端口。",
+      "sourceId": "conversation::2026-08-25",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": ["table-driven-hunt-events", "tabletop-hunt-resource-markers"],
+  "syncTargets": [
+    { "capability": "table-driven-hunt-events", "title": "读表狩猎事件内容", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-hunt-event-world-effects/specs/table-driven-hunt-events/spec.md", "targetSpecPath": "openspec/specs/table-driven-hunt-events/spec.md", "targetExisted": true, "baseFileHash": "34d0ec259212b8e6233de1d446f968c021c407bea2111d6460197dbf3632eca2", "baseSnapshotPath": "" },
+    { "capability": "tabletop-hunt-resource-markers", "title": "3D 狩猎资源点棋子", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-hunt-event-world-effects/specs/tabletop-hunt-resource-markers/spec.md", "targetSpecPath": "openspec/specs/tabletop-hunt-resource-markers/spec.md", "targetExisted": true, "baseFileHash": "339b84c574414a2eebf6c55d3896ff35ab8216d9c08bb9c3c58f0d707b0b6d2e", "baseSnapshotPath": "" }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "两个正式 Spec 基线哈希已记录，尚未同步。",
+    "changes": ["增加当前地块绑定的 Hunt-only world effect。", "资源点被事件耗尽时刷新 3D 棋子。"],
+    "conflicts": [],
+    "validatedAt": "2026-08-25T22:38:10-07:00"
+  },
+  "createdAt": "2026-08-25T22:38:10-07:00"
+}

@@ -52,6 +52,54 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void HuntWorldEffect_RequiresPortAndDelegatesToBoundWorld()
+        {
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 8130) { Name = "探路者" };
+            settlement.Hunters.Add(hunter);
+            var gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "hunt-world-effect";
+            gameEvent.category = EventCategory.Hunt;
+            gameEvent.options.Add(new EventOption
+            {
+                optionText = "封存地块",
+                alwaysAvailable = true,
+                successEffects = new List<EventEffect> { new() { effectType = EventEffectType.ExhaustCurrentHuntTileResources, value = 0 } }
+            });
+
+            try
+            {
+                EventSystem eventSystem = new(settlement, new SequenceRandom(0));
+                PlayableEventCommitResult withoutPort = eventSystem.PrepareChoice(gameEvent, 0, hunter).CommitStandalone();
+                Assert.That(withoutPort.EffectResults.FailedCount, Is.EqualTo(1));
+                Assert.That(withoutPort.EffectResults.Effects[0].Reason, Does.Contain("世界效果端口"));
+
+                var worldCommand = new RecordingWorldCommand();
+                PlayableEventCommitResult withPort = eventSystem.PrepareChoice(gameEvent, 0, hunter, worldCommand: worldCommand).CommitStandalone();
+                Assert.That(withPort.EffectResults.AppliedCount, Is.EqualTo(1));
+                Assert.That(worldCommand.ApplyCount, Is.EqualTo(1));
+                Assert.That(withPort.EffectResults.Effects[0].ResolvedTargetId, Is.EqualTo("test-target"));
+                Assert.That(withPort.EffectResults.Effects[0].StateChanged, Is.True);
+                Assert.That(withPort.EffectResults.Effects[0].PreviousValue, Is.Zero);
+                Assert.That(withPort.EffectResults.Effects[0].CurrentValue, Is.EqualTo(2));
+                PlayableEventCommitResult repeated = eventSystem.PrepareChoice(gameEvent, 0, hunter, worldCommand: worldCommand).CommitStandalone();
+                Assert.That(repeated.EffectResults.Effects[0].ResolvedTargetId, Is.EqualTo("test-target"));
+                Assert.That(worldCommand.ApplyCount, Is.EqualTo(2));
+
+                PlayableEventChoiceTransaction transaction = eventSystem.PrepareChoice(gameEvent, 0, hunter, worldCommand: worldCommand);
+                PlayableEventCommitResult firstCommit = transaction.CommitStandalone();
+                PlayableEventCommitResult secondCommit = transaction.CommitStandalone();
+                Assert.That(firstCommit.EffectResults.Effects[0].CurrentValue, Is.EqualTo(2));
+                Assert.That(secondCommit.EffectResults.Effects[0].CurrentValue, Is.EqualTo(2));
+                Assert.That(worldCommand.ApplyCount, Is.EqualTo(3));
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
         public void CheckedChoice_AcceptsFailureWithoutApplyingSuccessEffects()
         {
             var settlement = new SettlementInstance();
@@ -212,6 +260,19 @@ namespace HuntingInDarkness.Adapter.Tests
             };
             gameEvent.options.Add(option);
             return gameEvent;
+        }
+
+        private sealed class RecordingWorldCommand : IPlayableEventWorldCommand
+        {
+            public int ApplyCount { get; private set; }
+
+            public bool TryApply(EventEffect effect, out PlayableEventWorldChange change, out string reason)
+            {
+                ApplyCount++;
+                change = new PlayableEventWorldChange("test-target", 2);
+                reason = string.Empty;
+                return true;
+            }
         }
 
         private sealed class SequenceRandom : IRandomSource

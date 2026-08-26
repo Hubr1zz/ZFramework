@@ -385,7 +385,8 @@ namespace HuntingInDarkness.ContentTables
                 error = $"事件 {record.id} 的类型或类别无效。";
                 return false;
             }
-            if (!ValidateOptions(record.options, symptomCatalog, bloodlineContent) || !ValidateEffects(record.immediateEffects, false, symptomCatalog, bloodlineContent))
+            bool allowHuntWorldEffects = category == EventCategory.Hunt;
+            if (!ValidateOptions(record.options, symptomCatalog, bloodlineContent, allowHuntWorldEffects) || !ValidateEffects(record.immediateEffects, false, symptomCatalog, bloodlineContent, allowHuntWorldEffects))
             {
                 error = $"事件 {record.id} 含无效选项或效果。";
                 return false;
@@ -451,12 +452,12 @@ namespace HuntingInDarkness.ContentTables
             return options;
         }
 
-        private static bool ValidateOptions(IReadOnlyList<EventOptionTableRecord> records, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent)
+        private static bool ValidateOptions(IReadOnlyList<EventOptionTableRecord> records, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent, bool allowHuntWorldEffects)
         {
             if (records == null)
                 return true;
             foreach (EventOptionTableRecord record in records)
-                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects, true, symptomCatalog, bloodlineContent) || !ValidateEffects(record.failEffects, true, symptomCatalog, bloodlineContent) || !ValidateConditions(record.alwaysAvailable, record.conditions, bloodlineContent))
+                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects) || !ValidateEffects(record.failEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects) || !ValidateConditions(record.alwaysAvailable, record.conditions, bloodlineContent))
                     return false;
             return true;
         }
@@ -502,7 +503,7 @@ namespace HuntingInDarkness.ContentTables
             return true;
         }
 
-        private static bool ValidateEffects(IReadOnlyList<EventEffectTableRecord> records, bool allowSelectedHunterEffects, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent)
+        private static bool ValidateEffects(IReadOnlyList<EventEffectTableRecord> records, bool allowSelectedHunterEffects, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent, bool allowHuntWorldEffects)
         {
             if (records == null)
                 return true;
@@ -519,6 +520,8 @@ namespace HuntingInDarkness.ContentTables
                 if (effectType == EventEffectType.AddRecoverableWound && (!allowSelectedHunterEffects || !string.Equals(record.targetName?.Trim(), "selected", StringComparison.OrdinalIgnoreCase) || record.value <= 0 || !HunterRecoveryRules.TryParseBodyPart(record.bodyPart, out _)))
                     return false;
                 if (effectType == EventEffectType.KillHunter && (!allowSelectedHunterEffects || !IsValidHunterDeathCauseId(record.targetName)))
+                    return false;
+                if (effectType == EventEffectType.ExhaustCurrentHuntTileResources && (!allowHuntWorldEffects || !string.IsNullOrWhiteSpace(record.targetName) || !string.IsNullOrWhiteSpace(record.bodyPart) || record.value != 0))
                     return false;
             }
             return true;

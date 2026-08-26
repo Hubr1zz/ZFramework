@@ -161,8 +161,8 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(validateEffects, Is.Not.Null);
             var exactId = new List<EventEffectTableRecord> { new() { effectType = nameof(EventEffectType.AddAilment), targetName = "symptom_cowardice" } };
             var displayName = new List<EventEffectTableRecord> { new() { effectType = nameof(EventEffectType.AddAilment), targetName = "胆怯" } };
-            Assert.That(validateEffects.Invoke(null, new object[] { exactId, true, catalog, PlayableBloodlineRuntime.Content }), Is.True);
-            Assert.That(validateEffects.Invoke(null, new object[] { displayName, true, catalog, PlayableBloodlineRuntime.Content }), Is.False);
+            Assert.That(validateEffects.Invoke(null, new object[] { exactId, true, catalog, PlayableBloodlineRuntime.Content, false }), Is.True);
+            Assert.That(validateEffects.Invoke(null, new object[] { displayName, true, catalog, PlayableBloodlineRuntime.Content, false }), Is.False);
             Assert.That(configuredCount, Is.GreaterThan(0));
         }
 
@@ -199,19 +199,34 @@ namespace HuntingInDarkness.Adapter.Tests
             var invalidPart = new List<EventEffectTableRecord> { new() { effectType = nameof(EventEffectType.AddRecoverableWound), targetName = "selected", bodyPart = "wings", value = 1 } };
             var invalidDamage = new List<EventEffectTableRecord> { new() { effectType = nameof(EventEffectType.AddRecoverableWound), targetName = "selected", bodyPart = "arms", value = 0 } };
 
-            Assert.That(validateEffects.Invoke(null, new object[] { valid, true, catalog, PlayableBloodlineRuntime.Content }), Is.True);
-            Assert.That(validateEffects.Invoke(null, new object[] { immediate, false, catalog, PlayableBloodlineRuntime.Content }), Is.False);
-            Assert.That(validateEffects.Invoke(null, new object[] { invalidPart, true, catalog, PlayableBloodlineRuntime.Content }), Is.False);
-            Assert.That(validateEffects.Invoke(null, new object[] { invalidDamage, true, catalog, PlayableBloodlineRuntime.Content }), Is.False);
+            Assert.That(validateEffects.Invoke(null, new object[] { valid, true, catalog, PlayableBloodlineRuntime.Content, false }), Is.True);
+            Assert.That(validateEffects.Invoke(null, new object[] { immediate, false, catalog, PlayableBloodlineRuntime.Content, false }), Is.False);
+            Assert.That(validateEffects.Invoke(null, new object[] { invalidPart, true, catalog, PlayableBloodlineRuntime.Content, false }), Is.False);
+            Assert.That(validateEffects.Invoke(null, new object[] { invalidDamage, true, catalog, PlayableBloodlineRuntime.Content, false }), Is.False);
         }
 
         [Test]
-        public void EventEffectType_PreservesSerializedValuesWhenWoundIsAppended()
+        public void HuntWorldEffect_RequiresHuntCategoryAndEmptyParameters()
+        {
+            MethodInfo validateEffects = typeof(PlayableEventTableRuntime).GetMethod("ValidateEffects", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(validateEffects, Is.Not.Null);
+            object[] Arguments(EventEffectTableRecord effect, bool allowHuntWorldEffects) => new object[] { new List<EventEffectTableRecord> { effect }, true, catalog, PlayableBloodlineRuntime.Content, allowHuntWorldEffects };
+
+            Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.ExhaustCurrentHuntTileResources), value = 0 }, true)), Is.True);
+            Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.ExhaustCurrentHuntTileResources), value = 0 }, false)), Is.False);
+            Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.ExhaustCurrentHuntTileResources), targetName = "x" }, true)), Is.False);
+            Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.ExhaustCurrentHuntTileResources), bodyPart = "x" }, true)), Is.False);
+            Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.ExhaustCurrentHuntTileResources), value = 1 }, true)), Is.False);
+        }
+
+        [Test]
+        public void EventEffectType_PreservesSerializedValuesWhenEffectsAreAppended()
         {
             Assert.That((int)EventEffectType.AddAilment, Is.EqualTo(9));
             Assert.That((int)EventEffectType.KillHunter, Is.EqualTo(10));
             Assert.That((int)EventEffectType.ActivateBloodline, Is.EqualTo(15));
             Assert.That((int)EventEffectType.AddRecoverableWound, Is.EqualTo(16));
+            Assert.That((int)EventEffectType.ExhaustCurrentHuntTileResources, Is.EqualTo(17));
         }
 
         [Test]

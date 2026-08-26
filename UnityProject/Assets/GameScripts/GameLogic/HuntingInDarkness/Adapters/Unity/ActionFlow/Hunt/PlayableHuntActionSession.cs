@@ -219,7 +219,9 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 ReactorEntityHandle tile = environment.EntityHandles.GetOrCreate("hunt-tile", $"{pending.Coordinate.x},{pending.Coordinate.y}", $"地块 {pending.Coordinate.x},{pending.Coordinate.y}");
                 IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("hunt-event", gameEvent != null ? gameEvent.ContentId : "unknown", gameEvent != null ? gameEvent.eventName : "狩猎事件");
                 var encounterAccumulator = new HuntEncounterAccumulator(SessionId, defaultEncounterId, destinationId);
-                var syntheticCommit = new HuntTileInteractionCommit(HuntTileInteractionKind.None, pending.Coordinate, null, null);
+                if (!manager.Map.TryGetValue(pending.Coordinate, out HexTileInstance pendingTile) || pendingTile == null)
+                    return false;
+                var syntheticCommit = new HuntTileInteractionCommit(HuntTileInteractionKind.Move, pending.Coordinate, pendingTile, null);
                 var action = new ResolveHuntTileEventAction(manager, syntheticCommit, default, outbox, encounterAccumulator, squad, tile, ResolveEventEntity, randomInteractionPresenter, occurrenceStore, pending, true, LockEncounterHandoff);
                 ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
                 bool pendingConsumed = !occurrenceStore.ContainsPendingSequence(pending.Sequence);

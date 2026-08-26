@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-hunt-resource-markers",
+  "title": "3D 狩猎资源点棋子",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "资源点状态变化使用坐标级语义通知，3D View 只读取 HuntManager 并重建对应棋子。",
+    "codeEvidence": [
+      { "guid": "6dce6ba7b65af9c42821b85a0555ac17", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs", "fileHash": "95ff4c96a516cbbae09bfd2463d241fb2fc5197aa3f35cf51457d6230be35978", "line": 108, "feature": "坐标级资源点状态变化通知", "status": "verified", "checkedAt": "2026-08-25T22:38:10-07:00" },
+      { "guid": "e438b7e087c13ce4ca8653a1701f8f0a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs", "fileHash": "85dc97ac346a0fb0171163678276eabb0bae299a1d17ed58ea0da3b6b296890e", "line": 219, "feature": "按权威状态刷新事件地块资源棋子", "status": "verified", "checkedAt": "2026-08-25T22:38:10-07:00" }
+    ],
+    "evidence": ["Unity CLI 资源点状态与 Hunt session 定向测试通过。", "View 绑定和释放语义回调的代码路径已核验。"],
+    "differences": ["正式 Spec 只明确采集提交后的棋子移除，尚未覆盖事件引起的资源耗尽。"],
+    "verifiedAt": "2026-08-25T22:38:10-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["table-driven-hunt-events"],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md", "conversation::2026-08-25"],
+  "implementationOutline": ["HuntManager 在权威状态提交后发布一次坐标级变化。", "HuntMapVisualizer 收到通知后按现有资源点身份和原始索引重建对应地块棋子。"],
+  "reviewIssues": [
+    { "id": "ISSUE-HUNT-WORLD-EFFECT-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认资源棋子应响应所有权威耗尽来源，而不仅是采集。", "details": "View 仍保持只读，不把状态变化伪装成采集完成事件。", "sourceId": "conversation::2026-08-25", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

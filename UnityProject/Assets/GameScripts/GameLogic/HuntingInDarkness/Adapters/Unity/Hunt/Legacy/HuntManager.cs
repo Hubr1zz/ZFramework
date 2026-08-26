@@ -104,6 +104,9 @@ namespace HuntingInDarkness.Hunt
         /// <summary>资源点采集状态改变后</summary>
         public System.Action<ResourcePointInstance> OnResourcePointHarvested;
 
+        /// <summary>事件改变资源点状态后；参数为受影响的地块坐标。</summary>
+        public System.Action<Vector2Int> OnResourcePointStateChanged;
+
         /// <summary>触发 Boss 战（切 BossFight 阶段）</summary>
         public System.Action OnBossEncounterTriggered;
 
@@ -377,6 +380,52 @@ namespace HuntingInDarkness.Hunt
             {
                 Debug.LogException(exception);
             }
+        }
+
+        internal bool TryExhaustEventTileResourcePoints(HuntTileInteractionCommit commit, out PlayableEventWorldChange change, out string reason)
+        {
+            change = default;
+            if (!commit.IsCommitted || commit.Tile == null)
+            {
+                reason = "狩猎事件没有可用的地块提交。";
+                return false;
+            }
+            if (Map == null || !Map.TryGetValue(commit.Coordinate, out HexTileInstance tile) || !ReferenceEquals(tile, commit.Tile) || tile.State != TileState.Revealed)
+            {
+                reason = "狩猎事件地块已变化，无法应用世界效果。";
+                return false;
+            }
+            if (tile.ResourcePoints == null)
+            {
+                reason = "狩猎事件地块资源点列表无效。";
+                return false;
+            }
+            foreach (ResourcePointInstance point in tile.ResourcePoints)
+                if (point == null)
+                {
+                    reason = "狩猎事件地块包含无效资源点。";
+                    return false;
+                }
+
+            int affectedCount = 0;
+            foreach (ResourcePointInstance point in tile.ResourcePoints)
+            {
+                if (point.IsExhausted) continue;
+                point.IsExhausted = true;
+                affectedCount++;
+            }
+            change = new PlayableEventWorldChange($"{commit.Coordinate.x},{commit.Coordinate.y}", affectedCount);
+            if (affectedCount > 0)
+                try
+                {
+                    OnResourcePointStateChanged?.Invoke(commit.Coordinate);
+                }
+                catch (System.Exception exception)
+                {
+                    Debug.LogException(exception);
+                }
+            reason = string.Empty;
+            return true;
         }
 
         // ─── 狩猎结束 ─────────────────────────────────────────────

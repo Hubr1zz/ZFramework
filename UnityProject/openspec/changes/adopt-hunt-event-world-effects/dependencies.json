@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "table-driven-hunt-events", "label": "读表狩猎事件内容", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-hunt-event-world-effects/specs/table-driven-hunt-events/spec.md" },
+    { "id": "tabletop-hunt-resource-markers", "label": "3D 狩猎资源点棋子", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-hunt-event-world-effects/specs/tabletop-hunt-resource-markers/spec.md" }
+  ],
+  "edges": [
+    { "from": "tabletop-hunt-resource-markers", "to": "table-driven-hunt-events", "type": "supports" }
+  ]
+}

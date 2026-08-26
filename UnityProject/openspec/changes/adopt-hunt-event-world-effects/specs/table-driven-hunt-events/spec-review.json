@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 5,
+  "capability": "table-driven-hunt-events",
+  "title": "读表狩猎事件内容",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "Hunt-only world command、当前地块验证、效果报告、恢复和生产内容已经实现并通过定向验证。",
+    "codeEvidence": [
+      { "guid": "0a33bad456c525e47a21b322fac2b04e", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventWorldCommand.cs", "fileHash": "aa120cb7cba05d877c86333242e4ca8a31b0e26f2fef30588b2842661b663878", "line": 19, "feature": "共享事件 world-effect 能力边界", "status": "verified", "checkedAt": "2026-08-25T22:38:10-07:00" },
+      { "guid": "233058901908cfb419ab5e8375db9fbd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileEventWorldCommand.cs", "fileHash": "16cff0e75632004980ac7e5bcad9621af0780ed8a9e438f62aebc21c4079e460", "line": 8, "feature": "绑定当前已提交地块的 Hunt 实现", "status": "verified", "checkedAt": "2026-08-25T22:38:10-07:00" },
+      { "guid": "6dce6ba7b65af9c42821b85a0555ac17", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs", "fileHash": "95ff4c96a516cbbae09bfd2463d241fb2fc5197aa3f35cf51457d6230be35978", "line": 385, "feature": "当前地块资源点的权威原子耗尽", "status": "verified", "checkedAt": "2026-08-25T22:38:10-07:00" }
+    ],
+    "evidence": ["Unity CLI 当前定向 EditMode 职责簇 59/59。", "活动狩猎 schema v2 捕获与恢复用例通过。"],
+    "differences": ["正式 Spec 只要求事件效果经过 Hunt runner，尚未定义修改当前地块的 world effect。"],
+    "verifiedAt": "2026-08-25T22:38:10-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md", "conversation::2026-08-25"],
+  "implementationOutline": ["共享事件事务接收可选 world command；Hunt runner 用当前 commit 创建短生命周期实现。", "HuntManager 预检完整目标后更新 IsExhausted，结果携带坐标和受影响数量。", "pending occurrence 恢复只使用活动地图中验证过的原始坐标。"],
+  "reviewIssues": [
+    { "id": "ISSUE-HUNT-WORLD-EFFECT-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认 Hunt 事件可耗尽当前地块资源，但不可指定任意坐标。", "details": "当前端口是单次 Action 能力，不进入共享 EventSystem 或 View 的持久状态。", "sourceId": "conversation::2026-08-25", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

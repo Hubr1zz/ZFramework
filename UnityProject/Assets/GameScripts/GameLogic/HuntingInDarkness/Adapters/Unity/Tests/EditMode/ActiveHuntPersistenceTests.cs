@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Core;
 using HuntingInDarkness.ActionFlow.Hunt;
@@ -54,6 +55,16 @@ namespace HuntingInDarkness.Adapter.Tests
             HexTileData plain = CreateTile("plain", TileType.Plains);
             var source = CreateManager(settlement, starting, plain, 17);
             source.OnEnter(new List<HunterInstance> { hunter }, settlement.CurrentYear);
+            ItemData resource = PlayableSettlementItemRegistry.Items.First(item => item != null && item.itemType == ItemType.Resource);
+            source.Map[source.SquadPosition].ResourcePoints.Add(new ResourcePointInstance
+            {
+                ResourcePointId = "persistence-point",
+                ResourceName = resource.itemName,
+                Resource = resource,
+                MaterialPool = new List<ItemData> { resource },
+                DrawCount = 1,
+                IsExhausted = true
+            });
             using var session = new PlayableHuntActionSession(source, "encounter", "destination");
 
             Assert.That(ActiveHuntSnapshotAdapter.TryCapture(settlement, source, session, "expedition-1", out CampaignSnapshot captured, out string reason), Is.True, reason);
@@ -70,6 +81,8 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(destination.Map.Count, Is.EqualTo(source.Map.Count));
             Assert.That(destination.SquadPosition, Is.EqualTo(source.SquadPosition));
             Assert.That(destination.CaptureRandomState().Value, Is.EqualTo(source.CaptureRandomState().Value));
+            Assert.That(destination.Map[destination.SquadPosition].ResourcePoints, Has.Count.EqualTo(1));
+            Assert.That(destination.Map[destination.SquadPosition].ResourcePoints[0].IsExhausted, Is.True);
             Assert.That(occurrences.HasPendingOccurrences, Is.False);
             Assert.That(captured.ActiveHunt.DestinationId, Is.EqualTo(source.BoundRoute.DestinationId));
             Assert.That(captured.ActiveHunt.ContentBundleId, Is.EqualTo(source.ContentBundleId));

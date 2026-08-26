@@ -1,0 +1,9 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的收养对账：狩猎事件可以改变地图或资源点状态，但必须保持 ActionQueue 与地图权威边界。",
+  "sourceRoots": ["C:/Users/leonz/Desktop/GameDesignVault"],
+  "sourceReferences": [
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md",
+    "conversation::2026-08-25"
+  ]
+}

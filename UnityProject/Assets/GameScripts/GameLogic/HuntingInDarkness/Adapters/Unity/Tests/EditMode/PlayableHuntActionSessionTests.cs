@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,6 +86,44 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task InteractTileAsync_HuntWorldEffectExhaustsCurrentTileAndNotifiesOnce()
+        {
+            using var rig = new HuntRig(includeResourcePoints: true);
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.ExhaustCurrentHuntTileResources, value = 0 });
+            HexTileInstance target = rig.FirstInteractable;
+            int stateChangedCount = 0;
+            Vector2Int changedCoordinate = default;
+            rig.Manager.OnResourcePointStateChanged = coordinate =>
+            {
+                stateChangedCount++;
+                changedCoordinate = coordinate;
+            };
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(target.AxialCoord);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(target.ResourcePoints, Has.Count.EqualTo(2));
+            Assert.That(target.ResourcePoints.All(point => point.IsExhausted), Is.True);
+            Assert.That(stateChangedCount, Is.EqualTo(1));
+            Assert.That(changedCoordinate, Is.EqualTo(target.AxialCoord));
+            Assert.That(result.EffectResults.Effects[0].ResolvedTargetId, Is.EqualTo($"{target.AxialCoord.x},{target.AxialCoord.y}"));
+            Assert.That(result.EffectResults.Effects[0].StateChanged, Is.True);
+            Assert.That(result.EffectResults.Effects[0].PreviousValue, Is.Zero);
+            Assert.That(result.EffectResults.Effects[0].CurrentValue, Is.EqualTo(2));
+
+            MethodInfo exhaustMethod = typeof(HuntManager).GetMethod("TryExhaustEventTileResourcePoints", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(exhaustMethod, Is.Not.Null);
+            object[] exhaustArguments = { result.Commit, null, null };
+            bool repeated = (bool)exhaustMethod.Invoke(rig.Manager, exhaustArguments);
+            PlayableEventWorldChange repeatedChange = (PlayableEventWorldChange)exhaustArguments[1];
+            string repeatedReason = exhaustArguments[2] as string;
+            Assert.That(repeated, Is.True, repeatedReason);
+            Assert.That(repeatedChange.Changed, Is.False);
+            Assert.That(repeatedChange.AffectedCount, Is.Zero);
+            Assert.That(stateChangedCount, Is.EqualTo(1));
+        }
+
+        [Test]
         public async Task CommitReactor_PreventionLeavesTileAndFactsUntouched()
         {
             using var rig = new HuntRig();
@@ -112,16 +151,19 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public async Task EventReactor_PreventionKeepsRevealAndPreservesPendingOccurrence()
         {
-            using var rig = new HuntRig();
+            using var rig = new HuntRig(includeResourcePoints: true);
             HexTileInstance target = rig.FirstInteractable;
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.ExhaustCurrentHuntTileResources, value = 0 });
             int triggeredCount = 0;
             int committedCount = 0;
+            int stateChangedCount = 0;
             Action<GameEventTriggeredEvent> triggeredHandler = evt =>
             {
                 if (evt.EventId == rig.TileEvent.name)
                     triggeredCount++;
             };
             Action<HuntEventNodeCommittedEvent> committedHandler = _ => committedCount++;
+            rig.Manager.OnResourcePointStateChanged = _ => stateChangedCount++;
             EventBus.Subscribe(triggeredHandler);
             EventBus.Subscribe(committedHandler);
             try
@@ -135,6 +177,8 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(triggeredCount, Is.Zero);
                 Assert.That(committedCount, Is.Zero);
                 Assert.That(rig.Session.HasPendingEventOccurrences, Is.True);
+                Assert.That(target.ResourcePoints.All(point => !point.IsExhausted), Is.True);
+                Assert.That(stateChangedCount, Is.Zero);
 
                 prevention.Dispose();
                 HuntTileCommandResult resumed = await rig.Session.InteractTileAsync(target.AxialCoord);
@@ -143,6 +187,8 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(rig.Session.HasPendingEventOccurrences, Is.False);
                 Assert.That(triggeredCount, Is.EqualTo(1));
                 Assert.That(committedCount, Is.EqualTo(1));
+                Assert.That(target.ResourcePoints.All(point => point.IsExhausted), Is.True);
+                Assert.That(stateChangedCount, Is.EqualTo(1));
             }
             finally
             {
@@ -560,7 +606,7 @@ namespace HuntingInDarkness.Adapter.Tests
             private readonly ItemData resource;
             private readonly List<ItemData> previousItems;
 
-            public HuntRig(IHuntTileInteractionPresenter tileInteractionPresenter = null, bool includeSurvivor = false, IHunterDeathCommand hunterDeathCommand = null)
+            public HuntRig(IHuntTileInteractionPresenter tileInteractionPresenter = null, bool includeSurvivor = false, IHunterDeathCommand hunterDeathCommand = null, bool includeResourcePoints = false)
             {
                 previousItems = PlayableSettlementItemRegistry.Items.ToList();
                 resource = ScriptableObject.CreateInstance<ItemData>();
@@ -589,6 +635,12 @@ namespace HuntingInDarkness.Adapter.Tests
                 plainTile.tileType = TileType.Plains;
                 plainTile.tileName = "测试地块";
                 plainTile.tileRevealEvent = tileEvent;
+                if (includeResourcePoints)
+                {
+                    plainTile.maxResourcePoints = 2;
+                    plainTile.resourcePoints.Add(new ResourcePointConfig { resourcePointId = "point:one", resource = resource, drawCount = 1 });
+                    plainTile.resourcePoints.Add(new ResourcePointConfig { resourcePointId = "point:two", resource = resource, drawCount = 1 });
+                }
                 Settlement = new SettlementInstance();
                 if (includeSurvivor)
                 {

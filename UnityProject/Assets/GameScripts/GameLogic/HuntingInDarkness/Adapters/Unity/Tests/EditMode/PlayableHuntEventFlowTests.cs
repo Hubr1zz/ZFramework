@@ -54,6 +54,11 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.checkPresentation == EventCheckPresentationKind.FlipCards)), Is.True);
             Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.checkPresentation == EventCheckPresentationKind.OldMaid)), Is.True);
             Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.failEffects.Exists(effect => effect.effectType == EventEffectType.AddRecoverableWound && effect.targetName == "selected" && effect.bodyPart == "legs"))), Is.True);
+            EventData quarry = events.Single(gameEvent => gameEvent.ContentId == "hunt_breathing_quarry");
+            EventEffect quarryWorldEffect = quarry.options[1].failEffects.Single(effect => effect.effectType == EventEffectType.ExhaustCurrentHuntTileResources);
+            Assert.That(quarryWorldEffect.targetName, Is.Empty);
+            Assert.That(quarryWorldEffect.bodyPart, Is.Empty);
+            Assert.That(quarryWorldEffect.value, Is.Zero);
             Assert.That(events.Select(gameEvent => gameEvent.ContentId), Is.SupersetOf(new[]
             {
                 "hunt_sap_suture", "hunt_carapace_cairn", "hunt_white_hair_lure",

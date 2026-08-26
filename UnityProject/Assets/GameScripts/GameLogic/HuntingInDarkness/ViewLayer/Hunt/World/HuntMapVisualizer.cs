@@ -105,6 +105,7 @@ namespace HuntingInDarkness.Hunt
             huntMgr.OnTileStateChanged  = OnTileStateChanged;
             huntMgr.OnSquadMoved        = OnSquadMoved;
             huntMgr.OnResourcePointHarvested = OnResourcePointHarvested;
+            huntMgr.OnResourcePointStateChanged = OnResourcePointStateChanged;
 
             BuildAllTiles();
             PlaceSquadToken(huntMgr.SquadPosition);
@@ -215,6 +216,12 @@ namespace HuntingInDarkness.Hunt
             }
         }
 
+        private void OnResourcePointStateChanged(Vector2Int coordinate)
+        {
+            if (_huntMgr.Map.TryGetValue(coordinate, out HexTileInstance tile))
+                UpdateResourceMarkers(coordinate, tile);
+        }
+
         // ─── 小队 Token ───────────────────────────────────────────
 
         private void PlaceSquadToken(Vector2Int coord)
@@ -304,6 +311,8 @@ namespace HuntingInDarkness.Hunt
                 _huntMgr.OnSquadMoved = null;
             if (_huntMgr != null && _huntMgr.OnResourcePointHarvested == OnResourcePointHarvested)
                 _huntMgr.OnResourcePointHarvested = null;
+            if (_huntMgr != null && _huntMgr.OnResourcePointStateChanged == OnResourcePointStateChanged)
+                _huntMgr.OnResourcePointStateChanged = null;
             foreach (GameObject tileObject in _tileObjects.Values)
                 if (tileObject != null)
                 {

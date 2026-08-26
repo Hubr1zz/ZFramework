@@ -289,7 +289,8 @@
           ],
           "failText": "白灰灌入肺部。从此每次深呼吸都像吞下一把碎石。他染上了石肺。",
           "failEffects": [
-            { "effectType": "AddAilment", "targetName": "symptom_stone_lung", "value": 1, "description": "获得症状：石肺" }
+            { "effectType": "AddAilment", "targetName": "symptom_stone_lung", "value": 1, "description": "获得症状：石肺" },
+            { "effectType": "ExhaustCurrentHuntTileResources", "targetName": "", "bodyPart": "", "value": 0, "description": "白灰覆盖当前地块的全部资源点" }
           ],
           "alwaysAvailable": true,
           "conditions": []

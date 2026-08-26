@@ -256,6 +256,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly PlayableHuntEventOccurrenceStore occurrenceStore;
+        private readonly IPlayableEventWorldCommand worldCommand;
         private readonly Queue<PlayableHuntEventOccurrence> pendingOccurrences = new();
         private SelectHuntTileEventAction selectAction;
         private ResolvePlayableEventNodeAction currentEntry;
@@ -279,6 +280,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             this.resolveEventEntity = resolveEventEntity;
             this.randomInteractionPresenter = randomInteractionPresenter;
             this.occurrenceStore = occurrenceStore ?? new PlayableHuntEventOccurrenceStore();
+            worldCommand = new HuntTileEventWorldCommand(manager, commit);
             this.stageEncounterAfterCommit = stageEncounterAfterCommit;
             this.lockEncounterHandoff = lockEncounterHandoff;
             Source = source;
@@ -338,7 +340,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             currentOccurrence = pendingOccurrences.Dequeue();
             HuntingInDarkness.Data.EventData nextEvent = currentOccurrence.Event;
             HunterInstance occurrenceActor = ResolveOccurrenceActor(currentOccurrence.Occurrence.ActorId);
-            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, occurrenceActor, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand);
+            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, occurrenceActor, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand, worldCommand);
             return currentEntry;
         }
 

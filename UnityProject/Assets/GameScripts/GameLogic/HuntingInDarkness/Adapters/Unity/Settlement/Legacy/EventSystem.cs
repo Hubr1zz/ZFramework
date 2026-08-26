@@ -95,19 +95,19 @@ namespace HuntingInDarkness.Settlement
         }
 
         /// <summary>结算单个叙事节点并返回后续节点，不触碰共享事件队列。</summary>
-        public IReadOnlyList<EventData> ResolveNarrativeStandalone(EventData gameEvent, HunterInstance actor = null, IPlayableEventResourceCommand resourceCommand = null)
+        public IReadOnlyList<EventData> ResolveNarrativeStandalone(EventData gameEvent, HunterInstance actor = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null)
         {
-            PlayableEventNodeCommitResult result = ResolveNarrativeNode(gameEvent, actor, false, resourceCommand);
+            PlayableEventNodeCommitResult result = ResolveNarrativeNode(gameEvent, actor, false, resourceCommand, worldCommand);
             return result.EncounterIds.Count > 0 ? System.Array.Empty<EventData>() : result.ChainedEvents;
         }
 
         /// <summary>结算单个节点并捕获跨环境遭遇请求，避免 Action 流程依赖全局字符串事件。</summary>
-        public PlayableEventNodeCommitResult ResolveNarrativeNodeStandalone(EventData gameEvent, HunterInstance actor = null, IPlayableEventResourceCommand resourceCommand = null)
+        public PlayableEventNodeCommitResult ResolveNarrativeNodeStandalone(EventData gameEvent, HunterInstance actor = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null)
         {
-            return ResolveNarrativeNode(gameEvent, actor, true, resourceCommand);
+            return ResolveNarrativeNode(gameEvent, actor, true, resourceCommand, worldCommand);
         }
 
-        private PlayableEventNodeCommitResult ResolveNarrativeNode(EventData gameEvent, HunterInstance actor, bool captureEncounterRequests, IPlayableEventResourceCommand resourceCommand = null)
+        private PlayableEventNodeCommitResult ResolveNarrativeNode(EventData gameEvent, HunterInstance actor, bool captureEncounterRequests, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null)
         {
             if (gameEvent == null) return new PlayableEventNodeCommitResult(System.Array.Empty<EventData>(), System.Array.Empty<string>(), PlayableEventEffectBatchResult.Empty);
             var encounterIds = new List<string>();
@@ -116,7 +116,7 @@ namespace HuntingInDarkness.Settlement
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (gameEvent.immediateEffects != null)
                 for (int effectIndex = 0; effectIndex < gameEvent.immediateEffects.Count; effectIndex++)
-                    effectResults.Add(ApplyEffect(gameEvent.immediateEffects[effectIndex], actor, actor, encounterIds, resourceCommand, effectIndex, gameEvent.ContentId));
+                    effectResults.Add(ApplyEffect(gameEvent.immediateEffects[effectIndex], actor, actor, encounterIds, resourceCommand, worldCommand, effectIndex, gameEvent.ContentId));
             if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (!captureEncounterRequests)
@@ -168,7 +168,7 @@ namespace HuntingInDarkness.Settlement
                 RecordEncounter(evt.combatEncounterId, encounterIds);
             if (effects != null)
                 for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
-                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, null, effectIndex, evt.ContentId));
+                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, null, null, effectIndex, evt.ContentId));
             if (evt.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(evt.combatEncounterId, encounterIds);
             bool campaignEnded = _settlement.GetAliveHunters().Count == 0;
@@ -240,7 +240,7 @@ namespace HuntingInDarkness.Settlement
 
         public void ApplyEffect(EventEffect effect, HunterInstance target)
         {
-            PlayableEventEffectResult result = ApplyEffect(effect, target, _selectedHunter ?? target, null, null, -1);
+            PlayableEventEffectResult result = ApplyEffect(effect, target, _selectedHunter ?? target, null, null, null, -1);
             if (!result.Succeeded)
             {
                 if (effect?.effectType == EventEffectType.UnlockInvention && result.Reason.StartsWith("未注册发明："))
@@ -250,9 +250,17 @@ namespace HuntingInDarkness.Settlement
             }
         }
 
-        private PlayableEventEffectResult ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null, IPlayableEventResourceCommand resourceCommand = null, int effectIndex = -1, string eventId = "")
+        private PlayableEventEffectResult ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, int effectIndex = -1, string eventId = "")
         {
             if (effect == null) return FailedEffect(effectIndex, effect, "事件效果为空。", eventId);
+            if (effect.effectType == EventEffectType.ExhaustCurrentHuntTileResources)
+            {
+                if (worldCommand == null)
+                    return FailedEffect(effectIndex, effect, "狩猎事件世界效果端口尚未注入。", eventId);
+                if (!worldCommand.TryApply(effect, out PlayableEventWorldChange change, out string reason))
+                    return FailedEffect(effectIndex, effect, reason, eventId);
+                return SucceededEffect(effectIndex, effect, eventId, change.TargetId, 0, change.Changed, 0, change.AffectedCount);
+            }
             if (effect.effectType == EventEffectType.ActivateBloodline)
             {
                 HunterInstance actor = target ?? eventActor;
