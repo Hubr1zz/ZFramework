@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Cards3D;
 using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
@@ -16,6 +17,7 @@ using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunt;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
@@ -327,6 +329,55 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(unequipResult.Succeeded, Is.True, unequipResult.Reason);
             Assert.That(restoredManager.SettlementData.GetStoredEquipment(saltWard.ContentId), Is.EqualTo(1));
             Assert.That(restoredHunter.EquippedItemIds, Does.Not.Contain(saltWard.ContentId));
+        }
+
+        [UnityTest]
+        public IEnumerator SettlementTable3D_DragEquipAndUseConsumableThroughGameManager()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            yield return WaitForSettlementIdle(manager);
+
+            ItemData saltWard = PlayableSettlementItemRegistry.Items.Single(item => item.ContentId == "salt_ward");
+            ItemData poultice = PlayableSettlementItemRegistry.Items.Single(item => item.ContentId == "mushroom_flesh_poultice");
+            HunterInstance hunter = manager.SettlementData.GetAliveHunters()[0];
+            hunter.HP.arms = Mathf.Max(0, hunter.MaxHP.arms - 1);
+            manager.SettlementData.AddStoredItem(saltWard, 1);
+            manager.SettlementData.AddStoredItem(poultice, 1);
+
+            SettlementTable3D table = managerObject.GetComponentInChildren<SettlementTable3D>(true);
+            Assert.That(table, Is.Not.Null);
+            table.Refresh();
+            yield return null;
+
+            HunterCard3D hunterCard = table.GetComponentsInChildren<HunterCard3D>(true).Single(card => card.Hunter?.InstanceId == hunter.InstanceId);
+            hunterCard.OnHunterClicked?.Invoke(hunterCard);
+            yield return null;
+
+            HunterEquipmentPanel3D equipmentPanel = GetPrivateField<HunterEquipmentPanel3D>(table, "hunterEquipmentPanel");
+            SlotGrid equipmentGrid = GetPrivateField<SlotGrid>(equipmentPanel, "equipmentGrid");
+            SlotGrid useGrid = GetPrivateField<SlotGrid>(equipmentPanel, "consumableUseGrid");
+            SettlementItemCard3D saltWardCard = FindStorageCard(equipmentPanel, saltWard);
+            Assert.That(saltWardCard, Is.Not.Null);
+            BeginAndDrop(saltWardCard, equipmentGrid.Slots[0]);
+            yield return WaitUntil(() => manager.SettlementData.GetStoredItem(saltWard) == 0 && hunter.Equipment.Any(item => item?.Data == saltWard), "等待正式 3D 装备命令提交超时。");
+            yield return null;
+            Assert.That(FindStorageCard(equipmentPanel, saltWard), Is.Null);
+            Assert.That(equipmentGrid.Slots.Select(slot => slot.OccupantCard).OfType<SettlementItemCard3D>().Any(card => card.Item == saltWard && card.Instance != null), Is.True);
+            CardSlot equippedSlot = equipmentGrid.Slots.Single(slot => slot.OccupantCard is SettlementItemCard3D card && card.Item == saltWard && card.Instance != null);
+            Assert.That(equippedSlot.OccupantCard.CurrentSlot, Is.SameAs(equippedSlot));
+
+            SettlementItemCard3D poulticeCard = FindStorageCard(equipmentPanel, poultice);
+            Assert.That(poulticeCard, Is.Not.Null);
+            BeginAndDrop(poulticeCard, useGrid.Slots[0]);
+            Assert.That(useGrid.Slots[0].OccupantCard, Is.Null);
+            HunterRecoveryPanel3D recoveryPanel = GetPrivateField<HunterRecoveryPanel3D>(table, "hunterRecoveryPanel");
+            yield return WaitUntil(() => recoveryPanel != null && recoveryPanel.gameObject.activeSelf, "等待消耗品恢复面板打开超时。");
+
+            HunterRecoveryCard3D armsCard = recoveryPanel.GetComponentsInChildren<HunterRecoveryCard3D>(true).Single(card => card.BodyPart == HunterBodyPart.Arms);
+            armsCard.OnRecoveryRequested?.Invoke(armsCard);
+            yield return WaitUntil(() => manager.SettlementData.GetStoredItem(poultice) == 0 && hunter.HP.arms == hunter.MaxHP.arms, "等待正式 3D 消耗品命令提交超时。");
+            Assert.That(useGrid.Slots[0].OccupantCard, Is.Null);
         }
 
         [UnityTest]
@@ -940,6 +991,23 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             return card;
         }
 
+        private static SettlementItemCard3D FindStorageCard(HunterEquipmentPanel3D panel, ItemData item)
+        {
+            SlotGrid storageGrid = GetPrivateField<SlotGrid>(panel, "storageGrid");
+            return storageGrid.Slots.Select(slot => slot.OccupantCard).OfType<SettlementItemCard3D>().SingleOrDefault(card => card.Item == item);
+        }
+
+        private static void BeginAndDrop(SettlementItemCard3D card, CardSlot target)
+        {
+            MethodInfo beginDrag = typeof(CardView3D).GetMethod("BeginDrag", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(beginDrag, Is.Not.Null);
+            beginDrag.Invoke(card, null);
+            SetPrivateField(card, "hoverSlot", target);
+            MethodInfo endDrag = typeof(SlotDraggableCardView3D).GetMethod("OnEndDrag", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(endDrag, Is.Not.Null);
+            endDrag.Invoke(card, null);
+        }
+
         private static TabletopEventChoiceCard3D FindChoice(PlayableSettlementEventView view, string title) => view.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == title);
 
         private static IEnumerator WaitForChoice(PlayableSettlementEventView view, string title)
@@ -1125,6 +1193,15 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             MethodInfo method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(method, Is.Not.Null, $"缺少方法 {methodName}。");
             method.Invoke(target, null);
+        }
+
+        private static void SetPrivateField(object target, string fieldName, object value)
+        {
+            FieldInfo field = null;
+            for (System.Type type = target.GetType(); type != null && field == null; type = type.BaseType)
+                field = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            Assert.That(field, Is.Not.Null, $"缺少字段 {fieldName}。");
+            field.SetValue(target, value);
         }
 
         private sealed class ImmediateEventInput : IPlayableEventInput

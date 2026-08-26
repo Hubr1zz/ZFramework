@@ -1,0 +1,13 @@
+{
+  "sourceRunId": "",
+  "source": "用户确认的 3D 桌游交互、ActionQueue gameplay 边界与最小内容约束，以及直接代码实现。",
+  "sourceRoots": [
+    "C:/Users/leonz/Desktop/GameDesignVault"
+  ],
+  "sourceReferences": [
+    "conversation::2026-08-26",
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/物品 Items.md",
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/猎人 Hunter.md",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs"
+  ]
+}

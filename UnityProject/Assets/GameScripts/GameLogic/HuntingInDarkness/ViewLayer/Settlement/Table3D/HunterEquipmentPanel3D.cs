@@ -22,7 +22,6 @@ namespace UI
         private const string ConsumableUseDropScope = "settlement-consumable-use";
         private const int StoragePageSize = 9;
 
-        private readonly List<SettlementItemCard3D> storageCards = new();
         private readonly List<ItemData> storedItems = new();
         private TextMeshPro statsText;
         private TextMeshPro statusText;
@@ -44,6 +43,11 @@ namespace UI
         private GameObject previousPageButton;
         private GameObject nextPageButton;
         private int storagePage;
+        private int presentationGeneration;
+        private long nextCommandToken;
+        private long activeCommandToken;
+        private bool commandPending;
+        private bool refreshPending;
         private bool isBuilt;
 
         public static HunterEquipmentPanel3D Create(Transform parent)
@@ -67,6 +71,9 @@ namespace UI
 
         public void ConfigureCommands(Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> onEquip, Func<int, int, UniTask<SettlementEquipmentCommandResult>> onUnequip, Action<HunterInstance> onRecoveryRequested = null, Action<HunterInstance> onAdvancementRequested = null, Action<HunterInstance> onSymptomRequested = null, Action<HunterInstance, ItemData> onConsumableUseRequested = null)
         {
+            presentationGeneration++;
+            if (commandPending) SetCommandInteractionEnabled(false);
+            else refreshPending = false;
             equipCommand = onEquip;
             unequipCommand = onUnequip;
             recoveryRequested = onRecoveryRequested;
@@ -78,6 +85,16 @@ namespace UI
         public void Show(HunterInstance selectedHunter, SettlementInstance settlementData, IReadOnlyList<ItemData> availableItems, Vector3 worldPosition)
         {
             if (selectedHunter == null || settlementData == null) return;
+            presentationGeneration++;
+            if (commandPending)
+            {
+                refreshPending = true;
+                SetCommandInteractionEnabled(false);
+                statusText.text = "命令处理中，请稍候。";
+                ShowAt(worldPosition);
+                return;
+            }
+            refreshPending = false;
             hunter = selectedHunter;
             settlement = settlementData;
             items = availableItems ?? Array.Empty<ItemData>();
@@ -90,6 +107,18 @@ namespace UI
         public void RefreshVisible()
         {
             if (!gameObject.activeSelf || hunter == null || settlement == null) return;
+            RebuildCards();
+        }
+
+        private void OnDisable()
+        {
+            presentationGeneration++;
+            if (commandPending) refreshPending = true;
+        }
+
+        private void OnEnable()
+        {
+            if (!isBuilt || commandPending || !refreshPending || hunter == null || settlement == null) return;
             RebuildCards();
         }
 
@@ -268,12 +297,19 @@ namespace UI
 
         private void ChangeStoragePage(int direction)
         {
+            if (commandPending) return;
             storagePage += direction;
             RebuildCards();
         }
 
         private void RebuildCards()
         {
+            if (commandPending)
+            {
+                refreshPending = true;
+                return;
+            }
+            refreshPending = false;
             ClearCards();
             statsText.text = BuildStats(hunter);
             recoveryButton.SetActive(IsWounded(hunter));
@@ -306,10 +342,15 @@ namespace UI
                 ItemData item = storedItems[itemIndex];
                 int count = settlement.GetStoredItem(item);
                 CardSlot visualSlot = storageGrid.Slots[itemIndex - startIndex];
-                Vector3 localPosition = ContentRoot.InverseTransformPoint(visualSlot.transform.position + Vector3.up * 0.013f);
-                SettlementItemCard3D card = SettlementItemCard3D.Create(item, count, ContentRoot, localPosition);
+                SettlementItemCard3D card = SettlementItemCard3D.Create(item, count, ContentRoot);
+                if (!visualSlot.CanAccept(card))
+                {
+                    Debug.LogWarning($"物品卡无法放入库存槽：{item.ContentId}");
+                    Destroy(card.gameObject);
+                    continue;
+                }
+                visualSlot.PlaceCard(card, ContentRoot);
                 card.ConfigureCommandDrop(item.itemType == ItemType.Consumable ? ConsumableUseDropScope : EquipmentDropScope, item.itemType == ItemType.Consumable ? RequestConsumableUse : RequestEquip);
-                storageCards.Add(card);
             }
         }
 
@@ -329,21 +370,34 @@ namespace UI
             }
         }
 
-        private void RequestEquip(SettlementItemCard3D card) => EquipAsync(card).Forget();
+        private void RequestEquip(SettlementItemCard3D card)
+        {
+            if (!TryBeginCommand(card, out int commandPresentationGeneration, out long commandToken)) return;
+            EquipAsync(card, commandPresentationGeneration, commandToken).Forget();
+        }
 
         private void RequestConsumableUse(SettlementItemCard3D card)
         {
             card?.CompleteDropRequest(true);
-            if (card?.Item == null || consumableUseRequested == null) return;
+            if (card?.Item == null)
+            {
+                statusText.text = "消耗品卡无效，无法使用。";
+                return;
+            }
+            if (consumableUseRequested == null)
+            {
+                statusText.text = "消耗品使用入口尚未接入。";
+                return;
+            }
             consumableUseRequested.Invoke(hunter, card.Item);
         }
 
-        private async UniTaskVoid EquipAsync(SettlementItemCard3D card)
+        private async UniTaskVoid EquipAsync(SettlementItemCard3D card, int commandPresentationGeneration, long commandToken)
         {
             if (card == null || equipCommand == null)
             {
-                card?.CompleteDropRequest(true);
-                statusText.text = "装备命令尚未接入。";
+                if (!TryCompleteCommand(commandPresentationGeneration, commandToken, out bool presentationIsCurrent)) return;
+                CompleteCommandFailure(presentationIsCurrent, card, "装备命令尚未接入。");
                 return;
             }
 
@@ -355,24 +409,34 @@ namespace UI
             catch (Exception exception)
             {
                 Debug.LogException(exception);
-                if (this != null && card != null) card.CompleteDropRequest(true);
-                if (this != null) statusText.text = "装备命令执行异常，请重试。";
+                if (!TryCompleteCommand(commandPresentationGeneration, commandToken, out bool presentationIsCurrent)) return;
+                CompleteCommandFailure(presentationIsCurrent, card, "装备命令执行异常，请重试。");
                 return;
             }
-            if (result.Succeeded) return;
+            if (!TryCompleteCommand(commandPresentationGeneration, commandToken, out bool commandPresentationIsCurrent)) return;
             if (this == null) return;
-            if (card != null) card.CompleteDropRequest(true);
-            statusText.text = result.Reason;
+            if (!isActiveAndEnabled)
+            {
+                refreshPending = true;
+                return;
+            }
+            if (!commandPresentationIsCurrent) RebuildCards();
+            else if (result.Succeeded) RebuildCards();
+            else CompleteCommandFailure(true, card, result.Reason);
         }
 
-        private void RequestUnequip(SettlementItemCard3D card) => UnequipAsync(card).Forget();
+        private void RequestUnequip(SettlementItemCard3D card)
+        {
+            if (!TryBeginCommand(card, out int commandPresentationGeneration, out long commandToken)) return;
+            UnequipAsync(card, commandPresentationGeneration, commandToken).Forget();
+        }
 
-        private async UniTaskVoid UnequipAsync(SettlementItemCard3D card)
+        private async UniTaskVoid UnequipAsync(SettlementItemCard3D card, int commandPresentationGeneration, long commandToken)
         {
             if (card == null || card.Instance == null || unequipCommand == null)
             {
-                card?.CompleteDropRequest(true);
-                statusText.text = "卸下命令尚未接入。";
+                if (!TryCompleteCommand(commandPresentationGeneration, commandToken, out bool presentationIsCurrent)) return;
+                CompleteCommandFailure(presentationIsCurrent, card, "卸下命令尚未接入。");
                 return;
             }
 
@@ -384,29 +448,109 @@ namespace UI
             catch (Exception exception)
             {
                 Debug.LogException(exception);
-                if (this != null && card != null) card.CompleteDropRequest(true);
-                if (this != null) statusText.text = "卸下命令执行异常，请重试。";
+                if (!TryCompleteCommand(commandPresentationGeneration, commandToken, out bool presentationIsCurrent)) return;
+                CompleteCommandFailure(presentationIsCurrent, card, "卸下命令执行异常，请重试。");
                 return;
             }
-            if (result.Succeeded) return;
+            if (!TryCompleteCommand(commandPresentationGeneration, commandToken, out bool commandPresentationIsCurrent)) return;
             if (this == null) return;
-            if (card != null) card.CompleteDropRequest(true);
-            statusText.text = result.Reason;
+            if (!isActiveAndEnabled)
+            {
+                refreshPending = true;
+                return;
+            }
+            if (!commandPresentationIsCurrent) RebuildCards();
+            else if (result.Succeeded) RebuildCards();
+            else CompleteCommandFailure(true, card, result.Reason);
         }
 
         private void ClearCards()
         {
-            foreach (SettlementItemCard3D card in storageCards)
-                if (card != null)
-                    Destroy(card.gameObject);
-            storageCards.Clear();
+            ClearGridCards(storageGrid);
+            ClearGridCards(equipmentGrid);
+            ClearGridCards(consumableUseGrid);
+        }
 
-            foreach (CardSlot slot in equipmentGrid.Slots)
+        private static void ClearGridCards(SlotGrid grid)
+        {
+            if (grid == null) return;
+            foreach (CardSlot slot in grid.Slots)
             {
                 CardView3D card = slot.OccupantCard;
                 slot.ClearCard();
                 if (card != null) Destroy(card.gameObject);
             }
+        }
+
+        private bool TryBeginCommand(SettlementItemCard3D card, out int commandPresentationGeneration, out long commandToken)
+        {
+            commandPresentationGeneration = presentationGeneration;
+            commandToken = 0;
+            if (card == null || commandPending || !isActiveAndEnabled || hunter == null || settlement == null)
+            {
+                card?.CompleteDropRequest(true);
+                return false;
+            }
+            nextCommandToken = nextCommandToken == long.MaxValue ? 1 : nextCommandToken + 1;
+            commandToken = nextCommandToken;
+            activeCommandToken = commandToken;
+            commandPending = true;
+            refreshPending = false;
+            SetCommandInteractionEnabled(false);
+            return true;
+        }
+
+        private bool TryCompleteCommand(int commandPresentationGeneration, long commandToken, out bool presentationIsCurrent)
+        {
+            presentationIsCurrent = false;
+            if (this == null || !commandPending || activeCommandToken != commandToken) return false;
+            commandPending = false;
+            activeCommandToken = 0;
+            presentationIsCurrent = commandPresentationGeneration == presentationGeneration;
+            return true;
+        }
+
+        private void CompleteCommandFailure(bool presentationIsCurrent, SettlementItemCard3D card, string reason)
+        {
+            if (this == null) return;
+            if (!isActiveAndEnabled)
+            {
+                refreshPending = true;
+                return;
+            }
+            if (!presentationIsCurrent)
+            {
+                RebuildCards();
+                return;
+            }
+            bool rebuildAfterPendingRefresh = refreshPending;
+            refreshPending = false;
+            if (rebuildAfterPendingRefresh)
+            {
+                RebuildCards();
+                statusText.text = string.IsNullOrWhiteSpace(reason) ? "命令未生效，请重试。" : reason;
+                return;
+            }
+            card?.CompleteDropRequest(true);
+            SetCommandInteractionEnabled(true);
+            statusText.text = string.IsNullOrWhiteSpace(reason) ? "命令未生效，请重试。" : reason;
+        }
+
+        private void SetCommandInteractionEnabled(bool enabled)
+        {
+            bool canPage = enabled && storedItems.Count > StoragePageSize;
+            previousPageButton?.SetActive(canPage && storagePage > 0);
+            nextPageButton?.SetActive(canPage && storagePage < Mathf.Max(0, Mathf.CeilToInt((float)storedItems.Count / StoragePageSize) - 1));
+            SetGridCardsDragEnabled(storageGrid, enabled);
+            SetGridCardsDragEnabled(equipmentGrid, enabled);
+        }
+
+        private static void SetGridCardsDragEnabled(SlotGrid grid, bool enabled)
+        {
+            if (grid == null) return;
+            foreach (CardSlot slot in grid.Slots)
+                if (slot.OccupantCard != null)
+                    slot.OccupantCard.EnableDrag = enabled;
         }
 
         private static string BuildStats(HunterInstance hunter)

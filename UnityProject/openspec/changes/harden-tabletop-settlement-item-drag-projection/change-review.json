@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 5,
+  "changeId": "harden-tabletop-settlement-item-drag-projection",
+  "title": "营地物品 3D 拖拽投影加固",
+  "category": "feature",
+  "sourceKind": "direct-code",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "implementationNotes": "实现已通过定向编译与 Unity CLI 验证；Draft 仅供 Changes 人工审核，批准后再显式同步正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "营地 3D 仓库/装备卡具备 SlotGrid 双向投影，装备命令跨 presentation 生命周期保持唯一，消耗品使用槽保持 transient。",
+    "codeEvidence": [
+      {
+        "guid": "aec121c9e9ab40f9a94917d816e762d2",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs",
+        "fileHash": "f098a68bd47042b5b60c5d082ecea556476bd27ad46956e9214e440194b89ae0",
+        "line": 322,
+        "feature": "维护 Slot/Card 双向投影并以独立 command token 保护异步装备命令",
+        "status": "verified",
+        "checkedAt": "2026-08-26T17:30:00Z"
+      },
+      {
+        "guid": "6d8b5d32f6a44a3e9f8e81382c98a4f1",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HunterEquipmentPanel3DPlayModeTests.cs",
+        "fileHash": "0a583c7dafc5b3806fef0150b842acd15d78df96b10aa4a76fcf05b0a996dad5",
+        "line": 31,
+        "feature": "验证投影清理、临时使用槽与跨隐藏重绑 pending 门禁",
+        "status": "verified",
+        "checkedAt": "2026-08-26T17:30:00Z"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "fileHash": "f2f1a0b72fe2f9cde3060ad34ba9492ecd2ef3b12f54ca4273114c9be84371ee",
+        "line": 335,
+        "feature": "验证正式 GameManager 根下装备与消耗品 3D 拖拽闭环",
+        "status": "verified",
+        "checkedAt": "2026-08-26T17:30:00Z"
+      }
+    ],
+    "evidence": [
+      "dotnet build ZFramework.sln: 0 warnings / 0 errors",
+      "HunterEquipmentPanel3D + GameManager item-loop PlayMode: 5/5 passed",
+      "SettlementTableInitializationTests EditMode: 5/5 passed",
+      "OpenSpec strict validation passed",
+      "git diff --check passed"
+    ],
+    "differences": [],
+    "verifiedAt": "2026-08-26T17:30:00Z"
+  },
+  "reviewIssues": [],
+  "gapIds": [],
+  "dependencyIds": ["tabletop-settlement-equipment--opens--tabletop-settlement-recovery"],
+  "capabilities": ["tabletop-settlement-equipment", "tabletop-settlement-recovery"],
+  "syncTargets": [
+    {
+      "capability": "tabletop-settlement-equipment",
+      "title": "营地桌面猎人装备",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/harden-tabletop-settlement-item-drag-projection/specs/tabletop-settlement-equipment/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-settlement-equipment/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "beef8302b7cb158b79fd82ce5e16af9c97e4855b57c37b7621187b96b9f76969",
+      "baseSnapshotPath": "openspec/changes/harden-tabletop-settlement-item-drag-projection/.sync-baseline/tabletop-settlement-equipment/spec.md"
+    },
+    {
+      "capability": "tabletop-settlement-recovery",
+      "title": "营地桌面猎人休养",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/harden-tabletop-settlement-item-drag-projection/specs/tabletop-settlement-recovery/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-settlement-recovery/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "85046a511b8449fb664f146a64fece349cb25d07379269c6d0de3ad82fe60704",
+      "baseSnapshotPath": "openspec/changes/harden-tabletop-settlement-item-drag-projection/.sync-baseline/tabletop-settlement-recovery/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与冻结基线一致，可以在人工批准后 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-26T10:30:00-07:00"
+  },
+  "createdAt": "2026-08-26T17:30:00Z"
+}

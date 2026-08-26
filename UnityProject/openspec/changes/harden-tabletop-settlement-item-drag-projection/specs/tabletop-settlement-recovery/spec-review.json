@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-recovery",
+  "title": "营地消耗品 3D 临时投递",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "消耗品使用槽不占位，部位选择与最终消耗继续通过既有 Settlement ActionQueue 提交。",
+    "codeEvidence": [],
+    "evidence": ["HunterEquipmentPanel3DPlayModeTests transient target passed", "GameManager production 3D consumable loop passed"],
+    "differences": [],
+    "verifiedAt": "2026-08-26T17:30:00Z"
+  },
+  "gapIds": [],
+  "dependencyIds": ["tabletop-settlement-equipment--opens--tabletop-settlement-recovery"],
+  "sourceReferences": ["conversation::2026-08-26", "primary::猎人 Hunter.md"],
+  "implementationOutline": [
+    "仓库消耗品卡命中临时 use grid 后立即恢复原槽。",
+    "既有 HunterRecoveryPanel3D 选择部位并调用 Settlement recovery command。"
+  ],
+  "reviewIssues": []
+}

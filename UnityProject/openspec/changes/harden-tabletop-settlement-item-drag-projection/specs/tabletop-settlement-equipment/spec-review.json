@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-equipment",
+  "title": "营地桌面猎人装备投影加固",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "仓库与装备卡使用真实 SlotGrid 双向投影，装备命令 pending 可跨隐藏与重绑保持唯一。",
+    "codeEvidence": [],
+    "evidence": ["HunterEquipmentPanel3DPlayModeTests: 4/4 passed", "GameManager production 3D item loop: 1/1 passed"],
+    "differences": [],
+    "verifiedAt": "2026-08-26T17:30:00Z"
+  },
+  "gapIds": [],
+  "dependencyIds": ["tabletop-settlement-equipment--opens--tabletop-settlement-recovery"],
+  "sourceReferences": ["conversation::2026-08-26", "primary::物品 Items.md"],
+  "implementationOutline": [
+    "HunterEquipmentPanel3D 通过 CardSlot.PlaceCard 建立投影并在销毁前 ClearCard。",
+    "独立 command token 只由匹配的异步完成释放，presentation generation 只限制旧 UI 写入。"
+  ],
+  "reviewIssues": []
+}

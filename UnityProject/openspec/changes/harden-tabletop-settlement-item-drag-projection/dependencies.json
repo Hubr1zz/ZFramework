@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "tabletop-settlement-equipment", "label": "营地桌面猎人装备", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-settlement-equipment/spec.md" },
+    { "id": "tabletop-settlement-recovery", "label": "营地桌面猎人休养", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-settlement-recovery/spec.md" }
+  ],
+  "edges": [
+    { "id": "tabletop-settlement-equipment--opens--tabletop-settlement-recovery", "from": "tabletop-settlement-equipment", "to": "tabletop-settlement-recovery", "type": "opens", "status": "resolved", "reason": "消耗品仓库卡通过临时使用槽打开既有 3D 部位恢复流程", "gapId": "", "blocksImplementation": false }
+  ]
+}
