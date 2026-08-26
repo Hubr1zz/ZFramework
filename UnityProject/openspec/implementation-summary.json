@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "577debbdffeea243e3e660124a9a7d66ece039980f5079111326c37dd390f923",
-  "inputManifestDigest": "4997918b3ebf5aa4d6131f35b1b140ad59368557068ca349fe8291be281c6120",
-  "outputDigest": "62229c45e150802704bf5e8b55791dd442d11c964c9304b21431aae78b18b76e",
+  "inputDigest": "a8db2a0b0a238c200715d72b38ff88a30873a09b43c7c0509d6bcd439674bd0b",
+  "inputManifestDigest": "ef4f220851dacb80846026eb2e0619f6c4721bdb42c3ccac0710fb79470cef51",
+  "outputDigest": "1878c390e32dca458e2c937411fac6d4936c86c0905a614d8466784a6ab64d64",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -666,6 +666,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs",
+      "sha256": "35023e27c6cf70d6186c1a5897d3a6af05ce2714a0734b01751dd524a84648ef",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntReturnTransaction.cs",
       "sha256": "2e931a1db569a649b41981fc2f0fb3864957fab4e346d107cbba1dbf8959f441",
       "state": "current"
@@ -687,7 +692,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "9f9908c3cc09ad1b68764400983bc1d8b248378c04bfc6eac3203160b7ea3696",
+      "sha256": "55877420f2541f6eff64493176245d4188f7dc7b273164d24788becff6087390",
       "state": "current"
     },
     {
@@ -1147,7 +1152,7 @@
     },
     {
       "path": "openspec/specs/game-manager-orchestration/implementation.json",
-      "sha256": "675362829243d340a8cd29a8e2ddc44dfd4f931f1739d6d8c413f2073b3a7b10",
+      "sha256": "30775ef81ad5961943c6f3ccf763490cb46ab3a6d216ebe55f582682d2d09a22",
       "state": "current"
     },
     {
@@ -1207,7 +1212,7 @@
     },
     {
       "path": "openspec/specs/hunt-phase-orchestration/implementation.json",
-      "sha256": "1fe71428223e21d9704ea0ab9612ea2bf15bb795a6a0e9756a30f44e652a7e32",
+      "sha256": "190fcf7e38ef0403f991caa1564e7d3e43a3db99cd74425ec64175b29b7f16e0",
       "state": "current"
     },
     {
@@ -3224,7 +3229,7 @@
       "effectiveStatus": "stale",
       "progress": 0,
       "verificationStatus": "verified",
-      "summary": "ZFramework CampaignRuntime 已唯一持有 Settlement、Hunt、Showdown 三个真实阶段管理者；GameManager 保留顶层 FSM，并把可靠的狩猎回营交接委托给独立 plain C# 跨阶段事务。",
+      "summary": "ZFramework CampaignRuntime 已唯一持有 Settlement、Hunt、Showdown 三个真实阶段管理者；GameManager 保留顶层 FSM，并把出猎与回营交接分别委托给独立 plain C# 跨阶段事务。",
       "designSources": [],
       "sources": [
         "openspec/specs/game-manager-orchestration/spec.md",
@@ -3239,6 +3244,10 @@
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
           "state": "stale"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs",
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntReturnTransaction.cs",
@@ -3420,7 +3429,7 @@
       "effectiveStatus": "stale",
       "progress": 0,
       "verificationStatus": "verified",
-      "summary": "HuntPhaseManager 已拥有 Hunt generations 与 composition coordinator；当前 generation 才能提交完成、遭遇和检查点 callback。",
+      "summary": "HuntPhaseManager 已拥有 Hunt generations 与 composition coordinator；独立跨阶段出猎事务协调营地 ActionQueue、路线提交、FSM 入场与失败回滚。",
       "designSources": [],
       "sources": [
         "openspec/specs/hunt-phase-orchestration/spec.md",
@@ -3439,6 +3448,10 @@
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
           "state": "stale"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs",
+          "state": "current"
         }
       ]
     },

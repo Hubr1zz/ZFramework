@@ -6,23 +6,24 @@
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "ZFramework CampaignRuntime 已唯一持有 Settlement、Hunt、Showdown 三个真实阶段管理者；GameManager 保留顶层 FSM，并把可靠的狩猎回营交接委托给独立 plain C# 跨阶段事务。",
+    "summary": "ZFramework CampaignRuntime 已唯一持有 Settlement、Hunt、Showdown 三个真实阶段管理者；GameManager 保留顶层 FSM，并把出猎与回营交接分别委托给独立 plain C# 跨阶段事务。",
     "validatedAgainstSpecHash": "adb5fb14436e15532c6a5cf755ec66eb0347d6854bad9005326b93e4c7510d8b",
     "evidence": [
       { "guid": "14ce1f834e26c5e4092eee2a5a0b887d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs", "line": 53, "fileHash": "dd6aaf6c3cd036081bf349fddf4ba529a754c4a89fe3180b494ecd107ccd7ea3", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "Campaign lease 创建三个 phase manager，并按 Showdown、Hunt、Settlement 顺序 reset/dispose。" },
-      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 145, "fileHash": "25b721a12a0e9e51d6aefba10e845f8a9ed3421b6af711680e9e3d2fbea4148e", "status": "verified", "checkedAt": "2026-08-26T11:15:18-07:00", "feature": "组合根持有狩猎回营事务，只提供 FSM、阶段运行态、持久化与事件恢复端口。" },
+      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 145, "fileHash": "aee3f2fc7e94c5e55e9387e046b75a4f3c96703b0908a035a4fbd86cc7ca983e", "status": "verified", "checkedAt": "2026-08-26T11:51:06-07:00", "feature": "组合根持有出猎与回营事务，只提供 FSM、阶段运行态、持久化、事件恢复和跨阶段端口。" },
+      { "guid": "5e4a9a28573d4a4bad6d719b6a74ba53", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs", "line": 32, "fileHash": "35023e27c6cf70d6186c1a5897d3a6af05ce2714a0734b01751dd524a84648ef", "status": "verified", "checkedAt": "2026-08-26T11:51:06-07:00", "feature": "在独立非 MonoBehaviour 事务中维护跨 runner 出猎、路线原子提交、运行世代与失败回滚。" },
       { "guid": "7a3f7a0b0b3147d5a7c9a1d7b6c2e4f8", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntReturnTransaction.cs", "line": 30, "fileHash": "2e931a1db569a649b41981fc2f0fb3864957fab4e346d107cbba1dbf8959f441", "status": "verified", "checkedAt": "2026-08-26T11:15:18-07:00", "feature": "在独立非 MonoBehaviour 事务中维护回营检查点、阶段交接、幂等恢复与旧异步世代失效边界。" },
       { "guid": "860c7509a68a0ad4a85b4210d362c813", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs", "line": 18, "fileHash": "a9ebde2c46e54e07b2fad27bcc6f717b346730699ae1ab7534a7e8545aaf7d91", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "验证 manager 所有权、generation swap、reset 后复用和 dispose 失败关闭。" }
     ],
     "tests": ["GameManagerCampaignLoopPlayModeTests 19/19", "PlayableCampaignLoopSmokeTests + PlayableSettlementActionSessionTests 45/45", "dotnet build: 0 errors, 3 existing warnings"],
-    "verifiedAt": "2026-08-26T11:15:18-07:00"
+    "verifiedAt": "2026-08-26T11:51:06-07:00"
   },
   "implementationOutline": [
     "CampaignRuntime 持有三个 plain phase manager，不新增全局 Module 或 MonoBehaviour 权威。",
     "Settlement/Hunt manager 拥有候选集合、current、generation 和 prepare/swap/release/reset。",
     "Showdown manager 唯一持有现有 PlayableCombatSession；GameManager 公共 Combat API 只委托 current session。",
-    "GameManager 继续拥有 FSM host、启动关闭、保存、路线和遭遇交接；CampaignHuntReturnTransaction 负责完整回营事务。"
+    "GameManager 继续拥有 FSM host、启动关闭、保存和遭遇交接；CampaignHuntDepartureTransaction 与 CampaignHuntReturnTransaction 分别负责完整出猎、回营事务。"
   ],
-  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs:53", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:145", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntReturnTransaction.cs:30"],
+  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs:53", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:145", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs:32", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntReturnTransaction.cs:30"],
   "publishedBy": { "mode": "direct-authority-sync", "changeId": "" }
 }
