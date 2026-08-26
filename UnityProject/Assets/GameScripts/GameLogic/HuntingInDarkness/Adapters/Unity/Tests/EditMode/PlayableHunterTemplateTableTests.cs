@@ -21,7 +21,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 stats = new HunterStatsTableRecord { strength = 1, movement = 6, armorBody = 1 },
                 willpower = 3,
                 startingEquipmentIds = new List<string> { "salt_ward" },
-                traits = new List<string> { " 守火 ", "守火" }
+                traits = new List<string> { " trait_keeper_of_flame ", "trait_keeper_of_flame" }
             };
             try
             {
@@ -31,7 +31,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 HunterData template = entries[0].Template;
                 Assert.That(template.ContentId, Is.EqualTo("ember_keeper"));
                 Assert.That(template.initialStats.movement, Is.EqualTo(6));
-                Assert.That(template.startingTraits, Is.EqualTo(new[] { "守火" }));
+                Assert.That(template.startingTraits, Is.EqualTo(new[] { "trait_keeper_of_flame" }));
                 var hunter = new HunterInstance(template, 201);
                 Assert.That(hunter.OriginTemplateId, Is.EqualTo("ember_keeper"));
                 Assert.That(hunter.EquippedItemIds, Is.EqualTo(new[] { "salt_ward" }));
@@ -100,7 +100,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(listener.Template, Is.Not.Null);
             Assert.That(listener.Recruitable, Is.True);
             Assert.That(listener.Template.startingEquipment[0].ContentId, Is.EqualTo("echo_hook_spear"));
-            Assert.That(listener.Template.startingTraits, Does.Contain("守望者"));
+            Assert.That(listener.Template.startingTraits, Does.Contain("trait_watcher"));
             Assert.That(mender.Template, Is.Not.Null);
             Assert.That(mender.Recruitable, Is.True);
             Assert.That(mender.Template.startingEquipment[0].ContentId, Is.EqualTo("stonewatch_mantle"));

@@ -60,10 +60,11 @@ namespace HuntingInDarkness.Settlement
         private readonly int deathInspirationMinimumAge;
         private bool retired;
 
-        public PlayableSettlementContentPlan(PlayableSettlementContentCatalog sourceCatalog, PlayableSettlementRegistryBundle registryBundle, PlayableEventTableGeneration eventGeneration, List<CraftRecipe> recipes, List<EventData> randomEvents, List<EventData> mainStoryEvents, List<HunterData> startingHunters, List<HunterData> recruitmentTemplates, IReadOnlyList<StartingResourceDefinition> resources, List<UnityEngine.Object> ownedObjects, int deathInspirationGrowth, int deathInspirationMinimumAge)
+        public PlayableSettlementContentPlan(PlayableSettlementContentCatalog sourceCatalog, PlayableSettlementRegistryBundle registryBundle, PlayableTraitCatalog traitCatalog, PlayableEventTableGeneration eventGeneration, List<CraftRecipe> recipes, List<EventData> randomEvents, List<EventData> mainStoryEvents, List<HunterData> startingHunters, List<HunterData> recruitmentTemplates, IReadOnlyList<StartingResourceDefinition> resources, List<UnityEngine.Object> ownedObjects, int deathInspirationGrowth, int deathInspirationMinimumAge)
         {
             SourceCatalog = sourceCatalog;
             RegistryBundle = registryBundle ?? throw new ArgumentNullException(nameof(registryBundle));
+            TraitCatalog = traitCatalog ?? throw new ArgumentNullException(nameof(traitCatalog));
             EventGeneration = eventGeneration;
             Items = registryBundle.Items;
             Inventions = registryBundle.Inventions;
@@ -84,6 +85,7 @@ namespace HuntingInDarkness.Settlement
 
         public PlayableSettlementContentCatalog SourceCatalog { get; }
         internal PlayableSettlementRegistryBundle RegistryBundle { get; }
+        internal PlayableTraitCatalog TraitCatalog { get; }
         internal PlayableEventTableGeneration EventGeneration { get; }
         public IReadOnlyList<ItemData> Items { get; }
         public IReadOnlyList<InventionData> Inventions { get; }
@@ -107,7 +109,7 @@ namespace HuntingInDarkness.Settlement
                 reason = "营地管理器为空。";
                 return false;
             }
-            if (manager.Data.ItemIdentitySchemaVersion > PlayableSettlementItemRegistry.CurrentIdentitySchemaVersion || manager.Data.InventionIdentitySchemaVersion > PlayableSettlementInventionRegistry.CurrentIdentitySchemaVersion || manager.Data.TimelineEventIdentitySchemaVersion > PlayableSettlementEventRegistry.CurrentIdentitySchemaVersion || manager.Data.CampaignPacingSchemaVersion > SettlementInstance.CurrentCampaignPacingSchemaVersion || manager.Data.SettlementModifierSchemaVersion > PlayableSettlementModifierRuntime.CurrentSchemaVersion || manager.Data.MaterialDiscoverySchemaVersion > SettlementInstance.CurrentMaterialDiscoverySchemaVersion)
+            if (manager.Data.ItemIdentitySchemaVersion > PlayableSettlementItemRegistry.CurrentIdentitySchemaVersion || manager.Data.TraitIdentitySchemaVersion > PlayableTraitRegistry.CurrentIdentitySchemaVersion || manager.Data.InventionIdentitySchemaVersion > PlayableSettlementInventionRegistry.CurrentIdentitySchemaVersion || manager.Data.TimelineEventIdentitySchemaVersion > PlayableSettlementEventRegistry.CurrentIdentitySchemaVersion || manager.Data.CampaignPacingSchemaVersion > SettlementInstance.CurrentCampaignPacingSchemaVersion || manager.Data.SettlementModifierSchemaVersion > PlayableSettlementModifierRuntime.CurrentSchemaVersion || manager.Data.MaterialDiscoverySchemaVersion > SettlementInstance.CurrentMaterialDiscoverySchemaVersion)
             {
                 reason = "营地存档 schema 高于当前内容版本。";
                 return false;
@@ -115,6 +117,7 @@ namespace HuntingInDarkness.Settlement
 
             manager.HunterMgmt.ConfigureDeathInspiration(deathInspirationGrowth, deathInspirationMinimumAge);
             PlayableSettlementItemRegistry.MigratePersistentState(manager.Data);
+            PlayableTraitRegistry.MigratePersistentState(manager.Data);
             MigrateMaterialDiscovery(manager.Data);
             PlayableSettlementInventionRegistry.MigratePersistentState(manager.Data);
             PlayableSettlementEventRegistry.MigratePersistentState(manager.Data);
@@ -189,8 +192,9 @@ namespace HuntingInDarkness.Settlement
             if (firstException != null) throw firstException;
         }
 
-        internal static bool ValidateContent(IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> inventions, IReadOnlyList<CraftRecipe> recipes, IReadOnlyList<EventData> events, out string reason)
+        internal static bool ValidateContent(IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> inventions, IReadOnlyList<CraftRecipe> recipes, IReadOnlyList<EventData> events, IReadOnlyList<HunterData> startingHunters, IReadOnlyList<HunterData> recruitmentTemplates, PlayableTraitCatalog traits, out string reason)
         {
+            if (!ValidateHunterTraits(startingHunters, traits, out reason) || !ValidateHunterTraits(recruitmentTemplates, traits, out reason)) return false;
             foreach (ItemData item in items)
                 if (item == null || !item.HasExplicitContentId)
                 {
@@ -292,6 +296,11 @@ namespace HuntingInDarkness.Settlement
                         reason = $"事件 {gameEvent.ContentId} 引用了未知发明：{target}";
                         return false;
                     }
+                    if (effect?.effectType == EventEffectType.AddTrait && !traits.ContainsCanonicalId(target))
+                    {
+                        reason = $"事件 {gameEvent.ContentId} 引用了未知或非稳定特性 ID：{target}";
+                        return false;
+                    }
                     if (effect?.effectType == EventEffectType.ScheduleEvent && (!eventByAlias.TryGetValue(target, out EventData scheduledEvent) || scheduledEvent.category != EventCategory.Scheduled))
                     {
                         reason = $"事件 {gameEvent.ContentId} 引用了未知或非 Scheduled 事件：{target}";
@@ -303,13 +312,33 @@ namespace HuntingInDarkness.Settlement
                 {
                     if (!ValidateEventChain(gameEvent.ContentId, option?.successChain, eventByAlias, out reason) || !ValidateEventChain(gameEvent.ContentId, option?.failChain, eventByAlias, out reason)) return false;
                     foreach (EventOptionCondition condition in option?.conditions ?? new List<EventOptionCondition>())
+                    {
                         if ((condition.conditionKind == EventOptionConditionKind.MinimumResource || condition.conditionKind == EventOptionConditionKind.HasEquippedItem) && !itemAliases.Contains(condition.key?.Trim() ?? string.Empty))
                         {
                             reason = $"事件 {gameEvent.ContentId} 的条件引用了未知物品：{condition.key}";
                             return false;
                         }
+                        if (condition.conditionKind == EventOptionConditionKind.HasTrait && !traits.ContainsCanonicalId(condition.key))
+                        {
+                            reason = $"事件 {gameEvent.ContentId} 的条件引用了未知或非稳定特性 ID：{condition.key}";
+                            return false;
+                        }
+                    }
                 }
             }
+            reason = string.Empty;
+            return true;
+        }
+
+        private static bool ValidateHunterTraits(IReadOnlyList<HunterData> hunters, PlayableTraitCatalog traits, out string reason)
+        {
+            foreach (HunterData hunter in hunters ?? Array.Empty<HunterData>())
+                foreach (string traitId in hunter?.startingTraits ?? new List<string>())
+                    if (!traits.ContainsCanonicalId(traitId))
+                    {
+                        reason = $"猎人模板 {hunter?.ContentId} 引用了未知或非稳定特性 ID：{traitId}";
+                        return false;
+                    }
             reason = string.Empty;
             return true;
         }

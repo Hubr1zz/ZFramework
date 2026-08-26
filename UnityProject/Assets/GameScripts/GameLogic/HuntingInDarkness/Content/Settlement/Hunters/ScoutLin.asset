@@ -30,5 +30,5 @@ MonoBehaviour:
   initialInsanity: 4
   startingEquipment: []
   startingTraits:
-  - "\u8033\u806A"
+  - trait_keen_hearing
   startingAilments: []

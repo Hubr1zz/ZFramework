@@ -51,9 +51,9 @@
         "guid": "3983952169a25304b8e29fef9d9ad350",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableGrowthMilestoneTests.cs",
         "line": 1,
-        "fileHash": "c7c51fe6e3c17e10da227d0fb77de2a0f8a14061aa18f539147d2d3d3dfe72a3",
+        "fileHash": "e016604f3b15e1b536b0f593c9af8bb00244187b218c54ee5c738e6e9edad6c0",
         "status": "verified",
-        "checkedAt": "2026-08-25T13:52:11-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "验证成长里程碑奖励只在达到阈值时提交且不可重复领取。"
       },
       {

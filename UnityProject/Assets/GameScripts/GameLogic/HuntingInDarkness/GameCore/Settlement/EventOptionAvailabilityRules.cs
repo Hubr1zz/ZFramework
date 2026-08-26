@@ -87,7 +87,7 @@ namespace HuntingInDarkness.GameCore.Settlement
                 EventOptionConditionKind.MinimumWillpower => $"意志至少 {condition.Value}",
                 EventOptionConditionKind.MinimumLuck => $"命运至少 {condition.Value}",
                 EventOptionConditionKind.MaximumLuck => $"命运不高于 {condition.Value}",
-                EventOptionConditionKind.HasTrait => $"拥有特性“{condition.Key}”",
+                EventOptionConditionKind.HasTrait => $"拥有特性“{condition.DisplayName}”",
                 EventOptionConditionKind.HasAilment => $"拥有症状“{condition.Key}”",
                 EventOptionConditionKind.MinimumResource => $"营地拥有 {condition.Key} ×{condition.Value}",
                 EventOptionConditionKind.HasEquippedItem => $"装备“{condition.Key}”",

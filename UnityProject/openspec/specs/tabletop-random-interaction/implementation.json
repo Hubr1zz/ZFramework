@@ -86,9 +86,9 @@
         "guid": "d1692c393b9b9ae419868a8da65e374f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterSymptomRules.cs",
         "line": 87,
-        "fileHash": "48ef448aa55d6c51e511c0cc0d3c19db2b5a5d00f1224631f3f0509128e6fef2",
+        "fileHash": "c63a3270a43e6df3555964fcdfe054fb5adc720d7913b441c358d81f0313d2ba",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:17:48-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "症状内化复用普通意志支付接口，因此不会触发只属于重投的命运成长。"
       },
       {
@@ -104,18 +104,18 @@
         "guid": "927a97e1c0cf3c443ab526fe87f671e4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
         "line": 736,
-        "fileHash": "66892e3f44492ab2907ee63e7cfe516f3e968b56a78b867ab75e0e6af817bd60",
+        "fileHash": "70b084d51374a84abcae3588e75afb7cbae1183ec5bd1e12d303e088a9571813",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:17:48-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "验证重投检查点在后续取消时仍保留意志与命运，并在无意志时不呈现第二次骰子。"
       },
       {
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
         "line": 1,
-        "fileHash": "00002da14b73d64fd84b946e7222c63a26e106c9619990648b0cab0224cc10e2",
+        "fileHash": "c6c4030bde7ccafc5b4cef940f32e8a9b1365230ecc53aa20473705a7fd0b897",
         "status": "verified",
-        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "读表校验桌面随机参数，并限制 OldMaid 每次只抽取一张。"
       },
       {
@@ -140,9 +140,9 @@
         "guid": "2b17ff3d52628a04b81c7873108ecf6f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
         "line": 1,
-        "fileHash": "14f04701663293a5690edc3986da6d30da82092d9611fb4f4c7cc224680f1ad0",
+        "fileHash": "69cf60bffe506574d0b201a066170ddfa38c12355ad32fa67d33af3c7f9ae398",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:34:28-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "验证 OldMaid 内容可达、鬼牌忽略属性加值、多牌总值、重投范围与命运门禁事件。"
       }
     ],

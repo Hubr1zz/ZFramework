@@ -1,4 +1,5 @@
 using HuntingInDarkness.Data;
+using HuntingInDarkness.Settlement;
 using TMPro;
 using UnityEngine;
 
@@ -58,7 +59,7 @@ namespace Cards3D
             HunterCombatStats stats = template.initialStats;
             nameText.text = template.hunterName;
             statsText.text = $"力 {stats.strength}  技 {stats.accuracy}\n敏 {stats.evasion}  移 {stats.movement}";
-            traitsText.text = template.startingTraits.Count > 0 ? string.Join("、", template.startingTraits) : "尚无特性";
+            traitsText.text = template.startingTraits.Count > 0 ? PlayableTraitRegistry.GetDisplayNames(template.startingTraits) : "尚无特性";
             hintText.text = isSelected ? "◆ 已选择" : isInteractable ? "点击选择" : "暂不可接纳";
         }
 

@@ -23,9 +23,9 @@
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
         "line": 13,
-        "fileHash": "00002da14b73d64fd84b946e7222c63a26e106c9619990648b0cab0224cc10e2",
+        "fileHash": "c6c4030bde7ccafc5b4cef940f32e8a9b1365230ecc53aa20473705a7fd0b897",
         "status": "verified",
-        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "事件表读取并 fail-closed 校验选中猎人、正伤害和稳定部位 ID。"
       },
       {

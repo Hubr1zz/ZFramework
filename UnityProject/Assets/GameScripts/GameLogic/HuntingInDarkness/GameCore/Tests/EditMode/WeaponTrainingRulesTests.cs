@@ -33,14 +33,14 @@ namespace HuntingInDarkness.GameCore.Tests
             };
             var family = new WeaponMasteryFamilyDefinition("mastery_blade", "刃术", new[]
             {
-                new WeaponMasteryMilestoneDefinition("late", "迟来的里程碑", 1, "不应获得")
+                new WeaponMasteryMilestoneDefinition("late", "迟来的里程碑", 1, "trait_should_not_gain")
             });
 
             bool gained = WeaponMasteryRules.TryGain(hunter, family, 1, out _);
 
             Assert.That(gained, Is.False);
             Assert.That(hunter.WeaponMasteries[0].ClaimedMilestoneIds, Is.Empty);
-            Assert.That(hunter.Traits, Does.Not.Contain("不应获得"));
+            Assert.That(hunter.Traits, Does.Not.Contain("trait_should_not_gain"));
         }
     }
 }

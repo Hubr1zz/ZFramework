@@ -18,7 +18,7 @@
       "luck": 0,
       "insanity": 2,
       "startingEquipmentIds": ["salt_ward"],
-      "traits": ["守火"],
+      "traits": ["trait_keeper_of_flame"],
       "ailments": []
     },
     {
@@ -38,7 +38,7 @@
       "luck": 0,
       "insanity": 3,
       "startingEquipmentIds": ["echo_hook_spear"],
-      "traits": ["守望者"],
+      "traits": ["trait_watcher"],
       "ailments": []
     },
     {
@@ -58,7 +58,7 @@
       "luck": 0,
       "insanity": 2,
       "startingEquipmentIds": ["stonewatch_mantle"],
-      "traits": ["石语者"],
+      "traits": ["trait_stone_speaker"],
       "ailments": []
     }
   ]

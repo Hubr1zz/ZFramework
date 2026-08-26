@@ -23,6 +23,7 @@ namespace HuntingInDarkness.Settlement
     {
         [SerializeField] private List<HunterData> startingHunters = new();
         [SerializeField] private TextAsset hunterTable;
+        [SerializeField] private TextAsset traitTable;
         [SerializeField] private List<StartingResourceDefinition> startingResources = new();
         [SerializeField] private List<EventData> randomEvents = new();
         [SerializeField] private List<EventData> mainStoryEvents = new();
@@ -95,13 +96,14 @@ namespace HuntingInDarkness.Settlement
             using var ownership = new PlayableSettlementContentOwnership();
             try
             {
+                if (!PlayableTraitCatalog.TryLoad(traitTable, out PlayableTraitCatalog traitCatalog, out string traitReason)) errors.Add(traitReason);
                 PlayableSettlementContentExtensions.Prepare(GetKnownItems(), recipes, inventions, inventionTable, tableEvents, ownership, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions, errors.Add);
                 bool huntersValid = PlayableHunterTemplateTableRuntime.Extend(startingHunters, recruitmentTemplates, allItems, hunterTable, out List<HunterData> allStartingHunters, out List<HunterData> allRecruitmentTemplates, out List<HunterData> generatedHunters, errors.Add);
                 ownership.OwnRange(generatedHunters);
                 PlayableEventTableRuntime.Extend(randomEvents, mainStoryEvents, tableEvents, out List<EventData> allRandomEvents, out List<EventData> allMainStoryEvents);
                 var allEvents = new List<EventData>(allRandomEvents);
                 allEvents.AddRange(allMainStoryEvents);
-                if (!PlayableSettlementContentPlan.ValidateContent(allItems, allInventions, allRecipes, allEvents, out string validationReason)) errors.Add(validationReason);
+                if (traitCatalog != null && !PlayableSettlementContentPlan.ValidateContent(allItems, allInventions, allRecipes, allEvents, allStartingHunters, allRecruitmentTemplates, traitCatalog, out string validationReason)) errors.Add(validationReason);
                 if (!PlayableSettlementRegistryBundle.TryCreate(allItems, allInventions, allEvents, out PlayableSettlementRegistryBundle registryBundle, out string registryReason)) errors.Add(registryReason);
                 if (!huntersValid || allStartingHunters.Count == 0) errors.Add("猎人内容未提供任何有效初始模板。");
                 if (errors.Count > 0)
@@ -109,7 +111,7 @@ namespace HuntingInDarkness.Settlement
                     reason = string.Join("；", errors);
                     return false;
                 }
-                plan = new PlayableSettlementContentPlan(this, registryBundle, eventGeneration, allRecipes, allRandomEvents, allMainStoryEvents, allStartingHunters, allRecruitmentTemplates, startingResources, ownership.Objects, deathInspirationGrowth, deathInspirationMinimumAge);
+                plan = new PlayableSettlementContentPlan(this, registryBundle, traitCatalog, eventGeneration, allRecipes, allRandomEvents, allMainStoryEvents, allStartingHunters, allRecruitmentTemplates, startingResources, ownership.Objects, deathInspirationGrowth, deathInspirationMinimumAge);
                 ownership.Transfer();
                 return true;
             }
@@ -160,6 +162,7 @@ namespace HuntingInDarkness.Settlement
         public static IReadOnlyList<InventionData> Inventions => RegistryBundle.Inventions;
         public static IReadOnlyList<EventData> Events => RegistryBundle.Events;
         internal static PlayableSettlementContentPlan CurrentPlan => currentPlan;
+        internal static PlayableTraitCatalog TraitCatalog => currentPlan != null && !currentPlan.IsRetired ? currentPlan.TraitCatalog : null;
         internal static PlayableSettlementRegistryBundle RegistryBundle => currentPlan != null && !currentPlan.IsRetired ? currentPlan.RegistryBundle : legacyRegistryBundle;
         internal static bool IsEventGenerationLeased(PlayableEventTableGeneration generation) => generation != null && currentPlan != null && !currentPlan.IsRetired && ReferenceEquals(currentPlan.EventGeneration, generation);
 

@@ -33,9 +33,9 @@
         "guid": "e159b3c1d6bfcce4082b45e63fc28083",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
         "line": 122,
-        "fileHash": "06b751bf9ec01d01d2445167f3a1652d91a60efdd65079ec5265e8416bf75b13",
+        "fileHash": "9381c741fdcf0882721a6be41c983d63fcbba440715dd868a48f48a133175144",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "以 schema 2 DTO 持久化链 ID、occurrence 序号、祖先 ContentId 路径及有界待办队列。"
       },
       {

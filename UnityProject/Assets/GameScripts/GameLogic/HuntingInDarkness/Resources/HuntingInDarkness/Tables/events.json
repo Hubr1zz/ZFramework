@@ -54,7 +54,7 @@
           "failEffects": [],
           "alwaysAvailable": false,
           "conditions": [
-            { "conditionKind": "HasTrait", "key": "守望者", "value": 0, "inverted": false }
+            { "conditionKind": "HasTrait", "key": "trait_watcher", "displayName": "守望者", "value": 0, "inverted": false }
           ]
         }
       ],

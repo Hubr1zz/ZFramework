@@ -30,6 +30,6 @@ MonoBehaviour:
   initialInsanity: 4
   startingEquipment: []
   startingTraits:
-  - "\u5B88\u671B\u8005"
+  - trait_watcher
   startingAilments:
   - "\u80C6\u602F"

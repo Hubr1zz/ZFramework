@@ -51,18 +51,18 @@
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
         "line": 467,
-        "fileHash": "00002da14b73d64fd84b946e7222c63a26e106c9619990648b0cab0224cc10e2",
+        "fileHash": "c6c4030bde7ccafc5b4cef940f32e8a9b1365230ecc53aa20473705a7fd0b897",
         "status": "verified",
-        "checkedAt": "2026-08-25T14:27:10-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "合并独立血脉事件表，校验条件和激活效果引用，并把技术 ID 转换为玩家可读名称。"
       },
       {
         "guid": "1e0d246fe7975284aa80f31c816ed619",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/bloodline-events.json",
         "line": 1,
-        "fileHash": "f0df1c64ae0eaee4e93fc436776c28e113f3ea0ad7e9034cf28fe50004f0aa02",
+        "fileHash": "f9868ed303a4b8813d604321f126818ee5c8d9f5b2be689f5c7f376e4891961c",
         "status": "verified",
-        "checkedAt": "2026-08-25T14:27:10-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "以独立内容表配置三类血脉觉醒选项、条件、激活和特性授予，不修改基础事件记录。"
       }
     ],

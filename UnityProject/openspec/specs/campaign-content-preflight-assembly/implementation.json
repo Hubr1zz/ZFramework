@@ -22,9 +22,9 @@
         "guid": "2c7d0e3a7e71476e9d04f85e0a4db4d4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentCandidate.cs",
         "line": 1,
-        "fileHash": "37fa62280218e97389f22c4ea2567d3c6f3267aa5a18113b9eeb9a366ae8c622",
+        "fileHash": "6bfc5b4bb28abfb8fbef9d3c1776990c03bc112d8e4c2f7d97ed2eb300b14ca2",
         "status": "verified",
-        "checkedAt": "2026-08-24T07:21:34-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "冻结安装引用、暂存同一营地计划并在隔离营地状态上执行正式内容投影。"
       },
       {

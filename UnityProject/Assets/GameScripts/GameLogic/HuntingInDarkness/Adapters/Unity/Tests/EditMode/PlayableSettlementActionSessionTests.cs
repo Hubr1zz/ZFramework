@@ -626,7 +626,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(result.Succeeded, Is.True, result.Reason);
                 Assert.That(result.ResolvedCount, Is.EqualTo(1));
                 Assert.That(hunter.IsBloodlineActivated, Is.True);
-                Assert.That(hunter.Traits, Contains.Item("石语者"));
+                Assert.That(hunter.Traits, Contains.Item("trait_stone_speaker"));
                 Assert.That(commitCount, Is.EqualTo(1));
             }
             finally
@@ -823,7 +823,7 @@ namespace HuntingInDarkness.Adapter.Tests
             SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
 
             Assert.That(result.Succeeded, Is.True, result.Reason);
-            Assert.That(settlement.GetResource("碎石"), Is.EqualTo(2));
+            Assert.That(settlement.GetResource("broken_stone"), Is.EqualTo(2));
             Assert.That(hunter.Understanding, Is.EqualTo(1));
             Assert.That(presenter.Requests, Has.Count.EqualTo(1));
             Assert.That(presenter.Requests[0].Kind, Is.EqualTo(TabletopRandomInteractionKind.FlipCards));

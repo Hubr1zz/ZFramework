@@ -48,7 +48,7 @@ namespace HuntingInDarkness.Tests
 
             Assert.That(hunter.Courage, Is.EqualTo(2));
             Assert.That(hunter.ClaimedGrowthMilestoneIds, Has.Count.EqualTo(1));
-            Assert.That(hunter.Traits, Contains.Item("直面黑暗"));
+            Assert.That(hunter.Traits, Contains.Item("trait_growth_face_darkness"));
         }
 
         private sealed class FirstRandom : IRandomSource

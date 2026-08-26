@@ -15,9 +15,9 @@
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
         "line": 530,
-        "fileHash": "00002da14b73d64fd84b946e7222c63a26e106c9619990648b0cab0224cc10e2",
+        "fileHash": "c6c4030bde7ccafc5b4cef940f32e8a9b1365230ecc53aa20473705a7fd0b897",
         "status": "verified",
-        "checkedAt": "2026-08-25T14:50:04-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "先合并全部事件来源，再传递拒绝错误引用，并按稳定 ID 和配置顺序绑定 Triggered 子链。"
       },
       {
@@ -51,9 +51,9 @@
         "guid": "e159b3c1d6bfcce4082b45e63fc28083",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
         "line": 122,
-        "fileHash": "06b751bf9ec01d01d2445167f3a1652d91a60efdd65079ec5265e8416bf75b13",
+        "fileHash": "9381c741fdcf0882721a6be41c983d63fcbba440715dd868a48f48a133175144",
         "status": "verified",
-        "checkedAt": "2026-08-25T14:50:04-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "在营地权威存档中保存链 ID、序号、诊断、待恢复节点与有序祖先稳定 ID。"
       },
       {
@@ -78,9 +78,9 @@
         "guid": "2a32e230eed309144a69d91ec3f752f4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
         "line": 1,
-        "fileHash": "d2ea17b3f01b8775e97505d2eb8fe3b117bf1157170c6aaea639b4ade06c210f",
+        "fileHash": "b6907c6a4ea7b2b885b864697fecb5ef735565753e4407c05560eae4cac1d4eb",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:34:28-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "提供事件分支、命运条件及稳定资源 ID 内容，并保持延迟事件为独立 ScheduleEvent 效果。"
       }
     ],

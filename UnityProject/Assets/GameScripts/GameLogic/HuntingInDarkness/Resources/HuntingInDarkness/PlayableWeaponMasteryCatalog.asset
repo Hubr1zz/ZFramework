@@ -21,15 +21,15 @@ MonoBehaviour:
     - id: mastery_unarmed_2
       displayName: "\u62F3\u6597\u5B66\u5F92"
       threshold: 2
-      grantedTrait: "\u62F3\u6597\u5B66\u5F92"
+      grantedTrait: trait_mastery_fist_apprentice
     - id: mastery_unarmed_5
       displayName: "\u62F3\u6597\u8001\u624B"
       threshold: 5
-      grantedTrait: "\u62F3\u6597\u8001\u624B"
+      grantedTrait: trait_mastery_fist_veteran
     - id: mastery_unarmed_8
       displayName: "\u62F3\u6597\u5927\u5E08"
       threshold: 8
-      grantedTrait: "\u62F3\u6597\u5927\u5E08"
+      grantedTrait: trait_mastery_fist_master
   - id: mastery_blade
     displayName: "\u5203\u5668"
     weaponNames:
@@ -38,15 +38,15 @@ MonoBehaviour:
     - id: mastery_blade_2
       displayName: "\u5203\u5668\u5B66\u5F92"
       threshold: 2
-      grantedTrait: "\u5203\u5668\u5B66\u5F92"
+      grantedTrait: trait_mastery_blade_apprentice
     - id: mastery_blade_5
       displayName: "\u5203\u5668\u8001\u624B"
       threshold: 5
-      grantedTrait: "\u5203\u5668\u8001\u624B"
+      grantedTrait: trait_mastery_blade_veteran
     - id: mastery_blade_8
       displayName: "\u5203\u5668\u5927\u5E08"
       threshold: 8
-      grantedTrait: "\u5203\u5668\u5927\u5E08"
+      grantedTrait: trait_mastery_blade_master
   - id: mastery_sling
     displayName: "\u6295\u77F3\u7D22"
     weaponNames:
@@ -55,15 +55,15 @@ MonoBehaviour:
     - id: mastery_sling_2
       displayName: "\u6295\u77F3\u5B66\u5F92"
       threshold: 2
-      grantedTrait: "\u6295\u77F3\u5B66\u5F92"
+      grantedTrait: trait_mastery_sling_apprentice
     - id: mastery_sling_5
       displayName: "\u6295\u77F3\u8001\u624B"
       threshold: 5
-      grantedTrait: "\u6295\u77F3\u8001\u624B"
+      grantedTrait: trait_mastery_sling_veteran
     - id: mastery_sling_8
       displayName: "\u6295\u77F3\u5927\u5E08"
       threshold: 8
-      grantedTrait: "\u6295\u77F3\u5927\u5E08"
+      grantedTrait: trait_mastery_sling_master
   trainingInventionId: weapon_training
   trainingCostItem: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
   trainingCost: 1

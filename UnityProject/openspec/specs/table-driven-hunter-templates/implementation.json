@@ -24,9 +24,9 @@
         "guid": "89da669e4924d43409fe89475adc272b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
         "line": 91,
-        "fileHash": "abc76a13e190d80b18101baacdeeb32fed965ca94e07c63f0027baaf95be04e5",
+        "fileHash": "96511ecf04652d9a8dbbed027e3dfac086ce9693d851645858eda3f39cf2fb96",
         "status": "verified",
-        "checkedAt": "2026-08-25T14:19:35-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "在玩法开始前把序列化猎人表装入冻结内容计划，并由内容所有权租约管理动态模板生命周期。"
       },
       {
@@ -69,18 +69,18 @@
         "guid": "e7468c45d9904312aa60401b6c808d7d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHunterTemplateTableTests.cs",
         "line": 1,
-        "fileHash": "0c515e1195bb10351de8c5447b9069c60d13ef24bc1fd9ae1d49a8abcee57356",
+        "fileHash": "bbb4eaa41226410a9644609aaccfb73ac00214d13d41c53edee5d2a7e5c74fce",
         "status": "verified",
-        "checkedAt": "2026-08-25T14:19:35-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "验证稳定身份、装备持久 ID、表内基线内容、重复身份、未知装备、武器上限及资产冲突。"
       },
       {
         "guid": "9d72aaead5aa4db893d5c2e3c3907270",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunters.json",
         "line": 1,
-        "fileHash": "ab92db475532626e3f2086e1fc4fcc9e41e348ecabec9951735690cbfe97ceb4",
+        "fileHash": "1fc1c68dbeae25e1acf765e5fcb4939dae718c0d59cbbb75f1e4db562e8f02fd",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:01:38-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "提供三名稳定身份的可招募猎人，覆盖守火、守望与石语特性及三种不同初始构筑。"
       },
       {

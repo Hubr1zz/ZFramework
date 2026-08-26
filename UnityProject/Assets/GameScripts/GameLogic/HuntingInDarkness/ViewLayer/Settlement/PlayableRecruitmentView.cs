@@ -129,7 +129,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             HunterCombatStats stats = template.initialStats;
             GUILayout.Label($"力量 {stats.strength}　技巧 {stats.accuracy}　敏捷 {stats.evasion}　移动 {stats.movement}　意志 {template.initialWillpower}", mutedStyle);
             if (template.startingTraits.Count > 0)
-                GUILayout.Label($"特性：{string.Join("、", template.startingTraits)}", mutedStyle);
+                GUILayout.Label($"特性：{PlayableTraitRegistry.GetDisplayNames(template.startingTraits)}", mutedStyle);
         }
 
         private void DrawSuccess()

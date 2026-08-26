@@ -42,9 +42,9 @@
         "guid": "f707419cb9c444543893efe94b11d4cb",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEquipmentStorage.cs",
         "line": 44,
-        "fileHash": "03d91c3714edce3837c4b8e75d7ef96ba46595cbf96a0ac1a938ebd270ba65a4",
+        "fileHash": "e812ada69b8f9ec541dc36663a3b1b84fa0471d7336e271d9989d5480b6585e3",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:37:49-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "幂等迁移资源、仓库与猎人装备稳定 ID，保留未知及未来身份并重建可解析运行时装备。"
       },
       {
@@ -96,9 +96,9 @@
         "guid": "927a97e1c0cf3c443ab526fe87f671e4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
         "line": 1,
-        "fileHash": "66892e3f44492ab2907ee63e7cfe516f3e968b56a78b867ab75e0e6af817bd60",
+        "fileHash": "70b084d51374a84abcae3588e75afb7cbae1183ec5bd1e12d303e088a9571813",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:17:48-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "覆盖回营幂等、事件检查点、事件链恢复、失败保留，以及重投取消后已提交资源事实的保留。"
       }
     ],

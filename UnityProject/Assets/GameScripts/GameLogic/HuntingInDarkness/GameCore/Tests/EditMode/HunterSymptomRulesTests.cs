@@ -24,7 +24,7 @@ namespace HuntingInDarkness.GameCore.Tests
             Assert.That(hunter.Willpower, Is.EqualTo(1));
             Assert.That(hunter.Stats.evasion, Is.EqualTo(1));
             Assert.That(hunter.Ailments, Contains.Item("胆怯"));
-            Assert.That(hunter.Traits, Contains.Item("内化·胆怯"));
+            Assert.That(hunter.Traits, Contains.Item("trait_symptom_cowardice_internalized"));
         }
 
         [Test]
@@ -41,8 +41,8 @@ namespace HuntingInDarkness.GameCore.Tests
             Assert.That(hunter.Stats.evasion, Is.EqualTo(1));
             Assert.That(hunter.UnspentGrowth, Is.Zero);
             Assert.That(hunter.Ailments, Does.Not.Contain("胆怯"));
-            Assert.That(hunter.Traits, Contains.Item("内化·胆怯"));
-            Assert.That(hunter.Traits, Contains.Item("已克服·胆怯"));
+            Assert.That(hunter.Traits, Contains.Item("trait_symptom_cowardice_internalized"));
+            Assert.That(hunter.Traits, Contains.Item("trait_symptom_cowardice_overcome"));
             Assert.That(HunterSymptomRules.TryOvercome(hunter, cowardice, out _), Is.False);
         }
     }

@@ -13,9 +13,9 @@
         "guid": "76ee8c16e7264fc89ae0566031980a8a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
         "line": 1,
-        "fileHash": "65599805e1accd9ed44d62de828f4e99d0a5c14743fea37aca667753b9df96ff",
+        "fileHash": "a3542c8e3659834e516b9baffc735cf9ba9d873184b7438282508651a8198c28",
         "status": "verified",
-        "checkedAt": "2026-08-24T07:48:51-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "冻结跨表对象图、持有单一 RegistryBundle 与事件世代租约，并管理 transient Unity 对象生命周期。"
       },
       {
@@ -31,9 +31,9 @@
         "guid": "89da669e4924d43409fe89475adc272b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
         "line": 1,
-        "fileHash": "abc76a13e190d80b18101baacdeeb32fed965ca94e07c63f0027baaf95be04e5",
+        "fileHash": "96511ecf04652d9a8dbbed027e3dfac086ce9693d851645858eda3f39cf2fb96",
         "status": "verified",
-        "checkedAt": "2026-08-24T07:48:51-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "无副作用准备计划，并由 Runtime 单指针发布、恢复和退役计划及兼容 Bundle。"
       },
       {
@@ -58,9 +58,9 @@
         "guid": "e549d8b4d78e4d00aa85a1125c8148d0",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementProjectionTransactionTests.cs",
         "line": 1,
-        "fileHash": "20f846fc079a3979ee545382ff406af9c16c8b2bc0a6a5b1d3ec58ba369618d9",
+        "fileHash": "43098ddc27f1ade49fe3cd14b6a710559badda68d955edc8abd927814e8f7a5f",
         "status": "verified",
-        "checkedAt": "2026-08-24T07:48:51-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "验证失败投影不污染旧图与 RNG、合法图一致性、自引用拒绝及 stale/double candidate 门禁。"
       },
       {

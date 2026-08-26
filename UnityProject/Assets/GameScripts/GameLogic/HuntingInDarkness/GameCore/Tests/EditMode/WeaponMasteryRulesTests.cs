@@ -40,7 +40,7 @@ namespace HuntingInDarkness.GameCore.Tests
         public void TryGain_CrossedMilestone_ClaimsTraitOnce()
         {
             var hunter = CreateHunter();
-            var milestones = new[] { new WeaponMasteryMilestoneDefinition("blade_2", "刃器学徒", 2, "刃器学徒") };
+            var milestones = new[] { new WeaponMasteryMilestoneDefinition("blade_2", "刃器学徒", 2, "trait_mastery_blade_apprentice") };
             var family = new WeaponMasteryFamilyDefinition("blade", "刃器", milestones);
 
             WeaponMasteryRules.TryGain(hunter, family, 2, out WeaponMasteryGainOutcome first);
@@ -48,7 +48,7 @@ namespace HuntingInDarkness.GameCore.Tests
 
             Assert.That(first.ReachedMilestoneNames, Is.EqualTo(new[] { "刃器学徒" }));
             Assert.That(second.ReachedMilestoneNames, Is.Empty);
-            Assert.That(hunter.Traits.FindAll(trait => trait == "刃器学徒"), Has.Count.EqualTo(1));
+            Assert.That(hunter.Traits.FindAll(trait => trait == "trait_mastery_blade_apprentice"), Has.Count.EqualTo(1));
         }
 
         private static HunterState CreateHunter()

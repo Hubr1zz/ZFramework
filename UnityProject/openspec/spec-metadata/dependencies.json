@@ -184,6 +184,13 @@
       "specPath": "openspec/specs/table-driven-hunter-templates/spec.md"
     },
     {
+      "id": "table-driven-hunter-traits",
+      "label": "读表猎人特性与稳定身份",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-hunter-traits/spec.md"
+    },
+    {
       "id": "event-driven-hunter-death",
       "label": "事件驱动猎人永久死亡",
       "category": "feature",
@@ -353,6 +360,36 @@
     }
   ],
   "edges": [
+    {
+      "id": "table-driven-hunter-traits--requires--table-driven-hunter-templates",
+      "from": "table-driven-hunter-traits",
+      "to": "table-driven-hunter-templates",
+      "type": "requires",
+      "status": "defined",
+      "reason": "初始与招募模板只保存注册特性 ID，3D 候选卡通过特性目录投影显示名",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-traits--requires--campaign-persistence",
+      "from": "table-driven-hunter-traits",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "特性身份 schema 与幂等旧显示名迁移随 SettlementInstance 持久化",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-traits--requires--table-driven-event-chains",
+      "from": "table-driven-hunter-traits",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件条件与 AddTrait 效果在内容装配阶段校验注册的稳定特性 ID",
+      "gapId": "",
+      "blocksImplementation": false
+    },
     {
       "id": "expedition-build-progression-loop--requires--tabletop-hunt-retreat",
       "from": "expedition-build-progression-loop",

@@ -1,4 +1,5 @@
 using HuntingInDarkness.Data;
+using HuntingInDarkness.Settlement;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -55,7 +56,7 @@ namespace UI.Settlement
                 $"  头部 {h.HP.head}/{h.MaxHP.head}  躯干 {h.HP.body}/{h.MaxHP.body}\n" +
                 $"  手臂 {h.HP.arms}/{h.MaxHP.arms}  腿部 {h.HP.legs}/{h.MaxHP.legs}\n\n" +
                 $"胆识 {h.Courage}  阅历 {h.Understanding}  最高武器熟练 {h.WeaponProficiency}\n\n" +
-                $"特性：{(h.Traits.Count == 0 ? "无" : string.Join(", ", h.Traits))}\n" +
+                $"特性：{(h.Traits.Count == 0 ? "无" : PlayableTraitRegistry.GetDisplayNames(h.Traits))}\n" +
                 $"症状：{(h.Ailments.Count == 0 ? "无" : string.Join(", ", h.Ailments))}\n\n" +
                 $"死亡牌堆：存活 {h.SurvivalCards}  死亡 {h.DeathCards}";
 

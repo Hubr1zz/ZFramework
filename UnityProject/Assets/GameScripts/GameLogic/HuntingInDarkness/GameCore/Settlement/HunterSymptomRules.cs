@@ -101,7 +101,7 @@ namespace HuntingInDarkness.GameCore.Settlement
                 state.InternalizationProgress = definition.InternalizationThreshold;
                 state.IsInternalized = true;
                 ApplyModifiers(hunter, definition.InternalizedBonus);
-                AddUnique(hunter.Traits, GetInternalizedTraitName(definition));
+                AddUnique(hunter.Traits, GetInternalizedTraitId(definition));
             }
             reason = string.Empty;
             return true;
@@ -116,7 +116,7 @@ namespace HuntingInDarkness.GameCore.Settlement
             ReverseAppliedModifiers(hunter, state);
             state.IsOvercome = true;
             hunter.Ailments.RemoveAll(value => value == definition.DisplayName);
-            AddUnique(hunter.Traits, GetOvercomeTraitName(definition));
+            AddUnique(hunter.Traits, GetOvercomeTraitId(definition));
             reason = string.Empty;
             return true;
         }
@@ -168,8 +168,8 @@ namespace HuntingInDarkness.GameCore.Settlement
             return hunter.SymptomStates.Find(state => state != null && string.Equals(state.SymptomId, symptomId, StringComparison.Ordinal));
         }
 
-        public static string GetInternalizedTraitName(SymptomDefinition definition) => $"内化·{definition.DisplayName}";
-        public static string GetOvercomeTraitName(SymptomDefinition definition) => $"已克服·{definition.DisplayName}";
+        public static string GetInternalizedTraitId(SymptomDefinition definition) => $"trait_{definition.Id.Replace('-', '_')}_internalized";
+        public static string GetOvercomeTraitId(SymptomDefinition definition) => $"trait_{definition.Id.Replace('-', '_')}_overcome";
 
         private static bool CanUse(HunterState hunter, SymptomDefinition definition)
         {

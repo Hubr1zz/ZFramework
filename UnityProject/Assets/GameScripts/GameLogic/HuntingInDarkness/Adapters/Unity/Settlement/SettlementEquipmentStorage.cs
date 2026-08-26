@@ -67,7 +67,7 @@ namespace HuntingInDarkness.Settlement
         public static IReadOnlyCollection<string> CollectKeywords(IReadOnlyCollection<string> equippedItemIds, IReadOnlyCollection<string> traits = null, IReadOnlyCollection<string> ailments = null)
         {
             var keywords = new HashSet<string>(System.StringComparer.Ordinal);
-            AddKeywords(keywords, traits);
+            PlayableTraitRegistry.AddKeywords(keywords, traits);
             AddKeywords(keywords, ailments);
             if (equippedItemIds == null) return keywords;
             foreach (string itemId in equippedItemIds)

@@ -30,5 +30,5 @@ MonoBehaviour:
   initialInsanity: 3
   startingEquipment: []
   startingTraits:
-  - "\u4F4E\u8BED\u8005"
+  - trait_low_whisperer
   startingAilments: []

@@ -10,11 +10,11 @@ namespace HuntingInDarkness.GameCore.Tests
         public void Evaluate_RequiresEveryConfiguredCondition()
         {
             var hunter = new HunterState { Courage = 3 };
-            hunter.Traits.Add("守望者");
+            hunter.Traits.Add("trait_watcher");
             var conditions = new List<EventOptionConditionDefinition>
             {
                 new EventOptionConditionDefinition(EventOptionConditionKind.MinimumCourage, "", 2, false),
-                new EventOptionConditionDefinition(EventOptionConditionKind.HasTrait, "守望者", 0, false),
+                new EventOptionConditionDefinition(EventOptionConditionKind.HasTrait, "trait_watcher", 0, false, "守望者"),
                 new EventOptionConditionDefinition(EventOptionConditionKind.MinimumResource, "碎石", 2, false)
             };
 

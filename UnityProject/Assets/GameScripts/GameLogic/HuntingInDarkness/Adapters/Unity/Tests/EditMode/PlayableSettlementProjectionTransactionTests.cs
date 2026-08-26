@@ -124,6 +124,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(PlayableSettlementItemRegistry.TryGet("salt_ward", out ItemData ward), Is.True);
             Assert.That(PlayableSettlementItemRegistry.TryGet("black_salt", out ItemData salt), Is.True);
             loaded.Hunters[0].EquippedItemIds.Add(ward.ContentId);
+            loaded.Hunters[0].Traits.Add("守望者");
             var previousEquipment = new ItemInstance(ward);
             loaded.Hunters[0].Equipment.Add(previousEquipment);
             loaded.Hunters[0].Collectibles.Add(new ItemInstance(salt));
@@ -143,10 +144,12 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(manager.Events.OnEventTriggered, Is.SameAs(eventCallback));
             Assert.That(manager.Events.OnEventChainCompleted, Is.SameAs(completionCallback));
             Assert.That(manager.Data.ItemIdentitySchemaVersion, Is.EqualTo(PlayableSettlementItemRegistry.CurrentIdentitySchemaVersion));
+            Assert.That(manager.Data.TraitIdentitySchemaVersion, Is.EqualTo(PlayableTraitRegistry.CurrentIdentitySchemaVersion));
             Assert.That(manager.Data.InventionIdentitySchemaVersion, Is.EqualTo(PlayableSettlementInventionRegistry.CurrentIdentitySchemaVersion));
             Assert.That(manager.Data.TimelineEventIdentitySchemaVersion, Is.EqualTo(PlayableSettlementEventRegistry.CurrentIdentitySchemaVersion));
             Assert.That(manager.Data.CampaignPacingSchemaVersion, Is.EqualTo(SettlementInstance.CurrentCampaignPacingSchemaVersion));
             Assert.That(manager.Data.Hunters, Has.Count.EqualTo(1));
+            Assert.That(manager.Data.Hunters[0].Traits, Is.EqualTo(new[] { "trait_watcher" }));
             Assert.That(manager.Data.Hunters[0].Equipment, Has.Count.EqualTo(1));
             Assert.That(manager.Data.Hunters[0].Equipment[0], Is.Not.SameAs(previousEquipment));
             Assert.That(manager.Data.Hunters[0].Equipment[0].Data, Is.SameAs(ward));

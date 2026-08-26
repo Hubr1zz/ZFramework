@@ -59,36 +59,36 @@
         "guid": "7d08fa612005acb448957a59099ec9d8",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/EventOptionAvailabilityRules.cs",
         "line": 7,
-        "fileHash": "18b978b0787258d1cef7989620306b722db6027437c4d341dd098260ccf20364",
+        "fileHash": "7f912e5b2b13a9128502f917192b8054ba1344411f8e47182cb9623c63147519",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:24:31-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "以包含边界的最小与最大命运条件读取权威猎人状态，并生成玩家可读的命运要求。"
       },
       {
         "guid": "2a32e230eed309144a69d91ec3f752f4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
         "line": 297,
-        "fileHash": "d2ea17b3f01b8775e97505d2eb8fe3b117bf1157170c6aaea639b4ade06c210f",
+        "fileHash": "b6907c6a4ea7b2b885b864697fecb5ef735565753e4407c05560eae4cac1d4eb",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:34:28-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "营地事件以稳定物品 ID 配置资源奖励；缠命之结仍按命运阈值提供安全或高风险分支。"
       },
       {
         "guid": "44ed4e78f8f953e46bca08cb371b551a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/EventOptionAvailabilityRulesTests.cs",
         "line": 1,
-        "fileHash": "c52b48ef6d5532d113b20b0558d8aac5a994b223d2b8596d6e857482406eda46",
+        "fileHash": "8cceae7ea185a1c39d132b07de886fba11c901ac3c4698110be034e3d09a5920",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:24:31-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "验证命运最小值和最大值均使用包含边界，越界时返回对应要求。"
       },
       {
         "guid": "2b17ff3d52628a04b81c7873108ecf6f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
         "line": 125,
-        "fileHash": "14f04701663293a5690edc3986da6d30da82092d9611fb4f4c7cc224680f1ad0",
+        "fileHash": "69cf60bffe506574d0b201a066170ddfa38c12355ad32fa67d33af3c7f9ae398",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:34:28-07:00",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "验证命运互斥分支和事件事务，并按稳定 black_salt ID 观察营地奖励。"
       },
       {

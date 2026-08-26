@@ -7,6 +7,7 @@ using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
+using HuntingInDarkness.GameCore.Settlement;
 
 namespace HuntingInDarkness.Bootstrap
 {
@@ -143,6 +144,11 @@ namespace HuntingInDarkness.Bootstrap
                 reason = "工坊内容预检失败：工坊目录为空。";
                 return false;
             }
+            if (!TryValidateTraitReferences(SettlementPlan.TraitCatalog, out reason))
+            {
+                reason = $"特性内容预检失败：{reason}";
+                return false;
+            }
             if (!WorkshopContent.TryValidateAgainst(SettlementPlan.Items, SettlementPlan.Inventions, SettlementPlan.Recipes, out reason))
             {
                 reason = $"工坊内容预检失败：{reason}";
@@ -163,6 +169,33 @@ namespace HuntingInDarkness.Bootstrap
             if (!huntProbe.TryBindContent(HuntBundle.DefaultRoute, out reason))
             {
                 reason = $"狩猎内容投影预检失败：{reason}";
+                return false;
+            }
+            reason = string.Empty;
+            return true;
+        }
+
+        private bool TryValidateTraitReferences(PlayableTraitCatalog traits, out string reason)
+        {
+            foreach (HunterGrowthMilestoneDefinition milestone in GrowthMilestones.GetDefinitions())
+                if (!traits.ContainsCanonicalId(milestone.GrantedTrait))
+                {
+                    reason = $"成长里程碑 {milestone.Id} 引用了未知或非稳定特性 ID：{milestone.GrantedTrait}";
+                    return false;
+                }
+            foreach (WeaponMasteryFamilyDefinition family in WeaponMastery.GetFamilies())
+                foreach (WeaponMasteryMilestoneDefinition milestone in family.Milestones)
+                    if (!traits.ContainsCanonicalId(milestone.GrantedTrait))
+                    {
+                        reason = $"武器熟练里程碑 {milestone.Id} 引用了未知或非稳定特性 ID：{milestone.GrantedTrait}";
+                        return false;
+                    }
+            foreach (SymptomDefinition symptom in Symptoms.GetDefinitions())
+            {
+                string internalizedTraitId = HunterSymptomRules.GetInternalizedTraitId(symptom);
+                string overcomeTraitId = HunterSymptomRules.GetOvercomeTraitId(symptom);
+                if (traits.ContainsCanonicalId(internalizedTraitId) && traits.ContainsCanonicalId(overcomeTraitId)) continue;
+                reason = $"症状 {symptom.Id} 缺少内化或克服特性：{internalizedTraitId}/{overcomeTraitId}";
                 return false;
             }
             reason = string.Empty;

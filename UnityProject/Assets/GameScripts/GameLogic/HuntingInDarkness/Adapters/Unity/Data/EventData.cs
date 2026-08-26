@@ -160,7 +160,7 @@ namespace HuntingInDarkness.Data
         AddInsanity = 5,         // 增加压抑值
         AddCourage = 6,          // 增加胆识
         AddUnderstanding = 7,    // 增加知识
-        AddTrait = 8,            // 添加特性：targetName=特性名
+        AddTrait = 8,            // 添加特性：targetName=稳定特性 ID
         AddAilment = 9,          // 添加症状
         KillHunter = 10,         // 选中猎人永久死亡：targetName=稳定死因ID，description=玩家可见死因
         UnlockInvention = 11,    // 解锁发明：targetName=稳定发明 ContentId

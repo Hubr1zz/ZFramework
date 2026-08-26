@@ -191,6 +191,7 @@ namespace HuntingInDarkness.Data
         public const int MaxPendingEventChainOccurrences = 64;
         [Header("内容存档版本")]
         public int ItemIdentitySchemaVersion;
+        public int TraitIdentitySchemaVersion;
         public int InventionIdentitySchemaVersion;
         public int TimelineEventIdentitySchemaVersion;
         public string TimelineEventIdentityMigrationDiagnostic;

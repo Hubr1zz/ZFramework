@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "table-driven-hunter-traits",
+  "specHash": "18a06caace9934564a85079aa6ad685f178c615b1bce575fbfacbc08da07cff5",
+  "title": "读表猎人特性与稳定身份",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "特性表统一提供稳定 ID、显示名、旧别名与关键词；模板、事件、成长、症状和武器熟练只引用注册 ID，旧存档在营地候选投影事务内幂等迁移，3D 卡牌与猎人详情仍显示本地化名称。",
+    "validatedAgainstSpecHash": "18a06caace9934564a85079aa6ad685f178c615b1bce575fbfacbc08da07cff5",
+    "evidence": [
+      {
+        "guid": "31d854fa25174dc2a79acf36561498a6",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableTraitTable.cs",
+        "line": 1,
+        "fileHash": "efab95fb5dba287a3451d6b80cfb27f5d5c925a1ab461b1314459c8494649262",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "feature": "解析版本化特性表，构建不可变稳定身份、旧显示名与关键词索引，并拒绝身份或别名冲突。"
+      },
+      {
+        "guid": "88bb81cf04514fdf904e2a4e654b4fbb",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableTraitRegistry.cs",
+        "line": 1,
+        "fileHash": "a637f5f0fc56c8cc8a6d7d667f53a42d896c4d8d802e42f90cce79fde86586db",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "feature": "集中解析 ID、玩家显示名和玩法关键词，并对旧存档执行保留未知内容的幂等迁移。"
+      },
+      {
+        "guid": "8f2a0d7a2af44561bd7672416d3deeb5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/traits.json",
+        "line": 1,
+        "fileHash": "430a0c723bd91784ec96c0b34184bb8d82abaed2ffd7b401b5d6286774fe0c0a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "feature": "登记当前模板、事件、成长、症状与武器熟练所需的 24 项基础特性。"
+      },
+      {
+        "guid": "76ee8c16e7264fc89ae0566031980a8a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
+        "line": 103,
+        "fileHash": "a3542c8e3659834e516b9baffc735cf9ba9d873184b7438282508651a8198c28",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "feature": "在候选内容投影内执行 schema 门禁、旧特性迁移，并校验猎人模板与事件图只引用注册 ID。"
+      },
+      {
+        "guid": "2c7d0e3a7e71476e9d04f85e0a4db4d4",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentCandidate.cs",
+        "line": 139,
+        "fileHash": "6bfc5b4bb28abfb8fbef9d3c1776990c03bc112d8e4c2f7d97ed2eb300b14ca2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "feature": "发布后提交前验证成长、武器熟练与症状派生特性完整，失败时沿既有内容安装事务回滚。"
+      },
+      {
+        "guid": "e159b3c1d6bfcce4082b45e63fc28083",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
+        "line": 186,
+        "fileHash": "9381c741fdcf0882721a6be41c983d63fcbba440715dd868a48f48a133175144",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "feature": "持久化独立特性身份 schema，允许旧显示名迁移并拒绝未来版本被当前运行时覆写。"
+      },
+      {
+        "guid": "63d119b9265b7b545b017335d3d73241",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/RecruitmentTemplateCard3D.cs",
+        "line": 1,
+        "fileHash": "6a685e587a99e7983620a22d5cfacada1527e55660a5f88abf4db0d867afc9a8",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "feature": "世界空间招募卡只读解析特性显示名，不读取 JSON、不写状态也不向 ActionQueue 发布 UI 事件。"
+      },
+      {
+        "guid": "af345fc8a0984b2ca5538015451d23c8",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableTraitIdentityTests.cs",
+        "line": 1,
+        "fileHash": "adb166c4f238be55b89d44a71790f479ce0d73fd4faccc78873d06eb6f76c200",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:10:42-07:00",
+        "feature": "验证表解析、旧显示名迁移、去重、未知内容保留、未来 schema 拒绝和别名冲突。"
+      },
+      {
+        "guid": "e549d8b4d78e4d00aa85a1125c8148d0",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementProjectionTransactionTests.cs",
+        "line": 111,
+        "fileHash": "43098ddc27f1ade49fe3cd14b6a710559badda68d955edc8abd927814e8f7a5f",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "feature": "验证真实营地候选投影把旧特性显示名迁移为稳定 ID 后才替换权威运行图。"
+      }
+    ],
+    "tests": [
+      "PlayableTraitIdentityTests: 5/5 passed",
+      "PlayableCampaignContentAssemblerTests: 14/14 passed",
+      "PlayableConditionalEventOptionTests: 12/12 passed",
+      "PlayableHunterTemplateTableTests: 5/5 passed",
+      "PlayableGrowthMilestoneTests: 2/2 passed",
+      "PlayableSettlementSymptomActionTests: 5/5 passed",
+      "PlayableSettlementActionSessionTests: 33/33 passed",
+      "PlayableSettlementProjectionTransactionTests: 4/4 passed",
+      "CampaignSaveStorageTests: 13/13 passed",
+      "HuntingInDarkness.GameCore.Tests: 157/157 passed"
+    ],
+    "verifiedAt": "2026-08-25T17:10:42-07:00"
+  },
+  "implementationOutline": [
+    "版本化 traits.json 在营地内容计划构建时形成不可变身份目录，并对跨内容引用执行 fail-closed 预检。",
+    "SettlementInstance 记录特性 schema；旧显示名迁移在候选投影中幂等完成，未知外部 ID 保留。",
+    "规则层继续只处理字符串身份，Adapter 负责表解析和本地化，View 只做只读显示名投影。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableTraitTable.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableTraitRegistry.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs:103",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/traits.json:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

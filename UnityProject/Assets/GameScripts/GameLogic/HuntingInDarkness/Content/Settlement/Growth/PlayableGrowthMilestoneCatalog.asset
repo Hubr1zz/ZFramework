@@ -18,7 +18,7 @@ MonoBehaviour:
     description: "\u4F60\u5DF2\u5B66\u4F1A\u627F\u8BA4\u6050\u60E7\uFF0C\u4F46\u4E0D\u518D\u8BA9\u5B83\u66FF\u4F60\u4F5C\u51FA\u9009\u62E9\u3002"
     attribute: 0
     threshold: 2
-    grantedTrait: "\u76F4\u9762\u9ED1\u6697"
+    grantedTrait: trait_growth_face_darkness
     willpowerCapacityBonus: 0
     strengthBonus: 0
     accuracyBonus: 0
@@ -30,7 +30,7 @@ MonoBehaviour:
       +1\uFF0C\u5E76\u6062\u590D 1 \u610F\u5FD7\u3002"
     attribute: 0
     threshold: 5
-    grantedTrait: "\u4E0D\u5C48\u4E4B\u5FC3"
+    grantedTrait: trait_growth_unyielding_heart
     willpowerCapacityBonus: 1
     strengthBonus: 0
     accuracyBonus: 0
@@ -42,7 +42,7 @@ MonoBehaviour:
       +1\u3002"
     attribute: 0
     threshold: 8
-    grantedTrait: "\u65E0\u754F\u8005"
+    grantedTrait: trait_growth_fearless
     willpowerCapacityBonus: 0
     strengthBonus: 1
     accuracyBonus: 0
@@ -53,7 +53,7 @@ MonoBehaviour:
     description: "\u4F60\u5F00\u59CB\u4ECE\u6B8B\u7559\u7684\u7EC6\u8282\u4E2D\u8BFB\u51FA\u53D1\u751F\u8FC7\u7684\u6545\u4E8B\u3002"
     attribute: 1
     threshold: 2
-    grantedTrait: "\u8FA8\u8BC6\u75D5\u8FF9"
+    grantedTrait: trait_growth_trace_reader
     willpowerCapacityBonus: 0
     strengthBonus: 0
     accuracyBonus: 0
@@ -65,7 +65,7 @@ MonoBehaviour:
       +1\u3002"
     attribute: 1
     threshold: 5
-    grantedTrait: "\u6D1E\u5BDF\u5148\u5146"
+    grantedTrait: trait_growth_omen_insight
     willpowerCapacityBonus: 0
     strengthBonus: 0
     accuracyBonus: 1
@@ -77,7 +77,7 @@ MonoBehaviour:
       +1\u3002"
     attribute: 1
     threshold: 8
-    grantedTrait: "\u770B\u7A7F\u9ED1\u6697"
+    grantedTrait: trait_growth_see_through_darkness
     willpowerCapacityBonus: 0
     strengthBonus: 0
     accuracyBonus: 0

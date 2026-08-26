@@ -18,7 +18,8 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(option.conditions, Has.Count.EqualTo(1));
             Assert.That(option.conditions[0].conditionKind, Is.EqualTo(EventOptionConditionKind.HasTrait));
-            Assert.That(option.conditions[0].key, Is.EqualTo("守望者"));
+            Assert.That(option.conditions[0].key, Is.EqualTo("trait_watcher"));
+            Assert.That(option.conditions[0].displayName, Is.EqualTo("守望者"));
             Assert.That(option.successChain.Select(item => item.name), Is.EqualTo(new[] { "triggered_face_safe_path" }));
             Assert.That(option.successChain.Single().category, Is.EqualTo(EventCategory.Triggered));
         }
@@ -37,7 +38,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             var settlement = new SettlementInstance();
             var watcher = new HunterInstance(null, 9101) { Name = "守望者" };
-            watcher.Traits.Add("守望者");
+            watcher.Traits.Add("trait_watcher");
             var stranger = new HunterInstance(null, 9102) { Name = "陌生人" };
             settlement.Hunters.Add(watcher);
             settlement.Hunters.Add(stranger);
@@ -171,7 +172,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(result.Success, Is.True);
             Assert.That(listener.IsBloodlineActivated, Is.True);
-            Assert.That(listener.Traits, Contains.Item("石语者"));
+            Assert.That(listener.Traits, Contains.Item("trait_stone_speaker"));
             Assert.That(eventSystem.PrepareChoice(gameEvent, optionIndex, listener), Is.Null);
         }
 

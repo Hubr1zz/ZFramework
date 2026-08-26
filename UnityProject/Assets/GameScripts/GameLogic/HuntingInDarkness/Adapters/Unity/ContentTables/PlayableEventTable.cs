@@ -24,6 +24,7 @@ namespace HuntingInDarkness.ContentTables
     {
         public string conditionKind;
         public string key;
+        public string displayName;
         public int value;
         public bool inverted;
     }
@@ -478,7 +479,7 @@ namespace HuntingInDarkness.ContentTables
             foreach (EventOptionConditionTableRecord record in records)
             {
                 if (record == null || !TryParse(record.conditionKind, out EventOptionConditionKind conditionKind)) continue;
-                string displayName = record.key ?? string.Empty;
+                string displayName = string.IsNullOrWhiteSpace(record.displayName) ? record.key ?? string.Empty : record.displayName.Trim();
                 if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && bloodlineContent != null && bloodlineContent.TryGet(record.key, out HunterBloodlineDefinition bloodline))
                     displayName = bloodline.DisplayName;
                 conditions.Add(new EventOptionCondition { conditionKind = conditionKind, key = record.key ?? string.Empty, displayName = displayName, value = Mathf.Max(0, record.value), inverted = record.inverted });
