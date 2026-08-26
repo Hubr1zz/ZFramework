@@ -13,7 +13,7 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "21c12ec5929d9aee7c55a97a56ef9dd456cfe8c39387273992990641708fc102",
+        "fileHash": "1ae73162020de745e3364a91595523acab13eb316302737af8685105b54b8357",
         "status": "verified",
         "checkedAt": "2026-08-25T19:31:57-07:00",
         "feature": "只保留启动命令门面和 Unity 运行图发布回调，不再内联新建与继续战役事务体。"
@@ -94,7 +94,7 @@
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 1,
-        "fileHash": "2b3fcd25ec6b542f5b4233601e0d99c878cb671e47550b55024504e532cba939",
+        "fileHash": "f5f53822e3195029046e9d3949dae29cad0eb8c11962b7cb272b831d5d02fac2",
         "status": "verified",
         "checkedAt": "2026-08-25T09:21:00-07:00",
         "feature": "通过公开命令验证选择前零写入、新建单次发布、营地与活动狩猎恢复、延迟 Load 重入门禁及年度闭环。"

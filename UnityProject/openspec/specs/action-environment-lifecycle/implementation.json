@@ -51,7 +51,7 @@
         "guid": "4ba73e89b3fe5ba4088fc947dc1e9f63",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
         "line": 1,
-        "fileHash": "3b5472767838ce57d0fb72ac11ced33d4b3aa80ec8b6a09abe81bf5f45afe176",
+        "fileHash": "060b7f3e8a90857d58be188cb9a39844f74262234f366560e63cd696b113c98c",
         "status": "verified",
         "checkedAt": "2026-08-24T17:50:07-07:00",
         "feature": "持有单次狩猎的 Hunt ActionEnvironment，并从提交后事实移交跨阶段请求。"

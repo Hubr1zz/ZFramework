@@ -2,21 +2,23 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "tabletop-hunt-retreat",
-  "specHash": "e5af18a6f5f5c8f317a2324b1a584b3e0c9fcb8958997513893248f8bc19a9ff",
+  "specHash": "3472aaa7d9274ed367283bf194743b0db2e3a6a174ac09f6dc9846169f8370e3",
   "title": "3D 狩猎回营结算",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "地图边缘实体回营卡展示结算预览并独占输入；Hunt、Campaign 与 Settlement runners 依次准备稳定记录、切换阶段、转移收获并推进一年。",
-    "validatedAgainstSpecHash": "e5af18a6f5f5c8f317a2324b1a584b3e0c9fcb8958997513893248f8bc19a9ff",
+    "summary": "地图边缘实体回营卡区分安全回营与紧急撤退；远离营地时玩家用实体素材卡选择放弃一份，Hunt runner 重验并只过滤回营快照，再由 Campaign 与 Settlement runners 完成持久切换和年度结算。",
+    "validatedAgainstSpecHash": "3472aaa7d9274ed367283bf194743b0db2e3a6a174ac09f6dc9846169f8370e3",
     "evidence": [
-      { "guid": "304969fc70fda6f468fd46f7a274ad94", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntRetreatPanel3D.cs", "line": 1, "fileHash": "d16df03a365cf3bed026962a85fa1c649f9c9358b525a89bf050d24b906cf553", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "实体启动、确认与继续探索卡只提交回营意图并维护桌面输入所有权。" },
-      { "guid": "8601354706c5d2243a2c3ad182a5a99a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs", "line": 1, "fileHash": "6e3740cdc8e8424d92491492d7d5158c5c85d25b62d33a886406d4517e5f698e", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "Hunt runner 在离开前生成稳定、可幂等消费的回营快照。" },
-      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "2b3fcd25ec6b542f5b4233601e0d99c878cb671e47550b55024504e532cba939", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "端到端测试通过实体确认卡完成回营、结算、年份推进及下一轮出发。" }
+      { "guid": "304969fc70fda6f468fd46f7a274ad94", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntRetreatPanel3D.cs", "line": 1, "fileHash": "960972b4f2367813a417ef4ac2ec276070637df3d496242afc3d87223541ba70", "status": "verified", "checkedAt": "2026-08-25T20:48:01-07:00", "feature": "实体启动卡投影安全或紧急撤退，并以稳定排序、不会覆盖确认行的素材卡提交放弃选择。" },
+      { "guid": "8601354706c5d2243a2c3ad182a5a99a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs", "line": 1, "fileHash": "918a107b10f991dddf276a129807b78ca184e54f8679556b9f0a103f78fa11ca", "status": "verified", "checkedAt": "2026-08-25T20:48:01-07:00", "feature": "Hunt runner 重读位置和携带物，拒绝缺失或伪造选择，并只从回营快照过滤一份素材。" },
+      { "guid": "4ba73e89b3fe5ba4088fc947dc1e9f63", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs", "line": 60, "fileHash": "060b7f3e8a90857d58be188cb9a39844f74262234f366560e63cd696b113c98c", "status": "verified", "checkedAt": "2026-08-25T20:48:01-07:00", "feature": "在当前 Hunt generation 中生成撤退预览并把决策提交为 root GameAction。" },
+      { "guid": "54577cf1f04cca143ab704d8d7037cb1", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntRetreatActionTests.cs", "line": 1, "fileHash": "3717adf44898a5097aabb58aa9862b6db81c007f8165da1f4dce5583d291d035", "status": "verified", "checkedAt": "2026-08-25T20:48:01-07:00", "feature": "覆盖安全全量结算、远程必选、快照单次过滤、伪造拒绝、空手返回和 Reactor 阻止。" },
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 298, "fileHash": "f5f53822e3195029046e9d3949dae29cad0eb8c11962b7cb272b831d5d02fac2", "status": "verified", "checkedAt": "2026-08-25T20:48:01-07:00", "feature": "端到端测试通过真实素材选择卡完成紧急撤退、结算、年份推进及下一轮出发。" }
     ],
-    "tests": ["PlayableHuntRetreatActionTests: 4/4 passed", "GameManagerCampaignLoopPlayModeTests: 14/14 passed"],
-    "verifiedAt": "2026-08-25T11:54:00-07:00"
+    "tests": ["PlayableHuntRetreatActionTests: 8/8 passed", "GameManagerCampaignLoopPlayModeTests: 14/14 passed"],
+    "verifiedAt": "2026-08-25T20:48:01-07:00"
   },
   "publishedBy": { "mode": "direct-implementation-reconciliation", "changeId": "" }
 }

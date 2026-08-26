@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace HuntingInDarkness.ViewLayer.Hunt
         private bool requestInFlight;
         private int inputOwnerId;
         private bool holdsInputGuard;
+        private string selectedAbandonedResourceId = string.Empty;
 
         public bool IsConfirmationOpen => confirmationOpen;
         public bool IsRequestInFlight => requestInFlight;
@@ -47,6 +49,7 @@ namespace HuntingInDarkness.ViewLayer.Hunt
                 return;
 
             confirmationOpen = true;
+            selectedAbandonedResourceId = string.Empty;
             AcquireInputGuard();
             PresentConfirmation(string.Empty);
         }
@@ -61,6 +64,7 @@ namespace HuntingInDarkness.ViewLayer.Hunt
         private void PresentLauncher()
         {
             confirmationOpen = false;
+            selectedAbandonedResourceId = string.Empty;
             ReleaseInputGuard();
             ClearCards();
             transform.localPosition = GetLauncherPosition();
@@ -74,16 +78,63 @@ namespace HuntingInDarkness.ViewLayer.Hunt
             transform.localPosition = GetLauncherPosition();
             int hunterCount = manager.ActiveHunters?.Count ?? 0;
             int lostCount = manager.ActiveHunters?.Count(hunter => hunter == null || !hunter.IsAlive) ?? 0;
-            HuntCollectiblePresentation collectibles = HuntCollectiblePresentation.Create(manager.ActiveHunters?.Where(hunter => hunter != null).SelectMany(hunter => hunter.Collectibles ?? Enumerable.Empty<ItemInstance>()));
+            HuntRetreatPreview preview = input?.GetRetreatPreview() ?? HuntRetreatPreview.Empty;
+            if (!preview.RequiresAbandonment || !preview.Materials.Any(material => material.ContentId == selectedAbandonedResourceId))
+                selectedAbandonedResourceId = string.Empty;
+            int collectibleCount = preview.Materials.Sum(material => material.Count);
+            string mode = preview.IsAtCamp
+                ? "安全撤退：小队已在营地，携带素材将全部带回。"
+                : preview.RequiresAbandonment
+                ? "紧急撤退：小队远离营地，必须放弃一份携带素材。"
+                : "紧急撤退：小队远离营地，但当前没有携带素材。";
+            string summary = preview.Materials.Count == 0
+                ? "无"
+                : string.Join("、", preview.Materials.Select(material => $"{material.DisplayName} ×{material.Count}"));
             TabletopEventPrimaryCard3D primary = TabletopEventPrimaryCard3D.Create(transform);
             primary.MoveTo(new Vector3(0f, 0f, 1.75f));
-            primary.Present("返回营地？", $"出发猎人 · {hunterCount}\n失去猎人 · {lostCount}\n携带素材 · {collectibles.TotalCount}\n{collectibles.Summary}\n\n回营后将结算收获并推进营地流程。", string.IsNullOrWhiteSpace(status) ? "确认前仍可继续探索" : status, string.IsNullOrWhiteSpace(status) ? TabletopEventPrimaryTone.Narrative : TabletopEventPrimaryTone.Failure);
+            primary.Present("返回营地？", $"{mode}\n出发猎人 · {hunterCount}\n失去猎人 · {lostCount}\n携带素材 · {collectibleCount}\n{summary}\n\n回营后将结算收获并推进营地流程。", string.IsNullOrWhiteSpace(status) ? "确认前仍可继续探索" : status, string.IsNullOrWhiteSpace(status) ? TabletopEventPrimaryTone.Narrative : TabletopEventPrimaryTone.Failure);
 
-            TabletopEventChoiceCard3D confirm = TabletopEventChoiceCard3D.Create(transform, new Vector3(-0.82f, 0f, -0.55f));
-            confirm.Present("结算并回营", "将采集物转入营地，结束本次狩猎。", !requestInFlight, requestInFlight ? "正在结算" : "点击确认", ConfirmAsync);
-            TabletopEventChoiceCard3D cancel = TabletopEventChoiceCard3D.Create(transform, new Vector3(0.82f, 0f, -0.55f));
+            if (preview.RequiresAbandonment)
+                PresentMaterialChoices(preview.Materials);
+
+            bool canConfirm = !requestInFlight && (!preview.RequiresAbandonment || !string.IsNullOrWhiteSpace(selectedAbandonedResourceId));
+            float actionRowZ = ResolveActionRowZ(preview);
+            TabletopEventChoiceCard3D confirm = TabletopEventChoiceCard3D.Create(transform, new Vector3(-0.82f, 0f, actionRowZ));
+            confirm.Present("结算并回营", preview.RequiresAbandonment ? "提交选定的放弃素材并结束狩猎。" : "将采集物转入营地，结束本次狩猎。", canConfirm, requestInFlight ? "正在结算" : canConfirm ? "点击确认" : "请先选择放弃素材", ConfirmAsync);
+            TabletopEventChoiceCard3D cancel = TabletopEventChoiceCard3D.Create(transform, new Vector3(0.82f, 0f, actionRowZ));
             bool canContinue = !requestInFlight && input?.IsReturnCheckpointLocked != true;
             cancel.Present("继续探索", "收起回营卡，保留当前狩猎进度。", canContinue, canContinue ? string.Empty : "检查点已锁定", RequestClose);
+        }
+
+        private void PresentMaterialChoices(IReadOnlyList<HuntRetreatMaterial> materials)
+        {
+            int columns = Mathf.Min(3, materials.Count);
+            for (int index = 0; index < materials.Count; index++)
+            {
+                HuntRetreatMaterial material = materials[index];
+                int row = index / columns;
+                int column = index % columns;
+                float x = (column - (columns - 1) * 0.5f) * 0.95f;
+                float z = 0.25f - row * 0.62f;
+                TabletopEventChoiceCard3D card = TabletopEventChoiceCard3D.Create(transform, new Vector3(x, 0f, z));
+                bool selected = material.ContentId == selectedAbandonedResourceId;
+                card.Present(selected ? $"已放弃 · {material.DisplayName}" : $"放弃 · {material.DisplayName}", $"携带 {material.Count} · 放弃 1 份", !requestInFlight, selected ? "当前选择" : "点击选择", () => SelectAbandonedResource(material.ContentId));
+            }
+        }
+
+        private void SelectAbandonedResource(string contentId)
+        {
+            if (requestInFlight || string.IsNullOrWhiteSpace(contentId)) return;
+            selectedAbandonedResourceId = contentId;
+            PresentConfirmation(string.Empty);
+        }
+
+        private static float ResolveActionRowZ(HuntRetreatPreview preview)
+        {
+            if (!preview.RequiresAbandonment)
+                return -0.55f;
+            int materialRows = Mathf.CeilToInt(preview.Materials.Count / 3f);
+            return 0.25f - (materialRows - 1) * 0.62f - 0.78f;
         }
 
         private void ConfirmAsync()
@@ -100,7 +151,7 @@ namespace HuntingInDarkness.ViewLayer.Hunt
             HuntRetreatCommandResult result;
             try
             {
-                result = await input.RequestRetreatAsync();
+                result = await input.RequestRetreatAsync(new HuntRetreatDecision(selectedAbandonedResourceId));
             }
             catch (System.Exception exception)
             {
@@ -117,6 +168,7 @@ namespace HuntingInDarkness.ViewLayer.Hunt
                 return;
             }
             confirmationOpen = false;
+            selectedAbandonedResourceId = string.Empty;
             ReleaseInputGuard();
             ClearCards();
         }

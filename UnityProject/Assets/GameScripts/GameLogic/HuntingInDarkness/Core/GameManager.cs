@@ -978,6 +978,7 @@ namespace Core
         public bool IsHuntActionSessionRunning => huntActionSession?.IsRunning == true;
         public bool IsHuntReturnInFlight => huntReturnRecoveryInFlight;
         bool IPlayableHuntRetreatInput.IsReturnCheckpointLocked => huntActionSession?.IsReturnCheckpointLocked == true;
+        HuntRetreatPreview IPlayableHuntRetreatInput.GetRetreatPreview() => huntActionSession != null ? huntActionSession.GetRetreatPreview() : HuntRetreatPreview.Empty;
         public bool IsCampaignActionSessionActive => campaignStarted && campaignRuntime?.IsActionSessionActive == true;
         public bool IsCampaignRuntimeActive => campaignStarted;
         public bool IsSettlementActionSessionRunning => campaignStarted && settlementActionSession?.IsRunning == true;
@@ -1420,7 +1421,10 @@ namespace Core
             RequestRetreatAsync().Forget();
         }
 
-        public async UniTask<HuntRetreatCommandResult> RequestRetreatAsync()
+        public UniTask<HuntRetreatCommandResult> RequestRetreatAsync()
+            => RequestRetreatAsync(HuntRetreatDecision.None);
+
+        public async UniTask<HuntRetreatCommandResult> RequestRetreatAsync(HuntRetreatDecision decision)
         {
             if (huntRetreatInFlight)
                 return HuntRetreatCommandResult.Failed("回营流程正在处理中。");
@@ -1442,7 +1446,7 @@ namespace Core
             huntRetreatInFlight = true;
             try
             {
-                HuntRetreatCommandResult retreat = await sourceHunt.ActionSession.PrepareRetreatAsync(sourceSettlement.Manager.Data.CurrentYear, this.GetCancellationTokenOnDestroy());
+                HuntRetreatCommandResult retreat = await sourceHunt.ActionSession.PrepareRetreatAsync(sourceSettlement.Manager.Data.CurrentYear, decision, this.GetCancellationTokenOnDestroy());
                 if (!retreat.Succeeded)
                     return retreat;
                 if (!ReferenceEquals(huntRuntime, sourceHunt) || !ReferenceEquals(settlementRuntime, sourceSettlement))

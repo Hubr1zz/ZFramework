@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CardGame.ActionQueue;
 using Core;
@@ -73,6 +74,61 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 EventBus.Unsubscribe(handler);
             }
+        }
+
+        [Test]
+        public async Task PrepareRetreatAsync_RemoteWithMaterialsRequiresAbandonment()
+        {
+            using var rig = new RetreatRig();
+            rig.MoveAwayFromCamp();
+
+            HuntRetreatCommandResult result = await rig.Session.PrepareRetreatAsync(rig.Settlement.CurrentYear);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Reason, Is.EqualTo("远离营地且携带素材时，必须选择放弃一份素材。"));
+            Assert.That(rig.Survivor.Collectibles, Has.Count.EqualTo(1));
+            Assert.That(rig.Survivor.Collectibles[0].Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task PrepareRetreatAsync_RemoteSelectionOnlyChangesRecordSnapshot()
+        {
+            using var rig = new RetreatRig();
+            rig.MoveAwayFromCamp();
+
+            HuntRetreatCommandResult result = await rig.Session.PrepareRetreatAsync(rig.Settlement.CurrentYear, new HuntRetreatDecision(rig.Resource.ContentId));
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(result.Record.CollectedResources, Is.Empty);
+            Assert.That(rig.Survivor.Collectibles, Has.Count.EqualTo(1));
+            Assert.That(rig.Survivor.Collectibles[0].Data.ContentId, Is.EqualTo(rig.Resource.ContentId));
+            Assert.That(rig.Survivor.Collectibles[0].Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task PrepareRetreatAsync_RemoteRejectsForgedAbandonmentId()
+        {
+            using var rig = new RetreatRig();
+            rig.MoveAwayFromCamp();
+
+            HuntRetreatCommandResult result = await rig.Session.PrepareRetreatAsync(rig.Settlement.CurrentYear, new HuntRetreatDecision("forged.resource"));
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Reason, Is.EqualTo("选择的放弃素材已不在当前小队携带物中。"));
+            Assert.That(rig.Survivor.Collectibles[0].Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task PrepareRetreatAsync_RemoteEmptyHandsAllowReturnWithoutSelection()
+        {
+            using var rig = new RetreatRig();
+            rig.Survivor.Collectibles.Clear();
+            rig.MoveAwayFromCamp();
+
+            HuntRetreatCommandResult result = await rig.Session.PrepareRetreatAsync(rig.Settlement.CurrentYear);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(result.Record.CollectedResources, Is.Empty);
         }
 
         [Test]
@@ -153,6 +209,14 @@ namespace HuntingInDarkness.Adapter.Tests
             public SettlementInstance Settlement { get; }
             public HuntManager Manager { get; }
             public PlayableHuntActionSession Session { get; }
+
+            public void MoveAwayFromCamp()
+            {
+                KeyValuePair<Vector2Int, HexTileInstance> target = Manager.Map.First(pair => pair.Key != Manager.CampPosition && pair.Value.State == TileState.Interactable);
+                Assert.That(Manager.TryCommitTileInteraction(target.Key, HuntTileInteractionKind.Reveal, out _), Is.True);
+                Assert.That(Manager.TryCommitTileInteraction(target.Key, HuntTileInteractionKind.Move, out _), Is.True);
+                Assert.That(Manager.IsSquadAtCamp, Is.False);
+            }
 
             public void Dispose()
             {

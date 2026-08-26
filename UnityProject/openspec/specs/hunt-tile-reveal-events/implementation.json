@@ -15,7 +15,7 @@
         "guid": "6dce6ba7b65af9c42821b85a0555ac17",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
         "line": 245,
-        "fileHash": "a53abd9bb772af48f3bf0307430055fb40f94920d92df4def01b4d79f95ab5e5",
+        "fileHash": "aca4adb5f9ba5bc8876cec8e5f1bb008d24aa5b28265eb8510cebcd7585942a6",
         "status": "verified",
         "checkedAt": "2026-08-25T15:14:24-07:00",
         "feature": "提交揭示但延迟邻居解锁，并按显式地块事件优先、噪音结果回退选择唯一事件。"

@@ -298,6 +298,14 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(retreatPanel.IsConfirmationOpen, Is.True);
             Assert.That(PlayableHuntInputGuard.IsBlocked, Is.True, "实体回营确认桌打开时应独占狩猎输入。");
             TabletopEventChoiceCard3D confirmRetreat = retreatPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.DisplayName == "结算并回营");
+            if (!confirmRetreat.IsInteractable)
+            {
+                TabletopEventChoiceCard3D abandonRetreatMaterial = retreatPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).First(card => card.DisplayName.StartsWith("放弃 · "));
+                Assert.That(abandonRetreatMaterial.IsInteractable, Is.True, "远离营地且携带素材时应先选择一张放弃素材牌。");
+                abandonRetreatMaterial.Clicked.Invoke();
+                yield return null;
+                confirmRetreat = retreatPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.DisplayName == "结算并回营");
+            }
             Assert.That(confirmRetreat.IsInteractable, Is.True);
             confirmRetreat.Clicked.Invoke();
             yield return WaitForSettlementIdle(manager);

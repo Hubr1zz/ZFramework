@@ -34,6 +34,8 @@ namespace HuntingInDarkness.Hunt
         public Dictionary<Vector2Int, HexTileInstance> Map { get; private set; } = new();
         private readonly HuntNavigationState _navigation = new();
         public Vector2Int SquadPosition => ToUnity(_navigation.SquadPosition);
+        public Vector2Int CampPosition => ToUnity(GridPosition.Zero);
+        public bool IsSquadAtCamp => SquadPosition == CampPosition;
         public float      CellSize      { get; } = 2.0f;
 
         // ─── 猎人 ─────────────────────────────────────────────────

@@ -22,7 +22,7 @@
         "guid": "4ba73e89b3fe5ba4088fc947dc1e9f63",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
         "line": 1,
-        "fileHash": "a1b2d87b8ea6e04aefea0ca506bdff56c4d78e9fbfc49dcfb8264d96e395cfd7",
+        "fileHash": "060b7f3e8a90857d58be188cb9a39844f74262234f366560e63cd696b113c98c",
         "status": "verified",
         "checkedAt": "2026-08-24T23:17:53-07:00",
         "feature": "在新地块、采集或回营命令前排空待恢复事件；成功但未消费当前 occurrence 时 fail-closed，避免恢复循环停滞。"

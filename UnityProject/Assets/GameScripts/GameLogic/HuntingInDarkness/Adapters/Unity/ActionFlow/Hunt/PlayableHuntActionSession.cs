@@ -60,6 +60,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public bool IsActive => !environment.IsDisposed;
         public bool IsRunning => environment.IsRunning;
         public bool IsReturnCheckpointLocked => returnCheckpointLocked;
+        public HuntRetreatPreview GetRetreatPreview() => HuntRetreatPreview.Create(manager);
         public bool HasPendingEventOccurrences => occurrenceStore.HasPendingOccurrences;
         public bool HasActiveHarvest
         {
@@ -164,7 +165,10 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? PlayableHarvestStepResult.Failed(outcome.Reason) : action.Result;
         }
 
-        public async UniTask<HuntRetreatCommandResult> PrepareRetreatAsync(int currentYear, CancellationToken cancellationToken = default)
+        public UniTask<HuntRetreatCommandResult> PrepareRetreatAsync(int currentYear, CancellationToken cancellationToken = default)
+            => PrepareRetreatAsync(currentYear, HuntRetreatDecision.None, cancellationToken);
+
+        public async UniTask<HuntRetreatCommandResult> PrepareRetreatAsync(int currentYear, HuntRetreatDecision decision, CancellationToken cancellationToken = default)
         {
             if (!IsActive)
                 return HuntRetreatCommandResult.Failed("狩猎会话已经结束。");
@@ -180,7 +184,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle squad = environment.EntityHandles.GetOrCreate("hunt-squad", "active", "狩猎小队");
             ReactorEntityHandle settlement = environment.EntityHandles.GetOrCreate("settlement", "return-target", "营地");
-            var action = new PrepareHuntRetreatAction(manager, currentYear, outbox, squad, settlement);
+            var action = new PrepareHuntRetreatAction(manager, currentYear, decision, outbox, squad, settlement);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
             if (outcome.IsSuccess)
                 return action.Result;

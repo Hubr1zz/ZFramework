@@ -60,7 +60,7 @@
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 218,
-        "fileHash": "2b3fcd25ec6b542f5b4233601e0d99c878cb671e47550b55024504e532cba939",
+        "fileHash": "f5f53822e3195029046e9d3949dae29cad0eb8c11962b7cb272b831d5d02fac2",
         "status": "verified",
         "checkedAt": "2026-08-25T14:13:03-07:00",
         "feature": "验证正式战役进入 Hunt 后建立入场计划、运镜期间阻止输入并最终恢复完整地图流程。"

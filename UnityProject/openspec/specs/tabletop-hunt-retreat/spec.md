@@ -23,6 +23,24 @@ The normal Hunt retreat flow SHALL use a persistent 3D return card and a separat
 - **WHEN** the player selects the physical continue card
 - **THEN** the confirmation layout closes and the Hunt map remains unchanged and interactive
 
+### Requirement: Retreat location creates a visible cargo decision
+Returning from the configured camp position SHALL preserve every carried material. Confirming an emergency retreat away from camp SHALL require the player to select one currently carried stable resource ID and SHALL omit exactly one unit of that resource from the prepared return snapshot. An empty-handed squad MAY retreat without a selection.
+
+#### Scenario: The squad returns to camp before ending the hunt
+- **WHEN** the return layout opens at the camp position
+- **THEN** the physical confirmation card states that every carried material will be settled
+- **AND** the prepared return record retains the complete cargo snapshot
+
+#### Scenario: The squad retreats away from camp with cargo
+- **WHEN** the return layout opens away from camp
+- **THEN** each aggregated carried resource is represented by a physical selection card
+- **AND** the confirmation card remains unavailable until one current resource is selected for abandonment
+- **AND** a successful preparation removes exactly one matching unit from the return record without mutating the live hunter collectibles
+
+#### Scenario: The squad retreats away from camp empty-handed
+- **WHEN** no active hunter carries a positive resource count
+- **THEN** the emergency retreat can be confirmed without an abandonment selection
+
 ### Requirement: Retreat confirmation owns Hunt input
 While the return confirmation is open, the View SHALL hold the Hunt input guard and SHALL release it after cancellation, successful phase exit, disable, or destruction.
 
@@ -32,6 +50,8 @@ While the return confirmation is open, the View SHALL hold the Hunt input guard 
 
 ### Requirement: Hunt runner prepares the completion snapshot
 The active Hunt ActionQueue SHALL prepare the year, deployed count, loss count, and collected-resource snapshot before any Campaign transition or resource transfer occurs, and reactors SHALL be able to prevent that preparation.
+
+The Hunt runner SHALL re-read the current squad position and live cargo when validating an abandonment decision. A missing, forged, stale, or camp-only selection SHALL fail without changing live cargo or publishing a prepared fact.
 
 #### Scenario: A Hunt reactor prevents retreat
 - **WHEN** a registered reactor rejects the retreat action
@@ -54,6 +74,7 @@ The orchestration boundary SHALL request Hunt-to-Settlement through the Campaign
 #### Scenario: Campaign transition is rejected
 - **WHEN** Hunt preparation succeeds but the Campaign transition does not commit
 - **THEN** the game remains in Hunt and SHALL either durably remove the unused checkpoint before exploration resumes or retain a locked checkpoint that only permits an idempotent transition retry
+- **AND** retry SHALL reuse or recreate the same one-unit filtered snapshot without accumulating another abandonment loss
 
 #### Scenario: Campaign transition succeeds
 - **WHEN** both Runner operations commit
