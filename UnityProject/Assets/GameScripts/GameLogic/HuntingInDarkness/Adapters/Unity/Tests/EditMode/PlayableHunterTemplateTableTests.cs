@@ -84,12 +84,13 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void ResourceTable_ProvidesBaselineRecruitmentCandidate()
+        public void ResourceTable_ProvidesDifferentiatedRecruitmentRoster()
         {
             IReadOnlyList<HunterTemplateTableRecord> records = new JsonHunterTemplateTableSource("HuntingInDarkness/Tables/hunters").Load();
 
             List<HunterTemplateTableEntry> entries = PlayableHunterTemplateTableRuntime.Build(records, PlayableItemTableRuntime.GetItems());
 
+            Assert.That(entries, Has.Count.EqualTo(8));
             HunterTemplateTableEntry entry = entries.Find(candidate => candidate.Template != null && candidate.Template.ContentId == "ember_keeper_yao");
             Assert.That(entry.Template, Is.Not.Null);
             Assert.That(entry.Recruitable, Is.True);
@@ -105,6 +106,11 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(mender.Recruitable, Is.True);
             Assert.That(mender.Template.startingEquipment[0].ContentId, Is.EqualTo("stonewatch_mantle"));
             Assert.That(mender.Template.initialWillpower, Is.EqualTo(3));
+            AssertRecruit(entries, "bone_stitcher_ning", "bone_saw_blade", "trait_mastery_blade_apprentice");
+            AssertRecruit(entries, "carapace_keeper_cen", "carapace_bracer", "trait_watcher");
+            AssertRecruit(entries, "dream_keeper_mo", "mite_hush_hood", "trait_first_dreamer");
+            AssertRecruit(entries, "root_walker_an", "rootstep_greaves", "trait_keen_hearing");
+            AssertRecruit(entries, "rust_gatherer_he", "rust_hook_knife", "trait_mastery_blade_apprentice");
             foreach (HunterTemplateTableEntry candidate in entries)
                 Object.DestroyImmediate(candidate.Template);
         }
@@ -136,6 +142,16 @@ namespace HuntingInDarkness.Adapter.Tests
         private static HunterTemplateTableRecord CreateRecord(string id, string displayName)
         {
             return new HunterTemplateTableRecord { id = id, displayName = displayName, recruitable = true };
+        }
+
+        private static void AssertRecruit(List<HunterTemplateTableEntry> entries, string id, string equipmentId, string traitId)
+        {
+            HunterTemplateTableEntry entry = entries.Find(candidate => candidate.Template != null && candidate.Template.ContentId == id);
+            Assert.That(entry.Template, Is.Not.Null, $"缺少招募模板：{id}");
+            Assert.That(entry.Recruitable, Is.True);
+            Assert.That(entry.Template.startingEquipment, Has.Count.EqualTo(1));
+            Assert.That(entry.Template.startingEquipment[0].ContentId, Is.EqualTo(equipmentId));
+            Assert.That(entry.Template.startingTraits, Does.Contain(traitId));
         }
 
         private static ItemData CreateItem(string id, ItemType type)

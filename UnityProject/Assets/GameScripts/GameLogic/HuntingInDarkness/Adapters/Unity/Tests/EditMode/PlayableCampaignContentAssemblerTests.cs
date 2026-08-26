@@ -278,11 +278,15 @@ namespace HuntingInDarkness.Adapter.Tests
             IReadOnlyList<ItemData> planItems = GetPlanList<ItemData>(plan, "Items");
             ItemData planItem = FindByName(planItems, "black_salt");
             InventionData planInvention = FindByName(GetPlanList<InventionData>(plan, "Inventions"), "paper-and-pen");
-            HunterData planHunter = FindByName(GetPlanList<HunterData>(plan, "RecruitmentTemplates"), "ember_keeper_yao");
+            IReadOnlyList<HunterData> planRecruitment = GetPlanList<HunterData>(plan, "RecruitmentTemplates");
+            HunterData planHunter = FindByName(planRecruitment, "ember_keeper_yao");
+            HunterData rootWalker = FindByName(planRecruitment, "root_walker_an");
             HunterData externalHunter = settings.SettlementContent.RecruitmentTemplates[0];
             Assert.That(planItem, Is.Not.Null);
             Assert.That(planInvention, Is.Not.Null);
             Assert.That(planHunter, Is.Not.Null);
+            Assert.That(rootWalker, Is.Not.Null);
+            Assert.That(planRecruitment, Has.Count.GreaterThanOrEqualTo(11));
             Assert.That(FindByName(PlayableSettlementItemRegistry.Items, "black_salt"), Is.SameAs(planItem));
             var firstManager = new SettlementManager(101);
             var secondManager = new SettlementManager(202);

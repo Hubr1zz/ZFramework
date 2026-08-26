@@ -40,9 +40,9 @@
         "guid": "176f9d6f63af40d9b3ee3e7e9b5f6ee5",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
         "line": 1,
-        "fileHash": "d106d8e20af8cf34d5535383b30e22a584b1377766918170840671a82a817f49",
+        "fileHash": "40c30c3a2c027c0efb710b56ed6db06eaf51ba5c8214ea400e65da28ac05c31c",
         "status": "verified",
-        "checkedAt": "2026-08-24T07:21:34-07:00",
+        "checkedAt": "2026-08-25T18:52:09-07:00",
         "feature": "验证无副作用预检、单 Bundle 发布、事件世代租约、安装回滚、候选释放与无限年份覆盖。"
       },
       {

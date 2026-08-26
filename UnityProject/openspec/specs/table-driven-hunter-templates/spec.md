@@ -47,6 +47,13 @@ Table records SHALL remain Adapter input, the Settlement runner SHALL remain the
 - **WHEN** the 3D candidate card submits the existing recruit command
 - **THEN** the normal cost, capacity, yearly limit, Reactor, annal, roster event, and persistence rules apply unchanged
 
+### Requirement: Production recruitment content provides replacement variety
+The production hunter table SHALL provide at least eight valid recruitable templates with differentiated attributes and initial loadouts, so the normal world-space recruitment board exposes more than one page of candidates without content-specific View branches.
+
+#### Scenario: Production campaign content is assembled
+- **WHEN** the serialized recruitment assets and production hunter table are merged into one campaign content plan
+- **THEN** every table candidate SHALL retain a unique stable ID, registered trait references, valid equipment, and a reachable position in the existing five-card pagination flow
+
 ### Requirement: Template origin persists across sessions
 The authoritative hunter state SHALL serialize its origin template ID while preserving compatibility with saves where that field is absent.
 

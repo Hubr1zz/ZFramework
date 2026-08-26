@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "90f7b6e330ee4a229cd55a25e5d94b035364d4cbdfdc1fac7e442582f966bd24",
-  "inputManifestDigest": "2b2528e7ecfc3ae1c389a68740859db87cd37672fda8bfee49fbd7e5116fef8b",
-  "outputDigest": "a4bf3397a589b062fe6082d971b85bed5553a869cf707c80b52e94e2ee651dfb",
+  "inputDigest": "b7f98f27763f0e93759c26777e306d37bdc8f0c81ab2e82d2d90d6c01b7fe320",
+  "inputManifestDigest": "23d06591a504b25bea3510439086cd3afa6480c52b96f047a156d4e775aa3146",
+  "outputDigest": "e268a3e15f005f4b50a65073dafa36c270c327de3312180be34e4e5fe018f2f7",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -417,7 +417,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
-      "sha256": "b9e33ab99b1725b73a2c974ccbc00f0750fef206d122281202711a0adc94f3ad",
+      "sha256": "40c30c3a2c027c0efb710b56ed6db06eaf51ba5c8214ea400e65da28ac05c31c",
       "state": "current"
     },
     {
@@ -487,7 +487,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHunterTemplateTableTests.cs",
-      "sha256": "bbb4eaa41226410a9644609aaccfb73ac00214d13d41c53edee5d2a7e5c74fce",
+      "sha256": "a3911d622ce3e6b729f4de98ec744658e22b3f33b5b2b79cf51441253fd281d7",
       "state": "current"
     },
     {
@@ -737,7 +737,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunters.json",
-      "sha256": "1fc1c68dbeae25e1acf765e5fcb4939dae718c0d59cbbb75f1e4db562e8f02fd",
+      "sha256": "d76d7813c7887f085e95c52f736b3ebcb52c1325f03e2f38daab14ff6418d0e1",
       "state": "current"
     },
     {
@@ -977,7 +977,7 @@
     },
     {
       "path": "openspec/specs/campaign-content-preflight-assembly/implementation.json",
-      "sha256": "7d3701c3b97dfc0b7d282039fe18933aa3386a8ce0b49f3b17c1de525fb1835e",
+      "sha256": "a74d946f9401a043f0bb3c471c933f5e4cf2f103371f1f472d1c35e750ff2f1f",
       "state": "current"
     },
     {
@@ -1217,7 +1217,7 @@
     },
     {
       "path": "openspec/specs/settlement-content-plan-lifecycle/implementation.json",
-      "sha256": "d86c5da859346c887ef83de95a98f28bb70efac1bab1e4f1f6ccd2fc0eb45ac5",
+      "sha256": "2c2955385c4fa5e54a56456a05b86489d49793d7d1440df8d263e2a4582f6ab5",
       "state": "current"
     },
     {
@@ -1317,12 +1317,12 @@
     },
     {
       "path": "openspec/specs/table-driven-hunter-templates/implementation.json",
-      "sha256": "710790c6d1479ec882c3a34205fe81d306d9e3b5e335fd77e6342797118fff7a",
+      "sha256": "d99461c702302a3434d29590c7f7ac76a96a0cd9516dcd4e3ddd0534e7198a95",
       "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-hunter-templates/spec.md",
-      "sha256": "87f26c5177848e3ba0d93549c4c1561ac6adf8355e3026d40503b7cb8c6a6829",
+      "sha256": "4cd8a5a76c2d3a4c62a8964c515fccadada173d33a506bfcdde10fa9cbb475c5",
       "state": "current"
     },
     {
@@ -1689,11 +1689,6 @@
     },
     {
       "capability": "campaign-content-preflight-assembly",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "campaign-content-preflight-assembly",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs",
       "state": "stale"
     },
@@ -1795,11 +1790,6 @@
     {
       "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "settlement-content-plan-lifecycle",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
       "state": "stale"
     },
     {
@@ -2017,7 +2007,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignRuntimeSnapshot.cs",
@@ -2926,7 +2916,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
@@ -3305,7 +3295,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "猎人 JSON 表在内容装配阶段映射为普通 HunterData，严格校验稳定身份、属性、角色与初始装备；招募继续由 Settlement ActionQueue 提交，运行时及存档保留模板 ID，旧存档缺失身份时规范为空且不按显示名伪造绑定。",
+      "summary": "猎人 JSON 表在内容装配阶段映射为普通 HunterData，当前生产表提供八名差异化候选并与三个序列化模板合并；招募继续由 Settlement ActionQueue 提交，运行时及存档保留模板 ID。",
       "designSources": [],
       "sources": [
         "openspec/specs/table-driven-hunter-templates/spec.md",
@@ -3343,6 +3333,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunters.json",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
           "state": "current"
         },
         {

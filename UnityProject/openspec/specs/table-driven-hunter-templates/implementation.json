@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "table-driven-hunter-templates",
-  "specHash": "87f26c5177848e3ba0d93549c4c1561ac6adf8355e3026d40503b7cb8c6a6829",
+  "specHash": "4cd8a5a76c2d3a4c62a8964c515fccadada173d33a506bfcdde10fa9cbb475c5",
   "title": "读表猎人模板与稳定身份",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "猎人 JSON 表在内容装配阶段映射为普通 HunterData，严格校验稳定身份、属性、角色与初始装备；招募继续由 Settlement ActionQueue 提交，运行时及存档保留模板 ID，旧存档缺失身份时规范为空且不按显示名伪造绑定。",
-    "validatedAgainstSpecHash": "87f26c5177848e3ba0d93549c4c1561ac6adf8355e3026d40503b7cb8c6a6829",
+    "summary": "猎人 JSON 表在内容装配阶段映射为普通 HunterData，当前生产表提供八名差异化候选并与三个序列化模板合并；招募继续由 Settlement ActionQueue 提交，运行时及存档保留模板 ID。",
+    "validatedAgainstSpecHash": "4cd8a5a76c2d3a4c62a8964c515fccadada173d33a506bfcdde10fa9cbb475c5",
     "evidence": [
       {
         "guid": "e2fd62e7b7b24abfa6589b154bf8c584",
@@ -69,19 +69,28 @@
         "guid": "e7468c45d9904312aa60401b6c808d7d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHunterTemplateTableTests.cs",
         "line": 1,
-        "fileHash": "bbb4eaa41226410a9644609aaccfb73ac00214d13d41c53edee5d2a7e5c74fce",
+        "fileHash": "a3911d622ce3e6b729f4de98ec744658e22b3f33b5b2b79cf51441253fd281d7",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
-        "feature": "验证稳定身份、装备持久 ID、表内基线内容、重复身份、未知装备、武器上限及资产冲突。"
+        "checkedAt": "2026-08-25T18:52:09-07:00",
+        "feature": "验证八名生产表候选的稳定身份、差异化装备与特性，并覆盖重复身份、未知装备、武器上限及资产冲突。"
       },
       {
         "guid": "9d72aaead5aa4db893d5c2e3c3907270",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunters.json",
         "line": 1,
-        "fileHash": "1fc1c68dbeae25e1acf765e5fcb4939dae718c0d59cbbb75f1e4db562e8f02fd",
+        "fileHash": "d76d7813c7887f085e95c52f736b3ebcb52c1325f03e2f38daab14ff6418d0e1",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
-        "feature": "提供三名稳定身份的可招募猎人，覆盖守火、守望与石语特性及三种不同初始构筑。"
+        "checkedAt": "2026-08-25T18:52:09-07:00",
+        "feature": "提供八名稳定身份的可招募猎人，覆盖力量、防御、意志、机动与精准取向及八种初始构筑。"
+      },
+      {
+        "guid": "3e8197e6e0ed4501b00a02cb9889e375",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
+        "line": 268,
+        "fileHash": "40c30c3a2c027c0efb710b56ed6db06eaf51ba5c8214ea400e65da28ac05c31c",
+        "status": "verified",
+        "checkedAt": "2026-08-25T18:52:09-07:00",
+        "feature": "验证战役内容计划把八名表候选与三个序列化候选合并为至少十一名，并保留表模板身份。"
       },
       {
         "guid": "10c709224cb4ab04daf99d3317273d8d",
@@ -103,15 +112,14 @@
       }
     ],
     "tests": [
-      "PlayableHunterTemplateTableTests: 5/5 passed",
-      "PlayableSettlementCareActionTests: 11/11 passed",
-      "CampaignSaveStorageTests: 13/13 passed"
+      "Unity CLI targeted hunter recruitment cluster: 33/33 passed"
     ],
-    "verifiedAt": "2026-08-25T17:48:50-07:00"
+    "verifiedAt": "2026-08-25T18:52:09-07:00"
   },
   "implementationOutline": [
     "内容 Adapter 把 JSON 记录映射为普通 HunterData，并在发布冻结计划前完成身份、属性和装备规则校验。",
     "HunterInstance 从模板复制稳定来源、属性及装备双表示，继续兼容现有装备槽和存档恢复。",
+    "生产表提供八名差异化候选，合并后的十一名候选直接复用五卡分页的 3D 招募板。",
     "3D 招募 View 只消费目录结果，Settlement ActionQueue 仍是费用、容量、年度、Reactor 和事实提交的唯一权威。",
     "CampaignSaveRecovery 在持久化边界规范旧存档缺失的来源模板字段，不创建显示名绑定。"
   ],
@@ -121,7 +129,8 @@
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HunterData.cs:82",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs:64",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs:280",
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunters.json:1"
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunters.json:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs:268"
   ],
   "publishedBy": {
     "mode": "direct-implementation-reconciliation",

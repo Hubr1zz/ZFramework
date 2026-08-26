@@ -60,6 +60,106 @@
       "startingEquipmentIds": ["stonewatch_mantle"],
       "traits": ["trait_stone_speaker"],
       "ailments": []
+    },
+    {
+      "id": "bone_stitcher_ning",
+      "displayName": "骨缝者·宁",
+      "starting": false,
+      "recruitable": true,
+      "stats": {
+        "strength": 2,
+        "accuracy": 1,
+        "evasion": 0,
+        "movement": 5,
+        "luck": 0,
+        "speed": 1
+      },
+      "willpower": 2,
+      "luck": 0,
+      "insanity": 3,
+      "startingEquipmentIds": ["bone_saw_blade"],
+      "traits": ["trait_mastery_blade_apprentice"],
+      "ailments": []
+    },
+    {
+      "id": "carapace_keeper_cen",
+      "displayName": "藏甲者·岑",
+      "starting": false,
+      "recruitable": true,
+      "stats": {
+        "strength": 1,
+        "accuracy": 1,
+        "evasion": 1,
+        "movement": 4,
+        "luck": 0,
+        "speed": 1
+      },
+      "willpower": 3,
+      "luck": 0,
+      "insanity": 2,
+      "startingEquipmentIds": ["carapace_bracer"],
+      "traits": ["trait_watcher"],
+      "ailments": []
+    },
+    {
+      "id": "dream_keeper_mo",
+      "displayName": "守梦者·默",
+      "starting": false,
+      "recruitable": true,
+      "stats": {
+        "strength": 0,
+        "accuracy": 2,
+        "evasion": 1,
+        "movement": 5,
+        "luck": 1,
+        "speed": 1
+      },
+      "willpower": 2,
+      "luck": 1,
+      "insanity": 4,
+      "startingEquipmentIds": ["mite_hush_hood"],
+      "traits": ["trait_first_dreamer"],
+      "ailments": []
+    },
+    {
+      "id": "root_walker_an",
+      "displayName": "根行者·安",
+      "starting": false,
+      "recruitable": true,
+      "stats": {
+        "strength": 1,
+        "accuracy": 1,
+        "evasion": 2,
+        "movement": 6,
+        "luck": 0,
+        "speed": 1
+      },
+      "willpower": 2,
+      "luck": 0,
+      "insanity": 3,
+      "startingEquipmentIds": ["rootstep_greaves"],
+      "traits": ["trait_keen_hearing"],
+      "ailments": []
+    },
+    {
+      "id": "rust_gatherer_he",
+      "displayName": "拾锈者·赫",
+      "starting": false,
+      "recruitable": true,
+      "stats": {
+        "strength": 1,
+        "accuracy": 2,
+        "evasion": 0,
+        "movement": 5,
+        "luck": 0,
+        "speed": 2
+      },
+      "willpower": 2,
+      "luck": 0,
+      "insanity": 3,
+      "startingEquipmentIds": ["rust_hook_knife"],
+      "traits": ["trait_mastery_blade_apprentice"],
+      "ailments": []
     }
   ]
 }
