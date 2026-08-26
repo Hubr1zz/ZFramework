@@ -7,6 +7,8 @@ using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunters;
+using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using UI;
 using UI.Settlement;
@@ -38,12 +40,37 @@ namespace Core
         void IPlayableSettlementPhasePort.ConfigureRuntime(ISettlementDepartureRequestPort departureRequestPort) => Configure(new PlayableSettlementRuntimeConfiguration(departureRequestPort, coordinator.CreateActionSession));
         void IPlayableSettlementPhasePort.ConfigureGameplay(Func<IPlayableEventInput> inputProvider, ITabletopRandomInteractionPresenter tabletop, Func<IActionEnvironmentInstallerRegistry> installerProvider, Func<IPlayableCampaignPersistentEffectProjection> projectionProvider) => coordinator.ConfigureGameplay(inputProvider, tabletop, installerProvider, projectionProvider);
         void IPlayableSettlementPhasePort.ConfigurePresentation(SettlementTable3D table, GameObject root, SettlementUIManager ui, PlayableWorkshopCatalog workshop, PlayableSettlementContentCatalog settlementContent, Action<List<HunterInstance>> onDepartureRequested) => coordinator.ConfigurePresentation(table, root, ui, workshop, settlementContent, onDepartureRequested);
+        bool IPlayableSettlementPhasePort.ActivateCurrentActionSession(out string reason)
+        {
+            if (current == null)
+            {
+                reason = "营地运行态尚未激活。";
+                return false;
+            }
+            return current.TryActivateActionSession(out reason);
+        }
+        void IPlayableSettlementPhasePort.DeactivateCurrentActionSession() => current?.DeactivateActionSession();
         void IPlayableSettlementPhasePort.EnsurePresentation(SettlementManager manager) => coordinator.EnsurePresentation(manager);
         void IPlayableSettlementPhasePort.Refresh() => coordinator.Refresh();
         void IPlayableSettlementPhasePort.RefreshCards() => coordinator.RefreshCards();
         void IPlayableSettlementPhasePort.RefreshCrafting() => coordinator.RefreshCrafting();
+        bool IPlayableSettlementPhasePort.IsEventRestoreReady => current?.EventRestore == null || current.EventRestore.IsReady;
+        string IPlayableSettlementPhasePort.EventRestoreFailureReason => current?.EventRestore?.FailureReason;
+        bool IPlayableSettlementPhasePort.QueueCurrentEvents(IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection, string restoredChainId) => coordinator.QueueEvents(current, coordinator.CurrentSession, works, restoreProjection, restoredChainId);
         bool IPlayableSettlementPhasePort.QueueEvents(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection, string restoredChainId) => coordinator.QueueEvents(runtime, session, works, restoreProjection, restoredChainId);
         UniTask<bool> IPlayableSettlementPhasePort.ResolveEventsAsync(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection, string restoredChainId) => coordinator.ResolveEventsAsync(runtime, session, works, restoreProjection, restoredChainId);
+        bool IPlayableSettlementGameplayPort.CanTrainWeapon(int hunterId, string masteryId, out string reason) => coordinator.CanTrainWeapon(hunterId, masteryId, out reason);
+        UniTask<WeaponTrainingCommandResult> IPlayableSettlementGameplayPort.TrainWeaponAsync(int hunterId, string masteryId) => coordinator.TrainWeaponAsync(hunterId, masteryId);
+        bool IPlayableSettlementGameplayPort.CanCraft(CraftRecipe recipe, out string reason) => coordinator.CanCraft(recipe, out reason);
+        UniTask<SettlementCraftCommandResult> IPlayableSettlementGameplayPort.CraftAsync(CraftRecipe recipe) => coordinator.CraftAsync(recipe);
+        UniTask<SettlementEquipmentCommandResult> IPlayableSettlementGameplayPort.EquipItemAsync(int hunterId, ItemData item) => coordinator.EquipItemAsync(hunterId, item);
+        UniTask<SettlementEquipmentCommandResult> IPlayableSettlementGameplayPort.UnequipItemAsync(int hunterId, int equipmentInstanceId) => coordinator.UnequipItemAsync(hunterId, equipmentInstanceId);
+        bool IPlayableSettlementGameplayPort.CanRecruitHunter(out string reason) => coordinator.CanRecruitHunter(out reason);
+        UniTask<RecruitHunterCommandResult> IPlayableSettlementGameplayPort.RecruitHunterAsync(HunterData template, string requestedName) => coordinator.RecruitHunterAsync(template, requestedName);
+        bool IPlayableSettlementGameplayPort.HasRecoverableHunter() => coordinator.HasRecoverableHunter();
+        bool IPlayableSettlementGameplayPort.CanRecoverHunter(int hunterId, HunterBodyPart bodyPart, out string reason) => coordinator.CanRecoverHunter(hunterId, bodyPart, out reason);
+        UniTask<RecoverHunterCommandResult> IPlayableSettlementGameplayPort.RecoverHunterAsync(int hunterId, HunterBodyPart bodyPart) => coordinator.RecoverHunterAsync(hunterId, bodyPart);
+        UniTask<HunterGrowthCommandResult> IPlayableSettlementGameplayPort.SpendHunterGrowthAsync(int hunterId, HunterGrowthChoice choice) => coordinator.SpendHunterGrowthAsync(hunterId, choice);
 
         internal void Configure(PlayableSettlementRuntimeConfiguration nextConfiguration)
         {

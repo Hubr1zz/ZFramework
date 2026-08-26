@@ -22,10 +22,28 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "8dc3b10d5587b7738a14be0c308666b0ba7dea66f3c62c41e17c211050814e7a",
+        "fileHash": "adfb9208bb272c970d33997bb2dcd58eae5115351e306939252e2d396dd4c1dd",
         "status": "verified",
-        "checkedAt": "2026-08-25T10:46:52-07:00",
-        "feature": "仅作为组合根调用活动狩猎恢复事务，并在事务结果成为权威后接管稳定载荷与场景表现。"
+        "checkedAt": "2026-08-26T12:50:00-07:00",
+        "feature": "仅作为组合根调用活动狩猎恢复/遭遇事务，并将事务产出的稳定载荷交给持久化 coordinator。"
+      },
+      {
+        "guid": "4bf6b5d22e83408cb939eadf6e81a0a7",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignEncounterHandoffTransaction.cs",
+        "line": 31,
+        "fileHash": "1dc3ed60d7853a291f12bac9e88f5fb32eefdc54956f16405352fdc1db2a3673",
+        "status": "verified",
+        "checkedAt": "2026-08-26T12:50:00-07:00",
+        "feature": "活动狩猎遭遇切换前保存带 EncounterHandoffPending 的可靠检查点，切换失败时恢复原载荷与来源锁。"
+      },
+      {
+        "guid": "2ef55a7b51d14c5b94b2829e2f6e3301",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignPersistenceCoordinator.cs",
+        "line": 10,
+        "fileHash": "41b5d2b50105be783037bf9fadbd96cdafd55429d4f8a59cbf7ceff2bc9fbcea",
+        "status": "verified",
+        "checkedAt": "2026-08-26T12:50:00-07:00",
+        "feature": "稳定载荷在恢复、重启或检查点切换后使旧异步写入世代失效。"
       },
       {
         "guid": "44a46c79517647b8be18210431a6a856",
@@ -80,9 +98,11 @@
       "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/StatefulRandomSourceTests.cs",
       "Unity CLI GameManager campaign loop PlayMode: 14/14 passed",
       "Unity CLI targeted Hunt event and persistence cluster: 69/69 passed",
-      "C# derived index: 994/994, 100% coverage"
+      "CampaignPersistenceCoordinatorTests: 5/5 passed",
+      "Unity CLI EditMode full suite: 763/763 passed",
+      "GameManagerCampaignLoopPlayModeTests: 21/21 passed"
     ],
-    "verifiedAt": "2026-08-25T21:33:00-07:00"
+    "verifiedAt": "2026-08-26T13:10:00-07:00"
   },
   "implementationOutline": [
     "CampaignSnapshot 以 HasActiveHuntState 显式声明阶段，恢复入口归一化 JsonUtility 产生的默认空引用记录。",
@@ -91,12 +111,15 @@
     "HuntManager 使用版本固定的 StatefulRandomSource，恢复地图、导航、选中猎人与随机状态。",
     "PlayableHuntActionSession 在提交边界通知 GameManager 冻结载荷，并把全部可恢复 sibling occurrence 排空。",
     "ActiveHuntRestoreTransaction 在独立候选图上恢复并验证内容，统一提交或回滚 ZFramework 运行世代、目的地状态和阶段状态。",
-    "回营先保存 PendingHuntReturn 的 Settlement 快照；失败回滚仅在活动狩猎载荷保存成功后解除锁。"
+    "回营先保存 PendingHuntReturn 的 Settlement 快照；失败回滚仅在活动狩猎载荷保存成功后解除锁。",
+    "遭遇交接先保存 EncounterHandoffPending 检查点；阶段切换失败或异常时恢复上一稳定载荷并释放来源锁。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/ActiveHuntRestoreTransaction.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignEncounterHandoffTransaction.cs:31",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignPersistenceCoordinator.cs:10",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs:1"
   ],

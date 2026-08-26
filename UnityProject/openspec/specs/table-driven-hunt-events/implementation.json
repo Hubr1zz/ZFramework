@@ -84,6 +84,15 @@
         "feature": "以路线本地 ScriptableObject 配置稳定事件 ID、OldMaid 展示、奖励与症状后果。"
       },
       {
+        "guid": "87d8f6dc1076430f8328f6a3358018e8",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Items/MetalFragment.asset",
+        "line": 1,
+        "fileHash": "041e369dfc4d26579de8f441a6522d59f01d9874eb50b4411f140a264fb0948c",
+        "status": "verified",
+        "checkedAt": "2026-08-26T12:50:00-07:00",
+        "feature": "为路线事件的 metal_fragment 稳定奖励 ID 提供可解析的代表性 ItemData 资产。"
+      },
+      {
         "guid": "43fa2a6e5a634d5795acf7c3519e58ab",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/EchoingBrokenRoad.asset",
         "line": 1,
@@ -105,9 +114,11 @@
     "tests": [
       "Stone Forest hunt event cluster: 49/49 passed",
       "PlayableHuntContentBundleTests: 12/12 passed",
-      "PlayableHuntActionSessionTests: 21/21 passed"
+      "PlayableHuntActionSessionTests: 21/21 passed",
+      "ProductionHuntEventResourceEffects_UseResolvableStableItemIds: 1/1 passed",
+      "Unity CLI EditMode full suite: 763/763 passed"
     ],
-    "verifiedAt": "2026-08-25T21:33:00-07:00"
+    "verifiedAt": "2026-08-26T12:50:00-07:00"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 先发布稳定表事件世代，再与路线 Hunt 事件按稳定 ID 合并。",

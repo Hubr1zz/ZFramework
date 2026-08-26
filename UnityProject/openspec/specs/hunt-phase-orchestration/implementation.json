@@ -6,18 +6,19 @@
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "HuntPhaseManager 已拥有 Hunt generations 与 composition coordinator；独立跨阶段出猎事务协调营地 ActionQueue、路线提交、FSM 入场与失败回滚。",
+    "summary": "HuntPhaseManager 拥有 Hunt generations 与 composition coordinator；独立出猎、回营和遭遇交接事务负责跨阶段提交、可靠检查点与失败回滚。",
     "validatedAgainstSpecHash": "e101d9780dd57d32de6a94083e049aab82bf19abc69e6168bbad149920e1aeb0",
     "evidence": [
       { "guid": "863ce20b13126434f94c05222428eb5e", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseManager.cs", "line": 8, "fileHash": "cb2177885f2200855245b8fe6a3ebc283db0ae86c4e6737a855c2c581c0276ff", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "拥有 Hunt runtime 候选、current、generation、配置与 coordinator 生命周期。" },
       { "guid": "040c7587482dbdd439e8913b7911110b", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs", "line": 21, "fileHash": "080924c72041167dc6e0f9c21e72d407c90a2b898832619125e17c1f39126bb3", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "拥有 visualizer、HuntUI、retreat panel 与 session callback，并拒绝 stale generation。" },
-      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 145, "fileHash": "aee3f2fc7e94c5e55e9387e046b75a4f3c96703b0908a035a4fbd86cc7ca983e", "status": "verified", "checkedAt": "2026-08-26T11:51:06-07:00", "feature": "组合根持有出猎、回营事务，并只通过阶段 façade 启动或恢复 Hunt。" },
-      { "guid": "5e4a9a28573d4a4bad6d719b6a74ba53", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs", "line": 32, "fileHash": "35023e27c6cf70d6186c1a5897d3a6af05ce2714a0734b01751dd524a84648ef", "status": "verified", "checkedAt": "2026-08-26T11:51:06-07:00", "feature": "协调营地出发准备、路线世代验证、Hunt 候选发布、权威入场与失败回滚。" }
+      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 145, "fileHash": "adfb9208bb272c970d33997bb2dcd58eae5115351e306939252e2d396dd4c1dd", "status": "verified", "checkedAt": "2026-08-26T13:10:00-07:00", "feature": "组合根只持有 Hunt phase façade 与跨阶段事务，并在释放来源 session 前完成 Showdown 初始化提交。" },
+      { "guid": "5e4a9a28573d4a4bad6d719b6a74ba53", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs", "line": 32, "fileHash": "35023e27c6cf70d6186c1a5897d3a6af05ce2714a0734b01751dd524a84648ef", "status": "verified", "checkedAt": "2026-08-26T11:51:06-07:00", "feature": "协调营地出发准备、路线世代验证、Hunt 候选发布、权威入场与失败回滚。" },
+      { "guid": "4bf6b5d22e83408cb939eadf6e81a0a7", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignEncounterHandoffTransaction.cs", "line": 31, "fileHash": "1dc3ed60d7853a291f12bac9e88f5fb32eefdc54956f16405352fdc1db2a3673", "status": "verified", "checkedAt": "2026-08-26T13:10:00-07:00", "feature": "Hunt 遭遇由单一事务 owner 先可靠保存 handoff checkpoint；失败或异常恢复旧载荷并释放来源锁。" }
     ],
-    "tests": ["GameManagerCampaignLoopPlayModeTests 19/19", "PlayableCampaignLoopSmokeTests + PlayableSettlementActionSessionTests 45/45", "dotnet build: 0 errors, 3 existing warnings"],
-    "verifiedAt": "2026-08-26T11:51:06-07:00"
+    "tests": ["Unity CLI EditMode full suite 763/763", "CampaignPersistenceCoordinatorTests 5/5", "GameManagerCampaignLoopPlayModeTests 21/21", "dotnet build: 0 errors, 3 existing warnings"],
+    "verifiedAt": "2026-08-26T13:10:00-07:00"
   },
-  "implementationOutline": ["HuntPhaseManager 管理候选与权威 generation。", "Hunt composition coordinator 管理 3D 表现和 ActionSession callback token。", "GameManager 持有 plain C# 出猎事务；事务协调营地与 Campaign runners，并保持路线和运行态原子回滚。", "GameManager 继续拥有保存与遭遇交接。"],
-  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseManager.cs:8", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs:21", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs:32"],
+  "implementationOutline": ["HuntPhaseManager 管理候选与权威 generation。", "Hunt composition coordinator 管理 3D 表现和 ActionSession callback token。", "出猎、回营和遭遇交接分别由 plain C# 事务协调跨 runner/FSM/persistence 原子边界。", "GameManager 只提供 phase 与事务 host 端口。"],
+  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseManager.cs:8", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs:21", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs:32", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignEncounterHandoffTransaction.cs:31"],
   "publishedBy": { "mode": "direct-authority-sync", "changeId": "" }
 }

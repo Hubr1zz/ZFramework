@@ -6,17 +6,18 @@
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "CampaignRuntime-owned ShowdownPhaseManager 已成为 PlayableCombatSession 唯一 owner；本阶段只迁移 prepare/start/update/reset/dispose 与兼容委托，未推进战斗玩法。",
+    "summary": "CampaignRuntime-owned ShowdownPhaseManager 是 PlayableCombatSession 唯一 owner；独立结果事务封装既有胜负与返回交接，本阶段仍未推进战斗玩法。",
     "validatedAgainstSpecHash": "5dbd9a852887cc2dc0b7c295267a3678073815eccd78178d085ee2338e27e0da",
     "evidence": [
       { "guid": "89f2c60d577ff0a45a7ac1d77bb3e3be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableShowdownPhaseManager.cs", "line": 9, "fileHash": "9f0ea6920bba620532c6eb3124f75b3731eb87a7019ff3beddc94de4055eac79", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "唯一拥有现有 combat session 的构造、启动、更新和释放。" },
-      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 568, "fileHash": "8dc3b10d5587b7738a14be0c308666b0ba7dea66f3c62c41e17c211050814e7a", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "构造既有配置并委托 manager；战利品、胜负与跨阶段结果仍由全局编排处理。" },
+      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 145, "fileHash": "adfb9208bb272c970d33997bb2dcd58eae5115351e306939252e2d396dd4c1dd", "status": "verified", "checkedAt": "2026-08-26T13:10:00-07:00", "feature": "在释放来源 session 前完成 Showdown prepare/start；初始化失败同步恢复原 FSM，胜负回调只进入结果事务。" },
+      { "guid": "4e2ec0f77e6f4a76a62e12b4c6fdb3dd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignShowdownOutcomeTransaction.cs", "line": 20, "fileHash": "b668e7cbe02c81ab2f9e160c05d07d9b2a2fef66470944454707ed77ae194c92", "status": "verified", "checkedAt": "2026-08-26T12:50:00-07:00", "feature": "保持既有战利品、武器熟练、狩猎完成与营地返回顺序，不引入新决战规则。" },
       { "guid": "14ce1f834e26c5e4092eee2a5a0b887d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs", "line": 260, "fileHash": "dd6aaf6c3cd036081bf349fddf4ba529a754c4a89fe3180b494ecd107ccd7ea3", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "Reset/Dispose 时先释放 Showdown，再释放 Hunt 与 Settlement。" }
     ],
-    "tests": ["PlayableCampaignRuntimeModuleTests 14/14", "GameManagerCampaignLoopPlayModeTests 14/14", "dotnet build: 0 warnings, 0 errors"],
-    "verifiedAt": "2026-08-26T03:00:00-07:00"
+    "tests": ["Unity CLI EditMode full suite 763/763", "GameManagerCampaignLoopPlayModeTests 21/21", "dotnet build: 0 errors, 3 existing warnings"],
+    "verifiedAt": "2026-08-26T13:10:00-07:00"
   },
-  "implementationOutline": ["ShowdownPhaseManager 只拥有现有 PlayableCombatSession 生命周期。", "GameManager combat API 保持兼容并委托 current session。", "Boss 规则、卡牌、战利品数值、持久化和返回流程未改变。"],
-  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableShowdownPhaseManager.cs:9", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:568"],
+  "implementationOutline": ["ShowdownPhaseManager 只拥有现有 PlayableCombatSession 生命周期。", "CampaignShowdownOutcomeTransaction 只封装既有胜负结果与跨阶段交接。", "GameManager combat API 保持兼容并委托 current session。", "Boss 规则、卡牌与战利品数值未改变。"],
+  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableShowdownPhaseManager.cs:9", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignShowdownOutcomeTransaction.cs:20", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:145"],
   "publishedBy": { "mode": "direct-authority-sync", "changeId": "" }
 }

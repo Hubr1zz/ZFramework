@@ -256,6 +256,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             public string Payload { get; private set; }
             public int SaveCount { get; private set; }
 
+            public void InvalidatePendingWrites() { }
+
             public UniTask<bool> TrySavePayloadAsync(string payload, CancellationToken cancellationToken = default)
             {
                 cancellationToken.ThrowIfCancellationRequested();

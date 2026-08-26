@@ -6,16 +6,17 @@
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "SettlementPhaseManager 已拥有营地 runtime generations 与 session/restore 生命周期；GameManager 保持回营两阶段保存、事件恢复和现有桌面组合事务。",
+    "summary": "SettlementPhaseManager 已拥有营地 runtime generation，并通过 coordinator façade 统一管理 session、事件恢复、队列与营地玩法命令；GameManager 仅保留跨阶段回营事务。",
     "validatedAgainstSpecHash": "0d29bd6ee8859e5a35a9b6701ca0ab8daddadfde5374281c4e7a9ae3bc57dcad",
     "evidence": [
-      { "guid": "9f077c55098771f4ba11fab61a713a5c", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseManager.cs", "line": 8, "fileHash": "374a4884461e7ad461313a23c76329398231a1e32156493f9dcf574d3dc16634", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "准备新建/读档候选、投影预检、原子 swap、retired release 与 reset/dispose。" },
+      { "guid": "9f077c55098771f4ba11fab61a713a5c", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseManager.cs", "line": 19, "fileHash": "f9ca6e3c8f8c4314b0e9fa61fbca325f6ed80e5ff0c0070ea6a9cb94cd7e88f3", "status": "verified", "checkedAt": "2026-08-26T12:50:00-07:00", "feature": "准备/交换 runtime generation，并将当前 session、事件恢复与玩法端口委托给 coordinator。" },
+      { "guid": "f7ee862994491514fbb756893fbdbd65", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseCoordinator.cs", "line": 21, "fileHash": "480395a71bb878587fd7908eae17f49c11ef7c2f6dc40f7ebbe9e644ba272ccd", "status": "verified", "checkedAt": "2026-08-26T12:50:00-07:00", "feature": "统一当前营地 session 生命周期、事件队列/恢复投影、表现刷新和训练制作装备等玩法命令。" },
       { "guid": "14ce1f834e26c5e4092eee2a5a0b887d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs", "line": 94, "fileHash": "dd6aaf6c3cd036081bf349fddf4ba529a754c4a89fe3180b494ecd107ccd7ea3", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "现有 IPlayableCampaignRuntime Settlement API 转发到战役 scoped manager。" }
     ],
-    "tests": ["PlayableCampaignRuntimeModuleTests 14/14", "GameManagerCampaignLoopPlayModeTests 14/14"],
-    "verifiedAt": "2026-08-26T03:00:00-07:00"
+    "tests": ["Unity CLI EditMode full suite 761/761", "GameManagerCampaignLoopPlayModeTests 20/20"],
+    "verifiedAt": "2026-08-26T12:50:00-07:00"
   },
-  "implementationOutline": ["SettlementPhaseManager 是 generation 权威 owner。", "具体 SettlementRuntime 继续拥有 SettlementManager、ActionSession 与 EventRestoreProjection。", "回营保存和表面板 bridge 暂留 GameManager，避免改动可靠检查点事务。"],
-  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseManager.cs:8", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1067"],
+  "implementationOutline": ["SettlementPhaseManager 是 generation 权威 owner。", "SettlementPhaseCoordinator 是当前 runtime 的 session、事件恢复、玩法命令与表现 façade。", "具体 SettlementRuntime 继续拥有 SettlementManager、ActionSession 与 EventRestoreProjection。", "可靠回营保存由独立跨阶段事务负责，GameManager 只提供 host 端口。"],
+  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseManager.cs:19", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseCoordinator.cs:21", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:145"],
   "publishedBy": { "mode": "direct-authority-sync", "changeId": "" }
 }

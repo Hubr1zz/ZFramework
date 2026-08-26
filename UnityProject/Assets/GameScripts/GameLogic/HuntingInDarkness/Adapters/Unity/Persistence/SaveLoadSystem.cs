@@ -114,6 +114,13 @@ namespace Core
             }
         }
 
+        public static void InvalidatePendingWrites()
+        {
+            int invalidationVersion = Interlocked.Increment(ref nextSaveVersion);
+            lock (SaveGate)
+                lastWrittenSaveVersion = System.Math.Max(lastWrittenSaveVersion, invalidationVersion);
+        }
+
         // ─── 读档 ─────────────────────────────────────────────────
 
         public static async UniTask<CampaignSnapshot> LoadAsync(

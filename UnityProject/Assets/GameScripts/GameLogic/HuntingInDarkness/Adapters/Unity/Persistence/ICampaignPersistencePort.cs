@@ -8,6 +8,7 @@ namespace Core
     /// <remarks>实现必须在异步保存、即时保存与删除之间保持线性化或最后调用获胜，避免旧检查点晚到覆盖新状态。</remarks>
     public interface ICampaignPersistencePort
     {
+        void InvalidatePendingWrites();
         UniTask<bool> TrySavePayloadAsync(string payload, CancellationToken cancellationToken = default);
         bool TrySavePayloadImmediate(string payload);
         UniTask<bool> HasSaveAsync(CancellationToken cancellationToken = default);
@@ -18,6 +19,8 @@ namespace Core
     /// <summary>默认使用现有 SaveLoadSystem 文件存储实现持久化端口。</summary>
     public sealed class SaveLoadSystemCampaignPersistenceAdapter : ICampaignPersistencePort
     {
+        public void InvalidatePendingWrites() => SaveLoadSystem.InvalidatePendingWrites();
+
         public UniTask<bool> TrySavePayloadAsync(string payload, CancellationToken cancellationToken = default)
             => SaveLoadSystem.TrySavePayloadAsync(payload, cancellationToken);
 

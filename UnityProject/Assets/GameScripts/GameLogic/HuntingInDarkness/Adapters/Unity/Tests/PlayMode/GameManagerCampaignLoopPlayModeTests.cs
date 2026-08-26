@@ -14,6 +14,7 @@ using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Bootstrap;
+using HuntingInDarkness.Combat;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunt;
@@ -59,6 +60,20 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 UnityEngine.Object.Destroy(managerObject);
             yield return null;
             ResetContentAssembly();
+        }
+
+        [UnityTest]
+        public IEnumerator ConfigurePlayableRuntime_PreservesBattleSetupAcrossAwake()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            yield return null;
+
+            object transaction = GetPrivateField<object>(manager, "campaignEncounterHandoffTransaction");
+            PropertyInfo pendingSetup = transaction.GetType().GetProperty("PendingSetup", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            Assert.That(pendingSetup, Is.Not.Null);
+            Assert.That(pendingSetup.GetValue(transaction), Is.SameAs(contentCandidate.DefaultBattleSetup));
         }
 
         [UnityTest]
@@ -660,6 +675,42 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return WaitForCompletion(retreat);
             HuntRetreatCommandResult retreatResult = retreat.GetResult();
             Assert.That(retreatResult.Succeeded, Is.True, retreatResult.Reason);
+        }
+
+        [UnityTest]
+        public IEnumerator EncounterHandoff_WhenShowdownPreparationFails_PreservesHuntAuthority()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            yield return WaitForSettlementIdle(manager);
+            int year = manager.SettlementData.CurrentYear;
+            int hunterId = manager.SettlementData.GetAliveHunters()[0].InstanceId;
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { hunterId }, GetDestination(year)).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            Assert.That(departure.GetResult().Succeeded, Is.True, departure.GetResult().Reason);
+            yield return WaitForHuntInputReady();
+            yield return WaitForActiveHuntSnapshot(persistence);
+
+            PlayableHuntActionSession huntSession = manager.ActiveHuntRuntime.ActionSession;
+            var rejectingShowdown = new RejectingShowdownPhasePort();
+            SetPrivateField(manager, "showdownPhase", rejectingShowdown);
+            InvokePrivate(huntSession, "LockEncounterHandoff");
+            var request = new CampaignEncounterRequest(huntSession.SessionId, PlayableEncounterRuntime.DefaultEncounterId, CampaignEncounterSourceKind.HuntEvent, GamePhase.Hunt, Vector2Int.zero, "test-event", GetDestination(year).DestinationId);
+            LogAssert.Expect(LogType.Error, "forced showdown prepare failure");
+
+            UniTask<CampaignEncounterStartResult>.Awaiter encounter = manager.BeginEncounterAsync(request).GetAwaiter();
+            yield return WaitForCompletion(encounter);
+            CampaignEncounterStartResult result = encounter.GetResult();
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
+            Assert.That(manager.ActiveHuntRuntime.ActionSession, Is.SameAs(huntSession));
+            Assert.That(manager.IsHuntActionSessionActive, Is.True);
+            Assert.That(GetPrivateField<bool>(huntSession, "gameplayLocked"), Is.False);
+            Assert.That(rejectingShowdown.PrepareCount, Is.EqualTo(1));
+            CampaignSnapshot saved = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+            Assert.That(saved.ActiveHunt.EncounterHandoffPending, Is.False);
         }
 
         [UnityTest]
@@ -1282,6 +1333,23 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             }
         }
 
+        private sealed class RejectingShowdownPhasePort : IPlayableShowdownPhasePort
+        {
+            public PlayableCombatSession Current => null;
+            public int PrepareCount { get; private set; }
+
+            public bool TryPrepare(PlayableCombatSessionConfiguration configuration, out string reason)
+            {
+                PrepareCount++;
+                reason = "forced showdown prepare failure";
+                return false;
+            }
+
+            public void Start(IReadOnlyList<HunterInstance> hunters, HunterManagementSystem hunterManagement, System.Action onPartyDefeated) { }
+            public void Update() { }
+            public void DisposeCurrent() { }
+        }
+
         private sealed class MemoryCampaignPersistence : ICampaignPersistencePort
         {
             public bool RejectPendingReturn { get; set; }
@@ -1299,6 +1367,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             private UniTaskCompletionSource<CampaignSnapshot> loadCompletion;
             private UniTaskCompletionSource<bool> deleteCompletion;
             private bool hasDelayedAppliedReturn;
+
+            public void InvalidatePendingWrites() { }
 
             public UniTask<bool> TrySavePayloadAsync(string payload, CancellationToken cancellationToken = default)
             {

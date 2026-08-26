@@ -8,17 +8,17 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "Campaign Adapter 以带校验值的原子封套保存稳定营地或活动狩猎快照；正式日程事件的父子链提交可跨 GameManager 重建恢复为已完成状态，不重放奖励并允许继续出猎。",
+    "summary": "CampaignPersistenceCoordinator 集中冻结稳定载荷并使旧运行世代失效；Adapter 以单调写入版本和带校验值的原子封套保存营地或活动狩猎快照。",
     "validatedAgainstSpecHash": "ca9163e9c69d9baa50b149cbbca8627bdb77426a15c08bdf7506347399a82508",
     "evidence": [
       {
         "guid": "afc769eae9ee1a645a0c6b1e390899e4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/SaveLoadSystem.cs",
         "line": 15,
-        "fileHash": "b28d1f438a4f6ba654a4856e108ec124eb6ec17229a46f7ebf51ac46238effc5",
+        "fileHash": "67fd6e9ca2d6a81ec80027b1ee08ff72d1c8a8861d077884a12d41c65992e7a8",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:37:49-07:00",
-        "feature": "统一后台、立即、读取和删除版本门禁，并在工作线程执行可靠文件操作。"
+        "checkedAt": "2026-08-26T12:50:00-07:00",
+        "feature": "统一后台、立即、读取、删除与显式失效版本门禁；旧后台写入不能覆盖新运行世代。"
       },
       {
         "guid": "4a52335e5f26e2d46ab8f4192d6da186",
@@ -32,11 +32,29 @@
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-        "line": 1925,
-        "fileHash": "8dc3b10d5587b7738a14be0c308666b0ba7dea66f3c62c41e17c211050814e7a",
+        "line": 1558,
+        "fileHash": "adfb9208bb272c970d33997bb2dcd58eae5115351e306939252e2d396dd4c1dd",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:37:49-07:00",
-        "feature": "在事务、活动狩猎检查点、回营两阶段提交、退出刷新和继续战役之间编排同一稳定载荷。"
+        "checkedAt": "2026-08-26T12:50:00-07:00",
+        "feature": "作为组合根只提供快照捕获与保存 façade，不再直接维护稳定载荷或异步世代。"
+      },
+      {
+        "guid": "2ef55a7b51d14c5b94b2829e2f6e3301",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignPersistenceCoordinator.cs",
+        "line": 10,
+        "fileHash": "41b5d2b50105be783037bf9fadbd96cdafd55429d4f8a59cbf7ceff2bc9fbcea",
+        "status": "verified",
+        "checkedAt": "2026-08-26T12:50:00-07:00",
+        "feature": "集中管理稳定载荷、快照冻结、同步/异步保存和运行世代失效。"
+      },
+      {
+        "guid": "bff6e581a1584d568d757551be0f0885",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignPersistenceCoordinatorTests.cs",
+        "line": 10,
+        "fileHash": "5e9e62576a419588711f0bd85bd86404b74f103ffafe72134130bfe40d17d5cb",
+        "status": "verified",
+        "checkedAt": "2026-08-26T12:50:00-07:00",
+        "feature": "验证捕获失败、立即写入拒绝和 Reset 后晚到异步保存不会成为当前权威。"
       },
       {
         "guid": "f707419cb9c444543893efe94b11d4cb",
@@ -119,13 +137,16 @@
       "ActiveHuntPersistenceTests: 4/4 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed",
-      "PlayableSettlementEventProductionLoopPlayModeTests: 2/2 passed"
+      "PlayableSettlementEventProductionLoopPlayModeTests: 2/2 passed",
+      "CampaignPersistenceCoordinatorTests: 5/5 passed",
+      "Unity CLI EditMode full suite: 763/763 passed",
+      "GameManagerCampaignLoopPlayModeTests: 21/21 passed"
     ],
-    "verifiedAt": "2026-08-26T04:42:56-07:00"
+    "verifiedAt": "2026-08-26T13:10:00-07:00"
   },
   "implementationOutline": [
-    "GameManager 只在阶段 runner 提交或空闲检查点后冻结 CampaignSnapshot，View 不接触文件系统。",
-    "SaveLoadSystem 用单调版本协调异步保存、退出立即保存和删除，旧任务不能覆盖新状态。",
+    "GameManager 只提供快照捕获边界；CampaignPersistenceCoordinator 在阶段提交或空闲检查点后冻结稳定载荷。",
+    "SaveLoadSystem 用单调版本协调异步保存、退出立即保存、删除和运行世代失效，旧任务不能覆盖新状态。",
     "CampaignSaveFileStore 先刷写临时封套，再原子替换正式文件并保留上一份备份。",
     "内容计划在继续战役候选图内迁移稳定身份并重建装备、发明、事件和年度状态后一次发布。",
     "活动狩猎与 PendingHuntReturn 互斥；回营结果在检查点清除前先可靠保存并以 RecordId 幂等。",
@@ -134,7 +155,8 @@
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/SaveLoadSystem.cs:15",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs:9",
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1925",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1558",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignPersistenceCoordinator.cs:10",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEquipmentStorage.cs:44",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs:1",

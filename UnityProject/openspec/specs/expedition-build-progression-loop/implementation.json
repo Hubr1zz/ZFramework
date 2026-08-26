@@ -12,10 +12,10 @@
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-        "line": 1,
-        "fileHash": "8dc3b10d5587b7738a14be0c308666b0ba7dea66f3c62c41e17c211050814e7a",
+        "line": 958,
+        "fileHash": "adfb9208bb272c970d33997bb2dcd58eae5115351e306939252e2d396dd4c1dd",
         "status": "verified",
-        "checkedAt": "2026-08-24T23:45:06-07:00",
+        "checkedAt": "2026-08-26T13:10:00-07:00",
         "feature": "组合根只向 3D 营地桌绑定 Settlement runner 命令，并移除可直接取得遗留可变系统的公开旁路。"
       },
       {

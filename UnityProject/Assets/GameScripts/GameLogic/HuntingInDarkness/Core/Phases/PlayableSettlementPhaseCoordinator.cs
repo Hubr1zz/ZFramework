@@ -453,6 +453,86 @@ namespace Core
             return session != null ? session.ResolveHunterSymptomAsync(hunterId, symptomId, choice) : UniTask.FromResult(HunterSymptomCommandResult.Failed("当前不在营地阶段。"));
         }
 
+        internal bool CanTrainWeapon(int hunterId, string masteryId, out string reason)
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            if (session != null) return session.CanTrainWeapon(hunterId, masteryId, out reason);
+            reason = "仅可在营地阶段训练";
+            return false;
+        }
+
+        internal UniTask<WeaponTrainingCommandResult> TrainWeaponAsync(int hunterId, string masteryId)
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            return session != null ? session.TrainWeaponAsync(hunterId, masteryId) : UniTask.FromResult(WeaponTrainingCommandResult.Failed("仅可在营地阶段训练"));
+        }
+
+        internal bool CanCraft(CraftRecipe recipe, out string reason)
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            if (session != null) return session.CanCraft(recipe, out reason);
+            reason = "仅可在营地阶段制作。";
+            return false;
+        }
+
+        internal UniTask<SettlementCraftCommandResult> CraftAsync(CraftRecipe recipe)
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            return session != null ? session.CraftAsync(recipe) : UniTask.FromResult(SettlementCraftCommandResult.Failed("仅可在营地阶段制作。"));
+        }
+
+        internal UniTask<SettlementEquipmentCommandResult> EquipItemAsync(int hunterId, ItemData item)
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            return session != null ? session.EquipItemAsync(hunterId, item) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
+        }
+
+        internal UniTask<SettlementEquipmentCommandResult> UnequipItemAsync(int hunterId, int equipmentInstanceId)
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            return session != null ? session.UnequipItemAsync(hunterId, equipmentInstanceId) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
+        }
+
+        internal bool CanRecruitHunter(out string reason)
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            if (session != null) return session.CanRecruit(out reason);
+            reason = "仅可在营地阶段招募。";
+            return false;
+        }
+
+        internal UniTask<RecruitHunterCommandResult> RecruitHunterAsync(HunterData template, string requestedName)
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            return session != null ? session.RecruitHunterAsync(template, requestedName) : UniTask.FromResult(RecruitHunterCommandResult.Failed("仅可在营地阶段招募。"));
+        }
+
+        internal bool HasRecoverableHunter()
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            return session != null && session.HasRecoverableHunter();
+        }
+
+        internal bool CanRecoverHunter(int hunterId, HunterBodyPart bodyPart, out string reason)
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            if (session != null) return session.CanRecoverHunter(hunterId, bodyPart, out reason);
+            reason = "仅可在营地阶段休养。";
+            return false;
+        }
+
+        internal UniTask<RecoverHunterCommandResult> RecoverHunterAsync(int hunterId, HunterBodyPart bodyPart)
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            return session != null ? session.RecoverHunterAsync(hunterId, bodyPart) : UniTask.FromResult(RecoverHunterCommandResult.Failed("仅可在营地阶段休养。"));
+        }
+
+        internal UniTask<HunterGrowthCommandResult> SpendHunterGrowthAsync(int hunterId, HunterGrowthChoice choice)
+        {
+            PlayableSettlementActionSession session = GetSession(currentRuntimeProvider()?.Manager);
+            return session != null ? session.SpendHunterGrowthAsync(hunterId, choice) : UniTask.FromResult(HunterGrowthCommandResult.Failed("仅可在营地阶段分配成长。"));
+        }
+
         private void ThrowIfDisposed()
         {
             if (disposed) throw new ObjectDisposedException(nameof(PlayableSettlementPhaseCoordinator));
