@@ -62,6 +62,58 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void HuntTable_RustBurialAddsTriggeredFollowUpContract()
+        {
+            IReadOnlyList<EventTableRecord> records = new JsonEventTableSource("HuntingInDarkness/Tables/hunt-events").Load();
+            Assert.That(records, Has.Count.EqualTo(15));
+            Assert.That(records.Count(record => record.category == "Hunt"), Is.EqualTo(14));
+            Assert.That(records.Count(record => record.category == "Triggered"), Is.EqualTo(1));
+
+            EventTableRecord parentRecord = records.Single(record => record.id == "hunt_rust_burial");
+            EventTableRecord childRecord = records.Single(record => record.id == "hunt_rust_burial_open_eyes");
+            Assert.That(parentRecord.options, Has.Count.EqualTo(2));
+            Assert.That(parentRecord.options[0].successChainIds, Is.Empty);
+            Assert.That(parentRecord.options[1].successChainIds, Is.EqualTo(new[] { childRecord.id }));
+            Assert.That(childRecord.category, Is.EqualTo("Triggered"));
+            Assert.That(childRecord.eventType, Is.EqualTo("Choice"));
+            Assert.That(childRecord.minYear, Is.EqualTo(parentRecord.minYear));
+            Assert.That(childRecord.options, Has.Count.EqualTo(2));
+
+            EventOptionTableRecord riskOption = childRecord.options[0];
+            Assert.That(riskOption.checkType, Is.EqualTo("Understanding"));
+            Assert.That(riskOption.checkTarget, Is.EqualTo(12));
+            Assert.That(riskOption.checkPresentation, Is.EqualTo("FlipCards"));
+            Assert.That(riskOption.checkCount, Is.EqualTo(2));
+            Assert.That(riskOption.checkSides, Is.EqualTo(10));
+            Assert.That(riskOption.checkDeckId, Is.EqualTo("rust-burial-open-eyes"));
+            Assert.That(riskOption.successEffects.Single().effectType, Is.EqualTo("AddResource"));
+            Assert.That(riskOption.successEffects.Single().targetName, Is.EqualTo("ancient_stone_chip"));
+            Assert.That(riskOption.successEffects.Single().value, Is.EqualTo(1));
+            Assert.That(riskOption.failEffects.Single().effectType, Is.EqualTo("AddRecoverableWound"));
+            Assert.That(riskOption.failEffects.Single().targetName, Is.EqualTo("selected"));
+            Assert.That(riskOption.failEffects.Single().bodyPart, Is.EqualTo("arms"));
+            Assert.That(riskOption.failEffects.Single().value, Is.EqualTo(1));
+
+            EventOptionTableRecord safeOption = childRecord.options[1];
+            Assert.That(safeOption.checkType, Is.EqualTo("None"));
+            Assert.That(safeOption.alwaysAvailable, Is.False);
+            Assert.That(safeOption.conditions.Single().conditionKind, Is.EqualTo("MinimumResource"));
+            Assert.That(safeOption.conditions.Single().key, Is.EqualTo("metal_fragment"));
+            Assert.That(safeOption.conditions.Single().value, Is.EqualTo(1));
+            Assert.That(safeOption.successEffects.Single().effectType, Is.EqualTo("RemoveResource"));
+            Assert.That(safeOption.successEffects.Single().targetName, Is.EqualTo("metal_fragment"));
+            Assert.That(safeOption.successEffects.Single().value, Is.EqualTo(1));
+
+            EventData parent = PlayableEventTableRuntime.GetEvents().Single(gameEvent => gameEvent.ContentId == parentRecord.id);
+            EventData child = PlayableEventTableRuntime.GetEvents().Single(gameEvent => gameEvent.ContentId == childRecord.id);
+            Assert.That(parent.options[1].successChain, Has.Count.EqualTo(1));
+            Assert.That(parent.options[1].successChain[0], Is.SameAs(child));
+            Assert.That(child.category, Is.EqualTo(EventCategory.Triggered));
+            Assert.That(child.options[0].successEffects.Single().targetName, Is.EqualTo("ancient_stone_chip"));
+            Assert.That(child.options[0].failEffects.Single().bodyPart, Is.EqualTo("arms"));
+        }
+
+        [Test]
         public void ExtendHunt_MergesRouteContentAndOverridesByStableId()
         {
             EventData routeEvent = CreateEvent("hunt_echoing_tracks");

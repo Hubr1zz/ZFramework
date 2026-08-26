@@ -8,7 +8,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "共享 Hunt 事件从合并表目录装配到路线内容池，路线也可保留专属 ScriptableObject 事件；回声断道的抽鬼牌事件与共享内容都由 Hunt Runner 和同一 3D 随机交互端口结算。",
+    "summary": "共享 Hunt 根事件从合并表目录装配到路线内容池，Triggered 子事件只通过稳定分支进入；锈蚀葬坑的翻牌加注链与路线专属事件都由 Hunt Runner 和同一 3D 随机交互端口结算。",
     "validatedAgainstSpecHash": "34d0ec259212b8e6233de1d446f968c021c407bea2111d6460197dbf3632eca2",
     "evidence": [
       {
@@ -51,19 +51,19 @@
         "guid": "6a052d984b59f624f9a084bb3ee4204f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
         "line": 1,
-        "fileHash": "243cc388e65d34600057d65c95b2856103070bbb3b076274aada77fdb09f50a1",
+        "fileHash": "f65d96aab41aa513e492d33bd83a8f25a0d8414bdd2bbdca596fa75d3d5e1915",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:29:21-07:00",
-        "feature": "提供十四项共享 Hunt 事件，覆盖四种桌面随机表现、稳定资源、普通伤势、装备构筑与症状反向收益。"
+        "checkedAt": "2026-08-25T21:33:00-07:00",
+        "feature": "提供十四项共享 Hunt 根事件和一项 Triggered 子事件；锈蚀葬坑成功后可翻两张实体牌继续加注，或归还金属安全退出。"
       },
       {
         "guid": "6a85f9f2887ee3c42a4b20025ada10ae",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventFlowTests.cs",
         "line": 1,
-        "fileHash": "ed1c2cb04ff52e99471f03acd85df40d895d2e90211fb8ee0a51ff63ac3fb3d1",
+        "fileHash": "17a05ad4d77fee551a86c74f8dba8c380b927518e68b8ecf7fa5da6fa8764348",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:29:21-07:00",
-        "feature": "验证十四项共享 Hunt 事件及四种桌面判定表现均可装载。"
+        "checkedAt": "2026-08-25T21:33:00-07:00",
+        "feature": "验证十四项随机 Hunt 根、单一 Triggered 子事件、父子稳定绑定及 FlipCards/资源/伤势/安全退出契约。"
       },
       {
         "guid": "2b17ff3d52628a04b81c7873108ecf6f",
@@ -104,15 +104,16 @@
     ],
     "tests": [
       "Stone Forest hunt event cluster: 49/49 passed",
-      "PlayableHuntContentBundleTests: 7/7 passed",
+      "PlayableHuntContentBundleTests: 12/12 passed",
       "PlayableHuntActionSessionTests: 21/21 passed"
     ],
-    "verifiedAt": "2026-08-25T19:48:01-07:00"
+    "verifiedAt": "2026-08-25T21:33:00-07:00"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 先发布稳定表事件世代，再与路线 Hunt 事件按稳定 ID 合并。",
     "重复路线 ID 不以列表顺序选赢家；合法表事件可对同 ID 提供唯一权威覆盖。",
     "HuntEventSystem 只选择内容，ResolveHuntTileEventAction 通过共享事件节点和 3D 随机交互提交玩法。",
+    "Triggered 子事件不进入随机根池，只在父 occurrence 提交后按稳定 ID 继续当前 Hunt ActionQueue。",
     "路线专属事件保持数据本地化，但复用稳定 ID、事件事务和随机交互接口。"
   ],
   "sourceReferences": [

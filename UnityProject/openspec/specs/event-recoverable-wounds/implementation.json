@@ -59,9 +59,9 @@
         "guid": "a61a5c63f2764aa98fb12323a8c94f3a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
         "line": 46,
-        "fileHash": "b8b13418a251652a0e50349f3ad43778829b0f5e2dc28b2a8751dc9826fe27dd",
+        "fileHash": "6579d2062ac0a74e254a3aa15b16fc20fea2a1cdac8b445d4035da0bbc35aaac",
         "status": "verified",
-        "checkedAt": "2026-08-25T00:31:52-07:00",
+        "checkedAt": "2026-08-25T21:33:00-07:00",
         "feature": "狩猎快照往返保持普通部位生命。"
       }
     ],

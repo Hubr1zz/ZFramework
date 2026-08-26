@@ -218,7 +218,7 @@ namespace Core
                 }
                 active.Tiles.Add(tileSnapshot);
             }
-            CaptureEventStore(session.CaptureOccurrenceState(), active.EventStore);
+            if (!CaptureEventStore(session.CaptureOccurrenceState(), boundRoute, active.EventStore, out reason)) return false;
             campaign = new CampaignSnapshot { Settlement = settlement, HasActiveHuntState = true, ActiveHunt = active };
             reason = string.Empty;
             return true;
@@ -353,7 +353,7 @@ namespace Core
                 reason = "活动狩猎小队位置不是已揭示地块。";
                 return false;
             }
-            if (!TryRestoreEventStore(active.EventStore, manager.HuntEvents.HuntEventPool, out occurrenceStore, out reason)) return false;
+            if (!TryRestoreEventStore(active.EventStore, boundRoute, out occurrenceStore, out reason)) return false;
             if (!TryRestoreCollectibles(active, hunters, boundRoute, out reason)) return false;
 
             runtimeState = new PlayableHuntRuntimeState
@@ -369,15 +369,32 @@ namespace Core
             return true;
         }
 
-        private static void CaptureEventStore(PlayableHuntEventOccurrenceStoreState state, ActiveHuntEventStoreSnapshot target)
+        private static bool CaptureEventStore(PlayableHuntEventOccurrenceStoreState state, PlayableHuntRoutePlan boundRoute, ActiveHuntEventStoreSnapshot target, out string reason)
         {
+            if (state == null || boundRoute?.IsUsable != true || target == null)
+            {
+                reason = "活动狩猎事件检查点或绑定路线无效。";
+                return false;
+            }
             target.NextSequence = state.NextSequence;
             target.NextRootSequence = state.NextRootSequence;
             target.Diagnostic = state.Diagnostic;
             target.CommittedSequences.AddRange(state.CommittedSequences);
-            foreach (PlayableHuntEventOccurrenceRecord record in state.PendingOccurrences)
+            foreach (PlayableHuntEventOccurrenceRecord record in state.PendingOccurrences ?? Array.Empty<PlayableHuntEventOccurrenceRecord>())
             {
                 PlayableEventChainOccurrence occurrence = record.Occurrence;
+                if (occurrence.Sequence == 0 || !boundRoute.TryResolveEvent(occurrence.EventId, out _))
+                {
+                    reason = $"活动狩猎事件 occurrence 不属于当前路线：{occurrence.EventId}";
+                    return false;
+                }
+                IReadOnlyList<string> ancestorIds = record.AncestorContentIds ?? Array.Empty<string>();
+                foreach (string ancestorId in ancestorIds)
+                    if (!boundRoute.TryResolveEvent(ancestorId, out _))
+                    {
+                        reason = $"活动狩猎事件 ancestor 不属于当前路线：{ancestorId}";
+                        return false;
+                    }
                 target.PendingOccurrences.Add(new ActiveHuntEventOccurrenceSnapshot
                 {
                     Sequence = occurrence.Sequence,
@@ -387,9 +404,11 @@ namespace Core
                     ActorId = occurrence.ActorId,
                     X = record.Coordinate.x,
                     Y = record.Coordinate.y,
-                    AncestorEventIds = new List<string>(record.AncestorContentIds)
+                    AncestorEventIds = new List<string>(ancestorIds)
                 });
             }
+            reason = string.Empty;
+            return true;
         }
 
         private static bool TryBuildTileCatalog(HuntManager manager, out Dictionary<string, HexTileData> result, out string reason)
@@ -465,22 +484,15 @@ namespace Core
             return true;
         }
 
-        private static bool TryRestoreEventStore(ActiveHuntEventStoreSnapshot saved, IReadOnlyList<EventData> eventPool, out PlayableHuntEventOccurrenceStore store, out string reason)
+        private static bool TryRestoreEventStore(ActiveHuntEventStoreSnapshot saved, PlayableHuntRoutePlan boundRoute, out PlayableHuntEventOccurrenceStore store, out string reason)
         {
             saved ??= new ActiveHuntEventStoreSnapshot();
-            var eventsById = new Dictionary<string, EventData>(StringComparer.Ordinal);
-            if (eventPool != null)
-                foreach (EventData gameEvent in eventPool)
-                {
-                    if (gameEvent == null || string.IsNullOrWhiteSpace(gameEvent.ContentId)) continue;
-                    if (eventsById.ContainsKey(gameEvent.ContentId))
-                    {
-                        store = null;
-                        reason = $"狩猎事件目录包含重复 ID：{gameEvent.ContentId}";
-                        return false;
-                    }
-                    eventsById.Add(gameEvent.ContentId, gameEvent);
-                }
+            if (boundRoute?.IsUsable != true)
+            {
+                store = null;
+                reason = "活动狩猎事件恢复缺少当前可用路线。";
+                return false;
+            }
             var pending = new List<PlayableHuntEventOccurrenceRecord>();
             if (saved.PendingOccurrences == null || saved.CommittedSequences == null)
             {
@@ -496,11 +508,24 @@ namespace Core
                     reason = "活动狩猎事件 occurrence 无效。";
                     return false;
                 }
-                var core = new PlayableEventChainOccurrence(occurrence.Sequence, occurrence.EventId, occurrence.EventName, occurrence.Year, occurrence.ActorId);
+                if (!boundRoute.TryResolveEvent(occurrence.EventId, out _))
+                {
+                    store = null;
+                    reason = $"无法解析待恢复狩猎事件：{occurrence.EventId}";
+                    return false;
+                }
+                foreach (string ancestorId in occurrence.AncestorEventIds ?? new List<string>())
+                    if (!boundRoute.TryResolveEvent(ancestorId, out _))
+                    {
+                        store = null;
+                        reason = $"无法解析待恢复狩猎事件 ancestor：{ancestorId}";
+                        return false;
+                    }
+                var core = new PlayableEventChainOccurrence(occurrence.Sequence, occurrence.EventId, occurrence.EventName, occurrence.Year, occurrence.ActorId, occurrence.AncestorEventIds);
                 pending.Add(new PlayableHuntEventOccurrenceRecord(core, new Vector2Int(occurrence.X, occurrence.Y), occurrence.AncestorEventIds));
             }
             var state = new PlayableHuntEventOccurrenceStoreState { NextSequence = saved.NextSequence, NextRootSequence = saved.NextRootSequence, CommittedSequences = saved.CommittedSequences, PendingOccurrences = pending, Diagnostic = saved.Diagnostic };
-            return PlayableHuntEventOccurrenceStore.TryRestore(state, eventId => eventsById.TryGetValue(eventId, out EventData gameEvent) ? gameEvent : null, out store, out reason);
+            return PlayableHuntEventOccurrenceStore.TryRestore(state, eventId => boundRoute.TryResolveEvent(eventId, out EventData gameEvent) ? gameEvent : null, out store, out reason);
         }
 
         private static HuntTileDefinition CreateDefinition(HexTileData data) => new(data.ContentId, data.spawnWeight, data.spawnInGroup, data.groupSize, data.bossEncounterWeight, data.mustBeAdjacent);

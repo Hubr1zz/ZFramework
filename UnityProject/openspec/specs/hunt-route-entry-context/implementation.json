@@ -40,9 +40,9 @@
         "guid": "5e0d9f3f6f7d4b8a9c2e1d0f3a6b7c81",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
         "line": 1,
-        "fileHash": "363d9d925fb2074be7d3224365f07b07f59039dd17e6c4018068d49721757786",
+        "fileHash": "ac66f7859a1975d3428069dff5769c78373836f9cf805a5828a3e53fa9280933",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:15:26-07:00",
+        "checkedAt": "2026-08-25T21:33:00-07:00",
         "feature": "验证精确 RoutePlan 身份穿过 Reactor 与请求 Host，且阻止时 Host 不变。"
       }
     ],
@@ -50,9 +50,9 @@
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignActionSessionTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
       "Unity CLI targeted Campaign ActionSession: 6/6 passed",
-      "Unity CLI targeted Hunt ContentBundle: 7/7 passed",
+      "Unity CLI targeted Hunt ContentBundle: 12/12 passed",
       "Unity CLI EditMode: 626/626 passed",
-      "C# derived index: 978/978, 100% coverage",
+      "C# derived index: 994/994, 100% coverage",
       "zWorkFlow: 7/7 passed",
       "OpenSpec strict validation: 65/65 passed"
     ],

@@ -51,9 +51,9 @@
         "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
         "line": 1,
-        "fileHash": "82a1588168902d3b846aecfa6e93fb7ee59185b07cfc591e4c81917d8fa114ba",
+        "fileHash": "3f53aa935f3719d1c40e30aeefacc081b62673a8ab70946a14e52d2054520b37",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "checkedAt": "2026-08-25T21:33:00-07:00",
         "feature": "只在完整活动狩猎快照中持久化狩猎 occurrence，不写入营地链。"
       },
       {
@@ -69,9 +69,9 @@
         "guid": "2667ba9674c844adbc87b87ecefef0b9",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
         "line": 1,
-        "fileHash": "cce36927b86708d53679987d516b063659c310e18ed624684e1adbe6c66cbd88",
+        "fileHash": "638a4b409865085f2b90171918bcac6791049ad8100938d4c1ca30171f466b9d",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "checkedAt": "2026-08-25T21:33:00-07:00",
         "feature": "覆盖狩猎 occurrence 恢复、重复兄弟排空、稳定 ID 循环和超限快照拒绝。"
       },
       {

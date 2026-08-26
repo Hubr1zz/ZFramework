@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using HuntingInDarkness.ContentTables;
@@ -13,7 +15,7 @@ namespace HuntingInDarkness.Hunt
 {
     public sealed class PlayableHuntRoutePlan
     {
-        internal PlayableHuntRoutePlan(PlayableHuntContentBundle owner, PlayableHuntDestination destination, string destinationId, int minimumYear, HexTileData startingTile, IReadOnlyList<HexTileData> tilePool, IReadOnlyList<EventData> huntEvents, PlayableHuntNoiseProfile noiseProfile)
+        internal PlayableHuntRoutePlan(PlayableHuntContentBundle owner, PlayableHuntDestination destination, string destinationId, int minimumYear, HexTileData startingTile, IReadOnlyList<HexTileData> tilePool, IReadOnlyList<EventData> huntEvents, IReadOnlyDictionary<string, EventData> reachableEventsById, PlayableHuntNoiseProfile noiseProfile)
         {
             Owner = owner;
             Destination = destination;
@@ -22,8 +24,11 @@ namespace HuntingInDarkness.Hunt
             StartingTile = startingTile;
             TilePool = Freeze(tilePool);
             HuntEvents = Freeze(huntEvents);
+            this.reachableEventsById = Freeze(reachableEventsById);
             NoiseProfile = noiseProfile;
         }
+
+        private readonly IReadOnlyDictionary<string, EventData> reachableEventsById;
 
         internal PlayableHuntContentBundle Owner { get; }
         internal PlayableHuntDestination Destination { get; }
@@ -35,6 +40,14 @@ namespace HuntingInDarkness.Hunt
         public IReadOnlyList<EventData> HuntEvents { get; }
         public PlayableHuntNoiseProfile NoiseProfile { get; }
         public bool IsUsable => Owner?.IsUsable == true && StartingTile != null && TilePool.Count > 0 && NoiseProfile?.IsConfigured == true;
+        public bool TryResolveEvent(string contentId, out EventData gameEvent)
+        {
+            gameEvent = null;
+            string normalizedId = contentId?.Trim() ?? string.Empty;
+            if (!IsUsable || normalizedId.Length == 0) return false;
+            return reachableEventsById.TryGetValue(normalizedId, out gameEvent) && gameEvent != null;
+        }
+
         public bool TryResolveItem(string contentId, out ItemData item)
         {
             if (Owner != null) return Owner.TryResolveItem(contentId, out item);
@@ -43,6 +56,7 @@ namespace HuntingInDarkness.Hunt
         }
 
         private static IReadOnlyList<T> Freeze<T>(IReadOnlyList<T> values) => new List<T>(values ?? Array.Empty<T>()).AsReadOnly();
+        private static IReadOnlyDictionary<string, EventData> Freeze(IReadOnlyDictionary<string, EventData> values) => new ReadOnlyDictionary<string, EventData>(new Dictionary<string, EventData>(values ?? new Dictionary<string, EventData>(StringComparer.Ordinal), StringComparer.Ordinal));
     }
 
     /// <summary>与事件世代、营地 Registry 同时准备和发布的战役级狩猎内容快照。</summary>
@@ -216,12 +230,60 @@ namespace HuntingInDarkness.Hunt
                 return false;
             }
             List<EventData> huntEvents = PlayableEventTableRuntime.ExtendHunt(catalog.EventPool, EventGeneration.Events);
+            if (!TryBuildReachableEventMap(huntEvents, out Dictionary<string, EventData> reachableEventsById, out reason)) return false;
             var canonicalEvents = new Dictionary<string, EventData>(StringComparer.Ordinal);
             foreach (EventData gameEvent in huntEvents) canonicalEvents[gameEvent.ContentId] = gameEvent;
             PlayableHuntNoiseProfile noiseProfile = catalog.NoiseProfile.CreateSnapshot(canonicalEvents);
             if (!ValidateEvents(startingTile, tilePool, huntEvents, noiseProfile, minimumYear, out reason)) return false;
-            route = new PlayableHuntRoutePlan(this, destination, destinationId, minimumYear, startingTile, tilePool, huntEvents, noiseProfile);
+            route = new PlayableHuntRoutePlan(this, destination, destinationId, minimumYear, startingTile, tilePool, huntEvents, reachableEventsById, noiseProfile);
             return true;
+        }
+
+        private static bool TryBuildReachableEventMap(IReadOnlyList<EventData> roots, out Dictionary<string, EventData> reachableEventsById, out string reason)
+        {
+            reachableEventsById = new Dictionary<string, EventData>(StringComparer.Ordinal);
+            reason = string.Empty;
+            var visited = new HashSet<EventData>(EventReferenceComparer.Instance);
+            var pending = new Stack<EventData>(roots ?? Array.Empty<EventData>());
+            while (pending.Count > 0)
+            {
+                EventData gameEvent = pending.Pop();
+                if (gameEvent == null)
+                {
+                    reason = "狩猎事件可达闭包包含空事件或稳定 ID。";
+                    reachableEventsById.Clear();
+                    return false;
+                }
+                if (!visited.Add(gameEvent)) continue;
+                string contentId = gameEvent.ContentId?.Trim() ?? string.Empty;
+                if (!gameEvent.HasExplicitContentId || contentId.Length == 0)
+                {
+                    reason = "狩猎事件可达闭包包含空稳定 ID。";
+                    reachableEventsById.Clear();
+                    return false;
+                }
+                if (reachableEventsById.TryGetValue(contentId, out EventData existingEvent) && !ReferenceEquals(existingEvent, gameEvent))
+                {
+                    reason = $"狩猎事件可达闭包存在重复稳定 ID：{contentId}";
+                    reachableEventsById.Clear();
+                    return false;
+                }
+                reachableEventsById[contentId] = gameEvent;
+                foreach (EventData child in gameEvent.chainedEvents ?? new List<EventData>()) pending.Push(child);
+                foreach (EventOption option in gameEvent.options ?? new List<EventOption>())
+                {
+                    foreach (EventData child in option?.successChain ?? new List<EventData>()) pending.Push(child);
+                    foreach (EventData child in option?.failChain ?? new List<EventData>()) pending.Push(child);
+                }
+            }
+            return true;
+        }
+
+        private sealed class EventReferenceComparer : IEqualityComparer<EventData>
+        {
+            public static readonly EventReferenceComparer Instance = new();
+            public bool Equals(EventData left, EventData right) => ReferenceEquals(left, right);
+            public int GetHashCode(EventData value) => RuntimeHelpers.GetHashCode(value);
         }
 
         private bool TryCloneTile(HexTileData source, out HexTileData clone, out string reason)

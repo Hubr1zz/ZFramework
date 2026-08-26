@@ -78,9 +78,9 @@
         "guid": "6a052d984b59f624f9a084bb3ee4204f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
         "line": 1,
-        "fileHash": "243cc388e65d34600057d65c95b2856103070bbb3b076274aada77fdb09f50a1",
+        "fileHash": "f65d96aab41aa513e492d33bd83a8f25a0d8414bdd2bbdca596fa75d3d5e1915",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:29:21-07:00",
+        "checkedAt": "2026-08-25T21:33:00-07:00",
         "feature": "以四个狩猎事件提供逐影、石肺、手颤与血热的物理骰子、翻牌或抽鬼牌获取路径。"
       },
       {

@@ -8,7 +8,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "事件表以稳定 ID 合并并绑定直接、成功和失败分支，错误引用在发布前传递拒绝；Settlement 与 Hunt Runner 以独立 occurrence 顺序执行子链，schema v2 持久祖先路径阻止读档后循环重复结算。",
+    "summary": "事件表以稳定 ID 合并并绑定直接、成功和失败分支，错误引用在发布前传递拒绝；Settlement 与 Hunt Runner 以独立 occurrence 顺序执行子链，生产 Hunt 子链可跨活动狩猎存档从绑定路线继续。",
     "validatedAgainstSpecHash": "7f22b4222d6a0e7796221f56526be38ac587937a54c5ceaf47b545ec3d8fa302",
     "evidence": [
       {
@@ -82,22 +82,42 @@
         "status": "verified",
         "checkedAt": "2026-08-25T17:48:50-07:00",
         "feature": "提供事件分支、命运条件及稳定资源 ID 内容，并保持延迟事件为独立 ScheduleEvent 效果。"
+      },
+      {
+        "guid": "6a052d984b59f624f9a084bb3ee4204f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
+        "line": 616,
+        "fileHash": "f65d96aab41aa513e492d33bd83a8f25a0d8414bdd2bbdca596fa75d3d5e1915",
+        "status": "verified",
+        "checkedAt": "2026-08-25T21:33:00-07:00",
+        "feature": "以生产锈蚀葬坑成功分支触发 Triggered 子事件，保留风险翻牌与归还资源两条玩家路径。"
+      },
+      {
+        "guid": "2667ba9674c844adbc87b87ecefef0b9",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
+        "line": 148,
+        "fileHash": "638a4b409865085f2b90171918bcac6791049ad8100938d4c1ca30171f466b9d",
+        "status": "verified",
+        "checkedAt": "2026-08-25T21:33:00-07:00",
+        "feature": "验证生产父事件提交后子 occurrence 继承坐标、年份、行动者与祖先，并可经 JSON 检查点恢复后排空。"
       }
     ],
     "tests": [
       "PlayableEventChainOccurrenceQueueTests: 10/10 passed",
       "SettlementEventRestoreProjectionTests: 14/14 passed",
-      "PlayableHuntEventOccurrenceStoreTests: 12/12 passed",
+      "PlayableHuntEventOccurrenceStoreTests: 13/13 passed",
       "PlayableConditionalEventOptionTests: 12/12 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed",
       "PlayableEventChoiceTransactionTests: 6/6 passed",
-      "C# derived index: 989/989, 100% coverage"
+      "Unity CLI targeted Hunt event and persistence cluster: 69/69 passed",
+      "C# derived index: 994/994, 100% coverage"
     ],
-    "verifiedAt": "2026-08-25T17:48:50-07:00"
+    "verifiedAt": "2026-08-25T21:33:00-07:00"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 在共享事件世代完成合并后校验并绑定事件级、成功与失败分支，错误依赖传递拒绝。",
     "直接子链继续在当前 Settlement 或 Hunt ActionQueue 根中执行；ScheduleEvent 只写入未来年度时间线。",
+    "Hunt RoutePlan 分离随机根池与可达事件解析闭包，使 pending Triggered occurrence 可保存、恢复且不会被随机抽取。",
     "每个重复内容引用获得独立 occurrence 序号，同一 occurrence 不能重复提交，配置顺序保持不变。",
     "营地 occurrence schema v2 保存从根到当前节点的稳定祖先 ID，跨存档恢复后仍能在提交前阻止循环回边。",
     "恢复投影拒绝未知内容、持久诊断和任何不受支持的 schema，不删除无法理解的检查点，也不解除出猎门禁。",

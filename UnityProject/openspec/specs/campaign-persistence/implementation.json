@@ -69,9 +69,9 @@
         "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
         "line": 1,
-        "fileHash": "82a1588168902d3b846aecfa6e93fb7ee59185b07cfc591e4c81917d8fa114ba",
+        "fileHash": "3f53aa935f3719d1c40e30aeefacc081b62673a8ab70946a14e52d2054520b37",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:37:49-07:00",
+        "checkedAt": "2026-08-25T21:33:00-07:00",
         "feature": "冻结并恢复路线世代、地图、编队、携带物、事件检查点和确定性随机状态。"
       },
       {

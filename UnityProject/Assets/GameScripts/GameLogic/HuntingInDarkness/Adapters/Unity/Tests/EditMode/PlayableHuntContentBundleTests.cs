@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CardGame.ActionQueue;
@@ -19,6 +20,7 @@ namespace HuntingInDarkness.Adapter.Tests
     public sealed class PlayableHuntContentBundleTests
     {
         private const string SymptomCatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Symptoms/PlayableSymptomCatalog.asset";
+        private const string OutskirtsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/StoneForestOutskirts.asset";
         private readonly List<Object> ownedObjects = new();
         private PlayableHuntContentBundle bundle;
 
@@ -236,7 +238,80 @@ namespace HuntingInDarkness.Adapter.Tests
             PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:start", TileType.Starting, 1), new List<HexTileData> { CreateTile("tile:plain", TileType.Plains, 1) }, new List<EventData> { dangerEvent, canonicalChild }, CreateNoiseProfile(dangerEvent));
 
             Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.False);
-            Assert.That(reason, Does.Contain("canonical 事件闭包"));
+            Assert.That(reason.Contains("重复稳定 ID") || reason.Contains("canonical 事件闭包"), Is.True, reason);
+        }
+
+        [Test]
+        public void Route_ResolvesReachableTriggeredChildAndGrandchildWithoutAddingRoots()
+        {
+            EventData parent = ResolveTableEvent("hunt_rust_burial");
+            EventData danger = ResolveTableEvent("hunt_echoing_tracks");
+            PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:reachable-start", TileType.Starting, 1), new List<HexTileData> { CreateTile("tile:reachable-plain", TileType.Plains, 1) }, new List<EventData> { parent }, CreateNoiseProfile(danger));
+            EventData child = ResolveTableEvent("hunt_rust_burial_open_eyes");
+            EventData grandchild = ResolveTableEvent("triggered_face_safe_path");
+            child.chainedEvents.Add(grandchild);
+            try
+            {
+                Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.True, reason);
+                PlayableHuntRoutePlan route = bundle.DefaultRoute;
+                Assert.That(route.HuntEvents.Count, Is.EqualTo(14));
+                Assert.That(route.HuntEvents.Contains(child), Is.False);
+                Assert.That(route.TryResolveEvent(parent.ContentId, out EventData resolvedParent), Is.True);
+                Assert.That(resolvedParent, Is.SameAs(parent));
+                Assert.That(route.TryResolveEvent(child.ContentId, out EventData resolvedChild), Is.True);
+                Assert.That(resolvedChild, Is.SameAs(child));
+                Assert.That(route.TryResolveEvent(grandchild.ContentId, out EventData resolvedGrandchild), Is.True);
+                Assert.That(resolvedGrandchild, Is.SameAs(grandchild));
+            }
+            finally
+            {
+                child.chainedEvents.Remove(grandchild);
+            }
+        }
+
+        [Test]
+        public void Route_RejectsReachableObjectsSharingAnId()
+        {
+            EventData parent = ResolveTableEvent("hunt_rust_burial");
+            EventData child = ResolveTableEvent("hunt_rust_burial_open_eyes");
+            EventData duplicate = CreateHuntEvent(child.ContentId);
+            EventData danger = ResolveTableEvent("hunt_echoing_tracks");
+            PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:duplicate-start", TileType.Starting, 1), new List<HexTileData> { CreateTile("tile:duplicate-plain", TileType.Plains, 1) }, new List<EventData> { parent }, CreateNoiseProfile(danger));
+            parent.options[1].successChain.Add(duplicate);
+            try
+            {
+                Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.False);
+                Assert.That(reason, Does.Contain("重复稳定 ID"));
+            }
+            finally
+            {
+                parent.options[1].successChain.Remove(duplicate);
+            }
+        }
+
+        [Test]
+        public void Route_CycleTerminatesAndRetiredRouteStopsResolving()
+        {
+            EventData parent = ResolveTableEvent("hunt_rust_burial");
+            EventData child = ResolveTableEvent("hunt_rust_burial_open_eyes");
+            EventData grandchild = ResolveTableEvent("triggered_face_safe_path");
+            EventData danger = ResolveTableEvent("hunt_echoing_tracks");
+            PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:cycle-start", TileType.Starting, 1), new List<HexTileData> { CreateTile("tile:cycle-plain", TileType.Plains, 1) }, new List<EventData> { parent }, CreateNoiseProfile(danger));
+            child.chainedEvents.Add(grandchild);
+            grandchild.chainedEvents.Add(child);
+            try
+            {
+                Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.True, reason);
+                PlayableHuntRoutePlan route = bundle.DefaultRoute;
+                Assert.That(route.TryResolveEvent(grandchild.ContentId, out _), Is.True);
+                bundle.Dispose();
+                Assert.That(route.TryResolveEvent(child.ContentId, out _), Is.False);
+            }
+            finally
+            {
+                child.chainedEvents.Remove(grandchild);
+                grandchild.chainedEvents.Remove(child);
+            }
         }
 
         [Test]
@@ -313,6 +388,8 @@ namespace HuntingInDarkness.Adapter.Tests
             huntEvent.maxYear = 0;
             return huntEvent;
         }
+
+        private static EventData ResolveTableEvent(string id) => PlayableEventTableRuntime.GetEvents().Single(gameEvent => gameEvent.ContentId == id);
 
         private PlayableHuntContentCatalog CreateCatalog(HexTileData startingTile, List<HexTileData> tiles, List<EventData> events, PlayableHuntNoiseProfile profile)
         {

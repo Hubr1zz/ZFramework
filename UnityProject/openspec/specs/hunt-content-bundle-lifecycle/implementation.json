@@ -6,17 +6,17 @@
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "启动事务以同一 EventGeneration 与 Settlement Registry 准备并发布战役级 Hunt Bundle；路线规则使用自有快照，HuntManager 原子绑定且正常回营后换代。",
+    "summary": "启动事务以同一 EventGeneration 与 Settlement Registry 准备并发布战役级 Hunt Bundle；RoutePlan 分离随机 Hunt 根池与可达事件解析闭包，HuntManager 原子绑定且正常回营后换代。",
     "validatedAgainstSpecHash": "0b0f5e520dabda4d59b6ca1f9ca91b26fefc342a498d8b77929432f79c13b1ab",
     "evidence": [
       {
         "guid": "3a91d14f82d74f08b0ebd4b4da7ac7ed",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
         "line": 1,
-        "fileHash": "5b2af84a11402e97e75ff0a8b8f2d5105ae2725f041903febe84ef397d541930",
+        "fileHash": "0b04f886a0c258f7f612e3709a1a513a4b7f39c48faaaabb03a1b43c787b7104",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:15:26-07:00",
-        "feature": "冻结战役级狩猎路线、物品、发明与 canonical 事件闭包，并以 hunt-v2 manifest 和 SHA-256 生成兼容指纹。"
+        "checkedAt": "2026-08-25T21:33:00-07:00",
+        "feature": "冻结战役级狩猎路线、物品、发明与 canonical 事件闭包；只读解析可达 Triggered 子孙但不把它们加入随机根池，并以 hunt-v2 manifest 和 SHA-256 生成兼容指纹。"
       },
       {
         "guid": "6dce6ba7b65af9c42821b85a0555ac17",
@@ -49,27 +49,28 @@
         "guid": "5e0d9f3f6f7d4b8a9c2e1d0f3a6b7c81",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
         "line": 1,
-        "fileHash": "363d9d925fb2074be7d3224365f07b07f59039dd17e6c4018068d49721757786",
+        "fileHash": "ac66f7859a1975d3428069dff5769c78373836f9cf805a5828a3e53fa9280933",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:15:26-07:00",
-        "feature": "验证嵌套规则、顺序、非路线 Registry 内容、发明注入效果和跨对象事件链对 Bundle 身份的影响。"
+        "checkedAt": "2026-08-25T21:33:00-07:00",
+        "feature": "验证嵌套规则、可达子孙解析、随机根池隔离、重复 ID、循环终止、退役失效及跨对象事件链对 Bundle 身份的影响。"
       }
     ],
     "tests": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
-      "Unity CLI targeted Hunt Bundle: 7/7 passed",
+      "Unity CLI targeted Hunt Bundle: 12/12 passed",
       "Unity CLI targeted content assembler: 13/13 passed",
       "Unity CLI EditMode: 626/626 passed",
-      "C# derived index: 978/978, 100% coverage",
+      "C# derived index: 994/994, 100% coverage",
       "zWorkFlow: 7/7 passed",
       "OpenSpec strict validation: 65/65 passed"
     ],
-    "verifiedAt": "08/24/2026 09:34:27"
+    "verifiedAt": "2026-08-25T21:33:00-07:00"
   },
   "implementationOutline": [
     "从 staged EventGeneration 和 Settlement RegistryBundle 构建默认路线与目的地索引。",
     "深复制地块、资源点和噪音运行规则，保留同代 ItemData/EventData 身份。",
+    "RoutePlan 冻结从 Hunt 根可达的事件 ID 解析闭包；随机系统仍只绑定 Hunt 根事件。",
     "Assembler 按 Event、Settlement、Hunt 顺序发布，并按相反顺序回滚和退役。",
     "HuntManager 在运行态建立前一次性绑定 RoutePlan，拒绝跨计划静默覆盖。",
     "GameManager 检查路线绑定失败，并在正常回营提交后废弃旧 HuntManager。"

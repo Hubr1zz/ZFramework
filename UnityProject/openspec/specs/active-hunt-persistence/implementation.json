@@ -6,17 +6,17 @@
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份；独立恢复事务在候选图完成地图、编队、携带物、事件与随机状态验证后原子发布，并以完整 RuntimeState 回滚。",
+    "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份；捕获与恢复通过绑定路线的可达事件闭包验证 pending Triggered occurrence，再在候选图完成原子发布与完整 RuntimeState 回滚。",
     "validatedAgainstSpecHash": "a6fded21aaf1c0e1b8a533d826ce52c6172e01135b0f87daf46f9c5b3a9cdd0a",
     "evidence": [
       {
         "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
         "line": 1,
-        "fileHash": "8fc0a4ea611941c3500798a8740b163aa88526da348891ee685a5079d33ccb80",
+        "fileHash": "3f53aa935f3719d1c40e30aeefacc081b62673a8ab70946a14e52d2054520b37",
         "status": "verified",
-        "checkedAt": "2026-08-24T09:28:30-07:00",
-        "feature": "定义活动狩猎 schema v2，捕获同代 Route/Bundle、猎人、地块、物品、事件与随机状态并 fail closed 恢复。"
+        "checkedAt": "2026-08-25T21:33:00-07:00",
+        "feature": "定义活动狩猎 schema v2，捕获与恢复只接受绑定 RoutePlan 可达的根或 Triggered occurrence/祖先，并对路线外事件 fail closed。"
       },
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
@@ -58,10 +58,10 @@
         "guid": "a61a5c63f2764aa98fb12323a8c94f3a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
         "line": 1,
-        "fileHash": "8c31c0e4dc81e7f932e11f02f823795724b8edaf3bae167a87856c74c8d6203d",
+        "fileHash": "6579d2062ac0a74e254a3aa15b16fc20fea2a1cdac8b445d4035da0bbc35aaac",
         "status": "verified",
-        "checkedAt": "2026-08-24T09:28:30-07:00",
-        "feature": "组合验证 Bundle 身份往返、错代拒绝、默认路线与只读解析不污染活动选择。"
+        "checkedAt": "2026-08-25T21:33:00-07:00",
+        "feature": "组合验证 Bundle 身份往返、pending Triggered 子事件 JSON 恢复，以及路线外事件或祖先在捕获和恢复侧均被拒绝。"
       }
     ],
     "tests": [
@@ -70,13 +70,15 @@
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/StatefulRandomSourceTests.cs",
       "Unity CLI GameManager campaign loop PlayMode: 14/14 passed",
-      "C# derived index: 986/986, 100% coverage"
+      "Unity CLI targeted Hunt event and persistence cluster: 69/69 passed",
+      "C# derived index: 994/994, 100% coverage"
     ],
-    "verifiedAt": "2026-08-25T10:46:52-07:00"
+    "verifiedAt": "2026-08-25T21:33:00-07:00"
   },
   "implementationOutline": [
     "CampaignSnapshot 以 HasActiveHuntState 显式声明阶段，恢复入口归一化 JsonUtility 产生的默认空引用记录。",
     "ActiveHuntSnapshotAdapter 只从空闲 Hunt session 捕获稳定身份数据，恢复时先解析目录和临时投影，再提交运行时携带物。",
+    "事件检查点捕获与恢复使用 BoundRoute 可达事件解析器；Triggered 子事件可续接，路线外节点与祖先被拒绝。",
     "HuntManager 使用版本固定的 StatefulRandomSource，恢复地图、导航、选中猎人与随机状态。",
     "PlayableHuntActionSession 在提交边界通知 GameManager 冻结载荷，并把全部可恢复 sibling occurrence 排空。",
     "ActiveHuntRestoreTransaction 在独立候选图上恢复并验证内容，统一提交或回滚 ZFramework 运行世代、目的地状态和阶段状态。",

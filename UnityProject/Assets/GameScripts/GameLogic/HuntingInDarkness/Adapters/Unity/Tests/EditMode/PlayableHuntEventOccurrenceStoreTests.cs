@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using Core;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
@@ -11,13 +13,22 @@ using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.Data;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableHuntEventOccurrenceStoreTests
     {
+        private const string SymptomCatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Symptoms/PlayableSymptomCatalog.asset";
         private readonly List<EventData> events = new();
+
+        [SetUp]
+        public void SetUp()
+        {
+            PlayableSymptomRuntime.Configure(AssetDatabase.LoadAssetAtPath<PlayableSymptomCatalog>(SymptomCatalogPath));
+            PlayableEventTableRuntime.ClearCache();
+        }
 
         [TearDown]
         public void TearDown()
@@ -25,6 +36,8 @@ namespace HuntingInDarkness.Adapter.Tests
             foreach (EventData gameEvent in events)
                 UnityEngine.Object.DestroyImmediate(gameEvent);
             events.Clear();
+            PlayableEventTableRuntime.ClearCache();
+            PlayableSymptomRuntime.Configure(null);
         }
 
         [Test]
@@ -133,6 +146,70 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(overflow.AppendedOccurrences, Has.Count.EqualTo(64));
             Assert.That(next.Succeeded, Is.True);
             Assert.That(store.HasPendingOccurrences, Is.True);
+        }
+
+        [Test]
+        public void ProductionRustBurialChain_PreservesContextAcrossJsonRoundTripAndDrainsChild()
+        {
+            EventData parent = ResolveProductionEvent("hunt_rust_burial");
+            EventData child = ResolveProductionEvent("hunt_rust_burial_open_eyes");
+            var store = new PlayableHuntEventOccurrenceStore();
+            var coordinate = new Vector2Int(4, -2);
+
+            Assert.That(store.TryScheduleRoot(parent, coordinate, 3, 77, out PlayableHuntEventOccurrence root), Is.True);
+            PlayableHuntEventOccurrenceCommitResult commit = store.Commit(root, parent.options[1].successChain, 3, 77);
+
+            Assert.That(commit.Succeeded, Is.True);
+            Assert.That(commit.AppendedOccurrences, Has.Count.EqualTo(1));
+            Assert.That(commit.AppendedOccurrences[0].Event, Is.SameAs(child));
+            Assert.That(commit.AppendedOccurrences[0].Coordinate, Is.EqualTo(coordinate));
+            Assert.That(commit.AppendedOccurrences[0].AncestorContentIds, Is.EqualTo(new[] { parent.ContentId }));
+            Assert.That(commit.AppendedOccurrences[0].Occurrence.Year, Is.EqualTo(3));
+            Assert.That(commit.AppendedOccurrences[0].Occurrence.ActorId, Is.EqualTo(77));
+
+            PlayableHuntEventOccurrenceStoreState state = store.CaptureState();
+            var jsonSnapshot = new ActiveHuntEventStoreSnapshot
+            {
+                NextSequence = state.NextSequence,
+                NextRootSequence = state.NextRootSequence,
+                Diagnostic = state.Diagnostic
+            };
+            jsonSnapshot.CommittedSequences.AddRange(state.CommittedSequences);
+            foreach (PlayableHuntEventOccurrenceRecord record in state.PendingOccurrences)
+            {
+                jsonSnapshot.PendingOccurrences.Add(new ActiveHuntEventOccurrenceSnapshot
+                {
+                    Sequence = record.Occurrence.Sequence,
+                    EventId = record.Occurrence.EventId,
+                    EventName = record.Occurrence.EventName,
+                    Year = record.Occurrence.Year,
+                    ActorId = record.Occurrence.ActorId,
+                    X = record.Coordinate.x,
+                    Y = record.Coordinate.y,
+                    AncestorEventIds = new List<string>(record.AncestorContentIds)
+                });
+            }
+
+            ActiveHuntEventStoreSnapshot restoredJsonSnapshot = JsonUtility.FromJson<ActiveHuntEventStoreSnapshot>(JsonUtility.ToJson(jsonSnapshot));
+            var restoredPending = restoredJsonSnapshot.PendingOccurrences.Select(record => new PlayableHuntEventOccurrenceRecord(new PlayableEventChainOccurrence(record.Sequence, record.EventId, record.EventName, record.Year, record.ActorId), new Vector2Int(record.X, record.Y), record.AncestorEventIds)).ToList();
+            var restoredState = new PlayableHuntEventOccurrenceStoreState
+            {
+                NextSequence = restoredJsonSnapshot.NextSequence,
+                NextRootSequence = restoredJsonSnapshot.NextRootSequence,
+                CommittedSequences = restoredJsonSnapshot.CommittedSequences,
+                PendingOccurrences = restoredPending,
+                Diagnostic = restoredJsonSnapshot.Diagnostic
+            };
+
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(restoredState, ResolveProductionEvent, out PlayableHuntEventOccurrenceStore restoredStore, out string reason), Is.True, reason);
+            Assert.That(restoredStore.TryGetNextPending(out PlayableHuntEventOccurrence restoredChild), Is.True);
+            Assert.That(restoredChild.Event, Is.SameAs(child));
+            Assert.That(restoredChild.Coordinate, Is.EqualTo(coordinate));
+            Assert.That(restoredChild.AncestorContentIds, Is.EqualTo(new[] { parent.ContentId }));
+
+            PlayableHuntEventOccurrenceCommitResult drained = restoredStore.Commit(restoredChild, Array.Empty<EventData>(), 3, 77);
+            Assert.That(drained.Succeeded, Is.True);
+            Assert.That(restoredStore.HasPendingOccurrences, Is.False);
         }
 
         [Test]
@@ -257,6 +334,8 @@ namespace HuntingInDarkness.Adapter.Tests
             events.Add(gameEvent);
             return gameEvent;
         }
+
+        private static EventData ResolveProductionEvent(string id) => PlayableEventTableRuntime.GetEvents().Single(gameEvent => gameEvent.ContentId == id);
 
         private sealed class SessionRig : IDisposable
         {

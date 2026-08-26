@@ -648,6 +648,7 @@
           "successEffects": [
             { "effectType": "AddResource", "targetName": "metal_fragment", "value": 1, "description": "金属碎片 +1" }
           ],
+          "successChainIds": ["hunt_rust_burial_open_eyes"],
           "failText": "石片翻开时，猎人看见自己的闭眼符号。命运值 +1。",
           "failEffects": [
             { "effectType": "AddLuck", "targetName": "selected", "value": 1, "description": "命运值 +1" }
@@ -661,6 +662,55 @@
       "maxYear": 0,
       "drawWeight": 1,
       "category": "Hunt"
+    },
+    {
+      "id": "hunt_rust_burial_open_eyes",
+      "eventName": "睁眼的石片",
+      "eventType": "Choice",
+      "displayText": "金属碎片离开土层后，闭眼符号下方露出一圈新的刻痕。你可以冒险读懂它，也可以用已有的金属碎片封住这道缝隙。",
+      "hiddenText": "石片的眼睛终于闭合，留下的痕迹仍像是在记住每一个看过它的人。",
+      "options": [
+        {
+          "optionText": "翻开两张石片，理解它们为何睁眼",
+          "checkType": "Understanding",
+          "checkTarget": 12,
+          "checkPresentation": "FlipCards",
+          "checkCount": 2,
+          "checkSides": 10,
+          "checkDeckId": "rust-burial-open-eyes",
+          "checkInstruction": "翻开两张睁眼石片",
+          "successText": "两张石片的刻痕拼成一段古老路径。你取下一块完整的古老石屑。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "ancient_stone_chip", "value": 1, "description": "古老石屑 +1" }
+          ],
+          "failText": "石片的目光穿过手臂。猎人的双臂留下了无法立刻恢复的酸痛。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "arms", "value": 1, "description": "双臂受到 1 点普通伤势" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "用一份金属碎片封住石片的缝隙",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "金属嵌入缝隙，石片的眼睛重新闭合。",
+          "successEffects": [
+            { "effectType": "RemoveResource", "targetName": "metal_fragment", "value": 1, "description": "金属碎片 -1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "MinimumResource", "key": "metal_fragment", "value": 1, "inverted": false }
+          ]
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 3,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Triggered"
     },
     {
       "id": "hunt_worm_rain",

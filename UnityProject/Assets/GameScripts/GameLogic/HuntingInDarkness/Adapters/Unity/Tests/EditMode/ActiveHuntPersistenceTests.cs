@@ -145,6 +145,57 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(reason, Does.Contain("路线世代"));
         }
 
+        [Test]
+        public void Snapshot_RoundTripsPendingTriggeredEventAndRejectsForeignEventOrAncestor()
+        {
+            HunterData template = CreateAsset<HunterData>("hunter-template-triggered");
+            var hunter = new HunterInstance(template, 401);
+            var settlement = new SettlementInstance { CurrentYear = 3 };
+            settlement.Hunters.Add(hunter);
+            HuntManager source = CreateManager(settlement, null, null, 41);
+            source.OnEnter(new List<HunterInstance> { hunter }, settlement.CurrentYear);
+            Assert.That(source.BoundRoute.TryResolveEvent("hunt_rust_burial_open_eyes", out EventData child), Is.True);
+            var occurrences = new PlayableHuntEventOccurrenceStore();
+            Assert.That(occurrences.TryScheduleRoot(child, source.SquadPosition, settlement.CurrentYear, hunter.InstanceId, out _), Is.True);
+            using var session = new PlayableHuntActionSession(source, "encounter", source.BoundRoute.DestinationId, restoredOccurrenceStore: occurrences);
+
+            Assert.That(ActiveHuntSnapshotAdapter.TryCapture(settlement, source, session, "expedition-triggered", out CampaignSnapshot captured, out string reason), Is.True, reason);
+            Assert.That(SaveLoadSystem.TryCreatePayload(captured, out string payload, out reason), Is.True, reason);
+            Assert.That(CampaignSaveRecovery.TryRestore(new CampaignSaveCandidates(CampaignSaveCodec.Encode(payload), null), out CampaignSnapshot saved, out _, out reason), Is.True, reason);
+            HuntManager destination = CreateManager(saved.Settlement, null, null, 99);
+
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(saved, destination, out _, out PlayableHuntEventOccurrenceStore restored, out reason), Is.True, reason);
+            Assert.That(restored.TryGetNextPending(out PlayableHuntEventOccurrence pending), Is.True);
+            Assert.That(pending.Event.ContentId, Is.EqualTo(child.ContentId));
+
+            saved.ActiveHunt.EventStore.PendingOccurrences[0].EventId = "hunt:foreign-event";
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(saved, destination, out _, out _, out reason), Is.False);
+            Assert.That(reason, Does.Contain("无法解析待恢复狩猎事件"));
+            saved.ActiveHunt.EventStore.PendingOccurrences[0].EventId = child.ContentId;
+            saved.ActiveHunt.EventStore.PendingOccurrences[0].AncestorEventIds.Add("hunt:foreign-ancestor");
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(saved, destination, out _, out _, out reason), Is.False);
+            Assert.That(reason, Does.Contain("ancestor"));
+        }
+
+        [Test]
+        public void Capture_RejectsPendingEventOutsideBoundRoute()
+        {
+            HunterData template = CreateAsset<HunterData>("hunter-template-foreign-event");
+            var hunter = new HunterInstance(template, 402);
+            var settlement = new SettlementInstance { CurrentYear = 3 };
+            settlement.Hunters.Add(hunter);
+            HuntManager manager = CreateManager(settlement, null, null, 42);
+            manager.OnEnter(new List<HunterInstance> { hunter }, settlement.CurrentYear);
+            EventData foreign = CreateAsset<EventData>("foreign-event");
+            foreign.ConfigureContentId("hunt:foreign-event");
+            var occurrences = new PlayableHuntEventOccurrenceStore();
+            Assert.That(occurrences.TryScheduleRoot(foreign, manager.SquadPosition, settlement.CurrentYear, hunter.InstanceId, out _), Is.True);
+            using var session = new PlayableHuntActionSession(manager, "encounter", manager.BoundRoute.DestinationId, restoredOccurrenceStore: occurrences);
+
+            Assert.That(ActiveHuntSnapshotAdapter.TryCapture(settlement, manager, session, "expedition-foreign-event", out _, out string reason), Is.False);
+            Assert.That(reason, Does.Contain("不属于当前路线"));
+        }
+
         private HuntManager CreateManager(SettlementInstance settlement, HexTileData starting, HexTileData plain, int seed)
         {
             var eventSystem = new EventSystem(settlement, new FirstRandom());
