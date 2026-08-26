@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "main-face-echo-choice-arc", "label": "石脸回声选择弧", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-main-face-echo-choice-arc/specs/main-face-echo-choice-arc/spec.md" },
+    { "id": "table-driven-event-chains", "label": "读表事件分支与事件链", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/table-driven-event-chains/spec.md" },
+    { "id": "tabletop-event-interaction", "label": "跨阶段桌面事件交互", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-event-interaction/spec.md" },
+    { "id": "campaign-year-loop", "label": "配置化战役季节出猎闭环", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/campaign-year-loop/spec.md" },
+    { "id": "settlement-timeline-event-identity", "label": "营地时间线事件稳定身份", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/settlement-timeline-event-identity/spec.md" },
+    { "id": "event-recoverable-wounds", "label": "事件普通伤势与营地休养闭环", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/event-recoverable-wounds/spec.md" }
+  ],
+  "edges": [
+    { "from": "table-driven-event-chains", "to": "main-face-echo-choice-arc", "type": "supports" },
+    { "from": "tabletop-event-interaction", "to": "main-face-echo-choice-arc", "type": "supports" },
+    { "from": "campaign-year-loop", "to": "main-face-echo-choice-arc", "type": "constrains" },
+    { "from": "settlement-timeline-event-identity", "to": "main-face-echo-choice-arc", "type": "constrains" },
+    { "from": "event-recoverable-wounds", "to": "main-face-echo-choice-arc", "type": "supports" }
+  ]
+}

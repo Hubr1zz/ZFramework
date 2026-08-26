@@ -100,6 +100,27 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.name == "random_falling_beam" && gameEvent.options.Exists(option => option.failEffects.Exists(effect => effect.effectType == EventEffectType.AddRecoverableWound && effect.bodyPart == "arms"))), Is.True);
             Assert.That(manager.Timeline.RandomEventPool.FindAll(gameEvent => gameEvent != null && gameEvent.eventType == GameEventType.Choice && gameEvent.maxYear <= 0), Has.Count.GreaterThanOrEqualTo(3));
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.options.Exists(option => option != null && option.checkType != CheckType.None && option.successEffects.Count > 0 && option.failEffects.Count > 0)), Is.True);
+            EventData faceEcho = manager.Timeline.ResolveEvent("main_face_echo");
+            Assert.That(faceEcho, Is.Not.Null);
+            Assert.That(faceEcho.category, Is.EqualTo(EventCategory.Scheduled));
+            Assert.That(faceEcho.eventType, Is.EqualTo(GameEventType.Choice));
+            Assert.That(faceEcho.options, Has.Count.EqualTo(2));
+            Assert.That(faceEcho.chainedEvents, Has.Count.EqualTo(1));
+            Assert.That(faceEcho.chainedEvents[0].ContentId, Is.EqualTo("triggered_face_memory"));
+            EventOption understandingOption = faceEcho.options[0];
+            Assert.That(understandingOption.checkType, Is.EqualTo(CheckType.Understanding));
+            Assert.That(understandingOption.checkTarget, Is.EqualTo(7));
+            Assert.That(understandingOption.checkPresentation, Is.EqualTo(EventCheckPresentationKind.PhysicalDice));
+            Assert.That(understandingOption.checkCount, Is.EqualTo(1));
+            Assert.That(understandingOption.checkSides, Is.EqualTo(10));
+            Assert.That(understandingOption.successEffects.Exists(effect => effect.effectType == EventEffectType.AddUnderstanding && effect.targetName == "selected" && effect.value == 1), Is.True);
+            Assert.That(understandingOption.successEffects.Exists(effect => effect.effectType == EventEffectType.AddResource && effect.targetName == "broken_stone" && effect.value == 1), Is.True);
+            Assert.That(understandingOption.failEffects.Exists(effect => effect.effectType == EventEffectType.AddRecoverableWound && effect.targetName == "selected" && effect.bodyPart == "arms" && effect.value == 1), Is.True);
+            EventOption directResourceOption = faceEcho.options[1];
+            Assert.That(directResourceOption.checkType, Is.EqualTo(CheckType.None));
+            Assert.That(PlayableEventOptionAvailability.RequiresHunter(directResourceOption), Is.False);
+            Assert.That(directResourceOption.successEffects.Exists(effect => effect.effectType == EventEffectType.AddResource && effect.targetName == "broken_stone" && effect.value == 2), Is.True);
+            Assert.That(directResourceOption.failEffects, Is.Empty);
             foreach (EventData gameEvent in manager.Timeline.RandomEventPool)
                 Assert.That(gameEvent.options == null || gameEvent.options.TrueForAll(option => option != null && !string.IsNullOrWhiteSpace(option.optionText)), Is.True);
         }

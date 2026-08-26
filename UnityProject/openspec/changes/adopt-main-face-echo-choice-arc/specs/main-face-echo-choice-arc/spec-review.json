@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 5,
+  "capability": "main-face-echo-choice-arc",
+  "title": "石脸回声选择弧",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "稳定年度日程、两条生产选择和 Settlement ActionQueue 提交边界已实现并通过定向验证。",
+    "codeEvidence": [
+      { "guid": "2a32e230eed309144a69d91ec3f752f4", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json", "fileHash": "162630b2fa0b5b057fec335cc4ebf176b23ac6cafec03eee62867dc7a0cb7d37", "line": 68, "feature": "石脸回声 Scheduled Choice 的稳定读表内容", "status": "verified", "checkedAt": "2026-08-26T16:00:00-07:00" },
+      { "guid": "927a97e1c0cf3c443ab526fe87f671e4", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs", "fileHash": "e86dfbcc42c847adacefb267a2a9d2939073803048a1c9d1d38e9cc9db54d8c4", "line": 930, "feature": "生产风险成功、失败、安全路线与重复提交验证", "status": "verified", "checkedAt": "2026-08-26T16:00:00-07:00" },
+      { "guid": "a3e860c15c7c4aa4d9f7bcb6461bc06b", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEventContentTests.cs", "fileHash": "c4b05efb4049f7dfa15c128e318dfd8125c081761a90f3345021cc5a55d06c8a", "line": 103, "feature": "生产表字段、效果和子链契约", "status": "verified", "checkedAt": "2026-08-26T16:00:00-07:00" },
+      { "guid": "d92bf45c59414633b14a8082558cc3ae", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementTimelineEventIdentityTests.cs", "fileHash": "b0bfba11ec97d2eb89b17c1f306fc6967be855d78fa8b5af3e14de34c4a13dab", "line": 43, "feature": "第 3 年 Scheduled 条目的单次到期", "status": "verified", "checkedAt": "2026-08-26T16:00:00-07:00" }
+    ],
+    "evidence": [
+      "Unity CLI EditMode 相关职责簇 56/56。",
+      "dotnet build 0 warnings、0 errors；events.json 解析和 git diff --check 通过。"
+    ],
+    "differences": ["该能力尚无正式 Spec；当前 Delta 描述已验证的生产内容行为。"],
+    "verifiedAt": "2026-08-26T16:00:00-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["table-driven-event-chains", "tabletop-event-interaction", "campaign-year-loop", "settlement-timeline-event-identity", "event-recoverable-wounds"],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md", "conversation::2026-08-26"],
+  "implementationOutline": [
+    "稳定 Scheduled ID 继续由年度时间线安排与恢复。",
+    "风险和稳妥路线使用既有表驱动效果与物理骰表现。",
+    "Settlement ActionQueue 提交结果，世界空间 View 只提供输入。"
+  ],
+  "reviewIssues": [
+    { "id": "ISSUE-MAIN-FACE-ECHO-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认旧未完成日程采用新版 Choice，已完成日程不补发。", "details": "补发需要新的迁移 occurrence，不得重放 main_face_echo。", "sourceId": "conversation::2026-08-26", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

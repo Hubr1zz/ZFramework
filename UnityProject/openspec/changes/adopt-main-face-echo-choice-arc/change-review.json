@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-main-face-echo-choice-arc",
+  "title": "收养石脸回声选择弧",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "生产内容与定向验证已完成；等待人类确认后再同步为正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "正式内容解析、年度日程身份和 Settlement ActionQueue 三条分支均已定向验证。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity CLI EditMode 相关职责簇 56/56。",
+      "dotnet build ZFramework.sln --no-restore -v:minimal 成功，0 warnings、0 errors。",
+      "events.json 可解析；git diff --check 通过。"
+    ],
+    "differences": [
+      "正式 Spec 尚未把石脸回声列为一条可选择的跨年度生产内容弧。",
+      "未新增专属 PlayMode 点击案例；共享 3D Choice、猎人选择、实体骰子与输入锁已有生产 PlayMode 覆盖。"
+    ],
+    "verifiedAt": "2026-08-26T16:00:00-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-MAIN-FACE-ECHO-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认稳定 ID 的旧未完成日程采用新版 Choice，而已完成日程不补发。",
+      "details": "批准后创建正式内容能力；若需要为已完成旧档补发奖励，必须另行定义迁移 occurrence，不能重放原 ID。",
+      "sourceId": "conversation::2026-08-26",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": ["table-driven-event-chains", "tabletop-event-interaction", "campaign-year-loop", "settlement-timeline-event-identity", "event-recoverable-wounds"],
+  "capabilities": ["main-face-echo-choice-arc"],
+  "syncTargets": [
+    { "capability": "main-face-echo-choice-arc", "title": "石脸回声选择弧", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-main-face-echo-choice-arc/specs/main-face-echo-choice-arc/spec.md", "targetSpecPath": "openspec/specs/main-face-echo-choice-arc/spec.md", "targetExisted": false, "baseFileHash": "", "baseSnapshotPath": "" }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "正式目标尚不存在，Delta 等待人工确认。",
+    "changes": ["增加石脸回声的跨年度桌面选择内容能力。"],
+    "conflicts": [],
+    "validatedAt": "2026-08-26T16:00:00-07:00"
+  },
+  "createdAt": "2026-08-26T16:00:00-07:00"
+}

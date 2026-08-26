@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
@@ -31,6 +32,33 @@ namespace HuntingInDarkness.Adapter.Tests
                 gameEvent.name = "renamed-asset";
                 Assert.That(timeline.ResolveEvent("stable-event"), Is.SameAs(gameEvent));
                 Assert.That(timeline.ResolveEvent("legacy-asset"), Is.Null);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void ScheduledChoice_IsDueInYearThreeExactlyOnce()
+        {
+            EventData gameEvent = CreateEvent("main-face-echo-asset", "main_face_echo");
+            gameEvent.category = EventCategory.Scheduled;
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption { optionText = "辨认", checkType = CheckType.Understanding, checkTarget = 7 });
+            gameEvent.options.Add(new EventOption { optionText = "带回", checkType = CheckType.None });
+            var settlement = new SettlementInstance { CurrentYear = 1 };
+            var timeline = new TimelineSystem(settlement, new FirstRandom()) { RandomEventPool = new() { gameEvent } };
+            try
+            {
+                Assert.That(timeline.TryScheduleEventAfterYears("main_face_echo", 2, out string scheduleReason), Is.True, scheduleReason);
+
+                List<SettlementEventWork> firstWorks = timeline.GetEventWorkItemsForYear(3);
+                Assert.That(firstWorks.FindAll(work => work.TimelineEntry != null && work.TimelineEntry.EntryType == TimelineEntryType.Scheduled), Has.Count.EqualTo(1));
+                Assert.That(firstWorks.Find(work => work.TimelineEntry != null && work.TimelineEntry.EntryType == TimelineEntryType.Scheduled).Event, Is.SameAs(gameEvent));
+
+                List<SettlementEventWork> secondWorks = timeline.GetEventWorkItemsForYear(3);
+                Assert.That(secondWorks.Exists(work => work.TimelineEntry != null && work.TimelineEntry.EntryType == TimelineEntryType.Scheduled), Is.False);
             }
             finally
             {

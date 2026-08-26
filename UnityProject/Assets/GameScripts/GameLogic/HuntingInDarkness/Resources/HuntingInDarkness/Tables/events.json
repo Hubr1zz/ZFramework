@@ -67,12 +67,42 @@
     {
       "id": "main_face_echo",
       "eventName": "石脸的回声",
-      "eventType": "Narrative",
+      "eventType": "Choice",
       "displayText": "两年过去，那张巨大的石脸第一次睁开了眼。它没有看向任何人，只凝视营火之外更深的黑暗。随后，一块温热的碎石从眼角脱落，像一句尚未说完的话。",
-      "hiddenText": "你们收起石片。石脸重新闭眼，但营地里再没有人认为它只是一块普通的岩石。",
-      "options": [],
-      "immediateEffects": [
-        { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" }
+      "hiddenText": "石脸重新闭眼，但营地里再没有人认为它只是一块普通的岩石。",
+      "options": [
+        {
+          "optionText": "辨认碎石上的纹路",
+          "checkType": "Understanding",
+          "checkTarget": 7,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "successText": "纹路在火光下显出短暂的秩序。你把它记在心里，并将碎石带回营地。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" },
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 1, "description": "碎石 +1" }
+          ],
+          "failText": "纹路在火光下重新变得杂乱，碎石边缘也划伤了你的手臂。石脸重新闭上。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "arms", "value": 1, "description": "手臂生命 -1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "直接把碎石带回营地",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "你不再追问石脸的沉默，只把温热的碎石带回营地。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
       ],
       "chainedEventIds": ["triggered_face_memory"],
       "minYear": 1,

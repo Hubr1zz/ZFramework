@@ -928,6 +928,76 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task ProductionMainFaceEcho_RiskSuccessAppliesUnderstandingAndOneResource()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            HunterInstance hunter = settlement.Hunters[0];
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == "main_face_echo");
+            var presenter = new FixedDicePresenter(8);
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), new EventSystem(settlement, new FirstRandom()), new FixedChoiceInput(0, hunter), randomInteractionPresenter: presenter);
+
+            SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(hunter.Understanding, Is.EqualTo(1));
+            Assert.That(hunter.HP.arms, Is.EqualTo(hunter.MaxHP.arms));
+            Assert.That(settlement.GetResource("broken_stone"), Is.EqualTo(1));
+            Assert.That(presenter.Requests, Has.Count.EqualTo(1));
+            Assert.That(presenter.Requests[0].Kind, Is.EqualTo(TabletopRandomInteractionKind.PhysicalDice));
+            Assert.That(presenter.Requests[0].Sides, Is.EqualTo(10));
+        }
+
+        [Test]
+        public async Task ProductionMainFaceEcho_RiskFailureAppliesArmWoundWithoutRewards()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            HunterInstance hunter = settlement.Hunters[0];
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == "main_face_echo");
+            var presenter = new FixedDicePresenter(1);
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), new EventSystem(settlement, new FirstRandom()), new FixedChoiceInput(0, hunter), randomInteractionPresenter: presenter);
+
+            SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(hunter.Understanding, Is.Zero);
+            Assert.That(hunter.HP.arms, Is.EqualTo(hunter.MaxHP.arms - 1));
+            Assert.That(settlement.GetResource("broken_stone"), Is.Zero);
+        }
+
+        [Test]
+        public async Task ProductionMainFaceEcho_SafeChoiceWorksWithoutHunters()
+        {
+            var settlement = new SettlementInstance();
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == "main_face_echo");
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), new EventSystem(settlement, new FirstRandom()), new FixedChoiceInput(1, null));
+
+            SettlementEventCommandResult result = await session.ResolveEventsAsync(new[] { gameEvent });
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(settlement.GetResource("broken_stone"), Is.EqualTo(2));
+        }
+
+        [Test]
+        public void ProductionMainFaceEcho_ChoiceTransactionCommitIsIdempotent()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            HunterInstance hunter = settlement.Hunters[0];
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == "main_face_echo");
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+
+            PlayableEventChoiceTransaction transaction = eventSystem.PrepareChoice(gameEvent, 0, hunter, 8);
+            Assert.That(transaction, Is.Not.Null);
+            EventResolutionResult first = transaction.Commit();
+            EventResolutionResult second = transaction.Commit();
+
+            Assert.That(first.Success, Is.True);
+            Assert.That(second.Success, Is.True);
+            Assert.That(hunter.Understanding, Is.EqualTo(1));
+            Assert.That(settlement.GetResource("broken_stone"), Is.EqualTo(1));
+            Assert.That(hunter.HP.arms, Is.EqualTo(hunter.MaxHP.arms));
+        }
+
+        [Test]
         public async Task EventCheck_DoesNotPresentRerollWhenActorCannotPayRerollCost()
         {
             SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
