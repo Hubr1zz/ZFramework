@@ -140,6 +140,37 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void StoneForestGearAndAilment_UnlockHuntEventBranches()
+        {
+            ItemData blade = PlayableItemTableRuntime.GetItems().First(item => item.ContentId == "bone_saw_blade");
+            ItemData bracer = PlayableItemTableRuntime.GetItems().First(item => item.ContentId == "carapace_bracer");
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 9115) { Name = "荒原采集者" };
+            hunter.Equipment.Add(new ItemInstance(blade));
+            hunter.Equipment.Add(new ItemInstance(bracer));
+            hunter.EquippedItemIds.Add(blade.ContentId);
+            hunter.EquippedItemIds.Add(bracer.ContentId);
+            hunter.Ailments.Add("symptom_whisper_sickness");
+            settlement.Hunters.Add(hunter);
+
+            try
+            {
+                PlayableSettlementItemRegistry.Configure(PlayableItemTableRuntime.GetItems());
+                string[] eventIds = { "hunt_sap_suture", "hunt_carapace_cairn", "hunt_white_hair_lure", "hunt_root_pulse", "hunt_worm_rain" };
+                foreach (string eventId in eventIds)
+                {
+                    EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == eventId);
+                    EventOption guardedOption = gameEvent.options.First(option => !option.alwaysAvailable);
+                    Assert.That(PlayableEventOptionAvailability.CanUse(guardedOption, hunter, settlement, out string reason), Is.True, $"{eventId}: {reason}");
+                }
+            }
+            finally
+            {
+                PlayableSettlementItemRegistry.Configure(null);
+            }
+        }
+
+        [Test]
         public void FateKnotEvent_OffersSafeAndRiskyBranchesAtConfiguredFateThresholds()
         {
             EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_fate_knots");

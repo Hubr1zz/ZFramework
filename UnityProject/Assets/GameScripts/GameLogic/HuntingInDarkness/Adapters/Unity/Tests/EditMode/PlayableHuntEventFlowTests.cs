@@ -48,10 +48,17 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             List<EventData> events = PlayableEventTableRuntime.GetEvents().Where(gameEvent => gameEvent.category == EventCategory.Hunt).ToList();
 
-            Assert.That(events, Has.Count.GreaterThanOrEqualTo(3));
+            Assert.That(events, Has.Count.GreaterThanOrEqualTo(14));
             Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.checkPresentation == EventCheckPresentationKind.PhysicalDice)), Is.True);
             Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.checkPresentation == EventCheckPresentationKind.DrawCards)), Is.True);
+            Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.checkPresentation == EventCheckPresentationKind.FlipCards)), Is.True);
+            Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.checkPresentation == EventCheckPresentationKind.OldMaid)), Is.True);
             Assert.That(events.Exists(gameEvent => gameEvent.options.Exists(option => option.failEffects.Exists(effect => effect.effectType == EventEffectType.AddRecoverableWound && effect.targetName == "selected" && effect.bodyPart == "legs"))), Is.True);
+            Assert.That(events.Select(gameEvent => gameEvent.ContentId), Is.SupersetOf(new[]
+            {
+                "hunt_sap_suture", "hunt_carapace_cairn", "hunt_white_hair_lure",
+                "hunt_root_pulse", "hunt_rust_burial", "hunt_worm_rain"
+            }));
         }
 
         [Test]

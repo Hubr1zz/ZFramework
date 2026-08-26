@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "f69f5c320ab2f359408212992c2afae514bc2509116c9406f571a19877851bf1",
-  "inputManifestDigest": "dabb51d3198b173c9f4256f77bc0e2913fb21e954b63f7adc95eb37351b682be",
-  "outputDigest": "c569f817af0e8506f140cd4566ddf5c295fa7c7a55ba27cebd113d701f1033ad",
+  "inputDigest": "4f95459fc2994543c4e8bd7a7a68fcec9f7cef83c8ce6a0fe37f1f1feaaadb6d",
+  "inputManifestDigest": "bbec37b7fbe3f6d10c17485fca4d18b278fb7b099f25a4b8fd84e78212284a82",
+  "outputDigest": "89e31510f1027e65066307c307c04a70a26611973e9962fbef5279ecdd4754cf",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -427,7 +427,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
-      "sha256": "95d5a9f1f37a0723af6f9265d1c7c18519b8f59cd85d1e68d3a43bdf65dfea60",
+      "sha256": "83c7ffccb42f0900dc4e6df0769f2d341c61609374cd33e22df4740daf6644fe",
       "state": "current"
     },
     {
@@ -472,7 +472,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventFlowTests.cs",
-      "sha256": "e77d7b4ff5685a4c3259ca2648b543e23678f65e88411ce22e3024f72abe4004",
+      "sha256": "ed1c2cb04ff52e99471f03acd85df40d895d2e90211fb8ee0a51ff63ac3fb3d1",
       "state": "current"
     },
     {
@@ -732,7 +732,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
-      "sha256": "937efeb8424d9b696755d0eabf443eb70d52c288a3eba1a4b563119506a6884d",
+      "sha256": "243cc388e65d34600057d65c95b2856103070bbb3b076274aada77fdb09f50a1",
       "state": "current"
     },
     {
@@ -1287,12 +1287,12 @@
     },
     {
       "path": "openspec/specs/table-driven-hunt-events/implementation.json",
-      "sha256": "f5f69bf5f0a0afb1c7bdc699c316393ea485b8ddd39ec246026ebf0de2cf1000",
+      "sha256": "fa2770b3f0e554cf26eb7d4508da2aced669d9b3fb067a42874aa3dc10f01f6b",
       "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-hunt-events/spec.md",
-      "sha256": "7a47d7fc3da5a388ad0f76946aef71719abe76ade761aefbbe17f18a752cc3f9",
+      "sha256": "b18adb79217b79109ea4c5037405b3b2c4fc07bbf6b42d61603201b1e583a8ba",
       "state": "current"
     },
     {
@@ -1307,7 +1307,7 @@
     },
     {
       "path": "openspec/specs/table-driven-hunter-symptoms/implementation.json",
-      "sha256": "06d56e249549aafba421493ae46b97bc0d785d06ab200875833cf30f43a00efa",
+      "sha256": "e043cac2e1ddef6eafb35e09f53c11bbcc7fe0a8287f092f6be915e4cebc3f20",
       "state": "current"
     },
     {
@@ -1367,7 +1367,7 @@
     },
     {
       "path": "openspec/specs/tabletop-event-interaction/implementation.json",
-      "sha256": "61917eaf60c2700852f627fa65bf63ce592f55733733823acb6954c1c5f9ff07",
+      "sha256": "c2e81550279bfc1c26a576be72b6bd5401fc8e8494afd3289555ad15e4c755b9",
       "state": "current"
     },
     {
@@ -1477,7 +1477,7 @@
     },
     {
       "path": "openspec/specs/tabletop-random-interaction/implementation.json",
-      "sha256": "558adf4263516e095cb9c5dc578dd3a4bacf21d26df10daceb047ecef03d4928",
+      "sha256": "1124b49c2cb1883a73543ab0eb26c96220e25407868bbc48e7d4190f4703e810",
       "state": "current"
     },
     {
@@ -3162,7 +3162,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "共享 Hunt 事件从合并表目录装配到路线内容池；稳定 ID 决定覆盖，重复路线 ID 全部 fail closed，表事件仍可成为唯一权威覆盖，最终事件由 Hunt Runner 与 3D 随机交互端口结算。",
+      "summary": "共享 Hunt 事件从合并表目录装配到路线内容池；石森林内容通过装备、关键词和症状条件提供构筑回报，最终仍由 Hunt Runner 与 3D 随机交互端口结算。",
       "designSources": [],
       "sources": [
         "openspec/specs/table-driven-hunt-events/spec.md",
@@ -3192,6 +3192,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventFlowTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
           "state": "current"
         }
       ]

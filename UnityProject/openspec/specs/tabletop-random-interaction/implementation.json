@@ -140,9 +140,9 @@
         "guid": "2b17ff3d52628a04b81c7873108ecf6f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
         "line": 1,
-        "fileHash": "95d5a9f1f37a0723af6f9265d1c7c18519b8f59cd85d1e68d3a43bdf65dfea60",
+        "fileHash": "83c7ffccb42f0900dc4e6df0769f2d341c61609374cd33e22df4740daf6644fe",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:48:50-07:00",
+        "checkedAt": "2026-08-25T18:29:21-07:00",
         "feature": "验证 OldMaid 内容可达、鬼牌忽略属性加值、多牌总值、重投范围与命运门禁事件。"
       }
     ],

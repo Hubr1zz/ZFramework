@@ -43,3 +43,11 @@ Hunt options SHALL reuse the existing physical-dice and card-interaction request
 - **WHEN** the option requires `DrawCards`
 - **THEN** the shared tabletop presenter receives the configured deck ID and instruction
 - **AND** the validated result is returned to the same event transaction used by dice checks
+
+### Requirement: Baseline hunt content rewards campaign builds and lived weaknesses
+The shared Stone Forest pool SHALL include guarded options that recognize stable equipped items, equipment keywords, or hunter ailments. Eligible branches SHALL provide safer or stronger outcomes through the same authoritative option validation, while ordinary dice or card branches remain available when the requirement is not met.
+
+#### Scenario: A prepared or afflicted hunter meets a guarded branch
+- **WHEN** the selected hunter carries the configured gear, keyword, or ailment
+- **THEN** the guarded option becomes available and its resource reward is committed through the Hunt runner
+- **AND** an ineligible hunter cannot submit that option through a View or direct command
