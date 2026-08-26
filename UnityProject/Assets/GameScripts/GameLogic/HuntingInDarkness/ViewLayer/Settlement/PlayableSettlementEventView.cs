@@ -30,6 +30,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private EventData currentEvent;
         private HunterInstance currentActor;
         private IReadOnlyList<HunterInstance> candidateHunters = System.Array.Empty<HunterInstance>();
+        private IPlayableEventResourceAvailability resourceAvailability;
         private TabletopEventPanel3D panel;
         private UniTaskCompletionSource narrativeSource;
         private UniTaskCompletionSource<PlayableEventChoiceSelection> choiceSource;
@@ -63,9 +64,10 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             }
         }
 
-        public async UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken)
+        public async UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, IPlayableEventResourceAvailability resourceAvailability, CancellationToken cancellationToken)
         {
             BeginPrompt(EventPromptKind.Choice, gameEvent, actor, hunters);
+            this.resourceAvailability = resourceAvailability;
             choiceSource = new UniTaskCompletionSource<PlayableEventChoiceSelection>();
             try
             {
@@ -140,7 +142,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                 if (available)
                     availableCount++;
                 string optionTitle = string.IsNullOrWhiteSpace(option.optionText) ? $"选项 {index + 1}" : option.optionText;
-                string requirements = PlayableEventOptionAvailability.GetRequirements(option);
+                string requirements = PlayableEventOptionAvailability.GetRequirements(option, resourceAvailability);
                 string body = optionTitle;
                 body += option.checkType == CheckType.None ? "\n\n无需判定 · 直接结算" : option.checkPresentation == EventCheckPresentationKind.OldMaid ? "\n\n抽鬼牌 · 避开无面牌" : $"\n\n{GetCheckName(option.checkType)}判定 · 目标 {option.checkTarget}";
                 if (!string.IsNullOrWhiteSpace(requirements))
@@ -176,7 +178,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             {
                 if (hunter == null) continue;
                 HunterInstance selectedHunter = hunter;
-                bool available = PlayableEventOptionAvailability.CanUse(option, hunter, manager.SettlementData, out string reason);
+                bool available = PlayableEventOptionAvailability.CanUse(option, hunter, manager.SettlementData, resourceAvailability, out string reason);
                 string body = oldMaid
                     ? $"抽鬼牌不使用属性\n意志 {hunter.Willpower}/{hunter.WillpowerMax}"
                     : option.checkType == CheckType.None
@@ -240,12 +242,12 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                 return false;
             }
             if (currentActor != null)
-                return PlayableEventOptionAvailability.CanUse(option, currentActor, manager.SettlementData, out reason);
+                return PlayableEventOptionAvailability.CanUse(option, currentActor, manager.SettlementData, resourceAvailability, out reason);
             bool needsHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
             if (!needsHunter)
-                return PlayableEventOptionAvailability.CanUse(option, null, manager.SettlementData, out reason);
+                return PlayableEventOptionAvailability.CanUse(option, null, manager.SettlementData, resourceAvailability, out reason);
             foreach (HunterInstance hunter in candidateHunters)
-                if (hunter != null && PlayableEventOptionAvailability.CanUse(option, hunter, manager.SettlementData, out _))
+                if (hunter != null && PlayableEventOptionAvailability.CanUse(option, hunter, manager.SettlementData, resourceAvailability, out _))
                 {
                     reason = string.Empty;
                     return true;
@@ -282,6 +284,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             currentEvent = null;
             currentActor = null;
             candidateHunters = System.Array.Empty<HunterInstance>();
+            resourceAvailability = null;
             panel?.Close();
             backgroundInputBlocker?.Dispose();
             backgroundInputBlocker = null;
@@ -326,6 +329,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private void OnDestroy()
         {
             prompt = EventPromptKind.None;
+            resourceAvailability = null;
             narrativeSource?.TrySetCanceled();
             choiceSource?.TrySetCanceled();
             checkSource?.TrySetCanceled();

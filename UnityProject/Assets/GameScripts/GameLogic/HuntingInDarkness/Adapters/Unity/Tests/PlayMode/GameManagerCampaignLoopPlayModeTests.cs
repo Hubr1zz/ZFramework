@@ -945,7 +945,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         {
             public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
 
-            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken)
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, IPlayableEventResourceAvailability resourceAvailability, CancellationToken cancellationToken)
             {
                 HunterInstance selectedActor = actor ?? (hunters != null && hunters.Count > 0 ? hunters[0] : null);
                 return UniTask.FromResult(new PlayableEventChoiceSelection(0, selectedActor));

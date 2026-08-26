@@ -420,7 +420,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 return failChild ? UniTask.FromException(new InvalidOperationException("测试待恢复事件失败")) : UniTask.CompletedTask;
             }
 
-            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken)
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, IPlayableEventResourceAvailability resourceAvailability, CancellationToken cancellationToken)
             {
                 RootChoiceCount++;
                 return UniTask.FromResult(new PlayableEventChoiceSelection(0, Hunter));

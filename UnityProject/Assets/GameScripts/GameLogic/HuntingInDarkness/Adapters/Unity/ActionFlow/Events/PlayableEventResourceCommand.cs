@@ -25,8 +25,15 @@ namespace HuntingInDarkness.ActionFlow.Events
         public bool Changed => OldAmount != NewAmount;
     }
 
+    /// <summary>事件选项读取资源数量的只读端口，作用域由阶段适配器声明。</summary>
+    public interface IPlayableEventResourceAvailability
+    {
+        PlayableEventResourceScope Scope { get; }
+        int GetAvailableAmount(string resourceId);
+    }
+
     /// <summary>由阶段 Runner 注入的资源写入端口，避免共享事件系统越过阶段权威状态。</summary>
-    public interface IPlayableEventResourceCommand
+    public interface IPlayableEventResourceCommand : IPlayableEventResourceAvailability
     {
         bool TryApply(EventEffectType effectType, string resourceId, int amount, HunterInstance actor, out PlayableEventResourceChange change, out string reason);
     }

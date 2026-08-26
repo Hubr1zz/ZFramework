@@ -14,6 +14,7 @@ using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
+using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -195,6 +196,41 @@ namespace HuntingInDarkness.Adapter.Tests
                 EventBus.Unsubscribe(triggeredHandler);
                 EventBus.Unsubscribe(committedHandler);
             }
+        }
+
+        [Test]
+        public async Task InteractTileAsync_ExplicitUnavailableChoiceFailsAndKeepsOccurrence()
+        {
+            using var rig = new HuntRig();
+            rig.TileEvent.eventType = GameEventType.Choice;
+            rig.TileEvent.options.Add(new EventOption
+            {
+                optionText = "安全方案",
+                alwaysAvailable = false,
+                conditions = new List<EventOptionCondition>
+                {
+                    new() { conditionKind = EventOptionConditionKind.MinimumResource, key = rig.Resource.ContentId, value = 1 }
+                }
+            });
+            rig.TileEvent.options.Add(new EventOption
+            {
+                optionText = "危险方案",
+                alwaysAvailable = true,
+                successEffects = new List<EventEffect>
+                {
+                    new() { effectType = EventEffectType.AddResource, targetName = rig.Resource.ContentId, value = 9 }
+                }
+            });
+            var input = new ExplicitChoiceInput(0);
+            rig.Manager.EventInput = input;
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Reason, Does.Contain("条件"));
+            Assert.That(input.SelectionCount, Is.EqualTo(1));
+            Assert.That(rig.Session.HasPendingEventOccurrences, Is.True);
+            Assert.That(rig.Hunter.Collectibles, Is.Empty);
         }
 
         [Test]
@@ -693,7 +729,28 @@ namespace HuntingInDarkness.Adapter.Tests
                 await Continue.Task.AsUniTask().AttachExternalCancellation(cancellationToken);
             }
 
-            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(-1, null));
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, IPlayableEventResourceAvailability resourceAvailability, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(-1, null));
+            public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
+            public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
+        }
+
+        private sealed class ExplicitChoiceInput : IPlayableEventInput
+        {
+            private readonly int optionIndex;
+
+            public ExplicitChoiceInput(int optionIndex)
+            {
+                this.optionIndex = optionIndex;
+            }
+
+            public int SelectionCount { get; private set; }
+
+            public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, IPlayableEventResourceAvailability resourceAvailability, CancellationToken cancellationToken)
+            {
+                SelectionCount++;
+                return UniTask.FromResult(new PlayableEventChoiceSelection(optionIndex, actor));
+            }
             public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(PlayableEventCheckDecision.Accept);
             public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
         }

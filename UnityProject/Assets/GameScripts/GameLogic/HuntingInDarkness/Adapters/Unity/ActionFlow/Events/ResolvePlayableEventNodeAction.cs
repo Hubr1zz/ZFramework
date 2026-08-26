@@ -47,10 +47,11 @@ namespace HuntingInDarkness.ActionFlow.Events
         private readonly Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly IPlayableEventResourceCommand resourceCommand;
+        private readonly IPlayableEventResourceAvailability resourceAvailability;
         private readonly IPlayableEventWorldCommand worldCommand;
         private readonly IPlayableEventSettlementCommand settlementCommand;
 
-        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null)
+        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null)
         {
             this.eventSystem = eventSystem ?? throw new ArgumentNullException(nameof(eventSystem));
             this.eventInput = eventInput;
@@ -61,6 +62,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             this.stageCommitCheckpoint = stageCommitCheckpoint;
             this.randomInteractionPresenter = randomInteractionPresenter;
             this.resourceCommand = resourceCommand;
+            this.resourceAvailability = resourceAvailability ?? (IPlayableEventResourceAvailability)resourceCommand ?? new SettlementEventResourceAvailability(eventSystem.Settlement);
             this.worldCommand = worldCommand;
             this.settlementCommand = settlementCommand;
             Source = source ?? throw new ArgumentNullException(nameof(source));
@@ -110,12 +112,15 @@ namespace HuntingInDarkness.ActionFlow.Events
                 return ActionOutcome.Success();
             }
 
-            PlayableEventChoiceSelection selection = eventInput != null
-                ? await eventInput.SelectChoiceAsync(gameEvent, defaultActor, hunters, cancellationToken)
+            bool hasPlayerInput = eventInput != null;
+            PlayableEventChoiceSelection selection = hasPlayerInput
+                ? await eventInput.SelectChoiceAsync(gameEvent, defaultActor, hunters, resourceAvailability, cancellationToken)
                 : FindAutomaticSelection();
             if (!IsAllowedActor(selection.Actor))
                 selection = new PlayableEventChoiceSelection(-1, null);
             PlayableEventChoiceTransaction transaction = selection.IsValid ? await PrepareChoiceAsync(selection, cancellationToken) : null;
+            if (selection.IsValid && transaction == null && hasPlayerInput)
+                return ActionOutcome.Failure("事件选项条件已经变化，请重新选择。");
             if (transaction == null)
             {
                 selection = FindAutomaticSelection();
@@ -155,9 +160,9 @@ namespace HuntingInDarkness.ActionFlow.Events
         {
             if (selection.OptionIndex < 0 || selection.OptionIndex >= gameEvent.options.Count) return null;
             EventOption option = gameEvent.options[selection.OptionIndex];
-            if (!PlayableEventOptionAvailability.CanUse(option, selection.Actor, eventSystem.Settlement, out _)) return null;
+            if (!PlayableEventOptionAvailability.CanUse(option, selection.Actor, eventSystem.Settlement, resourceAvailability, out _)) return null;
             int? rollValue = option.checkType != CheckType.None && randomInteractionPresenter != null ? await ResolveTabletopCheckAsync(option, selection.Actor, "initial", cancellationToken) : null;
-            return eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor, rollValue, resourceCommand, worldCommand, settlementCommand);
+            return eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor, rollValue, resourceCommand, worldCommand, settlementCommand, resourceAvailability);
         }
 
         private async UniTask<int> ResolveTabletopCheckAsync(EventOption option, HunterInstance actor, string step, CancellationToken cancellationToken)
@@ -197,12 +202,12 @@ namespace HuntingInDarkness.ActionFlow.Events
             {
                 EventOption option = gameEvent.options[optionIndex];
                 bool needsHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
-                if (defaultActor != null && PlayableEventOptionAvailability.CanUse(option, defaultActor, eventSystem.Settlement, out _))
+                if (defaultActor != null && PlayableEventOptionAvailability.CanUse(option, defaultActor, eventSystem.Settlement, resourceAvailability, out _))
                     return new PlayableEventChoiceSelection(optionIndex, defaultActor);
-                if (!needsHunter && PlayableEventOptionAvailability.CanUse(option, null, eventSystem.Settlement, out _))
+                if (!needsHunter && PlayableEventOptionAvailability.CanUse(option, null, eventSystem.Settlement, resourceAvailability, out _))
                     return new PlayableEventChoiceSelection(optionIndex, null);
                 foreach (HunterInstance hunter in hunters)
-                    if (PlayableEventOptionAvailability.CanUse(option, hunter, eventSystem.Settlement, out _))
+                    if (PlayableEventOptionAvailability.CanUse(option, hunter, eventSystem.Settlement, resourceAvailability, out _))
                         return new PlayableEventChoiceSelection(optionIndex, hunter);
             }
             return new PlayableEventChoiceSelection(-1, null);

@@ -16,6 +16,16 @@ namespace HuntingInDarkness.Hunt
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
         }
 
+        public PlayableEventResourceScope Scope => PlayableEventResourceScope.HuntCollectibles;
+
+        public int GetAvailableAmount(string resourceId)
+        {
+            string resolvedId = PlayableSettlementItemRegistry.ResolveContentId(resourceId);
+            if (!PlayableSettlementItemRegistry.TryGet(resolvedId, out ItemData item) || item == null || item.itemType != ItemType.Resource)
+                return 0;
+            return TryCountCollectibles(manager.ActiveHunters, resolvedId, out int amount) ? amount : 0;
+        }
+
         public bool TryApply(EventEffectType effectType, string resourceId, int amount, HunterInstance actor, out PlayableEventResourceChange change, out string reason)
         {
             change = default;
@@ -75,12 +85,12 @@ namespace HuntingInDarkness.Hunt
             if (actor != null)
             {
                 foreach (HunterInstance hunter in hunters)
-                    if (ReferenceEquals(hunter, actor) && hunter.IsAlive)
+                    if (ReferenceEquals(hunter, actor) && !hunter.IsDead)
                         return hunter;
                 return null;
             }
             foreach (HunterInstance hunter in hunters)
-                if (hunter != null && hunter.IsAlive)
+                if (hunter != null && !hunter.IsDead)
                     return hunter;
             return null;
         }
@@ -95,7 +105,7 @@ namespace HuntingInDarkness.Hunt
             }
             foreach (HunterInstance hunter in hunters)
             {
-                if (hunter?.IsAlive != true || hunter.Collectibles == null) continue;
+                if (hunter == null || hunter.IsDead || hunter.Collectibles == null) continue;
                 foreach (ItemInstance item in hunter.Collectibles)
                 {
                     if (item?.Data != null && string.Equals(item.Data.ContentId, resourceId, StringComparison.Ordinal))
@@ -117,7 +127,7 @@ namespace HuntingInDarkness.Hunt
             if (remaining == 0) return;
             foreach (HunterInstance hunter in hunters)
             {
-                if (hunter?.IsAlive != true || ReferenceEquals(hunter, receiver)) continue;
+                if (hunter == null || hunter.IsDead || ReferenceEquals(hunter, receiver)) continue;
                 remaining = RemoveFromHunter(hunter, resourceId, remaining);
                 if (remaining == 0) return;
             }

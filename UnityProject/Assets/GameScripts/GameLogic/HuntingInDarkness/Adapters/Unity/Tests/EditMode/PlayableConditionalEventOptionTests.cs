@@ -1,8 +1,11 @@
+using System.Collections.Generic;
 using System.Linq;
+using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Settlement;
+using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 using UnityEditor;
@@ -69,6 +72,62 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(legacyResult.ResultText, Does.Contain("守望者"));
             Assert.That(stranger.Understanding, Is.Zero);
             Assert.That(eventSystem.PrepareChoice(gameEvent, optionIndex, watcher), Is.Not.Null);
+        }
+
+        [Test]
+        public void HuntResourceAvailability_UsesSquadCollectiblesInsteadOfSettlementInventory()
+        {
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 9104) { Name = "携带者" };
+            var deadHunter = new HunterInstance(null, 9105) { Name = "已故携带者" };
+            deadHunter.HP.head = 0;
+            var resource = UnityEngine.ScriptableObject.CreateInstance<ItemData>();
+            resource.itemName = "测试素材";
+            resource.itemType = ItemType.Resource;
+            resource.ConfigureContentId("test_hunt_resource");
+            var gameEvent = UnityEngine.ScriptableObject.CreateInstance<EventData>();
+            gameEvent.ConfigureContentId("test_hunt_resource_event");
+            var option = new EventOption
+            {
+                alwaysAvailable = false,
+                conditions = new List<EventOptionCondition>
+                {
+                    new() { conditionKind = EventOptionConditionKind.MinimumResource, key = resource.ContentId, value = 2 }
+                }
+            };
+            gameEvent.options.Add(option);
+            settlement.Hunters.Add(hunter);
+            settlement.Hunters.Add(deadHunter);
+            settlement.AddResource(resource.ContentId, 9);
+            hunter.Collectibles = new List<ItemInstance> { new(resource, 1) };
+            deadHunter.Collectibles = new List<ItemInstance> { new(resource, 7) };
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            var manager = new HuntManager(eventSystem, bindInitialContent: false);
+            manager.OnEnter(new List<HunterInstance> { hunter, deadHunter });
+
+            try
+            {
+                PlayableSettlementItemRegistry.Configure(new[] { resource });
+                var command = new HuntEventResourceCommand(manager);
+
+                Assert.That(command.Scope, Is.EqualTo(PlayableEventResourceScope.HuntCollectibles));
+                Assert.That(command.GetAvailableAmount(resource.ContentId), Is.EqualTo(1));
+                Assert.That(command.GetAvailableAmount("unknown_resource"), Is.Zero);
+                Assert.That(PlayableEventOptionAvailability.GetRequirements(option, command), Does.Contain("小队携带"));
+                Assert.That(PlayableEventOptionAvailability.GetRequirements(option, new ScopedResourceAvailability(PlayableEventResourceScope.Settlement)), Does.Contain("营地拥有"));
+                Assert.That(PlayableEventOptionAvailability.CanUse(option, null, settlement, command, out _), Is.False);
+                Assert.That(eventSystem.PrepareChoice(gameEvent, 0, resourceCommand: command), Is.Null);
+
+                option.conditions[0].value = 1;
+                Assert.That(PlayableEventOptionAvailability.CanUse(option, null, settlement, command, out string huntReason), Is.True, huntReason);
+                Assert.That(PlayableEventOptionAvailability.CanUse(option, null, settlement, out string settlementReason), Is.True, settlementReason);
+            }
+            finally
+            {
+                PlayableSettlementItemRegistry.Configure(null);
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+                UnityEngine.Object.DestroyImmediate(resource);
+            }
         }
 
         [Test]
@@ -340,6 +399,17 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             public int Next(int minInclusive, int maxExclusive) => minInclusive;
             public double NextDouble() => 0d;
+        }
+
+        private sealed class ScopedResourceAvailability : IPlayableEventResourceAvailability
+        {
+            public ScopedResourceAvailability(PlayableEventResourceScope scope)
+            {
+                Scope = scope;
+            }
+
+            public PlayableEventResourceScope Scope { get; }
+            public int GetAvailableAmount(string resourceId) => 0;
         }
     }
 }

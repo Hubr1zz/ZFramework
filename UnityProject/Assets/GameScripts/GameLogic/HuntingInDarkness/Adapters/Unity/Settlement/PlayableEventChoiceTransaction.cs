@@ -97,7 +97,7 @@ namespace HuntingInDarkness.Settlement
 
     public partial class EventSystem
     {
-        public PlayableEventChoiceTransaction PrepareChoice(EventData gameEvent, int optionIndex, HunterInstance actor = null, int? preparedRoll = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null)
+        public PlayableEventChoiceTransaction PrepareChoice(EventData gameEvent, int optionIndex, HunterInstance actor = null, int? preparedRoll = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null)
         {
             if (gameEvent?.options == null || optionIndex < 0 || optionIndex >= gameEvent.options.Count) return null;
             EventOption option = gameEvent.options[optionIndex];
@@ -106,7 +106,8 @@ namespace HuntingInDarkness.Settlement
             bool requiresHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
             if (requiresHunter && (actor == null || !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))) return null;
             if (PlayableEventOptionAvailability.HasHunterDeathEffect(option) && hunterDeathCommand == null) return null;
-            if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, out _)) return null;
+            resourceAvailability ??= (IPlayableEventResourceAvailability)resourceCommand ?? new SettlementEventResourceAvailability(_settlement);
+            if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, resourceAvailability, out _)) return null;
             int rollValue = option.checkType == CheckType.None ? 0 : preparedRoll ?? RollDice(PlayableEventCheckRules.ResolveCount(option), PlayableEventCheckRules.ResolveSides(option));
             int bonus = GetCheckBonus(actor, option.checkType);
             return new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, rollValue, bonus, resourceCommand, worldCommand, settlementCommand);

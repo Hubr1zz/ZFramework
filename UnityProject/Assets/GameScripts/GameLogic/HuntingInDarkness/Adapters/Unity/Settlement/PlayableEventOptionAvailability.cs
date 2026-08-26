@@ -1,9 +1,31 @@
+using System;
 using System.Collections.Generic;
+using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
 
 namespace HuntingInDarkness.Settlement
 {
+    internal sealed class SettlementEventResourceAvailability : IPlayableEventResourceAvailability
+    {
+        private readonly SettlementInstance settlement;
+
+        public SettlementEventResourceAvailability(SettlementInstance settlement)
+        {
+            this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
+        }
+
+        public PlayableEventResourceScope Scope => PlayableEventResourceScope.Settlement;
+
+        public int GetAvailableAmount(string resourceId)
+        {
+            string resolvedId = PlayableSettlementItemRegistry.ResolveContentId(resourceId);
+            if (string.IsNullOrWhiteSpace(resolvedId)) return 0;
+            int amount = settlement.GetResource(resolvedId);
+            return amount < 0 ? 0 : amount;
+        }
+    }
+
     public static class PlayableEventOptionAvailability
     {
         public static bool RequiresHunter(EventOption option)
@@ -58,6 +80,11 @@ namespace HuntingInDarkness.Settlement
 
         public static bool CanUse(EventOption option, HunterInstance hunter, SettlementInstance settlement, out string reason)
         {
+            return CanUse(option, hunter, settlement, null, out reason);
+        }
+
+        public static bool CanUse(EventOption option, HunterInstance hunter, SettlementInstance settlement, IPlayableEventResourceAvailability resourceAvailability, out string reason)
+        {
             if (option == null)
             {
                 reason = "事件选项不存在。";
@@ -76,17 +103,35 @@ namespace HuntingInDarkness.Settlement
                         definitions.Add(condition.ToDomain());
             IReadOnlyCollection<string> equippedItems = PlayableSettlementItemRegistry.CollectAliases(hunter?.EquippedItemIds, hunter?.EquippedItemNames);
             IReadOnlyCollection<string> keywords = PlayableSettlementItemRegistry.CollectKeywords(equippedItems, hunter?.Traits, hunter?.Ailments);
-            return EventOptionAvailabilityRules.Evaluate(definitions, hunter, key => settlement != null ? settlement.GetResource(PlayableSettlementItemRegistry.ResolveContentId(key)) : 0, equippedItems, keywords, out reason);
+            Func<string, int> resourceResolver = resourceAvailability != null
+                ? resourceAvailability.GetAvailableAmount
+                : key => settlement != null ? settlement.GetResource(PlayableSettlementItemRegistry.ResolveContentId(key)) : 0;
+            return EventOptionAvailabilityRules.Evaluate(definitions, hunter, resourceResolver, equippedItems, keywords, out reason);
         }
 
         public static string GetRequirements(EventOption option)
+        {
+            return GetRequirements(option, null);
+        }
+
+        public static string GetRequirements(EventOption option, IPlayableEventResourceAvailability resourceAvailability)
         {
             if (option == null || option.alwaysAvailable) return string.Empty;
             var requirements = new List<string>();
             if (option.conditions != null)
                 foreach (EventOptionCondition condition in option.conditions)
-                    if (condition != null)
-                        requirements.Add(EventOptionAvailabilityRules.Describe(condition.ToDomain()));
+                {
+                    if (condition == null) continue;
+                    EventOptionConditionDefinition definition = condition.ToDomain();
+                    if (definition.Kind == EventOptionConditionKind.MinimumResource && resourceAvailability != null)
+                    {
+                        string owner = resourceAvailability.Scope == PlayableEventResourceScope.HuntCollectibles ? "小队携带" : "营地拥有";
+                        string resourceName = PlayableSettlementItemRegistry.TryGet(PlayableSettlementItemRegistry.ResolveContentId(definition.Key), out ItemData item) && item != null && !string.IsNullOrWhiteSpace(item.itemName) ? item.itemName : definition.DisplayName;
+                        requirements.Add($"需要{owner} {resourceName} ×{definition.Value}");
+                        continue;
+                    }
+                    requirements.Add(EventOptionAvailabilityRules.Describe(definition));
+                }
             return requirements.Count == 0 ? "条件尚未配置" : string.Join("；", requirements);
         }
     }
