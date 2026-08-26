@@ -8,12 +8,9 @@ namespace Core
 {
     internal interface ICampaignStartupTransactionHost
     {
-        IPlayableCampaignRuntime CampaignRuntime { get; }
-        void EnsureCampaignShell();
-        bool TryRestoreActiveHunt(CampaignSnapshot snapshot, out string reason);
         bool TryStartCampaignRuntime(GamePhase startPhase, bool queueSettlementEvents, out string reason, IPlayableSettlementRuntime preparedSettlement, bool activateOnSuccess);
         void ResetFailedCampaignStartupRuntime();
-        UniTask<bool> FinalizePreparedSettlementAsync(SettlementInstance settlement, string payload);
+        UniTask<bool> RestoreSnapshotAsync(CampaignSnapshot snapshot, CancellationToken cancellationToken);
     }
 
     /// <summary>Owns new/continue campaign persistence, candidate publication, and retryable startup state.</summary>
@@ -22,6 +19,8 @@ namespace Core
         private readonly CampaignStartupLifecycle lifecycle = new();
         private ICampaignPersistencePort persistence;
         private ICampaignStartupTransactionHost host;
+        private int operationGeneration;
+        private bool disposed;
 
         public CampaignStartupTransaction(ICampaignPersistencePort persistence)
         {
@@ -33,11 +32,11 @@ namespace Core
         public bool IsRuntimeActive => lifecycle.IsRuntimeActive;
         public ICampaignPersistencePort Persistence => persistence;
 
-        public bool Configure(bool waitForEntrySelection) => lifecycle.Configure(waitForEntrySelection);
+        public bool Configure(bool waitForEntrySelection) => !disposed && lifecycle.Configure(waitForEntrySelection);
 
         public bool ConfigurePersistence(ICampaignPersistencePort replacement)
         {
-            if (replacement == null || host != null)
+            if (disposed || replacement == null || host != null)
                 return false;
             persistence = replacement;
             return true;
@@ -45,6 +44,8 @@ namespace Core
 
         public void Bind(ICampaignStartupTransactionHost transactionHost)
         {
+            if (disposed)
+                throw new ObjectDisposedException(nameof(CampaignStartupTransaction));
             if (transactionHost == null)
                 throw new ArgumentNullException(nameof(transactionHost));
             if (host != null)
@@ -60,30 +61,35 @@ namespace Core
         {
             if (!lifecycle.TryBegin(CampaignStartupState.StartingNew, out string beginReason))
                 return CampaignStartupResult.Failed(lifecycle.State, beginReason);
+            int generation = ++operationGeneration;
             try
             {
                 if (host == null)
                     return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "战役启动事务尚未绑定组合根。");
                 if (!await persistence.TryDeleteAsync(cancellationToken))
                     return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "旧战役记录未能可靠删除，请重试。");
+                if (!IsCurrent(generation))
+                    return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "战役启动已被新的运行态取代。");
                 if (!host.TryStartCampaignRuntime(GamePhase.Settlement, true, out string startReason, null, true))
                     return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, startReason);
+                if (!IsCurrent(generation))
+                    return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "战役启动已被新的运行态取代。");
                 lifecycle.ActivateRuntime();
                 return CampaignStartupResult.Success();
             }
             catch (OperationCanceledException)
             {
-                host?.ResetFailedCampaignStartupRuntime();
+                if (IsCurrent(generation)) host?.ResetFailedCampaignStartupRuntime();
                 return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "开始新战役已取消。");
             }
             catch (Exception exception)
             {
-                host?.ResetFailedCampaignStartupRuntime();
+                if (IsCurrent(generation)) host?.ResetFailedCampaignStartupRuntime();
                 return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, $"开始新战役失败：{exception.Message}");
             }
             finally
             {
-                lifecycle.CompleteAttempt();
+                if (IsCurrent(generation)) lifecycle.CompleteAttempt();
             }
         }
 
@@ -91,71 +97,68 @@ namespace Core
         {
             if (!lifecycle.TryBegin(CampaignStartupState.Loading, out string beginReason))
                 return CampaignStartupResult.Failed(lifecycle.State, beginReason);
+            int generation = ++operationGeneration;
             try
             {
                 if (host == null)
                     return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "战役启动事务尚未绑定组合根。");
                 CampaignSnapshot snapshot = await persistence.LoadAsync(cancellationToken);
+                if (!IsCurrent(generation))
+                    return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "战役恢复已被新的运行态取代。");
                 if (snapshot?.Settlement == null)
                     return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "没有可继续的有效战役存档。");
-                if (snapshot.HasActiveHunt)
-                    return RestoreActiveHunt(snapshot);
-                return await RestoreSettlementAsync(snapshot);
+                if (!await host.RestoreSnapshotAsync(snapshot, cancellationToken))
+                    return CampaignStartupResult.Failed(lifecycle.IsRuntimeActive ? CampaignStartupState.Active : CampaignStartupState.AwaitingChoice, lifecycle.IsRuntimeActive ? "战役存档已加载，但后置恢复尚未完成。" : "战役存档恢复失败，当前运行态已撤销。");
+                if (!IsCurrent(generation))
+                    return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "战役恢复已被新的运行态取代。");
+                lifecycle.ActivateRuntime();
+                return CampaignStartupResult.Success();
             }
             catch (OperationCanceledException)
             {
-                host?.ResetFailedCampaignStartupRuntime();
+                if (IsCurrent(generation)) host?.ResetFailedCampaignStartupRuntime();
                 return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "继续战役已取消。");
             }
             catch (Exception exception)
             {
-                host?.ResetFailedCampaignStartupRuntime();
+                if (IsCurrent(generation)) host?.ResetFailedCampaignStartupRuntime();
                 return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, $"继续战役失败：{exception.Message}");
             }
             finally
             {
-                lifecycle.CompleteAttempt();
+                if (IsCurrent(generation)) lifecycle.CompleteAttempt();
             }
         }
 
-        public void ActivateRuntime() => lifecycle.ActivateRuntime();
-
-        public void DeactivateRuntime() => lifecycle.DeactivateRuntime();
-
-        private CampaignStartupResult RestoreActiveHunt(CampaignSnapshot snapshot)
+        public void ActivateRuntime()
         {
-            host.EnsureCampaignShell();
-            if (host.TryRestoreActiveHunt(snapshot, out string reason))
-            {
-                lifecycle.ActivateRuntime();
-                return CampaignStartupResult.Success();
-            }
-            host.ResetFailedCampaignStartupRuntime();
-            return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, reason);
+            if (!disposed) lifecycle.ActivateRuntime();
         }
 
-        private async UniTask<CampaignStartupResult> RestoreSettlementAsync(CampaignSnapshot snapshot)
+        public void DeactivateRuntime()
         {
-            IPlayableCampaignRuntime runtime = host.CampaignRuntime;
-            if (runtime == null)
-                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "战役运行态尚未初始化。");
-            if (!runtime.TryPrepareSettlementRestore(snapshot.Settlement, out IPlayableSettlementRuntime candidate, out string reason))
-                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, reason);
-            CampaignSnapshot candidateSnapshot = ActiveHuntSnapshotAdapter.CaptureSettlement(candidate.Data);
-            if (!SaveLoadSystem.TryCreatePayload(candidateSnapshot, out string candidatePayload, out reason))
-            {
-                runtime.ReleaseSettlement(candidate);
-                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, reason);
-            }
-            if (!host.TryStartCampaignRuntime(GamePhase.Settlement, false, out string startReason, candidate, false))
-                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, startReason);
-            if (!await host.FinalizePreparedSettlementAsync(candidate.Data, candidatePayload))
-            {
-                host.ResetFailedCampaignStartupRuntime();
-                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "战役存档恢复失败，当前运行态已撤销。");
-            }
-            lifecycle.ActivateRuntime();
-            return CampaignStartupResult.Success();
+            if (!disposed) lifecycle.DeactivateRuntime();
         }
+
+        public void Invalidate()
+        {
+            if (disposed) return;
+            ++operationGeneration;
+            lifecycle.DeactivateRuntime();
+            lifecycle.CompleteAttempt();
+        }
+
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
+            ++operationGeneration;
+            host = null;
+            lifecycle.DeactivateRuntime();
+            lifecycle.CompleteAttempt();
+        }
+
+        private bool IsCurrent(int generation) => !disposed && generation == operationGeneration;
+
     }
 }

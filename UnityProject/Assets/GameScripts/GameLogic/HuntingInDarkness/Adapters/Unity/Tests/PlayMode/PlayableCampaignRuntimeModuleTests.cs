@@ -79,6 +79,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Type accessType = runtime.GetType().GetInterface("Core.IPlayableCampaignPhasePortAccess", true);
             FieldInfo[] gameManagerFields = typeof(GameManager).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             string[] forbiddenFieldTypes = { "Core.PlayableSettlementPhaseManager", "Core.PlayableSettlementPhaseCoordinator", "Core.PlayableHuntPhaseManager", "Core.PlayableHuntPhaseCoordinator", "Core.PlayableShowdownPhaseManager" };
+            Type flowType = typeof(GameManager).Assembly.GetType("Core.CampaignFlowCoordinator", true);
+            FieldInfo[] flowFields = flowType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
 
             Assert.That(accessType, Is.Not.Null);
             Assert.That(accessType.GetProperty("SettlementPhase").PropertyType.Name, Is.EqualTo("IPlayableSettlementPhasePort"));
@@ -91,6 +93,10 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(typeof(IPlayableCampaignRuntime).GetMethod("ConfigureSettlementRuntime"), Is.Null);
             Assert.That(typeof(IPlayableCampaignRuntime).GetMethod("ConfigureHuntRuntime"), Is.Null);
             Assert.That(gameManagerFields.Any(field => forbiddenFieldTypes.Contains(field.FieldType.FullName)), Is.False);
+            Assert.That(gameManagerFields.Count(field => field.FieldType == flowType), Is.EqualTo(1));
+            Assert.That(typeof(GameManager).GetInterfaces().Any(contract => contract.Name.StartsWith("ICampaign") && contract.Name.EndsWith("Host")), Is.False);
+            Assert.That(flowFields.Count(field => typeof(IPlayableCampaignRuntime).IsAssignableFrom(field.FieldType)), Is.EqualTo(1));
+            Assert.That(flowType.GetInterfaces().Count(contract => contract.Name.StartsWith("ICampaign") && contract.Name.EndsWith("Host")), Is.GreaterThanOrEqualTo(8));
         }
 
         [Test]

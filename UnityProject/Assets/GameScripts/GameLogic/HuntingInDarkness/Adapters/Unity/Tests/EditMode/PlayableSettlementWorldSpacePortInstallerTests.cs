@@ -55,8 +55,8 @@ namespace HuntingInDarkness.Adapter.Tests
             PlayableSettlementEventView[] eventViews = host.GetComponents<PlayableSettlementEventView>();
             Assert.That(destinationViews, Has.Length.EqualTo(1));
             Assert.That(eventViews, Has.Length.EqualTo(1));
-            Assert.That(GetPrivateField<IPlayableHuntDepartureInput>(manager, "playableHuntDepartureInput"), Is.SameAs(destinationViews[0]));
-            Assert.That(GetPrivateField<IPlayableEventInput>(manager, "playableEventInput"), Is.SameAs(eventViews[0]));
+            Assert.That(GetPrivateField<IPlayableHuntDepartureInput>(manager, "preAwakeHuntDepartureInput"), Is.SameAs(destinationViews[0]));
+            Assert.That(GetPrivateField<IPlayableEventInput>(manager, "preAwakeEventInput"), Is.SameAs(eventViews[0]));
             Assert.That(GetPrivateField<PlayableHuntDestinationCatalog>(destinationViews[0], "catalog"), Is.SameAs(settings.HuntDestinations));
         }
 

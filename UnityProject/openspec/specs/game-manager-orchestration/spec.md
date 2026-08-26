@@ -8,31 +8,77 @@ title: "GameManager管理器"
 
 ## Purpose
 
-定义项目唯一组合根对全局生命周期、共享服务和三个阶段切换的调度边界；阶段内部的玩法规则与具体表现仍由各自子系统负责，避免全局管理器持续膨胀。
+定义 Unity 组合外壳、战役流程协调器、ZFramework CampaignRuntime 与三个阶段管理器之间的最终所有权边界，避免后续功能再次把跨阶段编排堆回 GameManager。
 
 ## Requirements
 
-### Requirement: GameManager owns global phase orchestration
-The project SHALL use one GameManager composition root to coordinate Settlement, Hunt, and BossFight lifecycle transitions.
+### Requirement: GameManager is a Unity composition shell
+GameManager SHALL retain serialized scene references, Unity lifecycle callbacks, presentation assembly, EventBus adapters and public compatibility APIs. It SHALL delegate campaign lease ownership, phase transitions, persistence and cross-phase transactions to one plain C# CampaignFlowCoordinator.
 
 #### Scenario: Transitioning between game phases
-- **WHEN** a phase transition is requested
-- **THEN** GameManager delegates state transition to PhaseManager and activates only the destination phase roots
+- **WHEN** a public command or Unity event requests a phase transition
+- **THEN** GameManager forwards it to CampaignFlowCoordinator
+- **AND** only the committed phase callback changes scene roots and camera state
 
 ### Requirement: GameManager delegates domain behavior
-GameManager SHALL coordinate phase managers and shared services without implementing their internal gameplay rules.
+GameManager SHALL NOT implement campaign transaction host interfaces or own CampaignRuntime, phase manager, ActionSession, persistence coordinator, or gameplay transaction fields.
 
 #### Scenario: Entering a phase
-- **WHEN** a destination phase becomes active
-- **THEN** GameManager invokes that phase's entry boundary and leaves phase-specific behavior to the corresponding subsystem
+- **WHEN** gameplay or persistence behavior is added
+- **THEN** it is implemented in GameCore, a phase manager/session, or a dedicated cross-phase transaction
+- **AND** GameManager remains a facade over CampaignFlowCoordinator
+
+### Requirement: CampaignFlowCoordinator owns one campaign flow lease
+
+CampaignFlowCoordinator SHALL be the sole owner of the acquired CampaignRuntime lease, phase ports, CampaignPersistenceCoordinator and the Startup, Restart, Departure, Return, Encounter, ShowdownOutcome and ActiveHuntRestore transactions.
+
+#### Scenario: Campaign flow shuts down
+
+- **WHEN** GameManager is destroyed
+- **THEN** it unsubscribes Unity event adapters and disposes CampaignFlowCoordinator once
+- **AND** the coordinator invalidates in-flight flow/persistence work before releasing the CampaignRuntime lease
+
+### Requirement: Continue and replacement load share one restore algorithm
+
+Continue and developer replacement load SHALL call one snapshot restore boundary. Settlement restore SHALL prepare and validate a candidate before publication; pre-commit failure SHALL restore the previous phase/generation, while post-commit event or pending-return recovery failure SHALL retain the newly published generation behind its recovery gate.
+
+#### Scenario: A settlement replacement fails before session activation
+
+- **WHEN** candidate publication or destination session activation fails
+- **THEN** the previous phase, settlement generation and presentation SHALL remain authoritative
+- **AND** only the uncommitted candidate SHALL be released
+
+#### Scenario: An active Hunt snapshot is continued
+
+- **WHEN** a compatible active Hunt snapshot is loaded
+- **THEN** ActiveHuntRestoreTransaction SHALL atomically restore Settlement, Hunt, route, event occurrences and stable payload through the same coordinator entry
+
+### Requirement: Source phase remains recoverable until destination activation
+
+CampaignFlowCoordinator SHALL NOT release the source Hunt or Showdown generation merely because the FSM accepted Settlement. The destination Settlement ActionSession and minimum 3D presentation SHALL become available before the source generation is retired.
+
+#### Scenario: Settlement activation fails after an accepted transition
+
+- **WHEN** the FSM accepts Settlement but the destination ActionSession cannot activate
+- **THEN** the coordinator SHALL restore the source phase while retaining its runtime and session
+- **AND** the transition SHALL return failure without publishing a partially playable Settlement
+
+### Requirement: Stale asynchronous restore work cannot outlive the flow lease
+
+Startup, Continue and replacement load operations SHALL carry a coordinator operation generation. Reset or Dispose SHALL invalidate the generation before releasing phase/runtime owners, and late continuations SHALL exit without invoking the disposed host.
+
+#### Scenario: GameManager is destroyed while a load awaits persistence
+
+- **WHEN** the persistence continuation resumes after CampaignFlowCoordinator disposal
+- **THEN** it SHALL NOT restore, reset or publish through the released CampaignRuntime
 
 ### Requirement: One campaign lease owns three phase managers
 
-ZFramework 管理的 CampaignRuntime SHALL 为每个战役世代创建并唯一持有 Settlement、Hunt 与 Showdown 三个 plain phase manager。GameManager SHALL 通过同一 CampaignRuntime lease 持有它们，只保留顶层 FSM host、跨阶段事务、startup/shutdown 与共享场景根；不得建立平行 MonoBehaviour 或全局阶段单例。
+ZFramework 管理的 CampaignRuntime SHALL 为每个战役世代创建并唯一持有 Settlement、Hunt 与 Showdown 三个 plain phase manager。CampaignFlowCoordinator SHALL 持有同一 CampaignRuntime lease；不得建立平行 MonoBehaviour 或全局阶段单例。
 
 #### Scenario: The campaign runtime shuts down
 
-- **WHEN** GameManager lease 被释放或 ZFramework Campaign Module 关闭
+- **WHEN** CampaignFlowCoordinator lease 被释放或 ZFramework Campaign Module 关闭
 - **THEN** Showdown、Hunt、Settlement phase manager SHALL 按依赖逆序释放
 - **AND** 每个阶段的 runtime generation、ActionSession、表现绑定与回调 SHALL 全部失效
 

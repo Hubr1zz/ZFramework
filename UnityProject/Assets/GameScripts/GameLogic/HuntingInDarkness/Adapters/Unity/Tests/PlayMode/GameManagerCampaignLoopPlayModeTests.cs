@@ -69,7 +69,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             GameManager manager = CreateProductionManager(persistence);
             yield return null;
 
-            object transaction = GetPrivateField<object>(manager, "campaignEncounterHandoffTransaction");
+            object flow = GetPrivateField<object>(manager, "campaignFlow");
+            object transaction = GetPrivateField<object>(flow, "encounterHandoff");
             PropertyInfo pendingSetup = transaction.GetType().GetProperty("PendingSetup", BindingFlags.Instance | BindingFlags.NonPublic);
 
             Assert.That(pendingSetup, Is.Not.Null);
@@ -807,10 +808,11 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
             PlayableHuntActionSession huntSession = manager.ActiveHuntRuntime.ActionSession;
             var rejectingShowdown = new RejectingShowdownPhasePort();
-            SetPrivateField(manager, "showdownPhase", rejectingShowdown);
+            object flow = GetPrivateField<object>(manager, "campaignFlow");
+            SetPrivateField(flow, "showdownPhase", rejectingShowdown);
             InvokePrivate(huntSession, "LockEncounterHandoff");
             var request = new CampaignEncounterRequest(huntSession.SessionId, PlayableEncounterRuntime.DefaultEncounterId, CampaignEncounterSourceKind.HuntEvent, GamePhase.Hunt, Vector2Int.zero, "test-event", GetDestination(year).DestinationId);
-            LogAssert.Expect(LogType.Error, "forced showdown prepare failure");
+            LogAssert.Expect(LogType.Error, "[GameManager] forced showdown prepare failure");
 
             UniTask<CampaignEncounterStartResult>.Awaiter encounter = manager.BeginEncounterAsync(request).GetAwaiter();
             yield return WaitForCompletion(encounter);
@@ -1037,6 +1039,30 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator ContinueCampaign_DestroyedDuringDelayedLoadCannotResumeDisposedFlow()
+        {
+            var persistence = new MemoryCampaignPersistence { DelayLoad = true };
+            GameManager manager = CreateProductionManager(persistence, true);
+            yield return null;
+
+            UniTask<CampaignStartupResult>.Awaiter pending = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return null;
+            Assert.That(manager.CampaignStartupState, Is.EqualTo(CampaignStartupState.Loading));
+
+            UnityEngine.Object.Destroy(managerObject);
+            managerObject = null;
+            yield return null;
+            persistence.CompleteLoad(CreateYearThreeSettlementSnapshot());
+            yield return WaitForCompletion(pending);
+
+            Assert.That(pending.GetResult().Succeeded, Is.False);
+            GameManager replacement = CreateProductionManager(new MemoryCampaignPersistence(), true);
+            yield return null;
+            Assert.That(replacement, Is.Not.Null);
+            Assert.That(replacement.CampaignStartupState, Is.EqualTo(CampaignStartupState.AwaitingChoice));
+        }
+
+        [UnityTest]
         public IEnumerator ContinueCampaign_RestoresActiveHuntFromDeferredEntry()
         {
             var persistence = new MemoryCampaignPersistence();
@@ -1063,6 +1089,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             persistence.SnapshotToLoad = activeSnapshot;
             GameManager restoredManager = CreateProductionManager(persistence, true);
             yield return null;
+            LogAssert.Expect(LogType.Error, "[GameManager] 活动狩猎恢复失败，已保留原存档：活动狩猎存档与当前内容 Bundle 不兼容。");
             UniTask<CampaignStartupResult>.Awaiter rejectedRestore = restoredManager.ContinueCampaignAsync().GetAwaiter();
             yield return WaitForCompletion(rejectedRestore);
             Assert.That(rejectedRestore.GetResult().Succeeded, Is.False);
