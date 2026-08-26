@@ -73,6 +73,27 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [Test]
+        public void PhaseAccess_ExposesNarrowPortsInsteadOfConcreteManagers()
+        {
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            Type accessType = runtime.GetType().GetInterface("Core.IPlayableCampaignPhasePortAccess", true);
+            FieldInfo[] gameManagerFields = typeof(GameManager).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            string[] forbiddenFieldTypes = { "Core.PlayableSettlementPhaseManager", "Core.PlayableSettlementPhaseCoordinator", "Core.PlayableHuntPhaseManager", "Core.PlayableHuntPhaseCoordinator", "Core.PlayableShowdownPhaseManager" };
+
+            Assert.That(accessType, Is.Not.Null);
+            Assert.That(accessType.GetProperty("SettlementPhase").PropertyType.Name, Is.EqualTo("IPlayableSettlementPhasePort"));
+            Assert.That(accessType.GetProperty("HuntPhase").PropertyType.Name, Is.EqualTo("IPlayableHuntPhasePort"));
+            Assert.That(accessType.GetProperty("ShowdownPhase").PropertyType.Name, Is.EqualTo("IPlayableShowdownPhasePort"));
+            Assert.That(accessType.GetProperty("SettlementPhase").PropertyType.GetMethod("CreateActionSession"), Is.Null);
+            Assert.That(accessType.GetProperty("HuntPhase").PropertyType.GetMethod("CreateManager"), Is.Null);
+            Assert.That(accessType.GetProperty("HuntPhase").PropertyType.GetMethod("CreateActionSession"), Is.Null);
+            Assert.That(accessType.GetProperty("HuntPhase").PropertyType.GetMethod("Configure").GetParameters().Any(parameter => parameter.ParameterType.IsGenericType && parameter.ParameterType.GetGenericTypeDefinition() == typeof(Func<>) && parameter.ParameterType.GetGenericArguments()[0] == typeof(IPlayableHuntRuntime)), Is.False);
+            Assert.That(typeof(IPlayableCampaignRuntime).GetMethod("ConfigureSettlementRuntime"), Is.Null);
+            Assert.That(typeof(IPlayableCampaignRuntime).GetMethod("ConfigureHuntRuntime"), Is.Null);
+            Assert.That(gameManagerFields.Any(field => forbiddenFieldTypes.Contains(field.FieldType.FullName)), Is.False);
+        }
+
+        [Test]
         public void RuntimeOwnsReusablePhaseManagersAcrossReset()
         {
             runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
@@ -103,7 +124,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(runtime.TrySwapSettlement(null, settlement, out string settlementSwapReason), Is.True, settlementSwapReason);
 
             object phaseManagers = GetPhaseManagers(runtime);
-            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhaseManagerAccess", true);
+            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhasePortAccess", true);
             object huntManager = accessType.GetProperty("HuntPhase").GetValue(phaseManagers);
             Type planType = huntManager.GetType().Assembly.GetType("Core.PlayableHuntStartPlan");
             object invalidRoute = Activator.CreateInstance(typeof(PlayableHuntRoutePlan), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { null, null, "invalid", 1, null, Array.Empty<HexTileData>(), Array.Empty<EventData>(), new Dictionary<string, EventData>(), null }, null);
@@ -129,14 +150,14 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
         private static object GetPhaseManagers(IPlayableCampaignRuntime runtime)
         {
-            Type accessType = runtime.GetType().GetInterface("Core.IPlayableCampaignPhaseManagerAccess", true);
+            Type accessType = runtime.GetType().GetInterface("Core.IPlayableCampaignPhasePortAccess", true);
             Assert.That(accessType, Is.Not.Null);
             return runtime;
         }
 
         private static object GetManagerCurrent(object phaseManagers, string propertyName)
         {
-            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhaseManagerAccess", true);
+            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhasePortAccess", true);
             PropertyInfo property = accessType.GetProperty(propertyName);
             object manager = property.GetValue(phaseManagers);
             return manager.GetType().GetProperty("Current", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(manager);
@@ -166,7 +187,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         public void SettlementCoordinatorOwnsSessionAcrossResetWithoutStaleSession()
         {
             runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
-            runtime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null))));
+            ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null))));
             Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime first, out string prepareReason), Is.True, prepareReason);
             Assert.That(runtime.TrySwapSettlement(null, first, out string swapReason), Is.True, swapReason);
             Assert.That(first.TryActivateActionSession(out string activationReason), Is.True, activationReason);
@@ -193,9 +214,9 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         {
             int departureCount = 0;
             runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
-            runtime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null))));
+            ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null))));
             object phaseManagers = GetPhaseManagers(runtime);
-            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhaseManagerAccess", true);
+            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhasePortAccess", true);
             object phaseManager = accessType.GetProperty("SettlementPhase").GetValue(phaseManagers);
             object coordinator = phaseManager.GetType().GetProperty("Coordinator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(phaseManager);
             settlementPresentationRoot = new GameObject("Settlement Coordinator Test Root");
@@ -280,9 +301,9 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         {
             var input = new BlockingEventInput();
             runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
-            runtime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null), new EventSystem(manager.Data, new FirstRandom()), input)));
+            ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null), new EventSystem(manager.Data, new FirstRandom()), input)));
             object phaseManagers = GetPhaseManagers(runtime);
-            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhaseManagerAccess", true);
+            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhasePortAccess", true);
             object phaseManager = accessType.GetProperty("SettlementPhase").GetValue(phaseManagers);
             object coordinator = phaseManager.GetType().GetProperty("Coordinator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(phaseManager);
             InvokeInternal(coordinator, "ConfigureGameplay", new Func<IPlayableEventInput>(() => input), null, new Func<IActionEnvironmentInstallerRegistry>(() => runtime.ActionEnvironmentInstallers), new Func<IPlayableCampaignPersistentEffectProjection>(() => null));
@@ -409,7 +430,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
             ConfigureSettlementRuntime();
             runtime.ConfigurePersistentEffectProjection(registry => new HuntNoiseLeaseProjection(registry));
-            runtime.ConfigureHuntRuntime(new PlayableHuntRuntimeConfiguration(settlement => new HuntManager(settlement.Events, bindInitialContent: false), (manager, _) => new PlayableHuntActionSession(manager, installerRegistry: runtime.ActionEnvironmentInstallers)));
+            ConfigureHuntRuntime(new PlayableHuntRuntimeConfiguration(settlement => new HuntManager(settlement.Events, bindInitialContent: false), (manager, _) => new PlayableHuntActionSession(manager, installerRegistry: runtime.ActionEnvironmentInstallers)));
             Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime settlement, out string settlementReason), Is.True, settlementReason);
             settlement.Data.PendingHuntNoiseLease = new PendingHuntNoiseLease { LeaseId = "hunt-noise:stone_vigil_risk", SourceEventId = "stone_vigil_risk", NoiseModifier = 2 };
             Assert.That(runtime.TrySwapSettlement(null, settlement, out string settlementSwapReason), Is.True, settlementSwapReason);
@@ -447,8 +468,25 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.Throws<ObjectDisposedException>(() => detached.TryActivateActionSession(null, out _));
         }
 
-        private void ConfigureSettlementRuntime() => runtime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), _ => null));
-        private void ConfigureHuntRuntime() => runtime.ConfigureHuntRuntime(new PlayableHuntRuntimeConfiguration(settlement => new HuntManager(settlement.Events, bindInitialContent: false), (_, _) => null));
+        private void ConfigureSettlementRuntime() => ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), _ => null));
+
+        private void ConfigureSettlementRuntime(PlayableSettlementRuntimeConfiguration configuration)
+        {
+            object phaseManagers = GetPhaseManagers(runtime);
+            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhasePortAccess", true);
+            object phase = accessType.GetProperty("SettlementPhase").GetValue(phaseManagers);
+            InvokeInternal(phase, "Configure", configuration);
+        }
+
+        private void ConfigureHuntRuntime() => ConfigureHuntRuntime(new PlayableHuntRuntimeConfiguration(settlement => new HuntManager(settlement.Events, bindInitialContent: false), (_, _) => null));
+
+        private void ConfigureHuntRuntime(PlayableHuntRuntimeConfiguration configuration)
+        {
+            object phaseManagers = GetPhaseManagers(runtime);
+            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhasePortAccess", true);
+            object phase = accessType.GetProperty("HuntPhase").GetValue(phaseManagers);
+            InvokeInternal(phase, "Configure", configuration);
+        }
 
         private sealed class RecordingHost : ICampaignPhaseTransitionHost
         {

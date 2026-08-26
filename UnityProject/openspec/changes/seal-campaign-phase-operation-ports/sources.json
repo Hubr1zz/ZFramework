@@ -1,0 +1,12 @@
+{
+  "sourceRunId": "",
+  "source": "用户确认的 GameManager 三阶段拆分、ZFramework 生命周期与 ActionQueue 边界约束，以及直接代码实现。",
+  "sourceRoots": [
+    "C:/Users/leonz/Desktop/GameDesignVault"
+  ],
+  "sourceReferences": [
+    "conversation::2026-08-26",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs"
+  ]
+}

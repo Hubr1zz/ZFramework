@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "game-manager-orchestration", "label": "GameManager 管理器", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/game-manager-orchestration/spec.md" },
+    { "id": "settlement-phase-orchestration", "label": "营地阶段编排", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/settlement-phase-orchestration/spec.md" },
+    { "id": "hunt-phase-orchestration", "label": "狩猎阶段编排", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/hunt-phase-orchestration/spec.md" },
+    { "id": "showdown-phase-orchestration", "label": "决战阶段编排", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/showdown-phase-orchestration/spec.md" }
+  ],
+  "edges": [
+    { "id": "game-manager-orchestration--coordinates--settlement-phase-orchestration", "from": "game-manager-orchestration", "to": "settlement-phase-orchestration", "type": "coordinates", "status": "resolved", "reason": "GameManager 仅通过营地阶段操作端口协调营地运行态", "gapId": "", "blocksImplementation": false },
+    { "id": "game-manager-orchestration--coordinates--hunt-phase-orchestration", "from": "game-manager-orchestration", "to": "hunt-phase-orchestration", "type": "coordinates", "status": "resolved", "reason": "GameManager 仅通过狩猎阶段操作端口协调狩猎运行态", "gapId": "", "blocksImplementation": false },
+    { "id": "game-manager-orchestration--coordinates--showdown-phase-orchestration", "from": "game-manager-orchestration", "to": "showdown-phase-orchestration", "type": "coordinates", "status": "resolved", "reason": "GameManager 仅通过决战阶段生命周期兼容端口协调现有会话", "gapId": "", "blocksImplementation": false }
+  ]
+}

@@ -6,12 +6,18 @@ using HuntingInDarkness.Settlement;
 
 namespace Core
 {
-    internal sealed class PlayableShowdownPhaseManager : IDisposable
+    internal sealed class PlayableShowdownPhaseManager : IDisposable, IPlayableShowdownPhasePort
     {
         private PlayableCombatSession current;
         private bool disposed;
 
         internal PlayableCombatSession Current => current;
+
+        PlayableCombatSession IPlayableShowdownPhasePort.Current => Current;
+        bool IPlayableShowdownPhasePort.TryPrepare(PlayableCombatSessionConfiguration configuration, out string reason) => TryPrepare(configuration, out reason);
+        void IPlayableShowdownPhasePort.Start(IReadOnlyList<HunterInstance> hunters, HunterManagementSystem hunterManagement, Action onPartyDefeated) => Start(hunters, hunterManagement, onPartyDefeated);
+        void IPlayableShowdownPhasePort.Update() => Update();
+        void IPlayableShowdownPhasePort.DisposeCurrent() => DisposeCurrent();
 
         internal bool TryPrepare(PlayableCombatSessionConfiguration configuration, out string reason)
         {

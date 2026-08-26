@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 5,
+  "changeId": "seal-campaign-phase-operation-ports",
+  "title": "战役三阶段操作端口收口",
+  "category": "architecture",
+  "sourceKind": "direct-code",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "implementationNotes": "实现已通过定向编译与 PlayMode 验证；Draft 仅供 Changes 人工审核，批准后再显式同步正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "GameManager 仅消费三阶段窄操作端口，具体 manager/coordinator、运行态 factory 与 current provider 均收回 CampaignRuntime 所有权边界。",
+    "codeEvidence": [
+      {
+        "guid": "00a929577c7f64b4f9b31464ab10c5be",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableCampaignPhasePorts.cs",
+        "fileHash": "768f814ff5168fc3b9e414e3369834bded6094c4456acf6def1b0a7d7f0229fd",
+        "line": 22,
+        "feature": "定义 Campaign-owned 三阶段窄操作端口",
+        "status": "verified",
+        "checkedAt": "2026-08-26T16:45:00Z"
+      },
+      {
+        "guid": "14ce1f834e26c5e4092eee2a5a0b887d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
+        "fileHash": "8efc2a520bf881f1ec628e28d9e18a2ea5f9464618de4a2a51cedfca4db97c47",
+        "line": 87,
+        "feature": "由 ZFramework CampaignRuntime 唯一持有三个具体阶段管理器",
+        "status": "verified",
+        "checkedAt": "2026-08-26T16:45:00Z"
+      },
+      {
+        "guid": "551fe81197a6ca545a686a0c536f2646",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+        "fileHash": "597fc8c922d7b1765f623e508ed5f455c8a313d1112ff7c6efaac646247f1783",
+        "line": 139,
+        "feature": "GameManager 仅持有三阶段操作端口并保留跨阶段事务",
+        "status": "verified",
+        "checkedAt": "2026-08-26T16:45:00Z"
+      },
+      {
+        "guid": "860c7509a68a0ad4a85b4210d362c813",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
+        "fileHash": "17761c6ad23a9c3681fb4c7e55dbefa4807bd2fa825906e07765d929b46320b2",
+        "line": 76,
+        "feature": "约束端口不得暴露具体管理器、构造 factory 或调用方 current provider",
+        "status": "verified",
+        "checkedAt": "2026-08-26T16:45:00Z"
+      }
+    ],
+    "evidence": [
+      "dotnet build GameLogic.csproj: 0 warnings / 0 errors",
+      "PlayableCampaignRuntimeModuleTests PlayMode: 19/19 passed",
+      "GameManagerCampaignLoopPlayModeTests: 18/18 passed",
+      "OpenSpec strict validation passed",
+      "git diff --check passed"
+    ],
+    "differences": [],
+    "verifiedAt": "2026-08-26T16:45:00Z"
+  },
+  "reviewIssues": [],
+  "gapIds": [],
+  "dependencyIds": [
+    "game-manager-orchestration--coordinates--settlement-phase-orchestration",
+    "game-manager-orchestration--coordinates--hunt-phase-orchestration",
+    "game-manager-orchestration--coordinates--showdown-phase-orchestration"
+  ],
+  "capabilities": [
+    "game-manager-orchestration",
+    "settlement-phase-orchestration",
+    "hunt-phase-orchestration",
+    "showdown-phase-orchestration"
+  ],
+  "syncTargets": [
+    {
+      "capability": "game-manager-orchestration",
+      "title": "GameManager 管理器",
+      "category": "architecture",
+      "deltaSpecPath": "openspec/changes/seal-campaign-phase-operation-ports/specs/game-manager-orchestration/spec.md",
+      "targetSpecPath": "openspec/specs/game-manager-orchestration/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "a42814fdecefcc01cdadad5806153597feca6a85af72379fcb433e84d56a94cb",
+      "baseSnapshotPath": "openspec/changes/seal-campaign-phase-operation-ports/.sync-baseline/game-manager-orchestration/spec.md"
+    },
+    {
+      "capability": "settlement-phase-orchestration",
+      "title": "营地阶段编排",
+      "category": "architecture",
+      "deltaSpecPath": "openspec/changes/seal-campaign-phase-operation-ports/specs/settlement-phase-orchestration/spec.md",
+      "targetSpecPath": "openspec/specs/settlement-phase-orchestration/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "aeae9274639aa9d67c0a9fe67e8e14ea34de8d5f71b8ac73e7553b07cd5d0a4c",
+      "baseSnapshotPath": "openspec/changes/seal-campaign-phase-operation-ports/.sync-baseline/settlement-phase-orchestration/spec.md"
+    },
+    {
+      "capability": "hunt-phase-orchestration",
+      "title": "狩猎阶段编排",
+      "category": "architecture",
+      "deltaSpecPath": "openspec/changes/seal-campaign-phase-operation-ports/specs/hunt-phase-orchestration/spec.md",
+      "targetSpecPath": "openspec/specs/hunt-phase-orchestration/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "f65186d34e3ba35f74a33e4031f10f1ef257afcfb1d1fb5548120cc47b8b0264",
+      "baseSnapshotPath": "openspec/changes/seal-campaign-phase-operation-ports/.sync-baseline/hunt-phase-orchestration/spec.md"
+    },
+    {
+      "capability": "showdown-phase-orchestration",
+      "title": "决战阶段编排",
+      "category": "architecture",
+      "deltaSpecPath": "openspec/changes/seal-campaign-phase-operation-ports/specs/showdown-phase-orchestration/spec.md",
+      "targetSpecPath": "openspec/specs/showdown-phase-orchestration/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "b7e01bcd2a73066dfc59a8bb44cd8eb427a41780a83365f767fa2e4d888926c0",
+      "baseSnapshotPath": "openspec/changes/seal-campaign-phase-operation-ports/.sync-baseline/showdown-phase-orchestration/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与冻结基线一致，可以在人工批准后 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-26T09:45:00-07:00"
+  },
+  "createdAt": "2026-08-26T16:45:00Z"
+}

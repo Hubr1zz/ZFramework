@@ -24,13 +24,11 @@ namespace Core
         IPlayableCampaignPersistentEffectProjection PersistentEffectProjection { get; }
         IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers { get; }
         ReactorRegistry ActionReactors { get; }
-        void ConfigureSettlementRuntime(PlayableSettlementRuntimeConfiguration configuration);
         void ConfigurePersistentEffectProjection(Func<IActionEnvironmentInstallerRegistry, IPlayableCampaignPersistentEffectProjection> factory);
         bool TryPrepareNewSettlement(out IPlayableSettlementRuntime candidate, out string reason);
         bool TryPrepareSettlementRestore(SettlementInstance data, out IPlayableSettlementRuntime candidate, out string reason);
         bool TrySwapSettlement(IPlayableSettlementRuntime expectedCurrent, IPlayableSettlementRuntime replacement, out string reason);
         void ReleaseSettlement(IPlayableSettlementRuntime runtime);
-        void ConfigureHuntRuntime(PlayableHuntRuntimeConfiguration configuration);
         bool TryPrepareNewHunt(IPlayableSettlementRuntime settlement, out IPlayableHuntRuntime candidate, out string reason);
         bool TryPrepareHuntRestore(IPlayableSettlementRuntime settlement, string expeditionId, out IPlayableHuntRuntime candidate, out string reason);
         bool TrySwapHunt(IPlayableHuntRuntime expectedCurrent, IPlayableHuntRuntime replacement, out string reason);
@@ -48,13 +46,6 @@ namespace Core
     public interface IPlayableCampaignRuntimeModule
     {
         IPlayableCampaignRuntime AcquireRuntime(ICampaignPhaseTransitionHost host, Action<GamePhase, GamePhase> onPhaseTransition);
-    }
-
-    internal interface IPlayableCampaignPhaseManagerAccess
-    {
-        PlayableSettlementPhaseManager SettlementPhase { get; }
-        PlayableHuntPhaseManager HuntPhase { get; }
-        PlayableShowdownPhaseManager ShowdownPhase { get; }
     }
 
     /// <summary>
@@ -91,7 +82,7 @@ namespace Core
                 activeRuntime = null;
         }
 
-        private sealed class CampaignRuntime : IPlayableCampaignRuntime, IPlayableCampaignPhaseManagerAccess
+        private sealed class CampaignRuntime : IPlayableCampaignRuntime, IPlayableCampaignPhasePortAccess
         {
             private readonly IFsmModule fsmModule;
             private ICampaignPhaseTransitionHost host;
@@ -117,9 +108,9 @@ namespace Core
             public IPlayableCampaignPersistentEffectProjection PersistentEffectProjection => persistentEffectProjection;
             public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers => actionEnvironmentInstallers;
             public ReactorRegistry ActionReactors => actionSession?.Reactors;
-            PlayableSettlementPhaseManager IPlayableCampaignPhaseManagerAccess.SettlementPhase => settlementPhaseManager;
-            PlayableHuntPhaseManager IPlayableCampaignPhaseManagerAccess.HuntPhase => huntPhaseManager;
-            PlayableShowdownPhaseManager IPlayableCampaignPhaseManagerAccess.ShowdownPhase => showdownPhaseManager;
+            IPlayableSettlementPhasePort IPlayableCampaignPhasePortAccess.SettlementPhase => settlementPhaseManager;
+            IPlayableHuntPhasePort IPlayableCampaignPhasePortAccess.HuntPhase => huntPhaseManager;
+            IPlayableShowdownPhasePort IPlayableCampaignPhasePortAccess.ShowdownPhase => showdownPhaseManager;
 
             public CampaignRuntime(long generationId, IFsmModule fsmModule, ICampaignPhaseTransitionHost host, Action<GamePhase, GamePhase> onPhaseTransition, Action<CampaignRuntime> release)
             {
@@ -153,11 +144,6 @@ namespace Core
                     gameplayInstallation = null;
                     throw;
                 }
-            }
-
-            public void ConfigureSettlementRuntime(PlayableSettlementRuntimeConfiguration configuration)
-            {
-                settlementPhaseManager.Configure(configuration);
             }
 
             public void ConfigurePersistentEffectProjection(Func<IActionEnvironmentInstallerRegistry, IPlayableCampaignPersistentEffectProjection> factory)
@@ -194,11 +180,6 @@ namespace Core
             public void ReleaseSettlement(IPlayableSettlementRuntime runtime)
             {
                 settlementPhaseManager.Release(runtime);
-            }
-
-            public void ConfigureHuntRuntime(PlayableHuntRuntimeConfiguration configuration)
-            {
-                huntPhaseManager.Configure(configuration);
             }
 
             public bool TryPrepareNewHunt(IPlayableSettlementRuntime settlement, out IPlayableHuntRuntime candidate, out string reason)

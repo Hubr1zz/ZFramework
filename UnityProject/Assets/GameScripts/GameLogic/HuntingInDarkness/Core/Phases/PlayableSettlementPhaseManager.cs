@@ -1,11 +1,20 @@
 using System;
 using System.Collections.Generic;
+using CardGame.ActionQueue;
+using Cysharp.Threading.Tasks;
+using HuntingInDarkness.ActionFlow;
+using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.ActionFlow.Presentation;
+using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
+using UI;
+using UI.Settlement;
+using UnityEngine;
 
 namespace Core
 {
-    internal sealed class PlayableSettlementPhaseManager : IDisposable
+    internal sealed class PlayableSettlementPhaseManager : IDisposable, IPlayableSettlementPhasePort
     {
         private readonly Func<IPlayableCampaignPersistentEffectProjection> persistentEffectProjectionProvider;
         private readonly PlayableSettlementPhaseCoordinator coordinator;
@@ -23,6 +32,18 @@ namespace Core
             this.persistentEffectProjectionProvider = persistentEffectProjectionProvider ?? throw new ArgumentNullException(nameof(persistentEffectProjectionProvider));
             coordinator = new PlayableSettlementPhaseCoordinator(() => current);
         }
+
+        IPlayableSettlementRuntime IPlayableSettlementPhasePort.Current => Current;
+        PlayableSettlementActionSession IPlayableSettlementPhasePort.CurrentSession => coordinator.CurrentSession;
+        void IPlayableSettlementPhasePort.ConfigureRuntime(ISettlementDepartureRequestPort departureRequestPort) => Configure(new PlayableSettlementRuntimeConfiguration(departureRequestPort, coordinator.CreateActionSession));
+        void IPlayableSettlementPhasePort.ConfigureGameplay(Func<IPlayableEventInput> inputProvider, ITabletopRandomInteractionPresenter tabletop, Func<IActionEnvironmentInstallerRegistry> installerProvider, Func<IPlayableCampaignPersistentEffectProjection> projectionProvider) => coordinator.ConfigureGameplay(inputProvider, tabletop, installerProvider, projectionProvider);
+        void IPlayableSettlementPhasePort.ConfigurePresentation(SettlementTable3D table, GameObject root, SettlementUIManager ui, PlayableWorkshopCatalog workshop, PlayableSettlementContentCatalog settlementContent, Action<List<HunterInstance>> onDepartureRequested) => coordinator.ConfigurePresentation(table, root, ui, workshop, settlementContent, onDepartureRequested);
+        void IPlayableSettlementPhasePort.EnsurePresentation(SettlementManager manager) => coordinator.EnsurePresentation(manager);
+        void IPlayableSettlementPhasePort.Refresh() => coordinator.Refresh();
+        void IPlayableSettlementPhasePort.RefreshCards() => coordinator.RefreshCards();
+        void IPlayableSettlementPhasePort.RefreshCrafting() => coordinator.RefreshCrafting();
+        bool IPlayableSettlementPhasePort.QueueEvents(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection, string restoredChainId) => coordinator.QueueEvents(runtime, session, works, restoreProjection, restoredChainId);
+        UniTask<bool> IPlayableSettlementPhasePort.ResolveEventsAsync(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection restoreProjection, string restoredChainId) => coordinator.ResolveEventsAsync(runtime, session, works, restoreProjection, restoredChainId);
 
         internal void Configure(PlayableSettlementRuntimeConfiguration nextConfiguration)
         {

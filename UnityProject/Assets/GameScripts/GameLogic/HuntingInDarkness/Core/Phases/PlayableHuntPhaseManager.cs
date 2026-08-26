@@ -1,11 +1,17 @@
 using System;
 using System.Collections.Generic;
 using GameplayBase;
+using HuntingInDarkness.ActionFlow;
+using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Hunt;
+using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
+using HuntingInDarkness.ViewLayer.Hunt;
+using UI.Hunt;
+using UnityEngine;
 
 namespace Core
 {
@@ -25,7 +31,7 @@ namespace Core
         internal IPlayableEventInput EventInput { get; }
     }
 
-    internal sealed class PlayableHuntPhaseManager : IDisposable
+    internal sealed class PlayableHuntPhaseManager : IDisposable, IPlayableHuntPhasePort
     {
         private readonly PlayableSettlementPhaseManager settlementManager;
         private readonly PlayableHuntPhaseCoordinator coordinator = new();
@@ -42,6 +48,18 @@ namespace Core
         {
             this.settlementManager = settlementManager ?? throw new ArgumentNullException(nameof(settlementManager));
         }
+
+        IPlayableHuntRuntime IPlayableHuntPhasePort.Current => Current;
+        HuntMapVisualizer IPlayableHuntPhasePort.Visualizer => coordinator.Visualizer;
+        void IPlayableHuntPhasePort.ConfigureRuntime() => Configure(new PlayableHuntRuntimeConfiguration(coordinator.CreateManager, coordinator.CreateActionSession));
+        void IPlayableHuntPhasePort.Configure(Func<IActionEnvironmentInstallerRegistry> installerRegistryProvider, ITabletopRandomInteractionPresenter randomInteractionPresenter, GameObject huntRoot, GameObject uiHunt, IPlayableHuntRetreatInput retreatInput, Action<CampaignEncounterRequest> encounterRequested, Action<HuntRecord> huntCompleted, Action<IPlayableHuntRuntime> checkpointCommitted) => coordinator.Configure(() => current, installerRegistryProvider, randomInteractionPresenter, huntRoot, uiHunt, retreatInput, encounterRequested, huntCompleted, checkpointCommitted);
+        bool IPlayableHuntPhasePort.TryPrepareInitialized(IPlayableSettlementRuntime settlement, PlayableHuntStartPlan plan, out IPlayableHuntRuntime candidate, out string reason) => TryPrepareInitialized(settlement, plan, out candidate, out reason);
+        bool IPlayableHuntPhasePort.TryStartCurrentPresentationAndSession(PlayableHuntEventOccurrenceStore restoredOccurrences, out string reason) => TryStartCurrentPresentationAndSession(restoredOccurrences, out reason);
+        void IPlayableHuntPhasePort.DeactivateCurrentActionSession() => DeactivateCurrentActionSession();
+        void IPlayableHuntPhasePort.CleanupCurrentPresentation(bool includeVisualizer) => CleanupCurrentPresentation(includeVisualizer);
+        void IPlayableHuntPhasePort.RestorePreviousPresentation(GamePhase previousPhase, IPlayableHuntRuntime previousHunt) => RestorePreviousPresentation(previousPhase, previousHunt);
+        void IPlayableHuntPhasePort.EnsureHuntUI(HuntManager manager, IHuntExplorationPort port) => coordinator.EnsureHuntUI(manager, port);
+        void IPlayableHuntPhasePort.EnsureHuntRetreatPanel(HuntManager manager) => coordinator.EnsureHuntRetreatPanel(manager);
 
         internal void Configure(PlayableHuntRuntimeConfiguration nextConfiguration)
         {
