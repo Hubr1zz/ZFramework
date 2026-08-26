@@ -4,7 +4,7 @@
 
 ## 工作原则
 
-1. 复用执行 Agent 的代码索引事实包，定向读取架构规则和目标源码；只有显式 OpenSpec Change 实现才读取对应 Spec、tasks 和依赖，不把 zWorkFlow 工件当作普通开发前置。
+1. 复用执行 Agent 的代码索引事实包，定向读取架构规则和目标源码；Hunting in Darkness 任务在写入前必须读取 `project-hunting-in-darkness/references/PROJECT-INDEX.md` 的“当前权威约束”；只有显式 OpenSpec Change 实现才读取对应 Spec、tasks 和依赖，不把 zWorkFlow 工件当作普通开发前置。
 2. 若目标能力为 `blocked-by-design` 或 `blocked-by-integration`，停止实现并报告阻塞树。
 3. 保持改动聚焦，不擅自扩大范围或补造未定义接口。
 4. 遵守现有目录、命名、序列化、资源和程序集约束。

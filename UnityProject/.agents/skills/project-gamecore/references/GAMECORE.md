@@ -49,6 +49,7 @@ GameCore；GameCore 不知道 Unity、ViewLayer、ScriptableObject、EventBus �
 
 - 新玩法先确定一个高内聚的 GameCore 规则/状态 owner，再由 Unity 适配器装配；如果功能只有单一职责，直接放入该 owner，不为满足三层形式新增转发层。不要以“能挂在物体上”为理由新增 `MonoBehaviour`。
 - 运行生命周期优先由 ZFramework 的 Singleton System/Module/Procedure 持有。`MonoBehaviour` 只用于必须依赖 Unity 生命周期、场景身份、序列化引用或表现输入的边界；组合根保持轻薄，只转发 Unity 回调并装配 plain runtime/system，不持有跨阶段业务规则。
+- `GameManager` 的目标结构是统一持有 Settlement、Hunt、Showdown 三个阶段管理者，自身只负责战役顶层 FSM、跨阶段事务和启动/关闭。阶段管理者由 ZFramework 生命周期拥有；Showdown 在玩法重新确认前只拆生命周期与接口，不扩展具体战斗流程。
 - `CardGame.ActionQueue` 只编排会改变权威游戏状态、产生随机或玩家选择结果、发布游戏性事实，或允许 Reactor 覆盖/注入的游戏性 Action。纯布局、Hover、按钮视觉和动画不进入队列；游戏性 Action 可以等待 Presenter 完成，但表现步骤本身没有可被 Reactor 单独拦截的 Action 身份。
 - 战斗与其他玩法统一使用 `CardGame.ActionQueue`。GameCore 不拥有队列或异步 runner；单场战斗由 `PlayableCombatSession` 管理状态和生命周期，`PlayableCombatActionSession` 只持有 Combat `ActionEnvironment` 并把 typed command 转换为根 `GameAction`。
 - 同一玩法的可调参数集中到少量 ScriptableObject，再一次性映射为 GameCore `Definition` / `Profile`；避免多个对象各自暴露一部分关联参数。场景引用只暴露必须由开发者选择具体实例的对象。
