@@ -175,7 +175,7 @@ namespace HuntingInDarkness.Data
         KillHunter = 10,         // 选中猎人永久死亡：targetName=稳定死因ID，description=玩家可见死因
         UnlockInvention = 11,    // 解锁发明：targetName=稳定发明 ContentId
         TriggerCombat = 12,      // 触发战斗
-        AdvanceYear = 13,        // 推进年份
+        AdvanceYear = 13,        // 仅保留旧序列化槽位；内容校验与运行时均拒绝
         ScheduleEvent = 14,      // 安排未来事件：targetName=稳定事件ID, value=延迟年数
         ActivateBloodline = 15,  // 激活血脉：targetName=稳定血脉ID
         AddRecoverableWound = 16, // 添加可在营地休养的普通部位伤势

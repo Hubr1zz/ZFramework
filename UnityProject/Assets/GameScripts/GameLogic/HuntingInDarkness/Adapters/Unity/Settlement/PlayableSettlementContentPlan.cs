@@ -347,6 +347,11 @@ namespace HuntingInDarkness.Settlement
                 foreach (EventEffect effect in EnumerateEffects(gameEvent))
                 {
                     string target = effect?.targetName?.Trim() ?? string.Empty;
+                    if (effect?.effectType == EventEffectType.AdvanceYear)
+                    {
+                        reason = $"事件 {gameEvent.ContentId} 使用了已禁用的推进年份效果；年份只能由回营日历提交。";
+                        return false;
+                    }
                     if ((effect?.effectType == EventEffectType.AddResource || effect?.effectType == EventEffectType.RemoveResource) && !itemAliases.Contains(target))
                     {
                         reason = $"事件 {gameEvent.ContentId} 引用了未知物品：{target}";

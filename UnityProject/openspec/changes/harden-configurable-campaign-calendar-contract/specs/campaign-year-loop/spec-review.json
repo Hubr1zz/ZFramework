@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 5,
+  "capability": "campaign-year-loop",
+  "title": "配置化战役季节出猎闭环",
+  "category": "system",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "单季推进、末季跨年和日历唯一权威入口已由生产路径验证。",
+    "codeEvidence": [],
+    "evidence": ["Unity EditMode 81/81 passed", "GameManager campaign-loop PlayMode 18/18 passed"],
+    "differences": [],
+    "verifiedAt": "2026-08-26T16:06:50Z"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["primary::Timeline.md", "conversation::2026-08-26"],
+  "implementationOutline": [
+    "CampaignCalendarRules 根据冻结 CalendarId 的有序季节列表生成一步推进计划。",
+    "Settlement 回营 root 提交计划并在末季边界生成年度事实。"
+  ],
+  "reviewIssues": []
+}

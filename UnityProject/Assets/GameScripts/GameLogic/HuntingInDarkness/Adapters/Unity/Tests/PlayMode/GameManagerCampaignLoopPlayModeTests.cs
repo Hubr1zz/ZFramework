@@ -16,12 +16,14 @@ using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunt;
+using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.ViewLayer.Hunt;
 using HuntingInDarkness.ViewLayer.Settlement;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using NUnit.Framework;
+using TMPro;
 using UI;
 using UI.Hunt;
 using UnityEngine;
@@ -128,14 +130,18 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             {
                 CompletedYear = 1,
                 CompletedSeasonIndex = 0,
+                CompletedSeasonId = "season_early",
+                CompletedSeasonDisplayName = "早季",
                 AdvancedToYear = 1,
                 AdvancedToSeasonIndex = 1,
+                AdvancedToSeasonId = "season_late",
+                AdvancedToSeasonDisplayName = "晚季",
                 TotalHunts = 1
             });
             yield return null;
             Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("季节推进 · 回营"));
-            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·第 1 季"));
-            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·第 2 季"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·早季"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·晚季"));
 
             notice.PresentHuntDepartureBlocked("请先完成当前营地流程。");
             Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("暂不能出猎"));
@@ -143,7 +149,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return null;
             notice.ClearHuntDepartureBlocked();
             Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("季节推进 · 回营"));
-            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·第 2 季"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·晚季"));
             Assert.That(notice.PendingNoticeCount, Is.Zero);
 
             notice.ResetForCampaignChange();
@@ -151,14 +157,41 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             {
                 CompletedYear = 1,
                 CompletedSeasonIndex = 1,
+                CompletedSeasonId = "season_late",
+                CompletedSeasonDisplayName = "晚季",
                 AdvancedToYear = 2,
                 AdvancedToSeasonIndex = 0,
+                AdvancedToSeasonId = "season_early",
+                AdvancedToSeasonDisplayName = "早季",
                 TotalHunts = 2
             });
             yield return null;
             Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("新年抵达 · 回营"));
-            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·第 2 季"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·晚季"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 2 年·早季"));
+
+            notice.ResetForCampaignChange();
+            EventBus.Publish(new HuntCompletedEvent { CompletedYear = 2, CompletedSeasonIndex = 0, AdvancedToYear = 2, AdvancedToSeasonIndex = 1, TotalHunts = 3 });
+            yield return null;
             Assert.That(notice.ActiveNoticeBody, Does.Contain("第 2 年·第 1 季"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 2 年·第 2 季"));
+        }
+
+        [UnityTest]
+        public IEnumerator CampLedgerPanel_UsesBoundSeasonDisplayName()
+        {
+            var root = new GameObject("calendar-ledger-test");
+            CampLedgerPanel3D panel = CampLedgerPanel3D.Create(root.transform);
+            panel.SetCalendarSeason(new SeasonDefinition("season_custom", "霜降", 0));
+            panel.Open(new SettlementInstance { CurrentYear = 3, CurrentSeasonIndex = 0 }, Vector3.zero);
+            yield return null;
+
+            TextMeshPro title = panel.GetComponentsInChildren<TextMeshPro>(true).FirstOrDefault(text => text.name == "Title");
+            Assert.That(title, Is.Not.Null);
+            Assert.That(title.text, Does.Contain("第 3 年 · 霜降"));
+
+            UnityEngine.Object.Destroy(root);
+            yield return null;
         }
 
         [UnityTest]

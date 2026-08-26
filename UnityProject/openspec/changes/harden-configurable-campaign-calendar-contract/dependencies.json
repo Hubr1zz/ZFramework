@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "campaign-year-loop", "label": "配置化战役季节出猎闭环", "category": "system", "readiness": "implemented", "specPath": "openspec/specs/campaign-year-loop/spec.md" },
+    { "id": "hunt-return-outcome-checkpoint", "label": "狩猎归来结果检查点", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/hunt-return-outcome-checkpoint/spec.md" },
+    { "id": "campaign-persistence", "label": "战役持久化与恢复", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/campaign-persistence/spec.md" },
+    { "id": "expedition-build-progression-loop", "label": "远征奖励与营地构筑闭环", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/expedition-build-progression-loop/spec.md" },
+    { "id": "tabletop-settlement-advancement-ledger", "label": "营地桌面成长训练与年鉴", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-settlement-advancement-ledger/spec.md" }
+  ],
+  "edges": [
+    { "id": "hunt-return-outcome-checkpoint--requires--campaign-year-loop", "from": "hunt-return-outcome-checkpoint", "to": "campaign-year-loop", "type": "requires", "status": "resolved", "reason": "回营检查点使用冻结日历推进计划", "gapId": "", "blocksImplementation": false },
+    { "id": "campaign-persistence--integrates-with--hunt-return-outcome-checkpoint", "from": "campaign-persistence", "to": "hunt-return-outcome-checkpoint", "type": "integrates-with", "status": "resolved", "reason": "恢复 PendingHuntReturn 并保持幂等提交", "gapId": "", "blocksImplementation": false },
+    { "id": "expedition-build-progression-loop--requires--hunt-return-outcome-checkpoint", "from": "expedition-build-progression-loop", "to": "hunt-return-outcome-checkpoint", "type": "requires", "status": "resolved", "reason": "远征奖励通过回营检查点进入营地", "gapId": "", "blocksImplementation": false },
+    { "id": "tabletop-settlement-advancement-ledger--presents--campaign-year-loop", "from": "tabletop-settlement-advancement-ledger", "to": "campaign-year-loop", "type": "presents", "status": "resolved", "reason": "3D 年鉴展示冻结日历的当前季节", "gapId": "", "blocksImplementation": false }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-return-outcome-checkpoint",
+  "title": "狩猎归来结果检查点",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "回营 root 对当前与旧协议记录均按一个配置季节幂等提交。",
+    "codeEvidence": [],
+    "evidence": ["Unity EditMode 81/81 passed", "GameManager campaign-loop PlayMode 18/18 passed"],
+    "differences": [],
+    "verifiedAt": "2026-08-26T16:06:50Z"
+  },
+  "gapIds": [],
+  "dependencyIds": ["hunt-return-outcome-checkpoint--requires--campaign-year-loop"],
+  "sourceReferences": ["conversation::2026-08-26"],
+  "implementationOutline": [
+    "Settlement Runner 先验证完整回营计划与日历计划，再提交资源、成长、历史和日历游标。",
+    "重复 RecordId 在写入与事实发布前幂等返回。"
+  ],
+  "reviewIssues": []
+}

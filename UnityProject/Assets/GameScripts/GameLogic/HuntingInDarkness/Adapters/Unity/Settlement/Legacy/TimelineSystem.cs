@@ -50,14 +50,6 @@ namespace HuntingInDarkness.Settlement
 
         // ─── 年份推进 ────────────────────────────────────────────
 
-        /// <summary>
-        /// 狩猎结束后调用。推进年份，记录本次狩猎，调度下一年事件。
-        /// </summary>
-        public List<EventData> AdvanceYear(HuntRecord huntRecord)
-        {
-            return AdvanceCalendar(huntRecord, out _, out _);
-        }
-
         public List<EventData> AdvanceCalendar(HuntRecord huntRecord, out CampaignCalendarAdvancePlan advancePlan, out string reason)
         {
             advancePlan = default;

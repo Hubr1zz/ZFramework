@@ -515,6 +515,8 @@ namespace HuntingInDarkness.ContentTables
             {
                 if (record == null || !TryParse(record.effectType, out EventEffectType effectType))
                     return false;
+                if (effectType == EventEffectType.AdvanceYear)
+                    return false;
                 if (effectType == EventEffectType.ScheduleEvent && !DelayedEventRules.TryCreatePlan(1, record.value, record.targetName, out _, out _))
                     return false;
                 if (effectType == EventEffectType.ActivateBloodline && (bloodlineContent == null || !bloodlineContent.TryGet(record.targetName, out _)))

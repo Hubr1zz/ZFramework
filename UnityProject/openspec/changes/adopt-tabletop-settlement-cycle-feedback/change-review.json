@@ -13,10 +13,10 @@
   "implementationNotes": "实现和聚焦 PlayMode 已完成；等待人类审查后同步两个正式 Spec。",
   "verification": {
     "status": "implemented",
-    "summary": "季节/年度归档、门禁 reason、transient 抢占恢复与成功重试已通过正式 Campaign loop PlayMode。",
+    "summary": "配置季节名归档、门禁 reason、transient 抢占恢复与成功重试已通过正式 Campaign loop PlayMode。",
     "codeEvidence": [],
     "evidence": [
-      "Unity CLI PlayMode GameManagerCampaignLoopPlayModeTests 16/16。",
+      "Unity CLI PlayMode GameManagerCampaignLoopPlayModeTests 18/18。",
       "dotnet build ZFramework.sln --no-restore -v:minimal 成功，0 warnings、0 errors。",
       "git diff --check 通过。"
     ],

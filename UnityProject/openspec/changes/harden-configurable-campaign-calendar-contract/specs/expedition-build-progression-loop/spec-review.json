@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 5,
+  "capability": "expedition-build-progression-loop",
+  "title": "远征奖励与营地构筑闭环",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "远征资源与回营记录只在同一回营 root 中提交一次，并同步推进一个季节。",
+    "codeEvidence": [],
+    "evidence": ["Unity EditMode 81/81 passed", "GameManager campaign-loop PlayMode 18/18 passed"],
+    "differences": [],
+    "verifiedAt": "2026-08-26T16:06:50Z"
+  },
+  "gapIds": [],
+  "dependencyIds": ["expedition-build-progression-loop--requires--hunt-return-outcome-checkpoint"],
+  "sourceReferences": ["conversation::2026-08-26"],
+  "implementationOutline": [
+    "Hunt 携带物冻结进回营记录，Settlement ActionQueue 一次性提交库存和历史。",
+    "回营检查点清除前阻止后续制造与装备事务。"
+  ],
+  "reviewIssues": []
+}

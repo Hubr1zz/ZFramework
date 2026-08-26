@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 5,
+  "changeId": "harden-configurable-campaign-calendar-contract",
+  "title": "配置化战役日历契约收口",
+  "category": "system",
+  "sourceKind": "direct-code",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "implementationNotes": "实现已通过定向验证；Draft 仅供 Changes 人工审核，批准后再显式同步正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "季节推进唯一权威、旧效果拒绝、回营季节快照与 3D 年鉴投影均已实现。",
+    "codeEvidence": [
+      {
+        "guid": "8b5f1c9e4a1149a0a5c40f2e7d5b6c31",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/CampaignCalendarRules.cs",
+        "fileHash": "32fb3130a20e8f96e89ad3e7df34b8ab55b13899768389d36918f71d3067df75",
+        "line": 67,
+        "feature": "按冻结日历计算单季推进与真实跨年边界",
+        "status": "verified",
+        "checkedAt": "2026-08-26T16:06:50Z"
+      },
+      {
+        "guid": "5cb50ad3443a70f45af1ce3608fd42be",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs",
+        "fileHash": "1f49fa980ae6a68ccb280a2e7081a5bbbd2c51c85029dc1f614d3407b41d5700",
+        "line": 66,
+        "feature": "提交回营结果并发布冻结季节身份事实",
+        "status": "verified",
+        "checkedAt": "2026-08-26T16:06:50Z"
+      },
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "fileHash": "1ba2d17beabba9b5cfe46d8723549081bae7aa47358d1f0ce2159c07773e3b56",
+        "line": 510,
+        "feature": "校验事件表并拒绝日历旁路效果",
+        "status": "verified",
+        "checkedAt": "2026-08-26T16:06:50Z"
+      },
+      {
+        "guid": "415d8d7b8cbb06540ad790f520dafbde",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+        "fileHash": "03f44b007aa0e66e5c9fe01d7fb02023ca9d966eaed955c4dd1317a707f6b24e",
+        "line": 253,
+        "feature": "执行事件效果并对旧年度效果 fail closed",
+        "status": "verified",
+        "checkedAt": "2026-08-26T16:06:50Z"
+      },
+      {
+        "guid": "b078e9c3adef30e4b91de4eb86eaa250",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/CampLedgerPanel3D.cs",
+        "fileHash": "a20c01d50dba1f82caaee20ea99088e8e21f86ba5b95c9478b9c1c8441d89dbe",
+        "line": 64,
+        "feature": "把活动战役季节名称投影到 3D 年鉴",
+        "status": "verified",
+        "checkedAt": "2026-08-26T16:06:50Z"
+      }
+    ],
+    "evidence": [
+      "Unity EditMode 81/81 passed",
+      "GameManager campaign-loop PlayMode 18/18 passed",
+      "dotnet build 0 warnings / 0 errors"
+    ],
+    "differences": [],
+    "verifiedAt": "2026-08-26T16:06:50Z"
+  },
+  "reviewIssues": [],
+  "gapIds": [],
+  "dependencyIds": [
+    "hunt-return-outcome-checkpoint--requires--campaign-year-loop",
+    "campaign-persistence--integrates-with--hunt-return-outcome-checkpoint",
+    "expedition-build-progression-loop--requires--hunt-return-outcome-checkpoint",
+    "tabletop-settlement-advancement-ledger--presents--campaign-year-loop"
+  ],
+  "capabilities": [
+    "campaign-year-loop",
+    "hunt-return-outcome-checkpoint",
+    "campaign-persistence",
+    "expedition-build-progression-loop",
+    "tabletop-settlement-advancement-ledger"
+  ],
+  "syncTargets": [
+    {
+      "capability": "campaign-persistence",
+      "title": "战役持久化与恢复",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/harden-configurable-campaign-calendar-contract/specs/campaign-persistence/spec.md",
+      "targetSpecPath": "openspec/specs/campaign-persistence/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "ca9163e9c69d9baa50b149cbbca8627bdb77426a15c08bdf7506347399a82508",
+      "baseSnapshotPath": "openspec/changes/harden-configurable-campaign-calendar-contract/.sync-baseline/campaign-persistence/spec.md"
+    },
+    {
+      "capability": "campaign-year-loop",
+      "title": "配置化战役季节出猎闭环",
+      "category": "system",
+      "deltaSpecPath": "openspec/changes/harden-configurable-campaign-calendar-contract/specs/campaign-year-loop/spec.md",
+      "targetSpecPath": "openspec/specs/campaign-year-loop/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "5a6d85e84206572b5d08630578881d26bbe92baa2176897b2cffba56a85593ac",
+      "baseSnapshotPath": "openspec/changes/harden-configurable-campaign-calendar-contract/.sync-baseline/campaign-year-loop/spec.md"
+    },
+    {
+      "capability": "expedition-build-progression-loop",
+      "title": "远征奖励与营地构筑闭环",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/harden-configurable-campaign-calendar-contract/specs/expedition-build-progression-loop/spec.md",
+      "targetSpecPath": "openspec/specs/expedition-build-progression-loop/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "17dfba2113c22c3337e1b18dbc03e585dbba31dd2c681ba3d0cd158d66c95cf2",
+      "baseSnapshotPath": "openspec/changes/harden-configurable-campaign-calendar-contract/.sync-baseline/expedition-build-progression-loop/spec.md"
+    },
+    {
+      "capability": "hunt-return-outcome-checkpoint",
+      "title": "狩猎归来结果检查点",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/harden-configurable-campaign-calendar-contract/specs/hunt-return-outcome-checkpoint/spec.md",
+      "targetSpecPath": "openspec/specs/hunt-return-outcome-checkpoint/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "b6b6bb345d20971dd53652ad0490c654266a0f40f9b28d2c275ba711c9f8062f",
+      "baseSnapshotPath": "openspec/changes/harden-configurable-campaign-calendar-contract/.sync-baseline/hunt-return-outcome-checkpoint/spec.md"
+    },
+    {
+      "capability": "tabletop-settlement-advancement-ledger",
+      "title": "营地桌面成长训练与年鉴",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/harden-configurable-campaign-calendar-contract/specs/tabletop-settlement-advancement-ledger/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-settlement-advancement-ledger/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "7d8c9e7dd646fe3cec3a894d734401b39751373bea91204c8afe32ac76fa5374",
+      "baseSnapshotPath": "openspec/changes/harden-configurable-campaign-calendar-contract/.sync-baseline/tabletop-settlement-advancement-ledger/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与基线一致，可以 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-26T09:09:21-07:00"
+  },
+  "createdAt": "2026-08-26T16:06:50Z"
+}

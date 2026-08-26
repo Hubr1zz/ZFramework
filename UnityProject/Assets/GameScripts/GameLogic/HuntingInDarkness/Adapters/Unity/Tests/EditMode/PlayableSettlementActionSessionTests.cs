@@ -79,9 +79,16 @@ namespace HuntingInDarkness.Adapter.Tests
             int seasonFacts = 0;
             int yearFacts = 0;
             int huntFacts = 0;
+            HuntCompletedEvent firstHuntFact = default;
+            HuntCompletedEvent secondHuntFact = default;
             Action<SeasonAdvancedEvent> seasonHandler = _ => seasonFacts++;
             Action<YearAdvancedEvent> yearHandler = _ => yearFacts++;
-            Action<HuntCompletedEvent> huntHandler = _ => huntFacts++;
+            Action<HuntCompletedEvent> huntHandler = evt =>
+            {
+                huntFacts++;
+                if (huntFacts == 1) firstHuntFact = evt;
+                if (huntFacts == 2) secondHuntFact = evt;
+            };
             EventBus.Subscribe(seasonHandler);
             EventBus.Subscribe(yearHandler);
             EventBus.Subscribe(huntHandler);
@@ -96,6 +103,10 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(seasonFacts, Is.EqualTo(1));
                 Assert.That(yearFacts, Is.Zero);
                 Assert.That(huntFacts, Is.EqualTo(1));
+                Assert.That(firstHuntFact.CompletedSeasonId, Is.EqualTo("early"));
+                Assert.That(firstHuntFact.CompletedSeasonDisplayName, Is.EqualTo("早季"));
+                Assert.That(firstHuntFact.AdvancedToSeasonId, Is.EqualTo("late"));
+                Assert.That(firstHuntFact.AdvancedToSeasonDisplayName, Is.EqualTo("晚季"));
 
                 SettlementHuntReturnCommandResult second = await session.ApplyHuntReturnAsync(new HuntRecord { RecordId = "season-second", Year = 5 });
                 Assert.That(second.Succeeded, Is.True, second.Reason);
@@ -105,6 +116,10 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(seasonFacts, Is.EqualTo(2));
                 Assert.That(yearFacts, Is.EqualTo(1));
                 Assert.That(huntFacts, Is.EqualTo(2));
+                Assert.That(secondHuntFact.CompletedSeasonId, Is.EqualTo("late"));
+                Assert.That(secondHuntFact.CompletedSeasonDisplayName, Is.EqualTo("晚季"));
+                Assert.That(secondHuntFact.AdvancedToSeasonId, Is.EqualTo("early"));
+                Assert.That(secondHuntFact.AdvancedToSeasonDisplayName, Is.EqualTo("早季"));
             }
             finally
             {

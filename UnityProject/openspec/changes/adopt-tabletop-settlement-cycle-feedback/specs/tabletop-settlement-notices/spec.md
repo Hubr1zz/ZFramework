@@ -2,13 +2,14 @@
 
 ### Requirement: Successful Hunt return produces one calendar-aware world-space notice
 
-一次成功回营 SHALL 只由信息完整的 `HuntCompletedEvent` 生成一张世界空间归档卡。卡片 SHALL 直接格式化事实中的完成年/季与推进后年/季；同年推进 SHALL 表达新季节，跨年 SHALL 表达新年度。`SeasonAdvancedEvent` 与 `YearAdvancedEvent` SHALL NOT 为同一次回营生成额外 notice。
+一次成功回营 SHALL 只由信息完整的 `HuntCompletedEvent` 生成一张世界空间归档卡。卡片 SHALL 直接格式化事实中的完成年/季与推进后年/季，并优先使用同一冻结日历提交的季节显示名快照；同年推进 SHALL 表达新季节，跨年 SHALL 表达新年度。`SeasonAdvancedEvent` 与 `YearAdvancedEvent` SHALL NOT 为同一次回营生成额外 notice。
 
 #### Scenario: The Hunt advances within the same year
 
 - **WHEN** 回营把日历从第 1 年第 1 季推进到第 1 年第 2 季
 - **THEN** 玩家 SHALL 看到一张“季节推进”归档卡
 - **AND** 卡片 SHALL 同时显示完成前后的年/季坐标
+- **AND** 季节名称 SHALL 来自该回营事实的配置快照，不得查询另一默认日历
 
 #### Scenario: The Hunt advances into a new year
 

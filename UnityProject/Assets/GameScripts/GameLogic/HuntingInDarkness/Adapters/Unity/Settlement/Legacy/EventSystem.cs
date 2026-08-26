@@ -253,6 +253,8 @@ namespace HuntingInDarkness.Settlement
         private PlayableEventEffectResult ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, int effectIndex = -1, string eventId = "")
         {
             if (effect == null) return FailedEffect(effectIndex, effect, "事件效果为空。", eventId);
+            if (effect.effectType == EventEffectType.AdvanceYear)
+                return FailedEffect(effectIndex, effect, "推进年份效果已禁用；年份只能由回营日历提交。", eventId);
             if (effect.effectType == EventEffectType.CreateHuntNoiseLease)
             {
                 if (settlementCommand == null)
@@ -383,8 +385,6 @@ namespace HuntingInDarkness.Settlement
 
             if (outcome.TriggerCombat)
                 RecordEncounter(effect.targetName, encounterIds);
-            if (outcome.AdvanceYear)
-                Debug.Log("[EventSystem] 效果要求推进年份（由外部处理）");
             if (!outcome.Handled)
                 return FailedEffect(effectIndex, effect, string.IsNullOrWhiteSpace(outcome.Reason) ? $"未处理的效果类型：{effect.effectType}" : outcome.Reason, eventId);
             return SucceededEffect(effectIndex, effect, eventId);
@@ -458,7 +458,6 @@ namespace HuntingInDarkness.Settlement
                 EventEffectType.AddAilment => SettlementEffectKind.AddAilment,
                 EventEffectType.UnlockInvention => SettlementEffectKind.UnlockInvention,
                 EventEffectType.TriggerCombat => SettlementEffectKind.TriggerCombat,
-                EventEffectType.AdvanceYear => SettlementEffectKind.AdvanceYear,
                 _ => SettlementEffectKind.Unsupported
             };
         }

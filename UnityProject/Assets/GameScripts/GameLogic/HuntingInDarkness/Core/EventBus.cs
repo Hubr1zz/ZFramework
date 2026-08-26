@@ -192,6 +192,8 @@ namespace Core
     {
         public int CompletedYear;
         public int CompletedSeasonIndex;
+        public string CompletedSeasonId;
+        public string CompletedSeasonDisplayName;
         public int TotalHunts;
         public int HuntersDeployed;
         public int HuntersLost;
@@ -199,6 +201,8 @@ namespace Core
         public bool BossDefeated;
         public int AdvancedToYear;
         public int AdvancedToSeasonIndex;
+        public string AdvancedToSeasonId;
+        public string AdvancedToSeasonDisplayName;
         public string CalendarId;
     }
 

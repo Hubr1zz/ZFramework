@@ -93,6 +93,13 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
             IReadOnlyList<EventData> events = timeline.AdvanceCalendar(huntRecord, out CampaignCalendarAdvancePlan committedPlan, out reason);
             if (!string.IsNullOrEmpty(reason)) return Fail(reason);
+            SeasonDefinition completedSeason = null;
+            SeasonDefinition advancedSeason = null;
+            if (timeline.Calendar != null)
+            {
+                timeline.Calendar.TryGetSeason(committedPlan.CurrentSeasonIndex, out completedSeason);
+                timeline.Calendar.TryGetSeason(committedPlan.NextSeasonIndex, out advancedSeason);
+            }
             Result = new SettlementHuntReturnCommandResult(true, true, string.Empty, events, committedPlan.SeasonAdvanced, committedPlan.YearAdvanced, timeline.CurrentYear, timeline.CurrentSeasonIndex);
             eventOutbox.StageAfterCommit(new SeasonAdvancedEvent
             {
@@ -106,6 +113,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             {
                 CompletedYear = huntRecord.Year,
                 CompletedSeasonIndex = committedPlan.CurrentSeasonIndex,
+                CompletedSeasonId = completedSeason?.Id ?? string.Empty,
+                CompletedSeasonDisplayName = completedSeason?.DisplayName ?? string.Empty,
                 TotalHunts = timeline.TotalHunts,
                 HuntersDeployed = huntRecord.HuntersDeployed,
                 HuntersLost = huntRecord.HuntersLost,
@@ -113,6 +122,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 BossDefeated = huntRecord.BossDefeated,
                 AdvancedToYear = timeline.CurrentYear,
                 AdvancedToSeasonIndex = timeline.CurrentSeasonIndex,
+                AdvancedToSeasonId = advancedSeason?.Id ?? string.Empty,
+                AdvancedToSeasonDisplayName = advancedSeason?.DisplayName ?? string.Empty,
                 CalendarId = timeline.Calendar.CalendarId
             });
             if (committedPlan.YearAdvanced)

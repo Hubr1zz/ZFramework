@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 5,
+  "capability": "campaign-persistence",
+  "title": "战役持久化与恢复",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "PendingHuntReturn 恢复与旧 pacing 迁移保持季节幂等且不补年度事件。",
+    "codeEvidence": [],
+    "evidence": ["Unity EditMode 81/81 passed", "GameManager campaign-loop PlayMode 18/18 passed"],
+    "differences": [],
+    "verifiedAt": "2026-08-26T16:06:50Z"
+  },
+  "gapIds": [],
+  "dependencyIds": ["campaign-persistence--integrates-with--hunt-return-outcome-checkpoint"],
+  "sourceReferences": ["conversation::2026-08-26"],
+  "implementationOutline": [
+    "组合根先保存 pending，再应用回营状态，最后按 RecordId 清除并二次保存。",
+    "内容计划按 pacing schema 保守解析 CalendarId 与 CurrentSeasonIndex。"
+  ],
+  "reviewIssues": []
+}

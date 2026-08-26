@@ -241,6 +241,7 @@ namespace UI
             if (campLedgerPanel == null)
                 campLedgerPanel = CampLedgerPanel3D.Create(transform);
             campLedgerPanel.EnsureBuilt();
+            campLedgerPanel.SetCalendarSeason(_mgr.Timeline?.CurrentSeason);
             if (campLedgerLauncher == null)
                 campLedgerLauncher = CampLedgerLauncherCard3D.Create(transform, fallbackCampLedgerLauncherPosition);
             campLedgerLauncher.Configure(_mgr.Data);
@@ -535,6 +536,7 @@ namespace UI
             recruitmentLauncher?.RefreshState();
             hunterAdvancementPanel?.RefreshVisible();
             hunterSymptomPanel?.RefreshVisible();
+            campLedgerPanel?.SetCalendarSeason(_mgr.Timeline?.CurrentSeason);
             campLedgerPanel?.RefreshVisible();
             campLedgerLauncher?.Configure(_mgr.Data);
             inventionActiveEffectPanel?.RefreshVisible();

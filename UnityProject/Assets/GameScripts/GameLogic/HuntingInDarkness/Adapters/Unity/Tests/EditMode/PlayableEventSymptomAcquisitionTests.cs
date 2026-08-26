@@ -220,10 +220,69 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void AdvanceYearEffect_IsRejectedByTableAndSettlementPreflight()
+        {
+            MethodInfo validateEffects = typeof(PlayableEventTableRuntime).GetMethod("ValidateEffects", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(validateEffects, Is.Not.Null);
+            var tableEffect = new List<EventEffectTableRecord> { new() { effectType = nameof(EventEffectType.AdvanceYear) } };
+            Assert.That(validateEffects.Invoke(null, new object[] { tableEffect, false, catalog, PlayableBloodlineRuntime.Content, false, false }), Is.False);
+
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "advance-year-preflight";
+            gameEvent.eventName = gameEvent.name;
+            gameEvent.ConfigureContentId("advance-year-preflight");
+            gameEvent.category = EventCategory.Settlement;
+            gameEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AdvanceYear });
+            try
+            {
+                System.Type planType = typeof(PlayableSettlementContentCatalog).Assembly.GetType("HuntingInDarkness.Settlement.PlayableSettlementContentPlan");
+                MethodInfo validateContent = planType.GetMethod("ValidateContent", BindingFlags.Static | BindingFlags.NonPublic);
+                object[] arguments = { new List<ItemData>(), new List<InventionData>(), new List<CraftRecipe>(), new List<EventData> { gameEvent }, new List<HunterData>(), new List<HunterData>(), null, null };
+
+                bool valid = (bool)validateContent.Invoke(null, arguments);
+
+                Assert.That(valid, Is.False);
+                Assert.That((string)arguments[7], Does.Contain("推进年份"));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void RuntimeAdvanceYearEffect_FailsWithoutChangingCalendar()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 4, CurrentSeasonIndex = 1 };
+            var eventSystem = new EventSystem(settlement, new FirstRandom());
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "advance-year-runtime";
+            gameEvent.eventName = gameEvent.name;
+            gameEvent.ConfigureContentId("advance-year-runtime");
+            gameEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AdvanceYear });
+            try
+            {
+                PlayableEventNodeCommitResult result = eventSystem.ResolveNarrativeNodeStandalone(gameEvent);
+
+                Assert.That(result.EffectResults.Effects, Has.Count.EqualTo(1));
+                Assert.That(result.EffectResults.Effects[0].Succeeded, Is.False);
+                Assert.That(result.EffectResults.Effects[0].Reason, Does.Contain("回营日历"));
+                Assert.That(settlement.CurrentYear, Is.EqualTo(4));
+                Assert.That(settlement.CurrentSeasonIndex, Is.EqualTo(1));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
         public void EventEffectType_PreservesSerializedValuesWhenEffectsAreAppended()
         {
             Assert.That((int)EventEffectType.AddAilment, Is.EqualTo(9));
             Assert.That((int)EventEffectType.KillHunter, Is.EqualTo(10));
+            Assert.That((int)EventEffectType.AdvanceYear, Is.EqualTo(13));
+            Assert.That((int)EventEffectType.ScheduleEvent, Is.EqualTo(14));
             Assert.That((int)EventEffectType.ActivateBloodline, Is.EqualTo(15));
             Assert.That((int)EventEffectType.AddRecoverableWound, Is.EqualTo(16));
             Assert.That((int)EventEffectType.ExhaustCurrentHuntTileResources, Is.EqualTo(17));

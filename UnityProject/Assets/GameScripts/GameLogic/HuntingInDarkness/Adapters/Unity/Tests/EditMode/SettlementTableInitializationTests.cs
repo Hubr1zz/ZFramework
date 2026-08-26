@@ -4,6 +4,7 @@ using Cards3D;
 using Core;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
+using TMPro;
 using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -31,12 +32,18 @@ namespace HuntingInDarkness.Adapter.Tests
                 LogAssert.ignoreFailingMessages = true;
                 table.Init(firstManager);
                 int firstChildCount = root.GetComponentsInChildren<Transform>(true).Length;
+                CampLedgerPanel3D ledger = GetPrivateField<CampLedgerPanel3D>(table, "campLedgerPanel");
+                ledger.SetCalendarSeason(new HuntingInDarkness.GameCore.Settlement.SeasonDefinition("first-season", "旧季名", 0));
 
                 table.Init(secondManager);
                 int secondChildCount = root.GetComponentsInChildren<Transform>(true).Length;
+                ledger.Open(secondManager.Data, Vector3.zero);
+                TextMeshPro ledgerTitle = ledger.GetComponentsInChildren<TextMeshPro>(true)[0];
 
                 Assert.That(secondChildCount, Is.EqualTo(firstChildCount));
                 Assert.That(secondChildCount, Is.GreaterThan(1));
+                Assert.That(ledgerTitle.text, Does.Contain("第 1 年 · 第 1 季"));
+                Assert.That(ledgerTitle.text, Does.Not.Contain("旧季名"));
                 Assert.DoesNotThrow(() => EventBus.Publish(new YearAdvancedEvent { NewYear = 2 }));
             }
             finally

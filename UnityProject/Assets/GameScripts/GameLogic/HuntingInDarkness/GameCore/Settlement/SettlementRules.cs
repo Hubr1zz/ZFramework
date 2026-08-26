@@ -290,7 +290,6 @@ namespace HuntingInDarkness.GameCore.Settlement
         AddAilment,
         UnlockInvention,
         TriggerCombat,
-        AdvanceYear,
         Unsupported
     }
 
@@ -303,7 +302,6 @@ namespace HuntingInDarkness.GameCore.Settlement
         public int OldAmount { get; }
         public int NewAmount { get; }
         public bool TriggerCombat { get; }
-        public bool AdvanceYear { get; }
 
         public SettlementEffectOutcome(
             bool handled,
@@ -312,7 +310,6 @@ namespace HuntingInDarkness.GameCore.Settlement
             int oldAmount = 0,
             int newAmount = 0,
             bool triggerCombat = false,
-            bool advanceYear = false,
             string reason = "")
         {
             Handled = handled;
@@ -322,7 +319,6 @@ namespace HuntingInDarkness.GameCore.Settlement
             OldAmount = oldAmount;
             NewAmount = newAmount;
             TriggerCombat = triggerCombat;
-            AdvanceYear = advanceYear;
         }
     }
 
@@ -394,8 +390,6 @@ namespace HuntingInDarkness.GameCore.Settlement
                     return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.TriggerCombat:
                     return new SettlementEffectOutcome(true, triggerCombat: true);
-                case SettlementEffectKind.AdvanceYear:
-                    return new SettlementEffectOutcome(true, advanceYear: true);
                 default:
                     return new SettlementEffectOutcome(false);
             }
@@ -440,8 +434,6 @@ namespace HuntingInDarkness.GameCore.Settlement
 
     public static class SettlementTimelineRules
     {
-        public static int AdvanceYear(int currentYear) => currentYear + 1;
-
         public static bool IsAvailableForYear(int year, int minimumYear, int maximumYear) =>
             year >= minimumYear && (maximumYear <= 0 || year <= maximumYear);
     }

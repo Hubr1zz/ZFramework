@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Cards3D;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Settlement;
 using TMPro;
 using UnityEngine;
 
@@ -16,6 +17,7 @@ namespace UI
         private TextMeshPro summaryText;
         private TextMeshPro pageText;
         private SettlementInstance settlement;
+        private string seasonDisplayName = string.Empty;
         private int pageIndex;
         private bool isBuilt;
 
@@ -59,13 +61,21 @@ namespace UI
             Rebuild();
         }
 
+        public void SetCalendarSeason(SeasonDefinition season)
+        {
+            seasonDisplayName = season?.DisplayName?.Trim() ?? string.Empty;
+            if (gameObject.activeSelf && settlement != null)
+                Rebuild();
+        }
+
         private void Rebuild()
         {
             ClearEntries();
             BuildEntries();
-            Title.text = $"无火营地年鉴 · 第 {settlement.CurrentYear} 年 · 第 {settlement.CurrentSeasonIndex + 1} 季";
+            string currentSeason = string.IsNullOrWhiteSpace(seasonDisplayName) ? $"第 {settlement.CurrentSeasonIndex + 1} 季" : seasonDisplayName;
+            Title.text = $"无火营地年鉴 · 第 {settlement.CurrentYear} 年 · {currentSeason}";
             int lastHuntYear = settlement.HuntHistory != null && settlement.HuntHistory.Count > 0 ? settlement.HuntHistory[settlement.HuntHistory.Count - 1]?.Year ?? 0 : 0;
-            summaryText.text = $"上次远征 {lastHuntYear} → 当前 {settlement.CurrentYear}年·第{settlement.CurrentSeasonIndex + 1}季　总远征 {settlement.HuntHistory?.Count ?? 0}　时间线 {settlement.Timeline?.Count ?? 0}　存活猎人 {settlement.GetAliveHunters().Count}";
+            summaryText.text = $"上次远征 {lastHuntYear} → 当前 {settlement.CurrentYear}年·{currentSeason}　总远征 {settlement.HuntHistory?.Count ?? 0}　时间线 {settlement.Timeline?.Count ?? 0}　存活猎人 {settlement.GetAliveHunters().Count}";
             int pageCount = Mathf.Max(1, Mathf.CeilToInt((float)entries.Count / EntriesPerPage));
             pageIndex = Mathf.Clamp(pageIndex, 0, pageCount - 1);
             pageText.text = entries.Count == 0 ? "尚无年鉴记录" : $"第 {pageIndex + 1}/{pageCount} 页 · 共 {entries.Count} 条";

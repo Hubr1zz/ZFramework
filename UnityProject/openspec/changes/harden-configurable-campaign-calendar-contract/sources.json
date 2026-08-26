@@ -1,0 +1,12 @@
+{
+  "sourceRunId": "",
+  "source": "用户确认的配置化季节权威约束、设计文档与直接代码实现。",
+  "sourceRoots": [
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/营地阶段 Settlement Phase"
+  ],
+  "sourceReferences": [
+    "primary::Timeline.md",
+    "conversation::2026-08-26",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/CampaignCalendarRules.cs"
+  ]
+}

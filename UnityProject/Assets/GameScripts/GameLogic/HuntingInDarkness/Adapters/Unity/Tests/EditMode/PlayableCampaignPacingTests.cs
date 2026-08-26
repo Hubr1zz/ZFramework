@@ -30,18 +30,18 @@ namespace HuntingInDarkness.Tests
         }
 
         [Test]
-        public void AdvanceYear_AdvancesExactlyOnceForEveryAcceptedReturn()
+        public void AdvanceCalendar_AdvancesSingleSeasonCalendarForEveryAcceptedReturn()
         {
             var settlement = new SettlementInstance { CurrentYear = 1, HuntsPerYear = 2 };
             var timeline = CreateTimeline(settlement);
 
-            timeline.AdvanceYear(new HuntRecord { RecordId = "first", Year = 1 });
+            timeline.AdvanceCalendar(new HuntRecord { RecordId = "first", Year = 1 }, out _, out _);
 
             Assert.That(settlement.CurrentYear, Is.EqualTo(2));
             Assert.That(settlement.HuntsCompletedThisYear, Is.Zero);
             Assert.That(settlement.HuntHistory, Has.Count.EqualTo(1));
 
-            timeline.AdvanceYear(new HuntRecord { RecordId = "second", Year = 2 });
+            timeline.AdvanceCalendar(new HuntRecord { RecordId = "second", Year = 2 }, out _, out _);
 
             Assert.That(settlement.CurrentYear, Is.EqualTo(3));
             Assert.That(settlement.HuntsCompletedThisYear, Is.Zero);
@@ -79,7 +79,7 @@ namespace HuntingInDarkness.Tests
         }
 
         [Test]
-        public void AdvanceYear_DoesNotPublishFactsOutsideActionQueue()
+        public void AdvanceCalendar_DoesNotPublishFactsOutsideActionQueue()
         {
             var settlement = new SettlementInstance { CurrentYear = 1, HuntsPerYear = 2 };
             var timeline = CreateTimeline(settlement);
@@ -88,7 +88,7 @@ namespace HuntingInDarkness.Tests
             EventBus.Subscribe(handler);
             try
             {
-                timeline.AdvanceYear(new HuntRecord { RecordId = "published-first", Year = 1, HuntersDeployed = 2, HuntersLost = 1, CollectedResources = { "碎石", "碎石" } });
+                timeline.AdvanceCalendar(new HuntRecord { RecordId = "published-first", Year = 1, HuntersDeployed = 2, HuntersLost = 1, CollectedResources = { "碎石", "碎石" } }, out _, out _);
 
                 Assert.That(receivedCount, Is.Zero);
                 Assert.That(settlement.CurrentYear, Is.EqualTo(2));
@@ -100,33 +100,33 @@ namespace HuntingInDarkness.Tests
         }
 
         [Test]
-        public void AdvanceYear_IgnoresLegacyPacingFields()
+        public void AdvanceCalendar_IgnoresLegacyPacingFields()
         {
             var settlement = new SettlementInstance { CurrentYear = 3, HuntsPerYear = 0 };
             var timeline = CreateTimeline(settlement);
 
-            timeline.AdvanceYear(new HuntRecord { RecordId = "legacy-fields", Year = 3 });
+            timeline.AdvanceCalendar(new HuntRecord { RecordId = "legacy-fields", Year = 3 }, out _, out _);
 
             Assert.That(settlement.CurrentYear, Is.EqualTo(4));
             Assert.That(settlement.HuntsCompletedThisYear, Is.Zero);
         }
 
         [Test]
-        public void AdvanceYear_RejectsDuplicateRecordIdWithoutRepeatingYear()
+        public void AdvanceCalendar_RejectsDuplicateRecordIdWithoutRepeatingYear()
         {
             var settlement = new SettlementInstance { CurrentYear = 4 };
             var timeline = CreateTimeline(settlement);
             var record = new HuntRecord { RecordId = "hunt-01", Year = 4 };
 
-            timeline.AdvanceYear(record);
-            timeline.AdvanceYear(new HuntRecord { RecordId = "hunt-01", Year = 4 });
+            timeline.AdvanceCalendar(record, out _, out _);
+            timeline.AdvanceCalendar(new HuntRecord { RecordId = "hunt-01", Year = 4 }, out _, out _);
 
             Assert.That(settlement.CurrentYear, Is.EqualTo(5));
             Assert.That(settlement.HuntHistory, Has.Count.EqualTo(1));
         }
 
         [Test]
-        public void AdvanceYear_ReusesExistingAnnualRandomSlotAfterInterruptedAttempt()
+        public void AdvanceCalendar_ReusesExistingAnnualRandomSlotAfterInterruptedAttempt()
         {
             var settlement = new SettlementInstance { CurrentYear = 4 };
             settlement.Timeline.Add(new AnnalEntry { Year = 5, EventId = "replacement", EntryType = TimelineEntryType.Random });
@@ -141,7 +141,7 @@ namespace HuntingInDarkness.Tests
 
             try
             {
-                timeline.AdvanceYear(new HuntRecord { RecordId = "recovered-return", Year = 4 });
+                timeline.AdvanceCalendar(new HuntRecord { RecordId = "recovered-return", Year = 4 }, out _, out _);
                 var projection = new SettlementEventRestoreProjection(settlement, timeline.ResolveEvent);
                 SettlementEventRestorePlan restorePlan = projection.Prepare();
 
@@ -158,13 +158,13 @@ namespace HuntingInDarkness.Tests
         }
 
         [Test]
-        public void AdvanceYear_RejectsDifferentStableIdFromPastYear()
+        public void AdvanceCalendar_RejectsDifferentStableIdFromPastYear()
         {
             var settlement = new SettlementInstance { CurrentYear = 7 };
             var timeline = CreateTimeline(settlement);
-            timeline.AdvanceYear(new HuntRecord { RecordId = "ordered", Year = 7 });
+            timeline.AdvanceCalendar(new HuntRecord { RecordId = "ordered", Year = 7 }, out _, out _);
 
-            timeline.AdvanceYear(new HuntRecord { RecordId = "different-but-stale", Year = 7 });
+            timeline.AdvanceCalendar(new HuntRecord { RecordId = "different-but-stale", Year = 7 }, out _, out _);
 
             Assert.That(settlement.CurrentYear, Is.EqualTo(8));
             Assert.That(settlement.HuntHistory, Has.Count.EqualTo(1));

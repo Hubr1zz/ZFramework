@@ -198,8 +198,10 @@ namespace UI
         private void OnHuntCompleted(HuntCompletedEvent evt)
         {
             string outcome = evt.BossDefeated ? "讨伐成功" : "从黑暗中归来";
-            string completedPeriod = $"第 {evt.CompletedYear} 年·第 {evt.CompletedSeasonIndex + 1} 季";
-            string advancedPeriod = $"第 {evt.AdvancedToYear} 年·第 {evt.AdvancedToSeasonIndex + 1} 季";
+            string completedSeason = string.IsNullOrWhiteSpace(evt.CompletedSeasonDisplayName) ? $"第 {evt.CompletedSeasonIndex + 1} 季" : evt.CompletedSeasonDisplayName;
+            string advancedSeason = string.IsNullOrWhiteSpace(evt.AdvancedToSeasonDisplayName) ? $"第 {evt.AdvancedToSeasonIndex + 1} 季" : evt.AdvancedToSeasonDisplayName;
+            string completedPeriod = $"第 {evt.CompletedYear} 年·{completedSeason}";
+            string advancedPeriod = $"第 {evt.AdvancedToYear} 年·{advancedSeason}";
             string body = $"{completedPeriod} · {outcome}\n远征已归档，营地进入 {advancedPeriod}\n\n出发 {evt.HuntersDeployed} · 损失 {evt.HuntersLost} · 带回 {evt.CollectedResourceCount} 项物资";
             string footer = $"年鉴现有 {evt.TotalHunts} 条狩猎记录";
             TabletopEventPrimaryTone tone = evt.HuntersLost > 0 ? TabletopEventPrimaryTone.Failure : TabletopEventPrimaryTone.Success;

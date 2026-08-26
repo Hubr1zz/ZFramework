@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-advancement-ledger",
+  "title": "营地桌面成长训练与年鉴",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "3D 年鉴读取当前 Settlement runtime 绑定日历的季节名称，并在重绑时清除旧值。",
+    "codeEvidence": [],
+    "evidence": ["Unity EditMode 81/81 passed", "GameManager campaign-loop PlayMode 18/18 passed"],
+    "differences": [],
+    "verifiedAt": "2026-08-26T16:06:50Z"
+  },
+  "gapIds": [],
+  "dependencyIds": ["tabletop-settlement-advancement-ledger--presents--campaign-year-loop"],
+  "sourceReferences": ["primary::Timeline.md", "conversation::2026-08-26"],
+  "implementationOutline": [
+    "SettlementTable3D 把 Timeline.CurrentSeason 投影到只读 CampLedgerPanel3D。",
+    "面板显示配置名称，缺失时回退季节序号，manager 重绑时覆盖旧值。"
+  ],
+  "reviewIssues": []
+}
