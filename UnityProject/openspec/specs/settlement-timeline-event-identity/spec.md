@@ -42,6 +42,23 @@ MainStory、Random 与 Scheduled 年鉴条目 SHALL 把 EventData.ContentId 保�
 - **THEN** 只有绑定的第一个条目 SHALL 完成
 - **AND** 第二个条目 SHALL 保持待处理
 
+### Requirement: Calendar boundaries gate annual occurrence creation
+
+年度 Timeline occurrence SHALL 只在配置化日历实际从最后季节进入下一年时创建。同年季节推进 SHALL 只记录 Hunt 与季节事实，不得生成下一年 MainStory、Random 或 Scheduled 条目。重复回营 RecordId 或回营检查点恢复 SHALL 复用既有精确 AnnalEntry，不得创建第二份年度 occurrence。
+
+#### Scenario: A Hunt returns during the same year
+
+- **WHEN** 默认两季日历从季节索引 0 推进到 1
+- **THEN** Timeline SHALL NOT 创建下一年度条目
+- **AND** 当前年度既有未完成 occurrence SHALL 保持原身份与状态
+
+#### Scenario: A year-boundary return is retried
+
+- **GIVEN** 跨年回营已经创建并保存下一年度的精确 AnnalEntry
+- **WHEN** 相同 RecordId 因检查点恢复再次进入回营 Action
+- **THEN** Timeline SHALL NOT 创建重复条目
+- **AND** 恢复投影 SHALL 继续原 AnnalEntry 或其持久 child occurrence
+
 ### Requirement: Committed parent is not replayed after presentation failure
 
 事件效果与精确年鉴条目完成 SHALL 位于结果表现确认之前。确认失败后，已提交父条目 SHALL 保持完成，已登记的子 occurrence SHALL 留在事件链检查点等待恢复，父效果 SHALL NOT 重放。

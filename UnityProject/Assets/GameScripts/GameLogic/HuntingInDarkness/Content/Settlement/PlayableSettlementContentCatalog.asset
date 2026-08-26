@@ -80,3 +80,6 @@ MonoBehaviour:
   recoveryAmount: 1
   deathInspirationGrowth: 1
   deathInspirationMinimumAge: 2
+  defaultCalendar: {fileID: 11400000, guid: 73e59a4be4c34f629c43b2fcfb4c2f3d, type: 2}
+  supportedCalendars:
+  - {fileID: 11400000, guid: 73e59a4be4c34f629c43b2fcfb4c2f3d, type: 2}

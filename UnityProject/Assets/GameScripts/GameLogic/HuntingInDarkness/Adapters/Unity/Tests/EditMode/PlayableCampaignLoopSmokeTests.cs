@@ -24,6 +24,10 @@ namespace HuntingInDarkness.Adapter.Tests
             var random = new FirstRandom();
             var eventSystem = new EventSystem(settlement, random);
             var timeline = new TimelineSystem(settlement, random);
+            Assert.That(timeline.TryBindCalendar(new CampaignCalendarDefinition("single_season_test", new[]
+            {
+                new SeasonDefinition("season_default", "默认季", 0)
+            }), out string bindReason), Is.True, bindReason);
             var hunterManagement = new HunterManagementSystem(settlement, random);
             HexTileData startingTile = ScriptableObject.CreateInstance<HexTileData>();
             HexTileData plainTile = ScriptableObject.CreateInstance<HexTileData>();

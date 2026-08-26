@@ -23,6 +23,8 @@ namespace HuntingInDarkness.Settlement
         // ─── 子系统 ──────────────────────────────────────────────
 
         public TimelineSystem Timeline => binding.Timeline;
+        public CampaignCalendarDefinition Calendar => binding.Timeline.Calendar;
+        public int CurrentSeasonIndex => binding.Timeline.CurrentSeasonIndex;
         public EventSystem Events => binding.Events;
         public InventionSystem Inventions => binding.Inventions;
         public WorkshopSystem Workshop => binding.Workshop;

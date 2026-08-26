@@ -4,6 +4,7 @@ using HuntingInDarkness.Data;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace HuntingInDarkness.Settlement
 {
@@ -31,6 +32,11 @@ namespace HuntingInDarkness.Settlement
         [SerializeField] private TextAsset inventionTable;
         [SerializeField] private List<CraftRecipe> recipes = new();
 
+        [Header("战役日历")]
+        [FormerlySerializedAs("campaignCalendar")]
+        [SerializeField] private CampaignCalendarConfig defaultCalendar;
+        [SerializeField] private List<CampaignCalendarConfig> supportedCalendars = new();
+
         [Header("招募")]
         [SerializeField] private List<HunterData> recruitmentTemplates = new();
         [SerializeField] private ItemData recruitmentCostItem;
@@ -54,6 +60,9 @@ namespace HuntingInDarkness.Settlement
         public ItemData RecoveryCostItem => recoveryCostItem;
         public int RecoveryCost => Mathf.Max(0, recoveryCost);
         public int RecoveryAmount => Mathf.Max(1, recoveryAmount);
+        public CampaignCalendarConfig CampaignCalendar => defaultCalendar;
+        public CampaignCalendarConfig DefaultCalendar => defaultCalendar;
+        public IReadOnlyList<CampaignCalendarConfig> SupportedCalendars => supportedCalendars;
 
         public bool ApplyTo(SettlementManager manager)
         {
@@ -98,6 +107,7 @@ namespace HuntingInDarkness.Settlement
             }
             var errors = new List<string>();
             IReadOnlyList<EventData> tableEvents = eventGeneration != null ? eventGeneration.Events : Array.Empty<EventData>();
+            if (!TryPrepareCalendars(out CampaignCalendarDefinition calendarDefinition, out Dictionary<string, CampaignCalendarDefinition> calendars, out string calendarReason)) errors.Add(calendarReason);
             using var ownership = new PlayableSettlementContentOwnership();
             try
             {
@@ -116,7 +126,7 @@ namespace HuntingInDarkness.Settlement
                     reason = string.Join("；", errors);
                     return false;
                 }
-                plan = new PlayableSettlementContentPlan(this, registryBundle, traitCatalog, eventGeneration, allRecipes, allRandomEvents, allMainStoryEvents, allStartingHunters, allRecruitmentTemplates, startingResources, ownership.Objects, deathInspirationGrowth, deathInspirationMinimumAge);
+                plan = new PlayableSettlementContentPlan(this, registryBundle, traitCatalog, eventGeneration, calendarDefinition, calendars, allRecipes, allRandomEvents, allMainStoryEvents, allStartingHunters, allRecruitmentTemplates, startingResources, ownership.Objects, deathInspirationGrowth, deathInspirationMinimumAge);
                 ownership.Transfer();
                 return true;
             }
@@ -125,6 +135,65 @@ namespace HuntingInDarkness.Settlement
                 reason = $"营地内容计划构建异常：{exception.Message}";
                 return false;
             }
+        }
+
+        private bool TryPrepareCalendars(out CampaignCalendarDefinition defaultDefinition, out Dictionary<string, CampaignCalendarDefinition> calendars, out string reason)
+        {
+            defaultDefinition = null;
+            calendars = new Dictionary<string, CampaignCalendarDefinition>(StringComparer.Ordinal);
+            reason = string.Empty;
+            if (defaultCalendar == null)
+            {
+                reason = "营地内容目录缺少默认战役日历。";
+                return false;
+            }
+            if (supportedCalendars == null || supportedCalendars.Count == 0)
+            {
+                reason = "营地内容目录未声明任何支持的战役日历。";
+                return false;
+            }
+            foreach (CampaignCalendarConfig config in supportedCalendars)
+            {
+                if (config == null)
+                {
+                    reason = "支持的战役日历配置为空。";
+                    return false;
+                }
+                if (!config.TryCreateDefinition(out CampaignCalendarDefinition definition, out string configReason))
+                {
+                    reason = configReason;
+                    return false;
+                }
+                if (!calendars.TryAdd(definition.CalendarId, definition))
+                {
+                    reason = $"支持的战役日历 ID 重复：{definition.CalendarId}";
+                    return false;
+                }
+            }
+            if (!defaultCalendar.TryCreateDefinition(out defaultDefinition, out reason)) return false;
+            if (!calendars.ContainsKey(defaultDefinition.CalendarId))
+            {
+                reason = $"默认战役日历未包含在支持列表中：{defaultDefinition.CalendarId}";
+                return false;
+            }
+            if (!AreDefinitionsEqual(defaultDefinition, calendars[defaultDefinition.CalendarId]))
+            {
+                reason = $"默认战役日历与支持列表内容漂移：{defaultDefinition.CalendarId}";
+                return false;
+            }
+            return true;
+        }
+
+        private static bool AreDefinitionsEqual(CampaignCalendarDefinition left, CampaignCalendarDefinition right)
+        {
+            if (left == null || right == null || left.CalendarId != right.CalendarId || left.DefaultSeasonIndex != right.DefaultSeasonIndex || left.Seasons.Count != right.Seasons.Count) return false;
+            for (int index = 0; index < left.Seasons.Count; index++)
+            {
+                SeasonDefinition leftSeason = left.Seasons[index];
+                SeasonDefinition rightSeason = right.Seasons[index];
+                if (leftSeason.Id != rightSeason.Id || leftSeason.DisplayName != rightSeason.DisplayName || leftSeason.Order != rightSeason.Order) return false;
+            }
+            return true;
         }
 
         private List<ItemData> GetKnownItems()

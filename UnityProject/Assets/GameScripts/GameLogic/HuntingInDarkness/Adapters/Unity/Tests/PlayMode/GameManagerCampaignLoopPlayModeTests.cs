@@ -53,7 +53,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
-        public IEnumerator PublicCommands_CompleteOneYearLoopAndAllowNextDeparture()
+        public IEnumerator PublicCommands_CompleteTwoSeasonLoopAndAllowNextDeparture()
         {
             var persistence = new MemoryCampaignPersistence();
             GameManager manager = CreateProductionManager(persistence);
@@ -81,10 +81,25 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return WaitForSettlementIdle(manager);
 
             Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Settlement));
-            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear + 1));
+            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear));
+            Assert.That(manager.SettlementData.CurrentSeasonIndex, Is.EqualTo(1));
             Assert.That(manager.SettlementData.HuntHistory, Has.Count.EqualTo(1));
             Assert.That(manager.SettlementData.PendingHuntReturn, Is.Null);
             Assert.That(manager.SettlementData.DepartingHunterIds, Is.Empty);
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter secondDeparture = manager.DepartForHuntAsync(new[] { hunterId }, GetDestination(manager.SettlementData.CurrentYear)).GetAwaiter();
+            yield return WaitForCompletion(secondDeparture);
+            SettlementDepartureCommandResult secondDepartureResult = secondDeparture.GetResult();
+            Assert.That(secondDepartureResult.Succeeded, Is.True, secondDepartureResult.Reason);
+            UniTask<HuntRetreatCommandResult>.Awaiter secondRetreat = manager.RequestRetreatAsync().GetAwaiter();
+            yield return WaitForCompletion(secondRetreat);
+            HuntRetreatCommandResult secondRetreatResult = secondRetreat.GetResult();
+            Assert.That(secondRetreatResult.Succeeded, Is.True, secondRetreatResult.Reason);
+            yield return WaitForSettlementIdle(manager);
+
+            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear + 1));
+            Assert.That(manager.SettlementData.CurrentSeasonIndex, Is.Zero);
+            Assert.That(manager.SettlementData.HuntHistory, Has.Count.EqualTo(2));
             Assert.That(persistence.HasAppliedPendingSave(initialYear + 1), Is.True, "缺少已应用但仍保留回营检查点的第一阶段存档。");
 
             UniTask<SettlementDepartureCommandResult>.Awaiter nextDeparture = manager.DepartForHuntAsync(new[] { hunterId }, GetDestination(manager.SettlementData.CurrentYear)).GetAwaiter();
@@ -122,7 +137,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             HuntRetreatCommandResult retreatResult = retreat.GetResult();
             Assert.That(retreatResult.Succeeded, Is.True, retreatResult.Reason);
             yield return WaitForSettlementIdle(manager);
-            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear + 1));
+            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear));
+            Assert.That(manager.SettlementData.CurrentSeasonIndex, Is.EqualTo(1));
             Assert.That(manager.SettlementData.GetResource(blackSalt.ContentId), Is.EqualTo(1));
             Assert.That(manager.SettlementData.HasDiscoveredMaterial(blackSalt.ContentId), Is.True);
             Assert.That(manager.SettlementData.PendingHuntReturn, Is.Null);
@@ -145,7 +161,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return WaitForPersistedEquipment(persistence, hunterId, saltWard.ContentId);
 
             CampaignSnapshot saved = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
-            Assert.That(saved.Settlement.CurrentYear, Is.EqualTo(initialYear + 1));
+            Assert.That(saved.Settlement.CurrentYear, Is.EqualTo(initialYear));
+            Assert.That(saved.Settlement.CurrentSeasonIndex, Is.EqualTo(1));
             Assert.That(saved.Settlement.PendingHuntReturn?.RecordId, Is.Null.Or.Empty, "最终存档不得保留有效的回营检查点。");
             Assert.That(saved.Settlement.HuntHistory, Has.Count.EqualTo(1));
             Assert.That(saved.Settlement.GetResource(blackSalt.ContentId), Is.Zero);
@@ -309,7 +326,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(confirmRetreat.IsInteractable, Is.True);
             confirmRetreat.Clicked.Invoke();
             yield return WaitForSettlementIdle(manager);
-            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear + 1));
+            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear));
+            Assert.That(manager.SettlementData.CurrentSeasonIndex, Is.EqualTo(1));
             Assert.That(manager.SettlementData.PendingHuntReturn, Is.Null);
 
             UniTask<SettlementDepartureCommandResult>.Awaiter nextDeparture = manager.DepartForHuntAsync(new[] { hunterId }, GetDestination(initialYear + 1)).GetAwaiter();
@@ -900,7 +918,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 if (RejectPendingReturn && hasPendingReturn)
                     return UniTask.FromResult(false);
                 Payload = payload;
-                if (DelayAppliedReturn && !hasDelayedAppliedReturn && snapshot?.Settlement?.CurrentYear > 1 && hasPendingReturn && snapshot.Settlement.HuntHistory.Count == 1)
+                if (DelayAppliedReturn && !hasDelayedAppliedReturn && snapshot?.Settlement != null && (snapshot.Settlement.CurrentSeasonIndex > 0 || snapshot.Settlement.CurrentYear > 1) && hasPendingReturn && snapshot.Settlement.HuntHistory.Count == 1)
                 {
                     hasDelayedAppliedReturn = true;
                     appliedReturnSaveCompletion = new UniTaskCompletionSource<bool>();

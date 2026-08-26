@@ -5,6 +5,7 @@ using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
+using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 using UnityEditor;
@@ -70,6 +71,69 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(first.Destinations, Has.Count.EqualTo(second.Destinations.Count));
             for (int index = 0; index < first.Destinations.Count; index++)
                 Assert.That(first.Destinations[index].DestinationId, Is.EqualTo(second.Destinations[index].DestinationId));
+        }
+
+        [Test]
+        public void SettlementCatalog_UsesStableTwoSeasonCalendarDefinition()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            CampaignCalendarConfig config = settings.SettlementContent.CampaignCalendar;
+
+            Assert.That(config, Is.Not.Null);
+            Assert.That(config.TryCreateDefinition(out CampaignCalendarDefinition definition, out string reason), Is.True, reason);
+            Assert.That(definition.CalendarId, Is.EqualTo("standard_two_season_v1"));
+            Assert.That(definition.Seasons.Select(season => season.Id), Is.EqualTo(new[] { "season_early", "season_late" }));
+            Assert.That(definition.Seasons.Select(season => season.Order), Is.EqualTo(new[] { 0, 1 }));
+            Assert.That(definition.DefaultSeasonIndex, Is.Zero);
+        }
+
+        [Test]
+        public void SettlementCatalog_RequiresDefaultCalendarInSupportedSetAndRejectsDuplicateIds()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSettlementContentCatalog source = settings.SettlementContent;
+            CampaignCalendarConfig defaultConfig = source.DefaultCalendar;
+            CampaignCalendarConfig otherConfig = Object.Instantiate(defaultConfig);
+            PlayableSettlementContentCatalog clone = Object.Instantiate(source);
+            try
+            {
+                SetPrivateField(otherConfig, "calendarId", "other_calendar");
+                SetPrivateField(clone, "supportedCalendars", new List<CampaignCalendarConfig> { otherConfig });
+                Assert.That(InvokeTryPrepareCalendars(clone, out _, out _, out string missingReason), Is.False);
+                Assert.That(missingReason, Does.Contain("默认战役日历未包含"));
+
+                SetPrivateField(clone, "supportedCalendars", new List<CampaignCalendarConfig> { defaultConfig, defaultConfig });
+                Assert.That(InvokeTryPrepareCalendars(clone, out _, out _, out string duplicateReason), Is.False);
+                Assert.That(duplicateReason, Does.Contain("ID 重复"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(otherConfig);
+                Object.DestroyImmediate(clone);
+            }
+        }
+
+        [Test]
+        public void SettlementCatalog_ResolvesPersistedCalendarIdFromSupportedDefinitions()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSettlementContentCatalog catalog = settings.SettlementContent;
+            Assert.That(InvokeTryPrepareCalendars(catalog, out CampaignCalendarDefinition defaultCalendar, out Dictionary<string, CampaignCalendarDefinition> calendars, out string reason), Is.True, reason);
+            Assert.That(defaultCalendar.CalendarId, Is.EqualTo("standard_two_season_v1"));
+            Assert.That(calendars.TryGetValue("standard_two_season_v1", out CampaignCalendarDefinition resolved), Is.True);
+            Assert.That(resolved.CalendarId, Is.EqualTo(defaultCalendar.CalendarId));
+            Assert.That(calendars.ContainsKey("missing_calendar"), Is.False);
+        }
+
+        private static bool InvokeTryPrepareCalendars(PlayableSettlementContentCatalog catalog, out CampaignCalendarDefinition defaultCalendar, out Dictionary<string, CampaignCalendarDefinition> calendars, out string reason)
+        {
+            MethodInfo method = typeof(PlayableSettlementContentCatalog).GetMethod("TryPrepareCalendars", BindingFlags.Instance | BindingFlags.NonPublic);
+            object[] arguments = { null, null, null };
+            bool result = (bool)method.Invoke(catalog, arguments);
+            defaultCalendar = (CampaignCalendarDefinition)arguments[0];
+            calendars = (Dictionary<string, CampaignCalendarDefinition>)arguments[1];
+            reason = (string)arguments[2];
+            return result;
         }
 
         [Test]

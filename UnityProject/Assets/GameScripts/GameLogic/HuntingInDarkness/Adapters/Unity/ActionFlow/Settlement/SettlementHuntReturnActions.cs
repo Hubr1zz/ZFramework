@@ -12,18 +12,26 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 {
     public readonly struct SettlementHuntReturnCommandResult
     {
-        public SettlementHuntReturnCommandResult(bool succeeded, bool applied, string reason, IReadOnlyList<EventData> events)
+        public SettlementHuntReturnCommandResult(bool succeeded, bool applied, string reason, IReadOnlyList<EventData> events, bool seasonAdvanced = false, bool yearAdvanced = false, int currentYear = 0, int currentSeasonIndex = 0)
         {
             Succeeded = succeeded;
             Applied = applied;
             Reason = reason ?? string.Empty;
             Events = events ?? Array.Empty<EventData>();
+            SeasonAdvanced = seasonAdvanced;
+            YearAdvanced = yearAdvanced;
+            CurrentYear = currentYear;
+            CurrentSeasonIndex = currentSeasonIndex;
         }
 
         public bool Succeeded { get; }
         public bool Applied { get; }
         public string Reason { get; }
         public IReadOnlyList<EventData> Events { get; }
+        public bool SeasonAdvanced { get; }
+        public bool YearAdvanced { get; }
+        public int CurrentYear { get; }
+        public int CurrentSeasonIndex { get; }
 
         public static SettlementHuntReturnCommandResult Failed(string reason) => new(false, false, reason, Array.Empty<EventData>());
     }
@@ -67,6 +75,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 return Fail(reason);
             if (!plan.IsAlreadyApplied && !plan.IsLegacyCompatibility && (settlement == null || hunterManagement == null))
                 return Fail("当前远征归来缺少 Settlement 提交环境。");
+            if (!plan.IsAlreadyApplied && !timeline.TryCreateCalendarAdvancePlan(huntRecord, out _, out reason))
+                return Fail(reason);
             if (settlement != null && persistentEffectProjection != null && !persistentEffectProjection.TryClear(settlement, out reason))
                 return Fail(reason);
             if (plan.IsAlreadyApplied)
@@ -81,19 +91,34 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 PlayableHunterAdvancementAdapter.ApplyAfterHunt(ResolveParticipants(plan), hunterManagement, eventOutbox);
             }
 
-            IReadOnlyList<EventData> events = timeline.AdvanceYear(huntRecord);
-            Result = new SettlementHuntReturnCommandResult(true, true, string.Empty, events);
+            IReadOnlyList<EventData> events = timeline.AdvanceCalendar(huntRecord, out CampaignCalendarAdvancePlan committedPlan, out reason);
+            if (!string.IsNullOrEmpty(reason)) return Fail(reason);
+            Result = new SettlementHuntReturnCommandResult(true, true, string.Empty, events, committedPlan.SeasonAdvanced, committedPlan.YearAdvanced, timeline.CurrentYear, timeline.CurrentSeasonIndex);
+            eventOutbox.StageAfterCommit(new SeasonAdvancedEvent
+            {
+                CalendarId = timeline.Calendar.CalendarId,
+                PreviousYear = committedPlan.CurrentYear,
+                PreviousSeasonIndex = committedPlan.CurrentSeasonIndex,
+                NewYear = committedPlan.NextYear,
+                NewSeasonIndex = committedPlan.NextSeasonIndex
+            });
             eventOutbox.StageAfterCommit(new HuntCompletedEvent
             {
                 CompletedYear = huntRecord.Year,
+                CompletedSeasonIndex = committedPlan.CurrentSeasonIndex,
                 TotalHunts = timeline.TotalHunts,
                 HuntersDeployed = huntRecord.HuntersDeployed,
                 HuntersLost = huntRecord.HuntersLost,
                 CollectedResourceCount = plan.CollectedResourceCount,
                 BossDefeated = huntRecord.BossDefeated,
-                AdvancedToYear = timeline.CurrentYear
+                AdvancedToYear = timeline.CurrentYear,
+                AdvancedToSeasonIndex = timeline.CurrentSeasonIndex,
+                CalendarId = timeline.Calendar.CalendarId
             });
-            eventOutbox.StageAfterCommit(new YearAdvancedEvent { NewYear = timeline.CurrentYear });
+            if (committedPlan.YearAdvanced)
+            {
+                eventOutbox.StageAfterCommit(new YearAdvancedEvent { NewYear = timeline.CurrentYear, NewSeasonIndex = timeline.CurrentSeasonIndex, CalendarId = timeline.Calendar.CalendarId });
+            }
             return UniTask.FromResult(ActionOutcome.Success());
         }
 

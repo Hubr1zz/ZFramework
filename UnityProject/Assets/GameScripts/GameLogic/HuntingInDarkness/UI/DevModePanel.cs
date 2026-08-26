@@ -123,7 +123,7 @@ namespace UI
 
             // ── 年份 ──
             AddSection(parent, "── 时间线 ──");
-            AddBtn(parent, "+ 推进1年",  () => _gm?.DevAdvanceYear());
+            AddSection(parent, "（时间仅由成功回营推进）");
 
             // ── 存档 ──
             AddSection(parent, "── 存档 ──");

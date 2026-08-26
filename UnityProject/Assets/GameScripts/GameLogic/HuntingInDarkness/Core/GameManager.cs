@@ -2069,20 +2069,10 @@ namespace Core
             _settlementTable3D?.RefreshCards();
         }
 
-        /// <summary>推进1年（开发者）</summary>
+        /// <summary>开发工具不再绕过回营流程推进日历。</summary>
         public void DevAdvanceYear()
         {
-            if (_settlementManager == null)
-            {
-                Debug.LogWarning("[GameManager] DevAdvanceYear: SettlementManager 尚未初始化");
-                return;
-            }
-            _settlementManager.Data.HuntsCompletedThisYear = 0;
-            _settlementManager.Data.CurrentYear++;
-            EventBus.Publish(new YearAdvancedEvent { NewYear = _settlementManager.Data.CurrentYear });
-            Debug.Log($"[GameManager][Dev] 年份推进至 {_settlementManager.Data.CurrentYear}");
-            _settlementUIManager?.Refresh();
-            _settlementTable3D?.Refresh();
+            Debug.LogWarning("[GameManager] 日历只能由成功回营推进；开发者直接推进入口已禁用。");
         }
 
         private void OnHuntCheckpointCommitted() => OnHuntCheckpointCommitted(huntRuntime);

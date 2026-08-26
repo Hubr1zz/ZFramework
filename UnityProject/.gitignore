@@ -114,6 +114,7 @@ __pycache__/
 /.agent-memory/zworkflow/team/MAINTAINERS.md
 /.agent-memory/zworkflow/team/members/
 /.agent-memory/zworkflow/local/
+/.agent-memory/unity-cli/
 /zWorkFlow/zWorkFlow Pack/
 !/zWorkFlow/bin/
 !/zWorkFlow/bin/zworkflow.mjs

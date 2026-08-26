@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.GameCore.Settlement;
@@ -60,12 +61,15 @@ namespace HuntingInDarkness.Settlement
         private readonly int deathInspirationMinimumAge;
         private bool retired;
 
-        public PlayableSettlementContentPlan(PlayableSettlementContentCatalog sourceCatalog, PlayableSettlementRegistryBundle registryBundle, PlayableTraitCatalog traitCatalog, PlayableEventTableGeneration eventGeneration, List<CraftRecipe> recipes, List<EventData> randomEvents, List<EventData> mainStoryEvents, List<HunterData> startingHunters, List<HunterData> recruitmentTemplates, IReadOnlyList<StartingResourceDefinition> resources, List<UnityEngine.Object> ownedObjects, int deathInspirationGrowth, int deathInspirationMinimumAge)
+        public PlayableSettlementContentPlan(PlayableSettlementContentCatalog sourceCatalog, PlayableSettlementRegistryBundle registryBundle, PlayableTraitCatalog traitCatalog, PlayableEventTableGeneration eventGeneration, CampaignCalendarDefinition calendar, IReadOnlyDictionary<string, CampaignCalendarDefinition> calendars, List<CraftRecipe> recipes, List<EventData> randomEvents, List<EventData> mainStoryEvents, List<HunterData> startingHunters, List<HunterData> recruitmentTemplates, IReadOnlyList<StartingResourceDefinition> resources, List<UnityEngine.Object> ownedObjects, int deathInspirationGrowth, int deathInspirationMinimumAge)
         {
             SourceCatalog = sourceCatalog;
             RegistryBundle = registryBundle ?? throw new ArgumentNullException(nameof(registryBundle));
             TraitCatalog = traitCatalog ?? throw new ArgumentNullException(nameof(traitCatalog));
             EventGeneration = eventGeneration;
+            Calendar = calendar ?? throw new ArgumentNullException(nameof(calendar));
+            if (calendars == null || !calendars.ContainsKey(Calendar.CalendarId)) throw new ArgumentException("战役日历支持列表缺少默认日历。", nameof(calendars));
+            Calendars = new ReadOnlyDictionary<string, CampaignCalendarDefinition>(new Dictionary<string, CampaignCalendarDefinition>(calendars, StringComparer.Ordinal));
             Items = registryBundle.Items;
             Inventions = registryBundle.Inventions;
             Recipes = recipes.AsReadOnly();
@@ -87,6 +91,8 @@ namespace HuntingInDarkness.Settlement
         internal PlayableSettlementRegistryBundle RegistryBundle { get; }
         internal PlayableTraitCatalog TraitCatalog { get; }
         internal PlayableEventTableGeneration EventGeneration { get; }
+        public CampaignCalendarDefinition Calendar { get; }
+        public IReadOnlyDictionary<string, CampaignCalendarDefinition> Calendars { get; }
         public IReadOnlyList<ItemData> Items { get; }
         public IReadOnlyList<InventionData> Inventions { get; }
         public IReadOnlyList<CraftRecipe> Recipes { get; }
@@ -115,6 +121,9 @@ namespace HuntingInDarkness.Settlement
                 return false;
             }
 
+            if (!TryResolveCalendar(manager.Data, out CampaignCalendarDefinition selectedCalendar, out reason)) return false;
+            if (!manager.Timeline.TryBindCalendar(selectedCalendar, out reason)) return false;
+            if (!MigrateCampaignPacing(manager, selectedCalendar, out reason)) return false;
             manager.HunterMgmt.ConfigureDeathInspiration(deathInspirationGrowth, deathInspirationMinimumAge);
             PlayableSettlementItemRegistry.MigratePersistentState(manager.Data);
             PlayableTraitRegistry.MigratePersistentState(manager.Data);
@@ -123,7 +132,6 @@ namespace HuntingInDarkness.Settlement
             PlayableSettlementEventRegistry.MigratePersistentState(manager.Data);
             manager.Timeline.RandomEventPool = new List<EventData>(RandomEvents);
             manager.Timeline.MainStoryEvents = new List<EventData>(MainStoryEvents);
-            MigrateCampaignPacing(manager);
             manager.Inventions.AllInventions = new List<InventionData>(Inventions);
             if (!PlayableSettlementModifierRuntime.Synchronize(manager.Data, manager.Inventions.AllInventions, message => Debug.LogError($"[SettlementManager] {message}")))
             {
@@ -149,6 +157,31 @@ namespace HuntingInDarkness.Settlement
             SynchronizeExistingRoster(manager);
             reason = manager.Data.Hunters.Count > 0 ? string.Empty : "营地内容没有产生可用的初始猎人。";
             return manager.Data.Hunters.Count > 0;
+        }
+
+        public bool TryResolveCalendar(string calendarId, out CampaignCalendarDefinition definition)
+        {
+            definition = null;
+            return !string.IsNullOrWhiteSpace(calendarId) && Calendars.TryGetValue(calendarId, out definition);
+        }
+
+        private bool TryResolveCalendar(SettlementInstance data, out CampaignCalendarDefinition definition, out string reason)
+        {
+            definition = null;
+            reason = string.Empty;
+            if (data == null)
+            {
+                reason = "营地存档为空。";
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(data.CampaignCalendarId))
+            {
+                definition = Calendar;
+                return true;
+            }
+            if (TryResolveCalendar(data.CampaignCalendarId, out definition)) return true;
+            reason = $"营地存档引用未知或不支持的战役日历：{data.CampaignCalendarId}";
+            return false;
         }
 
         private static void MigrateMaterialDiscovery(SettlementInstance settlement)
@@ -462,31 +495,58 @@ namespace HuntingInDarkness.Settlement
             PlayableGrowthMilestoneRuntime.Synchronize(manager.Data);
         }
 
-        private static void MigrateCampaignPacing(SettlementManager manager)
+        private static bool MigrateCampaignPacing(SettlementManager manager, CampaignCalendarDefinition calendar, out string reason)
         {
             SettlementInstance data = manager.Data;
-            if (data.CampaignPacingSchemaVersion >= SettlementInstance.CurrentCampaignPacingSchemaVersion)
+            reason = string.Empty;
+            if (!CampaignCalendarRules.TryValidateDefinition(calendar, out reason)) return false;
+            if (data.CampaignPacingSchemaVersion > SettlementInstance.CurrentCampaignPacingSchemaVersion)
             {
+                reason = "营地 pacing schema 高于当前内容版本。";
+                return false;
+            }
+            if (data.CurrentYear < 1)
+            {
+                reason = "营地当前年份无效。";
+                return false;
+            }
+            if (data.CampaignPacingSchemaVersion == SettlementInstance.CurrentCampaignPacingSchemaVersion)
+            {
+                if (!string.Equals(data.CampaignCalendarId, calendar.CalendarId, StringComparison.Ordinal))
+                {
+                    reason = "营地存档缺少或引用未知的战役日历。";
+                    return false;
+                }
+                if (data.CurrentSeasonIndex < 0 || data.CurrentSeasonIndex >= calendar.Seasons.Count)
+                {
+                    reason = "营地当前季节超出战役日历定义。";
+                    return false;
+                }
                 data.NormalizeLegacyHuntProgress();
-                return;
+                return true;
             }
-            int legacyQuota = data.HuntsPerYear;
-            int completed = data.HuntsCompletedThisYear;
-            if (legacyQuota < 1 || legacyQuota > SettlementInstance.MaxLegacyHuntsPerYear || completed < 0 || completed >= legacyQuota)
+
+            int completed = 0;
+            if (data.CampaignPacingSchemaVersion == 0)
             {
-                data.CampaignPacingMigrationDiagnostic = $"旧年度狩猎进度无效：{completed}/{legacyQuota}，已安全归一化且未猜测年份。";
-                data.NormalizeLegacyHuntProgress();
-                data.CampaignPacingSchemaVersion = SettlementInstance.CurrentCampaignPacingSchemaVersion;
-                return;
+                int legacyQuota = data.HuntsPerYear;
+                if (legacyQuota != calendar.Seasons.Count || legacyQuota < 1 || data.HuntsCompletedThisYear < 0 || data.HuntsCompletedThisYear >= legacyQuota)
+                {
+                    data.CampaignPacingMigrationDiagnostic = $"旧年度狩猎进度与日历不匹配：{data.HuntsCompletedThisYear}/{legacyQuota}，已保守归一化到第一季。";
+                }
+                else
+                {
+                    completed = data.HuntsCompletedThisYear;
+                    data.CampaignPacingMigrationDiagnostic = string.Empty;
+                }
             }
-            for (int index = 0; index < completed; index++)
-            {
-                data.CurrentYear = SettlementTimelineRules.AdvanceYear(data.CurrentYear);
-                manager.Timeline.GetEventsForYear(data.CurrentYear);
-            }
-            data.CampaignPacingMigrationDiagnostic = string.Empty;
+            data.CampaignCalendarId = calendar.CalendarId;
+            data.CurrentSeasonIndex = completed;
+            if (data.CampaignPacingSchemaVersion == 1)
+                data.CampaignPacingMigrationDiagnostic = string.Empty;
             data.NormalizeLegacyHuntProgress();
             data.CampaignPacingSchemaVersion = SettlementInstance.CurrentCampaignPacingSchemaVersion;
+            return true;
         }
 
         private static void DestroyOwnedObject(UnityEngine.Object ownedObject)

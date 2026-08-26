@@ -195,7 +195,7 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class SettlementInstance
     {
-        public const int CurrentCampaignPacingSchemaVersion = 1;
+        public const int CurrentCampaignPacingSchemaVersion = 2;
         public const int CurrentMaterialDiscoverySchemaVersion = 1;
         public const int MaxLegacyHuntsPerYear = 8;
         public const int MaxPendingEventChainOccurrences = 64;
@@ -210,6 +210,8 @@ namespace HuntingInDarkness.Data
 
         [Header("时间线")]
         public int CurrentYear = 1;
+        public string CampaignCalendarId;
+        public int CurrentSeasonIndex;
         public int HuntsCompletedThisYear;
         public int HuntsPerYear = 2;
         public int CampaignPacingSchemaVersion;

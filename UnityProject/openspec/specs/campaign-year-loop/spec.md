@@ -1,14 +1,14 @@
 ---
 schemaVersion: 2
 category: architecture
-title: "战役年度出猎闭环"
+title: "配置化战役季节出猎闭环"
 ---
 
 # Campaign Year Loop Specification
 
 ## Purpose
 
-保证玩家只能从营地提交一次明确小队后进入狩猎，并在撤退回营时可靠提交记录、推进一年、清理检查点，再从新年份发起下一场远征。
+保证玩家只能从营地提交一次明确小队后进入狩猎，并在撤退回营时可靠提交记录、推进一个配置季节、清理检查点，再从当前或下一年份发起下一场远征。
 
 ## Requirements
 
@@ -76,19 +76,74 @@ HuntManager 与 Hunt ActionSession SHALL 构成正式入场的必需运行环境
 - **THEN** Campaign SHALL 保持可用的 Hunt ActionSession
 - **AND** 失败的辅助表现 SHALL 被清理或降级
 
-### Requirement: Accepted return advances exactly one year
+### Requirement: Campaign calendar is frozen table-driven content
 
-Hunt Runner SHALL 生成稳定 HuntRecord；Settlement Runner 接受该记录后 SHALL 在单一 root 中提交历史、成长和 Timeline.AdvanceYear。一次被接受的回营 SHALL 只推进一年，重复记录 SHALL NOT 再次推进。
+战役日历 SHALL 由稳定 CalendarId 和有序 SeasonDefinition 列表定义；每个季节首期只包含稳定 SeasonId 与显示名，不得隐式携带未声明效果。新战役 SHALL 冻结默认 CalendarId，存档 SHALL 保存 CalendarId、CurrentYear 与 CurrentSeasonIndex。已发布日历的季节数量或顺序发生变化时 SHALL 使用新的 CalendarId，并保留旧定义供旧档解析；GameManager 和流程代码 SHALL NOT 写死季节数量。
+
+#### Scenario: A future calendar contains three seasons
+
+- **WHEN** 内容目录把另一个稳定 CalendarId 配置为三个有序季节
+- **THEN** 同一回营流程 SHALL 在第三次成功提交后才进入下一年
+- **AND** 不得修改流程代码或增加季节分支
+
+#### Scenario: A saved campaign uses a non-default supported calendar
+
+- **WHEN** 读档的 CalendarId 仍存在于 supported calendar 目录，但已不是当前 default
+- **THEN** 战役 SHALL 恢复原 CalendarId 和季节索引
+- **AND** SHALL NOT 静默切换到新默认日历
+
+### Requirement: Accepted return advances exactly one configured season
+
+Hunt Runner SHALL 生成稳定 HuntRecord；Settlement Runner 接受该记录后 SHALL 在单一 root 中提交历史、成长和日历游标。一次被接受的回营 SHALL 只推进有序列表中的一个季节；越过最后季节时 SHALL 把季节重置为首项并只推进一年。重复记录 SHALL NOT 再次推进。
 
 #### Scenario: The player retreats from the first hunt
 
 - **WHEN** 年份 1 的撤退记录首次被 Settlement Runner 接受
-- **THEN** CurrentYear SHALL 变为 2
+- **THEN** 默认两季日历的 CurrentYear SHALL 保持 1
+- **AND** CurrentSeasonIndex SHALL 从 0 变为 1
 - **AND** HuntHistory SHALL 只增加一条记录
+
+#### Scenario: The player completes the second season
+
+- **WHEN** 年份 1、季节索引 1 的撤退记录首次被 Settlement Runner 接受
+- **THEN** CurrentYear SHALL 变为 2
+- **AND** CurrentSeasonIndex SHALL 重置为 0
+
+### Requirement: Annual events occur only on a real year boundary
+
+每次首次成功回营 SHALL 发布一份季节推进玩法事实和 HuntCompleted 事实。只有日历计划实际进入新一年时，Settlement Runner 才 SHALL 创建该新年份的年度 Timeline occurrence 并发布 YearAdvanced 事实；同年季节推进、出发失败、取消和读档恢复 SHALL NOT 创建年度 occurrence。
+
+#### Scenario: The first season completes in the default calendar
+
+- **WHEN** 年份 1、季节索引 0 的回营首次成功提交
+- **THEN** HuntCompleted 与 SeasonAdvanced SHALL 各发布一次
+- **AND** YearAdvanced 与年份 2 的年度 occurrence SHALL NOT 产生
+
+#### Scenario: A return record is retried after persistence recovery
+
+- **WHEN** 同一个稳定 RecordId 已经推进过季节但检查点仍待清理
+- **THEN** 重试 SHALL NOT 再推进季节或年份
+- **AND** SHALL NOT 重复创建年度 occurrence
+
+### Requirement: Legacy pacing fields migrate conservatively
+
+`HuntsCompletedThisYear` 与 `HuntsPerYear` SHALL 只作为旧存档迁移字段。schema 1 存档 SHALL 保留年份并从冻结日历的首季继续；schema 0 只有在旧配额等于所选日历季节数且 completed 合法时才 MAY 映射到季节索引。配额不匹配 SHALL 保守落到首季并记录诊断，不得猜测或推进年份。未知 CalendarId、未来 schema、非法年份或越界季节 SHALL fail closed，且读档迁移 SHALL NOT 创建 Timeline occurrence。
+
+#### Scenario: A schema-one save is loaded
+
+- **WHEN** 旧存档已经采用一次回营跨年的 schema 1
+- **THEN** CurrentYear SHALL 保持不变并绑定默认 CalendarId
+- **AND** CurrentSeasonIndex SHALL 迁移为 0
+
+#### Scenario: A future calendar schema is loaded
+
+- **WHEN** 存档的 pacing schema 高于当前支持版本
+- **THEN** 候选营地世代 SHALL 被拒绝
+- **AND** 原数据 SHALL NOT 被降级或改写
 
 ### Requirement: Return checkpoint clears by stable record identity
 
-回营结果可靠保存后，组合根 SHALL 仅在 PendingHuntReturn 与已提交 HuntRecord 的稳定 RecordId 一致时清理检查点和遗留出发名册。清理后的状态 SHALL 再次允许玩家在新年份提交出发名册；身份不一致 SHALL fail closed。
+回营结果可靠保存后，组合根 SHALL 仅在 PendingHuntReturn 与已提交 HuntRecord 的稳定 RecordId 一致时清理检查点和遗留出发名册。清理后的状态 SHALL 再次允许玩家在当前或下一年份提交出发名册；身份不一致 SHALL fail closed。
 
 #### Scenario: A different record attempts to clear the checkpoint
 
@@ -115,16 +170,17 @@ GameManager SHALL 通过战役持久化端口执行存档存在性查询、保�
 
 ### Requirement: Production runner composition proves the loop
 
-数据验证 SHALL 同时覆盖生产使用的独立 runners 与真实 GameManager 公共命令。PlayMode smoke SHALL 在空测试场景动态装配生产配置和内存持久化端口，通过 `DepartForHuntAsync`、`RequestRetreatAsync` 与公开读模型覆盖出发、消费名册、撤退、年份推进、检查点清理和下一次出发。该 smoke SHALL NOT 依赖 Showdown 流程、场景资产或截图。
+数据验证 SHALL 同时覆盖生产使用的独立 runners 与真实 GameManager 公共命令。PlayMode smoke SHALL 在空测试场景动态装配生产配置和内存持久化端口，通过 `DepartForHuntAsync`、`RequestRetreatAsync` 与公开读模型覆盖出发、消费名册、两次默认季节撤退、检查点清理和下一次出发。该 smoke SHALL NOT 依赖 Showdown 流程、场景资产或截图。
 
 #### Scenario: A complete non-Showdown loop runs
 
-- **WHEN** 玩家从年份 1 出发并立即撤退回营
-- **THEN** 年份 2 SHALL 可以再次提交同一可用猎人的新出发名册
+- **WHEN** 玩家从年份 1、季节索引 0 出发并立即撤退回营
+- **THEN** 年份 1、季节索引 1 SHALL 可以再次提交同一可用猎人的新出发名册
 
 #### Scenario: Public GameManager commands run the loop
 
-- **WHEN** PlayMode smoke 通过正式配置激活 GameManager，并依次调用公开出发与撤退命令
-- **THEN** 回营后 CurrentYear SHALL 精确增加 1
+- **WHEN** PlayMode smoke 通过正式配置激活 GameManager，并完成两次公开出发与撤退命令
+- **THEN** 第一次回营后 SHALL 保持年份 1 并进入季节索引 1
+- **AND** 第二次回营后 SHALL 进入年份 2、季节索引 0
 - **AND** PendingHuntReturn 与 DepartingHunterIds SHALL 清空
-- **AND** 新年份 SHALL 可再次通过公开出发命令进入 Hunt
+- **AND** 每次可靠清理检查点后 SHALL 可再次通过公开出发命令进入 Hunt

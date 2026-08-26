@@ -12,6 +12,7 @@ using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.ActionFlow.Settlement;
+using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.GameCore.Settlement;
@@ -19,11 +20,25 @@ using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEditor;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableSettlementActionSessionTests
     {
+        private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
+
+        [SetUp]
+        public void SetUp()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            Assert.That(settings, Is.Not.Null);
+            PlayableSymptomRuntime.Configure(settings.Symptoms);
+        }
+
+        [TearDown]
+        public void TearDown() => PlayableSymptomRuntime.Configure(null);
+
         [Test]
         public async Task ApplyHuntReturnAsync_ClearsPersistentLeaseBeforeCommitAndKeepsItOnPlanFailure()
         {
@@ -32,7 +47,7 @@ namespace HuntingInDarkness.Adapter.Tests
             using var registry = new ActionEnvironmentInstallerRegistry();
             var projection = new HuntNoiseLeaseProjection(registry);
             Assert.That(projection.TrySynchronize(settlement, out string syncReason), Is.True, syncReason);
-            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), installerRegistry: registry, persistentEffectProjection: projection);
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), timeline: CreateTimeline(settlement), installerRegistry: registry, persistentEffectProjection: projection);
 
             SettlementHuntReturnCommandResult result = await session.ApplyHuntReturnAsync(new HuntRecord { RecordId = "projection-return", Year = 5 });
 
@@ -50,10 +65,64 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task ApplyHuntReturnAsync_AdvancesSeasonAndPublishesYearOnlyAtBoundary()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 5 };
+            var timeline = new TimelineSystem(settlement, new FirstRandom());
+            var calendar = new CampaignCalendarDefinition("two_season_test", new[]
+            {
+                new SeasonDefinition("early", "早季", 0),
+                new SeasonDefinition("late", "晚季", 1)
+            });
+            Assert.That(timeline.TryBindCalendar(calendar, out string bindReason), Is.True, bindReason);
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), timeline: timeline);
+            int seasonFacts = 0;
+            int yearFacts = 0;
+            int huntFacts = 0;
+            Action<SeasonAdvancedEvent> seasonHandler = _ => seasonFacts++;
+            Action<YearAdvancedEvent> yearHandler = _ => yearFacts++;
+            Action<HuntCompletedEvent> huntHandler = _ => huntFacts++;
+            EventBus.Subscribe(seasonHandler);
+            EventBus.Subscribe(yearHandler);
+            EventBus.Subscribe(huntHandler);
+            try
+            {
+                SettlementHuntReturnCommandResult first = await session.ApplyHuntReturnAsync(new HuntRecord { RecordId = "season-first", Year = 5 });
+                Assert.That(first.Succeeded, Is.True, first.Reason);
+                Assert.That(first.SeasonAdvanced, Is.True);
+                Assert.That(first.YearAdvanced, Is.False);
+                Assert.That(first.CurrentYear, Is.EqualTo(5));
+                Assert.That(first.CurrentSeasonIndex, Is.EqualTo(1));
+                Assert.That(seasonFacts, Is.EqualTo(1));
+                Assert.That(yearFacts, Is.Zero);
+                Assert.That(huntFacts, Is.EqualTo(1));
+
+                SettlementHuntReturnCommandResult second = await session.ApplyHuntReturnAsync(new HuntRecord { RecordId = "season-second", Year = 5 });
+                Assert.That(second.Succeeded, Is.True, second.Reason);
+                Assert.That(second.YearAdvanced, Is.True);
+                Assert.That(second.CurrentYear, Is.EqualTo(6));
+                Assert.That(second.CurrentSeasonIndex, Is.Zero);
+                Assert.That(seasonFacts, Is.EqualTo(2));
+                Assert.That(yearFacts, Is.EqualTo(1));
+                Assert.That(huntFacts, Is.EqualTo(2));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(seasonHandler);
+                EventBus.Unsubscribe(yearHandler);
+                EventBus.Unsubscribe(huntHandler);
+            }
+        }
+
+        [Test]
         public async Task ApplyHuntReturnAsync_CommitsHistoryAndYearInsideSettlementRunner()
         {
             var settlement = new SettlementInstance { CurrentYear = 5, HuntsPerYear = 2 };
             var timeline = new TimelineSystem(settlement, new FirstRandom());
+            Assert.That(timeline.TryBindCalendar(new CampaignCalendarDefinition("single_season_test", new[]
+            {
+                new SeasonDefinition("season_default", "默认季", 0)
+            }), out string bindReason), Is.True, bindReason);
             using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), timeline: timeline);
             var record = new HuntRecord { RecordId = "runner-hunt", Year = 5 };
             bool factObservedCommittedState = false;
@@ -134,7 +203,7 @@ namespace HuntingInDarkness.Adapter.Tests
                     ParticipantHunterIds = new List<int> { hunter.InstanceId },
                     CollectedResources = new List<string> { "resource.stone" }
                 };
-                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent());
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), timeline: CreateTimeline(settlement));
 
                 SettlementHuntReturnCommandResult result = await session.ApplyHuntReturnAsync(record);
                 SettlementHuntReturnCommandResult duplicate = await session.ApplyHuntReturnAsync(record);
@@ -173,7 +242,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 HuntersLost = 1,
                 ParticipantHunterIds = new List<int> { retiringHunter.InstanceId, deadHunter.InstanceId }
             };
-            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent());
+            using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), timeline: CreateTimeline(settlement));
 
             SettlementHuntReturnCommandResult result = await session.ApplyHuntReturnAsync(record);
             SettlementHuntReturnCommandResult duplicate = await session.ApplyHuntReturnAsync(record);
@@ -209,7 +278,7 @@ namespace HuntingInDarkness.Adapter.Tests
                     CollectedResources = new List<string> { "resource.herb" }
                 };
                 settlement.PendingHuntReturn = record;
-                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent());
+                using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), timeline: CreateTimeline(settlement));
 
                 SettlementHuntReturnCommandResult result = await session.ApplyHuntReturnAsync(record);
 
@@ -1036,6 +1105,16 @@ namespace HuntingInDarkness.Adapter.Tests
             settlement.UnlockInvention("weapon_training");
             settlement.AddResource("碎石", resourceAmount);
             return settlement;
+        }
+
+        private static TimelineSystem CreateTimeline(SettlementInstance settlement)
+        {
+            var timeline = new TimelineSystem(settlement, new FirstRandom());
+            Assert.That(timeline.TryBindCalendar(new CampaignCalendarDefinition("single_season_test", new[]
+            {
+                new SeasonDefinition("season_default", "默认季", 0)
+            }), out string reason), Is.True, reason);
+            return timeline;
         }
 
         private static EventData CreateNarrativeEvent(string id, string resourceId, int amount)

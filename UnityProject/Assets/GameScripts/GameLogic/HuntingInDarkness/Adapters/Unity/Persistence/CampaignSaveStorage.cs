@@ -281,6 +281,9 @@ namespace Core
         {
             if (data?.Settlement?.PendingHuntReturn != null && string.IsNullOrWhiteSpace(data.Settlement.PendingHuntReturn.RecordId))
                 data.Settlement.PendingHuntReturn = null;
+            PendingHuntNoiseLease lease = data?.Settlement?.PendingHuntNoiseLease;
+            if (lease != null && lease.SchemaVersion == PendingHuntNoiseLease.CurrentSchemaVersion && string.IsNullOrWhiteSpace(lease.LeaseId) && string.IsNullOrWhiteSpace(lease.SourceEventId) && lease.NoiseModifier == 0)
+                data.Settlement.PendingHuntNoiseLease = null;
             if (data?.Settlement?.Hunters != null)
                 foreach (HunterInstance hunter in data.Settlement.Hunters)
                     if (hunter != null)

@@ -17,17 +17,35 @@ namespace HuntingInDarkness.Settlement
         private readonly IRandomSource      _rng;
         private readonly HashSet<string> presentedMainStoryIds = new();
         private readonly HashSet<AnnalEntry> presentedScheduledEntries = new();
+        private CampaignCalendarDefinition calendar;
 
         // 所有可用的事件模板（运行时加载，由 SettlementManager 注入）
         public List<EventData> RandomEventPool  { get; set; } = new();
         public List<EventData> MainStoryEvents  { get; set; } = new();
         public int CurrentYear => _settlement.CurrentYear;
+        public int CurrentSeasonIndex => _settlement.CurrentSeasonIndex;
+        public CampaignCalendarDefinition Calendar => calendar;
+        public SeasonDefinition CurrentSeason
+        {
+            get
+            {
+                if (calendar == null || !calendar.TryGetSeason(CurrentSeasonIndex, out SeasonDefinition season)) return null;
+                return season;
+            }
+        }
         public int TotalHunts => _settlement.HuntHistory?.Count ?? 0;
 
         public TimelineSystem(SettlementInstance settlement, IRandomSource rng)
         {
             _settlement = settlement;
             _rng        = rng;
+        }
+
+        public bool TryBindCalendar(CampaignCalendarDefinition definition, out string reason)
+        {
+            if (!CampaignCalendarRules.TryValidateDefinition(definition, out reason)) return false;
+            calendar = definition;
+            return true;
         }
 
         // ─── 年份推进 ────────────────────────────────────────────
@@ -37,15 +55,52 @@ namespace HuntingInDarkness.Settlement
         /// </summary>
         public List<EventData> AdvanceYear(HuntRecord huntRecord)
         {
-            if (huntRecord == null || string.IsNullOrWhiteSpace(huntRecord.RecordId) || HasAppliedHuntRecord(huntRecord) || huntRecord.Year != _settlement.CurrentYear) return new List<EventData>();
+            return AdvanceCalendar(huntRecord, out _, out _);
+        }
 
-            int nextYear = SettlementTimelineRules.AdvanceYear(_settlement.CurrentYear);
-            var events = GetEventsForYear(nextYear);
-            if (!_settlement.TryAppendHuntRecord(huntRecord)) return new List<EventData>();
+        public List<EventData> AdvanceCalendar(HuntRecord huntRecord, out CampaignCalendarAdvancePlan advancePlan, out string reason)
+        {
+            advancePlan = default;
+            if (!TryCreateCalendarAdvancePlan(huntRecord, out advancePlan, out reason)) return new List<EventData>();
+            if (!_settlement.TryAppendHuntRecord(huntRecord))
+            {
+                reason = "远征归来记录无法追加到历史。";
+                return new List<EventData>();
+            }
+
+            _settlement.CurrentYear = advancePlan.NextYear;
+            _settlement.CurrentSeasonIndex = advancePlan.NextSeasonIndex;
             _settlement.HuntsCompletedThisYear = 0;
-            _settlement.CurrentYear = nextYear;
-            Debug.Log($"[Timeline] 年份推进 → {nextYear}");
-            return events;
+            if (!advancePlan.YearAdvanced) return new List<EventData>();
+            Debug.Log($"[Timeline] 年份推进 → {advancePlan.NextYear}");
+            return GetEventsForYear(advancePlan.NextYear);
+        }
+
+        public bool TryCreateCalendarAdvancePlan(HuntRecord huntRecord, out CampaignCalendarAdvancePlan advancePlan, out string reason)
+        {
+            advancePlan = default;
+            reason = string.Empty;
+            if (huntRecord == null || string.IsNullOrWhiteSpace(huntRecord.RecordId))
+            {
+                reason = "远征归来记录缺少稳定 ID。";
+                return false;
+            }
+            if (HasAppliedHuntRecord(huntRecord))
+            {
+                reason = "远征归来记录已经提交。";
+                return false;
+            }
+            if (huntRecord.Year != _settlement.CurrentYear)
+            {
+                reason = "远征归来年份与营地当前年份不一致。";
+                return false;
+            }
+            if (calendar == null)
+            {
+                reason = "战役日历尚未绑定，拒绝推进营地时间。";
+                return false;
+            }
+            return CampaignCalendarRules.TryCreateAdvancePlan(calendar, _settlement.CurrentYear, _settlement.CurrentSeasonIndex, out advancePlan, out reason);
         }
 
         public bool HasAppliedHuntRecord(HuntRecord huntRecord) => huntRecord != null && _settlement.HasHuntRecord(huntRecord.RecordId);

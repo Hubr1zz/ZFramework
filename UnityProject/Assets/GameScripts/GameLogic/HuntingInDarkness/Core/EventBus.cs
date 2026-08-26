@@ -150,6 +150,18 @@ namespace Core
     public struct YearAdvancedEvent
     {
         public int NewYear;
+        public int NewSeasonIndex;
+        public string CalendarId;
+    }
+
+    /// <summary>一次成功回营推进了一个季节；只有跨年时才同时发布年度事实。</summary>
+    public struct SeasonAdvancedEvent
+    {
+        public string CalendarId;
+        public int PreviousYear;
+        public int PreviousSeasonIndex;
+        public int NewYear;
+        public int NewSeasonIndex;
     }
 
     /// <summary>事件（叙事/抉择/战斗）触发</summary>
@@ -179,12 +191,15 @@ namespace Core
     public struct HuntCompletedEvent
     {
         public int CompletedYear;
+        public int CompletedSeasonIndex;
         public int TotalHunts;
         public int HuntersDeployed;
         public int HuntersLost;
         public int CollectedResourceCount;
         public bool BossDefeated;
         public int AdvancedToYear;
+        public int AdvancedToSeasonIndex;
+        public string CalendarId;
     }
 
     // ─── Boss决战 ───

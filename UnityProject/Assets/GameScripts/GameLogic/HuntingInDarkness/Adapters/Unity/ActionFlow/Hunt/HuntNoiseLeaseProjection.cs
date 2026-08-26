@@ -26,6 +26,13 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 reason = string.Empty;
                 return true;
             }
+            if (IsSerializedNullPlaceholder(lease))
+            {
+                settlement.PendingHuntNoiseLease = null;
+                ClearRegistration();
+                reason = string.Empty;
+                return true;
+            }
             if (!HuntNoiseLeaseInstaller.TryValidate(lease, out reason))
                 return false;
             if (installerRegistration != null && string.Equals(installedLeaseId, lease.LeaseId, StringComparison.Ordinal) && installedModifier == lease.NoiseModifier)
@@ -55,7 +62,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
         public bool TryClear(SettlementInstance settlement, out string reason)
         {
-            if (settlement?.PendingHuntNoiseLease != null && !HuntNoiseLeaseInstaller.TryValidate(settlement.PendingHuntNoiseLease, out reason))
+            if (settlement?.PendingHuntNoiseLease != null && !IsSerializedNullPlaceholder(settlement.PendingHuntNoiseLease) && !HuntNoiseLeaseInstaller.TryValidate(settlement.PendingHuntNoiseLease, out reason))
                 return false;
             if (settlement != null)
                 settlement.PendingHuntNoiseLease = null;
@@ -73,6 +80,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             installedLeaseId = null;
             installedModifier = 0;
         }
+
+        private static bool IsSerializedNullPlaceholder(PendingHuntNoiseLease lease) => lease != null && lease.SchemaVersion == PendingHuntNoiseLease.CurrentSchemaVersion && string.IsNullOrWhiteSpace(lease.LeaseId) && string.IsNullOrWhiteSpace(lease.SourceEventId) && lease.NoiseModifier == 0;
     }
 
     internal sealed class HuntNoiseLeaseInstaller : IActionEnvironmentInstaller

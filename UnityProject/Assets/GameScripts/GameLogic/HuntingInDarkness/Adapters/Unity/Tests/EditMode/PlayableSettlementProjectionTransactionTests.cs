@@ -185,6 +185,8 @@ namespace HuntingInDarkness.Adapter.Tests
             return new SettlementInstance
             {
                 CurrentYear = 4,
+                CampaignCalendarId = "standard_two_season_v1",
+                CurrentSeasonIndex = 0,
                 HuntsPerYear = 1,
                 CampaignPacingSchemaVersion = SettlementInstance.CurrentCampaignPacingSchemaVersion,
                 Hunters = new List<HunterInstance> { new(null, hunterId) { Name = $"Loaded-{hunterId}" } },

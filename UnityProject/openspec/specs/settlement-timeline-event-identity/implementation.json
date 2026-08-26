@@ -2,81 +2,36 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "settlement-timeline-event-identity",
-  "specHash": "8e2a9c7dad6cb5744a09763d149e4c8116f3f413a2dab86ec952ae5cc41e9877",
+  "specHash": "b0d6c9fc881615c5e1ba62dad614be59a83d20d110011af4b65e3f40bb7673d3",
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "营地年度事件已使用显式 ContentId、保守迁移与精确 AnnalEntry 工作项；重复 occurrence、提交后表现失败和读档 child checkpoint 均由 Settlement Runner/恢复投影继续处理。",
-    "validatedAgainstSpecHash": "8e2a9c7dad6cb5744a09763d149e4c8116f3f413a2dab86ec952ae5cc41e9877",
+    "summary": "年度事件继续使用稳定 ContentId 与精确 AnnalEntry；同年季节推进不创建年度 occurrence，真实跨年与重试只恢复同一个持久条目。",
+    "validatedAgainstSpecHash": "b0d6c9fc881615c5e1ba62dad614be59a83d20d110011af4b65e3f40bb7673d3",
     "evidence": [
-      {
-        "guid": "6d8a0bb8e1d54f408b0b0d6f9bf6d5d3",
-        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementEventRegistry.cs",
-        "line": 1,
-        "fileHash": "7ca690c0dd218b8eeababde2c186b1ec1341f491516e1d0bcf7854f78ddfc86c",
-        "status": "verified",
-        "checkedAt": "2026-08-24T03:45:00-07:00",
-        "feature": "校验显式稳定 ID、拒绝冲突或未来 schema，并保守迁移旧年鉴身份。"
-      },
-      {
-        "guid": "4757ebaa320377c4093a0b9ed1c061ec",
-        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/TimelineSystem.cs",
-        "line": 1,
-        "fileHash": "5c0ba831dd10c683db05d068943cccc3d76dcae0f533e72c27343cc598feeb57",
-        "status": "verified",
-        "checkedAt": "2026-08-24T03:45:00-07:00",
-        "feature": "以 ContentId 创建、排重、调度并解析年度事件，同时生成绑定精确年鉴条目的工作项。"
-      },
-      {
-        "guid": "e03f23b616fd5be46b68d164379dc2ef",
-        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEventActions.cs",
-        "line": 1,
-        "fileHash": "4dcf15c4a022079d60b5714749602fcd3a30c34d276a47ebe02e781490061752",
-        "status": "verified",
-        "checkedAt": "2026-08-24T03:45:00-07:00",
-        "feature": "整批预验证工作项、区分重复 Timeline occurrence，并在提交检查点完成精确条目及续接 children。"
-      },
-      {
-        "guid": "d22556d8e7f42df44b45cf799dc1c53e",
-        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
-        "line": 1,
-        "fileHash": "b2e76e5b5273e4e5947467b85dd7a67e8ae985e9607f9850b89f1f1a4b2bbd9f",
-        "status": "verified",
-        "checkedAt": "2026-08-24T03:45:00-07:00",
-        "feature": "把未完成年鉴或持久 child occurrence 投影为精确工作项，并暴露可恢复 checkpoint 门禁。"
-      },
-      {
-        "guid": "d92bf45c59414633b14a8082558cc3ae",
-        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementTimelineEventIdentityTests.cs",
-        "line": 1,
-        "fileHash": "f62d666c8e306cf92a70a27fc1ea74af5844a3f2eaa65f299167b713634109fc",
-        "status": "verified",
-        "checkedAt": "2026-08-24T03:45:00-07:00",
-        "feature": "覆盖改名、迁移歧义、未来 schema、重复 occurrence、整批原子拒绝、阶段隔离与 checkpoint 恢复。"
-      }
+      { "guid": "4757ebaa320377c4093a0b9ed1c061ec", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/TimelineSystem.cs", "line": 14, "fileHash": "536adb9c94d322cb186a9afc4f3bdd0c0aa242f03911b90daa215eb28bd0673b", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "先提交稳定 HuntRecord 与日历游标，仅在 YearAdvanced 时创建下一年事件条目。" },
+      { "guid": "5cb50ad3443a70f45af1ce3608fd42be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs", "line": 40, "fileHash": "e126b8b1ba1503e699eb4d00f375fe79a34a953b27758d183c2b2a8dbaec702f", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "同年只发布季节与完成事实，跨年才把年度事件交给现有恢复投影。" },
+      { "guid": "dcdd404b60960be478da56452bc7b8f3", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignPacingTests.cs", "line": 16, "fileHash": "3ae7f47984d3c30ad4621bb5f559e85602fa001df242e04ab1fc3048d89496f1", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "覆盖同年无年度 occurrence、跨年精确一次、RecordId 重放幂等与迁移不产事件。" }
     ],
     "tests": [
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementTimelineEventIdentityTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignPacingTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
-      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs"
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementTimelineEventIdentityTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs",
+      "Unity CLI targeted EditMode: 78/78 passed"
     ],
-    "verifiedAt": "08/24/2026 03:45:00"
+    "verifiedAt": "2026-08-26T02:00:00-07:00"
   },
   "implementationOutline": [
-    "内容目录要求可持久营地事件配置显式 ContentId，并以资产名仅作为旧存档的一次性唯一别名。",
-    "TimelineSystem 生成携带精确 AnnalEntry 的 SettlementEventWork，GameManager 在正常进入、回营与读档恢复时均传递该工作项。",
-    "Settlement Runner 在效果提交检查点完成绑定条目；同 ContentId 的多个根 occurrence 使用独立身份，children 仍受祖先与链去重保护。",
-    "提交后表现失败由同 Runner 继续已持久 children，必要时恢复投影和 GameManager 以 checkpoint 作为后备续接入口。",
-    "standalone 与 Hunt 共享事件节点不隐式完成 Settlement Timeline。"
+    "TimelineSystem 继续以 ContentId 创建并解析年度事件，只把创建时机收紧到配置日历的真实年界。",
+    "同年季节推进不触碰年度年鉴；跨年回营仍生成绑定精确 AnnalEntry 的 SettlementEventWork。",
+    "重复 RecordId 由 HuntHistory 幂等门禁阻止再次推进或创建条目，恢复投影继续原条目及 children。",
+    "standalone 与 Hunt 共享事件节点仍不隐式完成 Settlement Timeline。"
   ],
   "sourceReferences": [
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementEventRegistry.cs:1",
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/TimelineSystem.cs:1",
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEventActions.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/TimelineSystem.cs:14",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs:40",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs:1"
   ],
-  "publishedBy": {
-    "mode": "legacy-formal-review-migration",
-    "changeId": ""
-  }
+  "publishedBy": { "mode": "user-authority-update", "changeId": "" }
 }
