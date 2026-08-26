@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "a8e2cb24884ff4c677fac9c85485dd93bcd7e54d3f6a758edbb1e51c874f5be0",
-  "inputManifestDigest": "d4a2526aa8c280bc9f0db578e6dc4a50026a22ba627f052015e86ea02d1efd4b",
-  "outputDigest": "4b879eccd021aa2213d93ff0beacd10fcbc5c5566d6897ca5b501bd33d551d58",
+  "inputDigest": "b4be7bf5e810bafbb02b0e21fc33aea9c4d8da60bba23dabd2c044d33af2ee5d",
+  "inputManifestDigest": "5a17b48244922380cf39a8cfafcbc1c79b8fb591ee58cc405478e0dba051eabd",
+  "outputDigest": "42c013d94ab73197094772952e5dfd5227e1c8c3b2efe1f32a3ad28dca1de0d0",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -467,7 +467,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs",
-      "sha256": "b89476dadef98428476baadc674e1d89835967b927bdaf905e0136603e8bec56",
+      "sha256": "e54967e753a13e3f78ebecfa72fba300c425e6d787f38f03fc417b59cdb7e46a",
       "state": "current"
     },
     {
@@ -627,12 +627,17 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/EchoingBrokenRoad.asset",
-      "sha256": "fd1693703da38ec38693570992bb3716e6d00ee1e76586da7e9fbee272c55e57",
+      "sha256": "40d8d424f663f8a240f3ef7bf3f443a232548ba7d74ba984770868e5c6288792",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/PlayableHuntDestinationCatalog.asset",
       "sha256": "1b631bf481ab8e88075b6e514d84cd2084af55e539446d57b6e78891504db01c",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Events/BrokenRoadEcho.asset",
+      "sha256": "fe195f279ae78559c3a634aa3b43d3ad55081a9a846e3eb4426816dfe100ad49",
       "state": "current"
     },
     {
@@ -728,6 +733,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/EventRerollRulesTests.cs",
       "sha256": "37ab31117a36551d1a2f961f9789f82ea640a4ee161fcf4a7aab0ff4e5b00b3e",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset",
+      "sha256": "e79f2a38778ae7ad355347121909f04316993a2900ec3b407368568c65fecdc4",
       "state": "current"
     },
     {
@@ -1212,7 +1222,7 @@
     },
     {
       "path": "openspec/specs/hunt-tabletop-harvest/implementation.json",
-      "sha256": "307772684632972b58bfb304bd57bc1333dc337574d82529a85ce0bc3b646832",
+      "sha256": "f7f147330775b1a48d7da85eec0bb307af32242290fc902fb60159198b8790f1",
       "state": "current"
     },
     {
@@ -1302,12 +1312,12 @@
     },
     {
       "path": "openspec/specs/table-driven-hunt-events/implementation.json",
-      "sha256": "fa2770b3f0e554cf26eb7d4508da2aced669d9b3fb067a42874aa3dc10f01f6b",
+      "sha256": "ffa5c66b91d233841656f832d2df8dcff9a7f251d1a7ccf1d683dc2407e8d124",
       "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-hunt-events/spec.md",
-      "sha256": "b18adb79217b79109ea4c5037405b3b2c4fc07bbf6b42d61603201b1e583a8ba",
+      "sha256": "34d0ec259212b8e6233de1d446f968c021c407bea2111d6460197dbf3632eca2",
       "state": "current"
     },
     {
@@ -1402,12 +1412,12 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-departure/implementation.json",
-      "sha256": "1552f8c4778819e2a689a89a5cdb25aa48aadd142e2e131ab928d776f14a38dd",
+      "sha256": "19755df86a88746fcd960ca1c8853613ec0ca35f51022705c7bac43c919819a6",
       "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-hunt-departure/spec.md",
-      "sha256": "c6cd81727956036a4384b4ea0479744ecddc445dc17b8cde33729bc000722e46",
+      "sha256": "b4f2b0e8bdcc483ee3ca1b2b5e20dcadbe84b40087bf2461ca7ae3d28a3d4d60",
       "state": "current"
     },
     {
@@ -3171,7 +3181,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "共享 Hunt 事件从合并表目录装配到路线内容池；石森林内容通过装备、关键词和症状条件提供构筑回报，最终仍由 Hunt Runner 与 3D 随机交互端口结算。",
+      "summary": "共享 Hunt 事件从合并表目录装配到路线内容池，路线也可保留专属 ScriptableObject 事件；回声断道的抽鬼牌事件与共享内容都由 Hunt Runner 和同一 3D 随机交互端口结算。",
       "designSources": [],
       "sources": [
         "openspec/specs/table-driven-hunt-events/spec.md",
@@ -3205,6 +3215,18 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Events/BrokenRoadEcho.asset",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/EchoingBrokenRoad.asset",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs",
           "state": "current"
         }
       ]
@@ -3634,7 +3656,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；生产目录第 1 年提供两条路线，第 2 年解锁独立高噪音的回声断道，仍复用相同的 View、Bundle 与 ActionQueue 边界。",
+      "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；生产配置关闭旧屏幕 HUD 但保留世界空间端口，第 2 年路线以专属抽鬼牌事件扩展内容并复用相同的 View、Bundle 与 ActionQueue 边界。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-hunt-departure/spec.md",
@@ -3672,6 +3694,14 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/EchoingBrokenRoad.asset",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Events/BrokenRoadEcho.asset",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset",
           "state": "current"
         },
         {

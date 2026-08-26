@@ -21,6 +21,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 18edb8645e68c0a459bc28562e0c3519, type: 2}
   - {fileID: 11400000, guid: e059e7c381dfffb4a9d049bd71002371, type: 2}
   - {fileID: 11400000, guid: f600f4dcd03e7ec4da31eded0485b94e, type: 2}
+  - {fileID: 11400000, guid: d0c7fcbce2a24d2c81f0fe24b60ec7d5, type: 2}
   noiseProfile:
     profileId: echoing-broken-road-risk
     deckSize: 10
@@ -30,3 +31,4 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 18edb8645e68c0a459bc28562e0c3519, type: 2}
     - {fileID: 11400000, guid: e059e7c381dfffb4a9d049bd71002371, type: 2}
     - {fileID: 11400000, guid: f600f4dcd03e7ec4da31eded0485b94e, type: 2}
+    - {fileID: 11400000, guid: d0c7fcbce2a24d2c81f0fe24b60ec7d5, type: 2}

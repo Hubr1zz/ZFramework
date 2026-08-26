@@ -83,7 +83,7 @@ The departure table SHALL NOT open while another Settlement action chain is awai
 ### Requirement: Destination content remains configuration-driven
 Available routes SHALL come from `PlayableHuntDestinationCatalog`. When at least one route is available for the current year, departure SHALL require an explicit valid selection. When no route is available, the existing configured hunt content SHALL remain a valid fallback without changing the View contract.
 
-The production catalog SHALL provide two distinct routes from year 1 and SHALL unlock a third high-noise mixed ruins-and-swamp route from year 2. Each route SHALL own distinct configured Hunt content while reusing the existing destination-card View and campaign departure boundary.
+The production catalog SHALL provide two distinct routes from year 1 and SHALL unlock a third high-noise mixed ruins-and-swamp route from year 2. Each route SHALL own distinct configured Hunt content while reusing the existing destination-card View and campaign departure boundary. The production bootstrap SHALL keep the legacy settlement HUD disabled; this setting SHALL NOT disable the world-space departure ports.
 
 #### Scenario: A route is available but no route was selected
 - **WHEN** any departure entry submits a valid squad without an explicit destination
@@ -96,4 +96,4 @@ The production catalog SHALL provide two distinct routes from year 1 and SHALL u
 #### Scenario: The campaign reaches year 2
 - **WHEN** the player opens the destination-card page after the first completed hunt
 - **THEN** the two year-1 routes and the `echoing-broken-road` route are available
-- **AND** the new route uses its own tile, event, and noise configuration without introducing a route-specific View or runtime branch
+- **AND** the new route uses its own tile, event, and noise configuration, including the route-local `hunt_broken_road_echo` event, without introducing a route-specific View or runtime branch

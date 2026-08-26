@@ -16,7 +16,7 @@ MonoBehaviour:
   initialPhase: 0
   showStartMenu: 1
   showFlowGuide: 1
-  showSettlementHud: 1
+  showSettlementHud: 0
   settlementHudWidth: 420
   showOpeningNarrative: 1
   hideFrameworkDebugger: 1

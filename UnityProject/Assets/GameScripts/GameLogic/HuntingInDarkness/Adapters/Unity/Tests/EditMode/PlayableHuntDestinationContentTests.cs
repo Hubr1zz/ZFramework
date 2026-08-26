@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.Data;
@@ -43,7 +44,12 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(destination, Is.Not.Null);
                 Assert.That(destination.MinimumYear, Is.EqualTo(2));
                 Assert.That(destination.HuntContent.TilePool, Has.Count.EqualTo(3));
-                Assert.That(destination.HuntContent.EventPool, Has.Count.EqualTo(3));
+                Assert.That(destination.HuntContent.EventPool, Has.Count.EqualTo(4));
+                EventData routeEvent = destination.HuntContent.EventPool.Single(gameEvent => gameEvent.ContentId == "hunt_broken_road_echo");
+                Assert.That(routeEvent.minYear, Is.EqualTo(2));
+                Assert.That(routeEvent.options[0].checkPresentation, Is.EqualTo(EventCheckPresentationKind.OldMaid));
+                Assert.That(routeEvent.options[0].checkCount, Is.EqualTo(1));
+                Assert.That(destination.HuntContent.NoiseProfile.GetEligibleDangerEvents(2), Does.Contain(routeEvent));
                 Assert.That(destination.HuntContent.NoiseProfile.TryCreatePlan(new[] { new HunterInstance(template) }, out NoiseCheckPlan plan), Is.True);
                 Assert.That(plan.DangerCardCount, Is.EqualTo(2));
             }
@@ -59,6 +65,7 @@ namespace HuntingInDarkness.Adapter.Tests
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
 
             Assert.That(settings, Is.Not.Null);
+            Assert.That(settings.ShowSettlementHud, Is.False, "生产配置不得启用旧屏幕空间营地 HUD。");
             Assert.That(settings.HuntDestinations, Is.Not.Null);
             Assert.That(settings.HuntDestinations.IsConfigured, Is.True);
         }

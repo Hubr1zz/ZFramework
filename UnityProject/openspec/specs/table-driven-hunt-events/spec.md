@@ -44,6 +44,11 @@ Hunt options SHALL reuse the existing physical-dice and card-interaction request
 - **THEN** the shared tabletop presenter receives the configured deck ID and instruction
 - **AND** the validated result is returned to the same event transaction used by dice checks
 
+#### Scenario: A route-local card event is configured
+- **WHEN** the year-2 `echoing-broken-road` route contributes `hunt_broken_road_echo`
+- **THEN** its primary option requests the shared `OldMaid` presentation with a stable deck ID
+- **AND** the event remains route-local while using the same Hunt event transaction and presenter contract
+
 ### Requirement: Baseline hunt content rewards campaign builds and lived weaknesses
 The shared Stone Forest pool SHALL include guarded options that recognize stable equipped items, equipment keywords, or hunter ailments. Eligible branches SHALL provide safer or stronger outcomes through the same authoritative option validation, while ordinary dice or card branches remain available when the requirement is not met.
 

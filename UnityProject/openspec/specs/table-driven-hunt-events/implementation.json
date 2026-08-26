@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "table-driven-hunt-events",
-  "specHash": "b18adb79217b79109ea4c5037405b3b2c4fc07bbf6b42d61603201b1e583a8ba",
+  "specHash": "34d0ec259212b8e6233de1d446f968c021c407bea2111d6460197dbf3632eca2",
   "title": "读表狩猎事件内容",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "共享 Hunt 事件从合并表目录装配到路线内容池；石森林内容通过装备、关键词和症状条件提供构筑回报，最终仍由 Hunt Runner 与 3D 随机交互端口结算。",
-    "validatedAgainstSpecHash": "b18adb79217b79109ea4c5037405b3b2c4fc07bbf6b42d61603201b1e583a8ba",
+    "summary": "共享 Hunt 事件从合并表目录装配到路线内容池，路线也可保留专属 ScriptableObject 事件；回声断道的抽鬼牌事件与共享内容都由 Hunt Runner 和同一 3D 随机交互端口结算。",
+    "validatedAgainstSpecHash": "34d0ec259212b8e6233de1d446f968c021c407bea2111d6460197dbf3632eca2",
     "evidence": [
       {
         "guid": "5aaad4b60ab84a34193791e0287c1542",
@@ -73,6 +73,33 @@
         "status": "verified",
         "checkedAt": "2026-08-25T18:29:21-07:00",
         "feature": "验证骨锯、甲壳护臂关键词及低语症可通过权威条件检查开启对应狩猎分支。"
+      },
+      {
+        "guid": "d0c7fcbce2a24d2c81f0fe24b60ec7d5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Events/BrokenRoadEcho.asset",
+        "line": 1,
+        "fileHash": "fe195f279ae78559c3a634aa3b43d3ad55081a9a846e3eb4426816dfe100ad49",
+        "status": "verified",
+        "checkedAt": "2026-08-25T19:48:01-07:00",
+        "feature": "以路线本地 ScriptableObject 配置稳定事件 ID、OldMaid 展示、奖励与症状后果。"
+      },
+      {
+        "guid": "43fa2a6e5a634d5795acf7c3519e58ab",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/EchoingBrokenRoad.asset",
+        "line": 1,
+        "fileHash": "40d8d424f663f8a240f3ef7bf3f443a232548ba7d74ba984770868e5c6288792",
+        "status": "verified",
+        "checkedAt": "2026-08-25T19:48:01-07:00",
+        "feature": "把专属事件加入路线普通池与噪音危险池，不新增运行时分支。"
+      },
+      {
+        "guid": "2cde47307eb11ff4f85382376506f036",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs",
+        "line": 44,
+        "fileHash": "e54967e753a13e3f78ebecfa72fba300c425e6d787f38f03fc417b59cdb7e46a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T19:48:01-07:00",
+        "feature": "验证路线专属事件只在二年内容中出现并使用 OldMaid 交互。"
       }
     ],
     "tests": [
@@ -80,12 +107,13 @@
       "PlayableHuntContentBundleTests: 7/7 passed",
       "PlayableHuntActionSessionTests: 21/21 passed"
     ],
-    "verifiedAt": "2026-08-25T18:29:21-07:00"
+    "verifiedAt": "2026-08-25T19:48:01-07:00"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 先发布稳定表事件世代，再与路线 Hunt 事件按稳定 ID 合并。",
     "重复路线 ID 不以列表顺序选赢家；合法表事件可对同 ID 提供唯一权威覆盖。",
-    "HuntEventSystem 只选择内容，ResolveHuntTileEventAction 通过共享事件节点和 3D 随机交互提交玩法。"
+    "HuntEventSystem 只选择内容，ResolveHuntTileEventAction 通过共享事件节点和 3D 随机交互提交玩法。",
+    "路线专属事件保持数据本地化，但复用稳定 ID、事件事务和随机交互接口。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs:251",

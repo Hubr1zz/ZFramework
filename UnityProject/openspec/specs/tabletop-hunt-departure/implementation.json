@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "tabletop-hunt-departure",
-  "specHash": "c6cd81727956036a4384b4ea0479744ecddc445dc17b8cde33729bc000722e46",
+  "specHash": "b4f2b0e8bdcc483ee3ca1b2b5e20dcadbe84b40087bf2461ca7ae3d28a3d4d60",
   "title": "3D 狩猎远征整备",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；生产目录第 1 年提供两条路线，第 2 年解锁独立高噪音的回声断道，仍复用相同的 View、Bundle 与 ActionQueue 边界。",
-    "validatedAgainstSpecHash": "c6cd81727956036a4384b4ea0479744ecddc445dc17b8cde33729bc000722e46",
+    "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；生产配置关闭旧屏幕 HUD 但保留世界空间端口，第 2 年路线以专属抽鬼牌事件扩展内容并复用相同的 View、Bundle 与 ActionQueue 边界。",
+    "validatedAgainstSpecHash": "b4f2b0e8bdcc483ee3ca1b2b5e20dcadbe84b40087bf2461ca7ae3d28a3d4d60",
     "evidence": [
       {
         "guid": "c9df97dabae7cda47adf626ad609d66b",
@@ -78,19 +78,37 @@
         "guid": "43fa2a6e5a634d5795acf7c3519e58ab",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/EchoingBrokenRoad.asset",
         "line": 1,
-        "fileHash": "fd1693703da38ec38693570992bb3716e6d00ee1e76586da7e9fbee272c55e57",
+        "fileHash": "40d8d424f663f8a240f3ef7bf3f443a232548ba7d74ba984770868e5c6288792",
         "status": "verified",
-        "checkedAt": "2026-08-25T19:13:08-07:00",
-        "feature": "复用现有废墟、石原与浅沼地块及事件，提供独立的高噪音路线配置。"
+        "checkedAt": "2026-08-25T19:48:01-07:00",
+        "feature": "复用现有废墟、石原与浅沼地块，并把路线专属回声事件纳入普通事件池与高噪音危险池。"
+      },
+      {
+        "guid": "d0c7fcbce2a24d2c81f0fe24b60ec7d5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Events/BrokenRoadEcho.asset",
+        "line": 1,
+        "fileHash": "fe195f279ae78559c3a634aa3b43d3ad55081a9a846e3eb4426816dfe100ad49",
+        "status": "verified",
+        "checkedAt": "2026-08-25T19:48:01-07:00",
+        "feature": "为二年路线提供稳定 ID 的专属抽鬼牌事件，并通过现有事件效果提交资源或症状。"
+      },
+      {
+        "guid": "eaa6505530fa9d141ba26750404aaa6a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset",
+        "line": 1,
+        "fileHash": "e79f2a38778ae7ad355347121909f04316993a2900ec3b407368568c65fecdc4",
+        "status": "verified",
+        "checkedAt": "2026-08-25T19:48:01-07:00",
+        "feature": "生产配置关闭旧屏幕空间营地 HUD，世界空间端口仍由独立组合根安装。"
       },
       {
         "guid": "2cde47307eb11ff4f85382376506f036",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs",
         "line": 1,
-        "fileHash": "b89476dadef98428476baadc674e1d89835967b927bdaf905e0136603e8bec56",
+        "fileHash": "e54967e753a13e3f78ebecfa72fba300c425e6d787f38f03fc417b59cdb7e46a",
         "status": "verified",
-        "checkedAt": "2026-08-25T19:13:08-07:00",
-        "feature": "验证路线数量、年份解锁、独立内容对象、混合内容池和单猎人双噪音计划。"
+        "checkedAt": "2026-08-25T19:48:01-07:00",
+        "feature": "验证路线数量、年份解锁、专属抽鬼牌事件、危险池身份及生产旧 HUD 配置。"
       }
     ],
     "tests": [
@@ -101,14 +119,14 @@
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed",
       "Hunt route content cluster: 44/44 passed"
     ],
-    "verifiedAt": "2026-08-25T19:13:08-07:00"
+    "verifiedAt": "2026-08-25T19:48:01-07:00"
   },
   "implementationOutline": [
     "组合根安装 PlayableHuntDestinationView，营地启动卡打开独占的世界空间整备桌并暂时隐藏底层营地卡牌。",
     "TabletopHuntDeparturePanel3D 只维护编队卡槽和地区卡选择；返回编队按暂存 HunterId 顺序恢复，不重排玩家选择。",
     "确认后 Settlement runner 提交稳定名册令牌，GameManager 构造地区入场上下文并由 Campaign runner 切换阶段。",
     "生产和兼容入口共用同一请求边界，并在事件恢复、重复请求、无地区选择或无效猎人时保持权威状态不变。",
-    "生产目录以纯数据方式在第 2 年增加回声断道，复用既有 3D 地区卡、内容 Bundle 和 Hunt runner。"
+    "生产目录以纯数据方式在第 2 年增加回声断道和路线专属抽鬼牌事件，复用既有 3D 地区卡、内容 Bundle 和 Hunt runner。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs:1",

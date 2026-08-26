@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2471a7f4f41d4e74f85c7f31dc58d1a5, type: 3}
+  m_Name: BrokenRoadEcho
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Data.EventData
+  contentId: hunt_broken_road_echo
+  eventName: "\u5148\u884C\u7684\u56DE\u58F0"
+  eventType: 1
+  displayText: "\u65AD\u8DEF\u5C3D\u5934\u4F20\u6765\u961F\u4F0D\u7684\u811A\u6B65\u58F0\uFF0C\u53EF\u6240\u6709\u4EBA\u90FD\u8FD8\u7AD9\u5728\u539F\u5730\u3002\u56DE\u58F0\u4E2D\u6DF7\u7740\u4E00\u6B21\u5E76\u4E0D\u5C5E\u4E8E\u5C0F\u961F\u7684\u843D\u811A\u3002"
+  hiddenText: "\u591A\u51FA\u7684\u811A\u6B65\u6700\u7EC8\u505C\u5728\u4E86\u961F\u4F0D\u8EAB\u540E\u3002"
+  options:
+  - optionText: "\u4ECE\u56DE\u58F0\u724C\u4E2D\u627E\u51FA\u81EA\u5DF1\u7684\u811A\u6B65"
+    checkType: 5
+    checkTarget: 6
+    checkPresentation: 3
+    checkCount: 1
+    checkSides: 10
+    checkDeckId: broken-road-echo
+    checkInstruction: "\u62BD\u53D6\u4E00\u5F20\u811A\u6B65\u724C\uFF0C\u907F\u5F00\u90A3\u5F20\u6C38\u8FDC\u6BD4\u4F60\u5148\u5230\u4E00\u6B65\u7684\u9B3C\u724C"
+    successText: "\u4F60\u5728\u56DE\u58F0\u91CC\u6293\u4F4F\u4E86\u4E00\u5757\u9508\u8680\u91D1\u5C5E\u3002\u5B83\u843D\u5730\u540E\uFF0C\u591A\u51FA\u7684\u811A\u6B65\u58F0\u6D88\u5931\u4E86\u3002\u83B7\u5F97\u91D1\u5C5E\u6B8B\u7247 \xD71\u3002"
+    successEffects:
+    - effectType: 0
+      targetName: metal_fragment
+      bodyPart:
+      value: 1
+      description: "\u91D1\u5C5E\u6B8B\u7247 +1"
+    successChain: []
+    failText: "\u9B3C\u724C\u4E0A\u7684\u811A\u5370\u4ECE\u724C\u9762\u4E00\u76F4\u5EF6\u4F38\u5230\u4F60\u811A\u4E0B\u3002\u538B\u6291 +1\u3002"
+    failEffects:
+    - effectType: 5
+      targetName: selected
+      bodyPart:
+      value: 1
+      description: "\u538B\u6291 +1"
+    failChain: []
+    alwaysAvailable: 1
+    conditions: []
+  - optionText: "\u505C\u4E0B\uFF0C\u7B49\u56DE\u58F0\u5148\u8D70\u8FDC"
+    checkType: 0
+    checkTarget: 0
+    checkPresentation: 0
+    checkCount: 1
+    checkSides: 10
+    checkDeckId:
+    checkInstruction:
+    successText: "\u5C0F\u961F\u6C89\u9ED8\u5730\u7B49\u5230\u6700\u540E\u4E00\u58F0\u811A\u6B65\u6D88\u5931\u5728\u65AD\u8DEF\u540E\u3002"
+    successEffects: []
+    successChain: []
+    failText:
+    failEffects: []
+    failChain: []
+    alwaysAvailable: 1
+    conditions: []
+  immediateEffects: []
+  combatTargetBossName:
+  chainedEvents: []
+  minYear: 2
+  maxYear: 0
+  drawWeight: 2
+  category: 2
