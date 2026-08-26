@@ -19,15 +19,38 @@ namespace HuntingInDarkness.Adapter.Tests
         public void TearDown() => PlayableHuntDestinationRuntime.Configure(null, null);
 
         [Test]
-        public void Catalog_ProvidesTwoDistinctAvailableRoutes()
+        public void Catalog_ProvidesThreeDistinctRoutesAcrossCampaignYears()
         {
             PlayableHuntDestinationCatalog catalog = AssetDatabase.LoadAssetAtPath<PlayableHuntDestinationCatalog>(CatalogPath);
 
             Assert.That(catalog, Is.Not.Null);
-            List<PlayableHuntDestination> destinations = catalog.GetAvailable(1);
-            Assert.That(destinations, Has.Count.GreaterThanOrEqualTo(2));
-            Assert.That(destinations[0].DestinationId, Is.Not.EqualTo(destinations[1].DestinationId));
-            Assert.That(destinations[0].HuntContent, Is.Not.SameAs(destinations[1].HuntContent));
+            List<PlayableHuntDestination> firstYearDestinations = catalog.GetAvailable(1);
+            List<PlayableHuntDestination> secondYearDestinations = catalog.GetAvailable(2);
+            Assert.That(firstYearDestinations, Has.Count.EqualTo(2));
+            Assert.That(secondYearDestinations, Has.Count.EqualTo(3));
+            Assert.That(secondYearDestinations.ConvertAll(destination => destination.DestinationId), Is.EquivalentTo(new[] { "stone-forest-outskirts", "sunken-fungal-marsh", "echoing-broken-road" }));
+            Assert.That(new HashSet<PlayableHuntContentCatalog>(secondYearDestinations.ConvertAll(destination => destination.HuntContent)), Has.Count.EqualTo(3));
+        }
+
+        [Test]
+        public void EchoingBrokenRoad_ProvidesHigherNoiseAndMixedLateRouteContent()
+        {
+            PlayableHuntDestinationCatalog catalog = AssetDatabase.LoadAssetAtPath<PlayableHuntDestinationCatalog>(CatalogPath);
+            PlayableHuntDestination destination = catalog.GetAvailable(2).Find(candidate => candidate.DestinationId == "echoing-broken-road");
+            HunterData template = ScriptableObject.CreateInstance<HunterData>();
+            try
+            {
+                Assert.That(destination, Is.Not.Null);
+                Assert.That(destination.MinimumYear, Is.EqualTo(2));
+                Assert.That(destination.HuntContent.TilePool, Has.Count.EqualTo(3));
+                Assert.That(destination.HuntContent.EventPool, Has.Count.EqualTo(3));
+                Assert.That(destination.HuntContent.NoiseProfile.TryCreatePlan(new[] { new HunterInstance(template) }, out NoiseCheckPlan plan), Is.True);
+                Assert.That(plan.DangerCardCount, Is.EqualTo(2));
+            }
+            finally
+            {
+                Object.DestroyImmediate(template);
+            }
         }
 
         [Test]

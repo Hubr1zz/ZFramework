@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "tabletop-hunt-departure",
-  "specHash": "b63aefe06fa718840d16ac17801990b1a7bc3f84fa9ce8ad8ae8e2a32e4ee851",
+  "specHash": "c6cd81727956036a4384b4ea0479744ecddc445dc17b8cde33729bc000722e46",
   "title": "3D 狩猎远征整备",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；返回编队会按玩家暂存顺序恢复卡槽，权威名册与阶段切换仍分别由 Settlement 与 Campaign ActionQueue 提交。",
-    "validatedAgainstSpecHash": "b63aefe06fa718840d16ac17801990b1a7bc3f84fa9ce8ad8ae8e2a32e4ee851",
+    "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；生产目录第 1 年提供两条路线，第 2 年解锁独立高噪音的回声断道，仍复用相同的 View、Bundle 与 ActionQueue 边界。",
+    "validatedAgainstSpecHash": "c6cd81727956036a4384b4ea0479744ecddc445dc17b8cde33729bc000722e46",
     "evidence": [
       {
         "guid": "c9df97dabae7cda47adf626ad609d66b",
@@ -64,6 +64,33 @@
         "status": "verified",
         "checkedAt": "2026-08-25T11:44:53-07:00",
         "feature": "验证生产组合根中名册准备、地区上下文、Campaign 切换、一次性令牌消费及完整回营循环。"
+      },
+      {
+        "guid": "9cde4642e9a49844fb711f6a7c990ae7",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/PlayableHuntDestinationCatalog.asset",
+        "line": 1,
+        "fileHash": "1b631bf481ab8e88075b6e514d84cd2084af55e539446d57b6e78891504db01c",
+        "status": "verified",
+        "checkedAt": "2026-08-25T19:13:08-07:00",
+        "feature": "以数据目录配置两条首年路线，并从第 2 年解锁回声断道。"
+      },
+      {
+        "guid": "43fa2a6e5a634d5795acf7c3519e58ab",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/EchoingBrokenRoad.asset",
+        "line": 1,
+        "fileHash": "fd1693703da38ec38693570992bb3716e6d00ee1e76586da7e9fbee272c55e57",
+        "status": "verified",
+        "checkedAt": "2026-08-25T19:13:08-07:00",
+        "feature": "复用现有废墟、石原与浅沼地块及事件，提供独立的高噪音路线配置。"
+      },
+      {
+        "guid": "2cde47307eb11ff4f85382376506f036",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs",
+        "line": 1,
+        "fileHash": "b89476dadef98428476baadc674e1d89835967b927bdaf905e0136603e8bec56",
+        "status": "verified",
+        "checkedAt": "2026-08-25T19:13:08-07:00",
+        "feature": "验证路线数量、年份解锁、独立内容对象、混合内容池和单猎人双噪音计划。"
       }
     ],
     "tests": [
@@ -71,21 +98,25 @@
       "PlayableSettlementDepartureActionTests: 4/4 passed",
       "SettlementDepartureCompatibilityTests: 3/3 passed",
       "PlayableSettlementWorldSpacePortInstallerTests: 2/2 passed",
-      "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
+      "GameManagerCampaignLoopPlayModeTests: 14/14 passed",
+      "Hunt route content cluster: 44/44 passed"
     ],
-    "verifiedAt": "2026-08-25T11:44:53-07:00"
+    "verifiedAt": "2026-08-25T19:13:08-07:00"
   },
   "implementationOutline": [
     "组合根安装 PlayableHuntDestinationView，营地启动卡打开独占的世界空间整备桌并暂时隐藏底层营地卡牌。",
     "TabletopHuntDeparturePanel3D 只维护编队卡槽和地区卡选择；返回编队按暂存 HunterId 顺序恢复，不重排玩家选择。",
     "确认后 Settlement runner 提交稳定名册令牌，GameManager 构造地区入场上下文并由 Campaign runner 切换阶段。",
-    "生产和兼容入口共用同一请求边界，并在事件恢复、重复请求、无地区选择或无效猎人时保持权威状态不变。"
+    "生产和兼容入口共用同一请求边界，并在事件恢复、重复请求、无地区选择或无效猎人时保持权威状态不变。",
+    "生产目录以纯数据方式在第 2 年增加回声断道，复用既有 3D 地区卡、内容 Bundle 和 Hunt runner。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs:1",
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1092"
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1092",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/PlayableHuntDestinationCatalog.asset:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/EchoingBrokenRoad.asset:1"
   ],
   "publishedBy": {
     "mode": "direct-implementation-reconciliation",

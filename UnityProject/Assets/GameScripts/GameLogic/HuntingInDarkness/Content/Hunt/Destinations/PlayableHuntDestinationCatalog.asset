@@ -27,3 +27,10 @@ MonoBehaviour:
     dangerHint: "\u591A\u53D8 \xB7 \u6CBC\u6CFD\u4E0E\u5E9F\u589F\u4EA4\u9519"
     minimumYear: 1
     huntContent: {fileID: 11400000, guid: 64ed7f93fcb01e245867739b63393422, type: 2}
+  - destinationId: echoing-broken-road
+    displayName: "\u56DE\u58F0\u65AD\u9053"
+    description: "\u88C2\u5F00\u7684\u77F3\u8DEF\u8FDE\u63A5\u7740\u65E7\u5E9F\u589F\u548C\u6D45\u6CBC\uFF0C\u56DE\u58F0\u4F1A\u628A\u730E\u4EBA\u7684\u811A\u6B65\u4F20\u5F97\u5F88\u8FDC\u3002\u8FD9\u91CC\u80FD\u627E\u5230\u7F55\u89C1\u77F3\u5C51\u548C\u91D1\u5C5E\u6B8B\u7247\uFF0C\u4F46\u5C0F\u961F\u4E5F\u66F4\u5BB9\u6613\u66B4\u9732\u884C\u8FF9\u3002"
+    resourceHint: "\u53E4\u8001\u77F3\u5C51\u3001\u91D1\u5C5E\u6B8B\u7247\u3001\u7532\u58F3"
+    dangerHint: "\u9AD8\u566A\u97F3 \xB7 \u7B2C 2 \u5E74\u89E3\u9501"
+    minimumYear: 2
+    huntContent: {fileID: 11400000, guid: 43fa2a6e5a634d5795acf7c3519e58ab, type: 2}

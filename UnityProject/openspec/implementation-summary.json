@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "c1ad05e80129b97249ffd88ff147c3c3feb2ff1690abf60fdb9512063fcabcb1",
-  "inputManifestDigest": "146ac94d9388d3b710ca1190b1dee06380f18feac46e34da2c79f8c82113d7e6",
-  "outputDigest": "7e1e0c99898ef34d1498e989d0199bef20399cfc67552063b9f973291c7be3ac",
+  "inputDigest": "a1203845828653214b751bc01869da20c06e292069ee03336cd0b4d434243a41",
+  "inputManifestDigest": "a952e6819c95a16ca115021f75dd88a7bbc4516919a366e70e5e9dad059f4085",
+  "outputDigest": "d43a91b5e4ed22990967514a7fd4c54bdad6d25fd9b79b6e3fc4a36d9040e91b",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -467,7 +467,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs",
-      "sha256": "983d9e04fe525b336dbf119fd0f65c3212f3af3bae438008384aca45a9de0bc2",
+      "sha256": "b89476dadef98428476baadc674e1d89835967b927bdaf905e0136603e8bec56",
       "state": "current"
     },
     {
@@ -623,6 +623,16 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/RecruitmentTemplateCard3D.cs",
       "sha256": "6a685e587a99e7983620a22d5cfacada1527e55660a5f88abf4db0d867afc9a8",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/EchoingBrokenRoad.asset",
+      "sha256": "fd1693703da38ec38693570992bb3716e6d00ee1e76586da7e9fbee272c55e57",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/PlayableHuntDestinationCatalog.asset",
+      "sha256": "1b631bf481ab8e88075b6e514d84cd2084af55e539446d57b6e78891504db01c",
       "state": "current"
     },
     {
@@ -1197,7 +1207,7 @@
     },
     {
       "path": "openspec/specs/hunt-tabletop-harvest/implementation.json",
-      "sha256": "564a8b3bd49707990d06ade9ac728ec3babe9deb0da21d01151fdf60742b3159",
+      "sha256": "307772684632972b58bfb304bd57bc1333dc337574d82529a85ce0bc3b646832",
       "state": "current"
     },
     {
@@ -1387,12 +1397,12 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-departure/implementation.json",
-      "sha256": "a1864068d5941b09f7810c8e1389b3e36a95592d3224303d703e9310de21398a",
+      "sha256": "1552f8c4778819e2a689a89a5cdb25aa48aadd142e2e131ab928d776f14a38dd",
       "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-hunt-departure/spec.md",
-      "sha256": "b63aefe06fa718840d16ac17801990b1a7bc3f84fa9ce8ad8ae8e2a32e4ee851",
+      "sha256": "c6cd81727956036a4384b4ea0479744ecddc445dc17b8cde33729bc000722e46",
       "state": "current"
     },
     {
@@ -3615,7 +3625,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；返回编队会按玩家暂存顺序恢复卡槽，权威名册与阶段切换仍分别由 Settlement 与 Campaign ActionQueue 提交。",
+      "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；生产目录第 1 年提供两条路线，第 2 年解锁独立高噪音的回声断道，仍复用相同的 View、Bundle 与 ActionQueue 边界。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-hunt-departure/spec.md",
@@ -3645,6 +3655,18 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/PlayableHuntDestinationCatalog.asset",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/EchoingBrokenRoad.asset",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs",
           "state": "current"
         }
       ]
