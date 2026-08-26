@@ -31,9 +31,9 @@
         "guid": "4f18c5c6df3c4c4cb65c66f34cb0e5ac",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventTableCacheLifecycleTests.cs",
         "line": 1,
-        "fileHash": "41bd71fe0d9d77dfccf53d2abfc1b6bacea0360611ad712b0251ba48db771a7a",
+        "fileHash": "04ca87684a5dae5a78bed944ae2f9a2155aaa8959b1aa6006baefa1b272b74c2",
         "status": "verified",
-        "checkedAt": "2026-08-24T06:23:04-07:00",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
         "feature": "验证替换、回滚、依赖冻结、错误候选拒绝与 transient 释放。"
       }
     ],
@@ -44,7 +44,7 @@
       "Unity CLI targeted: settlement content assembly 13/13 passed",
       "Unity CLI EditMode: 609/609 passed"
     ],
-    "verifiedAt": "2026-08-25T10:59:07-07:00"
+    "verifiedAt": "2026-08-25T17:48:50-07:00"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 以独立集合记录其创建的 EventData。",

@@ -167,6 +167,29 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void ProductionEventTables_ExerciseEveryExpandedSymptomByStableId()
+        {
+            var referenced = new HashSet<string>(StringComparer.Ordinal);
+            CollectTableAilments(new JsonEventTableSource("HuntingInDarkness/Tables/events").Load(), referenced);
+            CollectTableAilments(new JsonEventTableSource("HuntingInDarkness/Tables/hunt-events").Load(), referenced);
+            string[] expected =
+            {
+                "symptom_blood_fever",
+                "symptom_claustrophobia",
+                "symptom_night_terrors",
+                "symptom_shadow_fixation",
+                "symptom_stone_lung",
+                "symptom_trembling_hands",
+                "symptom_whisper_sickness"
+            };
+
+            foreach (string symptomId in referenced)
+                Assert.That(catalog.TryGetById(symptomId, out _), Is.True, $"事件必须引用已注册的稳定症状 ID：{symptomId}");
+            foreach (string symptomId in expected)
+                Assert.That(referenced, Does.Contain(symptomId), $"基础事件池尚未覆盖症状：{symptomId}");
+        }
+
+        [Test]
         public void TableRecoverableWound_RequiresSelectedHunterPositiveDamageAndKnownPart()
         {
             MethodInfo validateEffects = typeof(PlayableEventTableRuntime).GetMethod("ValidateEffects", BindingFlags.Static | BindingFlags.NonPublic);
@@ -317,6 +340,23 @@ namespace HuntingInDarkness.Adapter.Tests
             hunter.Stats.strength = 2;
             settlement.Hunters.Add(hunter);
             return settlement;
+        }
+
+        private static void CollectTableAilments(IReadOnlyList<EventTableRecord> records, ISet<string> results)
+        {
+            foreach (EventTableRecord record in records ?? Array.Empty<EventTableRecord>())
+                foreach (EventOptionTableRecord option in record?.options ?? new List<EventOptionTableRecord>())
+                {
+                    CollectTableAilments(option?.successEffects, results);
+                    CollectTableAilments(option?.failEffects, results);
+                }
+        }
+
+        private static void CollectTableAilments(IReadOnlyList<EventEffectTableRecord> effects, ISet<string> results)
+        {
+            foreach (EventEffectTableRecord effect in effects ?? Array.Empty<EventEffectTableRecord>())
+                if (effect != null && string.Equals(effect.effectType, nameof(EventEffectType.AddAilment), StringComparison.OrdinalIgnoreCase))
+                    results.Add(effect.targetName);
         }
 
         private static PlayableSettlementActionSession CreateSession(SettlementInstance settlement) => new(settlement, EmptyWeaponTrainingContent.Instance, new EventSystem(settlement, FirstRandom.Instance));

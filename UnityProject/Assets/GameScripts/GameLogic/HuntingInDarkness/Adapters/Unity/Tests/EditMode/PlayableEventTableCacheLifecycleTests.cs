@@ -5,6 +5,7 @@ using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -12,10 +13,14 @@ namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableEventTableCacheLifecycleTests
     {
+        private const string SymptomCatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Symptoms/PlayableSymptomCatalog.asset";
         private static readonly FieldInfo cachedRecordsField = typeof(PlayableEventTableRuntime).GetField("cachedRecords", BindingFlags.Static | BindingFlags.NonPublic);
         private static readonly MethodInfo prepareGenerationMethod = typeof(PlayableEventTableRuntime).GetMethod("PrepareGeneration", BindingFlags.Static | BindingFlags.NonPublic);
         private static readonly MethodInfo swapGenerationMethod = typeof(PlayableEventTableRuntime).GetMethod("SwapGeneration", BindingFlags.Static | BindingFlags.NonPublic);
         private static readonly MethodInfo retireGenerationMethod = typeof(PlayableEventTableRuntime).GetMethod("RetireGeneration", BindingFlags.Static | BindingFlags.NonPublic);
+
+        [SetUp]
+        public void SetUp() => PlayableSymptomRuntime.Configure(AssetDatabase.LoadAssetAtPath<PlayableSymptomCatalog>(SymptomCatalogPath));
 
         [TearDown]
         public void TearDown()

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Core;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -12,10 +13,19 @@ namespace HuntingInDarkness.Tests
 {
     public sealed class PlayableCampaignPacingTests
     {
+        private const string SymptomCatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Symptoms/PlayableSymptomCatalog.asset";
         private static readonly MethodInfo resetSettlementContentRuntimeMethod = typeof(PlayableSettlementContentRuntime).GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
 
+        [SetUp]
+        public void SetUp() => PlayableSymptomRuntime.Configure(AssetDatabase.LoadAssetAtPath<PlayableSymptomCatalog>(SymptomCatalogPath));
+
         [TearDown]
-        public void TearDown() => resetSettlementContentRuntimeMethod.Invoke(null, null);
+        public void TearDown()
+        {
+            resetSettlementContentRuntimeMethod.Invoke(null, null);
+            PlayableEventTableRuntime.ClearCache();
+            PlayableSymptomRuntime.Configure(null);
+        }
 
         [Test]
         public void AdvanceYear_AdvancesExactlyOnceForEveryAcceptedReturn()

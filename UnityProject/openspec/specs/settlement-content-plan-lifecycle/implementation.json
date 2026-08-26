@@ -31,9 +31,9 @@
         "guid": "89da669e4924d43409fe89475adc272b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
         "line": 1,
-        "fileHash": "96511ecf04652d9a8dbbed027e3dfac086ce9693d851645858eda3f39cf2fb96",
+        "fileHash": "b488480f32866386873081eafac2b7d7b095f85da700ef579d14d24e9fcd2aaf",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
         "feature": "无副作用准备计划，并由 Runtime 单指针发布、恢复和退役计划及兼容 Bundle。"
       },
       {
@@ -109,7 +109,7 @@
       "C# derived index: 976/976, 100% coverage",
       "zWorkFlow: 7/7 passed"
     ],
-    "verifiedAt": "08/24/2026 07:53:40"
+    "verifiedAt": "2026-08-25T17:48:50-07:00"
   },
   "implementationOutline": [
     "Catalog 在启动事务内读取各表并构建冻结的 PlayableSettlementContentPlan。",

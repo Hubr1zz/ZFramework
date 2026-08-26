@@ -140,9 +140,9 @@
         "guid": "2b17ff3d52628a04b81c7873108ecf6f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
         "line": 1,
-        "fileHash": "69cf60bffe506574d0b201a066170ddfa38c12355ad32fa67d33af3c7f9ae398",
+        "fileHash": "95d5a9f1f37a0723af6f9265d1c7c18519b8f59cd85d1e68d3a43bdf65dfea60",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
         "feature": "验证 OldMaid 内容可达、鬼牌忽略属性加值、多牌总值、重投范围与命运门禁事件。"
       }
     ],
@@ -155,7 +155,7 @@
       "TabletopRandomInteractionTests: 5/5 passed",
       "PlayableSettlementEventViewPlayModeTests: 1/1 passed"
     ],
-    "verifiedAt": "2026-08-25T16:34:28-07:00"
+    "verifiedAt": "2026-08-25T17:48:50-07:00"
   },
   "implementationOutline": [
     "阶段 ActionQueue 从执行环境获取统一随机表现端口，并在规则提交前等待结果。",

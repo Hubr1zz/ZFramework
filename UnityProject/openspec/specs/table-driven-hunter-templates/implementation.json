@@ -24,9 +24,9 @@
         "guid": "89da669e4924d43409fe89475adc272b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
         "line": 91,
-        "fileHash": "96511ecf04652d9a8dbbed027e3dfac086ce9693d851645858eda3f39cf2fb96",
+        "fileHash": "b488480f32866386873081eafac2b7d7b095f85da700ef579d14d24e9fcd2aaf",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
         "feature": "在玩法开始前把序列化猎人表装入冻结内容计划，并由内容所有权租约管理动态模板生命周期。"
       },
       {
@@ -107,7 +107,7 @@
       "PlayableSettlementCareActionTests: 11/11 passed",
       "CampaignSaveStorageTests: 13/13 passed"
     ],
-    "verifiedAt": "2026-08-25T14:19:35-07:00"
+    "verifiedAt": "2026-08-25T17:48:50-07:00"
   },
   "implementationOutline": [
     "内容 Adapter 把 JSON 记录映射为普通 HunterData，并在发布冻结计划前完成身份、属性和装备规则校验。",

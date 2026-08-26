@@ -15,6 +15,21 @@ namespace HuntingInDarkness.Adapter.Tests
     {
         private const string OutskirtsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/StoneForestOutskirts.asset";
         private const string MarshPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/SunkenFungalMarsh.asset";
+        private const string SymptomCatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Symptoms/PlayableSymptomCatalog.asset";
+
+        [SetUp]
+        public void SetUp()
+        {
+            PlayableSymptomRuntime.Configure(AssetDatabase.LoadAssetAtPath<PlayableSymptomCatalog>(SymptomCatalogPath));
+            PlayableEventTableRuntime.ClearCache();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            PlayableEventTableRuntime.ClearCache();
+            PlayableSymptomRuntime.Configure(null);
+        }
 
         [Test]
         public void RouteContent_ProvidesReusableHuntChoiceEvents()

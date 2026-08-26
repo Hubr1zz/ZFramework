@@ -354,6 +354,185 @@
       "maxYear": 0,
       "drawWeight": 1,
       "category": "Random"
+    },
+    {
+      "id": "random_muffled_knock",
+      "eventName": "桌下的叩响",
+      "eventType": "Choice",
+      "displayText": "午夜后，资源桌下传来规律的三次叩响。每当有人俯身查看，声音就会转移到他的床铺下面。",
+      "hiddenText": "天亮后，桌腿上多出三道向内凹陷的指印。没人承认自己在夜里敲过桌子。",
+      "options": [
+        {
+          "optionText": "用带有安静词条的装备包住桌腿，听清声音来源",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "柔软的包裹吞掉了杂音，只剩一阵来自地下的微弱呼吸。你们及时离开，并记住了它的位置。知识 +1。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "quiet", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "守在桌边直到声音停止",
+          "checkType": "Courage",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在守夜猎人的床铺旁投掷一枚 d10",
+          "successText": "叩响在黎明前停下。守夜者没有睡着，却证明了声音无法把自己拖进桌下。胆识 +1。",
+          "successEffects": [
+            { "effectType": "AddCourage", "targetName": "selected", "value": 1, "description": "胆识 +1" }
+          ],
+          "failText": "守夜者最终睡着，并在梦里听见那三次叩响从自己的胸腔里传出。他染上了夜惊。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_night_terrors", "value": 1, "description": "获得症状：夜惊" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "把资源桌移到营火另一侧",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "叩响没有追过来。至少这一夜，所有人都能继续休息。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Random"
+    },
+    {
+      "id": "random_sealed_store",
+      "eventName": "封死的储藏洞",
+      "eventType": "Choice",
+      "displayText": "工坊地面在夜里塌出一个狭窄洞口。里面堆着完整石料，但石壁正一点点向内合拢。",
+      "hiddenText": "洞口重新封闭后，石面上留下了一圈像牙齿咬合的白痕。",
+      "options": [
+        {
+          "optionText": "让理解石头的猎人判断洞壁收拢的节奏",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "猎人听懂了石壁摩擦的间隙，带回两份碎石后安全退出。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasTrait", "key": "trait_stone_speaker", "displayName": "石语者", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "撑住洞壁，尽快拖出石料",
+          "checkType": "Strength",
+          "checkTarget": 5,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 6,
+          "checkInstruction": "在进入洞穴的猎人旁投掷一枚 d6",
+          "successText": "石壁合拢前，猎人带回一份碎石。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 1, "description": "碎石 +1" }
+          ],
+          "failText": "洞壁没有夹住猎人，但狭窄黑暗从此留在他的呼吸里。他染上了幽闭恐惧。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_claustrophobia", "value": 1, "description": "获得症状：幽闭恐惧" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "封住洞口，不冒险取走石料",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "石壁在土层下继续摩擦，但没有人被留在里面。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    },
+    {
+      "id": "random_whispering_mortar",
+      "eventName": "墙缝里的配方",
+      "eventType": "Choice",
+      "displayText": "工坊墙缝整夜念着一张不存在的配方。它准确说出每份材料的重量，却始终不肯说成品是什么。",
+      "hiddenText": "低语停止时，墙灰里留下了一枚舌头形状的黑盐晶。",
+      "options": [
+        {
+          "optionText": "佩戴带有守护词条的装备记录配方",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "护符隔开了低语的诱导。猎人只记下有用部分，并从墙灰中取出一份黑盐。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" },
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "ward", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "从配方牌中翻出缺失的最后一张",
+          "checkType": "Understanding",
+          "checkTarget": 6,
+          "checkPresentation": "FlipCards",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "whispering-recipe",
+          "checkInstruction": "翻开一张盖在墙灰上的配方牌",
+          "successText": "最后一张牌是空白的。猎人意识到配方本身就是诱饵，并及时停止倾听。知识 +1。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
+          ],
+          "failText": "牌面写着猎人的名字。从那以后，低语即使离开墙缝也会跟着他。他染上了低语症。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_whisper_sickness", "value": 1, "description": "获得症状：低语症" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "用泥封住墙缝",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "配方被封在墙里。也许它仍在继续念，只是营地暂时听不见了。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 3,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
     }
   ]
 }

@@ -5,11 +5,28 @@ using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
+using UnityEditor;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableConditionalEventOptionTests
     {
+        private const string SymptomCatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Symptoms/PlayableSymptomCatalog.asset";
+
+        [SetUp]
+        public void SetUp()
+        {
+            PlayableSymptomRuntime.Configure(AssetDatabase.LoadAssetAtPath<PlayableSymptomCatalog>(SymptomCatalogPath));
+            PlayableEventTableRuntime.ClearCache();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            PlayableEventTableRuntime.ClearCache();
+            PlayableSymptomRuntime.Configure(null);
+        }
+
         [Test]
         public void TableContent_ProvidesGuardedWatcherOption()
         {

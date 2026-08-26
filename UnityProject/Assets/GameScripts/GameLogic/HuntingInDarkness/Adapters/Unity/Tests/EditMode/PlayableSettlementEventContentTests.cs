@@ -6,16 +6,30 @@ using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableSettlementEventContentTests
     {
         private const string CatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/PlayableSettlementContentCatalog.asset";
+        private const string SymptomCatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Symptoms/PlayableSymptomCatalog.asset";
         private static readonly MethodInfo resetSettlementContentRuntimeMethod = typeof(PlayableSettlementContentRuntime).GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
 
+        [SetUp]
+        public void SetUp()
+        {
+            PlayableSymptomRuntime.Configure(AssetDatabase.LoadAssetAtPath<PlayableSymptomCatalog>(SymptomCatalogPath));
+            PlayableEventTableRuntime.ClearCache();
+        }
+
         [TearDown]
-        public void TearDown() => resetSettlementContentRuntimeMethod.Invoke(null, null);
+        public void TearDown()
+        {
+            resetSettlementContentRuntimeMethod.Invoke(null, null);
+            PlayableEventTableRuntime.ClearCache();
+            PlayableSymptomRuntime.Configure(null);
+        }
 
         [Test]
         public void Timeline_WithAlternatives_DoesNotRepeatMostRecentRandomEvent()
@@ -75,6 +89,20 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(manager.Timeline.RandomEventPool.Exists(gameEvent => gameEvent != null && gameEvent.options.Exists(option => option != null && option.checkType != CheckType.None && option.successEffects.Count > 0 && option.failEffects.Count > 0)), Is.True);
             foreach (EventData gameEvent in manager.Timeline.RandomEventPool)
                 Assert.That(gameEvent.options == null || gameEvent.options.TrueForAll(option => option != null && !string.IsNullOrWhiteSpace(option.optionText)), Is.True);
+        }
+
+        [Test]
+        public void CompatibilityApplyTo_RejectsMissingSymptomDependencyWithoutPartialEventPool()
+        {
+            PlayableSettlementContentCatalog catalog = AssetDatabase.LoadAssetAtPath<PlayableSettlementContentCatalog>(CatalogPath);
+            var manager = new SettlementManager(1);
+            PlayableSymptomRuntime.Configure(null);
+            LogAssert.Expect(LogType.Error, "[SettlementManager] 兼容 ApplyTo 必须先安装症状内容目录。");
+
+            bool applied = catalog.ApplyTo(manager);
+
+            Assert.That(applied, Is.False);
+            Assert.That(manager.Timeline.RandomEventPool, Is.Empty);
         }
 
         [Test]

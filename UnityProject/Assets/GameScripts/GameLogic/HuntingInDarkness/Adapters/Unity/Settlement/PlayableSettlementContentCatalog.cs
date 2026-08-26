@@ -64,6 +64,11 @@ namespace HuntingInDarkness.Settlement
                 Debug.LogError("[SettlementManager] 已发布的营地内容属于另一目录，兼容 ApplyTo 不允许替换活动战役世代。");
                 return false;
             }
+            if (PlayableSymptomRuntime.Catalog?.IsConfigured != true)
+            {
+                Debug.LogError("[SettlementManager] 兼容 ApplyTo 必须先安装症状内容目录。");
+                return false;
+            }
             PlayableEventTableRuntime.GetEvents();
             if (!TryPreparePlan(PlayableEventTableRuntime.CurrentGeneration, out PlayableSettlementContentPlan replacement, out string reason))
             {

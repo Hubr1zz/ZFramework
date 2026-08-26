@@ -68,9 +68,9 @@
         "guid": "2a32e230eed309144a69d91ec3f752f4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
         "line": 297,
-        "fileHash": "b6907c6a4ea7b2b885b864697fecb5ef735565753e4407c05560eae4cac1d4eb",
+        "fileHash": "087ecafcad033f8081834cdc8f6c22492fc2f475231e224fe6c0f6a3f80c3a1d",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
         "feature": "营地事件以稳定物品 ID 配置资源奖励；缠命之结仍按命运阈值提供安全或高风险分支。"
       },
       {
@@ -86,9 +86,9 @@
         "guid": "2b17ff3d52628a04b81c7873108ecf6f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
         "line": 125,
-        "fileHash": "69cf60bffe506574d0b201a066170ddfa38c12355ad32fa67d33af3c7f9ae398",
+        "fileHash": "95d5a9f1f37a0723af6f9265d1c7c18519b8f59cd85d1e68d3a43bdf65dfea60",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
         "feature": "验证命运互斥分支和事件事务，并按稳定 black_salt ID 观察营地奖励。"
       },
       {
@@ -104,18 +104,18 @@
         "guid": "6a052d984b59f624f9a084bb3ee4204f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
         "line": 1,
-        "fileHash": "4836dcd4120500660edb4925d5fbc4aedbab2e08713fd3098e6e3bf58c6edd0d",
+        "fileHash": "937efeb8424d9b696755d0eabf443eb70d52c288a3eba1a4b563119506a6884d",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:34:28-07:00",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
         "feature": "共享狩猎事件只以注册资源的稳定 ID 声明携带物奖励。"
       },
       {
         "guid": "a3e860c15c7c4aa4d9f7bcb6461bc06b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEventContentTests.cs",
         "line": 80,
-        "fileHash": "e3160582c53c4900a6f2803894df3fddc42afa8be6265d6ec60e31690b0f61a1",
+        "fileHash": "32ea4383a94d05e222df4034ee4518ae0d67e0a0d421328e846d3b9b07367f14",
         "status": "verified",
-        "checkedAt": "2026-08-25T16:34:28-07:00",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
         "feature": "合并全部正式事件来源后逐项证明 AddResource 目标可解析且等于 ItemData.ContentId。"
       }
     ],
@@ -127,11 +127,11 @@
       "EventOptionAvailabilityRulesTests: 5/5 passed",
       "PlayableConditionalEventOptionTests: 12/12 passed",
       "PlayableEventTableCacheLifecycleTests: 5/5 passed",
-      "PlayableSettlementEventContentTests: 3/3 passed",
+      "PlayableSettlementEventContentTests: 4/4 passed",
       "PlayableHuntEventFlowTests: 10/10 passed",
       "PlayableHuntActionSessionTests: 21/21 passed"
     ],
-    "verifiedAt": "2026-08-25T16:34:28-07:00"
+    "verifiedAt": "2026-08-25T17:48:50-07:00"
   },
   "implementationOutline": [
     "Playable bootstrap 始终安装共享 PlayableSettlementEventView，不受旧 HUD 开关控制。",

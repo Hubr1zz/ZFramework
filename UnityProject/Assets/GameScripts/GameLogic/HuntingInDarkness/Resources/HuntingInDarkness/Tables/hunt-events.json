@@ -195,6 +195,227 @@
       "maxYear": 0,
       "drawWeight": 2,
       "category": "Hunt"
+    },
+    {
+      "id": "hunt_fleeing_shadow",
+      "eventName": "逃走的影子",
+      "eventType": "Choice",
+      "displayText": "队伍的影子忽然少了一道。它脱离主人，沿石坡向一处发着盐光的裂缝逃去。",
+      "hiddenText": "被抓回来的影子比原来更长了一截，仿佛还有别的东西躲在里面。",
+      "options": [
+        {
+          "optionText": "让带有守望者词条的猎人盯住真正的裂缝",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "猎人没有追逐影子，而是封住它最终想进入的裂缝，并取走一份黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "watcher", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "追上逃走的影子",
+          "checkType": "Evasion",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在追逐者与影子之间投掷一枚 d10",
+          "successText": "猎人在影子钻入裂缝前踩住了它。影子重新贴回脚下，没有留下伤口。",
+          "successEffects": [],
+          "failText": "影子回来了，但猎人此后总会看见视野边缘有什么东西逃走。他染上了逐影。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_shadow_fixation", "value": 1, "description": "获得症状：逐影" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "不追，让队伍远离裂缝",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "影子在远处停了一会儿，最终自行回到主人脚下。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_breathing_quarry",
+      "eventName": "会呼吸的采石坑",
+      "eventType": "Choice",
+      "displayText": "废弃采石坑每隔十次呼吸便喷出一阵白灰。坑底散落着尚未风化的黑盐晶。",
+      "hiddenText": "离开后，猎人仍能感觉到采石坑在远处与自己的胸腔同时起伏。",
+      "options": [
+        {
+          "optionText": "用安静的装备过滤石灰，等待喷息间隙采集",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "裹衣吸住了最细的粉尘。队伍在下一次喷息前取走两份黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 2, "description": "黑盐 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "quiet", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "屏住呼吸冲到坑底",
+          "checkType": "Strength",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在采集者旁投掷一枚 d10",
+          "successText": "采集者在喷息前返回，带回一份黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "白灰灌入肺部。从此每次深呼吸都像吞下一把碎石。他染上了石肺。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_stone_lung", "value": 1, "description": "获得症状：石肺" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "标记采石坑后绕行",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "白灰在身后继续喷涌，没有进入任何人的肺。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_glasswing_nest",
+      "eventName": "玻璃翅巢",
+      "eventType": "Choice",
+      "displayText": "一团透明薄翅贴在岩壁上。每当手靠近，它们便震出足以让指骨发麻的尖鸣。",
+      "hiddenText": "薄翅被风吹散后，岩壁上露出几道像手指反复抓挠留下的划痕。",
+      "options": [
+        {
+          "optionText": "翻开一张共振牌，寻找薄翅同时静止的瞬间",
+          "checkType": "Understanding",
+          "checkTarget": 6,
+          "checkPresentation": "FlipCards",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "glasswing-resonance",
+          "checkInstruction": "从岩壁前翻开一张共振牌",
+          "successText": "所有薄翅同时静止了一瞬。猎人取下其中包裹的一份回声筋腱。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "echo_sinew", "value": 1, "description": "回声筋腱 +1" }
+          ],
+          "failText": "尖鸣沿手臂钻进骨头。离开巢穴后，猎人的双手仍无法停止颤抖。他染上了手颤。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_trembling_hands", "value": 1, "description": "获得症状：手颤" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "用石块从远处击散薄翅",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "薄翅碎成无害的透明粉末。队伍没有得到材料，也没有让尖鸣靠近。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 3,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_warm_carcass",
+      "eventName": "仍温热的空壳",
+      "eventType": "Choice",
+      "displayText": "一具没有内脏的兽壳横在路中，血却仍从空洞里持续涌出。血流绕开所有石块，主动靠近队伍。",
+      "hiddenText": "兽壳最终冷却时，血流在地上拼出了一个不属于任何猎人的名字。",
+      "options": [
+        {
+          "optionText": "让带有仪式词条的猎人用黑盐截断血流",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "盐晶吸住了血。猎人从空壳边缘取下一份仍有用途的柔软器官。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "soft_organ", "value": 1, "description": "柔软器官 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "ritual", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "从血流中抽一张脉动的牌",
+          "checkType": "Courage",
+          "checkTarget": 6,
+          "checkPresentation": "OldMaid",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "warm-carcass",
+          "checkInstruction": "从血流中央抽取一张仍在跳动的牌；避开空壳鬼牌",
+          "successText": "猎人抽到了一张完整器官牌，并从空壳中取出一份柔软器官。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "soft_organ", "value": 1, "description": "柔软器官 +1" }
+          ],
+          "failText": "空壳鬼牌贴上猎人的手掌。血流退去后，他仍渴望靠近下一处伤口。他染上了血热。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_blood_fever", "value": 1, "description": "获得症状：血热" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "绕开空壳，不触碰血流",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "血流追出几步便停下了。队伍没有获得材料，也没有带走它的饥饿。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 3,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
     }
   ]
 }

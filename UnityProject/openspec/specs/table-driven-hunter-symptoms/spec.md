@@ -56,3 +56,12 @@ title: "读表猎人症状内容"
 
 - **WHEN** 3D 症状面板提交有效选择
 - **THEN** Settlement Runner SHALL 提交意志、进度与派生特性变化，并由 View 只读刷新结果
+
+### Requirement: Production events exercise configured symptoms
+
+基础营地与狩猎随机池 SHALL 以稳定 ID 提供获得表中症状的可玩失败路径；每个此类事件 SHALL 同时提供至少一个不强迫玩家承担症状风险的保底选项，并 MAY 通过装备或特性关键词提供更优解。
+
+#### Scenario: A hunter fails a tabletop event check
+
+- **WHEN** 物理骰子、翻牌或抽鬼牌结果未通过事件判定
+- **THEN** 当前阶段 Runner SHALL 在同一事件 root 中幂等登记配置症状，并由既有 3D 结果确认流程展示变化

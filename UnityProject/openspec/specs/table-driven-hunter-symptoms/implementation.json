@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "table-driven-hunter-symptoms",
-  "specHash": "120a16bb18f47ffff2b33ee9b7e7be90cfda5019ceb9b19b37e2da458b72b5bc",
+  "specHash": "53c6e5d25072bebb02819d4c72b0f7a7fef4c894554a3ad9b396dd75f5ad3816",
   "title": "读表猎人症状内容",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "正式症状目录从版本化 JSON 表构建只读定义，拒绝身份、别名与成长参数冲突；8 项基础症状继续复用既有 GameCore、Settlement ActionQueue 和 3D 症状卡流程，派生内化/克服特性在战役内容发布前统一预检。",
-    "validatedAgainstSpecHash": "120a16bb18f47ffff2b33ee9b7e7be90cfda5019ceb9b19b37e2da458b72b5bc",
+    "summary": "正式症状目录从版本化 JSON 表构建 8 项只读定义；营地与狩猎表新增 7 个可达症状事件并保留安全选项和装备词条优解，兼容装载缺少症状目录时 fail-closed，继续复用 GameCore、玩法 ActionQueue 与 3D 随机交互。",
+    "validatedAgainstSpecHash": "53c6e5d25072bebb02819d4c72b0f7a7fef4c894554a3ad9b396dd75f5ad3816",
     "evidence": [
       {
         "guid": "3d8bf0f4bbaa421bb9e08127d9f39dc2",
@@ -64,26 +64,70 @@
         "status": "verified",
         "checkedAt": "2026-08-25T17:24:23-07:00",
         "feature": "验证正式表源、8 项内容、旧别名稳定解析、重复引用拒绝与存档往返。"
+      },
+      {
+        "guid": "2a32e230eed309144a69d91ec3f752f4",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
+        "line": 1,
+        "fileHash": "087ecafcad033f8081834cdc8f6c22492fc2f475231e224fe6c0f6a3f80c3a1d",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
+        "feature": "以三个营地随机事件提供夜惊、幽闭恐惧与低语症的可达获取路径，并保留安全退出与词条优解。"
+      },
+      {
+        "guid": "6a052d984b59f624f9a084bb3ee4204f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
+        "line": 1,
+        "fileHash": "937efeb8424d9b696755d0eabf443eb70d52c288a3eba1a4b563119506a6884d",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
+        "feature": "以四个狩猎事件提供逐影、石肺、手颤与血热的物理骰子、翻牌或抽鬼牌获取路径。"
+      },
+      {
+        "guid": "89da669e4924d43409fe89475adc272b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
+        "line": 1,
+        "fileHash": "b488480f32866386873081eafac2b7d7b095f85da700ef579d14d24e9fcd2aaf",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
+        "feature": "兼容 ApplyTo 在症状目录未安装时拒绝发布，避免静默丢弃依赖症状的事件后形成部分事件池。"
+      },
+      {
+        "guid": "11ee7b6f9e71a1f45a996a6e6b598eb5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventSymptomAcquisitionTests.cs",
+        "line": 1,
+        "fileHash": "51a9105b733c1fa83dd3e59a211d3ea018749b57cf68b3a40a34e564f1d4b1b9",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:48:50-07:00",
+        "feature": "逐项证明七个扩展症状稳定 ID 均被正式营地或狩猎事件表的 AddAilment 效果覆盖。"
       }
     ],
     "tests": [
-      "Symptom-related EditMode tests: 21/21 passed",
+      "PlayableEventSymptomAcquisitionTests: 12/12 passed",
+      "PlayableConditionalEventOptionTests: 12/12 passed",
+      "PlayableHuntEventFlowTests: 10/10 passed",
+      "PlayableSettlementEventContentTests: 4/4 passed",
+      "PlayableEventTableCacheLifecycleTests: 5/5 passed",
+      "PlayableCampaignPacingTests: 9/9 passed",
       "PlayableCampaignContentAssemblerTests: 14/14 passed",
-      "PlayableTraitIdentityTests: 5/5 passed"
+      "Targeted symptom event milestone: 66/66 passed"
     ],
-    "verifiedAt": "2026-08-25T17:24:23-07:00"
+    "verifiedAt": "2026-08-25T17:48:50-07:00"
   },
   "implementationOutline": [
     "PlayableSymptomTable 负责版本、身份、别名和成长参数校验，并只向目录返回只读配置集合。",
     "PlayableSymptomCatalog 保持既有 ISettlementSymptomContent 接口，使事件、ActionQueue 和 3D View 无需了解 JSON。",
     "正式目录资产明确引用 symptoms.json，已配置表失败时不回落到陈旧内嵌数据。",
-    "跨表预检保证每项症状的内化与克服结果都能解析为已登记稳定特性。"
+    "跨表预检保证每项症状的内化与克服结果都能解析为已登记稳定特性。",
+    "七个正式事件在营地或狩猎玩法根中通过 AddAilment 取得扩展症状，并为玩家保留安全选择与装备词条优解。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableSymptomTable.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSymptomCatalog.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/symptoms.json:1",
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/traits.json:1"
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/traits.json:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json:1"
   ],
   "publishedBy": {
     "mode": "direct-implementation-reconciliation",
