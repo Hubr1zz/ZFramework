@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Core;
 using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.Data;
@@ -260,6 +261,88 @@ namespace HuntingInDarkness.Adapter.Tests
             }
             finally
             {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void ChoiceCommitStandalone_MergesSelectedChainBeforeEventChain()
+        {
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 8127) { Name = "链路验证者" };
+            settlement.Hunters.Add(hunter);
+            var gameEvent = ScriptableObject.CreateInstance<EventData>();
+            var successChild = ScriptableObject.CreateInstance<EventData>();
+            var failureChild = ScriptableObject.CreateInstance<EventData>();
+            var eventChild = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "choice-chain-order";
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption
+            {
+                optionText = "选择链路",
+                checkType = CheckType.Understanding,
+                checkTarget = 8,
+                successChain = new List<EventData> { successChild },
+                failChain = new List<EventData> { failureChild }
+            });
+            gameEvent.chainedEvents.Add(eventChild);
+
+            try
+            {
+                var eventSystem = new EventSystem(settlement, new SequenceRandom(0));
+                PlayableEventCommitResult success = eventSystem.PrepareChoice(gameEvent, 0, hunter, 10).CommitStandalone();
+                Assert.That(success.Result.Success, Is.True);
+                Assert.That(success.ChainedEvents, Has.Count.EqualTo(2));
+                Assert.That(success.ChainedEvents[0], Is.SameAs(successChild));
+                Assert.That(success.ChainedEvents[1], Is.SameAs(eventChild));
+                Assert.That(success.ChainedEvents.Contains(failureChild), Is.False);
+
+                PlayableEventCommitResult failure = eventSystem.PrepareChoice(gameEvent, 0, hunter, 1).CommitStandalone();
+                Assert.That(failure.Result.Success, Is.False);
+                Assert.That(failure.ChainedEvents, Has.Count.EqualTo(2));
+                Assert.That(failure.ChainedEvents[0], Is.SameAs(failureChild));
+                Assert.That(failure.ChainedEvents[1], Is.SameAs(eventChild));
+                Assert.That(failure.ChainedEvents.Contains(successChild), Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(eventChild);
+                Object.DestroyImmediate(failureChild);
+                Object.DestroyImmediate(successChild);
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void ChoiceCommitStandalone_DeduplicatesSharedEventChainReference()
+        {
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 8128) { Name = "重复链路验证者" };
+            settlement.Hunters.Add(hunter);
+            var gameEvent = ScriptableObject.CreateInstance<EventData>();
+            var sharedChild = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "choice-chain-duplicate";
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption
+            {
+                optionText = "合并重复链路",
+                checkType = CheckType.Understanding,
+                checkTarget = 8,
+                successChain = new List<EventData> { sharedChild }
+            });
+            gameEvent.chainedEvents.Add(sharedChild);
+
+            try
+            {
+                PlayableEventCommitResult result = new EventSystem(settlement, new SequenceRandom(0)).PrepareChoice(gameEvent, 0, hunter, 10).CommitStandalone();
+
+                Assert.That(result.Result.Success, Is.True);
+                Assert.That(result.ChainedEvents, Has.Count.EqualTo(1));
+                Assert.That(result.ChainedEvents[0], Is.SameAs(sharedChild));
+            }
+            finally
+            {
+                Object.DestroyImmediate(sharedChild);
                 Object.DestroyImmediate(gameEvent);
             }
         }

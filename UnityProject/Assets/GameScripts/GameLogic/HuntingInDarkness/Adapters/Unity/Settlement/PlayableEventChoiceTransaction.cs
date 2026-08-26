@@ -164,7 +164,19 @@ namespace HuntingInDarkness.Settlement
             };
             IReadOnlyList<EventData> chain = System.Array.Empty<EventData>();
             if (!campaignEnded)
-                chain = success ? option.successChain : option.failChain;
+            {
+                var resolvedChain = new List<EventData>();
+                IReadOnlyList<EventData> optionChain = success ? option.successChain : option.failChain;
+                if (optionChain != null)
+                    foreach (EventData chainedEvent in optionChain)
+                        if (chainedEvent != null)
+                            resolvedChain.Add(chainedEvent);
+                if (gameEvent.chainedEvents != null)
+                    foreach (EventData chainedEvent in gameEvent.chainedEvents)
+                        if (chainedEvent != null && !resolvedChain.Contains(chainedEvent))
+                            resolvedChain.Add(chainedEvent);
+                chain = resolvedChain;
+            }
             return new PlayableEventCommitResult(result, chain, encounterIds, result.EffectResults);
         }
 

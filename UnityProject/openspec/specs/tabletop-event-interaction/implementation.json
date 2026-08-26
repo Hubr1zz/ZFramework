@@ -7,7 +7,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "营地与狩猎事件共用世界空间 3D 卡牌输入端口；命运条件与资源奖励都由表声明，奖励使用稳定物品 ID，并由阶段 ActionQueue 写入对应库存。",
+    "summary": "营地与狩猎事件共用世界空间 3D 卡牌输入端口；正式日程事件已通过安全选择与实体 d10 风险选择的生产装配路径验证，规则提交仍由阶段 ActionQueue 持有。",
     "validatedAgainstSpecHash": "126b72105995738c1b9f958d9450dd961b483b3aea748a41f554e4dcd0111648",
     "evidence": [
       {
@@ -117,6 +117,15 @@
         "status": "verified",
         "checkedAt": "2026-08-25T19:04:43-07:00",
         "feature": "合并全部正式事件来源后逐项证明 AddResource 目标可解析且等于 ItemData.ContentId。"
+      },
+      {
+        "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+        "line": 1,
+        "fileHash": "b68a8fe8540145551b44a4b32260a28e518bc3ae7bc373b2b7bc17e22f7eade5",
+        "status": "verified",
+        "checkedAt": "2026-08-26T04:42:56-07:00",
+        "feature": "以正式设置和内容装配驱动真实世界空间事件卡；安全路线完成子链，风险路线提交 PhysicalDice 1d10 请求。"
       }
     ],
     "tests": [
@@ -129,9 +138,10 @@
       "PlayableEventTableCacheLifecycleTests: 5/5 passed",
       "PlayableSettlementEventContentTests: 4/4 passed",
       "PlayableHuntEventFlowTests: 10/10 passed",
-      "PlayableHuntActionSessionTests: 21/21 passed"
+      "PlayableHuntActionSessionTests: 21/21 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 2/2 passed"
     ],
-    "verifiedAt": "2026-08-25T17:48:50-07:00"
+    "verifiedAt": "2026-08-26T04:42:56-07:00"
   },
   "implementationOutline": [
     "Playable bootstrap 始终安装共享 PlayableSettlementEventView，不受旧 HUD 开关控制。",

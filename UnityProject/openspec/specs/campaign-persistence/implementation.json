@@ -8,7 +8,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "Campaign Adapter 以带校验值的原子封套保存稳定营地或活动狩猎快照；版本门禁覆盖后台、退出和删除，继续战役在内容世代内恢复装备、年度、事件链与待回营检查点。",
+    "summary": "Campaign Adapter 以带校验值的原子封套保存稳定营地或活动狩猎快照；正式日程事件的父子链提交可跨 GameManager 重建恢复为已完成状态，不重放奖励并允许继续出猎。",
     "validatedAgainstSpecHash": "ca9163e9c69d9baa50b149cbbca8627bdb77426a15c08bdf7506347399a82508",
     "evidence": [
       {
@@ -100,6 +100,15 @@
         "status": "verified",
         "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "覆盖回营幂等、事件检查点、事件链恢复、失败保留，以及重投取消后已提交资源事实的保留。"
+      },
+      {
+        "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+        "line": 1,
+        "fileHash": "b68a8fe8540145551b44a4b32260a28e518bc3ae7bc373b2b7bc17e22f7eade5",
+        "status": "verified",
+        "checkedAt": "2026-08-26T04:42:56-07:00",
+        "feature": "以 Memory Campaign Persistence 验证正式日程父子链完成后的保存、GameManager 重建、不重放与下一次出猎。"
       }
     ],
     "tests": [
@@ -109,9 +118,10 @@
       "SettlementEventRestoreProjectionTests: 13/13 passed",
       "ActiveHuntPersistenceTests: 4/4 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed",
-      "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
+      "GameManagerCampaignLoopPlayModeTests: 14/14 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 2/2 passed"
     ],
-    "verifiedAt": "2026-08-25T16:17:48-07:00"
+    "verifiedAt": "2026-08-26T04:42:56-07:00"
   },
   "implementationOutline": [
     "GameManager 只在阶段 runner 提交或空闲检查点后冻结 CampaignSnapshot，View 不接触文件系统。",

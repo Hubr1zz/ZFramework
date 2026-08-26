@@ -24,9 +24,9 @@
         "guid": "b53d54014d826bd4fb6897de7a6c4c83",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
         "line": 1,
-        "fileHash": "f9eb7335c28666b7f4679ef5315b248e4f24f37db2010aeaed8a4bbd24c28030",
+        "fileHash": "57d82acfc38f948c7c0fa1e7c72d206733dda347e08467b74d13edc2529f8a44",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "checkedAt": "2026-08-26T04:42:56-07:00",
         "feature": "从当前猎人的权威装备、特性和症状解析条件关键词，并在事件事务中提交效果。"
       },
       {
@@ -52,7 +52,7 @@
       "PlayableItemTableTests: 8/8 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
     ],
-    "verifiedAt": "2026-08-25T15:30:16-07:00"
+    "verifiedAt": "2026-08-26T04:42:56-07:00"
   },
   "implementationOutline": [
     "PlayableItemTable 将外部记录转换为现有 ItemData，不改变装备、事件或 View 命令契约。",

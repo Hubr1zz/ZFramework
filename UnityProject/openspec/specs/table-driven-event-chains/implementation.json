@@ -8,7 +8,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "事件表以稳定 ID 合并并绑定直接、成功和失败分支，错误引用在发布前传递拒绝；Settlement 与 Hunt Runner 以独立 occurrence 顺序执行子链，生产 Hunt 子链可跨活动狩猎存档从绑定路线继续。",
+    "summary": "事件表以稳定 ID 合并并绑定事件级、成功和失败分支；选择提交按分支专属子链在前、事件级子链在后的稳定顺序合并，Settlement 与 Hunt Runner 再以独立 occurrence 顺序执行并恢复。",
     "validatedAgainstSpecHash": "7f22b4222d6a0e7796221f56526be38ac587937a54c5ceaf47b545ec3d8fa302",
     "evidence": [
       {
@@ -100,6 +100,33 @@
         "status": "verified",
         "checkedAt": "2026-08-25T21:33:00-07:00",
         "feature": "验证生产父事件提交后子 occurrence 继承坐标、年份、行动者与祖先，并可经 JSON 检查点恢复后排空。"
+      },
+      {
+        "guid": "b53d54014d826bd4fb6897de7a6c4c83",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
+        "line": 126,
+        "fileHash": "57d82acfc38f948c7c0fa1e7c72d206733dda347e08467b74d13edc2529f8a44",
+        "status": "verified",
+        "checkedAt": "2026-08-26T04:42:56-07:00",
+        "feature": "选择事务按所选成功或失败子链在前、事件级子链在后的顺序合并，跳过空项，并避免分支链与事件级链共享的同一运行时引用重复入队。"
+      },
+      {
+        "guid": "641e5f346f979c84ca60893c2f2e7c33",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventChoiceTransactionTests.cs",
+        "line": 1,
+        "fileHash": "c670daf10bb0b04870078c20d4e0272bb228f910acac0f4e0cfceb5f55be4c76",
+        "status": "verified",
+        "checkedAt": "2026-08-26T04:42:56-07:00",
+        "feature": "覆盖成功与失败分支的合并顺序、排除未选择分支，以及共享事件引用不重复入队。"
+      },
+      {
+        "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+        "line": 1,
+        "fileHash": "b68a8fe8540145551b44a4b32260a28e518bc3ae7bc373b2b7bc17e22f7eade5",
+        "status": "verified",
+        "checkedAt": "2026-08-26T04:42:56-07:00",
+        "feature": "经正式装配与世界空间 3D 卡牌验证日程事件的父子链完成、存档恢复不重放，以及后续真实出猎入口。"
       }
     ],
     "tests": [
@@ -108,11 +135,12 @@
       "PlayableHuntEventOccurrenceStoreTests: 13/13 passed",
       "PlayableConditionalEventOptionTests: 12/12 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed",
-      "PlayableEventChoiceTransactionTests: 6/6 passed",
+      "PlayableEventChoiceTransactionTests: 10/10 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 2/2 passed",
       "Unity CLI targeted Hunt event and persistence cluster: 69/69 passed",
       "C# derived index: 994/994, 100% coverage"
     ],
-    "verifiedAt": "2026-08-25T21:33:00-07:00"
+    "verifiedAt": "2026-08-26T04:42:56-07:00"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 在共享事件世代完成合并后校验并绑定事件级、成功与失败分支，错误依赖传递拒绝。",

@@ -33,9 +33,9 @@
         "guid": "b53d54014d826bd4fb6897de7a6c4c83",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
         "line": 112,
-        "fileHash": "f9eb7335c28666b7f4679ef5315b248e4f24f37db2010aeaed8a4bbd24c28030",
+        "fileHash": "57d82acfc38f948c7c0fa1e7c72d206733dda347e08467b74d13edc2529f8a44",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:05:28-07:00",
+        "checkedAt": "2026-08-26T04:42:56-07:00",
         "feature": "选择事务把效果批次连同文字、分支和遭遇作为一次提交结果返回。"
       },
       {
@@ -49,11 +49,11 @@
       }
     ],
     "tests": [
-      "PlayableEventChoiceTransactionTests: 6/6 passed",
+      "PlayableEventChoiceTransactionTests: 10/10 passed",
       "PlayableHuntActionSessionTests: 21/21 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed"
     ],
-    "verifiedAt": "2026-08-25T15:05:28-07:00"
+    "verifiedAt": "2026-08-26T04:42:56-07:00"
   },
   "implementationOutline": [
     "EventSystem 为每个尝试效果创建一项结果并继续收集后续可执行效果。",

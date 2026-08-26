@@ -50,9 +50,9 @@
         "guid": "b53d54014d826bd4fb6897de7a6c4c83",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
         "line": 1,
-        "fileHash": "f9eb7335c28666b7f4679ef5315b248e4f24f37db2010aeaed8a4bbd24c28030",
+        "fileHash": "57d82acfc38f948c7c0fa1e7c72d206733dda347e08467b74d13edc2529f8a44",
         "status": "verified",
-        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "checkedAt": "2026-08-26T04:42:56-07:00",
         "feature": "按配置的牌数与面数验证初投和重投范围，并以鬼牌结果直接决定 OldMaid 成败。"
       },
       {
@@ -149,13 +149,13 @@
     "tests": [
       "PlayableConditionalEventOptionTests: 12/12 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed",
-      "PlayableEventChoiceTransactionTests: 6/6 passed",
+      "PlayableEventChoiceTransactionTests: 10/10 passed",
       "PlayableSettlementSymptomActionTests: 5/5 passed",
       "EventRerollRulesTests: 5/5 passed",
       "TabletopRandomInteractionTests: 5/5 passed",
       "PlayableSettlementEventViewPlayModeTests: 1/1 passed"
     ],
-    "verifiedAt": "2026-08-25T17:48:50-07:00"
+    "verifiedAt": "2026-08-26T04:42:56-07:00"
   },
   "implementationOutline": [
     "阶段 ActionQueue 从执行环境获取统一随机表现端口，并在规则提交前等待结果。",

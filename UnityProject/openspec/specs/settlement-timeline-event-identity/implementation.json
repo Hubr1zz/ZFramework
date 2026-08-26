@@ -6,21 +6,23 @@
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "年度事件继续使用稳定 ContentId 与精确 AnnalEntry；同年季节推进不创建年度 occurrence，真实跨年与重试只恢复同一个持久条目。",
+    "summary": "年度事件继续使用稳定 ContentId 与精确 AnnalEntry；正式日程 occurrence 经 3D 卡牌完成后可靠保存，重建战役不会重放，且不会阻塞下一次真实出猎。",
     "validatedAgainstSpecHash": "b0d6c9fc881615c5e1ba62dad614be59a83d20d110011af4b65e3f40bb7673d3",
     "evidence": [
       { "guid": "4757ebaa320377c4093a0b9ed1c061ec", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/TimelineSystem.cs", "line": 14, "fileHash": "536adb9c94d322cb186a9afc4f3bdd0c0aa242f03911b90daa215eb28bd0673b", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "先提交稳定 HuntRecord 与日历游标，仅在 YearAdvanced 时创建下一年事件条目。" },
       { "guid": "5cb50ad3443a70f45af1ce3608fd42be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs", "line": 40, "fileHash": "e126b8b1ba1503e699eb4d00f375fe79a34a953b27758d183c2b2a8dbaec702f", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "同年只发布季节与完成事实，跨年才把年度事件交给现有恢复投影。" },
-      { "guid": "dcdd404b60960be478da56452bc7b8f3", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignPacingTests.cs", "line": 16, "fileHash": "3ae7f47984d3c30ad4621bb5f559e85602fa001df242e04ab1fc3048d89496f1", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "覆盖同年无年度 occurrence、跨年精确一次、RecordId 重放幂等与迁移不产事件。" }
+      { "guid": "dcdd404b60960be478da56452bc7b8f3", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignPacingTests.cs", "line": 16, "fileHash": "3ae7f47984d3c30ad4621bb5f559e85602fa001df242e04ab1fc3048d89496f1", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "覆盖同年无年度 occurrence、跨年精确一次、RecordId 重放幂等与迁移不产事件。" },
+      { "guid": "9f3f3c95db5b4a7cae536b57f22ea37d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs", "line": 1, "fileHash": "b68a8fe8540145551b44a4b32260a28e518bc3ae7bc373b2b7bc17e22f7eade5", "status": "verified", "checkedAt": "2026-08-26T04:42:56-07:00", "feature": "从预载日程 occurrence 经正式 3D 卡牌完成并保存，重建 GameManager 后确认奖励与事件均不重放。" }
     ],
     "tests": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignPacingTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementTimelineEventIdentityTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs",
-      "Unity CLI targeted EditMode: 78/78 passed"
+      "Unity CLI targeted EditMode: 78/78 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 2/2 passed"
     ],
-    "verifiedAt": "2026-08-26T02:00:00-07:00"
+    "verifiedAt": "2026-08-26T04:42:56-07:00"
   },
   "implementationOutline": [
     "TimelineSystem 继续以 ContentId 创建并解析年度事件，只把创建时机收紧到配置日历的真实年界。",

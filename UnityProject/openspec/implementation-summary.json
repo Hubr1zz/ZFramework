@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "e751d8cf541a8b9ba19aa03dcba275e2c9a7e91876bb1541a8d6745bb405986b",
-  "inputManifestDigest": "18dd7b7265ec5868923ca6816731fd9acf31fe5ce0e0fdbafbaa36fd5138db30",
-  "outputDigest": "c868cc0e93a1bde52d19fb0b401e353eea5adb5803ef305291c695713fd58201",
+  "inputDigest": "edc676937be28d77940cc81c37a1afe5089452c78031442857ab8a2ccb1350eb",
+  "inputManifestDigest": "aaecd220d15a71bdb5545ca0da1ecbaa972612237c8565ba94cb2997b3bfa076",
+  "outputDigest": "f96a2d7f426bb5f316ab4a965183692f31d64c0fb5b884e0533e2974d42315cc",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -347,7 +347,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
-      "sha256": "ccd7813b68756b179cc4a69729b14eaec796104383e79ed1b42d15deae61a4e1",
+      "sha256": "57d82acfc38f948c7c0fa1e7c72d206733dda347e08467b74d13edc2529f8a44",
       "state": "current"
     },
     {
@@ -433,6 +433,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventChainOccurrenceQueueTests.cs",
       "sha256": "6894e3e5520d43ebb7ab3bf5641bfe3389121c935b6fe7d0f21308568b51f558",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventChoiceTransactionTests.cs",
+      "sha256": "c670daf10bb0b04870078c20d4e0272bb228f910acac0f4e0cfceb5f55be4c76",
       "state": "current"
     },
     {
@@ -598,6 +603,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableHuntMapIntroCamera3DTests.cs",
       "sha256": "6f728c21e878fd0f0fdaed93b111b776d8711767c9c4d1090d44450bd4a4b89a",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+      "sha256": "b68a8fe8540145551b44a4b32260a28e518bc3ae7bc373b2b7bc17e22f7eade5",
       "state": "current"
     },
     {
@@ -1032,7 +1042,7 @@
     },
     {
       "path": "openspec/specs/campaign-persistence/implementation.json",
-      "sha256": "6fef296f80d191b1218c0fe0ba7b6c4461a124d23e47418ad92b1d11c7ee65cb",
+      "sha256": "439b29a4601702060ec3960ca1b0bf85a8ba8cae8904f9e6826463baaa1ed242",
       "state": "current"
     },
     {
@@ -1072,7 +1082,7 @@
     },
     {
       "path": "openspec/specs/event-driven-hunter-death/implementation.json",
-      "sha256": "fb6f5a0f00f240515a671bc9e024dddea735a5b18f5fc9e2c8d2829bd60830b0",
+      "sha256": "bab881e3cfc3151b2823900ab603d89201e60c4df9d001593bebb5d960802ba8",
       "state": "current"
     },
     {
@@ -1092,7 +1102,7 @@
     },
     {
       "path": "openspec/specs/event-effect-resolution-reporting/implementation.json",
-      "sha256": "a4aab4acce07f84695d9207e663777a236de71be1b0da055ecf4a2e1c4498415",
+      "sha256": "0b11986792e7a35a440417dd7db1a8609ff2d81fe1f87453acb8628ed83cfd55",
       "state": "current"
     },
     {
@@ -1282,7 +1292,7 @@
     },
     {
       "path": "openspec/specs/settlement-timeline-event-identity/implementation.json",
-      "sha256": "c9fdc4ffb0b8109c4795b73b2d0383cba7806795c6983b0020a30729f8be7992",
+      "sha256": "7e816a0e60167866d37360e2d790d1c85dc7e71cc3e052fd7a4ec06c539b46c2",
       "state": "current"
     },
     {
@@ -1322,7 +1332,7 @@
     },
     {
       "path": "openspec/specs/table-driven-event-chains/implementation.json",
-      "sha256": "a1b68e25c92a6fce802638a06aa3f7dbdf262903ef5410002797576b50c44ab6",
+      "sha256": "e10583ea1793b72e06ae533079e266ed6f32deffd78f8048a4a47ee56c081f72",
       "state": "current"
     },
     {
@@ -1392,7 +1402,7 @@
     },
     {
       "path": "openspec/specs/table-driven-item-keywords/implementation.json",
-      "sha256": "b39338ee67fa7c52d3e4fb32d8cd0cfb01888b37b4e1e3db03583277416321da",
+      "sha256": "2b7aa58d559296c03fd264d76f6d4d9abc07bdfe7eaa9aa72b33f2eb4caf1a4a",
       "state": "current"
     },
     {
@@ -1412,7 +1422,7 @@
     },
     {
       "path": "openspec/specs/tabletop-event-interaction/implementation.json",
-      "sha256": "30b320ca3526f5893ef0efe24361b110c2b4efa453e8181c6aeb4b14ba61f280",
+      "sha256": "f046fd603dd6900ff1b2771b7dbb2a951a2504fe15f5bc4cd0c460f103c2a170",
       "state": "current"
     },
     {
@@ -1522,7 +1532,7 @@
     },
     {
       "path": "openspec/specs/tabletop-random-interaction/implementation.json",
-      "sha256": "1124b49c2cb1883a73543ab0eb26c96220e25407868bbc48e7d4190f4703e810",
+      "sha256": "24055632d848f582f496402bbce751240eaef72d1e05ccd7ce8b9bce32c6ff58",
       "state": "current"
     },
     {
@@ -1777,11 +1787,6 @@
       "state": "stale"
     },
     {
-      "capability": "event-driven-hunter-death",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
-      "state": "stale"
-    },
-    {
       "capability": "event-driven-hunter-symptom-acquisition",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
       "state": "stale"
@@ -1804,11 +1809,6 @@
     {
       "capability": "event-effect-resolution-reporting",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "event-effect-resolution-reporting",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
       "state": "stale"
     },
     {
@@ -2153,11 +2153,6 @@
     },
     {
       "capability": "table-driven-item-keywords",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "table-driven-item-keywords",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
       "state": "stale"
     },
@@ -2229,11 +2224,6 @@
     {
       "capability": "tabletop-random-interaction",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "tabletop-random-interaction",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
       "state": "stale"
     },
     {
@@ -2483,7 +2473,7 @@
       "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "Campaign Adapter 以带校验值的原子封套保存稳定营地或活动狩猎快照；版本门禁覆盖后台、退出和删除，继续战役在内容世代内恢复装备、年度、事件链与待回营检查点。",
+      "summary": "Campaign Adapter 以带校验值的原子封套保存稳定营地或活动狩猎快照；正式日程事件的父子链提交可跨 GameManager 重建恢复为已完成状态，不重放奖励并允许继续出猎。",
       "designSources": [],
       "sources": [
         "openspec/specs/campaign-persistence/spec.md",
@@ -2530,6 +2520,10 @@
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
           "state": "stale"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+          "state": "current"
         }
       ]
     },
@@ -2677,7 +2671,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
@@ -2755,7 +2749,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
@@ -3413,7 +3407,7 @@
       "effectiveStatus": "stale",
       "progress": 0,
       "verificationStatus": "verified",
-      "summary": "年度事件继续使用稳定 ContentId 与精确 AnnalEntry；同年季节推进不创建年度 occurrence，真实跨年与重试只恢复同一个持久条目。",
+      "summary": "年度事件继续使用稳定 ContentId 与精确 AnnalEntry；正式日程 occurrence 经 3D 卡牌完成后可靠保存，重建战役不会重放，且不会阻塞下一次真实出猎。",
       "designSources": [],
       "sources": [
         "openspec/specs/settlement-timeline-event-identity/spec.md",
@@ -3431,6 +3425,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignPacingTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
           "state": "current"
         }
       ]
@@ -3568,7 +3566,7 @@
       "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "事件表以稳定 ID 合并并绑定直接、成功和失败分支，错误引用在发布前传递拒绝；Settlement 与 Hunt Runner 以独立 occurrence 顺序执行子链，生产 Hunt 子链可跨活动狩猎存档从绑定路线继续。",
+      "summary": "事件表以稳定 ID 合并并绑定事件级、成功和失败分支；选择提交按分支专属子链在前、事件级子链在后的稳定顺序合并，Settlement 与 Hunt Runner 再以独立 occurrence 顺序执行并恢复。",
       "designSources": [],
       "sources": [
         "openspec/specs/table-driven-event-chains/spec.md",
@@ -3614,6 +3612,18 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventChoiceTransactionTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
           "state": "current"
         }
       ]
@@ -3961,7 +3971,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
@@ -3994,7 +4004,7 @@
       "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "营地与狩猎事件共用世界空间 3D 卡牌输入端口；命运条件与资源奖励都由表声明，奖励使用稳定物品 ID，并由阶段 ActionQueue 写入对应库存。",
+      "summary": "营地与狩猎事件共用世界空间 3D 卡牌输入端口；正式日程事件已通过安全选择与实体 d10 风险选择的生产装配路径验证，规则提交仍由阶段 ActionQueue 持有。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-event-interaction/spec.md",
@@ -4049,6 +4059,10 @@
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEventContentTests.cs",
           "state": "stale"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+          "state": "current"
         }
       ]
     },
@@ -4408,7 +4422,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
