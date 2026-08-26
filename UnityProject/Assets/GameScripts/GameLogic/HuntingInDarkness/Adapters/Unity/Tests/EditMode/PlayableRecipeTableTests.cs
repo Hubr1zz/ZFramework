@@ -225,6 +225,21 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(settlement.GetStoredEquipment("echo_hook_spear"), Is.EqualTo(1));
         }
 
+        [Test]
+        public void RuntimeTable_ProvidesMushroomFleshPoulticeRecipe()
+        {
+            List<ItemData> items = CreateRuntimeRecipeItems();
+            InventionData tools = CreateInvention("tools", "工具");
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
+            CraftRecipe recipe = FindRecipe(recipes, "培制菌肉敷剂");
+
+            Assert.That(recipe, Is.Not.Null);
+            Assert.That(recipe.outputItem.ContentId, Is.EqualTo("mushroom_flesh_poultice"));
+            Assert.That(recipe.requiredInvention, Is.SameAs(tools));
+            Assert.That(recipe.requiredWorkshopId, Is.EqualTo("medical_workshop"));
+            Assert.That(recipe.ingredients, Has.Count.EqualTo(2));
+        }
+
         private List<ItemData> CreateRuntimeRecipeItems()
         {
             var items = new List<ItemData>(PlayableItemTableRuntime.GetItems())

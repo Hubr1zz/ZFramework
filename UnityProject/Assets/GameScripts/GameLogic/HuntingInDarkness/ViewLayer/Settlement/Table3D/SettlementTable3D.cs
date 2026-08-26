@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Combat;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using UnityEngine;
@@ -87,6 +88,7 @@ namespace UI
         public System.Action<List<HunterInstance>> OnDepartureRequested;
         public System.Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> OnEquipRequested;
         public System.Func<int, int, UniTask<SettlementEquipmentCommandResult>> OnUnequipRequested;
+        public System.Func<int, ItemData, HunterBodyPart, UniTask<SettlementConsumableCommandResult>> OnConsumableRequested;
         public System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> OnCraftRequested;
         public System.Func<InventionData, UniTask<SettlementInventionCommandResult>> OnInventionUnlockRequested;
         public System.Func<PlayableWorkshopDefinition, UniTask<SettlementWorkshopConstructionResult>> OnWorkshopConstructionRequested;
@@ -171,7 +173,7 @@ namespace UI
             if (hunterEquipmentPanel == null)
                 hunterEquipmentPanel = HunterEquipmentPanel3D.Create(transform);
             hunterEquipmentPanel.EnsureBuilt();
-            hunterEquipmentPanel.ConfigureCommands(OnEquipRequested, OnUnequipRequested, ShowHunterRecovery, ShowHunterAdvancement, ShowHunterSymptoms);
+            hunterEquipmentPanel.ConfigureCommands(OnEquipRequested, OnUnequipRequested, ShowHunterRecovery, ShowHunterAdvancement, ShowHunterSymptoms, ShowConsumableUse);
         }
 
         private void EnsureHunterRecoveryPanel()
@@ -259,6 +261,14 @@ namespace UI
             HideContextPanels();
             Vector3 position = hunterRecoveryPanelAnchor != null ? hunterRecoveryPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.1f));
             hunterRecoveryPanel.Open(hunter, _mgr.Data, settlementContentCatalog, OnRecoveryRequested, position);
+        }
+
+        private void ShowConsumableUse(HunterInstance hunter, ItemData item)
+        {
+            if (hunter == null || item == null || hunterRecoveryPanel == null) return;
+            HideContextPanels();
+            Vector3 position = hunterRecoveryPanelAnchor != null ? hunterRecoveryPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.1f));
+            hunterRecoveryPanel.OpenConsumable(hunter, item, _mgr.Data, OnConsumableRequested, position);
         }
 
         private void EnsureInventionUnlockPanel()

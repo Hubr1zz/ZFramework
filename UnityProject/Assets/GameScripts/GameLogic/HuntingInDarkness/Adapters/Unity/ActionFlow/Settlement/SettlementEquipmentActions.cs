@@ -22,7 +22,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
         public bool Contains(ItemData item)
         {
-            if (item == null || item.itemType == ItemType.Resource) return false;
+            if (item == null || (item.itemType != ItemType.Weapon && item.itemType != ItemType.Armor)) return false;
             foreach (ItemData candidate in items)
                 if (ReferenceEquals(candidate, item))
                     return true;

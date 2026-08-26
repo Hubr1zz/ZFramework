@@ -9,35 +9,40 @@ namespace HuntingInDarkness.Settlement
     /// <summary>装备仓库的字符串存档 Adapter，避免在 JSON 中直接持有 Unity 资产引用。</summary>
     public static class SettlementEquipmentStorage
     {
-        public static int GetStoredEquipment(this SettlementInstance settlement, string itemId)
+        public static int GetStoredItem(this SettlementInstance settlement, string itemId)
         {
             if (settlement == null || string.IsNullOrEmpty(itemId)) return 0;
             settlement.EquipmentStorage ??= new List<ResourceEntry>();
             return ResourceRules.Get(settlement.EquipmentStorage, itemId);
         }
 
-        public static int GetStoredEquipment(this SettlementInstance settlement, ItemData item) => item == null ? 0 : settlement.GetStoredEquipment(item.ContentId);
+        public static int GetStoredEquipment(this SettlementInstance settlement, string itemId)
+            => settlement.GetStoredItem(itemId);
 
-        public static void AddStoredEquipment(this SettlementInstance settlement, string itemId, int amount)
+        public static int GetStoredItem(this SettlementInstance settlement, ItemData item) => item == null ? 0 : settlement.GetStoredItem(item.ContentId);
+        public static int GetStoredEquipment(this SettlementInstance settlement, ItemData item) => settlement.GetStoredItem(item);
+
+        public static void AddStoredItem(this SettlementInstance settlement, string itemId, int amount)
         {
             if (settlement == null || string.IsNullOrEmpty(itemId) || amount <= 0) return;
             settlement.EquipmentStorage ??= new List<ResourceEntry>();
             ResourceRules.Add(settlement.EquipmentStorage, itemId, amount, () => new ResourceEntry());
         }
 
-        public static void AddStoredEquipment(this SettlementInstance settlement, ItemData item, int amount)
-        {
-            if (item != null) settlement.AddStoredEquipment(item.ContentId, amount);
-        }
+        public static void AddStoredEquipment(this SettlementInstance settlement, string itemId, int amount) => settlement.AddStoredItem(itemId, amount);
+        public static void AddStoredItem(this SettlementInstance settlement, ItemData item, int amount) { if (item != null) settlement.AddStoredItem(item.ContentId, amount); }
+        public static void AddStoredEquipment(this SettlementInstance settlement, ItemData item, int amount) => settlement.AddStoredItem(item, amount);
 
-        public static bool SpendStoredEquipment(this SettlementInstance settlement, string itemId, int amount)
+        public static bool SpendStoredItem(this SettlementInstance settlement, string itemId, int amount)
         {
             if (settlement == null || string.IsNullOrEmpty(itemId) || amount <= 0) return false;
             settlement.EquipmentStorage ??= new List<ResourceEntry>();
             return ResourceRules.Spend(settlement.EquipmentStorage, itemId, amount, () => new ResourceEntry());
         }
 
-        public static bool SpendStoredEquipment(this SettlementInstance settlement, ItemData item, int amount) => item != null && settlement.SpendStoredEquipment(item.ContentId, amount);
+        public static bool SpendStoredEquipment(this SettlementInstance settlement, string itemId, int amount) => settlement.SpendStoredItem(itemId, amount);
+        public static bool SpendStoredItem(this SettlementInstance settlement, ItemData item, int amount) => item != null && settlement.SpendStoredItem(item.ContentId, amount);
+        public static bool SpendStoredEquipment(this SettlementInstance settlement, ItemData item, int amount) => settlement.SpendStoredItem(item, amount);
     }
 
     /// <summary>由组合根内容目录配置，负责稳定 ID、旧名称迁移和运行时 ItemData 恢复。</summary>
@@ -113,9 +118,26 @@ namespace HuntingInDarkness.Settlement
                 hunter.Collectibles ??= new List<ItemInstance>();
                 hunter.Equipment.Clear();
                 if (hunter.EquippedItemIds == null) continue;
+                var retainedIds = new List<string>();
                 foreach (string itemId in hunter.EquippedItemIds)
-                    if (TryGet(itemId, out ItemData item) && item.itemType != ItemType.Resource)
+                {
+                    if (!TryGet(itemId, out ItemData item) || item == null)
+                    {
+                        retainedIds.Add(itemId);
+                        continue;
+                    }
+                    if (item.itemType == ItemType.Consumable)
+                    {
+                        settlement.AddStoredItem(item, 1);
+                        continue;
+                    }
+                    if (item.itemType == ItemType.Weapon || item.itemType == ItemType.Armor)
+                    {
                         hunter.Equipment.Add(new ItemInstance(item));
+                        retainedIds.Add(item.ContentId);
+                    }
+                }
+                hunter.EquippedItemIds = retainedIds;
             }
         }
 

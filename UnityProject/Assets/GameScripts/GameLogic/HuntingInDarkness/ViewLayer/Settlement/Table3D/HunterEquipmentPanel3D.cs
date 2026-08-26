@@ -19,6 +19,7 @@ namespace UI
         private const float PanelHeight = 4.5f;
         private const string EquipmentDropScope = "hunter-equipment";
         private const string StorageDropScope = "settlement-equipment-storage";
+        private const string ConsumableUseDropScope = "settlement-consumable-use";
         private const int StoragePageSize = 9;
 
         private readonly List<SettlementItemCard3D> storageCards = new();
@@ -27,6 +28,7 @@ namespace UI
         private TextMeshPro statusText;
         private SlotGrid storageGrid;
         private SlotGrid equipmentGrid;
+        private SlotGrid consumableUseGrid;
         private HunterInstance hunter;
         private SettlementInstance settlement;
         private IReadOnlyList<ItemData> items = Array.Empty<ItemData>();
@@ -35,6 +37,7 @@ namespace UI
         private Action<HunterInstance> recoveryRequested;
         private Action<HunterInstance> advancementRequested;
         private Action<HunterInstance> symptomRequested;
+        private Action<HunterInstance, ItemData> consumableUseRequested;
         private GameObject recoveryButton;
         private GameObject advancementButton;
         private GameObject symptomButton;
@@ -62,13 +65,14 @@ namespace UI
             Build();
         }
 
-        public void ConfigureCommands(Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> onEquip, Func<int, int, UniTask<SettlementEquipmentCommandResult>> onUnequip, Action<HunterInstance> onRecoveryRequested = null, Action<HunterInstance> onAdvancementRequested = null, Action<HunterInstance> onSymptomRequested = null)
+        public void ConfigureCommands(Func<int, ItemData, UniTask<SettlementEquipmentCommandResult>> onEquip, Func<int, int, UniTask<SettlementEquipmentCommandResult>> onUnequip, Action<HunterInstance> onRecoveryRequested = null, Action<HunterInstance> onAdvancementRequested = null, Action<HunterInstance> onSymptomRequested = null, Action<HunterInstance, ItemData> onConsumableUseRequested = null)
         {
             equipCommand = onEquip;
             unequipCommand = onUnequip;
             recoveryRequested = onRecoveryRequested;
             advancementRequested = onAdvancementRequested;
             symptomRequested = onSymptomRequested;
+            consumableUseRequested = onConsumableUseRequested;
         }
 
         public void Show(HunterInstance selectedHunter, SettlementInstance settlementData, IReadOnlyList<ItemData> availableItems, Vector3 worldPosition)
@@ -78,7 +82,7 @@ namespace UI
             settlement = settlementData;
             items = availableItems ?? Array.Empty<ItemData>();
             Title.text = $"{hunter.Name} · 装备桌";
-            statusText.text = "将仓库卡拖入右侧槽位；将已装备卡拖回左侧仓库即可卸下。";
+            statusText.text = "物品仓库；装备拖右侧，消耗品拖上方使用槽；已装备卡拖回左侧仓库即可卸下。";
             RebuildCards();
             ShowAt(worldPosition);
         }
@@ -100,13 +104,18 @@ namespace UI
             storageGrid.DropScope = StorageDropScope;
             foreach (CardSlot slot in storageGrid.Slots)
                 slot.DropScope = StorageDropScope;
-            storageGrid.AddLabel("装备仓库");
+            storageGrid.AddLabel("物品仓库");
 
             equipmentGrid = SlotGrid.Create(ContentRoot, new Vector3(1.52f, 0.015f, -0.20f), 3, 3, CardView3D.CW + 0.06f, CardView3D.CH + 0.06f, 0.10f, false, CardCategory.Equipment);
             equipmentGrid.DropScope = EquipmentDropScope;
             foreach (CardSlot slot in equipmentGrid.Slots)
                 slot.DropScope = EquipmentDropScope;
             equipmentGrid.AddLabel("猎人装备槽");
+            consumableUseGrid = SlotGrid.Create(ContentRoot, new Vector3(-1.52f, 0.015f, 1.42f), 1, 1, CardView3D.CW + 0.06f, CardView3D.CH + 0.06f, 0.10f, false, CardCategory.Equipment);
+            consumableUseGrid.DropScope = ConsumableUseDropScope;
+            foreach (CardSlot slot in consumableUseGrid.Slots)
+                slot.DropScope = ConsumableUseDropScope;
+            consumableUseGrid.AddLabel("消耗品使用");
             previousPageButton = BuildPageButton("PreviousStoragePage", "<", new Vector3(-2.75f, 0.03f, 1.42f), -1);
             nextPageButton = BuildPageButton("NextStoragePage", ">", new Vector3(-0.30f, 0.03f, 1.42f), 1);
             recoveryButton = BuildRecoveryButton();
@@ -280,7 +289,7 @@ namespace UI
             foreach (ItemData item in items)
             {
                 if (item == null || item.itemType == ItemType.Resource) continue;
-                if (settlement.GetStoredEquipment(item) > 0)
+                if (settlement.GetStoredItem(item) > 0)
                     storedItems.Add(item);
             }
 
@@ -288,18 +297,18 @@ namespace UI
             storagePage = Mathf.Clamp(storagePage, 0, pageCount - 1);
             previousPageButton.SetActive(storagePage > 0);
             nextPageButton.SetActive(storagePage < pageCount - 1);
-            statusText.text = storedItems.Count == 0 ? "装备仓库为空。制造装备后，可将卡牌拖入猎人装备槽。" : $"仓库 {storagePage + 1}/{pageCount} 页 · 拖入右侧装备；将右侧卡拖回仓库可卸下。";
+            statusText.text = storedItems.Count == 0 ? "物品仓库为空。制造装备或消耗品后，装备拖右侧，消耗品拖上方使用槽。" : $"仓库 {storagePage + 1}/{pageCount} 页 · 装备拖右侧，消耗品拖上方使用槽；右侧装备拖回仓库可卸下。";
 
             int startIndex = storagePage * StoragePageSize;
             int endIndex = Mathf.Min(startIndex + StoragePageSize, storedItems.Count);
             for (int itemIndex = startIndex; itemIndex < endIndex; itemIndex++)
             {
                 ItemData item = storedItems[itemIndex];
-                int count = settlement.GetStoredEquipment(item);
+                int count = settlement.GetStoredItem(item);
                 CardSlot visualSlot = storageGrid.Slots[itemIndex - startIndex];
                 Vector3 localPosition = ContentRoot.InverseTransformPoint(visualSlot.transform.position + Vector3.up * 0.013f);
                 SettlementItemCard3D card = SettlementItemCard3D.Create(item, count, ContentRoot, localPosition);
-                card.ConfigureCommandDrop(EquipmentDropScope, RequestEquip);
+                card.ConfigureCommandDrop(item.itemType == ItemType.Consumable ? ConsumableUseDropScope : EquipmentDropScope, item.itemType == ItemType.Consumable ? RequestConsumableUse : RequestEquip);
                 storageCards.Add(card);
             }
         }
@@ -321,6 +330,13 @@ namespace UI
         }
 
         private void RequestEquip(SettlementItemCard3D card) => EquipAsync(card).Forget();
+
+        private void RequestConsumableUse(SettlementItemCard3D card)
+        {
+            card?.CompleteDropRequest(true);
+            if (card?.Item == null || consumableUseRequested == null) return;
+            consumableUseRequested.Invoke(hunter, card.Item);
+        }
 
         private async UniTaskVoid EquipAsync(SettlementItemCard3D card)
         {

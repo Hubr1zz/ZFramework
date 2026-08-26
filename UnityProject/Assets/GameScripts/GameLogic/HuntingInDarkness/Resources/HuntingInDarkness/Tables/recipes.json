@@ -205,6 +205,24 @@
       "outputCount": 1,
       "requiredInventionId": "tools",
       "requiredWorkshopId": ""
+    },
+    {
+      "id": "prepare_mushroom_flesh_poultice",
+      "recipeName": "培制菌肉敷剂",
+      "ingredients": [
+        {
+          "itemId": "mushroom_flesh",
+          "count": 1
+        },
+        {
+          "itemId": "viscous_sap",
+          "count": 1
+        }
+      ],
+      "outputItemId": "mushroom_flesh_poultice",
+      "outputCount": 1,
+      "requiredInventionId": "tools",
+      "requiredWorkshopId": "medical_workshop"
     }
   ]
 }

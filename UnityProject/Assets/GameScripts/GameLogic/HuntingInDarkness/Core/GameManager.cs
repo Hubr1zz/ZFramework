@@ -686,7 +686,7 @@ namespace Core
         // 营地阶段子系统
         // ═══════════════════════════════════════════
 
-        private PlayableSettlementActionSession CreateSettlementActionSession(SettlementManager manager) => new(manager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), manager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementContentRuntime.Items), tabletopInteractionRouter, manager.Workshop, manager.Inventions, workshopContentCatalog, PlayableSymptomRuntime.Catalog, campaignRuntime.ActionEnvironmentInstallers, manager.Timeline.ResolveEvent, manager.Timeline);
+        private PlayableSettlementActionSession CreateSettlementActionSession(SettlementManager manager) => new(manager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), manager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementContentRuntime.Items), tabletopInteractionRouter, manager.Workshop, manager.Inventions, workshopContentCatalog, PlayableSymptomRuntime.Catalog, campaignRuntime.ActionEnvironmentInstallers, manager.Timeline.ResolveEvent, manager.Timeline, consumableContent: new PlayableSettlementConsumableContentAdapter(PlayableSettlementContentRuntime.Items));
 
         private void StartSettlementActionSession()
         {
@@ -949,6 +949,7 @@ namespace Core
 
             _settlementTable3D.OnEquipRequested = (hunterId, item) => settlementActionSession != null ? settlementActionSession.EquipItemAsync(hunterId, item) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
             _settlementTable3D.OnUnequipRequested = (hunterId, equipmentInstanceId) => settlementActionSession != null ? settlementActionSession.UnequipItemAsync(hunterId, equipmentInstanceId) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
+            _settlementTable3D.OnConsumableRequested = (hunterId, item, bodyPart) => settlementActionSession != null ? settlementActionSession.UseConsumableAsync(hunterId, item, bodyPart) : UniTask.FromResult(SettlementConsumableCommandResult.Failed("当前不在营地阶段。"));
             _settlementTable3D.OnCraftRequested = recipe => settlementActionSession != null ? settlementActionSession.CraftAsync(recipe) : UniTask.FromResult(SettlementCraftCommandResult.Failed("当前不在营地阶段。"));
             _settlementTable3D.OnInventionUnlockRequested = invention => settlementActionSession != null ? settlementActionSession.UnlockInventionAsync(invention) : UniTask.FromResult(SettlementInventionCommandResult.Failed("当前不在营地阶段。"));
             _settlementTable3D.OnInventionEffectRequested = (invention, effect) => settlementActionSession != null ? settlementActionSession.ActivateInventionEffectAsync(invention, effect) : UniTask.FromResult(SettlementInventionActiveEffectCommandResult.Failed("当前不在营地阶段。"));

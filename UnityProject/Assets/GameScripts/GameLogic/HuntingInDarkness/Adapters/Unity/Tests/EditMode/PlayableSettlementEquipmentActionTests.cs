@@ -77,7 +77,7 @@ namespace HuntingInDarkness.Adapter.Tests
         public async Task EquipItemAsync_PreventedActionLeavesStateUntouched()
         {
             SettlementInstance settlement = CreateSettlement(out HunterInstance hunter);
-            ItemData item = CreateItem("骨针", ItemType.Consumable);
+            ItemData item = CreateItem("骨针", ItemType.Weapon);
             settlement.AddStoredEquipment(item, 1);
             using PlayableSettlementActionSession session = CreateSession(settlement, item);
             session.Reactors.RegisterGlobal(new PreventEquipReactor());
@@ -124,6 +124,21 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(result.Succeeded, Is.False);
             Assert.That(hunter.Equipment, Is.Empty);
             Assert.That(settlement.GetStoredEquipment(foreign), Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task EquipItemAsync_ConsumableIsRejectedEvenWhenCanonicalAndStored()
+        {
+            SettlementInstance settlement = CreateSettlement(out HunterInstance hunter);
+            ItemData consumable = CreateItem("菌肉敷剂", ItemType.Consumable);
+            settlement.AddStoredEquipment(consumable, 1);
+            using PlayableSettlementActionSession session = CreateSession(settlement, consumable);
+
+            SettlementEquipmentCommandResult result = await session.EquipItemAsync(hunter.InstanceId, consumable);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(hunter.Equipment, Is.Empty);
+            Assert.That(settlement.GetStoredEquipment(consumable), Is.EqualTo(1));
         }
 
         private SettlementInstance CreateSettlement(out HunterInstance hunter)

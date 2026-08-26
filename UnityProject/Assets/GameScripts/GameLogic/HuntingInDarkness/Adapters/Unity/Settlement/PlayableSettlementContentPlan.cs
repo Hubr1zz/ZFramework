@@ -201,6 +201,12 @@ namespace HuntingInDarkness.Settlement
                     reason = $"营地物品缺少显式稳定 ContentId：{item?.name}";
                     return false;
                 }
+            foreach (ItemData item in items)
+                if (item.itemType == ItemType.Consumable && (item.ConsumableEffect == ConsumableEffectKind.None || item.ConsumableEffectAmount < 1 || item.ConsumableEffectAmount > 99 || item.HuntNoise != 0) || item.itemType != ItemType.Consumable && (item.ConsumableEffect != ConsumableEffectKind.None || item.ConsumableEffectAmount != 0))
+                {
+                    reason = $"营地物品消耗品效果配置无效：{item.ContentId}";
+                    return false;
+                }
             foreach (InventionData invention in inventions)
                 if (invention == null || !invention.HasExplicitContentId)
                 {

@@ -39,6 +39,8 @@ namespace HuntingInDarkness.ContentTables
         public ArmorStatsTableRecord armorStats = new();
         public int stackLimit = 99;
         public int huntNoise;
+        public string consumableEffect;
+        public int consumableEffectAmount;
 
         public string Id => id;
     }
@@ -144,6 +146,27 @@ namespace HuntingInDarkness.ContentTables
                 error = $"物品 {record.id} 的类型无效：{record.itemType}";
                 return false;
             }
+            bool effectSpecified = !string.IsNullOrWhiteSpace(record.consumableEffect);
+            if (!Enum.TryParse(record.consumableEffect, true, out ConsumableEffectKind consumableEffect) || !Enum.IsDefined(typeof(ConsumableEffectKind), consumableEffect))
+            {
+                if (effectSpecified)
+                {
+                    error = $"物品 {record.id} 的消耗品效果无效：{record.consumableEffect}";
+                    return false;
+                }
+                consumableEffect = ConsumableEffectKind.None;
+            }
+            int consumableEffectAmount = record.consumableEffectAmount;
+            if (itemType == ItemType.Consumable && (consumableEffect == ConsumableEffectKind.None || consumableEffectAmount < 1 || consumableEffectAmount > 99 || record.huntNoise != 0))
+            {
+                error = $"消耗品 {record.id} 的效果、数量或狩猎噪音配置无效。";
+                return false;
+            }
+            if (itemType != ItemType.Consumable && (consumableEffect != ConsumableEffectKind.None || consumableEffectAmount != 0))
+            {
+                error = $"非消耗品 {record.id} 不得声明消耗品效果。";
+                return false;
+            }
             if (!TryParseTags(record.tags, out List<ItemTag> tags, out error))
             {
                 error = $"物品 {record.id} {error}";
@@ -162,6 +185,7 @@ namespace HuntingInDarkness.ContentTables
             item.armorStats = ToArmorStats(record.armorStats);
             item.stackLimit = Mathf.Max(1, record.stackLimit);
             item.ConfigureHuntNoise(record.huntNoise);
+            item.ConfigureConsumableEffect(consumableEffect, consumableEffectAmount);
             error = string.Empty;
             return true;
         }

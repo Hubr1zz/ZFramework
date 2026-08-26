@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-tabletop-settlement-consumables",
+  "title": "收养营地桌面消耗品",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现与定向验证已完成；本 Change 等待人类确认后再同步为新的正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "dotnet 编译与当前 82 项相关 EditMode 数据、ActionQueue、迁移及 3D 回退布局测试通过。",
+    "codeEvidence": [],
+    "evidence": [
+      "dotnet build ZFramework.sln --no-restore 成功。",
+      "Unity CLI EditMode 当前相关职责簇 82/82。",
+      "git diff --check 通过。"
+    ],
+    "differences": [
+      "正式 Spec 尚未定义 Consumable 的效果表、实体使用槽、目标部位选择和事务事实。"
+    ],
+    "verifiedAt": "2026-08-25T23:28:24-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-SETTLEMENT-CONSUMABLE-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认以菌肉敷剂作为首个消耗品，并接受装备桌使用槽复用身体部位卡。",
+      "details": "批准后创建新的正式能力；若不接受，需要调整生产内容、效果边界或 3D 入口后重新验证。",
+      "sourceId": "conversation::2026-08-25",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": ["settlement-workshop-crafting", "tabletop-settlement-equipment", "tabletop-settlement-recovery"],
+  "capabilities": ["tabletop-settlement-consumables"],
+  "syncTargets": [
+    { "capability": "tabletop-settlement-consumables", "title": "营地桌面消耗品", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-tabletop-settlement-consumables/specs/tabletop-settlement-consumables/spec.md", "targetSpecPath": "openspec/specs/tabletop-settlement-consumables/spec.md", "targetExisted": false, "baseFileHash": "", "baseSnapshotPath": "" }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "正式目标尚不存在，Delta 只等待人工确认。",
+    "changes": ["增加营地桌面消耗品能力。"],
+    "conflicts": [],
+    "validatedAt": "2026-08-25T23:28:24-07:00"
+  },
+  "createdAt": "2026-08-25T23:28:24-07:00"
+}

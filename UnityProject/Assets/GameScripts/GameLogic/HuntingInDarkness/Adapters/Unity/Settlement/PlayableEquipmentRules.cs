@@ -19,9 +19,9 @@ namespace HuntingInDarkness.Settlement
                 reason = hunter.IsAlive ? "已退休猎人不能装备物品" : "已死亡猎人不能装备物品";
                 return false;
             }
-            if (item.itemType == ItemType.Resource)
+            if (item.itemType != ItemType.Weapon && item.itemType != ItemType.Armor)
             {
-                reason = "资源不能放入装备栏";
+                reason = item.itemType == ItemType.Consumable ? "消耗品不能放入装备栏" : "该物品类型不能放入装备栏";
                 return false;
             }
 

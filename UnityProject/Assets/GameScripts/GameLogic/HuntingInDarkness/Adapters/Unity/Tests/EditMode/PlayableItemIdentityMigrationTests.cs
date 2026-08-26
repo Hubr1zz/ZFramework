@@ -78,6 +78,22 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void RestoreEquipment_ReturnsLegacyConsumableToStorageIdempotently()
+        {
+            ItemData consumable = CreateItem("old_poultice", "旧敷剂", ItemType.Consumable);
+            PlayableSettlementItemRegistry.Configure(new[] { consumable });
+            var hunter = new HunterInstance(null, 35) { EquippedItemIds = new List<string> { "old_poultice" } };
+            var settlement = new SettlementInstance { Hunters = new List<HunterInstance> { hunter } };
+
+            PlayableSettlementItemRegistry.RestoreEquipment(settlement);
+            PlayableSettlementItemRegistry.RestoreEquipment(settlement);
+
+            Assert.That(hunter.EquippedItemIds, Is.Empty);
+            Assert.That(hunter.Equipment, Is.Empty);
+            Assert.That(settlement.GetStoredItem(consumable), Is.EqualTo(1));
+        }
+
+        [Test]
         public void MigratePersistentState_UpgradesLegacyJsonSnapshot()
         {
             ItemData stone = CreateItem("broken_stone", "碎石", ItemType.Resource);

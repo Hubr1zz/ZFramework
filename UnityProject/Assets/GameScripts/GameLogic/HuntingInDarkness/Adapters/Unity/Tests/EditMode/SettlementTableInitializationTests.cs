@@ -111,6 +111,31 @@ namespace HuntingInDarkness.Adapter.Tests
             }
         }
 
+        [Test]
+        public void Init_FallbackConsumableUseSlotDoesNotOverlapStoragePaging()
+        {
+            var root = new GameObject("FallbackConsumableLayoutTest");
+            SettlementTable3D table = root.AddComponent<SettlementTable3D>();
+            bool previousIgnoreState = LogAssert.ignoreFailingMessages;
+            try
+            {
+                LogAssert.ignoreFailingMessages = true;
+                table.Init(new SettlementManager(1));
+
+                HunterEquipmentPanel3D panel = GetPrivateField<HunterEquipmentPanel3D>(table, "hunterEquipmentPanel");
+                SlotGrid useGrid = GetPrivateField<SlotGrid>(panel, "consumableUseGrid");
+                GameObject nextPageButton = GetPrivateField<GameObject>(panel, "nextPageButton");
+                Assert.That(useGrid, Is.Not.Null);
+                Assert.That(nextPageButton, Is.Not.Null);
+                Assert.That(Vector3.Distance(useGrid.transform.localPosition, nextPageButton.transform.localPosition), Is.GreaterThan(CardView3D.CW * 0.5f));
+            }
+            finally
+            {
+                LogAssert.ignoreFailingMessages = previousIgnoreState;
+                Object.DestroyImmediate(root);
+            }
+        }
+
         private static PlayableWorkshopDefinition CreateWorkshop(string workshopId)
         {
             var definition = new PlayableWorkshopDefinition();

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-consumables",
+  "title": "营地桌面消耗品",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "消耗品内容、库存语义、Settlement Action、3D 使用槽与部位选择已经实现并通过定向验证。",
+    "codeEvidence": [
+      { "guid": "baaecb35b3da0224e9ba35907adc6b78", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementConsumableActions.cs", "fileHash": "1f36ee6f393cf800e3d627a281885bddb3e10f0a8d000514392443bc43c2f08c", "line": 86, "feature": "权威消耗品使用 Action 与有序事务事实", "status": "verified", "checkedAt": "2026-08-25T23:28:24-07:00" },
+      { "guid": "225e7c7bd61caa7459086fbb53fa80e5", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs", "fileHash": "40ec76acb6b7cf44c98415bfd27c0809d756d4197d0641b37c77529a63231c60", "line": 1, "feature": "读表消耗品效果字段与校验", "status": "verified", "checkedAt": "2026-08-25T23:28:24-07:00" },
+      { "guid": "aec121c9e9ab40f9a94917d816e762d2", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs", "fileHash": "98d02f814dff09bf55d19829289a2173e8d4a901937b77dde7efaa3f78e8a360", "line": 334, "feature": "物理消耗品使用槽与卡牌拖放意图", "status": "verified", "checkedAt": "2026-08-25T23:28:24-07:00" },
+      { "guid": "6245f3ecef5b20540ab78568f4a3c6e7", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterRecoveryPanel3D.cs", "fileHash": "d0fa2aad77b7a60e74e88c018180955c279d0d38f0b78877183af044416aa47a", "line": 69, "feature": "消耗品模式的实体身体部位选择", "status": "verified", "checkedAt": "2026-08-25T23:28:24-07:00" }
+    ],
+    "evidence": [
+      "Unity CLI EditMode 相关职责簇 82/82。",
+      "测试覆盖成功、Reactor prevent、取消、最后一件并发、装备拒绝、旧状态迁移与 3D 回退布局。"
+    ],
+    "differences": ["该能力尚无正式 Spec；当前 Delta 完整描述已实现行为。"],
+    "verifiedAt": "2026-08-25T23:28:24-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["settlement-workshop-crafting", "tabletop-settlement-equipment", "tabletop-settlement-recovery"],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/物品 Items.md", "conversation::2026-08-25"],
+  "implementationOutline": [
+    "内容计划把受控消耗品效果与生产配方绑定到稳定物品身份。",
+    "Settlement root Action 串行重验库存与目标，复用 HunterRecoveryRules 并提交玩法事实。",
+    "3D 装备桌只提交拖放和部位选择意图，现有营地事务负责刷新与保存。"
+  ],
+  "reviewIssues": [
+    { "id": "ISSUE-SETTLEMENT-CONSUMABLE-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认首个消耗品和 3D 使用交互成为正式能力。", "details": "当前实现不引入通用效果系统、持续 Buff、Hunt 使用或新存档字段。", "sourceId": "conversation::2026-08-25", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

@@ -32,7 +32,9 @@ namespace HuntingInDarkness.Adapter.Tests
                 tags = new List<string> { "Stone", "Rare" },
                 keywords = new List<string> { " Ritual ", "ritual" },
                 stackLimit = 0,
-                huntNoise = -2
+                huntNoise = 0,
+                consumableEffect = "RecoverBodyPart",
+                consumableEffectAmount = 1
             };
 
             List<ItemData> items = Build(record);
@@ -42,7 +44,9 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(items[0].tags, Is.EquivalentTo(new[] { ItemTag.Stone, ItemTag.Rare }));
             Assert.That(items[0].keywords, Is.EqualTo(new[] { "ritual" }));
             Assert.That(items[0].stackLimit, Is.EqualTo(1));
-            Assert.That(items[0].HuntNoise, Is.EqualTo(-2));
+            Assert.That(items[0].HuntNoise, Is.Zero);
+            Assert.That(items[0].ConsumableEffect, Is.EqualTo(ConsumableEffectKind.RecoverBodyPart));
+            Assert.That(items[0].ConsumableEffectAmount, Is.EqualTo(1));
         }
 
         [Test]
@@ -88,6 +92,18 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(item, Is.Not.Null);
             Assert.That(item.HuntNoise, Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void RuntimeTable_ProvidesRecoveringMushroomFleshPoultice()
+        {
+            ItemData item = FindRuntimeItem("mushroom_flesh_poultice");
+
+            Assert.That(item, Is.Not.Null);
+            Assert.That(item.itemType, Is.EqualTo(ItemType.Consumable));
+            Assert.That(item.ConsumableEffect, Is.EqualTo(ConsumableEffectKind.RecoverBodyPart));
+            Assert.That(item.ConsumableEffectAmount, Is.EqualTo(1));
+            Assert.That(item.HuntNoise, Is.Zero);
         }
 
         [Test]

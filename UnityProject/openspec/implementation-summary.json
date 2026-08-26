@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "30e3bca2bf62d30051232840f2fe7bd59e8b778751ac1e773c771b65da25170f",
-  "inputManifestDigest": "2e3443a2d21b935865c679402b83f21bb168044ec9dab2d827b821e6244f823f",
-  "outputDigest": "8ffd28db8f7d5894295465f2317b972a61d0f11f479c952cfab875fa218a6ddb",
+  "inputDigest": "5c0bb39d0f9725583e2cb596232a4090c075dfa33ec9ff1408cb5c469eb383e0",
+  "inputManifestDigest": "45a7ef7730c2c82ab0a25b09c8653201321347ca34424834cb0961add6b10f0d",
+  "outputDigest": "4acd3982dbe4fb339c01b06822cc6d89eeb6a1e18f5dd465beac087565d77c92",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -107,7 +107,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
-      "sha256": "8a63ac11386f101c7783ef8fc3a7af563a3ef27493f6c543c413bafcf8adae7c",
+      "sha256": "bc51b77d5826298ce1a17980bdacb9ba34fd399751a16d359d1b89957b333b86",
       "state": "current"
     },
     {
@@ -132,7 +132,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs",
-      "sha256": "6ddc25caa38dfb629f80b1087c81479485b7e7e6432d7c51d6658d1ce035ad3f",
+      "sha256": "ed63d2c47ac253d7e663375464bd057483ff8e5cce7ded26bf089388b9bcd9a9",
       "state": "current"
     },
     {
@@ -212,7 +212,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
-      "sha256": "224e84ad0d1704b2e0751c3e7667991c92691853582b26e614a29f3d560a0ee3",
+      "sha256": "40ec76acb6b7cf44c98415bfd27c0809d756d4197d0641b37c77529a63231c60",
       "state": "current"
     },
     {
@@ -242,7 +242,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/ItemData.cs",
-      "sha256": "215b0ae2f9380490532ea3811415b7c984449e54cbbcebc3eaec876c29477eac",
+      "sha256": "7ef31f2d8921534f3ff7a1f2f544124f2295d0f98e90f7f16c80e4e10b02ae3f",
       "state": "current"
     },
     {
@@ -362,7 +362,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
-      "sha256": "a3542c8e3659834e516b9baffc735cf9ba9d873184b7438282508651a8198c28",
+      "sha256": "88bca3ab8925d9ab5b557f04b0f6132d466eb64b2dc079cd0aa9a1817247e709",
       "state": "current"
     },
     {
@@ -392,7 +392,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEquipmentStorage.cs",
-      "sha256": "e812ada69b8f9ec541dc36663a3b1b84fa0471d7336e271d9989d5480b6585e3",
+      "sha256": "d74dc80e994af2a6ef5062bd9227421a4c0348db2353aa66edc9f0f19a8ece52",
       "state": "current"
     },
     {
@@ -497,17 +497,17 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemIdentityMigrationTests.cs",
-      "sha256": "b162df0359f9c84b3718914e49a4955f8bb04024de27d0bf161a69406fc89252",
+      "sha256": "5dc8f75d6d39f0c14c22b757d04483373ddb0c311d46d1486285c984e341387f",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-      "sha256": "a953cfcbeeb556c23194fe79eedbd664ca6edfcd28fcabad457cbdcd9ebea0c1",
+      "sha256": "c3dbdb8acde1aff9a0eb11da55275b0f1d31928724f471918aa2156fe675b494",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-      "sha256": "e461b2c9349c1745bc057090ecfff797f93fdc45e9dac9b17a51972188f25582",
+      "sha256": "f092e889f9c7ed8ec3b2b9ecafe65515b46757412d7ab729c8e0ec4d8e12d6ea",
       "state": "current"
     },
     {
@@ -527,7 +527,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEquipmentActionTests.cs",
-      "sha256": "dd8a35d18af42d1f1ae53151afd8a55a41017ff2799da1b17eea8ebd521a2ab9",
+      "sha256": "f8278b8cb630f44ff694cff0fa28cd889b74e01ae01d24878d2af27049c9249a",
       "state": "current"
     },
     {
@@ -582,7 +582,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementTableInitializationTests.cs",
-      "sha256": "685c00fbe5944f4e477c10414bc75b8980621825a1ba079f88d3b579e53e26db",
+      "sha256": "f3ed249f76a9b15877514882db187f150ae50585188ab379a8679907964d2de1",
       "state": "current"
     },
     {
@@ -677,7 +677,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "1ae73162020de745e3364a91595523acab13eb316302737af8685105b54b8357",
+      "sha256": "b0110a1319947439aa24c712a32559be141578f6576cbfe0a215cebe5b6b803b",
       "state": "current"
     },
     {
@@ -787,12 +787,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
-      "sha256": "e9376f4bfbc3b217a20b50e514146549afa1832b64d900953130aca44a48a6f0",
+      "sha256": "79ba5d609e1e792f23a9e8d9d13f9b0d3e206dbcc649cb2724d34748705217f5",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
-      "sha256": "434ee771fbeba2f5b9a1c8cb3e48dc2bcca74c4b0852801cd6d4300c2172dbd9",
+      "sha256": "662ebd591e9f30b2a06c674a5a49966b8f9c567734a186de059b5d21584d8249",
       "state": "current"
     },
     {
@@ -882,12 +882,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs",
-      "sha256": "e2788d27d9e5209e0b1935a4cc4f6a414ea5e27281a9f6d535fd9c5f7c9fd41c",
+      "sha256": "98d02f814dff09bf55d19829289a2173e8d4a901937b77dde7efaa3f78e8a360",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterRecoveryPanel3D.cs",
-      "sha256": "150eb3dd2941872cfd0931ad2f95eae2c1914fb8237641301391eea7d145125f",
+      "sha256": "d0fa2aad77b7a60e74e88c018180955c279d0d38f0b78877183af044416aa47a",
       "state": "current"
     },
     {
@@ -917,7 +917,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
-      "sha256": "ce1de17d82c77b0d037bbde1e0bba51845252261e55fae93705b1cab0e760595",
+      "sha256": "62bf2fd18add31a19b5bcc226c8a368d27a9ccc918bb2995c696497263513994",
       "state": "current"
     },
     {
@@ -1642,25 +1642,28 @@
     }
   ],
   "counts": {
-    "verified": 23,
+    "verified": 12,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
     "unknown": 3,
     "blocked": 0,
-    "stale": 38
+    "stale": 49
   },
   "attentionRequired": [
     "action-environment-lifecycle",
     "active-hunt-persistence",
     "campaign-content-cache-lifecycle",
     "campaign-content-preflight-assembly",
+    "campaign-persistence",
+    "campaign-startup-transaction",
     "campaign-year-loop",
     "csharp-derived-index",
     "event-driven-hunter-death",
     "event-driven-hunter-symptom-acquisition",
     "event-effect-resolution-reporting",
     "event-recoverable-wounds",
+    "expedition-build-progression-loop",
     "game-manager-orchestration",
     "hunt-content-bundle-lifecycle",
     "hunt-event-resource-staging",
@@ -1674,14 +1677,18 @@
     "settlement-content-plan-lifecycle",
     "settlement-phase-orchestration",
     "settlement-timeline-event-identity",
+    "settlement-workshop-crafting",
     "showdown-phase-orchestration",
+    "table-driven-crafting-content",
     "table-driven-event-chains",
     "table-driven-hunt-events",
     "table-driven-hunter-bloodlines",
     "table-driven-hunter-symptoms",
+    "table-driven-hunter-traits",
     "table-driven-item-keywords",
     "tabletop-chinese-font-fallback",
     "tabletop-event-interaction",
+    "tabletop-game-over",
     "tabletop-hunt-harvest",
     "tabletop-hunt-map-intro",
     "tabletop-hunt-resource-markers",
@@ -1690,6 +1697,10 @@
     "tabletop-hunt-tile-cards",
     "tabletop-opening-sequence",
     "tabletop-random-interaction",
+    "tabletop-settlement-equipment",
+    "tabletop-settlement-notices",
+    "tabletop-settlement-recovery",
+    "tabletop-settlement-workshop-construction",
     "tengine-startup-lifecycle",
     "zworkflow-workbench-layout"
   ],
@@ -1711,6 +1722,11 @@
       "state": "stale"
     },
     {
+      "capability": "action-environment-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
+      "state": "stale"
+    },
+    {
       "capability": "active-hunt-persistence",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
       "state": "stale"
@@ -1723,6 +1739,11 @@
     {
       "capability": "active-hunt-persistence",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "active-hunt-persistence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
     },
     {
@@ -1756,8 +1777,33 @@
       "state": "stale"
     },
     {
+      "capability": "campaign-persistence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEquipmentStorage.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "campaign-persistence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemIdentityMigrationTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "campaign-persistence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "campaign-startup-transaction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "state": "stale"
+    },
+    {
       "capability": "campaign-year-loop",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "campaign-year-loop",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
     },
     {
@@ -1836,6 +1882,21 @@
       "state": "stale"
     },
     {
+      "capability": "expedition-build-progression-loop",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "expedition-build-progression-loop",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "expedition-build-progression-loop",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "state": "stale"
+    },
+    {
       "capability": "game-manager-orchestration",
       "path": "Assets/Scripts/Core/GameManager.cs",
       "state": "missing"
@@ -1848,6 +1909,11 @@
     {
       "capability": "hunt-content-bundle-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-content-bundle-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
     },
     {
@@ -1898,6 +1964,11 @@
     {
       "capability": "hunt-route-entry-context",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-route-entry-context",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
     },
     {
@@ -1957,7 +2028,22 @@
     },
     {
       "capability": "settlement-content-plan-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "settlement-content-plan-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "settlement-content-plan-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
     },
     {
@@ -1986,6 +2072,26 @@
       "state": "stale"
     },
     {
+      "capability": "settlement-workshop-crafting",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "settlement-workshop-crafting",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "settlement-workshop-crafting",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
+      "state": "stale"
+    },
+    {
+      "capability": "settlement-workshop-crafting",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+      "state": "stale"
+    },
+    {
       "capability": "showdown-phase-orchestration",
       "path": "Assets/Scripts/Adapters/Unity/Combat/CombatManager.cs",
       "state": "missing"
@@ -1994,6 +2100,21 @@
       "capability": "showdown-phase-orchestration",
       "path": "Assets/Scripts/Core/GameManager.cs",
       "state": "missing"
+    },
+    {
+      "capability": "table-driven-crafting-content",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "table-driven-crafting-content",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
+      "state": "stale"
+    },
+    {
+      "capability": "table-driven-crafting-content",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
+      "state": "stale"
     },
     {
       "capability": "table-driven-event-chains",
@@ -2051,13 +2172,38 @@
       "state": "stale"
     },
     {
+      "capability": "table-driven-hunter-traits",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "table-driven-item-keywords",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
+      "state": "stale"
+    },
+    {
       "capability": "table-driven-item-keywords",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
       "state": "stale"
     },
     {
+      "capability": "table-driven-item-keywords",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "table-driven-item-keywords",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
+      "state": "stale"
+    },
+    {
       "capability": "tabletop-event-interaction",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-game-over",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
     },
     {
@@ -2116,6 +2262,51 @@
       "state": "stale"
     },
     {
+      "capability": "tabletop-settlement-equipment",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-equipment",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEquipmentActionTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-equipment",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-equipment",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-notices",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-recovery",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterRecoveryPanel3D.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-workshop-construction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-workshop-construction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementTableInitializationTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-workshop-construction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+      "state": "stale"
+    },
+    {
       "capability": "tengine-startup-lifecycle",
       "path": "Assets/GameScripts/GameEntry.cs",
       "state": "stale"
@@ -2166,7 +2357,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
@@ -2207,7 +2398,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/ActiveHuntRestoreTransaction.cs",
@@ -2301,7 +2492,7 @@
       "id": "campaign-persistence",
       "label": "战役持久化与恢复",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "Campaign Adapter 以带校验值的原子封套保存稳定营地或活动狩猎快照；版本门禁覆盖后台、退出和删除，继续战役在内容世代内恢复装备、年度、事件链与待回营检查点。",
@@ -2322,11 +2513,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEquipmentStorage.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
@@ -2346,7 +2537,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemIdentityMigrationTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
@@ -2358,8 +2549,8 @@
       "id": "campaign-startup-transaction",
       "label": "战役开场启动事务",
       "status": "verified",
-      "effectiveStatus": "verified",
-      "progress": 100,
+      "effectiveStatus": "stale",
+      "progress": 0,
       "verificationStatus": "verified",
       "summary": "纯 C# CampaignStartupTransaction 统一拥有等待、启动、加载、持久化 I/O、候选选择与失败收敛；GameManager 只作为 Unity 组合根发布 Settlement 或 Active Hunt 运行图。",
       "designSources": [],
@@ -2371,7 +2562,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupTransaction.cs",
@@ -2436,7 +2627,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs",
@@ -2689,8 +2880,8 @@
       "id": "expedition-build-progression-loop",
       "label": "远征奖励与营地构筑闭环",
       "status": "verified",
-      "effectiveStatus": "verified",
-      "progress": 100,
+      "effectiveStatus": "stale",
+      "progress": 0,
       "verificationStatus": "verified",
       "summary": "black_salt 通过真实远征回营边界进入营地，经 Settlement ActionQueue 制作、装备、保存与恢复；恢复后的 salt_ward 会在下一次狩猎中通过 Hunt ActionQueue 的风险计划产生实际构筑收益。",
       "designSources": [],
@@ -2702,11 +2893,11 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
@@ -2714,7 +2905,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -2772,7 +2963,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
@@ -2989,7 +3180,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
@@ -3166,7 +3357,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs",
@@ -3182,7 +3373,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementProjectionTransactionTests.cs",
@@ -3202,7 +3393,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -3272,7 +3463,7 @@
       "id": "settlement-workshop-crafting",
       "label": "营地桌面工坊制作",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，新增药剂分支把狩猎器官转换为既有恢复资源，闭合伤员恢复循环。",
@@ -3288,7 +3479,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs",
@@ -3296,7 +3487,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementCraftActionTests.cs",
@@ -3304,11 +3495,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEquipmentRulesTests.cs",
@@ -3357,7 +3548,7 @@
       "id": "table-driven-crafting-content",
       "label": "读表配方与事件奖励制造链",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；石森林素材可制造十一种基础路线，专门护甲必须先建护甲工坊。",
@@ -3378,15 +3569,15 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -3667,7 +3858,7 @@
       "id": "table-driven-hunter-traits",
       "label": "读表猎人特性与稳定身份",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "特性表统一提供稳定 ID、显示名、旧别名与关键词；模板、事件、成长、症状和武器熟练只引用注册 ID，旧存档在营地候选投影事务内幂等迁移，3D 卡牌与猎人详情仍显示本地化名称。",
@@ -3692,7 +3883,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentCandidate.cs",
@@ -3786,7 +3977,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
@@ -3794,11 +3985,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -3885,7 +4076,7 @@
       "id": "tabletop-game-over",
       "label": "3D 桌面战役终局",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "任何阶段发布的战役失败事实都会打开摄像机中心的实体终局卡；终局展示持续冻结既有及后创建的背景 Collider，重开时先释放桌面，再由 Campaign ActionQueue 和可靠持久化事务重建战役，失败则恢复可重试终局卡。",
@@ -3902,7 +4093,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
@@ -4326,7 +4517,7 @@
       "id": "tabletop-settlement-equipment",
       "label": "营地桌面猎人装备",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "点击 3D 猎人卡可打开九槽世界空间装备桌，仓库卡与精确装备实例通过拖放提交命令；Settlement ActionQueue 原子维护库存、稳定身份、部位与双武器限制并触发保存刷新。",
@@ -4339,19 +4530,19 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEquipmentActionTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
@@ -4396,7 +4587,7 @@
       "id": "tabletop-settlement-notices",
       "label": "3D 营地消息记录",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "成长、损失、熟练度与远征完成事实按提交顺序进入世界空间通知卡；通知只在营地计时，可手动或自动关闭，并在可靠战役重开成功后清空旧战役队列。",
@@ -4412,7 +4603,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
@@ -4424,7 +4615,7 @@
       "id": "tabletop-settlement-recovery",
       "label": "营地桌面猎人休养",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "受伤猎人的 3D 装备桌显示休养入口，四张实体部位卡投影当前生命与配置成本，并把治疗意图串行提交给 Settlement ActionQueue。",
@@ -4437,7 +4628,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterRecoveryPanel3D.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs",
@@ -4511,7 +4702,7 @@
       "id": "tabletop-settlement-workshop-construction",
       "label": "营地桌面工坊建设",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "营地 3D 工坊以配置目录投影护甲与药剂两条蓝图分支，fallback 桌面按真实卡牌数量预留网格；建造命令由 Settlement ActionQueue 串行校验、提交并持久化。",
@@ -4528,11 +4719,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
@@ -4544,7 +4735,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementTableInitializationTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableWorkshopCatalog.asset",

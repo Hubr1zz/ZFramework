@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "tabletop-settlement-consumables", "label": "营地桌面消耗品", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-tabletop-settlement-consumables/specs/tabletop-settlement-consumables/spec.md" },
+    { "id": "settlement-workshop-crafting", "label": "营地桌面工坊制作", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/settlement-workshop-crafting/spec.md" },
+    { "id": "tabletop-settlement-equipment", "label": "营地桌面猎人装备", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-settlement-equipment/spec.md" },
+    { "id": "tabletop-settlement-recovery", "label": "营地桌面猎人休养", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-settlement-recovery/spec.md" }
+  ],
+  "edges": [
+    { "from": "settlement-workshop-crafting", "to": "tabletop-settlement-consumables", "type": "supports" },
+    { "from": "tabletop-settlement-equipment", "to": "tabletop-settlement-consumables", "type": "supports" },
+    { "from": "tabletop-settlement-recovery", "to": "tabletop-settlement-consumables", "type": "supports" }
+  ]
+}

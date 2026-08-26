@@ -22,6 +22,9 @@ namespace UI
         private SettlementInstance settlement;
         private PlayableSettlementContentCatalog catalog;
         private Func<int, HunterBodyPart, UniTask<RecoverHunterCommandResult>> recoverCommand;
+        private Func<int, ItemData, HunterBodyPart, UniTask<SettlementConsumableCommandResult>> consumableCommand;
+        private ItemData consumableItem;
+        private bool consumableMode;
         private bool isBuilt;
         private bool isSubmitting;
 
@@ -55,6 +58,24 @@ namespace UI
             settlement = settlementData;
             catalog = content;
             recoverCommand = command;
+            consumableCommand = null;
+            consumableItem = null;
+            consumableMode = false;
+            isSubmitting = false;
+            RebuildCards();
+            ShowAt(worldPosition);
+        }
+
+        public void OpenConsumable(HunterInstance selectedHunter, ItemData item, SettlementInstance settlementData, Func<int, ItemData, HunterBodyPart, UniTask<SettlementConsumableCommandResult>> command, Vector3 worldPosition)
+        {
+            if (selectedHunter == null || item == null || settlementData == null) return;
+            hunter = selectedHunter;
+            consumableItem = item;
+            settlement = settlementData;
+            catalog = null;
+            recoverCommand = null;
+            consumableCommand = command;
+            consumableMode = true;
             isSubmitting = false;
             RebuildCards();
             ShowAt(worldPosition);
@@ -74,8 +95,8 @@ namespace UI
         private void RebuildCards()
         {
             ClearCards();
-            Title.text = $"{hunter.Name} · 营火休养";
-            summaryText.text = $"每次消耗 {FormatCost()}，恢复一个部位 {catalog?.RecoveryAmount ?? 1} 点普通生命。永久损伤与症状不会消失。";
+            Title.text = consumableMode ? $"{hunter.Name} · 使用 {consumableItem.itemName}" : $"{hunter.Name} · 营火休养";
+            summaryText.text = consumableMode ? $"使用 {consumableItem.itemName}，恢复一个受伤部位 {consumableItem.ConsumableEffectAmount} 点普通生命。" : $"每次消耗 {FormatCost()}，恢复一个部位 {catalog?.RecoveryAmount ?? 1} 点普通生命。永久损伤与症状不会消失。";
             float spacing = CardView3D.CW + 0.24f;
             float startX = -1.5f * spacing;
             for (int index = 0; index < BodyParts.Length; index++)
@@ -86,7 +107,7 @@ namespace UI
                 card.ConfigureState(CanRecover(bodyPart, out string reason), reason);
                 cards.Add(card);
             }
-            statusText.text = HasRecoverablePart() ? "选择一张受伤部位卡进行休养。" : "该猎人没有可恢复的普通伤势。";
+            statusText.text = HasRecoverablePart() ? (consumableMode ? "选择受伤部位使用。" : "选择一张受伤部位卡进行休养。") : (consumableMode ? "该猎人没有可使用的普通伤势。" : "该猎人没有可恢复的普通伤势。");
         }
 
         private void RequestRecovery(HunterRecoveryCard3D card)
@@ -97,18 +118,27 @@ namespace UI
 
         private async UniTaskVoid RecoverAsync(HunterBodyPart bodyPart)
         {
-            if (recoverCommand == null)
+            if ((consumableMode ? consumableCommand == null : recoverCommand == null))
             {
-                statusText.text = "休养命令尚未接入。";
+                statusText.text = consumableMode ? "消耗品使用命令尚未接入。" : "休养命令尚未接入。";
                 return;
             }
             isSubmitting = true;
             SetCardsEnabled(false);
             try
             {
-                RecoverHunterCommandResult result = await recoverCommand.Invoke(hunter.InstanceId, bodyPart);
+                string resultText;
+                if (consumableMode)
+                {
+                    SettlementConsumableCommandResult result = await consumableCommand.Invoke(hunter.InstanceId, consumableItem, bodyPart);
+                    resultText = result.Succeeded ? $"使用成功，恢复 {result.Recovery.RecoveredHealth} 点生命（{result.Recovery.CurrentHealth}/{result.Recovery.MaximumHealth}）。" : result.Reason;
+                }
+                else
+                {
+                    RecoverHunterCommandResult result = await recoverCommand.Invoke(hunter.InstanceId, bodyPart);
+                    resultText = result.Succeeded ? $"恢复 {result.Recovery.RecoveredHealth} 点生命（{result.Recovery.CurrentHealth}/{result.Recovery.MaximumHealth}）。" : result.Reason;
+                }
                 if (this == null) return;
-                string resultText = result.Succeeded ? $"恢复 {result.Recovery.RecoveredHealth} 点生命（{result.Recovery.CurrentHealth}/{result.Recovery.MaximumHealth}）。" : result.Reason;
                 isSubmitting = false;
                 RebuildCards();
                 statusText.text = resultText;
@@ -120,13 +150,22 @@ namespace UI
                 if (this == null) return;
                 isSubmitting = false;
                 RebuildCards();
-                statusText.text = "休养命令执行异常，请重试。";
+                statusText.text = consumableMode ? "消耗品使用命令执行异常，请重试。" : "休养命令执行异常，请重试。";
             }
         }
 
         private bool CanRecover(HunterBodyPart bodyPart, out string reason)
         {
             if (!HunterRecoveryRules.CanRecover(hunter, bodyPart, out reason)) return false;
+            if (consumableMode)
+            {
+                if (settlement.GetStoredItem(consumableItem) <= 0)
+                {
+                    reason = $"缺少 {consumableItem.itemName}";
+                    return false;
+                }
+                return true;
+            }
             int cost = catalog?.RecoveryCost ?? 0;
             if (cost == 0) return true;
             if (catalog?.RecoveryCostItem == null)

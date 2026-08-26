@@ -13,7 +13,8 @@ namespace Core
         HunterGrowth,
         Symptom,
         EventReroll,
-        EventResolution
+        EventResolution,
+        Consumable
     }
 
     /// <summary>营地权威事务已经成功提交；持久化、刷新与统计只观察该事实。</summary>

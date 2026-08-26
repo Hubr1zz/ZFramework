@@ -20,6 +20,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly IWeaponTrainingContent weaponTrainingContent;
         private readonly ISettlementCareContent careContent;
         private readonly ISettlementEquipmentContent equipmentContent;
+        private readonly ISettlementConsumableContent consumableContent;
         private readonly WorkshopSystem workshopSystem;
         private readonly InventionSystem inventionSystem;
         private readonly PlayableWorkshopCatalog workshopCatalog;
@@ -32,12 +33,13 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null, Func<string, EventData> resolveEvent = null, TimelineSystem timeline = null, HunterManagementSystem hunterManagement = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null, Func<string, EventData> resolveEvent = null, TimelineSystem timeline = null, HunterManagementSystem hunterManagement = null, ISettlementConsumableContent consumableContent = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
             this.careContent = careContent ?? new PlayableSettlementCareContentAdapter(null);
             this.equipmentContent = equipmentContent ?? new PlayableSettlementEquipmentContentAdapter(null);
+            this.consumableContent = consumableContent ?? new PlayableSettlementConsumableContentAdapter(null);
             this.workshopSystem = workshopSystem;
             this.inventionSystem = inventionSystem;
             this.workshopCatalog = workshopCatalog;
@@ -171,6 +173,49 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? RecoverHunterCommandResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public bool CanUseConsumable(int hunterId, ItemData item, HunterBodyPart bodyPart, out string reason)
+        {
+            if (!IsActive)
+            {
+                reason = "当前不在营地阶段。";
+                return false;
+            }
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            if (hunter == null || !hunter.IsAvailable)
+            {
+                reason = "猎人不属于当前营地或当前不可用。";
+                return false;
+            }
+            if (!consumableContent.TryGet(item, out ConsumableUsePlan plan))
+            {
+                reason = "消耗品内容尚未配置。";
+                return false;
+            }
+            if (plan.Effect != ConsumableEffectKind.RecoverBodyPart)
+            {
+                reason = "消耗品效果尚未支持。";
+                return false;
+            }
+            if (!HunterRecoveryRules.CanRecover(hunter, bodyPart, out reason)) return false;
+            if (settlement.GetStoredItem(item) > 0) return true;
+            reason = "营地库存中没有该消耗品。";
+            return false;
+        }
+
+        public async UniTask<SettlementConsumableCommandResult> UseConsumableAsync(int hunterId, ItemData item, HunterBodyPart bodyPart, CancellationToken cancellationToken = default)
+        {
+            if (!IsActive) return SettlementConsumableCommandResult.Failed("当前不在营地阶段。");
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            if (hunter == null) return SettlementConsumableCommandResult.Failed("猎人不属于当前营地。");
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle itemEntity = environment.EntityHandles.GetOrCreate("settlement-item", item != null ? item.ContentId : "unknown", item != null ? item.itemName : "未知消耗品");
+            ReactorEntityHandle hunterEntity = environment.EntityHandles.GetOrCreate("hunter", hunter.InstanceId.ToString(), hunter.Name);
+            var action = new UseSettlementConsumableAction(settlement, hunter, item, bodyPart, consumableContent, outbox, itemEntity, hunterEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            if (outcome.IsSuccess) return action.Result;
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementConsumableCommandResult.Failed(outcome.Reason) : action.Result;
         }
 
         public bool CanTrainWeapon(int hunterId, string masteryId, out string reason)

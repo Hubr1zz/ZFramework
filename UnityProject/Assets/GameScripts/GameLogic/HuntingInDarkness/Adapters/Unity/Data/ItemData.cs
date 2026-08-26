@@ -9,6 +9,8 @@ namespace HuntingInDarkness.Data
 
     public enum ItemType { Resource, Weapon, Armor, Consumable }
 
+    public enum ConsumableEffectKind { None, RecoverBodyPart }
+
     /// <summary>物品词条标签（用于发明/工坊配方筛选）</summary>
     public enum ItemTag
     {
@@ -51,7 +53,13 @@ namespace HuntingInDarkness.Data
         [SerializeField, Tooltip("装备后对每次普通地块揭露的队伍噪音修正；负值降低风险，资源与旧内容默认为 0。")]
         private int huntNoise;
 
+        [Header("消耗品效果（itemType = Consumable 时生效）")]
+        [SerializeField] private ConsumableEffectKind consumableEffect;
+        [SerializeField, Min(0)] private int consumableEffectAmount;
+
         public int HuntNoise => huntNoise;
+        public ConsumableEffectKind ConsumableEffect => consumableEffect;
+        public int ConsumableEffectAmount => consumableEffectAmount;
 
         public string ContentId
         {
@@ -66,6 +74,11 @@ namespace HuntingInDarkness.Data
         public bool HasExplicitContentId => !string.IsNullOrWhiteSpace(contentId);
         public void ConfigureContentId(string value) => contentId = value?.Trim() ?? string.Empty;
         public void ConfigureHuntNoise(int value) => huntNoise = value;
+        public void ConfigureConsumableEffect(ConsumableEffectKind effect, int amount)
+        {
+            consumableEffect = effect;
+            consumableEffectAmount = Mathf.Max(0, amount);
+        }
 
         /// <summary>是否含有指定词条标签</summary>
         public bool HasTag(ItemTag tag) => tags.Contains(tag);

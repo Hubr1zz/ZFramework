@@ -282,6 +282,18 @@
       },
       "stackLimit": 1,
       "huntNoise": 1
+    },
+    {
+      "id": "mushroom_flesh_poultice",
+      "itemName": "菌肉敷剂",
+      "itemType": "Consumable",
+      "description": "将菌肉与粘稠汁液压成的临时敷剂，可用于恢复猎人的一个受伤部位。",
+      "tags": ["Organ", "Herb"],
+      "keywords": ["medicine", "fungal"],
+      "stackLimit": 99,
+      "huntNoise": 0,
+      "consumableEffect": "RecoverBodyPart",
+      "consumableEffectAmount": 1
     }
   ]
 }
