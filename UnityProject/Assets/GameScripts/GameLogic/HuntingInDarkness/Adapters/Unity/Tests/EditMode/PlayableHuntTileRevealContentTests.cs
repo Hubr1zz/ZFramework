@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.Hunt;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEngine;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
@@ -41,6 +43,35 @@ namespace HuntingInDarkness.Adapter.Tests
             foreach (EventData gameEvent in huntEvents)
             foreach (EventEffect effect in GetEffects(gameEvent).Where(effect => effect.effectType == EventEffectType.AddResource || effect.effectType == EventEffectType.RemoveResource))
                 Assert.That(itemIds.Contains(effect.targetName), Is.True, $"{gameEvent.ContentId} 引用了未注册的稳定物品 ID：{effect.targetName}");
+        }
+
+        [Test]
+        public void TileCard_OnlyProjectsNameOnInteractableBack()
+        {
+            HexTileData config = ScriptableObject.CreateInstance<HexTileData>();
+            config.tileName = "蘑菇森林";
+            HexTileInstance tile = new() { Config = config };
+            GameObject gameObject = new("TileCardTest");
+            try
+            {
+                PlayableHexTileCard3D card = gameObject.AddComponent<PlayableHexTileCard3D>();
+                card.Initialize(1f, 0.1f);
+                card.Present(tile, TileState.Locked);
+                Assert.That(gameObject.transform.Find("Front Label").GetComponent<TextMesh>().text, Is.Empty);
+                Assert.That(gameObject.transform.Find("Back Label").GetComponent<TextMesh>().text, Is.Empty);
+
+                card.Present(tile, TileState.Interactable);
+                Assert.That(gameObject.transform.Find("Front Label").GetComponent<TextMesh>().text, Is.Empty);
+                Assert.That(gameObject.transform.Find("Back Label").GetComponent<TextMesh>().text, Is.EqualTo("蘑菇森林"));
+
+                card.Present(tile, TileState.Revealed);
+                Assert.That(gameObject.transform.Find("Front Label").GetComponent<TextMesh>().text, Is.EqualTo("蘑菇森林"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameObject);
+                Object.DestroyImmediate(config);
+            }
         }
 
         private static HexTileData LoadTile(string name)

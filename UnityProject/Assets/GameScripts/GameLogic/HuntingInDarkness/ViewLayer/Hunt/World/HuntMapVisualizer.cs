@@ -4,7 +4,6 @@ using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace HuntingInDarkness.Hunt
 {
@@ -46,6 +45,9 @@ namespace HuntingInDarkness.Hunt
         private PlayableHuntSquadPawn3D squadPawn;
         private PlayableHuntMapIntroCamera3D mapIntroCamera;
         private IHuntExplorationPort explorationPort;
+        private HuntTileScoutPanel3D scoutPanel;
+        private bool tileRequestInFlight;
+        private int presentationGeneration;
 
         public Transform TabletopInteractionAnchor => squadPawn != null ? squadPawn.transform : transform;
 
@@ -88,6 +90,20 @@ namespace HuntingInDarkness.Hunt
             if (request.Kind == HuntTileInteractionKind.Move)
                 while (squadPawn != null && squadPawn.isActiveAndEnabled && squadPawn.IsMoving)
                     await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+        }
+
+        public void HandleTileClicked(Vector2Int coordinate)
+        {
+            if (PlayableHuntInputGuard.IsBlocked || tileRequestInFlight || _huntMgr == null || explorationPort == null) return;
+            if (!_huntMgr.Map.TryGetValue(coordinate, out HexTileInstance tile)) return;
+            if (tile.State == TileState.Interactable)
+            {
+                PresentScoutPanel(coordinate, tile);
+                return;
+            }
+            if (tile.State != TileState.Revealed || !explorationPort.TryCreateSnapshot(coordinate, -1, out HuntExplorationSnapshot snapshot)) return;
+            tileRequestInFlight = true;
+            SubmitTileAsync(snapshot).Forget();
         }
 
         // ─── 初始化 ──────────────────────────────────────────────
@@ -146,8 +162,51 @@ namespace HuntingInDarkness.Hunt
             // 点击组件
             var clicker = go.AddComponent<TileClickHandler>();
             clicker.Coord      = coord;
-            clicker.ExplorationPort = explorationPort;
             clicker.Visualizer = this;
+        }
+
+        private void PresentScoutPanel(Vector2Int coordinate, HexTileInstance tile, string status = null)
+        {
+            scoutPanel ??= HuntTileScoutPanel3D.Create(transform);
+            Vector3 position = _tileObjects.TryGetValue(coordinate, out GameObject tileObject) && tileObject != null ? tileObject.transform.position + Vector3.up * 0.8f : transform.position;
+            scoutPanel.Present(position, coordinate, tile?.Config?.tileName ?? "未知地块", ConfirmScout, null, status);
+        }
+
+        private void ConfirmScout(Vector2Int coordinate)
+        {
+            if (tileRequestInFlight || _huntMgr == null || explorationPort == null) return;
+            if (!explorationPort.TryCreateSnapshot(coordinate, -1, out HuntExplorationSnapshot snapshot))
+            {
+                Debug.LogWarning($"[HuntMapVisualizer] 地块 {coordinate} 确认侦察时快照已失效。");
+                return;
+            }
+            tileRequestInFlight = true;
+            SubmitTileAsync(snapshot).Forget();
+        }
+
+        private async UniTaskVoid SubmitTileAsync(HuntExplorationSnapshot snapshot)
+        {
+            int generation = presentationGeneration;
+            string failureReason = null;
+            try
+            {
+                var result = await explorationPort.SubmitTileAsync(snapshot);
+                if (!result.Succeeded)
+                    failureReason = string.IsNullOrWhiteSpace(result.Reason) ? "侦察未能完成，请重试。" : result.Reason;
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception);
+                failureReason = "侦察未能完成，请重试。";
+            }
+            finally
+            {
+                if (generation == presentationGeneration)
+                    tileRequestInFlight = false;
+            }
+            if (generation != presentationGeneration || string.IsNullOrWhiteSpace(failureReason) || _huntMgr == null) return;
+            if (!_huntMgr.Map.TryGetValue(snapshot.Coordinate, out HexTileInstance tile) || tile.State != TileState.Interactable) return;
+            PresentScoutPanel(snapshot.Coordinate, tile, failureReason);
         }
 
         // ─── 颜色更新 ─────────────────────────────────────────────
@@ -304,6 +363,12 @@ namespace HuntingInDarkness.Hunt
 
         private void ClearVisuals()
         {
+            ++presentationGeneration;
+            tileRequestInFlight = false;
+            scoutPanel?.Close();
+            if (scoutPanel != null)
+                Destroy(scoutPanel.gameObject);
+            scoutPanel = null;
             mapIntroCamera?.Skip();
             if (_huntMgr != null && _huntMgr.OnTileStateChanged == OnTileStateChanged)
                 _huntMgr.OnTileStateChanged = null;

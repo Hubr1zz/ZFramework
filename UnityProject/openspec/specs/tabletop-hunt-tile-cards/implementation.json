@@ -2,39 +2,60 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "tabletop-hunt-tile-cards",
-  "specHash": "582afa667c3fbe26217c83749d80c5a3ccbaf9b333e389724426ae45cfa70cf4",
+  "specHash": "3d5affaf4a1d68182eb8f0ab135865175bb8ebf7307fb092359a415c4fa2fd8e",
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "地形卡继续消费权威地图状态；Boss encounter 标记改为按坐标维护的幂等 View 投影，重复刷新不会持续创建球体。",
-    "validatedAgainstSpecHash": "582afa667c3fbe26217c83749d80c5a3ccbaf9b333e389724426ae45cfa70cf4",
+    "summary": "可交互地形卡仅投影地块名称；首次翻开前由世界空间 3D 卡确认，并在确认时创建新鲜会话快照后提交既有 Hunt ActionQueue 命令。",
+    "validatedAgainstSpecHash": "3d5affaf4a1d68182eb8f0ab135865175bb8ebf7307fb092359a415c4fa2fd8e",
     "evidence": [
       {
         "guid": "e438b7e087c13ce4ca8653a1701f8f0a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
         "line": 1,
-        "fileHash": "b1b62885027430ef3c90facc928379297d5861fc989798e20877959f45645d20",
+        "fileHash": "5f93680f516bbf58d959a7b3182dde1930fb226649b958fdd8af858867295648",
         "status": "verified",
-        "checkedAt": "2026-08-24T05:11:33-07:00",
-        "feature": "按地块坐标创建、复用和移除 BossMarker，并在地图 View 清理时释放索引。"
+        "checkedAt": "2026-08-26T16:22:11-07:00",
+        "feature": "区分首次翻开与已揭示移动；确认时重签快照，命令失败时只在 View 层重开侦察卡并显示原因。"
+      },
+      {
+        "guid": "9eb1228d72f192e40b07243362c9b2a0",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileCard3D.cs",
+        "line": 1,
+        "fileHash": "e3b0f0c85b6ccf2a903c894e89015de531ad4fa3bb31a8a76b0dd2a74649acf2",
+        "status": "verified",
+        "checkedAt": "2026-08-26T16:22:11-07:00",
+        "feature": "Interactable 背面仅显示配置的地块名称，不泄露事件、资源、Boss 或随机结果。"
+      },
+      {
+        "guid": "8c1de8e4a51c4b9a9f44c1d7b47dd5c2",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntTileScoutPanel3D.cs",
+        "line": 1,
+        "fileHash": "a8206a4ffb0fa67b4f341b632c02ee051f74634bb46a9cec4188530b5451f550",
+        "status": "verified",
+        "checkedAt": "2026-08-26T16:22:11-07:00",
+        "feature": "世界空间实体卡承担确认、取消、失败反馈和 Hunt 输入租约生命周期。"
       }
     ],
     "tests": [
-      "Unity CLI EditMode: 588/588 passed",
-      "HuntMapVisualizer bossMarkers lifecycle inspection"
+      "Unity 6000.5.9f1 CLI EditMode PlayableHuntTileRevealContentTests: 3/3 passed",
+      "Unity 6000.5.9f1 CLI PlayMode HuntTileScoutPanel3DPlayModeTests: 1/1 passed",
+      "GameLogic、Adapter EditMode、Adapter PlayMode projects: 0 compile errors"
     ],
-    "verifiedAt": "08/24/2026 05:11:33"
+    "verifiedAt": "08/26/2026 16:22:11"
   },
   "implementationOutline": [
-    "HuntMapVisualizer 在每次地块状态投影时统一调用 UpdateBossMarker。",
-    "已存在的坐标标记直接复用；不再显示时先失活并销毁。",
-    "ClearVisuals 先失活旧地块再延迟销毁，并同步清空标记索引，避免重复 Init 的同帧交互与渲染重叠。"
+    "PlayableHexTileCard3D 将 Interactable 背面限制为稳定地块名称，Locked 背面保持空白。",
+    "HuntMapVisualizer 首次翻开时展示 3D 侦察卡；确认后创建新鲜快照并复用既有 Hunt ActionQueue，已揭示地块移动保持直接提交。",
+    "HuntTileScoutPanel3D 在确认、取消、禁用、销毁和替换时统一释放输入租约，提交失败则展示服务端原因并允许重试。"
   ],
   "sourceReferences": [
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs:1"
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileCard3D.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntTileScoutPanel3D.cs:1"
   ],
   "publishedBy": {
-    "mode": "legacy-formal-review-migration",
+    "mode": "direct-implementation-conformance",
     "changeId": ""
   }
 }

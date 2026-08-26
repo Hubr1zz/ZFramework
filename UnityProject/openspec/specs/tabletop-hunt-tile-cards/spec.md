@@ -21,7 +21,31 @@ The Hunt map SHALL present locked and interactable terrain as face-down 3D hex c
 
 #### Scenario: A tile becomes interactable
 - **WHEN** the authoritative tile state changes from locked to interactable
-- **THEN** the card remains face down and its back identifies it as available to explore
+- **THEN** the card remains face down and its back shows only the configured terrain name
+- **AND** it does not reveal the event, resource pool, encounter marker or random outcome
+
+### Requirement: Hidden terrain requires a physical reveal commitment
+Clicking an interactable terrain card SHALL open a world-space scout confirmation before issuing a Hunt gameplay command. The confirmation SHALL remain presentation-only and SHALL create a fresh exploration snapshot only after the player commits.
+
+#### Scenario: The player inspects and cancels a terrain card
+- **WHEN** the player clicks an interactable terrain card and chooses cancel
+- **THEN** the scout cards close without changing tile state, event occurrences or Hunt checkpoints
+
+#### Scenario: The player confirms a terrain reveal
+- **WHEN** the player chooses reveal on the scout cards
+- **THEN** the View closes its scout input lease and requests a fresh snapshot from the current Hunt session
+- **AND** only a valid snapshot enters the existing Hunt ActionQueue reveal flow
+
+#### Scenario: The player clicks an already revealed terrain card
+- **WHEN** a revealed adjacent card is selected for movement
+- **THEN** the View submits the existing movement command without opening scout confirmation
+
+### Requirement: Scout input ownership follows the Hunt presentation lifetime
+The scout confirmation SHALL block conflicting Hunt input while open and SHALL release only its own input ownership on cancel, confirm, disable, destruction or presentation-generation replacement.
+
+#### Scenario: The Hunt presentation is replaced while scouting
+- **WHEN** the active map View is cleared or replaced before a choice is made
+- **THEN** the scout cards close and their input lease is released without issuing a gameplay command
 
 ### Requirement: Committed reveals flip to the configured front
 The View SHALL animate a card from its current back orientation to its front after the authoritative tile state becomes revealed.

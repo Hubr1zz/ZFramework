@@ -96,8 +96,12 @@ namespace HuntingInDarkness.Hunt
                     frontLabel.text = tile?.Config != null ? tile.Config.tileName : "未知地块";
                 frontLabel.color = Color.white;
             }
-            if (backLabel != null)
-                backLabel.text = state == TileState.Interactable ? "可探索" : string.Empty;
+            if (backLabel == null) return;
+            backLabel.text = string.Empty;
+            if (state != TileState.Interactable) return;
+            backLabel.text = "未知地块";
+            if (!string.IsNullOrWhiteSpace(tile?.Config?.tileName))
+                backLabel.text = tile.Config.tileName;
         }
 
         private static Quaternion ResolveRotation(bool faceUp) => faceUp ? Quaternion.identity : Quaternion.Euler(180f, 0f, 0f);
