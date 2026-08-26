@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "action-environment-lifecycle",
-  "specHash": "ff263979b3cacde6e727724f40b22046acea68f13eb3a332988231905602b2a1",
+  "specHash": "744744d7f49a2dc3d2c5d32ff799b07cc1195c446cd7ff7eb631f9249487495c",
   "title": "ActionQueue 全生命周期环境",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "Campaign、Settlement、Hunt 与 Combat 各自持有明确生命周期的 ActionEnvironment；Installer Registry 跨环境安装并回滚租约，GameCore 不依赖执行包，战斗命令统一经专属会话进入 Combat Root/Child GameAction。",
-    "validatedAgainstSpecHash": "ff263979b3cacde6e727724f40b22046acea68f13eb3a332988231905602b2a1",
+    "summary": "Campaign、Settlement、Hunt 与 Combat 各自持有明确生命周期的 ActionEnvironment；CampaignRuntime-owned phase managers 在 generation reset/dispose 时先释放 session 与 attachment，Installer Registry 保持跨环境投影。",
+    "validatedAgainstSpecHash": "744744d7f49a2dc3d2c5d32ff799b07cc1195c446cd7ff7eb631f9249487495c",
     "evidence": [
       {
         "guid": "ba4df13df5287564195dfbc8044380a5",
@@ -24,7 +24,7 @@
         "guid": "10a5fdf3ba146c94ea83e0afd4a0131a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironmentInstallerRegistry.cs",
         "line": 1,
-        "fileHash": "ba3780f35f32055178857450affd3c2e86adf0ecc5704adb3f94d43ced6410ad",
+        "fileHash": "50110e2894d1b7b00831af579c62ebcf467e15b8439106db58af909e3d4b2633",
         "status": "verified",
         "checkedAt": "2026-08-24T17:50:07-07:00",
         "feature": "把 Installer 应用到当前与未来匹配环境，并在失败或释放时逆序回收租约。"
@@ -33,7 +33,7 @@
         "guid": "c6eeb30cbc2c2c342adfac7c46c6607b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
         "line": 1,
-        "fileHash": "274a35fc475bd42bb82953441cc804e5fccdd9c8678d1c29213b74340c29576a",
+        "fileHash": "d16729f08ff461356e2f98eb7051b485ec6ea40389ee9498f5b4a27345ca9697",
         "status": "verified",
         "checkedAt": "2026-08-24T17:50:07-07:00",
         "feature": "持有战役生命周期的 Campaign ActionEnvironment。"
@@ -42,7 +42,7 @@
         "guid": "bd23a30b0d55c684abacd81e4792ed64",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
         "line": 1,
-        "fileHash": "8a63ac11386f101c7783ef8fc3a7af563a3ef27493f6c543c413bafcf8adae7c",
+        "fileHash": "ff945fe8f3fde925abb1d97e141a3311b69445ef16d6e6bb6279faf462ad7f41",
         "status": "verified",
         "checkedAt": "2026-08-24T17:50:07-07:00",
         "feature": "持有营地阶段的 Settlement ActionEnvironment。"
@@ -51,7 +51,7 @@
         "guid": "4ba73e89b3fe5ba4088fc947dc1e9f63",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
         "line": 1,
-        "fileHash": "060b7f3e8a90857d58be188cb9a39844f74262234f366560e63cd696b113c98c",
+        "fileHash": "0009b500aa8f9d110961813f5e919a7677df6a044eca23a4c9e9b59cb8a7cd4c",
         "status": "verified",
         "checkedAt": "2026-08-24T17:50:07-07:00",
         "feature": "持有单次狩猎的 Hunt ActionEnvironment，并从提交后事实移交跨阶段请求。"
@@ -73,6 +73,15 @@
         "status": "verified",
         "checkedAt": "2026-08-24T17:50:07-07:00",
         "feature": "作为专属战斗管理器持有单场状态、回合、卡牌和 Combat ActionSession 生命周期。"
+      },
+      {
+        "guid": "14ce1f834e26c5e4092eee2a5a0b887d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
+        "fileHash": "dd6aaf6c3cd036081bf349fddf4ba529a754c4a89fe3180b494ecd107ccd7ea3",
+        "line": 260,
+        "feature": "按 Showdown、Hunt、Settlement 顺序释放 phase manager，使 generation-owned ActionEnvironment 在 Installer Registry 前关闭。",
+        "status": "verified",
+        "checkedAt": "2026-08-26T03:00:00-07:00"
       },
       {
         "guid": "7a14c0de20260714000000000000000c",

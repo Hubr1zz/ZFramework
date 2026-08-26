@@ -23,6 +23,12 @@ The campaign SHALL retain one Campaign ActionEnvironment for the campaign lifeti
 - **WHEN** more than one root command is submitted to the same environment
 - **THEN** the environment executes one complete causal chain at a time in root FIFO order
 
+#### Scenario: A phase manager releases a runtime generation
+
+- **WHEN** SettlementPhaseManager、HuntPhaseManager 或 ShowdownPhaseManager reset、release 或 dispose 其 runtime
+- **THEN** 对应 ActionSession 与 ActionEnvironment attachment SHALL 在 manager generation 失效前完整释放
+- **AND** Campaign Installer Registry SHALL 保持可用于其他当前或未来环境，直到 CampaignRuntime 关闭
+
 ### Requirement: Campaign effects install across current and future environments
 A campaign-owned Installer Registry SHALL allow an Adapter to register reactors, reaction gates, guards, or related leases once, filter installation by environment kind, and apply it to both matching active environments and matching environments created later.
 

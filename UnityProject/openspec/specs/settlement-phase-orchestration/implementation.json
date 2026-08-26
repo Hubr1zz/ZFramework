@@ -2,37 +2,20 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "settlement-phase-orchestration",
-  "specHash": "98fb042837f0175a116500b72fad2efa60d62c1fa3fe6cbfd5e89edafde65d44",
+  "specHash": "0d29bd6ee8859e5a35a9b6701ca0ab8daddadfde5374281c4e7a9ae3bc57dcad",
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "营地阶段由 GameManager 激活根节点、调用 SettlementManager.OnEnter 并在进入后保存。",
-    "validatedAgainstSpecHash": "98fb042837f0175a116500b72fad2efa60d62c1fa3fe6cbfd5e89edafde65d44",
+    "summary": "SettlementPhaseManager 已拥有营地 runtime generations 与 session/restore 生命周期；GameManager 保持回营两阶段保存、事件恢复和现有桌面组合事务。",
+    "validatedAgainstSpecHash": "0d29bd6ee8859e5a35a9b6701ca0ab8daddadfde5374281c4e7a9ae3bc57dcad",
     "evidence": [
-      {
-        "guid": "551fe81197a6ca545a686a0c536f2646",
-        "displayPath": "Assets/Scripts/Core/GameManager.cs",
-        "line": 798
-      },
-      {
-        "guid": "1575b817a3362e94fbebfde4875d6115",
-        "displayPath": "Assets/Scripts/Adapters/Unity/Settlement/Legacy/SettlementManager.cs",
-        "line": 59
-      }
+      { "guid": "9f077c55098771f4ba11fab61a713a5c", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseManager.cs", "line": 8, "fileHash": "374a4884461e7ad461313a23c76329398231a1e32156493f9dcf574d3dc16634", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "准备新建/读档候选、投影预检、原子 swap、retired release 与 reset/dispose。" },
+      { "guid": "14ce1f834e26c5e4092eee2a5a0b887d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs", "line": 94, "fileHash": "dd6aaf6c3cd036081bf349fddf4ba529a754c4a89fe3180b494ecd107ccd7ea3", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "现有 IPlayableCampaignRuntime Settlement API 转发到战役 scoped manager。" }
     ],
-    "tests": [],
-    "verifiedAt": "07/21/2026 09:00:00"
+    "tests": ["PlayableCampaignRuntimeModuleTests 14/14", "GameManagerCampaignLoopPlayModeTests 14/14"],
+    "verifiedAt": "2026-08-26T03:00:00-07:00"
   },
-  "implementationOutline": [
-    "GameManager 进入 Settlement 时启用营地根节点，把待结算狩猎记录交给 SettlementManager.OnEnter。",
-    "SettlementManager 完成进入结算后刷新营地表现，GameManager 再通过持久化适配器保存结果。"
-  ],
-  "sourceReferences": [
-    "Assets/Scripts/Core/GameManager.cs:798",
-    "Assets/Scripts/Adapters/Unity/Settlement/Legacy/SettlementManager.cs:59"
-  ],
-  "publishedBy": {
-    "mode": "legacy-formal-review-migration",
-    "changeId": ""
-  }
+  "implementationOutline": ["SettlementPhaseManager 是 generation 权威 owner。", "具体 SettlementRuntime 继续拥有 SettlementManager、ActionSession 与 EventRestoreProjection。", "回营保存和表面板 bridge 暂留 GameManager，避免改动可靠检查点事务。"],
+  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseManager.cs:8", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1067"],
+  "publishedBy": { "mode": "direct-authority-sync", "changeId": "" }
 }

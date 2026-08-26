@@ -139,14 +139,13 @@ namespace Core
         [SerializeField] private SettlementUIManager _settlementUIManager; // 场景预建并连线（缺失则报错）
         private bool _settlementUIInited;
         [SerializeField] private SettlementTable3D _settlementTable3D;
-        private HuntMapVisualizer    _huntVisualizer;
-        private HuntUIManager        _huntUI;
-        private HuntRetreatPanel3D huntRetreatPanel;
+        private PlayableHuntPhaseManager huntPhaseManager;
+        private PlayableHuntPhaseCoordinator huntPhaseCoordinator;
         private DevModePanel         _devPanel;
         private TabletopGameOverView3D gameOverView;
         /// <summary>狩猎结算记录，由 HuntManager 回调注入，供 TransitionToPhase(Settlement) 消费</summary>
         private HuntRecord           _pendingHuntRecord;
-        private PlayableCombatSession _combatSession;
+        private PlayableShowdownPhaseManager showdownPhaseManager;
         private PlayableSettlementActionSession settlementActionSession => settlementRuntime?.ActionSession;
         private SettlementEventRestoreProjection settlementEventRestoreProjection
         {
@@ -227,7 +226,7 @@ namespace Core
         private IReadOnlyList<HunterInstance> pendingEncounterHunters;
 
         // ─── ICombatProvider ───
-        public CombatManager CombatManager => _combatSession?.CombatManager;
+        public CombatManager CombatManager => showdownPhaseManager.Current?.CombatManager;
 
         // ═══════════════════════════════════════════
         // 初始化
@@ -259,8 +258,20 @@ namespace Core
 
             // 权威阶段 FSM 由 ZFramework Campaign 模块持有；GameManager 只保留当前世代 lease。
             campaignRuntime = GameModule.Campaign.AcquireRuntime(this, ApplyPhaseRoots);
+            if (campaignRuntime is not IPlayableCampaignPhaseManagerAccess phaseManagers)
+                throw new System.InvalidOperationException("战役运行态未提供阶段管理器组合根访问接口。");
+            huntPhaseManager = phaseManagers.HuntPhase;
+            huntPhaseCoordinator = huntPhaseManager.Coordinator;
+            showdownPhaseManager = phaseManagers.ShowdownPhase;
             campaignRuntime.ConfigurePersistentEffectProjection(registry => new HuntNoiseLeaseProjection(registry));
             campaignRuntime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(this, CreateSettlementActionSession));
+            huntPhaseCoordinator.Configure(() => huntRuntime, () => campaignRuntime.ActionEnvironmentInstallers, tabletopInteractionRouter, huntRoot, uiHunt, this, request => BeginEncounterAsync(request).Forget(), record =>
+            {
+                if (_settlementManager?.HunterMgmt == null) throw new System.InvalidOperationException("营地猎人管理器未初始化，无法提交狩猎成长。");
+                PlayableHunterAdvancementAdapter.ApplyAfterHunt(_huntMgr.ActiveHunters, _settlementManager.HunterMgmt);
+                _pendingHuntRecord = record;
+                TransitionToPhase(GamePhase.Settlement);
+            }, OnHuntCheckpointCommitted);
             campaignRuntime.ConfigureHuntRuntime(new PlayableHuntRuntimeConfiguration(CreateHuntManager, CreateHuntActionSession));
             campaignStartup.Bind(this);
             campaignRestartTransaction = new CampaignRestartTransaction(campaignRuntime, campaignPersistence, PrepareCampaignRestartPayload, message => Debug.LogWarning($"[GameManager] {message}"));
@@ -381,7 +392,7 @@ namespace Core
 
         private void Update()
         {
-            _combatSession?.Update();
+            showdownPhaseManager.Update();
             HandleBackgroundClick();
         }
 
@@ -482,8 +493,8 @@ namespace Core
                 foreach (HuntStatusBoard3D board in huntRoot.GetComponentsInChildren<HuntStatusBoard3D>(true))
                     if (board != null && board.gameObject.activeInHierarchy && board.TryGetHunterAnchor(hunterId, out Vector3 anchor))
                         return anchor;
-            if (CurrentGamePhase == GamePhase.Hunt && _huntVisualizer != null)
-                return _huntVisualizer.TabletopInteractionAnchor.position;
+            if (CurrentGamePhase == GamePhase.Hunt && huntPhaseCoordinator.Visualizer != null)
+                return huntPhaseCoordinator.Visualizer.TabletopInteractionAnchor.position;
             GameObject phaseRoot = CurrentGamePhase == GamePhase.Hunt ? huntRoot : settlementRoot;
             return phaseRoot != null ? phaseRoot.transform.position : transform.position;
         }
@@ -556,7 +567,7 @@ namespace Core
 
         private bool StartCombatSession()
         {
-            if (_combatSession != null) return true;
+            if (showdownPhaseManager.Current?.IsActive == true) return true;
 
             try
             {
@@ -585,8 +596,11 @@ namespace Core
                     GetSettlementEvents = () => _settlementManager?.Events,
                     ActionEnvironmentInstallers = campaignRuntime.ActionEnvironmentInstallers
                 };
-                _combatSession = new PlayableCombatSession(configuration);
-                _combatSession.PublishReady();
+                if (!showdownPhaseManager.TryPrepare(configuration, out string reason))
+                {
+                    Debug.LogError(reason, this);
+                    return false;
+                }
                 Debug.Log("[GameManager] CombatSession 已创建。");
                 return true;
             }
@@ -600,9 +614,7 @@ namespace Core
 
         private void DisposeCombatSession()
         {
-            PlayableCombatSession session = _combatSession;
-            _combatSession = null;
-            session?.Dispose();
+            showdownPhaseManager.DisposeCurrent();
             Debug.Log("[GameManager] CombatSession 已释放。");
         }
 
@@ -620,32 +632,32 @@ namespace Core
         // IGameContext 实现
         // ═══════════════════════════════════════════
 
-        public TurnPhase CurrentPhase => _combatSession?.CurrentPhase ?? TurnPhase.PlayerTurn;
-        public int CurrentTurnNumber => _combatSession?.CurrentTurnNumber ?? 0;
-        public IReadOnlyList<ICharacterState> PlayerCharacters => _combatSession?.PlayerCharacters ?? System.Array.Empty<ICharacterState>();
-        public IBossState Boss => _combatSession?.Boss;
-        public IReadOnlyList<HitLocationRuntimeState> BossHitLocationStates => _combatSession?.BossHitLocationStates ?? System.Array.Empty<HitLocationRuntimeState>();
-        public IReadOnlyList<BossActionCardData> BossRevealedCards => _combatSession?.BossRevealedCards ?? System.Array.Empty<BossActionCardData>();
-        public Character GetCharacter(int characterId) => _combatSession?.GetCharacter(characterId);
-        public CharacterRuntimeData GetCharacterData(int characterId) => _combatSession?.GetCharacterData(characterId);
-        public IReadOnlyList<ICharacterActionCardInstanceState> GetCardsOf(int characterId) => _combatSession?.GetCardsOf(characterId) ?? System.Array.Empty<ICharacterActionCardInstanceState>();
-        public ICharacterActionCardInstanceState GetCard(int cardInstanceId) => _combatSession?.GetCard(cardInstanceId);
-        public Vector3 GetEntityWorldPosition(int entityId) => _combatSession?.GetEntityWorldPosition(entityId) ?? Vector3.zero;
+        public TurnPhase CurrentPhase => showdownPhaseManager.Current?.CurrentPhase ?? TurnPhase.PlayerTurn;
+        public int CurrentTurnNumber => showdownPhaseManager.Current?.CurrentTurnNumber ?? 0;
+        public IReadOnlyList<ICharacterState> PlayerCharacters => showdownPhaseManager.Current?.PlayerCharacters ?? System.Array.Empty<ICharacterState>();
+        public IBossState Boss => showdownPhaseManager.Current?.Boss;
+        public IReadOnlyList<HitLocationRuntimeState> BossHitLocationStates => showdownPhaseManager.Current?.BossHitLocationStates ?? System.Array.Empty<HitLocationRuntimeState>();
+        public IReadOnlyList<BossActionCardData> BossRevealedCards => showdownPhaseManager.Current?.BossRevealedCards ?? System.Array.Empty<BossActionCardData>();
+        public Character GetCharacter(int characterId) => showdownPhaseManager.Current?.GetCharacter(characterId);
+        public CharacterRuntimeData GetCharacterData(int characterId) => showdownPhaseManager.Current?.GetCharacterData(characterId);
+        public IReadOnlyList<ICharacterActionCardInstanceState> GetCardsOf(int characterId) => showdownPhaseManager.Current?.GetCardsOf(characterId) ?? System.Array.Empty<ICharacterActionCardInstanceState>();
+        public ICharacterActionCardInstanceState GetCard(int cardInstanceId) => showdownPhaseManager.Current?.GetCard(cardInstanceId);
+        public Vector3 GetEntityWorldPosition(int entityId) => showdownPhaseManager.Current?.GetEntityWorldPosition(entityId) ?? Vector3.zero;
 
         // ═══════════════════════════════════════════
         // UI 输入接口
         // ═══════════════════════════════════════════
 
-        public void OnSelectCharacter(int characterId) => _combatSession?.OnSelectCharacter(characterId);
-        public void OnPlayCard(int cardInstanceId, int targetEntityId) => _combatSession?.OnPlayCard(cardInstanceId, targetEntityId);
-        public void OnRestoreCard(int cardInstanceId) => _combatSession?.OnRestoreCard(cardInstanceId);
-        public void OnDiscardCard(int cardInstanceId) => _combatSession?.OnDiscardCard(cardInstanceId);
-        public void OnEndTurn() => _combatSession?.OnEndTurn();
-        public bool OnAssistOvertimeCharacter(int helperId, int targetId) => _combatSession != null && _combatSession.TryAssistOvertimeCharacter(helperId, targetId);
-        public int AddCombatInspiration(int characterId, int amount) => _combatSession?.AddCombatInspiration(characterId, amount) ?? 0;
-        public UniTask<InspirationGain> AddCombatInspirationAsync(int characterId, CombatInspirationColor color, System.Threading.CancellationToken cancellationToken = default) => _combatSession != null ? _combatSession.AddCombatInspirationAsync(characterId, color, cancellationToken) : UniTask.FromResult(new InspirationGain(InspirationGainResult.Rejected, default));
-        public IReadOnlyList<CombatInspirationToken> GetCombatInspirationTokens(int characterId) => _combatSession?.GetCombatInspirationTokens(characterId) ?? System.Array.Empty<CombatInspirationToken>();
-        public int GetCombatInspirationCapacity(int characterId) => _combatSession?.GetCombatInspirationCapacity(characterId) ?? 0;
+        public void OnSelectCharacter(int characterId) => showdownPhaseManager.Current?.OnSelectCharacter(characterId);
+        public void OnPlayCard(int cardInstanceId, int targetEntityId) => showdownPhaseManager.Current?.OnPlayCard(cardInstanceId, targetEntityId);
+        public void OnRestoreCard(int cardInstanceId) => showdownPhaseManager.Current?.OnRestoreCard(cardInstanceId);
+        public void OnDiscardCard(int cardInstanceId) => showdownPhaseManager.Current?.OnDiscardCard(cardInstanceId);
+        public void OnEndTurn() => showdownPhaseManager.Current?.OnEndTurn();
+        public bool OnAssistOvertimeCharacter(int helperId, int targetId) => showdownPhaseManager.Current != null && showdownPhaseManager.Current.TryAssistOvertimeCharacter(helperId, targetId);
+        public int AddCombatInspiration(int characterId, int amount) => showdownPhaseManager.Current?.AddCombatInspiration(characterId, amount) ?? 0;
+        public UniTask<InspirationGain> AddCombatInspirationAsync(int characterId, CombatInspirationColor color, System.Threading.CancellationToken cancellationToken = default) => showdownPhaseManager.Current != null ? showdownPhaseManager.Current.AddCombatInspirationAsync(characterId, color, cancellationToken) : UniTask.FromResult(new InspirationGain(InspirationGainResult.Rejected, default));
+        public IReadOnlyList<CombatInspirationToken> GetCombatInspirationTokens(int characterId) => showdownPhaseManager.Current?.GetCombatInspirationTokens(characterId) ?? System.Array.Empty<CombatInspirationToken>();
+        public int GetCombatInspirationCapacity(int characterId) => showdownPhaseManager.Current?.GetCombatInspirationCapacity(characterId) ?? 0;
 
         // ═══════════════════════════════════════════
         // Boss 战利品结算
@@ -658,9 +670,9 @@ namespace Core
         /// </summary>
         private void ApplyBossFightLoot()
         {
-            if (_settlementManager == null || _combatSession == null) return;
+            if (_settlementManager == null || showdownPhaseManager.Current == null) return;
 
-            var loot = _combatSession.GetAndClearLoot();
+            var loot = showdownPhaseManager.Current.GetAndClearLoot();
             if (loot.Count == 0) return;
 
             foreach (var (resource, amount) in loot)
@@ -795,65 +807,13 @@ namespace Core
         }
 
         private HuntManager CreateHuntManager(SettlementManager settlementManager)
-        {
-            var sharedEventSystem = settlementManager?.Events ?? new HuntingInDarkness.Settlement.EventSystem(new SettlementInstance(), new HuntingInDarkness.GameCore.Foundation.SystemRandomSource());
-            var manager = new HuntManager(sharedEventSystem, bindInitialContent: false);
-            manager.OnBossEncounterTriggered = () =>
-            {
-                IPlayableHuntRuntime source = huntRuntime;
-                if (!ReferenceEquals(source?.Manager, manager) || source.ActionSession == null) return;
-                var request = new CampaignEncounterRequest(source.ActionSession.SessionId, PlayableEncounterRuntime.DefaultEncounterId, CampaignEncounterSourceKind.HuntBossTile, GamePhase.Hunt, manager.SquadPosition, string.Empty, manager.BoundRoute?.DestinationId ?? string.Empty);
-                BeginEncounterAsync(request).Forget();
-            };
-            manager.OnHuntCompleted = record =>
-            {
-                if (!ReferenceEquals(huntRuntime?.Manager, manager)) return;
-                if (_settlementManager?.HunterMgmt == null) throw new System.InvalidOperationException("营地猎人管理器未初始化，无法提交狩猎成长。");
-                PlayableHunterAdvancementAdapter.ApplyAfterHunt(manager.ActiveHunters, _settlementManager.HunterMgmt);
-                _pendingHuntRecord = record;
-                TransitionToPhase(GamePhase.Settlement);
-            };
-            return manager;
-        }
+            => huntPhaseCoordinator.CreateManager(settlementManager);
 
         private PlayableHuntActionSession CreateHuntActionSession(HuntManager manager, PlayableHuntEventOccurrenceStore restoredOccurrences)
-        {
-            IPlayableHuntRuntime source = huntRuntime;
-            return new PlayableHuntActionSession(manager, PlayableEncounterRuntime.DefaultEncounterId, manager.BoundRoute?.DestinationId ?? string.Empty, tabletopInteractionRouter, _huntVisualizer, campaignRuntime.ActionEnvironmentInstallers, restoredOccurrences, () => OnHuntCheckpointCommitted(source));
-        }
+            => huntPhaseCoordinator.CreateActionSession(manager, restoredOccurrences);
 
         private bool TryStartHuntPresentationAndSession(PlayableHuntEventOccurrenceStore restoredOccurrences, out string reason)
-        {
-            try
-            {
-                if (_huntVisualizer == null && huntRoot != null)
-                {
-                    var visualizerObject = new GameObject("HuntMapVisualizer");
-                    visualizerObject.transform.SetParent(huntRoot.transform);
-                    _huntVisualizer = visualizerObject.AddComponent<HuntMapVisualizer>();
-                }
-                if (!huntRuntime.TryActivateActionSession(restoredOccurrences, out reason)) return false;
-                _huntVisualizer?.Init(_huntMgr, huntRuntime.ExplorationPort);
-            }
-            catch (System.Exception exception)
-            {
-                DisposeHuntActionSession();
-                reason = $"狩猎 ActionSession 初始化失败：{exception.Message}";
-                return false;
-            }
-            try
-            {
-                EnsureHuntRetreatPanel();
-                EnsureHuntUI();
-            }
-            catch (System.Exception exception)
-            {
-                CleanupHuntPresentation(false);
-                Debug.LogWarning($"[GameManager] 狩猎交互表现初始化失败，已保留 ActionSession：{exception.Message}");
-            }
-            reason = string.Empty;
-            return true;
-        }
+            => huntPhaseCoordinator.TryStartPresentationAndSession(restoredOccurrences, out reason);
 
         private bool TryRestoreActiveHunt(CampaignSnapshot campaign, out string reason)
         {
@@ -867,56 +827,19 @@ namespace Core
 
         private void RestorePreviousHuntPresentation(GamePhase previousPhase, IPlayableHuntRuntime previousHunt)
         {
-            if (previousPhase == GamePhase.Hunt && previousHunt != null)
-            {
-                _huntVisualizer?.Init(previousHunt.Manager, previousHunt.ExplorationPort);
-                EnsureHuntRetreatPanel();
-                EnsureHuntUI();
-            }
-            else if (previousPhase == GamePhase.Settlement)
-            {
-                CleanupHuntPresentation();
+            huntPhaseCoordinator.RestorePreviousPresentation(previousPhase, previousHunt);
+            if (previousPhase == GamePhase.Settlement)
                 EnsureSettlementUI();
-            }
         }
 
         private void CleanupHuntPresentation(bool includeVisualizer = true)
-        {
-            if (huntRetreatPanel != null)
-                Destroy(huntRetreatPanel.gameObject);
-            if (_huntUI != null)
-                Destroy(_huntUI.gameObject);
-            if (includeVisualizer && _huntVisualizer != null)
-                Destroy(_huntVisualizer.gameObject);
-            huntRetreatPanel = null;
-            _huntUI = null;
-            if (includeVisualizer)
-                _huntVisualizer = null;
-        }
+            => huntPhaseCoordinator.Cleanup(includeVisualizer);
 
         private void EnsureHuntUI()
-        {
-            if (_huntUI != null)
-            {
-                _huntUI.Init(_huntMgr, _huntVisualizer, huntExplorationRuntime?.Port);
-                return;
-            }
-            var uiParent = uiHunt != null ? uiHunt : huntRoot;
-            if (uiParent == null) return;
-            var uiGo = new GameObject("HuntUIManager", typeof(RectTransform));
-            uiGo.transform.SetParent(uiParent.transform, false);
-            _huntUI = uiGo.AddComponent<HuntUIManager>();
-            _huntUI.Init(_huntMgr, _huntVisualizer, huntExplorationRuntime?.Port);
-        }
+            => huntPhaseCoordinator.EnsureHuntUI(_huntMgr, huntExplorationRuntime?.Port);
 
         private void EnsureHuntRetreatPanel()
-        {
-            if (_huntVisualizer == null)
-                return;
-            if (huntRetreatPanel == null)
-                huntRetreatPanel = HuntRetreatPanel3D.Create(_huntVisualizer.transform);
-            huntRetreatPanel.Initialize(this, _huntMgr);
-        }
+            => huntPhaseCoordinator.EnsureHuntRetreatPanel(_huntMgr);
 
         private void EnsureSettlementUI()
         {
@@ -1411,10 +1334,10 @@ namespace Core
 
         public bool OnRelieveOvertimeCharacter(int targetId)
         {
-            return _combatSession != null && _combatSession.TryRelieveOvertimeCharacter(targetId);
+            return showdownPhaseManager.Current != null && showdownPhaseManager.Current.TryRelieveOvertimeCharacter(targetId);
         }
 
-        public TimelineActionStatus GetTimelineStatus(int characterId) => _combatSession?.GetTimelineStatus(characterId) ?? TimelineActionStatus.Done;
+        public TimelineActionStatus GetTimelineStatus(int characterId) => showdownPhaseManager.Current?.GetTimelineStatus(characterId) ?? TimelineActionStatus.Done;
 
         public void LoadSettlementProgress() => DevLoad();
 
@@ -1830,7 +1753,7 @@ namespace Core
                 return;
             }
 
-            _combatSession.Start(encounterHunters, _settlementManager?.HunterMgmt, QueueDefeatedHuntCompletion);
+            showdownPhaseManager.Start(encounterHunters, _settlementManager?.HunterMgmt, QueueDefeatedHuntCompletion);
         }
 
         /// <summary>
@@ -1878,11 +1801,13 @@ namespace Core
             EventBus.Unsubscribe<SettlementTransactionCommittedEvent>(OnSettlementTransactionCommitted);
             EventBus.Unsubscribe<CampaignEncounterRequestedEvent>(OnCampaignEncounterRequested);
             EventBus.Unsubscribe<PlayableEventEncounterRequestedEvent>(OnPlayableEventEncounterRequested);
-            DisposeSettlementActionSession();
             DisposeHuntActionSession();
-            DisposeCombatSession();
+            DisposeSettlementActionSession();
             campaignRuntime?.Dispose();
             campaignRuntime = null;
+            huntPhaseManager = null;
+            huntPhaseCoordinator = null;
+            showdownPhaseManager = null;
             if (Instance == this)
                 Instance = null;
         }
@@ -1894,10 +1819,10 @@ namespace Core
         /// <summary>Boss被击败 → 结算狩猎 → 返回营地</summary>
         private void OnBossDefeated(BossDefeatedEvent _)
         {
-            if (CurrentGamePhase != GamePhase.BossFight || _combatSession == null) return;
+            if (CurrentGamePhase != GamePhase.BossFight || showdownPhaseManager.Current == null) return;
             Debug.Log("[GameManager] 收到 BossDefeatedEvent → 狩猎结算 → 营地");
-            _combatSession.AccumulateDefeatLoot();
-            _combatSession.SettleWeaponMastery();
+            showdownPhaseManager.Current.AccumulateDefeatLoot();
+            showdownPhaseManager.Current.SettleWeaponMastery();
             if (_huntMgr != null && _settlementManager != null)
                 _huntMgr.CompleteHunt(bossDefeated: true, settlement: _settlementManager.Data);
             else
@@ -1964,13 +1889,13 @@ namespace Core
         /// <summary>悬浮行动卡 → 高亮其目标/范围格</summary>
         private void OnCardHoverPreview(CardHoverPreviewEvent evt)
         {
-            _combatSession?.HighlightCardPreview(evt.CardInstanceId);
+            showdownPhaseManager.Current?.HighlightCardPreview(evt.CardInstanceId);
         }
 
         /// <summary>移开行动卡 → 清除范围高亮</summary>
         private void OnCardHoverPreviewEnd(CardHoverPreviewEndEvent _)
         {
-            _combatSession?.ClearCardPreview();
+            showdownPhaseManager.Current?.ClearCardPreview();
         }
 
         /// <summary>猎人名册变化时检查胜负条件</summary>

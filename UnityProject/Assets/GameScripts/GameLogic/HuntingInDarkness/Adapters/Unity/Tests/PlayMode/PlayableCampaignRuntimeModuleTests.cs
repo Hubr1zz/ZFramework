@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using Core;
 using GameplayBase;
@@ -56,6 +57,53 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(runtime.IsStarted, Is.False);
             Assert.That(runtime.CurrentPhase, Is.EqualTo(GamePhase.Settlement));
             Assert.Throws<InvalidOperationException>(() => module.AcquireRuntime(new RecordingHost(), null));
+        }
+
+        [Test]
+        public void RuntimeOwnsReusablePhaseManagersAcrossReset()
+        {
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            object phaseManagers = GetPhaseManagers(runtime);
+            ConfigureSettlementRuntime();
+            ConfigureHuntRuntime();
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime settlement, out string settlementReason), Is.True, settlementReason);
+            Assert.That(runtime.TrySwapSettlement(null, settlement, out string settlementSwapReason), Is.True, settlementSwapReason);
+            Assert.That(runtime.TryPrepareNewHunt(settlement, out IPlayableHuntRuntime hunt, out string huntReason), Is.True, huntReason);
+            Assert.That(runtime.TrySwapHunt(null, hunt, out string huntSwapReason), Is.True, huntSwapReason);
+
+            runtime.Reset();
+
+            Assert.That(GetManagerCurrent(phaseManagers, "SettlementPhase"), Is.Null);
+            Assert.That(GetManagerCurrent(phaseManagers, "HuntPhase"), Is.Null);
+            Assert.That(GetManagerCurrent(phaseManagers, "ShowdownPhase"), Is.Null);
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime nextSettlement, out string nextReason), Is.True, nextReason);
+            runtime.ReleaseSettlement(nextSettlement);
+        }
+
+        [Test]
+        public void RuntimeOwnedPhaseManagersRejectUseAfterDispose()
+        {
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            runtime.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => runtime.TryPrepareNewSettlement(out _, out _));
+            Assert.Throws<ObjectDisposedException>(() => runtime.TryPrepareNewHunt(null, out _, out _));
+            Assert.Throws<ObjectDisposedException>(() => runtime.TryPrepareHuntRestore(null, "disposed", out _, out _));
+        }
+
+        private static object GetPhaseManagers(IPlayableCampaignRuntime runtime)
+        {
+            Type accessType = runtime.GetType().GetInterface("Core.IPlayableCampaignPhaseManagerAccess", true);
+            Assert.That(accessType, Is.Not.Null);
+            return runtime;
+        }
+
+        private static object GetManagerCurrent(object phaseManagers, string propertyName)
+        {
+            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhaseManagerAccess", true);
+            PropertyInfo property = accessType.GetProperty(propertyName);
+            object manager = property.GetValue(phaseManagers);
+            return manager.GetType().GetProperty("Current", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(manager);
         }
 
         [Test]

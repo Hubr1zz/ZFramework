@@ -2,37 +2,21 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "hunt-phase-orchestration",
-  "specHash": "aea0c4b662637193d95bb4d531b132cc10c53f81149fdb9bf61cd3f94ed01c1b",
+  "specHash": "e101d9780dd57d32de6a94083e049aab82bf19abc69e6168bbad149920e1aeb0",
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "GameManager 创建或复用 HuntManager，并通过回调接收 Boss 遭遇与狩猎完成结果。",
-    "validatedAgainstSpecHash": "aea0c4b662637193d95bb4d531b132cc10c53f81149fdb9bf61cd3f94ed01c1b",
+    "summary": "HuntPhaseManager 已拥有 Hunt generations 与 composition coordinator；当前 generation 才能提交完成、遭遇和检查点 callback。",
+    "validatedAgainstSpecHash": "e101d9780dd57d32de6a94083e049aab82bf19abc69e6168bbad149920e1aeb0",
     "evidence": [
-      {
-        "guid": "551fe81197a6ca545a686a0c536f2646",
-        "displayPath": "Assets/Scripts/Core/GameManager.cs",
-        "line": 798
-      },
-      {
-        "guid": "6dce6ba7b65af9c42821b85a0555ac17",
-        "displayPath": "Assets/Scripts/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
-        "line": 76
-      }
+      { "guid": "863ce20b13126434f94c05222428eb5e", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseManager.cs", "line": 8, "fileHash": "cb2177885f2200855245b8fe6a3ebc283db0ae86c4e6737a855c2c581c0276ff", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "拥有 Hunt runtime 候选、current、generation、配置与 coordinator 生命周期。" },
+      { "guid": "040c7587482dbdd439e8913b7911110b", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs", "line": 21, "fileHash": "080924c72041167dc6e0f9c21e72d407c90a2b898832619125e17c1f39126bb3", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "拥有 visualizer、HuntUI、retreat panel 与 session callback，并拒绝 stale generation。" },
+      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 719, "fileHash": "18237cfb1c0737bd202bedbf22e2643ef920eff0219a4a97906bd02f09afe077", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "保留 route/departure、retreat persistence 和 encounter handoff，只通过阶段 façade 启动或恢复 Hunt。" }
     ],
-    "tests": [],
-    "verifiedAt": "07/21/2026 09:00:00"
+    "tests": ["PlayableHuntActionSessionTests 22/22", "PlayableCampaignRuntimeModuleTests 14/14", "GameManagerCampaignLoopPlayModeTests 14/14"],
+    "verifiedAt": "2026-08-26T03:00:00-07:00"
   },
-  "implementationOutline": [
-    "GameManager 进入 Hunt 时把当前猎人队伍交给 HuntManager，并启用狩猎世界与界面适配器。",
-    "HuntManager 遇到 Boss 或完成狩猎时调用组合根回调，由 GameManager 决定切换到决战或营地。"
-  ],
-  "sourceReferences": [
-    "Assets/Scripts/Core/GameManager.cs:798",
-    "Assets/Scripts/Adapters/Unity/Hunt/Legacy/HuntManager.cs:76"
-  ],
-  "publishedBy": {
-    "mode": "legacy-formal-review-migration",
-    "changeId": ""
-  }
+  "implementationOutline": ["HuntPhaseManager 管理候选与权威 generation。", "Hunt composition coordinator 管理 3D 表现和 ActionSession callback token。", "GameManager 继续拥有跨阶段 route、保存与遭遇事务。"],
+  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseManager.cs:8", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs:21"],
+  "publishedBy": { "mode": "direct-authority-sync", "changeId": "" }
 }

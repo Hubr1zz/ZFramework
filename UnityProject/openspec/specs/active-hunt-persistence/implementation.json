@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "active-hunt-persistence",
-  "specHash": "a6fded21aaf1c0e1b8a533d826ce52c6172e01135b0f87daf46f9c5b3a9cdd0a",
+  "specHash": "f3c37e7bf4fa431c7b0635b336b153f37d4913abc9a6fc4ef5649d31a25f6678",
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份；捕获与恢复通过绑定路线的可达事件闭包验证 pending Triggered occurrence，再在候选图完成原子发布与完整 RuntimeState 回滚。",
-    "validatedAgainstSpecHash": "a6fded21aaf1c0e1b8a533d826ce52c6172e01135b0f87daf46f9c5b3a9cdd0a",
+    "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份；恢复事务通过 Settlement/Hunt phase managers 发布候选 generations，再由 Hunt coordinator 重建当前 session 与表现。",
+    "validatedAgainstSpecHash": "f3c37e7bf4fa431c7b0635b336b153f37d4913abc9a6fc4ef5649d31a25f6678",
     "evidence": [
       {
         "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
@@ -22,7 +22,7 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "1ae73162020de745e3364a91595523acab13eb316302737af8685105b54b8357",
+        "fileHash": "18237cfb1c0737bd202bedbf22e2643ef920eff0219a4a97906bd02f09afe077",
         "status": "verified",
         "checkedAt": "2026-08-25T10:46:52-07:00",
         "feature": "仅作为组合根调用活动狩猎恢复事务，并在事务结果成为权威后接管稳定载荷与场景表现。"
@@ -37,10 +37,19 @@
         "feature": "集中准备、验证、交换与回滚 Settlement/Hunt 运行世代，动态解析事件输入端口，并在不可逆阶段回滚失败时返回当前权威稳定载荷。"
       },
       {
+        "guid": "040c7587482dbdd439e8913b7911110b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs",
+        "fileHash": "080924c72041167dc6e0f9c21e72d407c90a2b898832619125e17c1f39126bb3",
+        "line": 21,
+        "feature": "在候选 Hunt generation 发布后重建 session 与 3D 表现，并拒绝旧 generation callback。",
+        "status": "verified",
+        "checkedAt": "2026-08-26T03:00:00-07:00"
+      },
+      {
         "guid": "6dce6ba7b65af9c42821b85a0555ac17",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
         "line": 1,
-        "fileHash": "aca4adb5f9ba5bc8876cec8e5f1bb008d24aa5b28265eb8510cebcd7585942a6",
+        "fileHash": "937d53273a8f9c63b0d0dbea7f91b746191b299aead36270aaed5ae034e2c052",
         "status": "verified",
         "checkedAt": "2026-08-24T04:44:00-07:00",
         "feature": "应用已验证运行态并恢复确定性随机源与导航位置。"
@@ -49,7 +58,7 @@
         "guid": "4ba73e89b3fe5ba4088fc947dc1e9f63",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
         "line": 1,
-        "fileHash": "060b7f3e8a90857d58be188cb9a39844f74262234f366560e63cd696b113c98c",
+        "fileHash": "0009b500aa8f9d110961813f5e919a7677df6a044eca23a4c9e9b59cb8a7cd4c",
         "status": "verified",
         "checkedAt": "2026-08-24T04:44:00-07:00",
         "feature": "在地块、采集与 occurrence 提交完成后通知权威检查点，并连续排空可恢复事件。"
@@ -58,7 +67,7 @@
         "guid": "a61a5c63f2764aa98fb12323a8c94f3a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
         "line": 1,
-        "fileHash": "6579d2062ac0a74e254a3aa15b16fc20fea2a1cdac8b445d4035da0bbc35aaac",
+        "fileHash": "f54f2cb95bea48a4b867fef772becea4ddd44658c85662f42b3c51755449dbab",
         "status": "verified",
         "checkedAt": "2026-08-25T21:33:00-07:00",
         "feature": "组合验证 Bundle 身份往返、pending Triggered 子事件 JSON 恢复，以及路线外事件或祖先在捕获和恢复侧均被拒绝。"

@@ -50,6 +50,13 @@ namespace Core
         IPlayableCampaignRuntime AcquireRuntime(ICampaignPhaseTransitionHost host, Action<GamePhase, GamePhase> onPhaseTransition);
     }
 
+    internal interface IPlayableCampaignPhaseManagerAccess
+    {
+        PlayableSettlementPhaseManager SettlementPhase { get; }
+        PlayableHuntPhaseManager HuntPhase { get; }
+        PlayableShowdownPhaseManager ShowdownPhase { get; }
+    }
+
     /// <summary>
     /// ZFramework 管理的战役运行态入口。当前先统一拥有阶段 FSM，后续运行态职责按簇迁入。
     /// </summary>
@@ -84,25 +91,20 @@ namespace Core
                 activeRuntime = null;
         }
 
-        private sealed class CampaignRuntime : IPlayableCampaignRuntime
+        private sealed class CampaignRuntime : IPlayableCampaignRuntime, IPlayableCampaignPhaseManagerAccess
         {
             private readonly IFsmModule fsmModule;
             private ICampaignPhaseTransitionHost host;
             private Action<CampaignRuntime> release;
             private readonly ActionEnvironmentInstallerRegistry actionEnvironmentInstallers = new();
-            private readonly HashSet<PlayableSettlementRuntime> settlementRuntimes = new();
-            private readonly HashSet<PlayableHuntRuntime> huntRuntimes = new();
+            private readonly PlayableSettlementPhaseManager settlementPhaseManager;
+            private readonly PlayableHuntPhaseManager huntPhaseManager;
+            private readonly PlayableShowdownPhaseManager showdownPhaseManager;
             private Action<GamePhase, GamePhase> onPhaseTransition;
             private PhaseManager phaseManager;
             private PlayableCampaignActionSession actionSession;
             private IDisposable gameplayInstallation;
-            private PlayableSettlementRuntimeConfiguration settlementConfiguration;
-            private PlayableSettlementRuntime settlement;
             private IPlayableCampaignPersistentEffectProjection persistentEffectProjection;
-            private PlayableHuntRuntimeConfiguration huntConfiguration;
-            private PlayableHuntRuntime hunt;
-            private long nextSettlementGenerationId;
-            private long nextHuntGenerationId;
             private bool disposed;
 
             public long GenerationId { get; }
@@ -110,11 +112,14 @@ namespace Core
             public bool IsStarted => phaseManager?.IsStarted == true;
             public bool IsActionSessionActive => actionSession?.IsActive == true;
             public bool IsActionSessionRunning => actionSession?.IsRunning == true;
-            public IPlayableSettlementRuntime Settlement => settlement;
-            public IPlayableHuntRuntime Hunt => hunt;
+            public IPlayableSettlementRuntime Settlement => settlementPhaseManager.Current;
+            public IPlayableHuntRuntime Hunt => huntPhaseManager.Current;
             public IPlayableCampaignPersistentEffectProjection PersistentEffectProjection => persistentEffectProjection;
             public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers => actionEnvironmentInstallers;
             public ReactorRegistry ActionReactors => actionSession?.Reactors;
+            PlayableSettlementPhaseManager IPlayableCampaignPhaseManagerAccess.SettlementPhase => settlementPhaseManager;
+            PlayableHuntPhaseManager IPlayableCampaignPhaseManagerAccess.HuntPhase => huntPhaseManager;
+            PlayableShowdownPhaseManager IPlayableCampaignPhaseManagerAccess.ShowdownPhase => showdownPhaseManager;
 
             public CampaignRuntime(long generationId, IFsmModule fsmModule, ICampaignPhaseTransitionHost host, Action<GamePhase, GamePhase> onPhaseTransition, Action<CampaignRuntime> release)
             {
@@ -123,6 +128,9 @@ namespace Core
                 this.host = host ?? throw new ArgumentNullException(nameof(host));
                 this.onPhaseTransition = onPhaseTransition;
                 this.release = release ?? throw new ArgumentNullException(nameof(release));
+                settlementPhaseManager = new PlayableSettlementPhaseManager(() => persistentEffectProjection);
+                huntPhaseManager = new PlayableHuntPhaseManager(settlementPhaseManager);
+                showdownPhaseManager = new PlayableShowdownPhaseManager();
                 phaseManager = CreatePhaseManager();
             }
 
@@ -149,9 +157,7 @@ namespace Core
 
             public void ConfigureSettlementRuntime(PlayableSettlementRuntimeConfiguration configuration)
             {
-                ThrowIfDisposed();
-                if (settlementConfiguration != null) throw new InvalidOperationException("营地运行态配置已经安装。");
-                settlementConfiguration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+                settlementPhaseManager.Configure(configuration);
             }
 
             public void ConfigurePersistentEffectProjection(Func<IActionEnvironmentInstallerRegistry, IPlayableCampaignPersistentEffectProjection> factory)
@@ -162,7 +168,7 @@ namespace Core
                 if (factory == null)
                     throw new ArgumentNullException(nameof(factory));
                 persistentEffectProjection = factory(actionEnvironmentInstallers) ?? throw new InvalidOperationException("战役持久效果投影工厂返回空结果。");
-                if (settlement != null && !persistentEffectProjection.TrySynchronize(settlement.Data, out string reason))
+                if (settlementPhaseManager.Current != null && !persistentEffectProjection.TrySynchronize(settlementPhaseManager.Current.Data, out string reason))
                 {
                     persistentEffectProjection.Dispose();
                     persistentEffectProjection = null;
@@ -172,125 +178,43 @@ namespace Core
 
             public bool TryPrepareNewSettlement(out IPlayableSettlementRuntime candidate, out string reason)
             {
-                ThrowIfDisposed();
-                candidate = null;
-                if (!TryGetSettlementConfiguration(out reason)) return false;
-                var runtime = new PlayableSettlementRuntime(++nextSettlementGenerationId, new SettlementManager(), settlementConfiguration, false);
-                settlementRuntimes.Add(runtime);
-                candidate = runtime;
-                reason = string.Empty;
-                return true;
+                return settlementPhaseManager.TryPrepareNew(out candidate, out reason);
             }
 
             public bool TryPrepareSettlementRestore(SettlementInstance data, out IPlayableSettlementRuntime candidate, out string reason)
             {
-                ThrowIfDisposed();
-                candidate = null;
-                if (!TryGetSettlementConfiguration(out reason)) return false;
-                if (!SettlementManager.TryPrepareCandidate(data, out SettlementManager manager, out reason)) return false;
-                var runtime = new PlayableSettlementRuntime(++nextSettlementGenerationId, manager, settlementConfiguration, true);
-                settlementRuntimes.Add(runtime);
-                candidate = runtime;
-                reason = string.Empty;
-                return true;
+                return settlementPhaseManager.TryPrepareRestore(data, out candidate, out reason);
             }
 
             public bool TrySwapSettlement(IPlayableSettlementRuntime expectedCurrent, IPlayableSettlementRuntime replacement, out string reason)
             {
-                ThrowIfDisposed();
-                if (!ReferenceEquals(settlement, expectedCurrent))
-                {
-                    reason = "权威营地运行世代已变化，拒绝提交过期候选。";
-                    return false;
-                }
-                PlayableSettlementRuntime next = replacement as PlayableSettlementRuntime;
-                if (replacement != null && (next == null || !settlementRuntimes.Contains(next) || !next.IsDetached))
-                {
-                    reason = "替换目标不是当前战役持有的可发布营地候选。";
-                    return false;
-                }
-                if (persistentEffectProjection != null && !persistentEffectProjection.TrySynchronize(next?.Data, out reason))
-                    return false;
-
-                if (next != null && !next.TryPreparePublication(out reason))
-                {
-                    persistentEffectProjection?.TrySynchronize(settlement?.Data, out _);
-                    return false;
-                }
-
-                PlayableSettlementRuntime previous = settlement;
-                try
-                {
-                    previous?.Detach();
-                    next?.Publish();
-                    settlement = next;
-                    reason = string.Empty;
-                    return true;
-                }
-                catch (Exception exception)
-                {
-                    persistentEffectProjection?.TrySynchronize(previous?.Data, out _);
-                    reason = $"提交营地运行世代失败：{exception.Message}";
-                    return false;
-                }
+                return settlementPhaseManager.TrySwap(expectedCurrent, replacement, out reason);
             }
 
             public void ReleaseSettlement(IPlayableSettlementRuntime runtime)
             {
-                ThrowIfDisposed();
-                if (runtime is not PlayableSettlementRuntime owned || !settlementRuntimes.Contains(owned))
-                    throw new InvalidOperationException("营地运行世代不属于当前战役。");
-                if (owned.IsCurrent)
-                    throw new InvalidOperationException("不能释放当前权威营地运行世代。");
-                owned.Dispose();
-                settlementRuntimes.Remove(owned);
+                settlementPhaseManager.Release(runtime);
             }
 
             public void ConfigureHuntRuntime(PlayableHuntRuntimeConfiguration configuration)
             {
-                ThrowIfDisposed();
-                if (huntConfiguration != null)
-                    throw new InvalidOperationException("狩猎运行态配置已经安装。");
-                huntConfiguration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+                huntPhaseManager.Configure(configuration);
             }
 
             public bool TryPrepareNewHunt(IPlayableSettlementRuntime settlement, out IPlayableHuntRuntime candidate, out string reason)
-                => TryPrepareHunt(settlement, Guid.NewGuid().ToString("N"), out candidate, out reason);
+                => huntPhaseManager.TryPrepareNew(settlement, out candidate, out reason);
 
             public bool TryPrepareHuntRestore(IPlayableSettlementRuntime settlement, string expeditionId, out IPlayableHuntRuntime candidate, out string reason)
-                => TryPrepareHunt(settlement, expeditionId, out candidate, out reason);
+                => huntPhaseManager.TryPrepareRestore(settlement, expeditionId, out candidate, out reason);
 
             public bool TrySwapHunt(IPlayableHuntRuntime expectedCurrent, IPlayableHuntRuntime replacement, out string reason)
             {
-                ThrowIfDisposed();
-                if (!ReferenceEquals(hunt, expectedCurrent))
-                {
-                    reason = "权威狩猎运行世代已变化，拒绝提交过期候选。";
-                    return false;
-                }
-                PlayableHuntRuntime next = replacement as PlayableHuntRuntime;
-                if (replacement != null && (next == null || !huntRuntimes.Contains(next) || !next.IsDetached))
-                {
-                    reason = "替换目标不是当前战役持有的可发布狩猎候选。";
-                    return false;
-                }
-                PlayableHuntRuntime previous = hunt;
-                previous?.Detach();
-                next?.Publish();
-                hunt = next;
-                reason = string.Empty;
-                return true;
+                return huntPhaseManager.TrySwap(expectedCurrent, replacement, out reason);
             }
 
             public void ReleaseHunt(IPlayableHuntRuntime runtime)
             {
-                ThrowIfDisposed();
-                if (runtime is not PlayableHuntRuntime owned || !huntRuntimes.Contains(owned))
-                    throw new InvalidOperationException("狩猎运行世代不属于当前战役。");
-                if (owned.IsCurrent)
-                    throw new InvalidOperationException("不能释放当前权威狩猎运行世代。");
-                owned.Dispose();
-                huntRuntimes.Remove(owned);
+                huntPhaseManager.Release(runtime);
             }
 
             public void Start(GamePhase initialPhase)
@@ -337,8 +261,10 @@ namespace Core
             {
                 ThrowIfDisposed();
                 ResetGameplayRuntime();
+                showdownPhaseManager.ResetCurrent();
                 ResetHuntRuntime();
                 ResetSettlementRuntime();
+                persistentEffectProjection?.TrySynchronize(null, out _);
                 phaseManager.Shutdown();
                 phaseManager = CreatePhaseManager();
             }
@@ -349,8 +275,9 @@ namespace Core
 
                 disposed = true;
                 ResetGameplayRuntime();
-                ResetHuntRuntime();
-                ResetSettlementRuntime();
+                showdownPhaseManager.Dispose();
+                huntPhaseManager.Dispose();
+                settlementPhaseManager.Dispose();
                 persistentEffectProjection?.Dispose();
                 persistentEffectProjection = null;
                 actionEnvironmentInstallers.Dispose();
@@ -369,8 +296,9 @@ namespace Core
 
                 disposed = true;
                 ResetGameplayRuntime();
-                ResetHuntRuntime();
-                ResetSettlementRuntime();
+                showdownPhaseManager.Dispose();
+                huntPhaseManager.Dispose();
+                settlementPhaseManager.Dispose();
                 persistentEffectProjection?.Dispose();
                 persistentEffectProjection = null;
                 actionEnvironmentInstallers.Dispose();
@@ -399,61 +327,14 @@ namespace Core
                 gameplayInstallation = null;
             }
 
-            private bool TryGetSettlementConfiguration(out string reason)
-            {
-                if (settlementConfiguration != null)
-                {
-                    reason = string.Empty;
-                    return true;
-                }
-                reason = "营地运行态组合配置尚未安装。";
-                return false;
-            }
-
-            private bool TryPrepareHunt(IPlayableSettlementRuntime settlementRuntime, string expeditionId, out IPlayableHuntRuntime candidate, out string reason)
-            {
-                ThrowIfDisposed();
-                candidate = null;
-                if (huntConfiguration == null)
-                {
-                    reason = "狩猎运行态组合配置尚未安装。";
-                    return false;
-                }
-                if (settlementRuntime is not PlayableSettlementRuntime ownedSettlement || !settlementRuntimes.Contains(ownedSettlement))
-                {
-                    reason = "狩猎运行态引用的营地世代不属于当前战役。";
-                    return false;
-                }
-                try
-                {
-                    var runtime = new PlayableHuntRuntime(++nextHuntGenerationId, expeditionId, ownedSettlement.Manager, huntConfiguration);
-                    huntRuntimes.Add(runtime);
-                    candidate = runtime;
-                    reason = string.Empty;
-                    return true;
-                }
-                catch (Exception exception)
-                {
-                    reason = $"准备狩猎运行世代失败：{exception.Message}";
-                    return false;
-                }
-            }
-
             private void ResetHuntRuntime()
             {
-                foreach (PlayableHuntRuntime runtime in huntRuntimes)
-                    runtime.Dispose();
-                huntRuntimes.Clear();
-                hunt = null;
+                huntPhaseManager.Reset();
             }
 
             private void ResetSettlementRuntime()
             {
-                persistentEffectProjection?.TrySynchronize(null, out _);
-                foreach (PlayableSettlementRuntime runtime in settlementRuntimes)
-                    runtime.Dispose();
-                settlementRuntimes.Clear();
-                settlement = null;
+                settlementPhaseManager.Reset();
             }
 
             private void ThrowIfDisposed()

@@ -60,7 +60,7 @@ title: "活动狩猎检查点与恢复"
 
 ### Requirement: Restore publishes one candidate graph atomically
 
-GameManager SHALL 捕获完整 Destination RuntimeState，再执行只读路线解析、候选 Settlement/Hunt Manager 恢复、稳定 payload 生成与路线提交。任一失败 SHALL 恢复相同对象身份的 RuntimeState 与旧运行图，不得按 DestinationId 重新猜测；阶段回滚失败时 SHALL 保留完整候选 Manager、Route 与 payload，而非混合新旧状态。
+GameManager SHALL 捕获完整 Destination RuntimeState，再执行只读路线解析，并由 SettlementPhaseManager 与 HuntPhaseManager 准备和发布候选 runtime generations；随后生成稳定 payload、提交路线，并通过 Hunt composition coordinator 重建 ActionSession 与表现。任一失败 SHALL 恢复相同对象身份的 RuntimeState 与旧运行图，不得按 DestinationId 重新猜测；阶段回滚失败时 SHALL 保留完整候选 Manager、Route 与 payload，而非混合新旧状态。
 
 #### Scenario: Hunt session presentation fails after candidate publication
 

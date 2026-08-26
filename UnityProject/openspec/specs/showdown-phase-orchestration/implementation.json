@@ -2,37 +2,21 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "showdown-phase-orchestration",
-  "specHash": "d502b2e127bb7dc52100dd776537970cfeed1501f1ad3a5011e86d7523d4f3fe",
+  "specHash": "5dbd9a852887cc2dc0b7c295267a3678073815eccd78178d085ee2338e27e0da",
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "GameManager 激活 BossFight 根节点、启动回合状态机，并处理 BossDefeated 事件返回营地。",
-    "validatedAgainstSpecHash": "d502b2e127bb7dc52100dd776537970cfeed1501f1ad3a5011e86d7523d4f3fe",
+    "summary": "CampaignRuntime-owned ShowdownPhaseManager 已成为 PlayableCombatSession 唯一 owner；本阶段只迁移 prepare/start/update/reset/dispose 与兼容委托，未推进战斗玩法。",
+    "validatedAgainstSpecHash": "5dbd9a852887cc2dc0b7c295267a3678073815eccd78178d085ee2338e27e0da",
     "evidence": [
-      {
-        "guid": "551fe81197a6ca545a686a0c536f2646",
-        "displayPath": "Assets/Scripts/Core/GameManager.cs",
-        "line": 798
-      },
-      {
-        "guid": "4becba54d2c7c92478a6ca6ea7fcdfd9",
-        "displayPath": "Assets/Scripts/Adapters/Unity/Combat/CombatManager.cs",
-        "line": 19
-      }
+      { "guid": "89f2c60d577ff0a45a7ac1d77bb3e3be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableShowdownPhaseManager.cs", "line": 9, "fileHash": "9f0ea6920bba620532c6eb3124f75b3731eb87a7019ff3beddc94de4055eac79", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "唯一拥有现有 combat session 的构造、启动、更新和释放。" },
+      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 568, "fileHash": "18237cfb1c0737bd202bedbf22e2643ef920eff0219a4a97906bd02f09afe077", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "构造既有配置并委托 manager；战利品、胜负与跨阶段结果仍由全局编排处理。" },
+      { "guid": "14ce1f834e26c5e4092eee2a5a0b887d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs", "line": 260, "fileHash": "dd6aaf6c3cd036081bf349fddf4ba529a754c4a89fe3180b494ecd107ccd7ea3", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "Reset/Dispose 时先释放 Showdown，再释放 Hunt 与 Settlement。" }
     ],
-    "tests": [],
-    "verifiedAt": "07/21/2026 09:00:00"
+    "tests": ["PlayableCampaignRuntimeModuleTests 14/14", "GameManagerCampaignLoopPlayModeTests 14/14", "dotnet build: 0 warnings, 0 errors"],
+    "verifiedAt": "2026-08-26T03:00:00-07:00"
   },
-  "implementationOutline": [
-    "GameManager 进入 BossFight 时启用决战根节点、装配 CombatManager 与回合状态机并启动玩家回合。",
-    "CombatManager 承接攻击管线与表现；BossDefeated 事件返回 GameManager，由组合根完成战利品交接并切回营地。"
-  ],
-  "sourceReferences": [
-    "Assets/Scripts/Core/GameManager.cs:798",
-    "Assets/Scripts/Adapters/Unity/Combat/CombatManager.cs:19"
-  ],
-  "publishedBy": {
-    "mode": "legacy-formal-review-migration",
-    "changeId": ""
-  }
+  "implementationOutline": ["ShowdownPhaseManager 只拥有现有 PlayableCombatSession 生命周期。", "GameManager combat API 保持兼容并委托 current session。", "Boss 规则、卡牌、战利品数值、持久化和返回流程未改变。"],
+  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableShowdownPhaseManager.cs:9", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:568"],
+  "publishedBy": { "mode": "direct-authority-sync", "changeId": "" }
 }

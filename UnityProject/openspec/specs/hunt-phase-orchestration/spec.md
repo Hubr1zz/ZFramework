@@ -13,15 +13,22 @@ title: 狩猎阶段编排
 ## Requirements
 
 ### Requirement: Hunt phase enters through GameManager
-The project SHALL enter Hunt through GameManager and activate the Hunt world and UI roots.
+The project SHALL enter Hunt through GameManager and activate the Hunt world and UI roots. HuntPhaseManager SHALL own Hunt runtime generations and one Hunt composition coordinator; GameManager SHALL retain route/departure, retreat persistence and encounter handoff transactions.
 
 #### Scenario: Entering Hunt
 - **WHEN** the global phase changes to Hunt
-- **THEN** GameManager supplies the active hunter group to HuntManager and initializes Hunt presentation adapters
+- **THEN** GameManager supplies the active hunter group through the Hunt phase boundary
+- **AND** HuntPhaseManager activates the current ActionSession and initializes or rebinds the Hunt presentation adapters
 
 ### Requirement: Hunt outcomes return to global orchestration
-HuntManager SHALL report Boss encounters and hunt completion through callbacks owned by GameManager.
+HuntManager SHALL report Boss encounters, hunt completion and committed checkpoints through callbacks owned by the current Hunt composition coordinator. The coordinator SHALL forward only callbacks whose runtime generation, manager identity and ActionSession are still current to GameManager's cross-phase port.
 
 #### Scenario: Hunt reaches a global transition
 - **WHEN** HuntManager reports a Boss encounter or completed hunt
 - **THEN** GameManager performs the transition to BossFight or Settlement respectively
+
+#### Scenario: Hunt presentation is recreated after restore
+
+- **WHEN** ActiveHunt restore publishes a new current Hunt generation
+- **THEN** the Hunt composition coordinator SHALL bind its visualizer, UI and retreat panel to that generation
+- **AND** previous presentation callbacks SHALL NOT remain authoritative

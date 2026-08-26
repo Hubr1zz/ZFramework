@@ -13,18 +13,28 @@ title: 营地阶段编排
 ## Requirements
 
 ### Requirement: Settlement phase enters through GameManager
-The project SHALL enter Settlement through GameManager and activate the Settlement world and UI roots.
+The project SHALL enter Settlement through GameManager and activate the Settlement world and UI roots. SettlementPhaseManager SHALL own Settlement runtime generations and their ActionSession lifecycle; GameManager SHALL retain the pending-return persistence transaction and current table composition bridge until that bridge is migrated explicitly.
 
 #### Scenario: Entering Settlement
 - **WHEN** the global phase changes to Settlement
-- **THEN** GameManager activates Settlement roots, invokes SettlementManager entry, and refreshes the configured Settlement presentation
+- **THEN** GameManager activates Settlement roots, asks SettlementPhaseManager to activate the current generation, and refreshes the configured Settlement presentation
 
 ### Requirement: Settlement entry owns the save boundary
 The project SHALL submit a pending hunt return through the active Settlement ActionQueue before ordinary annual-event projection, then persist the committed Settlement state.
 
 #### Scenario: Completing Settlement entry
 - **WHEN** SettlementManager has received any pending hunt record
-- **THEN** the Settlement runner commits HuntHistory, the next year and its Timeline entries as one ordered root, clears the pending handoff, and GameManager requests a save
+- **THEN** the Settlement runner commits HuntHistory, the next configured season and any real year-boundary Timeline entries as one ordered root, clears the pending handoff, and GameManager requests a save
+
+### Requirement: Settlement generations are campaign scoped
+
+SettlementPhaseManager SHALL prepare new or restored runtime candidates without publishing them, atomically swap only the expected current generation, and release retired candidates. Reset or Campaign shutdown SHALL dispose every Settlement ActionSession and restore projection before the phase manager is released.
+
+#### Scenario: A restored Settlement candidate is rejected
+
+- **WHEN** 候选内容、日历或持久效果投影无法通过发布前验证
+- **THEN** 当前 Settlement generation SHALL 保持权威
+- **AND** 候选 session 与恢复投影 SHALL NOT 留下活动绑定
 
 #### Scenario: Return settlement cannot complete
 - **WHEN** the Settlement runner rejects, cancels, or throws while applying the pending record
