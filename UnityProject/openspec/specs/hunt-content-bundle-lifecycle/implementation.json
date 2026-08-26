@@ -40,7 +40,7 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "8a5a696d314a5225f901e54174423ca7269322ed891d239d18547d68189ae65e",
+        "fileHash": "21c12ec5929d9aee7c55a97a56ef9dd456cfe8c39387273992990641708fc102",
         "status": "verified",
         "checkedAt": "2026-08-24T09:28:30-07:00",
         "feature": "检查路线绑定结果，并在正常回营提交后废弃旧 HuntManager。"

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "a1203845828653214b751bc01869da20c06e292069ee03336cd0b4d434243a41",
-  "inputManifestDigest": "a952e6819c95a16ca115021f75dd88a7bbc4516919a366e70e5e9dad059f4085",
-  "outputDigest": "d43a91b5e4ed22990967514a7fd4c54bdad6d25fd9b79b6e3fc4a36d9040e91b",
+  "inputDigest": "a8e2cb24884ff4c677fac9c85485dd93bcd7e54d3f6a758edbb1e51c874f5be0",
+  "inputManifestDigest": "d4a2526aa8c280bc9f0db578e6dc4a50026a22ba627f052015e86ea02d1efd4b",
+  "outputDigest": "4b879eccd021aa2213d93ff0beacd10fcbc5c5566d6897ca5b501bd33d551d58",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -656,8 +656,13 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupTransaction.cs",
+      "sha256": "8b0f9f5a4e36f913899fd0529d36e5ba377c1e43eca3c9eb9fedf8ba54a196b1",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "8a5a696d314a5225f901e54174423ca7269322ed891d239d18547d68189ae65e",
+      "sha256": "21c12ec5929d9aee7c55a97a56ef9dd456cfe8c39387273992990641708fc102",
       "state": "current"
     },
     {
@@ -967,7 +972,7 @@
     },
     {
       "path": "openspec/specs/active-hunt-persistence/implementation.json",
-      "sha256": "326b021501a3664255e693013db99ddfc130d620243ca213f437b03984fc626e",
+      "sha256": "a3f1e15393001a2e2ca2c9a8631d6a022c73b2324045def3eaff348999e7e04a",
       "state": "current"
     },
     {
@@ -997,7 +1002,7 @@
     },
     {
       "path": "openspec/specs/campaign-persistence/implementation.json",
-      "sha256": "7356380ece6fb166e201df34dd0c424408190b55e53b7ab4a732be2cdf386602",
+      "sha256": "0c1eac82b3ed510fd794f5daf885ed0bdfc985c8e043599d9fcf63813bd27aeb",
       "state": "current"
     },
     {
@@ -1007,17 +1012,17 @@
     },
     {
       "path": "openspec/specs/campaign-startup-transaction/implementation.json",
-      "sha256": "e5cf23939a4b8c98099263c30ccb1605f9eb0a04d99c3783df42c9ae21b7d0d3",
+      "sha256": "9f0b01199bcb1bdaf46d88d6f52ebeb653969a6e491aa0fcb190287cdbe4254d",
       "state": "current"
     },
     {
       "path": "openspec/specs/campaign-startup-transaction/spec.md",
-      "sha256": "03b5c02d808e2b66dc08375ef9a746e475d8f71cfe2ad7461e88bcb1516964ba",
+      "sha256": "68b0d52b40e970f511d8c7389a2d141b5b536631b1164f12c742b1a3085b8171",
       "state": "current"
     },
     {
       "path": "openspec/specs/campaign-year-loop/implementation.json",
-      "sha256": "b06ad4b15fd9f1c54a92643cf91b576a37f6f11f539ae2a566f72a75548e9da6",
+      "sha256": "1d5ae81e1b9cf362db47eef1d4c161dab7282a4be7ce833a43d12038eb407cf0",
       "state": "current"
     },
     {
@@ -1087,7 +1092,7 @@
     },
     {
       "path": "openspec/specs/expedition-build-progression-loop/implementation.json",
-      "sha256": "fbfba8973765f3a280678062720f561af96d0541551cbc49567cb2b19f8e3bdf",
+      "sha256": "bd7f2b97fc6f878b683507f85e859d8c055f7922b3939e0d638d0297601f0ae9",
       "state": "current"
     },
     {
@@ -1107,7 +1112,7 @@
     },
     {
       "path": "openspec/specs/hunt-content-bundle-lifecycle/implementation.json",
-      "sha256": "c12ef70fb52942754c47b45307e6750af4468d949c924e10a89bbebe66423d61",
+      "sha256": "5c3183e3dd58619e7b51d60b82930effabda9f7f102367e9eab5aceb86afcfdb",
       "state": "current"
     },
     {
@@ -1177,7 +1182,7 @@
     },
     {
       "path": "openspec/specs/hunt-route-entry-context/implementation.json",
-      "sha256": "5c1d737b60530250bf2cc68d9f7b93368024d05f02fb8f4f4019e8eeeb850cb0",
+      "sha256": "315ef0a76642af9386cd958932f6ccfd6f32a56e30fd9d2aa7d3f5779601551f",
       "state": "current"
     },
     {
@@ -1227,7 +1232,7 @@
     },
     {
       "path": "openspec/specs/settlement-content-plan-lifecycle/implementation.json",
-      "sha256": "2c2955385c4fa5e54a56456a05b86489d49793d7d1440df8d263e2a4582f6ab5",
+      "sha256": "611354e6e635af35d2817cd9323120a4465387124d7053bbc3ba5abac7bc61b7",
       "state": "current"
     },
     {
@@ -1387,7 +1392,7 @@
     },
     {
       "path": "openspec/specs/tabletop-game-over/implementation.json",
-      "sha256": "e5c6e839ea99cc49a21a77e84f08d456d06d17aff0a963efe705a2046256ff75",
+      "sha256": "5664e685aa441dca350443dc456279742d4d816344dfc2e024060c7b83bbd2d4",
       "state": "current"
     },
     {
@@ -1527,7 +1532,7 @@
     },
     {
       "path": "openspec/specs/tabletop-settlement-notices/implementation.json",
-      "sha256": "c70eb8c164734ab01c159e1ecda7752eff1268e9af9ebc4d7a6560e2055e3342",
+      "sha256": "77390f5f24be9a21e93d0a12b7154886391a0bace4cbcc4417f27844bd47d6cd",
       "state": "current"
     },
     {
@@ -2093,7 +2098,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "纯 C# CampaignStartupLifecycle 统一维护等待、启动、加载与激活状态；GameManager 通过 typed single-flight 命令委托独立事务发布 Settlement 或 Active Hunt 候选，失败撤销 FSM、ActionSession 与表现并允许重试。",
+      "summary": "纯 C# CampaignStartupTransaction 统一拥有等待、启动、加载、持久化 I/O、候选选择与失败收敛；GameManager 只作为 Unity 组合根发布 Settlement 或 Active Hunt 运行图。",
       "designSources": [],
       "sources": [
         "openspec/specs/campaign-startup-transaction/spec.md",
@@ -2103,6 +2108,10 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupTransaction.cs",
           "state": "current"
         },
         {

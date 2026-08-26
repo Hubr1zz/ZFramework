@@ -49,7 +49,7 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "8a5a696d314a5225f901e54174423ca7269322ed891d239d18547d68189ae65e",
+        "fileHash": "21c12ec5929d9aee7c55a97a56ef9dd456cfe8c39387273992990641708fc102",
         "status": "verified",
         "checkedAt": "2026-08-24T07:53:40-07:00",
         "feature": "在 Runner 空闲门禁后提交候选 Manager，并使活动狩猎、稳定 payload 与阶段观察者使用同代 Data。"

@@ -33,6 +33,16 @@ title: "战役开场启动事务"
 - **THEN** 第二个 Continue SHALL 被拒绝
 - **AND** 持久化端口 SHALL 只收到一次 Load 请求
 
+### Requirement: A dedicated transaction owns non-Unity startup orchestration
+
+`CampaignStartupTransaction` SHALL own the startup lifecycle, persistence I/O, Settlement or Active Hunt candidate selection, and retry convergence. `GameManager` SHALL remain the Unity composition host for publishing phase roots, 3D presentation, and prepared runtime candidates, but SHALL NOT duplicate the new/continue transaction body.
+
+#### Scenario: Startup behavior evolves
+
+- **WHEN** new persistence validation or candidate preparation is added
+- **THEN** the change SHALL be implemented in the startup transaction or its typed collaborators
+- **AND** Unity lifecycle methods SHALL remain responsible only for binding and releasing the transaction host
+
 ### Requirement: Continue validates before publishing runtime
 
 Continue SHALL 先通过现有 Settlement 或 Active Hunt 候选验证，再发布对应 Manager、Phase、ActionSession 与稳定载荷。Settlement 恢复 SHALL NOT 重复执行新战役年度投影；Active Hunt 恢复 SHALL 保留路线、内容 Bundle、地图、编队、随机状态与事件 occurrence。

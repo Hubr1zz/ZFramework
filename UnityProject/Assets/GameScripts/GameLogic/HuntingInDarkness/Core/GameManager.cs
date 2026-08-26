@@ -46,7 +46,7 @@ namespace Core
     /// 管理三个游戏大阶段（Settlement / Hunt / BossFight）的根物体开关，
     /// 以及 Boss决战子系统的初始化与运行。
     /// </summary>
-    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, ICampaignPhaseTransitionHost, ICampaignPhaseTransitionRequestHost, ICampaignRestartHost, IPlayableHuntRetreatInput, ISettlementDepartureRequestPort
+    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, ICampaignPhaseTransitionHost, ICampaignPhaseTransitionRequestHost, ICampaignRestartHost, IPlayableHuntRetreatInput, ISettlementDepartureRequestPort, ICampaignStartupTransactionHost
     {
         // ─── 单例 ─────────────────────────────────────────────────────
         public static GameManager Instance { get; private set; }
@@ -173,9 +173,9 @@ namespace Core
         private bool preparedHuntExit;
         private string stableCampaignPayload;
         private bool hasAwakened;
-        private readonly CampaignStartupLifecycle campaignStartup = new();
+        private readonly CampaignStartupTransaction campaignStartup = new(new SaveLoadSystemCampaignPersistenceAdapter());
         private bool campaignStarted => campaignStartup.IsRuntimeActive;
-        private ICampaignPersistencePort campaignPersistence = new SaveLoadSystemCampaignPersistenceAdapter();
+        private ICampaignPersistencePort campaignPersistence => campaignStartup.Persistence;
         [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
         [SerializeField] private TabletopCardInteractionPresenter tabletopCardPresenter;
         [SerializeField] private Vector3 tabletopDiceAnchorOffset = new(0f, 0f, -1.65f);
@@ -187,9 +187,7 @@ namespace Core
         /// <summary>仅允许在 GameManager 未激活时替换战役持久化端口。</summary>
         public bool ConfigureCampaignPersistence(ICampaignPersistencePort persistence)
         {
-            if (hasAwakened || persistence == null) return false;
-            campaignPersistence = persistence;
-            return true;
+            return !hasAwakened && campaignStartup.ConfigurePersistence(persistence);
         }
 
         /// <summary>在正式开场菜单选择前延迟创建营地运行态；仅允许在 Awake 前配置。</summary>
@@ -200,91 +198,13 @@ namespace Core
 
         public CampaignStartupState CampaignStartupState => campaignStartup.State;
 
-        public UniTask<bool> HasCampaignSaveAsync(CancellationToken cancellationToken = default) => campaignPersistence.HasSaveAsync(cancellationToken);
+        public UniTask<bool> HasCampaignSaveAsync(CancellationToken cancellationToken = default) => campaignStartup.HasSaveAsync(cancellationToken);
 
-        public UniTask<bool> DeleteCampaignSaveAsync(CancellationToken cancellationToken = default) => campaignPersistence.TryDeleteAsync(cancellationToken);
+        public UniTask<bool> DeleteCampaignSaveAsync(CancellationToken cancellationToken = default) => campaignStartup.DeleteSaveAsync(cancellationToken);
 
-        public async UniTask<CampaignStartupResult> StartNewCampaignAsync(CancellationToken cancellationToken = default)
-        {
-            if (!TryBeginCampaignStartup(CampaignStartupState.StartingNew, out string beginReason)) return CampaignStartupResult.Failed(campaignStartup.State, beginReason);
-            try
-            {
-                if (!await campaignPersistence.TryDeleteAsync(cancellationToken))
-                    return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "旧战役记录未能可靠删除，请重试。");
-                if (!TryStartCampaignRuntime(GamePhase.Settlement, true, out string startReason)) return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, startReason);
-                return CampaignStartupResult.Success();
-            }
-            catch (System.OperationCanceledException)
-            {
-                ResetFailedCampaignStartupRuntime();
-                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "开始新战役已取消。");
-            }
-            catch (System.Exception exception)
-            {
-                ResetFailedCampaignStartupRuntime();
-                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, $"开始新战役失败：{exception.Message}");
-            }
-            finally
-            {
-                campaignStartup.CompleteAttempt();
-            }
-        }
+        public UniTask<CampaignStartupResult> StartNewCampaignAsync(CancellationToken cancellationToken = default) => campaignStartup.StartNewAsync(cancellationToken);
 
-        public async UniTask<CampaignStartupResult> ContinueCampaignAsync(CancellationToken cancellationToken = default)
-        {
-            if (!TryBeginCampaignStartup(CampaignStartupState.Loading, out string beginReason)) return CampaignStartupResult.Failed(campaignStartup.State, beginReason);
-            try
-            {
-                CampaignSnapshot snapshot = await campaignPersistence.LoadAsync(cancellationToken);
-                if (snapshot?.Settlement == null) return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "没有可继续的有效战役存档。");
-                if (snapshot.HasActiveHunt)
-                {
-                    EnsureCampaignShell();
-                    if (TryRestoreActiveHunt(snapshot, out string huntRestoreReason))
-                    {
-                        campaignStartup.ActivateRuntime();
-                        return CampaignStartupResult.Success();
-                    }
-                    ResetFailedCampaignStartupRuntime();
-                    return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, huntRestoreReason);
-                }
-                if (!campaignRuntime.TryPrepareSettlementRestore(snapshot.Settlement, out IPlayableSettlementRuntime candidateSettlement, out string projectionReason)) return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, projectionReason);
-                CampaignSnapshot candidateSnapshot = ActiveHuntSnapshotAdapter.CaptureSettlement(candidateSettlement.Data);
-                if (!SaveLoadSystem.TryCreatePayload(candidateSnapshot, out string candidatePayload, out projectionReason))
-                {
-                    campaignRuntime.ReleaseSettlement(candidateSettlement);
-                    return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, projectionReason);
-                }
-                if (!TryStartCampaignRuntime(GamePhase.Settlement, false, out string startReason, candidateSettlement, false)) return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, startReason);
-                bool restored = await FinalizePreparedSettlementAsync(candidateSettlement.Data, candidatePayload);
-                if (!restored)
-                {
-                    ResetFailedCampaignStartupRuntime();
-                    return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "战役存档恢复失败，当前运行态已撤销。");
-                }
-                campaignStartup.ActivateRuntime();
-                return CampaignStartupResult.Success();
-            }
-            catch (System.OperationCanceledException)
-            {
-                ResetFailedCampaignStartupRuntime();
-                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, "继续战役已取消。");
-            }
-            catch (System.Exception exception)
-            {
-                ResetFailedCampaignStartupRuntime();
-                return CampaignStartupResult.Failed(CampaignStartupState.AwaitingChoice, $"继续战役失败：{exception.Message}");
-            }
-            finally
-            {
-                campaignStartup.CompleteAttempt();
-            }
-        }
-
-        private bool TryBeginCampaignStartup(CampaignStartupState inFlightState, out string reason)
-        {
-            return campaignStartup.TryBegin(inFlightState, out reason);
-        }
+        public UniTask<CampaignStartupResult> ContinueCampaignAsync(CancellationToken cancellationToken = default) => campaignStartup.ContinueAsync(cancellationToken);
 
         public bool ConfigureTabletopInteraction(ITabletopRandomInteractionPresenter presenter)
         {
@@ -292,6 +212,13 @@ namespace Core
             configuredTabletopInteraction = presenter;
             return true;
         }
+
+        IPlayableCampaignRuntime ICampaignStartupTransactionHost.CampaignRuntime => campaignRuntime;
+        void ICampaignStartupTransactionHost.EnsureCampaignShell() => EnsureCampaignShell();
+        bool ICampaignStartupTransactionHost.TryRestoreActiveHunt(CampaignSnapshot snapshot, out string reason) => TryRestoreActiveHunt(snapshot, out reason);
+        bool ICampaignStartupTransactionHost.TryStartCampaignRuntime(GamePhase startPhase, bool queueSettlementEvents, out string reason, IPlayableSettlementRuntime preparedSettlement, bool activateOnSuccess) => TryStartCampaignRuntime(startPhase, queueSettlementEvents, out reason, preparedSettlement, activateOnSuccess);
+        void ICampaignStartupTransactionHost.ResetFailedCampaignStartupRuntime() => ResetFailedCampaignStartupRuntime();
+        UniTask<bool> ICampaignStartupTransactionHost.FinalizePreparedSettlementAsync(SettlementInstance settlement, string payload) => FinalizePreparedSettlementAsync(settlement, payload);
 
         // ─── 运行时数据 ───────────────────────────────────────────────
 
@@ -334,6 +261,7 @@ namespace Core
             campaignRuntime = GameModule.Campaign.AcquireRuntime(this, ApplyPhaseRoots);
             campaignRuntime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(this, CreateSettlementActionSession));
             campaignRuntime.ConfigureHuntRuntime(new PlayableHuntRuntimeConfiguration(CreateHuntManager, CreateHuntActionSession));
+            campaignStartup.Bind(this);
             campaignRestartTransaction = new CampaignRestartTransaction(campaignRuntime, campaignPersistence, PrepareCampaignRestartPayload, message => Debug.LogWarning($"[GameManager] {message}"));
             activeHuntRestoreTransaction = new ActiveHuntRestoreTransaction(campaignRuntime, () => playableEventInput, TryStartHuntPresentationAndSession, DisposeHuntActionSession, () => CleanupHuntPresentation(), RestorePreviousHuntPresentation, message => Debug.LogWarning($"[GameManager] {message}"));
 
