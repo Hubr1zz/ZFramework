@@ -9,21 +9,28 @@ using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
+using UI;
+using UnityEngine;
 
 namespace HuntingInDarkness.Adapter.PlayModeTests
 {
     public sealed class PlayableCampaignRuntimeModuleTests
     {
         private IPlayableCampaignRuntime runtime;
+        private GameObject settlementPresentationRoot;
 
         [TearDown]
         public void TearDown()
         {
             runtime?.Dispose();
             runtime = null;
+            if (settlementPresentationRoot != null)
+                UnityEngine.Object.DestroyImmediate(settlementPresentationRoot);
+            settlementPresentationRoot = null;
         }
 
         [Test]
@@ -124,6 +131,70 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(runtime.ActionEnvironmentInstallers.AttachedEnvironmentCount, Is.Zero);
             externalInstallation.Dispose();
             Assert.That(runtime.ActionEnvironmentInstallers.InstallerCount, Is.Zero);
+        }
+
+        [Test]
+        public void SettlementCoordinatorOwnsSessionAcrossResetWithoutStaleSession()
+        {
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            runtime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null))));
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime first, out string prepareReason), Is.True, prepareReason);
+            Assert.That(runtime.TrySwapSettlement(null, first, out string swapReason), Is.True, swapReason);
+            Assert.That(first.TryActivateActionSession(out string activationReason), Is.True, activationReason);
+            PlayableSettlementActionSession firstSession = first.ActionSession;
+            Assert.That(firstSession, Is.Not.Null);
+            Assert.That(firstSession.IsActive, Is.True);
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime second, out prepareReason), Is.True, prepareReason);
+            Assert.That(runtime.TrySwapSettlement(first, second, out swapReason), Is.True, swapReason);
+
+            Assert.That(firstSession.IsActive, Is.False);
+            Assert.That(first.ActionSession, Is.Null);
+            Assert.That(second.TryActivateActionSession(out activationReason), Is.True, activationReason);
+            PlayableSettlementActionSession secondSession = second.ActionSession;
+            Assert.That(secondSession, Is.Not.SameAs(firstSession));
+
+            runtime.Reset();
+
+            Assert.That(secondSession.IsActive, Is.False);
+            Assert.That(second.ActionSession, Is.Null);
+        }
+
+        [Test]
+        public void SettlementCoordinatorRejectsStaleTableCallbackAfterGenerationSwap()
+        {
+            int departureCount = 0;
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            runtime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null))));
+            object phaseManagers = GetPhaseManagers(runtime);
+            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhaseManagerAccess", true);
+            object phaseManager = accessType.GetProperty("SettlementPhase").GetValue(phaseManagers);
+            object coordinator = phaseManager.GetType().GetProperty("Coordinator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(phaseManager);
+            settlementPresentationRoot = new GameObject("Settlement Coordinator Test Root");
+            SettlementTable3D table = settlementPresentationRoot.AddComponent<SettlementTable3D>();
+            InvokeInternal(coordinator, "ConfigurePresentation", table, settlementPresentationRoot, null, null, null, new Action<List<HunterInstance>>(_ => departureCount++));
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime first, out string prepareReason), Is.True, prepareReason);
+            Assert.That(runtime.TrySwapSettlement(null, first, out string swapReason), Is.True, swapReason);
+            Assert.That(first.TryActivateActionSession(out string activationReason), Is.True, activationReason);
+            InvokeInternal(coordinator, "EnsurePresentation", first.Manager);
+            Action<List<HunterInstance>> staleCallback = table.OnDepartureRequested;
+            staleCallback(new List<HunterInstance>());
+            Assert.That(departureCount, Is.EqualTo(1));
+
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime second, out prepareReason), Is.True, prepareReason);
+            Assert.That(runtime.TrySwapSettlement(first, second, out swapReason), Is.True, swapReason);
+            staleCallback(new List<HunterInstance>());
+            Assert.That(departureCount, Is.EqualTo(1));
+            Assert.That(second.TryActivateActionSession(out activationReason), Is.True, activationReason);
+            InvokeInternal(coordinator, "EnsurePresentation", second.Manager);
+            table.OnDepartureRequested(new List<HunterInstance>());
+            Assert.That(departureCount, Is.EqualTo(2));
+        }
+
+        private static void InvokeInternal(object target, string methodName, params object[] arguments)
+        {
+            MethodInfo method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null, $"缺少内部方法 {methodName}。");
+            method.Invoke(target, arguments);
         }
 
         [Test]

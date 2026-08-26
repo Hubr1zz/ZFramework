@@ -42,8 +42,7 @@ namespace Core
             Disposed
         }
 
-        private readonly PlayableSettlementRuntimeConfiguration configuration;
-        private PlayableSettlementActionSession actionSession;
+        private readonly PlayableSettlementPhaseCoordinator coordinator;
         private SettlementEventRestoreProjection eventRestore;
         private RuntimeState state;
         private bool preparedCandidatePending;
@@ -51,18 +50,19 @@ namespace Core
         public long GenerationId { get; }
         public SettlementManager Manager { get; }
         public SettlementInstance Data => Manager.Data;
-        public PlayableSettlementActionSession ActionSession => actionSession;
+        public PlayableSettlementActionSession ActionSession => coordinator.GetSession(this);
         public SettlementEventRestoreProjection EventRestore => eventRestore;
-        public bool IsActionSessionActive => actionSession?.IsActive == true;
-        public bool IsActionSessionRunning => actionSession?.IsRunning == true;
+        public bool IsActionSessionActive => ActionSession?.IsActive == true;
+        public bool IsActionSessionRunning => ActionSession?.IsRunning == true;
         internal bool IsCurrent => state == RuntimeState.Current;
         internal bool IsDetached => state == RuntimeState.Detached;
 
-        internal PlayableSettlementRuntime(long generationId, SettlementManager manager, PlayableSettlementRuntimeConfiguration configuration, bool preparedCandidatePending)
+        internal PlayableSettlementRuntime(long generationId, SettlementManager manager, PlayableSettlementRuntimeConfiguration configuration, bool preparedCandidatePending, PlayableSettlementPhaseCoordinator coordinator)
         {
             GenerationId = generationId;
             Manager = manager ?? throw new ArgumentNullException(nameof(manager));
-            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
             this.preparedCandidatePending = preparedCandidatePending;
             Manager.DepartureRequestPort = configuration.DepartureRequestPort;
         }
@@ -70,48 +70,13 @@ namespace Core
         public bool TryActivateActionSession(out string reason)
         {
             ThrowIfDisposed();
-            if (!IsCurrent)
-            {
-                reason = "营地运行世代不是当前权威，无法启动 ActionSession。";
-                return false;
-            }
-            if (IsActionSessionActive)
-            {
-                reason = string.Empty;
-                return true;
-            }
-
-            PlayableSettlementActionSession staleSession = actionSession;
-            actionSession = null;
-            staleSession?.Dispose();
-
-            PlayableSettlementActionSession candidate = null;
-            try
-            {
-                candidate = configuration.CreateActionSession(Manager);
-                if (candidate == null)
-                {
-                    reason = "营地 ActionSession 工厂返回空结果。";
-                    return false;
-                }
-                actionSession = candidate;
-                reason = string.Empty;
-                return true;
-            }
-            catch (Exception exception)
-            {
-                candidate?.Dispose();
-                reason = $"营地 ActionSession 初始化异常：{exception.Message}";
-                return false;
-            }
+            return coordinator.TryActivate(this, out reason);
         }
 
         public void DeactivateActionSession()
         {
             if (state == RuntimeState.Disposed) return;
-            PlayableSettlementActionSession session = actionSession;
-            actionSession = null;
-            session?.Dispose();
+            coordinator.Deactivate(this);
         }
 
         public SettlementEventRestoreProjection CreateEventRestoreCandidate()

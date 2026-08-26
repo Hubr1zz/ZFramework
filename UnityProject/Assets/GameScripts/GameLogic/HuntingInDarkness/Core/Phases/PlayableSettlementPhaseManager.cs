@@ -8,6 +8,7 @@ namespace Core
     internal sealed class PlayableSettlementPhaseManager : IDisposable
     {
         private readonly Func<IPlayableCampaignPersistentEffectProjection> persistentEffectProjectionProvider;
+        private readonly PlayableSettlementPhaseCoordinator coordinator;
         private readonly HashSet<PlayableSettlementRuntime> runtimes = new();
         private PlayableSettlementRuntimeConfiguration configuration;
         private PlayableSettlementRuntime current;
@@ -15,10 +16,12 @@ namespace Core
         private bool disposed;
 
         internal IPlayableSettlementRuntime Current => current;
+        internal PlayableSettlementPhaseCoordinator Coordinator => coordinator;
 
         internal PlayableSettlementPhaseManager(Func<IPlayableCampaignPersistentEffectProjection> persistentEffectProjectionProvider)
         {
             this.persistentEffectProjectionProvider = persistentEffectProjectionProvider ?? throw new ArgumentNullException(nameof(persistentEffectProjectionProvider));
+            coordinator = new PlayableSettlementPhaseCoordinator(() => current);
         }
 
         internal void Configure(PlayableSettlementRuntimeConfiguration nextConfiguration)
@@ -26,6 +29,7 @@ namespace Core
             ThrowIfDisposed();
             if (configuration != null) throw new InvalidOperationException("营地运行态配置已经安装。");
             configuration = nextConfiguration ?? throw new ArgumentNullException(nameof(nextConfiguration));
+            coordinator.Configure(configuration);
         }
 
         internal bool TryPrepareNew(out IPlayableSettlementRuntime candidate, out string reason)
@@ -33,7 +37,7 @@ namespace Core
             ThrowIfDisposed();
             candidate = null;
             if (!TryGetConfiguration(out reason)) return false;
-            var runtime = new PlayableSettlementRuntime(++nextGenerationId, new SettlementManager(), configuration, false);
+            var runtime = new PlayableSettlementRuntime(++nextGenerationId, new SettlementManager(), configuration, false, coordinator);
             runtimes.Add(runtime);
             candidate = runtime;
             reason = string.Empty;
@@ -46,7 +50,7 @@ namespace Core
             candidate = null;
             if (!TryGetConfiguration(out reason)) return false;
             if (!SettlementManager.TryPrepareCandidate(data, out SettlementManager manager, out reason)) return false;
-            var runtime = new PlayableSettlementRuntime(++nextGenerationId, manager, configuration, true);
+            var runtime = new PlayableSettlementRuntime(++nextGenerationId, manager, configuration, true, coordinator);
             runtimes.Add(runtime);
             candidate = runtime;
             reason = string.Empty;
@@ -82,6 +86,7 @@ namespace Core
                 previous?.Detach();
                 next?.Publish();
                 current = next;
+                coordinator.Deactivate(previous);
                 reason = string.Empty;
                 return true;
             }
@@ -109,6 +114,7 @@ namespace Core
         internal void Reset()
         {
             ThrowIfDisposed();
+            coordinator.Reset();
             ResetRuntimes();
         }
 
@@ -116,6 +122,7 @@ namespace Core
         {
             if (disposed) return;
             disposed = true;
+            coordinator.Dispose();
             ResetRuntimes();
             configuration = null;
         }

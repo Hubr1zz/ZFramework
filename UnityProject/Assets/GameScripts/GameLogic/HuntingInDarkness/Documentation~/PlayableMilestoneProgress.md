@@ -520,3 +520,6 @@
 333. Hunt 事件资源条件、世界空间选项卡和 ActionQueue 权威复核现统一读取本次远征携带物；Settlement 事件继续只读取营地库存，两个作用域不合并。
 334. 玩家显式选择在提交前失效时不再静默切换危险分支，当前 occurrence 保留以便重试；资源要求卡会明确显示“小队携带”或“营地拥有”，提示结束后释放阶段引用。
 335. 对抗检查补齐死亡猎人携带物隔离、未知资源失败关闭、营地库存误解锁与旧外来角色回退兼容。相关 EditMode 89/89、Campaign loop PlayMode 16/16、dotnet 编译 0 error 通过；正式 Hunt 3D 父子链跨重建 PlayMode 仍保留为 Delta Change 的人工批准前验证项，未使用截图。
+336. Settlement 阶段新增由 ZFramework Campaign Runtime 持有的纯 C# coordinator，统一拥有 ActionSession、2D/3D 营地表现绑定与阶段内玩法命令；GameManager 只保留场景引用注入、出猎端口和跨阶段回营事务。
+337. Settlement generation 换代会立即释放旧 Session；旧 3D 桌面回调同时校验当前 runtime、SettlementManager 与活动 Session，读档重绑新 Manager 后旧 View 失败关闭，不会把命令写入新世代。
+338. 对抗验证覆盖 Session 换代/Reset 与旧出猎回调隔离；Runtime PlayMode 16/16、Campaign loop 16/16、生产营地事件 2/2、Settlement ActionSession EditMode 39/39、dotnet 编译 0 error 通过，未推进 Showdown 玩法且未使用截图。

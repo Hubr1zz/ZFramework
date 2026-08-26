@@ -137,16 +137,17 @@ namespace Core
         private HuntExplorationRuntime huntExplorationRuntime => huntRuntime?.Exploration;
         private string activeExpeditionId => huntRuntime?.ExpeditionId;
         [SerializeField] private SettlementUIManager _settlementUIManager; // 场景预建并连线（缺失则报错）
-        private bool _settlementUIInited;
         [SerializeField] private SettlementTable3D _settlementTable3D;
         private PlayableHuntPhaseManager huntPhaseManager;
         private PlayableHuntPhaseCoordinator huntPhaseCoordinator;
+        private PlayableSettlementPhaseManager settlementPhaseManager;
+        private PlayableSettlementPhaseCoordinator settlementPhaseCoordinator;
         private DevModePanel         _devPanel;
         private TabletopGameOverView3D gameOverView;
         /// <summary>狩猎结算记录，由 HuntManager 回调注入，供 TransitionToPhase(Settlement) 消费</summary>
         private HuntRecord           _pendingHuntRecord;
         private PlayableShowdownPhaseManager showdownPhaseManager;
-        private PlayableSettlementActionSession settlementActionSession => settlementRuntime?.ActionSession;
+        private PlayableSettlementActionSession settlementActionSession => settlementPhaseCoordinator?.CurrentSession;
         private SettlementEventRestoreProjection settlementEventRestoreProjection
         {
             get => settlementRuntime?.EventRestore;
@@ -260,11 +261,15 @@ namespace Core
             campaignRuntime = GameModule.Campaign.AcquireRuntime(this, ApplyPhaseRoots);
             if (campaignRuntime is not IPlayableCampaignPhaseManagerAccess phaseManagers)
                 throw new System.InvalidOperationException("战役运行态未提供阶段管理器组合根访问接口。");
+            settlementPhaseManager = phaseManagers.SettlementPhase;
+            settlementPhaseCoordinator = settlementPhaseManager.Coordinator;
             huntPhaseManager = phaseManagers.HuntPhase;
             huntPhaseCoordinator = huntPhaseManager.Coordinator;
             showdownPhaseManager = phaseManagers.ShowdownPhase;
             campaignRuntime.ConfigurePersistentEffectProjection(registry => new HuntNoiseLeaseProjection(registry));
-            campaignRuntime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(this, CreateSettlementActionSession));
+            settlementPhaseCoordinator.ConfigureGameplay(() => playableEventInput, tabletopInteractionRouter, () => campaignRuntime.ActionEnvironmentInstallers, () => campaignRuntime.PersistentEffectProjection);
+            campaignRuntime.ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(this, settlementPhaseCoordinator.CreateActionSession));
+            settlementPhaseCoordinator.ConfigurePresentation(_settlementTable3D, settlementRoot, _settlementUIManager, workshopContentCatalog, settlementContentCatalog, squad => RequestHuntDeparture(squad != null ? squad.Where(hunter => hunter != null).Select(hunter => hunter.InstanceId).ToList() : new List<int>()));
             huntPhaseCoordinator.Configure(() => huntRuntime, () => campaignRuntime.ActionEnvironmentInstallers, tabletopInteractionRouter, huntRoot, uiHunt, this, request => BeginEncounterAsync(request).Forget(), record =>
             {
                 if (_settlementManager?.HunterMgmt == null) throw new System.InvalidOperationException("营地猎人管理器未初始化，无法提交狩猎成长。");
@@ -699,8 +704,6 @@ namespace Core
         // 营地阶段子系统
         // ═══════════════════════════════════════════
 
-        private PlayableSettlementActionSession CreateSettlementActionSession(SettlementManager manager) => new(manager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), manager.Events, playableEventInput, new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementContentRuntime.Items), tabletopInteractionRouter, manager.Workshop, manager.Inventions, workshopContentCatalog, PlayableSymptomRuntime.Catalog, campaignRuntime.ActionEnvironmentInstallers, manager.Timeline.ResolveEvent, manager.Timeline, persistentEffectProjection: campaignRuntime.PersistentEffectProjection, hunterManagement: manager.HunterMgmt, consumableContent: new PlayableSettlementConsumableContentAdapter(PlayableSettlementContentRuntime.Items));
-
         private void StartSettlementActionSession()
         {
             if (settlementRuntime == null) return;
@@ -843,50 +846,8 @@ namespace Core
 
         private void EnsureSettlementUI()
         {
-            // ── 2D HUD（年份标签 + 出发按钮 + 详情叠加面板）──
-            // 场景预建并连线到 _settlementUIManager；缺失则报错（不再运行时程序化创建）。
-            if (!_settlementUIInited)
-            {
-                if (_settlementUIManager != null)
-                {
-                    _settlementUIManager.Init(_settlementManager);
-                    _settlementUIInited = true;
-                }
-                else
-                {
-                    Debug.LogWarning("[GameManager] 未配置 SettlementUIManager，将保留 3D 营地桌面与外部流程控件。");
-                }
-            }
-
-            // ── 3D 卡牌桌（猎人 / 资源 / 工坊 / 发明）──
-            if (_settlementTable3D == null)
-            {
-                if (settlementRoot == null) return;
-                var tableGo = new GameObject("SettlementTable3D");
-                tableGo.transform.SetParent(settlementRoot.transform, false);
-                _settlementTable3D = tableGo.AddComponent<SettlementTable3D>();
-            }
-
-            // 无论桌面来自场景还是运行时回退，都从组合根注入同一组命令端口。
-            _settlementTable3D.OnHunterClicked = h =>
-                _settlementUIManager?.ShowHunterDetail(h);
-
-            _settlementTable3D.OnEquipRequested = (hunterId, item) => settlementActionSession != null ? settlementActionSession.EquipItemAsync(hunterId, item) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
-            _settlementTable3D.OnUnequipRequested = (hunterId, equipmentInstanceId) => settlementActionSession != null ? settlementActionSession.UnequipItemAsync(hunterId, equipmentInstanceId) : UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
-            _settlementTable3D.OnConsumableRequested = (hunterId, item, bodyPart) => settlementActionSession != null ? settlementActionSession.UseConsumableAsync(hunterId, item, bodyPart) : UniTask.FromResult(SettlementConsumableCommandResult.Failed("当前不在营地阶段。"));
-            _settlementTable3D.OnCraftRequested = recipe => settlementActionSession != null ? settlementActionSession.CraftAsync(recipe) : UniTask.FromResult(SettlementCraftCommandResult.Failed("当前不在营地阶段。"));
-            _settlementTable3D.OnInventionUnlockRequested = invention => settlementActionSession != null ? settlementActionSession.UnlockInventionAsync(invention) : UniTask.FromResult(SettlementInventionCommandResult.Failed("当前不在营地阶段。"));
-            _settlementTable3D.OnInventionEffectRequested = (invention, effect) => settlementActionSession != null ? settlementActionSession.ActivateInventionEffectAsync(invention, effect) : UniTask.FromResult(SettlementInventionActiveEffectCommandResult.Failed("当前不在营地阶段。"));
-            _settlementTable3D.OnWorkshopConstructionRequested = definition => settlementActionSession != null ? settlementActionSession.BuildWorkshopAsync(definition) : UniTask.FromResult(SettlementWorkshopConstructionResult.Failed("当前不在营地阶段。"));
-            _settlementTable3D.OnRecoveryRequested = (hunterId, bodyPart) => settlementActionSession != null ? settlementActionSession.RecoverHunterAsync(hunterId, bodyPart) : UniTask.FromResult(RecoverHunterCommandResult.Failed("当前不在营地阶段。"));
-            _settlementTable3D.OnRecruitRequested = (template, requestedName) => settlementActionSession != null ? settlementActionSession.RecruitHunterAsync(template, requestedName) : UniTask.FromResult(RecruitHunterCommandResult.Failed("当前不在营地阶段。"));
-            _settlementTable3D.OnGrowthRequested = (hunterId, choice) => settlementActionSession != null ? settlementActionSession.SpendHunterGrowthAsync(hunterId, choice) : UniTask.FromResult(HunterGrowthCommandResult.Failed("当前不在营地阶段。"));
-            _settlementTable3D.OnWeaponTrainingRequested = (hunterId, masteryId) => settlementActionSession != null ? settlementActionSession.TrainWeaponAsync(hunterId, masteryId) : UniTask.FromResult(WeaponTrainingCommandResult.Failed("当前不在营地阶段。"));
-            _settlementTable3D.OnSymptomRequested = (hunterId, symptomId, choice) => settlementActionSession != null ? settlementActionSession.ResolveHunterSymptomAsync(hunterId, symptomId, choice) : UniTask.FromResult(HunterSymptomCommandResult.Failed("当前不在营地阶段。"));
-
-            _settlementTable3D.OnDepartureRequested = squad => RequestHuntDeparture(squad != null ? squad.Where(hunter => hunter != null).Select(hunter => hunter.InstanceId).ToList() : new List<int>());
-
-            _settlementTable3D.Init(_settlementManager, workshopContentCatalog, settlementContentCatalog);
+            // 营地阶段表现由当前 generation 的 coordinator 幂等初始化与重绑。
+            settlementPhaseCoordinator?.EnsurePresentation(_settlementManager);
         }
 
         // ═══════════════════════════════════════════
@@ -1933,11 +1894,10 @@ namespace Core
         {
             if (!campaignStarted || CurrentGamePhase != GamePhase.Settlement || settlementActionSession == null) return;
             SaveSettlementProgress();
-            _settlementUIManager?.Refresh();
             if (evt.Kind == SettlementTransactionKind.Crafting)
-                _settlementTable3D?.RefreshCrafting();
+                settlementPhaseCoordinator?.RefreshCrafting();
             else
-                _settlementTable3D?.Refresh();
+                settlementPhaseCoordinator?.Refresh();
         }
 
         /// <summary>悬浮行动卡 → 高亮其目标/范围格</summary>
@@ -2030,8 +1990,7 @@ namespace Core
             }
             var h = _settlementManager.DevAddHunter(name);
             Debug.Log($"[GameManager][Dev] 招募猎人：{h?.Name}");
-            _settlementUIManager?.Refresh();
-            _settlementTable3D?.Refresh();
+            settlementPhaseCoordinator?.Refresh();
         }
 
         /// <summary>快速添加资源（开发者）</summary>
@@ -2044,8 +2003,7 @@ namespace Core
             }
             _settlementManager.DevAddResource(resourceName, amount);
             Debug.Log($"[GameManager][Dev] 添加资源 {resourceName} ×{amount}");
-            _settlementUIManager?.Refresh();
-            _settlementTable3D?.RefreshCards();
+            settlementPhaseCoordinator?.RefreshCards();
         }
 
         /// <summary>开发工具不再绕过回营流程推进日历。</summary>
@@ -2119,7 +2077,7 @@ namespace Core
             }
             EnsureSettlementUI();
             campaignStartup.ActivateRuntime();
-            _settlementUIManager?.Refresh();
+            settlementPhaseCoordinator?.Refresh();
             QueueSettlementEvents(restorePlan.WorkItems, settlementEventRestoreProjection, restorePlan.ChainId);
             return true;
         }
@@ -2225,7 +2183,7 @@ namespace Core
 
             // 场景实例与运行时回退都保留，由幂等 Init 重新绑定新存档数据和命令端口。
             EnsureSettlementUI();
-            _settlementUIManager?.Refresh();
+            settlementPhaseCoordinator?.Refresh();
             bool restoreSucceeded = true;
             if (CurrentGamePhase == GamePhase.Settlement)
             {
