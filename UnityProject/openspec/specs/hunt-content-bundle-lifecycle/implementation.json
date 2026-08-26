@@ -13,9 +13,9 @@
         "guid": "3a91d14f82d74f08b0ebd4b4da7ac7ed",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
         "line": 1,
-        "fileHash": "20b62f94c778154250e12867579febc02956607af76a73c72fd201dd93415194",
+        "fileHash": "5b2af84a11402e97e75ff0a8b8f2d5105ae2725f041903febe84ef397d541930",
         "status": "verified",
-        "checkedAt": "2026-08-24T09:34:27-07:00",
+        "checkedAt": "2026-08-25T18:15:26-07:00",
         "feature": "冻结战役级狩猎路线、物品、发明与 canonical 事件闭包，并以 hunt-v2 manifest 和 SHA-256 生成兼容指纹。"
       },
       {
@@ -49,9 +49,9 @@
         "guid": "5e0d9f3f6f7d4b8a9c2e1d0f3a6b7c81",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
         "line": 1,
-        "fileHash": "fc65bd46f5a0fd60ca54ec14d92ce28bb7169f396d79d9857bdeea360a8737dd",
+        "fileHash": "363d9d925fb2074be7d3224365f07b07f59039dd17e6c4018068d49721757786",
         "status": "verified",
-        "checkedAt": "2026-08-24T09:34:27-07:00",
+        "checkedAt": "2026-08-25T18:15:26-07:00",
         "feature": "验证嵌套规则、顺序、非路线 Registry 内容、发明注入效果和跨对象事件链对 Bundle 身份的影响。"
       }
     ],

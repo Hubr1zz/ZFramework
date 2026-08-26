@@ -65,6 +65,34 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void ProductionTiles_ProvideNineStableMixedResourcePoints()
+        {
+            string[] tileGuids = AssetDatabase.FindAssets("t:HexTileData", new[] { "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Tiles" });
+            var resourcePointIds = new HashSet<string>();
+            foreach (string tileGuid in tileGuids)
+            {
+                HexTileData tile = AssetDatabase.LoadAssetAtPath<HexTileData>(AssetDatabase.GUIDToAssetPath(tileGuid));
+                foreach (ResourcePointConfig point in tile?.resourcePoints ?? new List<ResourcePointConfig>())
+                {
+                    Assert.That(point.resourcePointId, Is.Not.Empty, tile.ContentId);
+                    Assert.That(point.materialPool, Is.Not.Empty, point.resourcePointId);
+                    foreach (ResourceMaterialConfig material in point.materialPool)
+                    {
+                        Assert.That(material.materialId, Is.Not.Empty, point.resourcePointId);
+                        Assert.That(material.copies, Is.GreaterThan(0), point.resourcePointId);
+                    }
+                    resourcePointIds.Add(point.resourcePointId);
+                }
+            }
+
+            Assert.That(resourcePointIds, Is.SupersetOf(new[]
+            {
+                "nose_mushroom", "bulbous_mushroom", "hair_grass", "mimic_stone", "biological_remains",
+                "small_animal_nest", "strange_mound", "grave", "broken_statue"
+            }));
+        }
+
+        [Test]
         public void CanSelect_ValidatesWithoutMutatingActiveRoute()
         {
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);

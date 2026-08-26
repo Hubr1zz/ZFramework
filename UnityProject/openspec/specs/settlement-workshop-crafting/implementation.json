@@ -60,18 +60,18 @@
         "guid": "156c7bea2196d0047b84b06aa2342495",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
         "line": 1,
-        "fileHash": "029635669578f60df9f100019fedb6847b797a3fcd28a79024ebf4228d54ef65",
+        "fileHash": "b8030e1ce0fcf51d2e1437ff332d170f26ac4d871227a19dc33a08456b08de7a",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:30:16-07:00",
+        "checkedAt": "2026-08-25T18:15:26-07:00",
         "feature": "以稳定 ID 配置护符、盐晶短刃和菌绒裹衣三条基础制作路线。"
       },
       {
         "guid": "b03cbb7b8c779d242836d8385b31e05b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
         "line": 1,
-        "fileHash": "253315220df9a645407e95bb3a8cc147a36bb1733b8c1ff9721f6a10da8c6ca5",
+        "fileHash": "2f141715fbe823b91fda192bf96732a9f5feb6a7ff69be01b56385cd563f5b25",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:30:16-07:00",
+        "checkedAt": "2026-08-25T18:15:26-07:00",
         "feature": "验证混合来源素材、工具发明门禁和菌绒裹衣通过 Settlement ActionQueue 原子制作。"
       },
       {

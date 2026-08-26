@@ -66,6 +66,17 @@ The view SHALL derive its card count from resource configuration while applying 
 - **WHEN** the configured count exceeds the domain limit
 - **THEN** the view creates no more than the domain maximum and remains operable
 
+### Requirement: Resource pools bind table content by stable identity
+Resource material entries MAY reference a resource item by stable content ID. The hunt content bundle SHALL resolve that ID through the active campaign registry and freeze the canonical `ItemData` before gameplay. Unknown IDs, non-resource items, invalid copy counts, or unresolved pools SHALL reject the candidate bundle; direct asset references MAY remain as a compatibility fallback when no stable ID is configured.
+
+#### Scenario: A production tile references a table-defined material
+- **WHEN** the active item registry contains the configured stable resource ID
+- **THEN** the resource point uses that registry item in its immutable harvest plan
+
+#### Scenario: A resource ID is invalid
+- **WHEN** a material entry names an unknown or non-resource item
+- **THEN** content assembly fails before the route becomes playable
+
 ### Requirement: Compatibility fallback remains available
 The legacy screen-space popup MAY remain as a fallback when no live world presentation anchor exists, but it SHALL NOT be selected for a normal 3D hunt map resource marker.
 

@@ -5,19 +5,29 @@ using CardGame.ActionQueue;
 using Core;
 using GameplayBase;
 using HuntingInDarkness.ActionFlow.Campaign;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableHuntContentBundleTests
     {
+        private const string SymptomCatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/Symptoms/PlayableSymptomCatalog.asset";
         private readonly List<Object> ownedObjects = new();
         private PlayableHuntContentBundle bundle;
+
+        [SetUp]
+        public void SetUp()
+        {
+            PlayableSymptomRuntime.Configure(AssetDatabase.LoadAssetAtPath<PlayableSymptomCatalog>(SymptomCatalogPath));
+            PlayableEventTableRuntime.ClearCache();
+        }
 
         [TearDown]
         public void TearDown()
@@ -25,6 +35,8 @@ namespace HuntingInDarkness.Adapter.Tests
             bundle?.Dispose();
             PlayableSettlementItemRegistry.Configure(null);
             PlayableSettlementInventionRegistry.Configure(null);
+            PlayableEventTableRuntime.ClearCache();
+            PlayableSymptomRuntime.Configure(null);
             foreach (Object ownedObject in ownedObjects)
                 if (ownedObject != null)
                     Object.DestroyImmediate(ownedObject);
@@ -105,6 +117,52 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.False);
             Assert.That(reason, Does.Contain("计划外资源"));
+        }
+
+        [Test]
+        public void Bundle_ResolvesTableMaterialByStableId()
+        {
+            EventData dangerEvent = CreateHuntEvent("hunt:danger");
+            ItemData resource = Own(ScriptableObject.CreateInstance<ItemData>());
+            resource.ConfigureContentId("item:table-herb");
+            resource.itemName = "table herb";
+            resource.itemType = ItemType.Resource;
+            PlayableSettlementItemRegistry.Configure(new[] { resource });
+            HexTileData resourceTile = CreateTile("tile:resource", TileType.Forest, 1);
+            resourceTile.resourcePoints.Add(new ResourcePointConfig
+            {
+                resourcePointId = "point:table-herb",
+                displayName = "table herb patch",
+                materialPool = new List<ResourceMaterialConfig> { new() { materialId = resource.ContentId, copies = 2 } },
+                spawnWeight = 1,
+                drawCount = 1,
+                maxPerTile = 1
+            });
+            PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:start", TileType.Starting, 1), new List<HexTileData> { resourceTile }, new List<EventData> { dangerEvent }, CreateNoiseProfile(dangerEvent));
+
+            Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.True, reason);
+            ResourceMaterialConfig material = bundle.DefaultRoute.TilePool[0].resourcePoints[0].materialPool[0];
+            Assert.That(material.material, Is.SameAs(resource));
+            Assert.That(material.materialId, Is.EqualTo(resource.ContentId));
+        }
+
+        [Test]
+        public void Bundle_RejectsUnknownTableMaterialId()
+        {
+            EventData dangerEvent = CreateHuntEvent("hunt:danger");
+            HexTileData resourceTile = CreateTile("tile:resource", TileType.Forest, 1);
+            resourceTile.resourcePoints.Add(new ResourcePointConfig
+            {
+                resourcePointId = "point:unknown",
+                materialPool = new List<ResourceMaterialConfig> { new() { materialId = "missing-material", copies = 1 } },
+                spawnWeight = 1,
+                drawCount = 1,
+                maxPerTile = 1
+            });
+            PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:start", TileType.Starting, 1), new List<HexTileData> { resourceTile }, new List<EventData> { dangerEvent }, CreateNoiseProfile(dangerEvent));
+
+            Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.False);
+            Assert.That(reason, Does.Contain("计划外素材"));
         }
 
         [Test]

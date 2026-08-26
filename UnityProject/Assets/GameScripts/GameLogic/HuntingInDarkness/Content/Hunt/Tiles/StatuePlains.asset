@@ -23,12 +23,34 @@ MonoBehaviour:
   groupSize: 4
   mustBeAdjacent: 1
   resourcePoints:
-  - resource: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
+  - resourcePointId: broken_statue
+    displayName: "\u7834\u635F\u96D5\u50CF"
+    materialPool:
+    - material: {fileID: 0}
+      materialId: ancient_stone_chip
+      copies: 2
+    - material: {fileID: 0}
+      materialId: broken_stone
+      copies: 3
+    - material: {fileID: 0}
+      materialId: soft_organ
+      copies: 1
     spawnWeight: 4
     drawCount: 2
-    maxPerTile: 2
-  - resource: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
-    spawnWeight: 1
+    maxPerTile: 1
+  - resourcePointId: mimic_stone
+    displayName: "\u62DF\u6001\u77F3"
+    materialPool:
+    - material: {fileID: 0}
+      materialId: carapace
+      copies: 1
+    - material: {fileID: 0}
+      materialId: broken_stone
+      copies: 1
+    - material: {fileID: 0}
+      materialId: soft_organ
+      copies: 1
+    spawnWeight: 2
     drawCount: 1
     maxPerTile: 1
   maxResourcePoints: 2

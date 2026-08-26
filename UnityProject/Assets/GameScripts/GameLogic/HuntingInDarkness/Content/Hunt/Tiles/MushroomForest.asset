@@ -23,12 +23,49 @@ MonoBehaviour:
   groupSize: 1
   mustBeAdjacent: 1
   resourcePoints:
-  - resource: {fileID: 11400000, guid: 278e3384600c4ac45b1d8077908ce503, type: 2}
-    spawnWeight: 4
-    drawCount: 2
-    maxPerTile: 2
-  - resource: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
-    spawnWeight: 1
+  - resourcePointId: nose_mushroom
+    displayName: "\u9F3B\u5B50\u8611\u83C7"
+    materialPool:
+    - material: {fileID: 0}
+      materialId: mushroom_flesh
+      copies: 3
+    - material: {fileID: 0}
+      materialId: viscous_sap
+      copies: 2
+    - material: {fileID: 0}
+      materialId: glowing_worm
+      copies: 1
+    spawnWeight: 3
+    drawCount: 1
+    maxPerTile: 1
+  - resourcePointId: bulbous_mushroom
+    displayName: "\u725B\u5B50\u8611\u83C7"
+    materialPool:
+    - material: {fileID: 0}
+      materialId: mushroom_flesh
+      copies: 2
+    - material: {fileID: 0}
+      materialId: viscous_sap
+      copies: 2
+    - material: {fileID: 0}
+      materialId: bulbous_root
+      copies: 2
+    spawnWeight: 2
+    drawCount: 1
+    maxPerTile: 1
+  - resourcePointId: hair_grass
+    displayName: "\u5934\u53D1\u8349"
+    materialPool:
+    - material: {fileID: 0}
+      materialId: hair
+      copies: 3
+    - material: {fileID: 0}
+      materialId: white_hair
+      copies: 1
+    - material: {fileID: 0}
+      materialId: dust_mite
+      copies: 1
+    spawnWeight: 2
     drawCount: 1
     maxPerTile: 1
   maxResourcePoints: 2

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "1df1bfb5c8f9c486438693e919bf4eccac67c77ae2574c1f95f775548b8dccf4",
-  "inputManifestDigest": "115e2ca84147292a08273a276eb7d97fe831ea33f5f2404b357156ca0294c316",
-  "outputDigest": "ee0f6a63920a1903194932f97123b1c3ed5e31df8f175e5d6205fdf51d86c0d2",
+  "inputDigest": "f69f5c320ab2f359408212992c2afae514bc2509116c9406f571a19877851bf1",
+  "inputManifestDigest": "dabb51d3198b173c9f4256f77bc0e2913fb21e954b63f7adc95eb37351b682be",
+  "outputDigest": "c569f817af0e8506f140cd4566ddf5c295fa7c7a55ba27cebd113d701f1033ad",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -232,7 +232,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HexTileData.cs",
-      "sha256": "b8b506a73256bbe56914ec71319aad6c2351f1634445a455706e30c0d15b22ff",
+      "sha256": "0c5ce863985415ae053cbd3854ae0338ecc2b32dba96a5ed725fb6d4eebe8d1b",
       "state": "current"
     },
     {
@@ -272,7 +272,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
-      "sha256": "42b3c7d6fe521236a57645920bb725f2172a42fdd8888ca6169567dbd7d790be",
+      "sha256": "5b2af84a11402e97e75ff0a8b8f2d5105ae2725f041903febe84ef397d541930",
       "state": "current"
     },
     {
@@ -462,7 +462,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
-      "sha256": "b44df6d66694a195dcf16dbf65cfffec4fb68fabf5cea5151bf8669041b75ba1",
+      "sha256": "363d9d925fb2074be7d3224365f07b07f59039dd17e6c4018068d49721757786",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs",
+      "sha256": "983d9e04fe525b336dbf119fd0f65c3212f3af3bae438008384aca45a9de0bc2",
       "state": "current"
     },
     {
@@ -492,12 +497,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-      "sha256": "a63e48d557398e74649cfc52c7287dd8a2b4edcd826de84e302771435391d640",
+      "sha256": "4263fd352a8a9a02fc775f23f9c89e694da91322cc756c6020bdbb1573a745f0",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-      "sha256": "253315220df9a645407e95bb3a8cc147a36bb1733b8c1ff9721f6a10da8c6ca5",
+      "sha256": "2f141715fbe823b91fda192bf96732a9f5feb6a7ff69be01b56385cd563f5b25",
       "state": "current"
     },
     {
@@ -737,12 +742,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
-      "sha256": "f364b3dc569c9226a75bb5f4a2c4191ef7e0cbd3df7adfef2ed0c38743712bd1",
+      "sha256": "364a6b8afeb2f766af6dbf663c542b23a3751dd89a300d45ffb0216cef389fc8",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
-      "sha256": "029635669578f60df9f100019fedb6847b797a3fcd28a79024ebf4228d54ef65",
+      "sha256": "b8030e1ce0fcf51d2e1437ff332d170f26ac4d871227a19dc33a08456b08de7a",
       "state": "current"
     },
     {
@@ -1092,7 +1097,7 @@
     },
     {
       "path": "openspec/specs/hunt-content-bundle-lifecycle/implementation.json",
-      "sha256": "388fbee14508e6f3719ad751c40b524e99d03713f8e7f70e75678d30281eccf9",
+      "sha256": "c12ef70fb52942754c47b45307e6750af4468d949c924e10a89bbebe66423d61",
       "state": "current"
     },
     {
@@ -1112,7 +1117,7 @@
     },
     {
       "path": "openspec/specs/hunt-map-generation/implementation.json",
-      "sha256": "3907f3fe7e3c116a2c9d280da3cfe770faec520270233dd645ac2b3ee43cb40d",
+      "sha256": "c186e09c9e432814dddc9b81b384ea2647f86025d8c790f908d50bdd48ea94e2",
       "state": "current"
     },
     {
@@ -1162,7 +1167,7 @@
     },
     {
       "path": "openspec/specs/hunt-route-entry-context/implementation.json",
-      "sha256": "46a95a40bf1a373173ac541af8f93c9e1c849970fcebe5dd4a5eb4461cb05375",
+      "sha256": "5c1d737b60530250bf2cc68d9f7b93368024d05f02fb8f4f4019e8eeeb850cb0",
       "state": "current"
     },
     {
@@ -1192,17 +1197,17 @@
     },
     {
       "path": "openspec/specs/hunt-tabletop-harvest/implementation.json",
-      "sha256": "ebb5d6d484dbe9601d1d13786a0de74f3dc678a4eebefaed92668d8fe1d0890d",
+      "sha256": "564a8b3bd49707990d06ade9ac728ec3babe9deb0da21d01151fdf60742b3159",
       "state": "current"
     },
     {
       "path": "openspec/specs/hunt-tabletop-harvest/spec.md",
-      "sha256": "6a9b5f11ad7cff0f8a1f895f26a4716639c6c159cdea103f65f9249db189e2e8",
+      "sha256": "ea1bbcd8ae7b09402df9da7f05c9155a12c1ef2c8f8aa822ec7bd7a639ae564e",
       "state": "current"
     },
     {
       "path": "openspec/specs/hunt-tile-reveal-events/implementation.json",
-      "sha256": "c9cc8b633f51a349bf2e531633c03345a9f4bbc651c62928e9806c727fe0e724",
+      "sha256": "c8354cc2b1a74cfd5bba68538121b7cd5c786916138182659d4ba4cadc76743a",
       "state": "current"
     },
     {
@@ -1212,7 +1217,7 @@
     },
     {
       "path": "openspec/specs/settlement-content-plan-lifecycle/implementation.json",
-      "sha256": "3e3af5b08172d3e75db32d7cab2b5bf9553c59a3c882d24ac942acb1b55877ea",
+      "sha256": "af4377639fb7633c16b4bf3a0c0013d29c34ef13fdfef4f75d2b039f8a8b96d5",
       "state": "current"
     },
     {
@@ -1242,7 +1247,7 @@
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/implementation.json",
-      "sha256": "be6088bf12b3ac504c6a9d4b1743eb8e474f4a4a6b785b70ca329ce5aebe9717",
+      "sha256": "4a9d48cde93a4ff2502e99f88211968e9052eb479612268c12da7808b72fbbbe",
       "state": "current"
     },
     {
@@ -1262,12 +1267,12 @@
     },
     {
       "path": "openspec/specs/table-driven-crafting-content/implementation.json",
-      "sha256": "ad0f7284720876b32a68c42dd972f65221d0aebc1d0c9c39428ebf2019e53461",
+      "sha256": "2a1cd23609a432e7ea845b932eb1f847361d554eef1aaa81f1383857e03762be",
       "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-crafting-content/spec.md",
-      "sha256": "6a4ef60df7038afa3d184c09da3ad0b1cce241def704045feb91580b0dd4455b",
+      "sha256": "b922c98242a31917d368bfe08bd4a18921b68240c0227b4c2f0d246a5036d064",
       "state": "current"
     },
     {
@@ -1342,7 +1347,7 @@
     },
     {
       "path": "openspec/specs/table-driven-item-keywords/implementation.json",
-      "sha256": "cbd969f81ba5bd7900797c5190d4a4353bc7b82c99d8716890f6cb74197388aa",
+      "sha256": "07b9b0a45c3ee7ba93185c84c3014b2cfa69d7f43b1bf31bdfdbe2d4f2901360",
       "state": "current"
     },
     {
@@ -1723,16 +1728,6 @@
       "state": "stale"
     },
     {
-      "capability": "hunt-content-bundle-lifecycle",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-content-bundle-lifecycle",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
-      "state": "stale"
-    },
-    {
       "capability": "hunt-phase-orchestration",
       "path": "Assets/Scripts/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
       "state": "missing"
@@ -1765,11 +1760,6 @@
     {
       "capability": "hunt-route-entry-context",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-route-entry-context",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
       "state": "stale"
     },
     {
@@ -2498,7 +2488,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
@@ -2514,7 +2504,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
-          "state": "stale"
+          "state": "current"
         }
       ]
     },
@@ -2731,7 +2721,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
-          "state": "stale"
+          "state": "current"
         }
       ]
     },
@@ -2820,7 +2810,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "玩家在资源棋子旁逐张翻开实体素材牌；准备、随机命中、奖励提交和未完成事务门禁全部由 Hunt ActionQueue 串行负责。",
+      "summary": "玩家在资源棋子旁逐张翻开实体素材牌；资源池可按稳定 ID 解析读表素材，准备、随机命中、奖励提交和未完成事务门禁仍由 Hunt ActionQueue 串行负责。",
       "designSources": [],
       "sources": [
         "openspec/specs/hunt-tabletop-harvest/spec.md",
@@ -2838,6 +2828,14 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntDestinationContentTests.cs",
           "state": "current"
         }
       ]
@@ -3078,7 +3076,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；狩猎素材可被原子消费并制造为噪音、距离与事件词条取向的装备。",
+      "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；石森林采集素材可被原子消费并制造为基础武器与护甲。",
       "designSources": [],
       "sources": [
         "openspec/specs/table-driven-crafting-content/spec.md",
@@ -3100,6 +3098,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
           "state": "current"
         }
       ]

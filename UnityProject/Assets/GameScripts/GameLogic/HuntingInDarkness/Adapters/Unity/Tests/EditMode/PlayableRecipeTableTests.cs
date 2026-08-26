@@ -148,12 +148,14 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             List<ItemData> items = CreateRuntimeRecipeItems();
             ItemData mushroom = items.Find(item => item.ContentId == "mushroom_flesh");
+            ItemData sap = items.Find(item => item.ContentId == "viscous_sap");
             ItemData organ = items.Find(item => item.ContentId == "soft_organ");
             InventionData tools = CreateInvention("tools", "工具");
             IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
             CraftRecipe recipe = FindRecipe(recipes, "编制菌绒裹衣");
             var settlement = new SettlementInstance();
             settlement.AddResource(mushroom, 1);
+            settlement.AddResource(sap, 1);
             settlement.AddResource(organ, 1);
             settlement.UnlockInvention(tools.ContentId);
             var workshop = new WorkshopSystem(settlement, new InventionSystem(settlement)) { AllRecipes = new List<CraftRecipe>(recipes) };

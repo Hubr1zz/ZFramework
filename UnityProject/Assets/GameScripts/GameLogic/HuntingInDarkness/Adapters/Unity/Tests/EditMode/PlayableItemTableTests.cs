@@ -127,6 +127,31 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void RuntimeTable_ProvidesStoneForestMaterialsAndCraftableGear()
+        {
+            string[] materialIds =
+            {
+                "viscous_sap", "glowing_worm", "hair", "white_hair", "dust_mite", "carapace",
+                "bone", "earthworm", "metal_fragment", "bulbous_root", "ancient_stone_chip"
+            };
+            foreach (string materialId in materialIds)
+            {
+                ItemData material = FindRuntimeItem(materialId);
+                Assert.That(material, Is.Not.Null, materialId);
+                Assert.That(material.itemType, Is.EqualTo(ItemType.Resource), materialId);
+            }
+
+            ItemData blade = FindRuntimeItem("bone_saw_blade");
+            ItemData bracer = FindRuntimeItem("carapace_bracer");
+            Assert.That(blade, Is.Not.Null);
+            Assert.That(blade.itemType, Is.EqualTo(ItemType.Weapon));
+            Assert.That(blade.weaponStats.speed, Is.EqualTo(2));
+            Assert.That(bracer, Is.Not.Null);
+            Assert.That(bracer.itemType, Is.EqualTo(ItemType.Armor));
+            Assert.That(bracer.armorStats.armorArms, Is.EqualTo(1));
+        }
+
+        [Test]
         public void SettlementPlan_RejectsItemWithoutExplicitStableId()
         {
             ItemData item = ScriptableObject.CreateInstance<ItemData>();
@@ -135,12 +160,12 @@ namespace HuntingInDarkness.Adapter.Tests
             createdItems.Add(item);
             System.Type planType = typeof(PlayableSettlementContentCatalog).Assembly.GetType("HuntingInDarkness.Settlement.PlayableSettlementContentPlan");
             MethodInfo validateMethod = planType.GetMethod("ValidateContent", BindingFlags.Static | BindingFlags.NonPublic);
-            object[] arguments = { new List<ItemData> { item }, new List<InventionData>(), new List<CraftRecipe>(), new List<EventData>(), null };
+            object[] arguments = { new List<ItemData> { item }, new List<InventionData>(), new List<CraftRecipe>(), new List<EventData>(), new List<HunterData>(), new List<HunterData>(), null, null };
 
             bool valid = (bool)validateMethod.Invoke(null, arguments);
 
             Assert.That(valid, Is.False);
-            Assert.That((string)arguments[4], Does.Contain("显式稳定 ContentId"));
+            Assert.That((string)arguments[7], Does.Contain("显式稳定 ContentId"));
         }
 
         private List<ItemData> Build(params ItemTableRecord[] records)

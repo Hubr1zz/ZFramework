@@ -34,6 +34,8 @@ namespace HuntingInDarkness.Data
     public sealed class ResourceMaterialConfig
     {
         public ItemData material;
+        [Tooltip("可选稳定物品 ID；设置后由当前战役内容 Registry 解析，优先于直接资产引用。")]
+        public string materialId;
         [Min(1)] public int copies = 1;
     }
 

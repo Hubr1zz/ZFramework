@@ -40,9 +40,9 @@
         "guid": "5e0d9f3f6f7d4b8a9c2e1d0f3a6b7c81",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
         "line": 1,
-        "fileHash": "fc65bd46f5a0fd60ca54ec14d92ce28bb7169f396d79d9857bdeea360a8737dd",
+        "fileHash": "363d9d925fb2074be7d3224365f07b07f59039dd17e6c4018068d49721757786",
         "status": "verified",
-        "checkedAt": "2026-08-24T09:34:27-07:00",
+        "checkedAt": "2026-08-25T18:15:26-07:00",
         "feature": "验证精确 RoutePlan 身份穿过 Reactor 与请求 Host，且阻止时 Host 不变。"
       }
     ],

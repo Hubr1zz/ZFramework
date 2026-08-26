@@ -93,6 +93,135 @@
       },
       "stackLimit": 1,
       "huntNoise": -1
+    },
+    {
+      "id": "viscous_sap",
+      "itemName": "粘稠汁液",
+      "itemType": "Resource",
+      "description": "从肥厚菌体中挤出的半透明胶液，干燥后能牢牢黏住骨片与纤维。",
+      "tags": ["Organ"],
+      "keywords": ["adhesive"],
+      "stackLimit": 99
+    },
+    {
+      "id": "glowing_worm",
+      "itemName": "微光长虫",
+      "itemType": "Resource",
+      "description": "受惊时会发出冷光的细长生物，适合作为药剂与照明实验的原料。",
+      "tags": ["Organ", "Rare"],
+      "keywords": ["glow", "living"],
+      "stackLimit": 99
+    },
+    {
+      "id": "hair",
+      "itemName": "毛发",
+      "itemType": "Resource",
+      "description": "韧性尚可的成束毛发，清洗后可用于绑缚、填充与缝制。",
+      "tags": ["Hide"],
+      "keywords": ["flexible"],
+      "stackLimit": 99
+    },
+    {
+      "id": "white_hair",
+      "itemName": "白色发丝",
+      "itemType": "Resource",
+      "description": "比普通毛发更坚韧的苍白纤维，在黑暗中会缓慢朝热源弯曲。",
+      "tags": ["Hide", "Rare"],
+      "keywords": ["flexible", "responsive"],
+      "stackLimit": 99
+    },
+    {
+      "id": "dust_mite",
+      "itemName": "尘螨",
+      "itemType": "Resource",
+      "description": "藏在毛草根部的微小生物，磨碎后会散发令人短暂清醒的气味。",
+      "tags": ["Organ"],
+      "keywords": ["living", "stimulant"],
+      "stackLimit": 99
+    },
+    {
+      "id": "carapace",
+      "itemName": "甲壳",
+      "itemType": "Resource",
+      "description": "带有柔和光泽的弧形硬壳，边缘仍残留着规律生长的层纹。",
+      "tags": ["Hide"],
+      "keywords": ["shell", "rigid"],
+      "stackLimit": 99
+    },
+    {
+      "id": "bone",
+      "itemName": "骨头",
+      "itemType": "Resource",
+      "description": "来源已经无法辨认的坚硬骨材，适合制作支架、握柄和粗糙刃口。",
+      "tags": ["Bone"],
+      "keywords": ["bone", "rigid"],
+      "stackLimit": 99
+    },
+    {
+      "id": "earthworm",
+      "itemName": "蚯蚓",
+      "itemType": "Resource",
+      "description": "离开泥土后仍会朝同一个方向蠕动的环节生物，可用于诱饵与酿药。",
+      "tags": ["Organ"],
+      "keywords": ["living", "bait"],
+      "stackLimit": 99
+    },
+    {
+      "id": "metal_fragment",
+      "itemName": "金属碎片",
+      "itemType": "Resource",
+      "description": "从土层里挖出的暗色金属残片，现有工具只能勉强改变它的形状。",
+      "tags": ["Mineral", "Rare"],
+      "keywords": ["metal", "rigid"],
+      "stackLimit": 99
+    },
+    {
+      "id": "bulbous_root",
+      "itemName": "球状根茎",
+      "itemType": "Resource",
+      "description": "形似植物根茎的肉质球体，被切开时内部会收缩并发出细小摩擦声。",
+      "tags": ["Herb", "Organ"],
+      "keywords": ["herb", "living"],
+      "stackLimit": 99
+    },
+    {
+      "id": "ancient_stone_chip",
+      "itemName": "古老石屑",
+      "itemType": "Resource",
+      "description": "从旧雕像内部剥落的深色石屑，带着不属于当前荒原的潮湿气味。",
+      "tags": ["Stone", "Rare"],
+      "keywords": ["stone", "relic"],
+      "stackLimit": 99
+    },
+    {
+      "id": "bone_saw_blade",
+      "itemName": "骨锯短刃",
+      "itemType": "Weapon",
+      "description": "用两段硬骨磨出交错齿口，再以粘液固定在短柄上的轻型切割武器。",
+      "tags": ["Gear", "Weapon", "Bone"],
+      "keywords": ["bone", "serrated"],
+      "weaponStats": {
+        "speed": 2,
+        "power": 1,
+        "accuracy": 0,
+        "range": 1,
+        "specialRule": "骨与锯齿词条可解锁处理遗骸的特殊事件选项。"
+      },
+      "stackLimit": 1,
+      "huntNoise": 0
+    },
+    {
+      "id": "carapace_bracer",
+      "itemName": "甲壳护臂",
+      "itemType": "Armor",
+      "description": "以毛发束缚弧形甲壳制成的护臂，轻便且不会妨碍手腕转动。",
+      "tags": ["Gear", "Hide"],
+      "keywords": ["shell", "flexible"],
+      "armorStats": {
+        "armorArms": 1
+      },
+      "stackLimit": 1,
+      "huntNoise": 0
     }
   ]
 }

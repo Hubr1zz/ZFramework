@@ -33,9 +33,9 @@
         "guid": "0d25335dd52dca34c810d641f9fe498b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HexTileData.cs",
         "line": 58,
-        "fileHash": "b8b506a73256bbe56914ec71319aad6c2351f1634445a455706e30c0d15b22ff",
+        "fileHash": "0c5ce863985415ae053cbd3854ae0338ecc2b32dba96a5ed725fb6d4eebe8d1b",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:14:24-07:00",
+        "checkedAt": "2026-08-25T18:15:26-07:00",
         "feature": "以可编辑字段提供稳定 ID、权重、组大小、相邻约束和资源点配置。"
       }
     ],

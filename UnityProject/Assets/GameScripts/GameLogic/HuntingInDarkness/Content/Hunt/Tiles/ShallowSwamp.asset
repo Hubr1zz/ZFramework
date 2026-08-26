@@ -23,11 +23,33 @@ MonoBehaviour:
   groupSize: 1
   mustBeAdjacent: 1
   resourcePoints:
-  - resource: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
+  - resourcePointId: biological_remains
+    displayName: "\u751F\u7269\u9057\u9AB8"
+    materialPool:
+    - material: {fileID: 0}
+      materialId: bone
+      copies: 2
+    - material: {fileID: 0}
+      materialId: soft_organ
+      copies: 1
+    - material: {fileID: 0}
+      materialId: earthworm
+      copies: 1
     spawnWeight: 3
-    drawCount: 2
+    drawCount: 1
     maxPerTile: 1
-  - resource: {fileID: 11400000, guid: 278e3384600c4ac45b1d8077908ce503, type: 2}
+  - resourcePointId: small_animal_nest
+    displayName: "\u5C0F\u52A8\u7269\u5DE2\u7A74"
+    materialPool:
+    - material: {fileID: 0}
+      materialId: bone
+      copies: 1
+    - material: {fileID: 0}
+      materialId: carapace
+      copies: 1
+    - material: {fileID: 0}
+      materialId: hair
+      copies: 1
     spawnWeight: 2
     drawCount: 1
     maxPerTile: 1

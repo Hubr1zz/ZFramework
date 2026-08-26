@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "table-driven-crafting-content",
-  "specHash": "6a4ef60df7038afa3d184c09da3ad0b1cce241def704045feb91580b0dd4455b",
+  "specHash": "b922c98242a31917d368bfe08bd4a18921b68240c0227b4c2f0d246a5036d064",
   "title": "读表配方与事件奖励制造链",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；狩猎素材可被原子消费并制造为噪音、距离与事件词条取向的装备。",
-    "validatedAgainstSpecHash": "6a4ef60df7038afa3d184c09da3ad0b1cce241def704045feb91580b0dd4455b",
+    "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；石森林采集素材可被原子消费并制造为基础武器与护甲。",
+    "validatedAgainstSpecHash": "b922c98242a31917d368bfe08bd4a18921b68240c0227b4c2f0d246a5036d064",
     "evidence": [
       {
         "guid": "3563da353cb19f24981a644b6a0e641e",
@@ -33,27 +33,36 @@
         "guid": "b03cbb7b8c779d242836d8385b31e05b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
         "line": 1,
-        "fileHash": "253315220df9a645407e95bb3a8cc147a36bb1733b8c1ff9721f6a10da8c6ca5",
+        "fileHash": "2f141715fbe823b91fda192bf96732a9f5feb6a7ff69be01b56385cd563f5b25",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:30:16-07:00",
-        "feature": "覆盖稳定绑定、重复原料合并、歧义拒绝、混合来源引用和生产表制作闭环。"
+        "checkedAt": "2026-08-25T18:15:26-07:00",
+        "feature": "覆盖稳定绑定、重复原料合并、歧义拒绝、混合来源引用和生产表制作闭环，包括新增采集素材。"
       },
       {
         "guid": "156c7bea2196d0047b84b06aa2342495",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
         "line": 1,
-        "fileHash": "029635669578f60df9f100019fedb6847b797a3fcd28a79024ebf4228d54ef65",
+        "fileHash": "b8030e1ce0fcf51d2e1437ff332d170f26ac4d871227a19dc33a08456b08de7a",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:30:16-07:00",
-        "feature": "提供护符、盐晶短刃和菌绒裹衣三条基础制造路线。"
+        "checkedAt": "2026-08-25T18:15:26-07:00",
+        "feature": "提供七条基础制造路线，包括骨锯短刃和甲壳护臂。"
+      },
+      {
+        "guid": "8c2b910c19609904ea5a547a1ec3d80d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
+        "line": 1,
+        "fileHash": "364a6b8afeb2f766af6dbf663c542b23a3751dd89a300d45ffb0216cef389fc8",
+        "status": "verified",
+        "checkedAt": "2026-08-25T18:15:26-07:00",
+        "feature": "提供石森林常见素材以及可制造的基础武器与护甲定义。"
       }
     ],
     "tests": [
-      "PlayableRecipeTableTests: 7/7 passed",
+      "Stone Forest content cluster: 48/48 passed",
       "PlayableSettlementCraftActionTests: 4/4 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
     ],
-    "verifiedAt": "2026-08-25T15:30:16-07:00"
+    "verifiedAt": "2026-08-25T18:15:26-07:00"
   },
   "implementationOutline": [
     "PlayableRecipeTable 在内容组装时把稳定 ID 记录解析成普通 CraftRecipe，并复用现有目录与验证。",

@@ -285,7 +285,7 @@ namespace HuntingInDarkness.Hunt
             int cardCount = 0;
             foreach (ResourceMaterialConfig material in source.materialPool ?? new List<ResourceMaterialConfig>())
             {
-                if (material?.material == null || material.copies <= 0 || !IsCanonicalResource(material.material))
+                if (material == null || material.copies <= 0 || !TryResolveResourceMaterial(material, out ItemData resolvedMaterial))
                 {
                     reason = "素材池引用了计划外素材或数量无效。";
                     return false;
@@ -296,7 +296,7 @@ namespace HuntingInDarkness.Hunt
                     reason = $"素材池超过 {HarvestDrawPlan.MaximumCardCount} 张上限。";
                     return false;
                 }
-                clone.materialPool.Add(new ResourceMaterialConfig { material = material.material, copies = material.copies });
+                clone.materialPool.Add(new ResourceMaterialConfig { material = resolvedMaterial, materialId = resolvedMaterial.ContentId, copies = material.copies });
             }
             if (cardCount == 0)
             {
@@ -315,6 +315,15 @@ namespace HuntingInDarkness.Hunt
             if (string.IsNullOrWhiteSpace(clone.resourcePointId)) clone.resourcePointId = source.resource?.ContentId ?? clone.materialPool[0].material.ContentId;
             reason = string.Empty;
             return true;
+        }
+
+        private bool TryResolveResourceMaterial(ResourceMaterialConfig source, out ItemData material)
+        {
+            string materialId = source?.materialId?.Trim() ?? string.Empty;
+            if (materialId.Length > 0)
+                return RegistryBundle.TryGetItem(materialId, out material) && material.itemType == ItemType.Resource;
+            material = source?.material;
+            return IsCanonicalResource(material);
         }
 
         private bool IsCanonicalResource(ItemData item)
