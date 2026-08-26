@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "8710254e7df32ea1edd08f2dcdae932312935cccb200179b48fc53d35805e166",
-  "inputManifestDigest": "c5d188cb80afdde9c6dbef82381c0ef6b68b2f3f3d2768eb09433c73241db095",
-  "outputDigest": "d4f4b3858868137847d57b6d5a63ed9f689ede7137e96478899ef7685fdd8ec2",
+  "inputDigest": "86961ad0c98029c88916cde14f033ef211d7672e96bbf0ee0ef10da8b27ca3d2",
+  "inputManifestDigest": "f4db8519596ca2d5e64c3121ef9409feb0295c90579084bcba3b7b0f018a9240",
+  "outputDigest": "3a19a22906d7cd554e18d8c3c8744c351819e1847798e6300439f27731ceff7a",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -221,6 +221,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableSymptomTable.cs",
+      "sha256": "00a715e9ae8668ebee7f6cb08550fea066bb407b23b537d210b2f13faa01d207",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableTraitTable.cs",
       "sha256": "efab95fb5dba287a3451d6b80cfb27f5d5c925a1ab461b1314459c8494649262",
       "state": "current"
@@ -368,6 +373,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs",
       "sha256": "4e49ad477fd034f16ee3b86210085ddff92a526e7000fd8d824486571fb6166d",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSymptomCatalog.cs",
+      "sha256": "33093f3a8250d7892f0e3c382070c362459d3de9e0c213984f89da61263fd5b3",
       "state": "current"
     },
     {
@@ -528,6 +538,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorldSpacePortInstallerTests.cs",
       "sha256": "01363a44bd096529761e67ee62f10dc45c36734072a8fd2d742f1d4e097d5de6",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSymptomCatalogTests.cs",
+      "sha256": "f2fa763dfad9a64e128d1001d467dd00b1d4d5bae125be81ab779faa8682858c",
       "state": "current"
     },
     {
@@ -721,8 +736,13 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/symptoms.json",
+      "sha256": "ab8fc351db8f3ac688dfe8a0e45273be66b7c6bef23f2dfd1c7a54a2f6ca199a",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/traits.json",
-      "sha256": "430a0c723bd91784ec96c0b34184bb8d82abaed2ffd7b401b5d6286774fe0c0a",
+      "sha256": "bb3668f88612a47ad1b6511d5a6aed9db5066374f38a6aba1dcc174e6b460a19",
       "state": "current"
     },
     {
@@ -907,7 +927,7 @@
     },
     {
       "path": "openspec/spec-metadata/dependencies.json",
-      "sha256": "75d97c41c96dd0dbb9829b6d3b43edf41c7a26e907f75c8cada8dc371096c5d2",
+      "sha256": "772281be1604643f3c9e82fa035a762c3804c31539a219d5c88d4f4ccaef2fe0",
       "state": "current"
     },
     {
@@ -1271,6 +1291,16 @@
       "state": "current"
     },
     {
+      "path": "openspec/specs/table-driven-hunter-symptoms/implementation.json",
+      "sha256": "5fc420c8cdc302c9bdaf1d3e9e46e29eb3e2aafaa56ed0eca949f729efeadbd9",
+      "state": "current"
+    },
+    {
+      "path": "openspec/specs/table-driven-hunter-symptoms/spec.md",
+      "sha256": "120a16bb18f47ffff2b33ee9b7e7be90cfda5019ceb9b19b37e2da458b72b5bc",
+      "state": "current"
+    },
+    {
       "path": "openspec/specs/table-driven-hunter-templates/implementation.json",
       "sha256": "871a3b3bd23c5676a0e4dfeddef3451f060fe1da22639deb52a37457cf6745d0",
       "state": "current"
@@ -1282,7 +1312,7 @@
     },
     {
       "path": "openspec/specs/table-driven-hunter-traits/implementation.json",
-      "sha256": "329b24615bdb56f2282726ac369249ee73a3ea5b1538864b84d62574b2b1231d",
+      "sha256": "d851ff49e83068cb2c1bc2bf63e1e24801939c87fe802c4625e1a5623a674df4",
       "state": "current"
     },
     {
@@ -1552,7 +1582,7 @@
     }
   ],
   "counts": {
-    "verified": 40,
+    "verified": 41,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
@@ -3187,6 +3217,47 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/bloodline-events.json",
+          "state": "current"
+        }
+      ]
+    },
+    {
+      "id": "table-driven-hunter-symptoms",
+      "label": "读表猎人症状内容",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "正式症状目录从版本化 JSON 表构建只读定义，拒绝身份、别名与成长参数冲突；8 项基础症状继续复用既有 GameCore、Settlement ActionQueue 和 3D 症状卡流程，派生内化/克服特性在战役内容发布前统一预检。",
+      "designSources": [],
+      "sources": [
+        "openspec/specs/table-driven-hunter-symptoms/spec.md",
+        "openspec/specs/table-driven-hunter-symptoms/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
+      ],
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableSymptomTable.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSymptomCatalog.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/symptoms.json",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/traits.json",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentCandidate.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSymptomCatalogTests.cs",
           "state": "current"
         }
       ]

@@ -33,10 +33,10 @@
         "guid": "8f2a0d7a2af44561bd7672416d3deeb5",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/traits.json",
         "line": 1,
-        "fileHash": "430a0c723bd91784ec96c0b34184bb8d82abaed2ffd7b401b5d6286774fe0c0a",
+        "fileHash": "bb3668f88612a47ad1b6511d5a6aed9db5066374f38a6aba1dcc174e6b460a19",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
-        "feature": "登记当前模板、事件、成长、症状与武器熟练所需的 24 项基础特性。"
+        "checkedAt": "2026-08-25T17:24:23-07:00",
+        "feature": "登记当前模板、事件、成长、症状与武器熟练所需的 38 项基础特性。"
       },
       {
         "guid": "76ee8c16e7264fc89ae0566031980a8a",
@@ -105,7 +105,7 @@
       "CampaignSaveStorageTests: 13/13 passed",
       "HuntingInDarkness.GameCore.Tests: 157/157 passed"
     ],
-    "verifiedAt": "2026-08-25T17:10:42-07:00"
+    "verifiedAt": "2026-08-25T17:24:23-07:00"
   },
   "implementationOutline": [
     "版本化 traits.json 在营地内容计划构建时形成不可变身份目录，并对跨内容引用执行 fail-closed 预检。",

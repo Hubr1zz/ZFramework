@@ -22,8 +22,22 @@
     { "id": "trait_mastery_sling_master", "displayName": "投石大师", "aliases": [], "keywords": ["sling"] },
     { "id": "trait_mastery_sling_veteran", "displayName": "投石老手", "aliases": [], "keywords": ["sling"] },
     { "id": "trait_stone_speaker", "displayName": "石语者", "aliases": [], "keywords": ["stone"] },
+    { "id": "trait_symptom_blood_fever_internalized", "displayName": "内化·血热", "aliases": [], "keywords": ["blood", "fever"] },
+    { "id": "trait_symptom_blood_fever_overcome", "displayName": "已克服·血热", "aliases": [], "keywords": ["blood", "fever"] },
+    { "id": "trait_symptom_claustrophobia_internalized", "displayName": "内化·幽闭恐惧", "aliases": [], "keywords": ["cave", "fear"] },
+    { "id": "trait_symptom_claustrophobia_overcome", "displayName": "已克服·幽闭恐惧", "aliases": [], "keywords": ["cave", "fear"] },
     { "id": "trait_symptom_cowardice_internalized", "displayName": "内化·胆怯", "aliases": [], "keywords": ["cowardice"] },
     { "id": "trait_symptom_cowardice_overcome", "displayName": "已克服·胆怯", "aliases": [], "keywords": ["cowardice"] },
+    { "id": "trait_symptom_night_terrors_internalized", "displayName": "内化·夜惊", "aliases": [], "keywords": ["nightmare"] },
+    { "id": "trait_symptom_night_terrors_overcome", "displayName": "已克服·夜惊", "aliases": [], "keywords": ["nightmare"] },
+    { "id": "trait_symptom_shadow_fixation_internalized", "displayName": "内化·逐影", "aliases": [], "keywords": ["shadow"] },
+    { "id": "trait_symptom_shadow_fixation_overcome", "displayName": "已克服·逐影", "aliases": [], "keywords": ["shadow"] },
+    { "id": "trait_symptom_stone_lung_internalized", "displayName": "内化·石肺", "aliases": [], "keywords": ["stone", "dust"] },
+    { "id": "trait_symptom_stone_lung_overcome", "displayName": "已克服·石肺", "aliases": [], "keywords": ["stone", "dust"] },
+    { "id": "trait_symptom_trembling_hands_internalized", "displayName": "内化·手颤", "aliases": [], "keywords": ["trembling"] },
+    { "id": "trait_symptom_trembling_hands_overcome", "displayName": "已克服·手颤", "aliases": [], "keywords": ["trembling"] },
+    { "id": "trait_symptom_whisper_sickness_internalized", "displayName": "内化·低语症", "aliases": [], "keywords": ["whisper"] },
+    { "id": "trait_symptom_whisper_sickness_overcome", "displayName": "已克服·低语症", "aliases": [], "keywords": ["whisper"] },
     { "id": "trait_watcher", "displayName": "守望者", "aliases": [], "keywords": ["watcher"] }
   ]
 }

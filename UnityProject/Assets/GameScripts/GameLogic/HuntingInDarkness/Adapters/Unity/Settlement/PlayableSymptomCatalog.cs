@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HuntingInDarkness.ActionFlow.Settlement;
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 
@@ -36,6 +37,26 @@ namespace HuntingInDarkness.Settlement
         [SerializeField, Min(0)] private int overcomeCourageRequirement = 2;
         [SerializeField, Min(0)] private int overcomeGrowthCost = 1;
 
+        internal PlayableSymptomDefinition(string id, string displayName, List<string> aliases, string description, SymptomStatModifierTableRecord negative, SymptomStatModifierTableRecord internalized, int internalizationThreshold, int reflectionWillpowerCost, int overcomeCourageRequirement, int overcomeGrowthCost)
+        {
+            this.id = id;
+            this.displayName = displayName;
+            legacyAliases = aliases ?? new List<string>();
+            this.description = description;
+            strengthModifier = negative.strength;
+            accuracyModifier = negative.accuracy;
+            evasionModifier = negative.evasion;
+            movementModifier = negative.movement;
+            internalizedStrength = internalized.strength;
+            internalizedAccuracy = internalized.accuracy;
+            internalizedEvasion = internalized.evasion;
+            internalizedMovement = internalized.movement;
+            this.internalizationThreshold = internalizationThreshold;
+            this.reflectionWillpowerCost = reflectionWillpowerCost;
+            this.overcomeCourageRequirement = overcomeCourageRequirement;
+            this.overcomeGrowthCost = overcomeGrowthCost;
+        }
+
         public string Id => id;
         public string DisplayName => displayName;
         public IReadOnlyList<string> LegacyAliases => legacyAliases != null ? legacyAliases : Array.Empty<string>();
@@ -49,17 +70,22 @@ namespace HuntingInDarkness.Settlement
     [CreateAssetMenu(fileName = "PlayableSymptomCatalog", menuName = "Hunting in Darkness/Symptom Catalog")]
     public sealed class PlayableSymptomCatalog : ScriptableObject, ISettlementSymptomContent
     {
+        [SerializeField, Tooltip("配置后以 JSON 表为唯一内容源；留空时才使用下方内嵌列表。")]
+        private TextAsset tableAsset;
         [SerializeField] private List<PlayableSymptomDefinition> symptoms = new();
+        [NonSerialized] private IReadOnlyList<PlayableSymptomDefinition> tableSymptoms;
+        [NonSerialized] private bool tableLoaded;
 
-        public bool IsConfigured => Validate();
+        public bool IsConfigured => Validate(GetSource());
 
         public IReadOnlyList<SymptomDefinition> GetDefinitions()
         {
             var definitions = new List<SymptomDefinition>();
-            if (symptoms == null) return definitions;
+            IReadOnlyList<PlayableSymptomDefinition> source = GetSource();
+            if (source == null) return definitions;
             var ids = new HashSet<string>(StringComparer.Ordinal);
             var names = new HashSet<string>(StringComparer.Ordinal);
-            foreach (PlayableSymptomDefinition symptom in symptoms)
+            foreach (PlayableSymptomDefinition symptom in source)
             {
                 if (!IsValid(symptom) || !ids.Add(symptom.Id) || !names.Add(symptom.DisplayName)) continue;
                 definitions.Add(symptom.ToDomain());
@@ -106,13 +132,20 @@ namespace HuntingInDarkness.Settlement
 
         private bool TryGet(Predicate<PlayableSymptomDefinition> predicate, out SymptomDefinition definition)
         {
-            if (symptoms == null)
+            IReadOnlyList<PlayableSymptomDefinition> source = GetSource();
+            if (source == null)
             {
                 definition = null;
                 return false;
             }
-            PlayableSymptomDefinition symptom = symptoms.Find(item => IsValid(item) && predicate(item));
-            definition = symptom?.ToDomain();
+            PlayableSymptomDefinition match = null;
+            foreach (PlayableSymptomDefinition symptom in source)
+                if (IsValid(symptom) && predicate(symptom))
+                {
+                    match = symptom;
+                    break;
+                }
+            definition = match?.ToDomain();
             return definition != null;
         }
 
@@ -126,11 +159,11 @@ namespace HuntingInDarkness.Settlement
             return true;
         }
 
-        private bool Validate()
+        private static bool Validate(IReadOnlyList<PlayableSymptomDefinition> source)
         {
-            if (symptoms == null || symptoms.Count == 0) return false;
+            if (source == null || source.Count == 0) return false;
             var references = new HashSet<string>(StringComparer.Ordinal);
-            foreach (PlayableSymptomDefinition symptom in symptoms)
+            foreach (PlayableSymptomDefinition symptom in source)
             {
                 if (!IsValid(symptom) || !references.Add(symptom.Id.Trim()) || !references.Add(symptom.DisplayName.Trim()))
                     return false;
@@ -139,6 +172,25 @@ namespace HuntingInDarkness.Settlement
                         return false;
             }
             return true;
+        }
+
+        private IReadOnlyList<PlayableSymptomDefinition> GetSource()
+        {
+            if (tableAsset == null) return symptoms;
+            if (tableLoaded) return tableSymptoms;
+            tableLoaded = true;
+            if (!PlayableSymptomTable.TryLoad(tableAsset, out tableSymptoms, out string reason))
+            {
+                Debug.LogError($"[ContentTable] {reason}", this);
+                tableSymptoms = null;
+            }
+            return tableSymptoms;
+        }
+
+        private void OnEnable()
+        {
+            tableLoaded = false;
+            tableSymptoms = null;
         }
 
         private static bool ContainsAlias(PlayableSymptomDefinition symptom, string reference)

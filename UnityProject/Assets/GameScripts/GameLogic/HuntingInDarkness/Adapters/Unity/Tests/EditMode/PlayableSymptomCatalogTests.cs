@@ -1,3 +1,4 @@
+using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
@@ -33,6 +34,31 @@ namespace HuntingInDarkness.Tests
             Assert.That(restored.SymptomStates[0].SymptomId, Is.EqualTo("symptom_cowardice"));
             Assert.That(restored.Stats.strength, Is.EqualTo(1));
             Object.DestroyImmediate(template);
+        }
+
+        [Test]
+        public void ConfiguredCatalog_LoadsAllTableSymptomsAndLegacyAliases()
+        {
+            PlayableSymptomCatalog catalog = AssetDatabase.LoadAssetAtPath<PlayableSymptomCatalog>(CatalogPath);
+
+            Assert.That(catalog, Is.Not.Null);
+            Assert.That(catalog.IsConfigured, Is.True);
+            Assert.That(catalog.GetDefinitions(), Has.Count.EqualTo(8));
+            Assert.That(catalog.TryResolveReference("梦魇症", out SymptomDefinition definition, out SymptomReferenceKind kind), Is.True);
+            Assert.That(definition.Id, Is.EqualTo("symptom_night_terrors"));
+            Assert.That(kind, Is.EqualTo(SymptomReferenceKind.LegacyAlias));
+        }
+
+        [Test]
+        public void SymptomTable_RejectsCollidingReferences()
+        {
+            var table = new TextAsset("{\"version\":1,\"symptoms\":[{\"id\":\"symptom_one\",\"displayName\":\"同名\"},{\"id\":\"symptom_two\",\"displayName\":\"同名\"}]}");
+
+            bool loaded = PlayableSymptomTable.TryLoad(table, out _, out string reason);
+
+            Object.DestroyImmediate(table);
+            Assert.That(loaded, Is.False);
+            Assert.That(reason, Does.Contain("唯一稳定 ID 或显示名"));
         }
     }
 }

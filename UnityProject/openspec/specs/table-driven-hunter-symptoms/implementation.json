@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "table-driven-hunter-symptoms",
+  "specHash": "120a16bb18f47ffff2b33ee9b7e7be90cfda5019ceb9b19b37e2da458b72b5bc",
+  "title": "读表猎人症状内容",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "正式症状目录从版本化 JSON 表构建只读定义，拒绝身份、别名与成长参数冲突；8 项基础症状继续复用既有 GameCore、Settlement ActionQueue 和 3D 症状卡流程，派生内化/克服特性在战役内容发布前统一预检。",
+    "validatedAgainstSpecHash": "120a16bb18f47ffff2b33ee9b7e7be90cfda5019ceb9b19b37e2da458b72b5bc",
+    "evidence": [
+      {
+        "guid": "3d8bf0f4bbaa421bb9e08127d9f39dc2",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableSymptomTable.cs",
+        "line": 1,
+        "fileHash": "00a715e9ae8668ebee7f6cb08550fea066bb407b23b537d210b2f13faa01d207",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:24:23-07:00",
+        "feature": "解析版本化症状表为只读定义，并拒绝无效稳定 ID、冲突引用、空表和非法成长参数。"
+      },
+      {
+        "guid": "2900dccaaf29dd347b24322fd53507de",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSymptomCatalog.cs",
+        "line": 1,
+        "fileHash": "33093f3a8250d7892f0e3c382070c362459d3de9e0c213984f89da61263fd5b3",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:24:23-07:00",
+        "feature": "正式资产以表为唯一内容源并 fail-closed；未配置表的自定义目录仍可显式使用内嵌兼容内容。"
+      },
+      {
+        "guid": "6aba9ff6fed3495bb8408c4471cdfb7c",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/symptoms.json",
+        "line": 1,
+        "fileHash": "ab8fc351db8f3ac688dfe8a0e45273be66b7c6bef23f2dfd1c7a54a2f6ca199a",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:24:23-07:00",
+        "feature": "提供胆怯、夜惊、手颤、幽闭恐惧等 8 项基础症状及其数值、内化与克服配置。"
+      },
+      {
+        "guid": "8f2a0d7a2af44561bd7672416d3deeb5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/traits.json",
+        "line": 1,
+        "fileHash": "bb3668f88612a47ad1b6511d5a6aed9db5066374f38a6aba1dcc174e6b460a19",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:24:23-07:00",
+        "feature": "登记全部症状自动派生的内化与克服特性稳定 ID 和玩法关键词。"
+      },
+      {
+        "guid": "2c7d0e3a7e71476e9d04f85e0a4db4d4",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentCandidate.cs",
+        "line": 193,
+        "fileHash": "6bfc5b4bb28abfb8fbef9d3c1776990c03bc112d8e4c2f7d97ed2eb300b14ca2",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:24:23-07:00",
+        "feature": "在发布战役运行时前验证每项症状对应的内化与克服特性均已注册。"
+      },
+      {
+        "guid": "f44e4cb2802728c4d9578a515d0d5121",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSymptomCatalogTests.cs",
+        "line": 1,
+        "fileHash": "f2fa763dfad9a64e128d1001d467dd00b1d4d5bae125be81ab779faa8682858c",
+        "status": "verified",
+        "checkedAt": "2026-08-25T17:24:23-07:00",
+        "feature": "验证正式表源、8 项内容、旧别名稳定解析、重复引用拒绝与存档往返。"
+      }
+    ],
+    "tests": [
+      "Symptom-related EditMode tests: 21/21 passed",
+      "PlayableCampaignContentAssemblerTests: 14/14 passed",
+      "PlayableTraitIdentityTests: 5/5 passed"
+    ],
+    "verifiedAt": "2026-08-25T17:24:23-07:00"
+  },
+  "implementationOutline": [
+    "PlayableSymptomTable 负责版本、身份、别名和成长参数校验，并只向目录返回只读配置集合。",
+    "PlayableSymptomCatalog 保持既有 ISettlementSymptomContent 接口，使事件、ActionQueue 和 3D View 无需了解 JSON。",
+    "正式目录资产明确引用 symptoms.json，已配置表失败时不回落到陈旧内嵌数据。",
+    "跨表预检保证每项症状的内化与克服结果都能解析为已登记稳定特性。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableSymptomTable.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSymptomCatalog.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/symptoms.json:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/traits.json:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

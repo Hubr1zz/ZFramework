@@ -191,6 +191,13 @@
       "specPath": "openspec/specs/table-driven-hunter-traits/spec.md"
     },
     {
+      "id": "table-driven-hunter-symptoms",
+      "label": "读表猎人症状内容",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-hunter-symptoms/spec.md"
+    },
+    {
       "id": "event-driven-hunter-death",
       "label": "事件驱动猎人永久死亡",
       "category": "feature",
@@ -360,6 +367,36 @@
     }
   ],
   "edges": [
+    {
+      "id": "table-driven-hunter-symptoms--requires--table-driven-hunter-traits",
+      "from": "table-driven-hunter-symptoms",
+      "to": "table-driven-hunter-traits",
+      "type": "requires",
+      "status": "defined",
+      "reason": "每项症状的内化与克服结果必须解析为已登记的稳定特性 ID",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-symptom-acquisition--requires--table-driven-hunter-symptoms",
+      "from": "event-driven-hunter-symptom-acquisition",
+      "to": "table-driven-hunter-symptoms",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件效果以症状表中的稳定 ID 校验并获得权威症状定义",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-symptoms--requires--table-driven-hunter-symptoms",
+      "from": "tabletop-settlement-symptoms",
+      "to": "table-driven-hunter-symptoms",
+      "type": "requires",
+      "status": "defined",
+      "reason": "世界空间症状卡只读展示表定义并向既有 Settlement Runner 转发选择",
+      "gapId": "",
+      "blocksImplementation": false
+    },
     {
       "id": "table-driven-hunter-traits--requires--table-driven-hunter-templates",
       "from": "table-driven-hunter-traits",
