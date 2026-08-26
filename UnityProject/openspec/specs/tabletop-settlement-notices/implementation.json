@@ -15,7 +15,7 @@
         "guid": "49defc1c58ea64e44875f3a790412007",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs",
         "line": 1,
-        "fileHash": "fffff3426fec3d53557b0e59cf1079faf21bc5eab40a21e5e2604f55899d2e24",
+        "fileHash": "26a5b1977083a92aa47501f417eaa2d6b0a112a77072dae334384e52e8658273",
         "status": "verified",
         "checkedAt": "2026-08-25T13:52:11-07:00",
         "feature": "按事件发布顺序排队实体通知，只在 Settlement 推进非缩放计时，关闭不触发游戏性事务。"
@@ -24,7 +24,7 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1,
-        "fileHash": "1ae73162020de745e3364a91595523acab13eb316302737af8685105b54b8357",
+        "fileHash": "8dc3b10d5587b7738a14be0c308666b0ba7dea66f3c62c41e17c211050814e7a",
         "status": "verified",
         "checkedAt": "2026-08-25T13:52:11-07:00",
         "feature": "仅在可靠删除与新战役运行时替换成功后重置通知投影，失败或等待期间保留旧战役反馈。"
@@ -33,7 +33,7 @@
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 481,
-        "fileHash": "f5f53822e3195029046e9d3949dae29cad0eb8c11962b7cb272b831d5d02fac2",
+        "fileHash": "661e2a38dc452594683cb2446f72a05caccb1ae9cf63e4f675bc7781f96c9e96",
         "status": "verified",
         "checkedAt": "2026-08-25T13:52:11-07:00",
         "feature": "验证删除未确认时通知继续存在，重开事务成功后活动卡和排队内容同时清空。"

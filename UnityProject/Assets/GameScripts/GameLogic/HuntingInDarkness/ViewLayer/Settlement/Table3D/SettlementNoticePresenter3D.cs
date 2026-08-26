@@ -11,6 +11,7 @@ namespace UI
     /// <summary>按提交顺序展示营地成长、损失与熟练度反馈的非阻塞实体消息桌。</summary>
     public sealed class SettlementNoticePresenter3D : MonoBehaviour
     {
+        private const string HuntDepartureBlockedKey = "hunt-departure-blocked";
         [SerializeField, Min(1f)] private float visibleSeconds = 10f;
         [SerializeField] private Vector3 anchorOffset = new(0f, 0.66f, -3.65f);
 
@@ -20,11 +21,15 @@ namespace UI
         private TabletopEventPrimaryCard3D noticeCard;
         private TabletopEventChoiceCard3D dismissCard;
         private SettlementNotice activeNotice;
+        private SettlementNotice pendingDepartureBlockedNotice;
+        private SettlementNotice interruptedNotice;
+        private float interruptedRemainingSeconds;
         private float remainingSeconds;
 
         public bool IsPresenting => activeNotice != null && presentationRoot != null && presentationRoot.activeSelf;
         public int PendingNoticeCount => pendingNotices.Count;
         public string ActiveNoticeTitle => activeNotice?.Title ?? string.Empty;
+        public string ActiveNoticeBody => activeNotice?.Body ?? string.Empty;
 
         public void Initialize(GameManager gameManager)
         {
@@ -40,10 +45,44 @@ namespace UI
         public void ResetForCampaignChange()
         {
             pendingNotices.Clear();
+            pendingDepartureBlockedNotice = null;
+            interruptedNotice = null;
+            interruptedRemainingSeconds = 0f;
             activeNotice = null;
             remainingSeconds = 0f;
             if (presentationRoot != null)
                 presentationRoot.SetActive(false);
+        }
+
+        public void PresentHuntDepartureBlocked(string reason)
+        {
+            string message = string.IsNullOrWhiteSpace(reason) ? "当前暂时无法出猎。" : reason.Trim();
+            var notice = new SettlementNotice(HuntDepartureBlockedKey, "暂不能出猎", message, "完成当前营地流程后可重试", TabletopEventPrimaryTone.Failure);
+            if (activeNotice?.Key == HuntDepartureBlockedKey)
+            {
+                activeNotice = notice;
+                remainingSeconds = visibleSeconds;
+                PresentActiveNotice();
+                return;
+            }
+            if (activeNotice != null)
+            {
+                interruptedNotice = activeNotice;
+                interruptedRemainingSeconds = remainingSeconds;
+                activeNotice = notice;
+                pendingDepartureBlockedNotice = null;
+                remainingSeconds = visibleSeconds;
+                PresentActiveNotice();
+                return;
+            }
+            pendingDepartureBlockedNotice = notice;
+        }
+
+        public void ClearHuntDepartureBlocked()
+        {
+            pendingDepartureBlockedNotice = null;
+            if (activeNotice?.Key == HuntDepartureBlockedKey)
+                DismissCurrent();
         }
 
         private void Update()
@@ -70,14 +109,24 @@ namespace UI
 
         private void ShowNext()
         {
-            if (pendingNotices.Count == 0)
+            if (pendingDepartureBlockedNotice == null && pendingNotices.Count == 0)
                 return;
-            EnsureCards();
-            activeNotice = pendingNotices.Dequeue();
+            activeNotice = pendingDepartureBlockedNotice;
+            pendingDepartureBlockedNotice = null;
+            if (activeNotice == null)
+                activeNotice = pendingNotices.Dequeue();
             remainingSeconds = visibleSeconds;
+            PresentActiveNotice();
+        }
+
+        private void PresentActiveNotice()
+        {
+            EnsureCards();
             presentationRoot.SetActive(true);
             noticeCard.Present(activeNotice.Title, activeNotice.Body, activeNotice.Footer, activeNotice.Tone);
-            dismissCard.Present("收起记录", pendingNotices.Count > 0 ? $"随后还有 {pendingNotices.Count} 条营地消息" : "返回营地桌面", true, "点击继续", DismissCurrent);
+            bool hasPendingNotice = interruptedNotice != null || pendingDepartureBlockedNotice != null || pendingNotices.Count > 0;
+            int pendingNoticeCount = pendingNotices.Count + (pendingDepartureBlockedNotice != null ? 1 : 0) + (interruptedNotice != null ? 1 : 0);
+            dismissCard.Present("收起记录", hasPendingNotice ? $"随后还有 {pendingNoticeCount} 条营地消息" : "返回营地桌面", true, "点击继续", DismissCurrent);
         }
 
         private void EnsureCards()
@@ -102,6 +151,15 @@ namespace UI
 
         private void DismissCurrent()
         {
+            if (activeNotice?.Key == HuntDepartureBlockedKey && interruptedNotice != null)
+            {
+                activeNotice = interruptedNotice;
+                interruptedNotice = null;
+                remainingSeconds = interruptedRemainingSeconds;
+                interruptedRemainingSeconds = 0f;
+                PresentActiveNotice();
+                return;
+            }
             activeNotice = null;
             remainingSeconds = 0f;
             if (presentationRoot != null)
@@ -140,10 +198,13 @@ namespace UI
         private void OnHuntCompleted(HuntCompletedEvent evt)
         {
             string outcome = evt.BossDefeated ? "讨伐成功" : "从黑暗中归来";
-            string body = $"第 {evt.CompletedYear} 年 · {outcome}\n远征已归档，营地进入第 {evt.AdvancedToYear} 年\n\n出发 {evt.HuntersDeployed} · 损失 {evt.HuntersLost} · 带回 {evt.CollectedResourceCount} 项物资";
+            string completedPeriod = $"第 {evt.CompletedYear} 年·第 {evt.CompletedSeasonIndex + 1} 季";
+            string advancedPeriod = $"第 {evt.AdvancedToYear} 年·第 {evt.AdvancedToSeasonIndex + 1} 季";
+            string body = $"{completedPeriod} · {outcome}\n远征已归档，营地进入 {advancedPeriod}\n\n出发 {evt.HuntersDeployed} · 损失 {evt.HuntersLost} · 带回 {evt.CollectedResourceCount} 项物资";
             string footer = $"年鉴现有 {evt.TotalHunts} 条狩猎记录";
             TabletopEventPrimaryTone tone = evt.HuntersLost > 0 ? TabletopEventPrimaryTone.Failure : TabletopEventPrimaryTone.Success;
-            Enqueue(new SettlementNotice("狩猎记录归档", body, footer, tone));
+            string title = evt.CompletedYear == evt.AdvancedToYear ? "季节推进 · 回营" : "新年抵达 · 回营";
+            Enqueue(new SettlementNotice(null, title, body, footer, tone));
         }
 
         private void OnDestroy()
@@ -158,13 +219,20 @@ namespace UI
 
         private sealed class SettlementNotice
         {
+            public string Key { get; }
             public string Title { get; }
             public string Body { get; }
             public string Footer { get; }
             public TabletopEventPrimaryTone Tone { get; }
 
             public SettlementNotice(string title, string body, string footer, TabletopEventPrimaryTone tone)
+                : this(null, title, body, footer, tone)
             {
+            }
+
+            public SettlementNotice(string key, string title, string body, string footer, TabletopEventPrimaryTone tone)
+            {
+                Key = key ?? string.Empty;
                 Title = title ?? string.Empty;
                 Body = body ?? string.Empty;
                 Footer = footer ?? string.Empty;

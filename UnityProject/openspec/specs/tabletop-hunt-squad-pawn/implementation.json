@@ -13,7 +13,7 @@
     "evidence": [
       { "guid": "7a3d83435287d3c40ab149cf3d61ee51", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHuntSquadPawn3D.cs", "line": 1, "fileHash": "92ec7f9ebd326eb67710ad8af5f0387a9715e172246d19579546a6f0b521a4d7", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "棋子组消费已提交位置，移动时持有共享输入锁，禁用和销毁时安全释放。" },
       { "guid": "e438b7e087c13ce4ca8653a1701f8f0a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs", "line": 190, "fileHash": "b1b62885027430ef3c90facc928379297d5861fc989798e20877959f45645d20", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "地图首次直接放置小队，后续只把 ActionQueue 提交坐标传给棋子表现。" },
-      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "f5f53822e3195029046e9d3949dae29cad0eb8c11962b7cb272b831d5d02fac2", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "端到端验证棋子数量、移动输入锁以及 ActionQueue 等待棋子落位后完成命令。" }
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "661e2a38dc452594683cb2446f72a05caccb1ae9cf63e4f675bc7781f96c9e96", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "端到端验证棋子数量、移动输入锁以及 ActionQueue 等待棋子落位后完成命令。" }
     ],
     "tests": ["GameManagerCampaignLoopPlayModeTests: 14/14 passed"],
     "verifiedAt": "2026-08-25T11:54:00-07:00"

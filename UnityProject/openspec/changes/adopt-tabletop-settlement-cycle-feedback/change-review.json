@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-tabletop-settlement-cycle-feedback",
+  "title": "收养营地周期与出猎门禁反馈",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现和聚焦 PlayMode 已完成；等待人类审查后同步两个正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "季节/年度归档、门禁 reason、transient 抢占恢复与成功重试已通过正式 Campaign loop PlayMode。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity CLI PlayMode GameManagerCampaignLoopPlayModeTests 16/16。",
+      "dotnet build ZFramework.sln --no-restore -v:minimal 成功，0 warnings、0 errors。",
+      "git diff --check 通过。"
+    ],
+    "differences": [
+      "正式营地 notice Spec 尚未要求每次回营恰好一张含年/季坐标的归档卡。",
+      "正式出猎 Spec 尚未要求入口被权威门禁拒绝时显示具体世界空间原因。"
+    ],
+    "verifiedAt": "2026-08-26T18:00:00-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-SETTLEMENT-CYCLE-FEEDBACK-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认回营通知只以 HuntCompletedEvent 为表现来源，门禁 transient 不持久化。",
+      "details": "批准后同步两个 Delta；若要求跨会话保留 UI 通知，需要另行定义 presentation cursor，不能复用玩法 occurrence。",
+      "sourceId": "conversation::2026-08-26",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": ["campaign-year-loop", "settlement-phase-orchestration"],
+  "capabilities": ["tabletop-settlement-notices", "tabletop-hunt-departure"],
+  "syncTargets": [
+    { "capability": "tabletop-settlement-notices", "title": "营地桌面玩法反馈通知", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-tabletop-settlement-cycle-feedback/specs/tabletop-settlement-notices/spec.md", "targetSpecPath": "openspec/specs/tabletop-settlement-notices/spec.md", "targetExisted": true, "baseFileHash": "d86e72b03781aee832cf0b58a96cfb449a9b1bac882146ee9272b73a415a4952", "baseSnapshotPath": "" },
+    { "capability": "tabletop-hunt-departure", "title": "营地桌面出猎编队与地区选择", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-tabletop-settlement-cycle-feedback/specs/tabletop-hunt-departure/spec.md", "targetSpecPath": "openspec/specs/tabletop-hunt-departure/spec.md", "targetExisted": true, "baseFileHash": "b4f2b0e8bdcc483ee3ca1b2b5e20dcadbe84b40087bf2461ca7ae3d28a3d4d60", "baseSnapshotPath": "" }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "两个正式 Spec 基线哈希已记录，尚未同步。",
+    "changes": ["增加含年/季坐标的唯一回营通知。", "增加出猎权威门禁原因的 3D transient 反馈。"],
+    "conflicts": [],
+    "validatedAt": "2026-08-26T18:00:00-07:00"
+  },
+  "createdAt": "2026-08-26T18:00:00-07:00"
+}

@@ -24,7 +24,7 @@
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
         "line": 1974,
-        "fileHash": "1ae73162020de745e3364a91595523acab13eb316302737af8685105b54b8357",
+        "fileHash": "8dc3b10d5587b7738a14be0c308666b0ba7dea66f3c62c41e17c211050814e7a",
         "status": "verified",
         "checkedAt": "2026-08-25T14:02:39-07:00",
         "feature": "把跨阶段 GameOverEvent 投影到唯一终局桌，并把重开意图接入正式 Campaign runner。"
@@ -60,7 +60,7 @@
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 474,
-        "fileHash": "f5f53822e3195029046e9d3949dae29cad0eb8c11962b7cb272b831d5d02fac2",
+        "fileHash": "661e2a38dc452594683cb2446f72a05caccb1ae9cf63e4f675bc7781f96c9e96",
         "status": "verified",
         "checkedAt": "2026-08-25T14:02:39-07:00",
         "feature": "验证生产组合根等待可靠删除、失败可重试、成功替换运行时并回到 Settlement。"

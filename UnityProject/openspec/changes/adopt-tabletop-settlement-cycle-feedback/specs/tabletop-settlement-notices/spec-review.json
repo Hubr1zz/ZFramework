@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-notices",
+  "title": "营地桌面玩法反馈通知",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "回营年/季归档与门禁 transient 抢占、恢复、去重已通过 PlayMode。",
+    "codeEvidence": [
+      { "guid": "49defc1c58ea64e44875f3a790412007", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs", "fileHash": "26a5b1977083a92aa47501f417eaa2d6b0a112a77072dae334384e52e8658273", "line": 13, "feature": "唯一回营归档与固定 key transient notice", "status": "verified", "checkedAt": "2026-08-26T18:00:00-07:00" },
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "fileHash": "661e2a38dc452594683cb2446f72a05caccb1ae9cf63e4f675bc7781f96c9e96", "line": 112, "feature": "同年、跨年及门禁卡抢占恢复验证", "status": "verified", "checkedAt": "2026-08-26T18:00:00-07:00" }
+    ],
+    "evidence": ["Unity CLI PlayMode 16/16；dotnet build 0 warnings、0 errors。"],
+    "differences": ["当前正式 Spec 未包含本 Delta 的 Calendar-aware notice 和 transient 抢占语义。"],
+    "verifiedAt": "2026-08-26T18:00:00-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["campaign-year-loop"],
+  "sourceReferences": ["conversation::2026-08-26"],
+  "implementationOutline": ["HuntCompletedEvent 是唯一回营 notice 来源。", "固定 key transient 可抢占并恢复普通通知。"],
+  "reviewIssues": [
+    { "id": "ISSUE-SETTLEMENT-CYCLE-FEEDBACK-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认唯一回营事实源与 transient 非持久边界。", "details": "纯表现状态不写入 CampaignSnapshot。", "sourceId": "conversation::2026-08-26", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

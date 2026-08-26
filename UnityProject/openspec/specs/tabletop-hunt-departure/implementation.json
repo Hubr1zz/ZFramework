@@ -24,7 +24,7 @@
         "guid": "e9c005d288214754191355b57720008f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs",
         "line": 1,
-        "fileHash": "c318c2475e96026e8064057ac4df07b19dbde1adf724d504719cea00fd319669",
+        "fileHash": "883caeb13f0000f78c9c2457b716a0a16a0aa41d5e77c70e90e3b454022f8577",
         "status": "verified",
         "checkedAt": "2026-08-25T11:44:53-07:00",
         "feature": "维护非权威编队与地区选择，隐藏底层营地桌并只向 GameManager 提交确认意图。"
@@ -60,7 +60,7 @@
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 49,
-        "fileHash": "f5f53822e3195029046e9d3949dae29cad0eb8c11962b7cb272b831d5d02fac2",
+        "fileHash": "661e2a38dc452594683cb2446f72a05caccb1ae9cf63e4f675bc7781f96c9e96",
         "status": "verified",
         "checkedAt": "2026-08-25T11:44:53-07:00",
         "feature": "验证生产组合根中名册准备、地区上下文、Campaign 切换、一次性令牌消费及完整回营循环。"

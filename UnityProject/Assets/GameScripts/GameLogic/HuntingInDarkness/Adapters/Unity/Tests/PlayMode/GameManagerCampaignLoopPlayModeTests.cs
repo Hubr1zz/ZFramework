@@ -110,6 +110,88 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator HuntCompletionNotice_FormatsSeasonAndYearBoundary()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            yield return WaitForSettlementIdle(manager);
+            SettlementNoticePresenter3D notice = managerObject.GetComponent<SettlementNoticePresenter3D>();
+            Assert.That(notice, Is.Not.Null);
+            notice.ResetForCampaignChange();
+
+            EventBus.Publish(new HuntCompletedEvent
+            {
+                CompletedYear = 1,
+                CompletedSeasonIndex = 0,
+                AdvancedToYear = 1,
+                AdvancedToSeasonIndex = 1,
+                TotalHunts = 1
+            });
+            yield return null;
+            Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("季节推进 · 回营"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·第 1 季"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·第 2 季"));
+
+            notice.PresentHuntDepartureBlocked("请先完成当前营地流程。");
+            Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("暂不能出猎"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("请先完成当前营地流程"));
+            yield return null;
+            notice.ClearHuntDepartureBlocked();
+            Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("季节推进 · 回营"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·第 2 季"));
+            Assert.That(notice.PendingNoticeCount, Is.Zero);
+
+            notice.ResetForCampaignChange();
+            EventBus.Publish(new HuntCompletedEvent
+            {
+                CompletedYear = 1,
+                CompletedSeasonIndex = 1,
+                AdvancedToYear = 2,
+                AdvancedToSeasonIndex = 0,
+                TotalHunts = 2
+            });
+            yield return null;
+            Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("新年抵达 · 回营"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 1 年·第 2 季"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("第 2 年·第 1 季"));
+        }
+
+        [UnityTest]
+        public IEnumerator DepartureBlockNotice_DeduplicatesAndClearsAfterRetry()
+        {
+            var persistence = new MemoryCampaignPersistence { DelayAppliedReturn = true };
+            GameManager manager = CreateProductionManager(persistence);
+            yield return WaitForSettlementIdle(manager);
+            int year = manager.SettlementData.CurrentYear;
+            int hunterId = manager.SettlementData.GetAliveHunters()[0].InstanceId;
+            PlayableHuntDestination destination = GetDestination(year);
+            SettlementNoticePresenter3D notice = managerObject.GetComponent<SettlementNoticePresenter3D>();
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { hunterId }, destination).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            Assert.That(departure.GetResult().Succeeded, Is.True);
+            UniTask<HuntRetreatCommandResult>.Awaiter retreat = manager.RequestRetreatAsync().GetAwaiter();
+            yield return WaitForCompletion(retreat);
+            Assert.That(retreat.GetResult().Succeeded, Is.True);
+            yield return WaitForAppliedReturnSave(persistence);
+            notice.ResetForCampaignChange();
+
+            manager.RequestHuntDeparture(new[] { hunterId });
+            manager.RequestHuntDeparture(new[] { hunterId });
+            yield return null;
+            Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("暂不能出猎"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("请先完成上一场远征的回营结算"));
+            Assert.That(notice.PendingNoticeCount, Is.Zero);
+
+            persistence.CompleteAppliedReturnSave();
+            yield return WaitForSettlementIdle(manager);
+            UniTask<SettlementDepartureCommandResult>.Awaiter retry = manager.DepartForHuntAsync(new[] { hunterId }, destination).GetAwaiter();
+            yield return WaitForCompletion(retry);
+            Assert.That(retry.GetResult().Succeeded, Is.True, retry.GetResult().Reason);
+            Assert.That(notice.ActiveNoticeTitle, Is.Not.EqualTo("暂不能出猎"));
+        }
+
+        [UnityTest]
         public IEnumerator ExpeditionReward_CraftsEquipsAndRestoresStableBuild()
         {
             var persistence = new MemoryCampaignPersistence();

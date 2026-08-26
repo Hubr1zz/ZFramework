@@ -36,11 +36,9 @@ namespace HuntingInDarkness.ViewLayer.Settlement
 
         public void RequestDeparture(IReadOnlyList<int> hunterIds)
         {
-            if (requestInFlight || manager?.SettlementData == null || manager.CurrentGamePhase != GamePhase.Settlement || manager.IsSettlementActionSessionRunning)
+            if (requestInFlight || manager == null || manager.SettlementData == null || manager.CurrentGamePhase != GamePhase.Settlement)
                 return;
             List<HunterInstance> hunters = manager.SettlementData.GetAvailableHunters();
-            if (hunters.Count == 0)
-                return;
 
             pendingHunterIds.Clear();
             if (hunterIds != null)

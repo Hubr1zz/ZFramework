@@ -60,7 +60,7 @@
         "guid": "49defc1c58ea64e44875f3a790412007",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs",
         "line": 120,
-        "fileHash": "fffff3426fec3d53557b0e59cf1079faf21bc5eab40a21e5e2604f55899d2e24",
+        "fileHash": "26a5b1977083a92aa47501f417eaa2d6b0a112a77072dae334384e52e8658273",
         "status": "verified",
         "checkedAt": "2026-08-25T15:05:28-07:00",
         "feature": "在世界空间桌面通知中展示猎人姓名与死亡原因，不修改名册。"

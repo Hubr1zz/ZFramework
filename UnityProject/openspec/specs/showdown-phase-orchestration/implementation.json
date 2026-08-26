@@ -10,7 +10,7 @@
     "validatedAgainstSpecHash": "5dbd9a852887cc2dc0b7c295267a3678073815eccd78178d085ee2338e27e0da",
     "evidence": [
       { "guid": "89f2c60d577ff0a45a7ac1d77bb3e3be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableShowdownPhaseManager.cs", "line": 9, "fileHash": "9f0ea6920bba620532c6eb3124f75b3731eb87a7019ff3beddc94de4055eac79", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "唯一拥有现有 combat session 的构造、启动、更新和释放。" },
-      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 568, "fileHash": "18237cfb1c0737bd202bedbf22e2643ef920eff0219a4a97906bd02f09afe077", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "构造既有配置并委托 manager；战利品、胜负与跨阶段结果仍由全局编排处理。" },
+      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 568, "fileHash": "8dc3b10d5587b7738a14be0c308666b0ba7dea66f3c62c41e17c211050814e7a", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "构造既有配置并委托 manager；战利品、胜负与跨阶段结果仍由全局编排处理。" },
       { "guid": "14ce1f834e26c5e4092eee2a5a0b887d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs", "line": 260, "fileHash": "dd6aaf6c3cd036081bf349fddf4ba529a754c4a89fe3180b494ecd107ccd7ea3", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "Reset/Dispose 时先释放 Showdown，再释放 Hunt 与 Settlement。" }
     ],
     "tests": ["PlayableCampaignRuntimeModuleTests 14/14", "GameManagerCampaignLoopPlayModeTests 14/14", "dotnet build: 0 warnings, 0 errors"],

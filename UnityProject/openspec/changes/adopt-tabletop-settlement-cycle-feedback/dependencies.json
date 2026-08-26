@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "tabletop-settlement-notices", "label": "营地桌面玩法反馈通知", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-tabletop-settlement-cycle-feedback/specs/tabletop-settlement-notices/spec.md" },
+    { "id": "tabletop-hunt-departure", "label": "营地桌面出猎编队与地区选择", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-tabletop-settlement-cycle-feedback/specs/tabletop-hunt-departure/spec.md" },
+    { "id": "campaign-year-loop", "label": "配置化战役季节出猎闭环", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/campaign-year-loop/spec.md" },
+    { "id": "settlement-phase-orchestration", "label": "营地阶段编排", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/settlement-phase-orchestration/spec.md" }
+  ],
+  "edges": [
+    { "from": "campaign-year-loop", "to": "tabletop-settlement-notices", "type": "constrains" },
+    { "from": "settlement-phase-orchestration", "to": "tabletop-hunt-departure", "type": "constrains" },
+    { "from": "tabletop-settlement-notices", "to": "tabletop-hunt-departure", "type": "supports" }
+  ]
+}

@@ -948,17 +948,70 @@ namespace Core
             if (!campaignStarted) return;
             if (_pendingHuntRecord != null)
             {
+                PresentHuntDepartureBlocked("请先完成上一场远征的回营结算，再重新发起出猎。");
                 RetryPendingHuntReturnAsync().Forget();
                 return;
             }
-            if (!CanDepartAfterSettlementEventRestore(out _))
+            if (!CanRequestHuntDeparture(out string reason))
+            {
+                PresentHuntDepartureBlocked(reason);
                 return;
+            }
             if (playableHuntDepartureInput != null)
             {
+                ClearHuntDepartureBlocked();
                 playableHuntDepartureInput.RequestDeparture(hunterIds);
                 return;
             }
             DepartForHuntAsync(hunterIds).Forget();
+        }
+
+        public bool CanRequestHuntDeparture(out string reason)
+        {
+            if (!campaignStarted)
+            {
+                reason = "战役入口尚未完成。";
+                return false;
+            }
+            if (huntReturnRecoveryInFlight)
+            {
+                reason = "请先完成上一场远征的回营结算，再重新发起出猎。";
+                return false;
+            }
+            if (_pendingHuntRecord != null)
+            {
+                reason = "请先完成上一场远征的回营结算，再重新发起出猎。";
+                return false;
+            }
+            if (huntDepartureInFlight)
+            {
+                reason = "出猎流程正在处理中。";
+                return false;
+            }
+            if (CurrentGamePhase != GamePhase.Settlement || settlementActionSession?.IsActive != true)
+            {
+                reason = "当前不在营地阶段。";
+                return false;
+            }
+            if (!CanDepartAfterSettlementEventRestore(out reason))
+                return false;
+            if (IsSettlementActionSessionRunning)
+            {
+                reason = "请先完成当前营地流程。";
+                return false;
+            }
+            reason = string.Empty;
+            return true;
+        }
+
+        private void PresentHuntDepartureBlocked(string reason)
+        {
+            GetComponent<SettlementNoticePresenter3D>()?.PresentHuntDepartureBlocked(reason);
+        }
+
+        private void ClearHuntDepartureBlocked()
+        {
+            GetComponent<SettlementNoticePresenter3D>()?.ClearHuntDepartureBlocked();
         }
 
         public UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds) => DepartForHuntAsync(hunterIds, null);
@@ -998,6 +1051,7 @@ namespace Core
                 if (!transition.Succeeded)
                     return SettlementDepartureCommandResult.Failed(transition.Reason);
                 EventBus.Publish(new HuntDepartedEvent { HunterIds = departure.HunterIds.ToArray() });
+                ClearHuntDepartureBlocked();
                 return departure;
             }
             catch (System.OperationCanceledException)
