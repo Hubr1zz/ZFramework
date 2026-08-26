@@ -8,7 +8,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，新增药剂分支把狩猎器官转换为既有恢复资源，闭合伤员恢复循环。",
+    "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；药剂工坊的真实组合根流程已覆盖建造、制造、库存卡消耗、保存与重建。",
     "validatedAgainstSpecHash": "0e1848529b7092523b5b02fada99844bcc5184970b47b393f84339725d649e30",
     "evidence": [
       {
@@ -109,6 +109,15 @@
         "status": "verified",
         "checkedAt": "2026-08-25T20:12:35-07:00",
         "feature": "验证未建工坊不消耗、建成后原子转换以及材料不足重试不改变状态。"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "line": 398,
+        "fileHash": "9745be4de62dbe5d9e316dade29f3ae3c46fa5c91a5d4e3398b147777fa76a4b",
+        "status": "verified",
+        "checkedAt": "2026-08-26T14:18:00-07:00",
+        "feature": "通过正式 3D 卡牌与 GameManager 组合根完成药剂工坊建造、制造、消耗品恢复、保存和读档恢复。"
       }
     ],
     "tests": [
@@ -117,9 +126,10 @@
       "PlayableEquipmentRulesTests: 4/4 passed",
       "PlayableHuntNoiseActionTests: 7/7 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed",
-      "Medical workshop focused cluster: 40/40 passed"
+      "Medical workshop focused cluster: 40/40 passed",
+      "Workshop production PlayMode cluster: 2/2 passed"
     ],
-    "verifiedAt": "2026-08-25T20:12:35-07:00"
+    "verifiedAt": "2026-08-26T14:18:00-07:00"
   },
   "implementationOutline": [
     "WorkshopZone 从配置目录生成工坊和配方实体卡，View 不消费资源或创建产物。",

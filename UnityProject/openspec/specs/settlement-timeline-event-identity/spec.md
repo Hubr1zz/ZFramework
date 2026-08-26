@@ -59,6 +59,17 @@ MainStory、Random 与 Scheduled 年鉴条目 SHALL 把 EventData.ContentId 保�
 - **THEN** Timeline SHALL NOT 创建重复条目
 - **AND** 恢复投影 SHALL 继续原 AnnalEntry 或其持久 child occurrence
 
+### Requirement: Restore only projects due timeline occurrences
+
+营地恢复投影 SHALL 只恢复年份不晚于当前战役年份的未完成 Timeline occurrence。未来年份的 Scheduled 条目 SHALL 保持未完成且不得提前解析或执行；当战役年份到达该条目的年份后，同一条目 SHALL 可被正常恢复。
+
+#### Scenario: A future scheduled event exists in the save
+
+- **GIVEN** 存档包含一个年份晚于 CurrentYear 的未完成 Scheduled 条目
+- **WHEN** 营地恢复投影准备待办事件
+- **THEN** 该条目 SHALL NOT 被解析或加入当前工作队列
+- **AND** 该条目 SHALL 保持未完成，直到 CurrentYear 到达其排期年份
+
 ### Requirement: Committed parent is not replayed after presentation failure
 
 事件效果与精确年鉴条目完成 SHALL 位于结果表现确认之前。确认失败后，已提交父条目 SHALL 保持完成，已登记的子 occurrence SHALL 留在事件链检查点等待恢复，父效果 SHALL NOT 重放。

@@ -8,7 +8,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "营地 3D 工坊以配置目录投影护甲与药剂两条蓝图分支，fallback 桌面按真实卡牌数量预留网格；建造命令由 Settlement ActionQueue 串行校验、提交并持久化。",
+    "summary": "营地 3D 工坊以配置目录投影蓝图；药剂工坊已通过正式 3D 建造卡、Settlement ActionQueue、持久化和后续制造消费组合根验证。",
     "validatedAgainstSpecHash": "8438011b6fc53433750e122147b51ae5d5880b6b8c02a505c6e300aa8428975a",
     "evidence": [
       {
@@ -91,14 +91,24 @@
         "status": "verified",
         "checkedAt": "2026-08-25T20:12:35-07:00",
         "feature": "验证两条生产分支的数据引用、目录校验和未建工坊制造门禁。"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "line": 398,
+        "fileHash": "9745be4de62dbe5d9e316dade29f3ae3c46fa5c91a5d4e3398b147777fa76a4b",
+        "status": "verified",
+        "checkedAt": "2026-08-26T14:18:00-07:00",
+        "feature": "通过正式 3D 蓝图和确认面板建造药剂工坊，并验证成本、持久化及读档保留。"
       }
     ],
     "tests": [
       "Unity CLI compile: passed",
       "Medical workshop focused cluster: 40/40 passed",
-      "C# derived index: 994/994 files, parsed 2/reused 992"
+      "C# derived index: 1020/1020 files, parsed 3/reused 1017",
+      "Workshop production PlayMode cluster: 2/2 passed"
     ],
-    "verifiedAt": "2026-08-25T20:12:35-07:00"
+    "verifiedAt": "2026-08-26T14:18:00-07:00"
   },
   "implementationOutline": [
     "WorkshopZone 从工坊目录、营地建设状态和当前可用配方生成蓝图或工坊 3D 卡牌，并只转发玩家交互。",

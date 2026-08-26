@@ -396,6 +396,119 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator SettlementTable3D_BuildsMedicalWorkshopCraftsAndUsesConsumableThroughGameManager()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            yield return null;
+            yield return WaitForSettlementIdle(manager);
+            yield return WaitUntil(() => manager.SettlementData.Timeline.Any(entry => entry.Year == manager.SettlementData.CurrentYear && PlayableSettlementEventRegistry.IsTimelineEventEntry(entry)) && manager.SettlementData.Timeline.All(entry => entry.Year > manager.SettlementData.CurrentYear || entry.IsCompleted), "等待开局年度事件完成超时。");
+            yield return WaitForSettlementIdle(manager);
+
+            SettlementInstance settlement = manager.SettlementData;
+            ItemData poultice = PlayableSettlementItemRegistry.Items.Single(item => item.ContentId == "mushroom_flesh_poultice");
+            CraftRecipe recipe = manager.SettlementRecipes.Single(candidate => candidate.outputItem?.ContentId == poultice.ContentId);
+            PlayableWorkshopDefinition medicalWorkshop = contentCandidate.WorkshopContent.Workshops.Single(workshop => workshop.WorkshopId == "medical_workshop");
+            settlement.UnlockInvention("tools");
+            var workshopResources = new Dictionary<string, int>();
+            foreach (PlayableWorkshopCost cost in medicalWorkshop.Costs)
+            {
+                settlement.AddResource(cost.Item, cost.Amount);
+            }
+            var recipeResources = new Dictionary<string, int>();
+            foreach (RecipeIngredient ingredient in recipe.ingredients)
+                settlement.AddResource(ingredient.item, ingredient.count);
+            foreach (PlayableWorkshopCost cost in medicalWorkshop.Costs)
+                workshopResources[cost.Item.ContentId] = settlement.GetResource(cost.Item);
+
+            SettlementTable3D table = managerObject.GetComponentInChildren<SettlementTable3D>(true);
+            Assert.That(table, Is.Not.Null);
+            table.Refresh();
+            yield return null;
+
+            WorkshopBlueprintCard3D blueprint = table.GetComponentsInChildren<WorkshopBlueprintCard3D>(true).Single(card => card.Definition?.WorkshopId == medicalWorkshop.WorkshopId);
+            blueprint.OnConstructionRequested?.Invoke(blueprint);
+            yield return null;
+            WorkshopConstructionPanel3D constructionPanel = GetPrivateField<WorkshopConstructionPanel3D>(table, "workshopConstructionPanel");
+            GameObject confirmButton = GetPrivateField<GameObject>(constructionPanel, "confirmButton");
+            Assert.That(confirmButton, Is.Not.Null);
+            confirmButton.GetComponent<ClickProxy>().OnClick.Invoke();
+            yield return WaitUntil(() => settlement.IsWorkshopBuilt(medicalWorkshop.WorkshopId), "等待正式 3D 药剂工坊建造超时。");
+            foreach (PlayableWorkshopCost cost in medicalWorkshop.Costs)
+                Assert.That(settlement.GetResource(cost.Item), Is.EqualTo(workshopResources[cost.Item.ContentId] - cost.Amount));
+            foreach (RecipeIngredient ingredient in recipe.ingredients)
+                recipeResources[ingredient.item.ContentId] = settlement.GetResource(ingredient.item);
+
+            WorkshopCard3D workshopCard = table.GetComponentsInChildren<WorkshopCard3D>(true).Single(card => card.Recipes.Any(candidate => candidate.outputItem?.ContentId == poultice.ContentId));
+            Assert.That(workshopCard.isActiveAndEnabled, Is.True);
+            Collider workshopCollider = workshopCard.GetComponent<Collider>();
+            Assert.That(workshopCollider, Is.Not.Null);
+            Assert.That(workshopCollider.enabled, Is.True);
+            MethodInfo workshopClick = typeof(WorkshopCard3D).GetMethod("OnMouseDown", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(workshopClick, Is.Not.Null);
+            workshopClick.Invoke(workshopCard, null);
+            yield return null;
+            Assert.That(workshopCard._panel, Is.Not.Null);
+            Assert.That(workshopCard._panel.IsOpen, Is.True);
+            WorkshopRecipeCard3D recipeCard = workshopCard._panel.GetComponentsInChildren<WorkshopRecipeCard3D>(true).Single(card => card.Recipe?.outputItem?.ContentId == poultice.ContentId);
+            Assert.That(recipeCard.isActiveAndEnabled, Is.True);
+            Collider recipeCollider = recipeCard.GetComponent<Collider>();
+            Assert.That(recipeCollider, Is.Not.Null);
+            Assert.That(recipeCollider.enabled, Is.True);
+            MethodInfo recipeClick = typeof(WorkshopRecipeCard3D).GetMethod("OnMouseDown", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(recipeClick, Is.Not.Null);
+            int craftSnapshotCount = persistence.Snapshots.Count;
+            recipeClick.Invoke(recipeCard, null);
+            yield return WaitUntil(() => settlement.GetStoredItem(poultice) == recipe.outputCount && persistence.Snapshots.Count > craftSnapshotCount && persistence.Snapshots.LastOrDefault()?.Settlement?.IsWorkshopBuilt(medicalWorkshop.WorkshopId) == true && persistence.Snapshots.LastOrDefault().Settlement.GetStoredItem(poultice.ContentId) == recipe.outputCount, "等待正式 3D 菌肉敷剂制造及最新存档超时。");
+            foreach (RecipeIngredient ingredient in recipe.ingredients)
+                Assert.That(settlement.GetResource(ingredient.item), Is.EqualTo(recipeResources[ingredient.item.ContentId] - ingredient.count));
+            Assert.That(settlement.GetStoredItem(poultice), Is.EqualTo(recipe.outputCount));
+
+            HunterInstance hunter = settlement.GetAliveHunters()[0];
+            hunter.HP.arms = Mathf.Max(0, hunter.MaxHP.arms - 1);
+            table.Refresh();
+            yield return null;
+            HunterCard3D hunterCard = table.GetComponentsInChildren<HunterCard3D>(true).Single(card => card.Hunter?.InstanceId == hunter.InstanceId);
+            hunterCard.OnHunterClicked?.Invoke(hunterCard);
+            yield return null;
+            HunterEquipmentPanel3D equipmentPanel = GetPrivateField<HunterEquipmentPanel3D>(table, "hunterEquipmentPanel");
+            SlotGrid useGrid = GetPrivateField<SlotGrid>(equipmentPanel, "consumableUseGrid");
+            SettlementItemCard3D poulticeCard = FindStorageCard(equipmentPanel, poultice);
+            Assert.That(poulticeCard, Is.Not.Null, "真实配方产物必须进入营地物品库存卡。");
+            BeginAndDrop(poulticeCard, useGrid.Slots[0]);
+            Assert.That(useGrid.Slots[0].OccupantCard, Is.Null);
+            HunterRecoveryPanel3D recoveryPanel = GetPrivateField<HunterRecoveryPanel3D>(table, "hunterRecoveryPanel");
+            yield return WaitUntil(() => recoveryPanel != null && recoveryPanel.gameObject.activeSelf, "等待正式 3D 消耗品恢复面板打开超时。");
+            HunterRecoveryCard3D armsCard = recoveryPanel.GetComponentsInChildren<HunterRecoveryCard3D>(true).Single(card => card.BodyPart == HunterBodyPart.Arms);
+            int useSnapshotCount = persistence.Snapshots.Count;
+            armsCard.OnRecoveryRequested?.Invoke(armsCard);
+            yield return WaitUntil(() => settlement.GetStoredItem(poultice) == 0 && hunter.HP.arms == hunter.MaxHP.arms && persistence.Snapshots.Count > useSnapshotCount && persistence.Snapshots.LastOrDefault()?.Settlement?.GetStoredItem(poultice.ContentId) == 0 && persistence.Snapshots.LastOrDefault().Settlement.GetHunter(hunter.InstanceId)?.HP.arms == hunter.MaxHP.arms, "等待正式配方产物使用及最新存档超时。");
+            Assert.That(useGrid.Slots[0].OccupantCard, Is.Null);
+
+            yield return WaitUntil(() => persistence.Snapshots.Count > useSnapshotCount && persistence.Snapshots.LastOrDefault()?.Settlement?.GetStoredItem(poultice.ContentId) == 0, "等待工坊与消耗品结果保存超时。");
+            CampaignSnapshot saved = persistence.Snapshots.LastOrDefault();
+            Assert.That(saved.Settlement.IsWorkshopBuilt(medicalWorkshop.WorkshopId), Is.True);
+            Assert.That(saved.Settlement.GetStoredItem(poultice.ContentId), Is.Zero);
+            HunterInstance savedHunter = saved.Settlement.GetHunter(hunter.InstanceId);
+            Assert.That(savedHunter?.HP.arms, Is.EqualTo(savedHunter?.MaxHP.arms));
+            persistence.SnapshotToLoad = saved;
+            UnityEngine.Object.Destroy(managerObject);
+            managerObject = null;
+            yield return null;
+
+            GameManager restoredManager = CreateProductionManager(persistence, true);
+            UniTask<CampaignStartupResult>.Awaiter restore = restoredManager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(restore);
+            Assert.That(restore.GetResult().Succeeded, Is.True, restore.GetResult().Reason);
+            Assert.That(restoredManager.SettlementData.GetHunter(hunter.InstanceId)?.HP.arms, Is.EqualTo(savedHunter.MaxHP.arms), "继续战役事务完成时不得改变已保存的部位血量。");
+            yield return WaitForSettlementIdle(restoredManager);
+            Assert.That(restoredManager.SettlementData.IsWorkshopBuilt(medicalWorkshop.WorkshopId), Is.True);
+            Assert.That(restoredManager.SettlementData.GetStoredItem(poultice.ContentId), Is.Zero);
+            HunterInstance restoredHunter = restoredManager.SettlementData.GetHunter(hunter.InstanceId);
+            Assert.That(restoredHunter?.HP.arms, Is.EqualTo(restoredHunter?.MaxHP.arms));
+        }
+
+        [UnityTest]
         public IEnumerator ExplorationPort_CompletesTabletopRevealMoveHarvestReturnAndRejectsStaleSession()
         {
             var persistence = new MemoryCampaignPersistence();

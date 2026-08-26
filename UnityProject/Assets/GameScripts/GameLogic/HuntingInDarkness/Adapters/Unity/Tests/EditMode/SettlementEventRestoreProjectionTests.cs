@@ -24,7 +24,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             EventData pendingEvent = CreateEvent("pending_event");
             EventData completedEvent = CreateEvent("completed_event");
-            var settlement = new SettlementInstance();
+            var settlement = new SettlementInstance { CurrentYear = 2 };
             settlement.Timeline.Add(new AnnalEntry { Year = 2, EventId = pendingEvent.name, IsCompleted = false });
             settlement.Timeline.Add(new AnnalEntry { Year = 2, EventId = completedEvent.name, IsCompleted = true });
             int timelineCount = settlement.Timeline.Count;
@@ -37,6 +37,36 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(settlement.Timeline, Has.Count.EqualTo(timelineCount));
             Assert.That(settlement.Timeline[0].IsCompleted, Is.False);
             Assert.That(settlement.Timeline[1].IsCompleted, Is.True);
+        }
+
+        [Test]
+        public void Prepare_SkipsFutureScheduledEntryUntilItsYearArrives()
+        {
+            EventData futureEvent = CreateEvent("future_scheduled_event");
+            var settlement = new SettlementInstance { CurrentYear = 2 };
+            var entry = new AnnalEntry { Year = 3, EventId = futureEvent.name, IsCompleted = false };
+            settlement.Timeline.Add(entry);
+            int resolveCount = 0;
+            var projection = new SettlementEventRestoreProjection(settlement, _ =>
+            {
+                resolveCount++;
+                return futureEvent;
+            });
+
+            SettlementEventRestorePlan beforeDue = projection.Prepare();
+
+            Assert.That(beforeDue.Succeeded, Is.True);
+            Assert.That(beforeDue.Events, Is.Empty);
+            Assert.That(resolveCount, Is.Zero);
+            Assert.That(entry.IsCompleted, Is.False);
+
+            settlement.CurrentYear = 3;
+            SettlementEventRestorePlan due = projection.Prepare();
+
+            Assert.That(due.Succeeded, Is.True);
+            Assert.That(due.Events, Has.Count.EqualTo(1));
+            Assert.That(resolveCount, Is.EqualTo(1));
+            Assert.That(entry.IsCompleted, Is.False);
         }
 
         [Test]
@@ -78,7 +108,7 @@ namespace HuntingInDarkness.Adapter.Tests
         public void Prepare_DuplicateEventIdsRemainSeparateAndRepeatedPrepareDoesNotAppend()
         {
             EventData gameEvent = CreateEvent("repeatable_event");
-            var settlement = new SettlementInstance();
+            var settlement = new SettlementInstance { CurrentYear = 3 };
             var first = new AnnalEntry { Year = 2, EventId = gameEvent.name };
             var second = new AnnalEntry { Year = 3, EventId = gameEvent.name };
             settlement.Timeline.Add(first);

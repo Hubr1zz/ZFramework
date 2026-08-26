@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "e470cfe19c721a181edc24ee4e720f0e41a149a4f17e57ee24cb87aeeb8e8e2b",
-  "inputManifestDigest": "44aa7cfe4c55bcd75cae22a4a3f84fcf38b13e3593171ddb4585679c6b4777f1",
-  "outputDigest": "b7218e447aaab6d5aeef2f09e95f7e0c46e9ca3ec4e4ea3dff7f673273deac63",
+  "inputDigest": "f7c24f70592befc29a83069fc38efefbdec6c249e8e2ca8bf44b2ed677f64d3f",
+  "inputManifestDigest": "8bc563f4fdd730096a3b45b13ea760082e3c804bab16e6d77adf88a73766f79b",
+  "outputDigest": "b8e826018f2cd556e793c2fc6c9004e2f060e255eaab6f6fa203e1c126892f79",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -392,7 +392,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
-      "sha256": "b2e76e5b5273e4e5947467b85dd7a67e8ae985e9607f9850b89f1f1a4b2bbd9f",
+      "sha256": "4af6fc907d9c7de0ba1979708edfee96017ef3265bacdb1a9c07b18b925893f3",
       "state": "current"
     },
     {
@@ -577,7 +577,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs",
-      "sha256": "e93d1babc78b04a2345dfbf68bcddb2a21c4f3953cebf931194da0806750ffcf",
+      "sha256": "802e2db2fe13fdc821310d95340940231e109539943401098945e7e8013c05b4",
       "state": "current"
     },
     {
@@ -597,7 +597,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "efa0b0e2531d2bd43fa93d5df4480620613927e289899ab4f1ecde344ceede47",
+      "sha256": "9745be4de62dbe5d9e316dade29f3ae3c46fa5c91a5d4e3398b147777fa76a4b",
       "state": "current"
     },
     {
@@ -1332,17 +1332,17 @@
     },
     {
       "path": "openspec/specs/settlement-timeline-event-identity/implementation.json",
-      "sha256": "7e816a0e60167866d37360e2d790d1c85dc7e71cc3e052fd7a4ec06c539b46c2",
+      "sha256": "0ffa25bab68055d7e0ee2e0eee7eee6f63f29abc58d1e71c144b55d4a3c60bdc",
       "state": "current"
     },
     {
       "path": "openspec/specs/settlement-timeline-event-identity/spec.md",
-      "sha256": "b0d6c9fc881615c5e1ba62dad614be59a83d20d110011af4b65e3f40bb7673d3",
+      "sha256": "94a36363a7fe1c1c8784a337115deb45f106b033244fe1e281ab3e9d95df1fd5",
       "state": "current"
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/implementation.json",
-      "sha256": "86f238a0e8d80c413005af281e4101de461c053f8b4f188113c29c2392c829ae",
+      "sha256": "065dc5d6c3196dc719bdc8e009f15d4945d881c3ddba9ad85b9361c042bdb7d5",
       "state": "current"
     },
     {
@@ -1652,7 +1652,7 @@
     },
     {
       "path": "openspec/specs/tabletop-settlement-workshop-construction/implementation.json",
-      "sha256": "f74857e3c24e050e136b29e5f2ad7a83ff758b7ce44260e9f41e9b54e50cf74b",
+      "sha256": "a410bbe71e648527cf20c32c2d694564e8880d416e921a627bb22a701462b759",
       "state": "current"
     },
     {
@@ -1825,6 +1825,11 @@
     },
     {
       "capability": "campaign-persistence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "campaign-persistence",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemIdentityMigrationTests.cs",
       "state": "stale"
     },
@@ -1940,7 +1945,17 @@
     },
     {
       "capability": "event-occurrence-checkpoint-core",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "event-occurrence-checkpoint-core",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "event-occurrence-checkpoint-core",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs",
       "state": "stale"
     },
     {
@@ -2246,6 +2261,11 @@
     {
       "capability": "table-driven-event-chains",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "table-driven-event-chains",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
       "state": "stale"
     },
     {
@@ -2837,7 +2857,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs",
@@ -3124,7 +3144,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
@@ -3140,7 +3160,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -3777,7 +3797,7 @@
       "effectiveStatus": "stale",
       "progress": 0,
       "verificationStatus": "verified",
-      "summary": "年度事件继续使用稳定 ContentId 与精确 AnnalEntry；正式日程 occurrence 经 3D 卡牌完成后可靠保存，重建战役不会重放，且不会阻塞下一次真实出猎。",
+      "summary": "年度事件继续使用稳定 ContentId 与精确 AnnalEntry；恢复投影只执行当前或已到期 occurrence，未来排期条目保持未完成，3D 流程保存与重建不会提前触发事件。",
       "designSources": [],
       "sources": [
         "openspec/specs/settlement-timeline-event-identity/spec.md",
@@ -3800,6 +3820,14 @@
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
           "state": "stale"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs",
+          "state": "current"
         }
       ]
     },
@@ -3810,7 +3838,7 @@
       "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，新增药剂分支把狩猎器官转换为既有恢复资源，闭合伤员恢复循环。",
+      "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；药剂工坊的真实组合根流程已覆盖建造、制造、库存卡消耗、保存与重建。",
       "designSources": [],
       "sources": [
         "openspec/specs/settlement-workshop-crafting/spec.md",
@@ -3859,6 +3887,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableWorkshopContentTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
           "state": "current"
         }
       ]
@@ -3970,7 +4002,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
@@ -5077,7 +5109,7 @@
       "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "营地 3D 工坊以配置目录投影护甲与药剂两条蓝图分支，fallback 桌面按真实卡牌数量预留网格；建造命令由 Settlement ActionQueue 串行校验、提交并持久化。",
+      "summary": "营地 3D 工坊以配置目录投影蓝图；药剂工坊已通过正式 3D 建造卡、Settlement ActionQueue、持久化和后续制造消费组合根验证。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-settlement-workshop-construction/spec.md",
@@ -5119,6 +5151,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableWorkshopContentTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
           "state": "current"
         }
       ]

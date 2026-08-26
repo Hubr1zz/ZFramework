@@ -138,6 +138,7 @@ namespace HuntingInDarkness.Settlement
             foreach (AnnalEntry entry in settlement.Timeline ?? new List<AnnalEntry>())
             {
                 if (entry == null || entry.IsCompleted || projectedEntries.Contains(entry) || !PlayableSettlementEventRegistry.IsTimelineEventEntry(entry)) continue;
+                if (entry.Year > settlement.CurrentYear) continue;
                 if (string.IsNullOrWhiteSpace(entry.EventId)) return Reject("未完成年鉴条目缺少事件 ID。");
 
                 EventData gameEvent = resolveEvent(entry.EventId);
