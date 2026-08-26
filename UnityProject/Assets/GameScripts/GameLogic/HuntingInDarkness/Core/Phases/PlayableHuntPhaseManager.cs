@@ -1,10 +1,30 @@
 using System;
 using System.Collections.Generic;
+using GameplayBase;
+using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.ActionFlow.Hunt;
+using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 
 namespace Core
 {
+    internal readonly struct PlayableHuntStartPlan
+    {
+        internal PlayableHuntStartPlan(IReadOnlyList<HunterInstance> hunters, int year, PlayableHuntRoutePlan routePlan, IPlayableEventInput eventInput)
+        {
+            Hunters = hunters;
+            Year = year;
+            RoutePlan = routePlan;
+            EventInput = eventInput;
+        }
+
+        internal IReadOnlyList<HunterInstance> Hunters { get; }
+        internal int Year { get; }
+        internal PlayableHuntRoutePlan RoutePlan { get; }
+        internal IPlayableEventInput EventInput { get; }
+    }
+
     internal sealed class PlayableHuntPhaseManager : IDisposable
     {
         private readonly PlayableSettlementPhaseManager settlementManager;
@@ -38,6 +58,53 @@ namespace Core
         internal bool TryPrepareRestore(IPlayableSettlementRuntime settlement, string expeditionId, out IPlayableHuntRuntime candidate, out string reason)
         {
             return TryPrepare(settlement, expeditionId, out candidate, out reason);
+        }
+
+        internal bool TryPrepareInitialized(IPlayableSettlementRuntime settlement, PlayableHuntStartPlan plan, out IPlayableHuntRuntime candidate, out string reason)
+        {
+            candidate = null;
+            if (plan.Hunters == null || plan.Hunters.Count == 0)
+            {
+                reason = "狩猎启动计划没有有效小队。";
+                return false;
+            }
+            if (plan.Year <= 0)
+            {
+                reason = "狩猎启动计划年份无效。";
+                return false;
+            }
+            if (!TryPrepare(settlement, Guid.NewGuid().ToString("N"), out candidate, out reason)) return false;
+
+            try
+            {
+                HuntManager manager = candidate.Manager;
+                if (plan.RoutePlan != null)
+                {
+                    if (!manager.TryBindContent(plan.RoutePlan, out reason))
+                    {
+                        ReleaseCandidate(candidate);
+                        candidate = null;
+                        return false;
+                    }
+                }
+                else if (!PlayableHuntDestinationRuntime.TryApplyTo(manager, out reason))
+                {
+                    ReleaseCandidate(candidate);
+                    candidate = null;
+                    return false;
+                }
+                manager.EventInput = plan.EventInput;
+                manager.OnEnter(new List<HunterInstance>(plan.Hunters), plan.Year);
+                reason = string.Empty;
+                return true;
+            }
+            catch (Exception exception)
+            {
+                ReleaseCandidate(candidate);
+                candidate = null;
+                reason = $"准备狩猎运行世代失败：{exception.Message}";
+                return false;
+            }
         }
 
         internal bool TrySwap(IPlayableHuntRuntime expectedCurrent, IPlayableHuntRuntime replacement, out string reason)
@@ -78,6 +145,35 @@ namespace Core
             ThrowIfDisposed();
             coordinator.Cleanup();
             ResetRuntimes();
+        }
+
+        internal bool TryStartCurrentPresentationAndSession(PlayableHuntEventOccurrenceStore restoredOccurrences, out string reason)
+        {
+            ThrowIfDisposed();
+            if (current == null)
+            {
+                reason = "当前没有可启动的狩猎运行态。";
+                return false;
+            }
+            return coordinator.TryStartPresentationAndSession(restoredOccurrences, out reason);
+        }
+
+        internal void DeactivateCurrentActionSession()
+        {
+            ThrowIfDisposed();
+            current?.DeactivateActionSession();
+        }
+
+        internal void CleanupCurrentPresentation(bool includeVisualizer = true)
+        {
+            ThrowIfDisposed();
+            coordinator.Cleanup(includeVisualizer);
+        }
+
+        internal void RestorePreviousPresentation(GamePhase previousPhase, IPlayableHuntRuntime previousHunt)
+        {
+            ThrowIfDisposed();
+            coordinator.RestorePreviousPresentation(previousPhase, previousHunt);
         }
 
         public void Dispose()
@@ -124,6 +220,13 @@ namespace Core
                 runtime.Dispose();
             runtimes.Clear();
             current = null;
+        }
+
+        private void ReleaseCandidate(IPlayableHuntRuntime candidate)
+        {
+            if (candidate is not PlayableHuntRuntime owned || !runtimes.Contains(owned)) return;
+            owned.Dispose();
+            runtimes.Remove(owned);
         }
 
         private void ThrowIfDisposed()

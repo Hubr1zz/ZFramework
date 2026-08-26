@@ -94,6 +94,29 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [Test]
+        public void HuntInitializedStart_ReleasesCandidateWhenContentInitializationFails()
+        {
+            runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
+            ConfigureSettlementRuntime();
+            ConfigureHuntRuntime();
+            Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime settlement, out string settlementReason), Is.True, settlementReason);
+            Assert.That(runtime.TrySwapSettlement(null, settlement, out string settlementSwapReason), Is.True, settlementSwapReason);
+
+            object phaseManagers = GetPhaseManagers(runtime);
+            Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhaseManagerAccess", true);
+            object huntManager = accessType.GetProperty("HuntPhase").GetValue(phaseManagers);
+            Type planType = huntManager.GetType().Assembly.GetType("Core.PlayableHuntStartPlan");
+            object invalidRoute = Activator.CreateInstance(typeof(PlayableHuntRoutePlan), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { null, null, "invalid", 1, null, Array.Empty<HexTileData>(), Array.Empty<EventData>(), new Dictionary<string, EventData>(), null }, null);
+            object plan = Activator.CreateInstance(planType, BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { new[] { new HunterInstance(null, 901) }, 1, invalidRoute, null }, null);
+
+            Assert.That((bool)InvokeInternalResult(huntManager, "TryPrepareInitialized", settlement, plan, null, null), Is.False);
+            FieldInfo runtimesField = huntManager.GetType().GetField("runtimes", BindingFlags.Instance | BindingFlags.NonPublic);
+            int runtimeCount = (int)runtimesField.FieldType.GetProperty("Count").GetValue(runtimesField.GetValue(huntManager));
+            Assert.That(runtimeCount, Is.EqualTo(0));
+            Assert.That(runtime.Hunt, Is.Null);
+        }
+
+        [Test]
         public void RuntimeOwnedPhaseManagersRejectUseAfterDispose()
         {
             runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);

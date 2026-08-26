@@ -4,6 +4,7 @@
 
 ## 本轮完成
 
+- 收口 Hunt generation 初始化与激活职责：`PlayableHuntPhaseManager` 现在负责 detached 候选的路线内容绑定、猎人/年份初始化、事件输入注入，以及 current generation 的 ActionSession 与 3D 表现生命周期；`GameManager` 只保留出发 roster/context 复核、路线提交、CAS 交换、跨阶段回滚和 checkpoint。初始化失败不会发布或泄漏候选，ZFramework Campaign Runtime 仍是关闭阶段运行态的唯一 owner；未触碰 Showdown、日历和玩法规则。
 - 增加正式狩猎父子事件链的生产 PlayMode 闭环：第 3 年从真实地块翻开进入“锈蚀葬坑”，使用世界空间 3D 事件卡完成抽牌与结果提交；父节点 checkpoint 跨 `GameManager` 重建恢复“睁开的石片”，并只消耗活动狩猎携带的金属碎片，不读取或污染营地库存。验证过程中没有推进 Showdown，也没有使用截图。
 - 加固活动狩猎事件 occurrence 恢复：pending/committed 序号与游标现在在内容解析前严格校验；重复 EventId sibling 按独立序号保留并按原序恢复，未扩大到遭遇或 3D 交互。
 - 通过 ZFramework 启动场景自动装配现有 `GameManager`，保留现有三阶段状态机作为唯一流程权威。
