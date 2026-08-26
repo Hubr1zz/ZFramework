@@ -75,3 +75,18 @@ The configured starter content SHALL offer multiple equipment outcomes that cons
 - **AND** the settlement owns black salt and broken stone
 - **WHEN** the player crafts the configured salt crystal edge
 - **THEN** the produced weapon exposes its positive Hunt noise modifier through the existing item contract
+
+### Requirement: Starter crafting sustains the recovery loop
+The configured starter content SHALL provide a medical production branch that converts a Hunt-obtainable resource into the existing hunter recovery resource. The recipe SHALL require the Tools invention and a built `medical_workshop`, and SHALL reuse the ordinary 3D recipe card and Settlement ActionQueue transaction.
+
+#### Scenario: The player cultivates recovery material
+- **GIVEN** the Tools invention is mastered and `medical_workshop` is built
+- **AND** the settlement owns one `soft_organ`
+- **WHEN** the player crafts `培制药用菌肉`
+- **THEN** the soft organ is consumed once and one `mushroom_flesh` is added
+- **AND** the resulting resource can be consumed by the existing world-space hunter recovery flow
+
+#### Scenario: The medical workshop is not built
+- **GIVEN** the settlement owns the recipe input and has mastered Tools
+- **WHEN** the player submits the medical recipe before constructing `medical_workshop`
+- **THEN** the Settlement ActionQueue rejects the command without consuming the soft organ or producing mushroom flesh

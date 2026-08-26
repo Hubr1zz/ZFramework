@@ -22,3 +22,12 @@ MonoBehaviour:
       amount: 1
     - item: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
       amount: 1
+  - workshopId: medical_workshop
+    displayName: "药剂工坊"
+    description: "用石臼、培养槽和固定工具，将狩猎带回的器官培制成恢复用菌肉。"
+    requiredInvention: {fileID: 11400000, guid: bbdb198c4c6e406479b4717a7d1d8aa2, type: 2}
+    costs:
+    - item: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
+      amount: 1
+    - item: {fileID: 11400000, guid: 278e3384600c4ac45b1d8077908ce503, type: 2}
+      amount: 1

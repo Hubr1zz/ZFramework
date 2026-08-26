@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "tabletop-settlement-workshop-construction",
-  "specHash": "ffc0367f233b4fb0e1c078c3a80a31c26736e902a3acfc3f2d2c1c4007ae5a9e",
+  "specHash": "8438011b6fc53433750e122147b51ae5d5880b6b8c02a505c6e300aa8428975a",
   "title": "营地桌面工坊建设",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "营地 3D 工坊以配置目录投影蓝图和工坊卡，fallback 桌面按真实卡牌数量预留网格；建造命令由 Settlement ActionQueue 串行校验、提交并持久化。",
-    "validatedAgainstSpecHash": "ffc0367f233b4fb0e1c078c3a80a31c26736e902a3acfc3f2d2c1c4007ae5a9e",
+    "summary": "营地 3D 工坊以配置目录投影护甲与药剂两条蓝图分支，fallback 桌面按真实卡牌数量预留网格；建造命令由 Settlement ActionQueue 串行校验、提交并持久化。",
+    "validatedAgainstSpecHash": "8438011b6fc53433750e122147b51ae5d5880b6b8c02a505c6e300aa8428975a",
     "evidence": [
       {
         "guid": "6202bee0b3d8e8e4386ae66aa1299251",
@@ -51,10 +51,10 @@
         "guid": "4d29881fd1f5e984297bad31797c833e",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorkshopConstructionActionTests.cs",
         "line": 1,
-        "fileHash": "583f9a7140b4c9b6065e9a009c2fe41568ed940f42fca4d0176e955bce372f81",
+        "fileHash": "4621f7dd5be6a8ca302063ffd931e6208658d1e8be21a597af5c1f54381f35df",
         "status": "verified",
-        "checkedAt": "2026-08-25T01:17:19-07:00",
-        "feature": "覆盖成功提交、并发去重、Reactor 阻止及外部蓝图拒绝。"
+        "checkedAt": "2026-08-25T20:12:35-07:00",
+        "feature": "覆盖成功提交、药剂工坊稳定 ID 与成本、并发去重、Reactor 阻止及外部蓝图拒绝。"
       },
       {
         "guid": "ccd228a4a5ef37042bff2905951397ca",
@@ -64,19 +64,47 @@
         "status": "verified",
         "checkedAt": "2026-08-25T01:17:19-07:00",
         "feature": "验证 fallback 多卡工坊网格容量、蓝图可见性及重复初始化幂等。"
+      },
+      {
+        "guid": "60094c9dc03ac5246ac03ee0cfaba61d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableWorkshopCatalog.asset",
+        "line": 1,
+        "fileHash": "ed3e8b71d93480097a0cf17e3bc7eb3b660ebcb5e7983f9caaf7dd3244366645",
+        "status": "verified",
+        "checkedAt": "2026-08-25T20:12:35-07:00",
+        "feature": "以稳定 ID 配置护甲与药剂工坊的名称、说明、工具发明前置和建设成本。"
+      },
+      {
+        "guid": "5a1e9d2c7b4f6a8e9c0d1e2f3a4b5c6d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/SettlementExtensions/BasicMedicine.asset",
+        "line": 1,
+        "fileHash": "aac22eda7be6f00299eaa192bc0f712b72f012069057191f830034d81fd9201e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T20:12:35-07:00",
+        "feature": "把医疗配方绑定到药剂工坊，使建成状态直接开放第二条生产分支。"
+      },
+      {
+        "guid": "c51a7a62610828e4e83c6cc1047f8882",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableWorkshopContentTests.cs",
+        "line": 15,
+        "fileHash": "1520982a2a5b84cb745fc47c9566950da2eccf55c9ba2fd258db6b80bb5b1793",
+        "status": "verified",
+        "checkedAt": "2026-08-25T20:12:35-07:00",
+        "feature": "验证两条生产分支的数据引用、目录校验和未建工坊制造门禁。"
       }
     ],
     "tests": [
       "Unity CLI compile: passed",
-      "Settlement workshop responsibility cluster: 18/18 passed",
-      "C# derived index: 977/977 files, parsed 3/reused 974"
+      "Medical workshop focused cluster: 40/40 passed",
+      "C# derived index: 994/994 files, parsed 2/reused 992"
     ],
-    "verifiedAt": "2026-08-25T01:17:19-07:00"
+    "verifiedAt": "2026-08-25T20:12:35-07:00"
   },
   "implementationOutline": [
     "WorkshopZone 从工坊目录、营地建设状态和当前可用配方生成蓝图或工坊 3D 卡牌，并只转发玩家交互。",
     "SettlementTable3D 在 fallback 建表前使用同一投影规则计算区域尺寸，多卡内容不依赖事后自动扩列修补布局。",
-    "PlayableSettlementActionSession 将建造请求送入 Settlement ActionQueue，由 BuildSettlementWorkshopAction 完成权威校验、资源消费、事实发布和持久化状态变更。"
+    "PlayableSettlementActionSession 将建造请求送入 Settlement ActionQueue，由 BuildSettlementWorkshopAction 完成权威校验、资源消费、事实发布和持久化状态变更。",
+    "生产目录追加药剂工坊，不增加 GameManager、Presenter 或存档分支。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs:30",

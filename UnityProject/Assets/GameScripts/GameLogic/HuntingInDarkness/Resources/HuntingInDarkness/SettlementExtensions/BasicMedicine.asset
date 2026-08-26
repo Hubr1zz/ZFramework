@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a80fcbf973970024caa923d311d2e527, type: 3}
+  m_Name: BasicMedicine
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Settlement.PlayableSettlementContentExtension
+  items: []
+  recipes:
+  - recipeName: "培制药用菌肉"
+    ingredients:
+    - item: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
+      count: 1
+    outputItem: {fileID: 11400000, guid: 278e3384600c4ac45b1d8077908ce503, type: 2}
+    outputCount: 1
+    requiredInvention: {fileID: 11400000, guid: bbdb198c4c6e406479b4717a7d1d8aa2, type: 2}
+    unlockedByMaterial: 0
+    requiredWorkshopId: medical_workshop

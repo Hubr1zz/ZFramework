@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CardGame.ActionQueue;
 using Core;
@@ -41,6 +42,20 @@ namespace HuntingInDarkness.Adapter.Tests
                 EventBus.Unsubscribe(builtHandler);
                 EventBus.Unsubscribe(commitHandler);
             }
+        }
+
+        [Test]
+        public async Task BuildWorkshopAsync_MedicalWorkshopResolvesByStableId()
+        {
+            TestContext context = CreateContext("medical_workshop");
+            using var session = CreateSession(context);
+
+            SettlementWorkshopConstructionResult result = await session.BuildWorkshopAsync(context.Definition);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(context.Settlement.IsWorkshopBuilt("medical_workshop"), Is.True);
+            Assert.That(context.Settlement.GetResource("broken_stone"), Is.EqualTo(1));
+            Assert.That(context.Settlement.GetResource("mushroom_flesh"), Is.EqualTo(1));
         }
 
         [Test]
@@ -87,12 +102,12 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(context.Settlement.BuiltWorkshops, Is.Empty);
         }
 
-        private static TestContext CreateContext()
+        private static TestContext CreateContext(string workshopId = null)
         {
             PlayableWorkshopCatalog catalog = Resources.Load<PlayableWorkshopCatalog>("HuntingInDarkness/PlayableWorkshopCatalog");
             Assert.That(catalog, Is.Not.Null);
             Assert.That(catalog.Workshops, Is.Not.Empty);
-            PlayableWorkshopDefinition definition = catalog.Workshops[0];
+            PlayableWorkshopDefinition definition = workshopId == null ? catalog.Workshops[0] : catalog.Workshops.Single(workshop => workshop.WorkshopId == workshopId);
             var settlement = new SettlementInstance();
             if (definition.RequiredInvention != null)
                 settlement.UnlockInvention(definition.RequiredInvention.ContentId);

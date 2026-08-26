@@ -47,6 +47,13 @@ The playable bootstrap SHALL NOT create the legacy screen-space construction win
 ### Requirement: Workshop content is configuration-driven
 Workshop identities, labels, descriptions, prerequisites, and costs SHALL come from the configured bootstrap catalog.
 
+The production catalog SHALL provide distinct `armor_workshop` and `medical_workshop` branches. The medical workshop SHALL require the configured Tools invention and stable Hunt resource costs, without adding a workshop-specific View or runtime branch.
+
 #### Scenario: A workshop catalog is replaced
 - **WHEN** a valid catalog is assigned to the playable bootstrap settings
 - **THEN** the Settlement runner and 3D table use that catalog without changing View command types
+
+#### Scenario: The production settlement has not built the medical workshop
+- **WHEN** the world-space workshop zone refreshes
+- **THEN** `medical_workshop` appears as its own blueprint card with its prerequisite and costs
+- **AND** successful construction replaces that blueprint with the ordinary workshop card through the existing Settlement command path

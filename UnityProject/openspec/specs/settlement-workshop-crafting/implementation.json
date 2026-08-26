@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "settlement-workshop-crafting",
-  "specHash": "e098864d2e9ac316a2707a92cc57f2913234f43d64c875457be29639a61e3967",
+  "specHash": "0e1848529b7092523b5b02fada99844bcc5184970b47b393f84339725d649e30",
   "title": "营地桌面工坊制作",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，护甲路线要求已建护甲工坊并与武器路线形成下一轮构筑选择。",
-    "validatedAgainstSpecHash": "e098864d2e9ac316a2707a92cc57f2913234f43d64c875457be29639a61e3967",
+    "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，新增药剂分支把狩猎器官转换为既有恢复资源，闭合伤员恢复循环。",
+    "validatedAgainstSpecHash": "0e1848529b7092523b5b02fada99844bcc5184970b47b393f84339725d649e30",
     "evidence": [
       {
         "guid": "59e65c28f501e7944b628d6f642a2c36",
@@ -82,6 +82,33 @@
         "status": "verified",
         "checkedAt": "2026-08-25T15:30:16-07:00",
         "feature": "验证完整基础素材目录与工具发明装配后，装备内容仍可发现、制作和应用。"
+      },
+      {
+        "guid": "5a1e9d2c7b4f6a8e9c0d1e2f3a4b5c6d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/SettlementExtensions/BasicMedicine.asset",
+        "line": 1,
+        "fileHash": "aac22eda7be6f00299eaa192bc0f712b72f012069057191f830034d81fd9201e",
+        "status": "verified",
+        "checkedAt": "2026-08-25T20:12:35-07:00",
+        "feature": "以现有内容扩展接口配置 soft_organ 到 mushroom_flesh 的医疗转换，并绑定工具发明与药剂工坊。"
+      },
+      {
+        "guid": "60094c9dc03ac5246ac03ee0cfaba61d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableWorkshopCatalog.asset",
+        "line": 25,
+        "fileHash": "ed3e8b71d93480097a0cf17e3bc7eb3b660ebcb5e7983f9caaf7dd3244366645",
+        "status": "verified",
+        "checkedAt": "2026-08-25T20:12:35-07:00",
+        "feature": "提供医疗配方所需的稳定工坊身份与配置驱动建设门禁。"
+      },
+      {
+        "guid": "c51a7a62610828e4e83c6cc1047f8882",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableWorkshopContentTests.cs",
+        "line": 47,
+        "fileHash": "1520982a2a5b84cb745fc47c9566950da2eccf55c9ba2fd258db6b80bb5b1793",
+        "status": "verified",
+        "checkedAt": "2026-08-25T20:12:35-07:00",
+        "feature": "验证未建工坊不消耗、建成后原子转换以及材料不足重试不改变状态。"
       }
     ],
     "tests": [
@@ -89,15 +116,17 @@
       "Stone Forest crafting content cluster: 37/37 passed",
       "PlayableEquipmentRulesTests: 4/4 passed",
       "PlayableHuntNoiseActionTests: 7/7 passed",
-      "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
+      "GameManagerCampaignLoopPlayModeTests: 14/14 passed",
+      "Medical workshop focused cluster: 40/40 passed"
     ],
-    "verifiedAt": "2026-08-25T18:37:36-07:00"
+    "verifiedAt": "2026-08-25T20:12:35-07:00"
   },
   "implementationOutline": [
     "WorkshopZone 从配置目录生成工坊和配方实体卡，View 不消费资源或创建产物。",
     "PlayableSettlementActionSession 将命令送入 Settlement runner，Action 在执行时重验所有权、解锁、工坊和资源。",
     "提交事实驱动 GameManager 保存和 SettlementTable3D 刷新，资源卡耗尽后移除、重新获得后恢复。",
-    "表配方通过稳定 ContentId 组合狩猎素材与表装备，工具发明统一控制基础加工路线。"
+    "表配方通过稳定 ContentId 组合狩猎素材与表装备，工具发明统一控制基础加工路线。",
+    "ScriptableObject 医疗扩展复用同一 CraftRecipe 契约，把狩猎器官转换为既有恢复资源。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs:1",
