@@ -7,7 +7,7 @@ ZFramework 是基于 TEngine 扩展的 Unity 游戏框架；`Project` 分支同�
 
 **Unity 框架解决方案**
 
-[![Unity Version](https://img.shields.io/badge/Unity-6000.5.8f1-blue.svg?style=flat-square)](https://unity.com/)
+[![Unity Version](https://img.shields.io/badge/Unity-6000.5.9f1-blue.svg?style=flat-square)](https://unity.com/)
 [![License](https://img.shields.io/github/license/Hubr1zz/ZFramework?style=flat-square)](LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/Hubr1zz/ZFramework?style=flat-square)](https://github.com/Hubr1zz/ZFramework)
 [![Issues](https://img.shields.io/github/issues/Hubr1zz/ZFramework?style=flat-square)](https://github.com/Hubr1zz/ZFramework/issues)
@@ -54,7 +54,7 @@ ZFramework 是基于 TEngine 扩展的 Unity 游戏框架；`Project` 分支同�
 
 ### 环境要求
 
-- **Unity 版本**: 6000.5.8f1（工程锁定版本）
+- **Unity 版本**: 6000.5.9f1（工程锁定版本）
 - **支持版本**: Unity 6000.5
 - **开发环境**: .NET 4.x
 - **支持平台**: Windows、OSX、Android、iOS、WebGL
@@ -69,7 +69,7 @@ ZFramework 是基于 TEngine 扩展的 Unity 游戏框架；`Project` 分支同�
    ```
 
 2. **打开项目**
-   - 使用 Unity 6000.5.8f1 打开 `UnityProject`
+   - 使用 Unity 6000.5.9f1 打开 `UnityProject`
 
 3. **编辑器模式运行**
    - 选择顶部栏目 `EditorMode` 编辑器下的模拟模式
@@ -381,7 +381,7 @@ Assets/
 
 ### Unity 版本
 
-- **工程版本**: Unity 6000.5.8f1
+- **工程版本**: Unity 6000.5.9f1
 - **支持版本**: Unity 6000.5
 
 ### 平台支持
