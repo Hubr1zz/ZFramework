@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,7 @@ using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.ViewLayer.Hunt;
+using HuntingInDarkness.ViewLayer.Settlement;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using NUnit.Framework;
 using UI;
@@ -33,6 +35,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         private GameObject managerObject;
         private PlayableHuntDestinationCatalog destinationCatalog;
         private PlayableCampaignContentCandidate contentCandidate;
+        private HexTileData patchedTileConfig;
+        private EventData originalPatchedTileRevealEvent;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -46,8 +50,9 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         [UnityTearDown]
         public IEnumerator TearDown()
         {
+            RestorePatchedTile();
             if (managerObject != null)
-                Object.Destroy(managerObject);
+                UnityEngine.Object.Destroy(managerObject);
             yield return null;
             ResetContentAssembly();
         }
@@ -253,7 +258,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(saved.Settlement.GetHunter(hunterId).EquippedItemIds.Count(itemId => itemId == saltWard.ContentId), Is.EqualTo(1));
 
             persistence.SnapshotToLoad = saved;
-            Object.Destroy(managerObject);
+            UnityEngine.Object.Destroy(managerObject);
             managerObject = null;
             yield return null;
             GameManager restoredManager = CreateProductionManager(persistence, true);
@@ -420,6 +425,104 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             UniTask<HuntTileCommandResult>.Awaiter staleRequest = explorationPort.SubmitTileAsync(target).GetAwaiter();
             yield return WaitForCompletion(staleRequest);
             Assert.That(staleRequest.GetResult().Succeeded, Is.False, "上一轮地图 View 的请求不得写入新狩猎会话。");
+        }
+
+        [UnityTest]
+        public IEnumerator HuntEventParentChild_PersistsCheckpointAcrossManagerRebuildAndUsesRealCards()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            var sourceRandom = new FixedTabletopInteraction(10);
+            persistence.SnapshotToLoad = CreateYearThreeSettlementSnapshot();
+            GameManager manager = CreateProductionManager(persistence, true, true, sourceRandom);
+            UniTask<CampaignStartupResult>.Awaiter start = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(start);
+            Assert.That(start.GetResult().Succeeded, Is.True, start.GetResult().Reason);
+            yield return WaitForSettlementIdle(manager);
+            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(3));
+            int hunterId = manager.SettlementData.GetAliveHunters()[0].InstanceId;
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { hunterId }, GetDestination(3)).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            Assert.That(departure.GetResult().Succeeded, Is.True, departure.GetResult().Reason);
+            yield return WaitForHuntInputReady();
+
+            PlayableSettlementEventView eventView = managerObject.GetComponent<PlayableSettlementEventView>();
+            Assert.That(eventView, Is.Not.Null);
+            HuntManager huntManager = manager.ActiveHuntRuntime.Manager;
+            Assert.That(huntManager.BoundRoute.TryResolveEvent("hunt_rust_burial", out EventData parent), Is.True);
+            Assert.That(huntManager.BoundRoute.TryResolveEvent("hunt_rust_burial_open_eyes", out EventData child), Is.True);
+            var targetTile = huntManager.Map.Values.FirstOrDefault(tile => tile.State == TileState.Interactable && !tile.HasBossEncounter && tile.Config != null);
+            Assert.That(targetTile, Is.Not.Null, "正式路线缺少可注入狩猎事件的可交互地块。");
+            HuntMapVisualizer visualizer = managerObject.GetComponentInChildren<HuntMapVisualizer>(true);
+            Assert.That(visualizer, Is.Not.Null, "正式狩猎场景缺少地图可视化器。");
+            PlayableHexTileCard3D targetTileCard = FindTileCard(visualizer, targetTile.AxialCoord);
+            Assert.That(targetTileCard, Is.Not.Null, "目标地块缺少实体地形卡。");
+            patchedTileConfig = targetTile.Config;
+            originalPatchedTileRevealEvent = patchedTileConfig.tileRevealEvent;
+            patchedTileConfig.tileRevealEvent = parent;
+            try
+            {
+                IHuntExplorationPort explorationPort = manager.ActiveHuntExplorationPort;
+                Assert.That(explorationPort.TryCreateSnapshot(targetTile.AxialCoord, -1, out HuntExplorationSnapshot snapshot), Is.True);
+                // 该夹具验证事件卡跨重建；让实体地形卡翻面 presenter 立即完成，避免批处理帧时间冻结在 IsFlipping。
+                targetTileCard.enabled = false;
+                UniTask<HuntTileCommandResult>.Awaiter reveal = explorationPort.SubmitTileAsync(snapshot).GetAwaiter();
+                yield return WaitForChoice(eventView, "抽一张石片决定挖掘位置");
+                Assert.That(eventView.ActivePanel.GetComponentInChildren<TabletopEventPrimaryCard3D>(true).DisplayName, Is.EqualTo("锈蚀葬坑"));
+                FindChoice(eventView, "抽一张石片决定挖掘位置").Clicked.Invoke();
+                yield return WaitUntil(() => sourceRandom.LastRequest.HasValue, "等待狩猎父事件抽牌请求超时。");
+                Assert.That(sourceRandom.LastRequest.Value.Kind, Is.EqualTo(TabletopRandomInteractionKind.DrawCards));
+                Assert.That(sourceRandom.LastRequest.Value.Count, Is.EqualTo(1));
+                Assert.That(sourceRandom.LastRequest.Value.Sides, Is.EqualTo(10));
+                yield return WaitForChoice(eventView, "接受结果");
+                FindChoice(eventView, "接受结果").Clicked.Invoke();
+                yield return WaitForChoice(eventView, "继续");
+
+                UnityEngine.Object.Destroy(eventView);
+                yield return null;
+                yield return WaitForCompletion(reveal);
+                Assert.That(reveal.GetResult().Succeeded, Is.False, "取消父事件结果确认后，原命令应失败但保留 checkpoint。");
+                RestorePatchedTile();
+                yield return WaitForPendingHuntEvent(persistence, child.ContentId);
+
+                CampaignSnapshot checkpoint = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+                Assert.That(checkpoint.HasActiveHunt, Is.True);
+                Assert.That(checkpoint.ActiveHunt.EventStore.CommittedSequences, Is.Not.Empty);
+                Assert.That(checkpoint.ActiveHunt.EventStore.PendingOccurrences.Count(occurrence => occurrence.EventId == child.ContentId), Is.EqualTo(1));
+                Assert.That(checkpoint.Settlement.GetResource("metal_fragment"), Is.Zero);
+                Assert.That(checkpoint.ActiveHunt.Collectibles.SelectMany(collectible => collectible.Items).Where(item => item.ItemId == "metal_fragment").Sum(item => item.Count), Is.EqualTo(1));
+                int checkpointSaveCount = persistence.Snapshots.Count;
+                UnityEngine.Object.Destroy(managerObject);
+                managerObject = null;
+                yield return null;
+
+                persistence.SnapshotToLoad = checkpoint;
+                var restoredRandom = new FixedTabletopInteraction(1);
+                GameManager restoredManager = CreateProductionManager(persistence, true, true, restoredRandom);
+                UniTask<CampaignStartupResult>.Awaiter restore = restoredManager.ContinueCampaignAsync().GetAwaiter();
+                yield return WaitForCompletion(restore);
+                Assert.That(restore.GetResult().Succeeded, Is.True, restore.GetResult().Reason);
+                Assert.That(restoredManager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
+                PlayableSettlementEventView restoredEventView = managerObject.GetComponent<PlayableSettlementEventView>();
+                UniTask<HuntRetreatCommandResult>.Awaiter retreat = restoredManager.RequestRetreatAsync().GetAwaiter();
+                yield return WaitForChoice(restoredEventView, "用一份金属碎片封住石片的缝隙");
+                FindChoice(restoredEventView, "用一份金属碎片封住石片的缝隙").Clicked.Invoke();
+                yield return WaitForChoice(restoredEventView, "继续");
+                FindChoice(restoredEventView, "继续").Clicked.Invoke();
+                yield return WaitForCompletion(retreat);
+                HuntRetreatCommandResult retreatResult = retreat.GetResult();
+                Assert.That(retreatResult.Succeeded, Is.True, retreatResult.Reason);
+                yield return WaitForSettlementIdle(restoredManager);
+                Assert.That(restoredRandom.RequestCount, Is.Zero, "恢复 child 的安全资源选项不应重放父事件骰子。");
+                CampaignSnapshot drainedCheckpoint = persistence.Snapshots.Skip(checkpointSaveCount).LastOrDefault(snapshot => snapshot?.HasActiveHunt == true && snapshot.ActiveHunt.EventStore?.PendingOccurrences?.Count == 0);
+                Assert.That(drainedCheckpoint, Is.Not.Null, "child 完成后缺少 pending 清空的活动 Hunt checkpoint。");
+                Assert.That(drainedCheckpoint.Settlement.GetResource("metal_fragment"), Is.Zero);
+                Assert.That(drainedCheckpoint.ActiveHunt.Collectibles.SelectMany(collectible => collectible.Items).Where(item => item.ItemId == "metal_fragment").Sum(item => item.Count), Is.Zero);
+                Assert.That(restoredManager.SettlementData.GetResource("metal_fragment"), Is.Zero);
+                Assert.That(restoredManager.SettlementData.PendingHuntReturn, Is.Null);
+                Assert.That(restoredEventView.ActivePanel == null || !restoredEventView.ActivePanel.IsOpen, Is.True);
+                Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
+            }
+            finally { RestorePatchedTile(); }
         }
 
         [UnityTest]
@@ -704,7 +807,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             CampaignSnapshot activeSnapshot = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
             Assert.That(activeSnapshot?.HasActiveHunt, Is.True);
 
-            Object.Destroy(managerObject);
+            UnityEngine.Object.Destroy(managerObject);
             managerObject = null;
             yield return null;
             string contentBundleId = activeSnapshot.ActiveHunt.ContentBundleId;
@@ -733,11 +836,11 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(restoredManager.ActiveHuntHunters, Has.Count.EqualTo(1));
         }
 
-        private GameManager CreateProductionManager(ICampaignPersistencePort persistence, bool deferStartup = false)
+        private GameManager CreateProductionManager(ICampaignPersistencePort persistence, bool deferStartup = false, bool useRealEventView = false, ITabletopRandomInteractionPresenter randomPresenter = null)
         {
+            PlayableBootstrapSettings settings = Resources.Load<PlayableBootstrapSettings>("HuntingInDarkness/PlayableBootstrapSettings");
             if (contentCandidate == null)
             {
-                PlayableBootstrapSettings settings = Resources.Load<PlayableBootstrapSettings>("HuntingInDarkness/PlayableBootstrapSettings");
                 Assert.That(settings, Is.Not.Null);
                 PlayableSymptomRuntime.Configure(settings.Symptoms);
                 Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out contentCandidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
@@ -752,9 +855,12 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             manager.ConfigureSettlementContent(contentCandidate.SettlementContent);
             manager.ConfigureWorkshopContent(contentCandidate.WorkshopContent);
             Assert.That(manager.ConfigurePlayableStartup(deferStartup), Is.True);
-            manager.SetPlayableEventInput(new ImmediateEventInput(() => manager.SettlementData));
-            Assert.That(manager.ConfigureTabletopInteraction(new ImmediateTabletopInteraction()), Is.True);
+            if (!useRealEventView)
+                manager.SetPlayableEventInput(new ImmediateEventInput(() => manager.SettlementData));
+            Assert.That(manager.ConfigureTabletopInteraction(randomPresenter ?? new ImmediateTabletopInteraction()), Is.True);
             Assert.That(manager.ConfigureCampaignPersistence(persistence), Is.True);
+            if (useRealEventView)
+                PlayableGameBootstrap.EnsureRequiredWorldSpacePorts(managerObject, manager, settings);
             managerObject.SetActive(true);
             Assert.That(manager.ConfigureCampaignPersistence(new MemoryCampaignPersistence()), Is.False, "Awake 后即使停用对象也不得替换持久化端口。");
             return manager;
@@ -765,6 +871,23 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             List<PlayableHuntDestination> destinations = destinationCatalog.GetAvailable(year);
             Assert.That(destinations, Is.Not.Empty, $"第 {year} 年缺少可用狩猎目的地。");
             return destinations[0];
+        }
+
+        private static CampaignSnapshot CreateYearThreeSettlementSnapshot()
+        {
+            var source = new SettlementManager(17);
+            source.EnsureStartingConditions();
+            source.Data.CurrentYear = 3;
+            source.Data.CurrentSeasonIndex = 0;
+            return new CampaignSnapshot { Settlement = source.Data, CampaignSchemaVersion = CampaignSnapshot.CurrentSchemaVersion };
+        }
+
+        private void RestorePatchedTile()
+        {
+            if (patchedTileConfig == null) return;
+            patchedTileConfig.tileRevealEvent = originalPatchedTileRevealEvent;
+            patchedTileConfig = null;
+            originalPatchedTileRevealEvent = null;
         }
 
         private void EnsureMainCamera()
@@ -782,6 +905,24 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             PlayableHexTileCard3D card = visualizer.GetComponentsInChildren<PlayableHexTileCard3D>(true).FirstOrDefault(candidate => candidate.gameObject.name == expectedName);
             Assert.That(card, Is.Not.Null, $"缺少地块实体 {expectedName}。");
             return card;
+        }
+
+        private static TabletopEventChoiceCard3D FindChoice(PlayableSettlementEventView view, string title) => view.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == title);
+
+        private static IEnumerator WaitForChoice(PlayableSettlementEventView view, string title)
+        {
+            yield return WaitUntil(() => view != null && view.ActivePanel != null && view.ActivePanel.IsOpen && view.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Any(card => card.IsInteractable && card.DisplayName == title), $"等待实体事件选项 {title} 超时。");
+        }
+
+        private static IEnumerator WaitUntil(Func<bool> condition, string message)
+        {
+            for (int frame = 0; frame < FrameTimeout; frame++)
+            {
+                if (condition())
+                    yield break;
+                yield return null;
+            }
+            Assert.Fail(message);
         }
 
         private static IEnumerator WaitForHuntInputReady()
@@ -850,6 +991,18 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 yield return null;
             }
             Assert.Fail("等待活动狩猎检查点持久化超时。");
+        }
+
+        private static IEnumerator WaitForPendingHuntEvent(MemoryCampaignPersistence persistence, string eventId)
+        {
+            for (int frame = 0; frame < FrameTimeout; frame++)
+            {
+                CampaignSnapshot snapshot = string.IsNullOrWhiteSpace(persistence.Payload) ? null : JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+                if (snapshot?.HasActiveHunt == true && snapshot.ActiveHunt.EventStore?.PendingOccurrences?.Count(occurrence => occurrence.EventId == eventId) == 1)
+                    yield break;
+                yield return new WaitForFixedUpdate();
+            }
+            Assert.Fail($"等待狩猎事件 checkpoint 持久化超时：{eventId}。");
         }
 
         private static IEnumerator WaitForPersistedEquipment(MemoryCampaignPersistence persistence, int hunterId, string itemId)
@@ -994,6 +1147,31 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             }
         }
 
+        private sealed class FixedTabletopInteraction : ITabletopRandomInteractionPresenter
+        {
+            private readonly int value;
+
+            public FixedTabletopInteraction(int value) => this.value = value;
+
+            public int RequestCount { get; private set; }
+            public TabletopRandomInteractionRequest? LastRequest { get; private set; }
+
+            public UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
+            {
+                RequestCount++;
+                LastRequest = request;
+                var values = new List<int>(request.Count);
+                var cardIds = new List<string>(request.Count);
+                for (int index = 0; index < request.Count; index++)
+                {
+                    values.Add(value);
+                    if (request.Kind != TabletopRandomInteractionKind.PhysicalDice)
+                        cardIds.Add($"{request.DeckId}:{index}");
+                }
+                return UniTask.FromResult(new TabletopRandomInteractionResult(request.InteractionId, values, cardIds));
+            }
+        }
+
         private sealed class MemoryCampaignPersistence : ICampaignPersistencePort
         {
             public bool RejectPendingReturn { get; set; }
@@ -1037,7 +1215,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 return true;
             }
 
-            public UniTask<bool> HasSaveAsync(CancellationToken cancellationToken = default) => UniTask.FromResult(!string.IsNullOrWhiteSpace(Payload));
+            public UniTask<bool> HasSaveAsync(CancellationToken cancellationToken = default) => UniTask.FromResult(SnapshotToLoad != null || !string.IsNullOrWhiteSpace(Payload));
 
             public UniTask<CampaignSnapshot> LoadAsync(CancellationToken cancellationToken = default)
             {
