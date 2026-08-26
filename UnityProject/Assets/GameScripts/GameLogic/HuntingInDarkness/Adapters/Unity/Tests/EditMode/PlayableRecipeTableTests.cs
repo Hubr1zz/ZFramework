@@ -158,6 +158,7 @@ namespace HuntingInDarkness.Adapter.Tests
             settlement.AddResource(sap, 1);
             settlement.AddResource(organ, 1);
             settlement.UnlockInvention(tools.ContentId);
+            settlement.BuildWorkshop(recipe.requiredWorkshopId);
             var workshop = new WorkshopSystem(settlement, new InventionSystem(settlement)) { AllRecipes = new List<CraftRecipe>(recipes) };
             using var session = new PlayableSettlementActionSession(settlement, new EmptyWeaponTrainingContent(), workshopSystem: workshop);
 
@@ -167,6 +168,37 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(settlement.GetResource("mushroom_flesh"), Is.Zero);
             Assert.That(settlement.GetResource("soft_organ"), Is.Zero);
             Assert.That(settlement.GetStoredEquipment("fungal_hush_wrap"), Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task RuntimeStoneForestArmor_RequiresBuiltWorkshopAndCommitsEquipment()
+        {
+            List<ItemData> items = CreateRuntimeRecipeItems();
+            ItemData whiteHair = items.Find(item => item.ContentId == "white_hair");
+            ItemData dustMite = items.Find(item => item.ContentId == "dust_mite");
+            ItemData sap = items.Find(item => item.ContentId == "viscous_sap");
+            InventionData tools = CreateInvention("tools", "工具");
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
+            CraftRecipe recipe = FindRecipe(recipes, "缝制尘螨静息兜帽");
+            var settlement = new SettlementInstance();
+            settlement.AddResource(whiteHair, 1);
+            settlement.AddResource(dustMite, 2);
+            settlement.AddResource(sap, 1);
+            settlement.UnlockInvention(tools.ContentId);
+            var workshop = new WorkshopSystem(settlement, new InventionSystem(settlement)) { AllRecipes = new List<CraftRecipe>(recipes) };
+            using var session = new PlayableSettlementActionSession(settlement, new EmptyWeaponTrainingContent(), workshopSystem: workshop);
+
+            SettlementCraftCommandResult blocked = await session.CraftAsync(recipe);
+            settlement.BuildWorkshop("armor_workshop");
+            SettlementCraftCommandResult result = await session.CraftAsync(recipe);
+
+            Assert.That(blocked.Succeeded, Is.False);
+            Assert.That(blocked.Reason, Does.Contain("armor_workshop"));
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(settlement.GetResource("white_hair"), Is.Zero);
+            Assert.That(settlement.GetResource("dust_mite"), Is.Zero);
+            Assert.That(settlement.GetResource("viscous_sap"), Is.Zero);
+            Assert.That(settlement.GetStoredEquipment("mite_hush_hood"), Is.EqualTo(1));
         }
 
         [Test]

@@ -52,7 +52,7 @@
       "outputItemId": "fungal_hush_wrap",
       "outputCount": 1,
       "requiredInventionId": "tools",
-      "requiredWorkshopId": ""
+      "requiredWorkshopId": "armor_workshop"
     },
     {
       "id": "bind_echo_hook_spear",
@@ -88,7 +88,7 @@
       "outputItemId": "stonewatch_mantle",
       "outputCount": 1,
       "requiredInventionId": "tools",
-      "requiredWorkshopId": ""
+      "requiredWorkshopId": "armor_workshop"
     },
     {
       "id": "bind_bone_saw_blade",
@@ -122,6 +122,86 @@
         }
       ],
       "outputItemId": "carapace_bracer",
+      "outputCount": 1,
+      "requiredInventionId": "tools",
+      "requiredWorkshopId": "armor_workshop"
+    },
+    {
+      "id": "sew_mite_hush_hood",
+      "recipeName": "缝制尘螨静息兜帽",
+      "ingredients": [
+        {
+          "itemId": "white_hair",
+          "count": 1
+        },
+        {
+          "itemId": "dust_mite",
+          "count": 2
+        },
+        {
+          "itemId": "viscous_sap",
+          "count": 1
+        }
+      ],
+      "outputItemId": "mite_hush_hood",
+      "outputCount": 1,
+      "requiredInventionId": "tools",
+      "requiredWorkshopId": "armor_workshop"
+    },
+    {
+      "id": "bind_rootstep_greaves",
+      "recipeName": "绑制根步护腿",
+      "ingredients": [
+        {
+          "itemId": "bulbous_root",
+          "count": 2
+        },
+        {
+          "itemId": "hair",
+          "count": 1
+        }
+      ],
+      "outputItemId": "rootstep_greaves",
+      "outputCount": 1,
+      "requiredInventionId": "tools",
+      "requiredWorkshopId": "armor_workshop"
+    },
+    {
+      "id": "shape_rust_hook_knife",
+      "recipeName": "弯制锈钩短刀",
+      "ingredients": [
+        {
+          "itemId": "metal_fragment",
+          "count": 1
+        },
+        {
+          "itemId": "viscous_sap",
+          "count": 1
+        }
+      ],
+      "outputItemId": "rust_hook_knife",
+      "outputCount": 1,
+      "requiredInventionId": "tools",
+      "requiredWorkshopId": ""
+    },
+    {
+      "id": "bind_relic_maul",
+      "recipeName": "绑制遗石重槌",
+      "ingredients": [
+        {
+          "itemId": "ancient_stone_chip",
+          "count": 2
+        },
+        {
+          "itemId": "broken_stone",
+          "count": 1
+        },
+        {
+          "itemId": "hair",
+          "count": 1
+        }
+      ],
+      "outputItemId": "relic_maul",
       "outputCount": 1,
       "requiredInventionId": "tools",
       "requiredWorkshopId": ""

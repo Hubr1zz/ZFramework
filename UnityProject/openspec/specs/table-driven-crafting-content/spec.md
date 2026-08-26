@@ -52,8 +52,16 @@ The baseline content SHALL include a table-defined equipment recipe whose ingred
 - **THEN** the reward becomes an equippable armor card carrying the configured ritual and ward keywords
 
 ### Requirement: Stone Forest harvest feeds baseline equipment choices
-The production content SHALL expose stable mixed resource points across the Stone Forest route and SHALL include table-defined weapon and armor recipes whose required materials can be obtained through those existing Hunt harvest points. These additions SHALL reuse the existing 3D harvest cards, workshop cards, and phase ActionQueues without introducing content-specific Views.
+The production content SHALL expose stable mixed resource points across the Stone Forest route and SHALL include table-defined weapon and armor recipes whose required materials can be obtained through those existing Hunt harvest points. Armor recipes that require specialized processing SHALL name the configured armor workshop and remain unavailable until it is built. These additions SHALL reuse the existing 3D harvest cards, workshop cards, and phase ActionQueues without introducing content-specific Views.
 
 #### Scenario: The squad returns with common Stone Forest materials
 - **WHEN** the settlement owns the configured bone, sap, carapace, or hair ingredients and satisfies the recipe prerequisite
 - **THEN** the existing workshop flow can atomically convert them into the configured weapon or armor card
+
+#### Scenario: The player attempts specialized armor before construction
+- **GIVEN** the Tools invention is mastered and all recipe materials are present
+- **BUT** the armor workshop has not been built
+- **WHEN** the player submits a specialized armor recipe
+- **THEN** the Settlement ActionQueue rejects it without consuming resources
+- **WHEN** the armor workshop is built and the same recipe is submitted again
+- **THEN** the materials are consumed once and the armor enters equipment storage

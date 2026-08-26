@@ -222,6 +222,66 @@
       },
       "stackLimit": 1,
       "huntNoise": 0
+    },
+    {
+      "id": "mite_hush_hood",
+      "itemName": "尘螨静息兜帽",
+      "itemType": "Armor",
+      "description": "以白色发丝缝成兜帽，将磨碎的尘螨封在夹层中；气味使佩戴者保持清醒，也吸收细碎摩擦声。",
+      "tags": ["Gear", "Cloth", "Organ"],
+      "keywords": ["quiet", "stimulant"],
+      "armorStats": {
+        "armorHead": 1
+      },
+      "stackLimit": 1,
+      "huntNoise": -1
+    },
+    {
+      "id": "rootstep_greaves",
+      "itemName": "根步护腿",
+      "itemType": "Armor",
+      "description": "将球状根茎切片后夹入毛发绑带，柔软组织会随脚步收缩，减少石地上的碰撞声。",
+      "tags": ["Gear", "Cloth", "Herb", "Organ"],
+      "keywords": ["herb", "padded", "living"],
+      "armorStats": {
+        "armorLegs": 1
+      },
+      "stackLimit": 1,
+      "huntNoise": -1
+    },
+    {
+      "id": "rust_hook_knife",
+      "itemName": "锈钩短刀",
+      "itemType": "Weapon",
+      "description": "把暗色金属碎片弯成双钩后固定在短柄上，适合快速勾开甲壳与纤维。",
+      "tags": ["Gear", "Weapon", "Mineral"],
+      "keywords": ["metal", "hook", "serrated"],
+      "weaponStats": {
+        "speed": 2,
+        "power": 1,
+        "accuracy": 1,
+        "range": 1,
+        "specialRule": "金属、钩与锯齿词条可解锁拆解类事件选项。"
+      },
+      "stackLimit": 1,
+      "huntNoise": 1
+    },
+    {
+      "id": "relic_maul",
+      "itemName": "遗石重槌",
+      "itemType": "Weapon",
+      "description": "以古老石屑包覆碎石锤头制成的沉重武器，挥动缓慢，却能把旧石层一并震裂。",
+      "tags": ["Gear", "Weapon", "Stone", "Rare"],
+      "keywords": ["stone", "relic", "heavy"],
+      "weaponStats": {
+        "speed": 1,
+        "power": 3,
+        "accuracy": -1,
+        "range": 1,
+        "specialRule": "石、遗物与沉重词条可解锁遗迹类事件选项。"
+      },
+      "stackLimit": 1,
+      "huntNoise": 1
     }
   ]
 }

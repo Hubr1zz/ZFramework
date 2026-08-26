@@ -143,12 +143,24 @@ namespace HuntingInDarkness.Adapter.Tests
 
             ItemData blade = FindRuntimeItem("bone_saw_blade");
             ItemData bracer = FindRuntimeItem("carapace_bracer");
+            ItemData hood = FindRuntimeItem("mite_hush_hood");
+            ItemData greaves = FindRuntimeItem("rootstep_greaves");
+            ItemData knife = FindRuntimeItem("rust_hook_knife");
+            ItemData maul = FindRuntimeItem("relic_maul");
             Assert.That(blade, Is.Not.Null);
             Assert.That(blade.itemType, Is.EqualTo(ItemType.Weapon));
             Assert.That(blade.weaponStats.speed, Is.EqualTo(2));
             Assert.That(bracer, Is.Not.Null);
             Assert.That(bracer.itemType, Is.EqualTo(ItemType.Armor));
             Assert.That(bracer.armorStats.armorArms, Is.EqualTo(1));
+            Assert.That(hood.armorStats.armorHead, Is.EqualTo(1));
+            Assert.That(hood.HuntNoise, Is.EqualTo(-1));
+            Assert.That(greaves.armorStats.armorLegs, Is.EqualTo(1));
+            Assert.That(greaves.HuntNoise, Is.EqualTo(-1));
+            Assert.That(knife.weaponStats.accuracy, Is.EqualTo(1));
+            Assert.That(knife.keywords, Does.Contain("serrated"));
+            Assert.That(maul.weaponStats.power, Is.EqualTo(3));
+            Assert.That(maul.keywords, Does.Contain("relic"));
         }
 
         [Test]

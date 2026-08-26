@@ -64,9 +64,10 @@ The configured starter content SHALL offer multiple equipment outcomes that cons
 
 #### Scenario: The player returns with fungal materials
 - **GIVEN** the Tools invention is mastered
-- **AND** the settlement owns mushroom flesh and a soft organ
+- **AND** the armor workshop is built
+- **AND** the settlement owns mushroom flesh, viscous sap, and a soft organ
 - **WHEN** the player crafts the configured fungal wrap from its physical recipe card
-- **THEN** both Hunt materials are consumed atomically
+- **THEN** all Hunt materials are consumed atomically
 - **AND** a quiet armor instance enters equipment storage for the next departure
 
 #### Scenario: The player chooses a louder weapon

@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "4f95459fc2994543c4e8bd7a7a68fcec9f7cef83c8ce6a0fe37f1f1feaaadb6d",
-  "inputManifestDigest": "bbec37b7fbe3f6d10c17485fca4d18b278fb7b099f25a4b8fd84e78212284a82",
-  "outputDigest": "89e31510f1027e65066307c307c04a70a26611973e9962fbef5279ecdd4754cf",
+  "inputDigest": "90f7b6e330ee4a229cd55a25e5d94b035364d4cbdfdc1fac7e442582f966bd24",
+  "inputManifestDigest": "2b2528e7ecfc3ae1c389a68740859db87cd37672fda8bfee49fbd7e5116fef8b",
+  "outputDigest": "a4bf3397a589b062fe6082d971b85bed5553a869cf707c80b52e94e2ee651dfb",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -497,12 +497,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
-      "sha256": "4263fd352a8a9a02fc775f23f9c89e694da91322cc756c6020bdbb1573a745f0",
+      "sha256": "a953cfcbeeb556c23194fe79eedbd664ca6edfcd28fcabad457cbdcd9ebea0c1",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-      "sha256": "2f141715fbe823b91fda192bf96732a9f5feb6a7ff69be01b56385cd563f5b25",
+      "sha256": "e461b2c9349c1745bc057090ecfff797f93fdc45e9dac9b17a51972188f25582",
       "state": "current"
     },
     {
@@ -742,12 +742,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
-      "sha256": "364a6b8afeb2f766af6dbf663c542b23a3751dd89a300d45ffb0216cef389fc8",
+      "sha256": "e9376f4bfbc3b217a20b50e514146549afa1832b64d900953130aca44a48a6f0",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
-      "sha256": "b8030e1ce0fcf51d2e1437ff332d170f26ac4d871227a19dc33a08456b08de7a",
+      "sha256": "434ee771fbeba2f5b9a1c8cb3e48dc2bcca74c4b0852801cd6d4300c2172dbd9",
       "state": "current"
     },
     {
@@ -1217,7 +1217,7 @@
     },
     {
       "path": "openspec/specs/settlement-content-plan-lifecycle/implementation.json",
-      "sha256": "af4377639fb7633c16b4bf3a0c0013d29c34ef13fdfef4f75d2b039f8a8b96d5",
+      "sha256": "d86c5da859346c887ef83de95a98f28bb70efac1bab1e4f1f6ccd2fc0eb45ac5",
       "state": "current"
     },
     {
@@ -1247,12 +1247,12 @@
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/implementation.json",
-      "sha256": "4a9d48cde93a4ff2502e99f88211968e9052eb479612268c12da7808b72fbbbe",
+      "sha256": "5bb908fe950efc832a6e29aac1aa110eee715c18177c83585a501e79b7a8b19e",
       "state": "current"
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/spec.md",
-      "sha256": "ae50601ac43149a843e1b1fea0141f9ff53efb03050b87ca82f32258cf6e71a0",
+      "sha256": "e098864d2e9ac316a2707a92cc57f2913234f43d64c875457be29639a61e3967",
       "state": "current"
     },
     {
@@ -1267,12 +1267,12 @@
     },
     {
       "path": "openspec/specs/table-driven-crafting-content/implementation.json",
-      "sha256": "2a1cd23609a432e7ea845b932eb1f847361d554eef1aaa81f1383857e03762be",
+      "sha256": "1c9d9f58059aefa74dcb67aa26e1d5ebbddb8db6f3aa67d18f0d889b94d54213",
       "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-crafting-content/spec.md",
-      "sha256": "b922c98242a31917d368bfe08bd4a18921b68240c0227b4c2f0d246a5036d064",
+      "sha256": "33eaddef6c573cd08d708001b12544f82b0218af8fd6fe5c1c9f39b1e17d6f61",
       "state": "current"
     },
     {
@@ -1347,7 +1347,7 @@
     },
     {
       "path": "openspec/specs/table-driven-item-keywords/implementation.json",
-      "sha256": "07b9b0a45c3ee7ba93185c84c3014b2cfa69d7f43b1bf31bdfdbe2d4f2901360",
+      "sha256": "b39338ee67fa7c52d3e4fb32d8cd0cfb01888b37b4e1e3db03583277416321da",
       "state": "current"
     },
     {
@@ -3003,7 +3003,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，五条基础装备路线把狩猎素材转化为噪音、距离与事件词条取向的下一轮构筑。",
+      "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，护甲路线要求已建护甲工坊并与武器路线形成下一轮构筑选择。",
       "designSources": [],
       "sources": [
         "openspec/specs/settlement-workshop-crafting/spec.md",
@@ -3076,7 +3076,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；石森林采集素材可被原子消费并制造为基础武器与护甲。",
+      "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；石森林素材可制造十一种基础路线，专门护甲必须先建护甲工坊。",
       "designSources": [],
       "sources": [
         "openspec/specs/table-driven-crafting-content/spec.md",

@@ -94,9 +94,9 @@
         "guid": "fe099c7b81392504dbdb631b0d972301",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
         "line": 1,
-        "fileHash": "4263fd352a8a9a02fc775f23f9c89e694da91322cc756c6020bdbb1573a745f0",
+        "fileHash": "a953cfcbeeb556c23194fe79eedbd664ca6edfcd28fcabad457cbdcd9ebea0c1",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:15:26-07:00",
+        "checkedAt": "2026-08-25T18:37:36-07:00",
         "feature": "验证缺少显式稳定 ID 的表物品无法进入战役计划。"
       }
     ],

@@ -33,23 +33,23 @@
         "guid": "fe099c7b81392504dbdb631b0d972301",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemTableTests.cs",
         "line": 1,
-        "fileHash": "4263fd352a8a9a02fc775f23f9c89e694da91322cc756c6020bdbb1573a745f0",
+        "fileHash": "a953cfcbeeb556c23194fe79eedbd664ca6edfcd28fcabad457cbdcd9ebea0c1",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:15:26-07:00",
+        "checkedAt": "2026-08-25T18:37:36-07:00",
         "feature": "覆盖生产表加载、稳定身份、重复内容拒绝、装备数据及关键词归一化。"
       },
       {
         "guid": "8c2b910c19609904ea5a547a1ec3d80d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
         "line": 1,
-        "fileHash": "364a6b8afeb2f766af6dbf663c542b23a3751dd89a300d45ffb0216cef389fc8",
+        "fileHash": "e9376f4bfbc3b217a20b50e514146549afa1832b64d900953130aca44a48a6f0",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:15:26-07:00",
+        "checkedAt": "2026-08-25T18:37:36-07:00",
         "feature": "提供可被事件奖励、制作和装备闭环消费的资源及三种不同狩猎噪音取向装备。"
       }
     ],
     "tests": [
-      "PlayableItemTableTests: 7/7 passed",
+      "PlayableItemTableTests: 8/8 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
     ],
     "verifiedAt": "2026-08-25T15:30:16-07:00"

@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "settlement-workshop-crafting",
-  "specHash": "ae50601ac43149a843e1b1fea0141f9ff53efb03050b87ca82f32258cf6e71a0",
+  "specHash": "e098864d2e9ac316a2707a92cc57f2913234f43d64c875457be29639a61e3967",
   "title": "营地桌面工坊制作",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，五条基础装备路线把狩猎素材转化为噪音、距离与事件词条取向的下一轮构筑。",
-    "validatedAgainstSpecHash": "ae50601ac43149a843e1b1fea0141f9ff53efb03050b87ca82f32258cf6e71a0",
+    "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；Settlement runner 串行重验工坊、解锁和资源，护甲路线要求已建护甲工坊并与武器路线形成下一轮构筑选择。",
+    "validatedAgainstSpecHash": "e098864d2e9ac316a2707a92cc57f2913234f43d64c875457be29639a61e3967",
     "evidence": [
       {
         "guid": "59e65c28f501e7944b628d6f642a2c36",
@@ -60,19 +60,19 @@
         "guid": "156c7bea2196d0047b84b06aa2342495",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
         "line": 1,
-        "fileHash": "b8030e1ce0fcf51d2e1437ff332d170f26ac4d871227a19dc33a08456b08de7a",
+        "fileHash": "434ee771fbeba2f5b9a1c8cb3e48dc2bcca74c4b0852801cd6d4300c2172dbd9",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:15:26-07:00",
-        "feature": "以稳定 ID 配置护符、盐晶短刃和菌绒裹衣三条基础制作路线。"
+        "checkedAt": "2026-08-25T18:37:36-07:00",
+        "feature": "以稳定 ID 配置十一条基础制作路线，专门护甲配方绑定护甲工坊。"
       },
       {
         "guid": "b03cbb7b8c779d242836d8385b31e05b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
         "line": 1,
-        "fileHash": "2f141715fbe823b91fda192bf96732a9f5feb6a7ff69be01b56385cd563f5b25",
+        "fileHash": "e461b2c9349c1745bc057090ecfff797f93fdc45e9dac9b17a51972188f25582",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:15:26-07:00",
-        "feature": "验证混合来源素材、工具发明门禁和菌绒裹衣通过 Settlement ActionQueue 原子制作。"
+        "checkedAt": "2026-08-25T18:37:36-07:00",
+        "feature": "验证混合来源素材、工具发明、护甲工坊门禁及失败后无消耗的原子制作。"
       },
       {
         "guid": "51ab18b0adfd7b741b20d0600364ade2",
@@ -86,13 +86,12 @@
     ],
     "tests": [
       "PlayableSettlementCraftActionTests: 4/4 passed",
-      "PlayableRecipeTableTests: 7/7 passed",
-      "PlayableItemTableTests: 7/7 passed",
+      "Stone Forest crafting content cluster: 37/37 passed",
       "PlayableEquipmentRulesTests: 4/4 passed",
       "PlayableHuntNoiseActionTests: 7/7 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
     ],
-    "verifiedAt": "2026-08-25T15:30:16-07:00"
+    "verifiedAt": "2026-08-25T18:37:36-07:00"
   },
   "implementationOutline": [
     "WorkshopZone 从配置目录生成工坊和配方实体卡，View 不消费资源或创建产物。",
