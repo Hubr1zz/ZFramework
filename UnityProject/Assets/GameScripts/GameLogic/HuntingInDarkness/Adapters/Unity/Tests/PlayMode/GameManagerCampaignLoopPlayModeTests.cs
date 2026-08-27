@@ -644,6 +644,127 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator MushroomForest_Real3DScoutResolvesFungalWhisperAndRestoresCompletedCheckpoint()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            EnsureMainCamera();
+            yield return WaitForSettlementIdle(manager);
+            int hunterId = manager.SettlementData.GetAliveHunters()[0].InstanceId;
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { hunterId }, GetDestination(manager.SettlementData.CurrentYear)).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            Assert.That(departure.GetResult().Succeeded, Is.True, departure.GetResult().Reason);
+            yield return WaitForHuntInputReady();
+            yield return WaitForActiveHuntSnapshot(persistence);
+
+            CampaignSnapshot fixture = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+            ActiveHuntTileSnapshot fixtureTile = fixture.ActiveHunt.Tiles.FirstOrDefault(tile => tile.State == TileState.Interactable && !tile.HasBossEncounter);
+            Assert.That(fixtureTile, Is.Not.Null, "正式路线缺少可用于蘑菇林恢复夹具的安全相邻地块。");
+            fixtureTile.TileId = "mushroom_forest";
+            fixtureTile.HasBossEncounter = false;
+            fixtureTile.ResourcePoints.Clear();
+            int committedSequenceBaseline = fixture.ActiveHunt.EventStore.CommittedSequences.Count;
+            UnityEngine.Object.Destroy(managerObject);
+            managerObject = null;
+            yield return null;
+
+            persistence.SnapshotToLoad = fixture;
+            manager = CreateProductionManager(persistence, true, true, useProductionTabletopInteraction: true);
+            UniTask<CampaignStartupResult>.Awaiter restoreFixture = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(restoreFixture);
+            Assert.That(restoreFixture.GetResult().Succeeded, Is.True, restoreFixture.GetResult().Reason);
+            Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
+            yield return WaitForHuntInputReady();
+
+            var coordinate = new Vector2Int(fixtureTile.X, fixtureTile.Y);
+            HuntManager huntManager = manager.ActiveHuntRuntime.Manager;
+            HexTileInstance targetTile = huntManager.Map[coordinate];
+            Assert.That(targetTile.Config.ContentId, Is.EqualTo("mushroom_forest"));
+            Assert.That(targetTile.Config.tileRevealEvent?.ContentId, Is.EqualTo("hunt_fungal_whisper"));
+            HuntMapVisualizer visualizer = managerObject.GetComponentInChildren<HuntMapVisualizer>(true);
+            PlayableHexTileCard3D tileCard = FindTileCard(visualizer, coordinate);
+            TileClickHandler clickHandler = tileCard.GetComponent<TileClickHandler>();
+            Assert.That(clickHandler, Is.Not.Null);
+            PlayableSettlementEventView eventView = managerObject.GetComponent<PlayableSettlementEventView>();
+            Assert.That(eventView, Is.Not.Null);
+
+            clickHandler.SendMessage("OnMouseDown", SendMessageOptions.RequireReceiver);
+            HuntTileScoutPanel3D scoutPanel = visualizer.GetComponentInChildren<HuntTileScoutPanel3D>(true);
+            Assert.That(scoutPanel, Is.Not.Null);
+            Assert.That(scoutPanel.IsOpen, Is.True);
+            Assert.That(scoutPanel.Coordinate, Is.EqualTo(coordinate));
+            Assert.That(PlayableHuntInputGuard.IsBlocked, Is.True);
+            Assert.That(eventView.ActivePanel == null || !eventView.ActivePanel.IsOpen, Is.True, "侦察确认前不得泄露正式事件卡。");
+            scoutPanel.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == "取消").Clicked.Invoke();
+            Assert.That(targetTile.State, Is.EqualTo(TileState.Interactable));
+            Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
+            yield return null;
+
+            clickHandler.SendMessage("OnMouseDown", SendMessageOptions.RequireReceiver);
+            SetPrivateField(tileCard, "flipDuration", 0f);
+            scoutPanel.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == "翻开地块").Clicked.Invoke();
+            yield return WaitForChoice(eventView, "停下辨认菌丝的生长方向");
+            Assert.That(eventView.ActivePanel.GetComponentInChildren<TabletopEventPrimaryCard3D>(true).DisplayName, Is.EqualTo("孢子雾中的脚步"));
+            Assert.That(tileCard.IsFaceUp, Is.True);
+            Assert.That(tileCard.IsFlipping, Is.False);
+            int lockedNeighborCount = HexMapGenerator.GetNeighbors(coordinate).Count(position => huntManager.Map.TryGetValue(position, out HexTileInstance neighbor) && neighbor.State == TileState.Locked);
+            Assert.That(lockedNeighborCount, Is.GreaterThan(0), "事件结果提交前至少应保留一个未解锁邻居。");
+            HunterInstance activeHunter = manager.ActiveHuntHunters.Single();
+            int understanding = activeHunter.Understanding;
+            int previousWillpower = activeHunter.Willpower;
+            int previousMushroomCount = activeHunter.Collectibles.Where(item => item?.Data?.ContentId == "mushroom_flesh").Sum(item => item.Count);
+            FindChoice(eventView, "停下辨认菌丝的生长方向").Clicked.Invoke();
+            yield return WaitForChoiceRealtime(eventView, "接受结果", 12f);
+            PhysicalDiceTabletopPresenter dicePresenter = managerObject.GetComponent<PhysicalDiceTabletopPresenter>();
+            Assert.That(dicePresenter.LastCompletedResult, Is.Not.Null);
+            Assert.That(dicePresenter.LastCompletedResult.Values, Has.Count.EqualTo(1));
+            Assert.That(dicePresenter.LastCompletedResult.InteractionId, Does.StartWith("event:hunt_fungal_whisper:").And.Contain(":initial:"));
+            EventOption selectedOption = targetTile.Config.tileRevealEvent.options.Single(option => option.optionText == "停下辨认菌丝的生长方向");
+            int rollValue = dicePresenter.LastCompletedResult.Values.Single();
+            bool expectedSuccess = PlayableEventCheckRules.IsSuccessful(selectedOption, rollValue, understanding);
+            FindChoice(eventView, "接受结果").Clicked.Invoke();
+            yield return WaitForChoice(eventView, "继续");
+            int checkpointBaseline = persistence.Snapshots.Count;
+            FindChoice(eventView, "继续").Clicked.Invoke();
+
+            yield return WaitForCompletedMushroomCheckpoint(persistence, checkpointBaseline, coordinate);
+            CampaignSnapshot completed = persistence.Snapshots.Skip(checkpointBaseline).Last(snapshot => snapshot?.HasActiveHunt == true && snapshot.ActiveHunt.Tiles.Any(tile => tile.X == coordinate.x && tile.Y == coordinate.y && tile.State == TileState.Revealed));
+            int currentMushroomCount = activeHunter.Collectibles.Where(item => item?.Data?.ContentId == "mushroom_flesh").Sum(item => item.Count);
+            bool succeeded = currentMushroomCount == previousMushroomCount + 1;
+            Assert.That(succeeded, Is.EqualTo(expectedSuccess), "实体骰结果、知识加值与事件分支必须一致。");
+            if (expectedSuccess)
+            {
+                Assert.That(activeHunter.Willpower, Is.EqualTo(previousWillpower));
+            }
+            else
+            {
+                Assert.That(currentMushroomCount, Is.EqualTo(previousMushroomCount));
+                Assert.That(activeHunter.Willpower, Is.EqualTo(previousWillpower - 1), "蘑菇林失败分支必须提交意志代价。");
+            }
+            Assert.That(HexMapGenerator.GetNeighbors(coordinate).Any(position => huntManager.Map.TryGetValue(position, out HexTileInstance neighbor) && neighbor.State == TileState.Interactable), Is.True, "事件完成后应解锁相邻地块。");
+            Assert.That(completed.ActiveHunt.EventStore.PendingOccurrences, Is.Empty);
+            Assert.That(completed.ActiveHunt.EventStore.CommittedSequences, Has.Count.EqualTo(committedSequenceBaseline + 1), "蘑菇林 occurrence 必须精确提交一次。");
+            Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
+
+            UnityEngine.Object.Destroy(managerObject);
+            managerObject = null;
+            yield return null;
+            persistence.SnapshotToLoad = completed;
+            GameManager restored = CreateProductionManager(persistence, true, true, useProductionTabletopInteraction: true);
+            UniTask<CampaignStartupResult>.Awaiter restoreCompleted = restored.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(restoreCompleted);
+            Assert.That(restoreCompleted.GetResult().Succeeded, Is.True, restoreCompleted.GetResult().Reason);
+            yield return WaitForHuntInputReady();
+            PlayableSettlementEventView restoredView = managerObject.GetComponent<PlayableSettlementEventView>();
+            Assert.That(restoredView.ActivePanel == null || !restoredView.ActivePanel.IsOpen, Is.True, "已完成的蘑菇林事件不得在恢复时重放。");
+            HunterInstance restoredHunter = restored.ActiveHuntHunters.Single();
+            Assert.That(restoredHunter.Willpower, Is.EqualTo(activeHunter.Willpower));
+            Assert.That(restoredHunter.Collectibles.Where(item => item?.Data?.ContentId == "mushroom_flesh").Sum(item => item.Count), Is.EqualTo(currentMushroomCount));
+            Assert.That(restored.ActiveHuntRuntime.ActionSession.CaptureOccurrenceState().CommittedSequences, Has.Count.EqualTo(committedSequenceBaseline + 1));
+            Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
+        }
+
+        [UnityTest]
         public IEnumerator HuntEventParentChild_PersistsCheckpointAcrossManagerRebuildAndUsesRealCards()
         {
             var persistence = new MemoryCampaignPersistence();
@@ -1114,7 +1235,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(restoredManager.ActiveHuntHunters, Has.Count.EqualTo(1));
         }
 
-        private GameManager CreateProductionManager(ICampaignPersistencePort persistence, bool deferStartup = false, bool useRealEventView = false, ITabletopRandomInteractionPresenter randomPresenter = null)
+        private GameManager CreateProductionManager(ICampaignPersistencePort persistence, bool deferStartup = false, bool useRealEventView = false, ITabletopRandomInteractionPresenter randomPresenter = null, bool useProductionTabletopInteraction = false)
         {
             PlayableBootstrapSettings settings = Resources.Load<PlayableBootstrapSettings>("HuntingInDarkness/PlayableBootstrapSettings");
             if (contentCandidate == null)
@@ -1135,7 +1256,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(manager.ConfigurePlayableStartup(deferStartup), Is.True);
             if (!useRealEventView)
                 manager.SetPlayableEventInput(new ImmediateEventInput(() => manager.SettlementData));
-            Assert.That(manager.ConfigureTabletopInteraction(randomPresenter ?? new ImmediateTabletopInteraction()), Is.True);
+            if (!useProductionTabletopInteraction)
+                Assert.That(manager.ConfigureTabletopInteraction(randomPresenter ?? new ImmediateTabletopInteraction()), Is.True);
             Assert.That(manager.ConfigureCampaignPersistence(persistence), Is.True);
             if (useRealEventView)
                 PlayableGameBootstrap.EnsureRequiredWorldSpacePorts(managerObject, manager, settings);
@@ -1207,6 +1329,17 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         private static IEnumerator WaitForChoice(PlayableSettlementEventView view, string title)
         {
             yield return WaitUntil(() => view != null && view.ActivePanel != null && view.ActivePanel.IsOpen && view.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Any(card => card.IsInteractable && card.DisplayName == title), $"等待实体事件选项 {title} 超时。");
+        }
+
+        private static IEnumerator WaitForChoiceRealtime(PlayableSettlementEventView view, string title, float timeoutSeconds)
+        {
+            float deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                if (view != null && view.ActivePanel != null && view.ActivePanel.IsOpen && view.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Any(card => card.IsInteractable && card.DisplayName == title)) yield break;
+                yield return null;
+            }
+            Assert.Fail($"等待实体事件选项 {title} 超时。");
         }
 
         private static IEnumerator WaitUntil(Func<bool> condition, string message)
@@ -1298,6 +1431,22 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 yield return new WaitForFixedUpdate();
             }
             Assert.Fail($"等待狩猎事件 checkpoint 持久化超时：{eventId}。");
+        }
+
+        private static IEnumerator WaitForCompletedMushroomCheckpoint(MemoryCampaignPersistence persistence, int minimumSnapshotCount, Vector2Int coordinate)
+        {
+            for (int frame = 0; frame < FrameTimeout; frame++)
+            {
+                if (persistence.Snapshots.Count > minimumSnapshotCount)
+                {
+                    CampaignSnapshot snapshot = persistence.Snapshots[^1];
+                    bool tileCommitted = snapshot?.HasActiveHunt == true && snapshot.ActiveHunt.Tiles.Any(tile => tile.X == coordinate.x && tile.Y == coordinate.y && tile.TileId == "mushroom_forest" && tile.State == TileState.Revealed);
+                    bool eventsDrained = snapshot?.ActiveHunt?.EventStore?.PendingOccurrences?.Count == 0;
+                    if (tileCommitted && eventsDrained) yield break;
+                }
+                yield return null;
+            }
+            Assert.Fail("等待蘑菇林事件完成 checkpoint 持久化超时。");
         }
 
         private static IEnumerator WaitForPersistedEquipment(MemoryCampaignPersistence persistence, int hunterId, string itemId)

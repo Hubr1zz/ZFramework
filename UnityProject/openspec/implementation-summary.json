@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "3876bc85caaed7ddd4062184cb364422755870566e357fda323501baf05a489a",
-  "inputManifestDigest": "328da2601e0b800ea08c3b1a81d009cb6514323010b710108267d5795ddcc257",
-  "outputDigest": "10d35bcef5c67b33445218c6cbb7df8d999fed3ddf1072dc8a38fb7ab31756e6",
+  "inputDigest": "c76f6880962352191d5fda26d26a38ff0fe302e5e18fc1cd5aab19e5bd597834",
+  "inputManifestDigest": "329cdbaa4fa43e81dc705fa8baa6ec1e237f2fbd63420de885862c23b101046e",
+  "outputDigest": "ab71c1a726a2a5669f138c1a8748a9461dae9be66c91a5751c76da9c4583aabc",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -627,7 +627,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "a90e9da7f5a051e399bc1a563fb8d87971498b980293f05b3f1bd3701131bd29",
+      "sha256": "f33b7e9d91eb164f87b84f18467fdcc1393dcd024d705befe23e45552b9953c7",
       "state": "current"
     },
     {
@@ -1172,7 +1172,7 @@
     },
     {
       "path": "openspec/specs/campaign-year-loop/implementation.json",
-      "sha256": "2e8808e19dc20857aa3db2222a0cf8994423efed830d2f60a96ab91c28e52af3",
+      "sha256": "0a844e22cc9d2003b1c603b54b5a21a46871d21f4a868579f669dd4bccdd15e4",
       "state": "current"
     },
     {
@@ -1372,7 +1372,7 @@
     },
     {
       "path": "openspec/specs/hunt-tile-reveal-events/implementation.json",
-      "sha256": "55cc5d84f7c4206c52f85fa6d8d7b7f0b55081bb819bbc1f528814de3ce99cca",
+      "sha256": "b68bef9b3590031b6d3884179a5a51ed2eaebbaf090b6a59efd1365dbcf518aa",
       "state": "current"
     },
     {
@@ -1622,7 +1622,7 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-tile-cards/implementation.json",
-      "sha256": "2836f2684c595165aab896f410138c7f0f0f2bf3fdb097465fc3df3af8488288",
+      "sha256": "af47196732680f127bc76df3318ae7173c4f0ceef2d558261a14e2d34d41167a",
       "state": "current"
     },
     {
@@ -1762,13 +1762,13 @@
     }
   ],
   "counts": {
-    "verified": 11,
+    "verified": 12,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
     "unknown": 3,
     "blocked": 0,
-    "stale": 50
+    "stale": 49
   },
   "attentionRequired": [
     "action-environment-lifecycle",
@@ -1792,7 +1792,6 @@
     "hunt-route-entry-context",
     "hunt-session-event-occurrence-recovery",
     "hunt-tabletop-harvest",
-    "hunt-tile-reveal-events",
     "settlement-content-plan-lifecycle",
     "settlement-phase-orchestration",
     "settlement-timeline-event-identity",
@@ -1814,7 +1813,7 @@
     "tabletop-hunt-resource-markers",
     "tabletop-hunt-retreat",
     "tabletop-hunt-squad-pawn",
-    "tabletop-hunt-tile-cards",
+    "tabletop-hunt-squad-status",
     "tabletop-opening-sequence",
     "tabletop-random-interaction",
     "tabletop-settlement-advancement-ledger",
@@ -2168,21 +2167,6 @@
       "state": "stale"
     },
     {
-      "capability": "hunt-tile-reveal-events",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-tile-reveal-events",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-tile-reveal-events",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
-      "state": "stale"
-    },
-    {
       "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs",
       "state": "stale"
@@ -2498,8 +2482,8 @@
       "state": "stale"
     },
     {
-      "capability": "tabletop-hunt-tile-cards",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
+      "capability": "tabletop-hunt-squad-status",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "state": "stale"
     },
     {
@@ -3708,10 +3692,10 @@
       "id": "hunt-tile-reveal-events",
       "label": "狩猎地块揭示事件",
       "status": "verified",
-      "effectiveStatus": "stale",
+      "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "普通地块在显式揭示事件与噪音风险牌堆之间只选择一个来源；Runner 提交揭示并等待 3D 翻牌与完整事件根后才解锁邻居，表现失败仍进入安全 finalized 状态。",
+      "summary": "普通地块在显式揭示事件与噪音风险牌堆之间只选择一个来源；生产蘑菇林已通过真实 3D 侦察、物理 d10、结果提交与恢复验证，事件根完成后才解锁邻居。",
       "designSources": [],
       "sources": [
         "openspec/specs/hunt-tile-reveal-events/spec.md",
@@ -3721,15 +3705,15 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntMapRules.cs",
@@ -3737,6 +3721,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HexTileData.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
           "state": "current"
         }
       ]
@@ -4774,7 +4762,7 @@
       "id": "tabletop-hunt-squad-status",
       "label": "3D 狩猎小队状态桌",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "正常 3D 狩猎以世界空间状态桌展示目的地与猎人状态；实体猎人卡通过当前 Hunt session port 提交 ActionQueue 玩法命令，提交后刷新行动者与其 3D 携带物卡。",
@@ -4831,7 +4819,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -4839,10 +4827,10 @@
       "id": "tabletop-hunt-tile-cards",
       "label": "3D 狩猎地形卡翻面",
       "status": "verified",
-      "effectiveStatus": "stale",
-      "progress": 0,
+      "effectiveStatus": "verified",
+      "progress": 100,
       "verificationStatus": "verified",
-      "summary": "可交互地形卡仅投影地块名称；首次翻开前由世界空间 3D 卡确认，并在确认时创建新鲜会话快照后提交既有 Hunt ActionQueue 命令。",
+      "summary": "可交互地形卡仅投影地块名称；生产蘑菇林已通过真实点击、3D 侦察取消与确认、事件完成 checkpoint 及重建不重放验证。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-hunt-tile-cards/spec.md",
@@ -4851,7 +4839,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileCard3D.cs",
@@ -4859,6 +4847,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntTileScoutPanel3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
           "state": "current"
         }
       ]

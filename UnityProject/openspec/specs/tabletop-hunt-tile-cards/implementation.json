@@ -6,14 +6,14 @@
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "可交互地形卡仅投影地块名称；首次翻开前由世界空间 3D 卡确认，并在确认时创建新鲜会话快照后提交既有 Hunt ActionQueue 命令。",
+    "summary": "可交互地形卡仅投影地块名称；生产蘑菇林已通过真实点击、3D 侦察取消与确认、事件完成 checkpoint 及重建不重放验证。",
     "validatedAgainstSpecHash": "3d5affaf4a1d68182eb8f0ab135865175bb8ebf7307fb092359a415c4fa2fd8e",
     "evidence": [
       {
         "guid": "e438b7e087c13ce4ca8653a1701f8f0a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
         "line": 1,
-        "fileHash": "5f93680f516bbf58d959a7b3182dde1930fb226649b958fdd8af858867295648",
+        "fileHash": "10b656bf6a8d3b5ca946b92c83ebb221e6dc12471e62af073149253fc4c28394",
         "status": "verified",
         "checkedAt": "2026-08-26T16:22:11-07:00",
         "feature": "区分首次翻开与已揭示移动；确认时重签快照，命令失败时只在 View 层重开侦察卡并显示原因。"
@@ -35,14 +35,24 @@
         "status": "verified",
         "checkedAt": "2026-08-26T16:22:11-07:00",
         "feature": "世界空间实体卡承担确认、取消、失败反馈和 Hunt 输入租约生命周期。"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "line": 647,
+        "fileHash": "f33b7e9d91eb164f87b84f18467fdcc1393dcd024d705befe23e45552b9953c7",
+        "status": "verified",
+        "checkedAt": "2026-08-26T19:28:32-07:00",
+        "feature": "以生产蘑菇林存档夹具验证真实 TileClickHandler、3D 侦察卡、ActionQueue 事件、物理骰、输入租约和完成 checkpoint。"
       }
     ],
     "tests": [
       "Unity 6000.5.9f1 CLI EditMode PlayableHuntTileRevealContentTests: 3/3 passed",
       "Unity 6000.5.9f1 CLI PlayMode HuntTileScoutPanel3DPlayModeTests: 1/1 passed",
-      "GameLogic、Adapter EditMode、Adapter PlayMode projects: 0 compile errors"
+      "GameLogic、Adapter EditMode、Adapter PlayMode projects: 0 compile errors",
+      "Unity 6000.5.9f1 CLI MushroomForest production PlayMode: 1/1 passed"
     ],
-    "verifiedAt": "08/26/2026 16:22:11"
+    "verifiedAt": "2026-08-26T19:28:32-07:00"
   },
   "implementationOutline": [
     "PlayableHexTileCard3D 将 Interactable 背面限制为稳定地块名称，Locked 背面保持空白。",
