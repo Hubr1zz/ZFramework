@@ -305,7 +305,7 @@ namespace HuntingInDarkness.Data
         [System.NonSerialized] public string RuntimeDeparturePreparationToken;
 
         /// <summary>
-        /// 旧存档仍带有按年配额字段。它们只作为兼容数据保留，生产规则统一为一次归来推进一年。
+        /// 旧存档仍带有按年配额字段。它们只作为反序列化与迁移输入保留，生产规则以绑定日历的季节列表为权威。
         /// </summary>
         public void NormalizeLegacyHuntProgress()
         {

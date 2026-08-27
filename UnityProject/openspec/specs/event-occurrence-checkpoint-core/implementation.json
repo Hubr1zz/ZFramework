@@ -24,7 +24,7 @@
         "guid": "3b94f2b91c9d4f1ba72fe3ffb4dd1ea6",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
         "line": 75,
-        "fileHash": "d4a61d17a7efd056a6cafc7ddc90108fa580f4f71f75d024abbbf551655b32cb",
+        "fileHash": "b4db9c18b62aecc587f5ea681f1518344d215fde4ae186a815aed72a13077984",
         "status": "verified",
         "checkedAt": "2026-08-25T15:46:39-07:00",
         "feature": "保留狩猎会话运行时内容引用，并在内容解析前拒绝超限活动狩猎快照。"
@@ -33,7 +33,7 @@
         "guid": "e159b3c1d6bfcce4082b45e63fc28083",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
         "line": 122,
-        "fileHash": "9381c741fdcf0882721a6be41c983d63fcbba440715dd868a48f48a133175144",
+        "fileHash": "a18a347713a2df3b610cf778a7c4b7ea70fd634c026038f8aee40835611296e0",
         "status": "verified",
         "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "以 schema 2 DTO 持久化链 ID、occurrence 序号、祖先 ContentId 路径及有界待办队列。"
@@ -42,7 +42,7 @@
         "guid": "d22556d8e7f42df44b45cf799dc1c53e",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
         "line": 100,
-        "fileHash": "b2e76e5b5273e4e5947467b85dd7a67e8ae985e9607f9850b89f1f1a4b2bbd9f",
+        "fileHash": "4af6fc907d9c7de0ba1979708edfee96017ef3265bacdb1a9c07b18b925893f3",
         "status": "verified",
         "checkedAt": "2026-08-25T15:46:39-07:00",
         "feature": "对不支持 schema、无法解析内容及超限营地检查点失败关闭并保留原数据。"
@@ -69,7 +69,7 @@
         "guid": "2667ba9674c844adbc87b87ecefef0b9",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
         "line": 1,
-        "fileHash": "638a4b409865085f2b90171918bcac6791049ad8100938d4c1ca30171f466b9d",
+        "fileHash": "aa5da28a4647646ecba715a2931c5e72dfd4b94b50bbc486437c281d20f8e418",
         "status": "verified",
         "checkedAt": "2026-08-25T21:33:00-07:00",
         "feature": "覆盖狩猎 occurrence 恢复、重复兄弟排空、稳定 ID 循环和超限快照拒绝。"
@@ -78,7 +78,7 @@
         "guid": "891458a21bc4b8e41be39bad56fa9569",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/SettlementEventRestoreProjectionTests.cs",
         "line": 1,
-        "fileHash": "e93d1babc78b04a2345dfbf68bcddb2a21c4f3953cebf931194da0806750ffcf",
+        "fileHash": "802e2db2fe13fdc821310d95340940231e109539943401098945e7e8013c05b4",
         "status": "verified",
         "checkedAt": "2026-08-25T15:46:39-07:00",
         "feature": "覆盖营地检查点重载、schema 失配、未知内容和超限数据无损失拒绝。"

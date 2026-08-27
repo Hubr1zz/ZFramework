@@ -42,6 +42,9 @@ namespace HuntingInDarkness.GameCore.Tests
                 new SeasonDefinition("season_a", "A", 0),
                 new SeasonDefinition("season_b", "B", 1)
             });
+            var nonFirstDefault = new CampaignCalendarDefinition("non_first_default", calendar.Seasons, 1);
+            Assert.That(CampaignCalendarRules.TryValidateDefinition(nonFirstDefault, out string defaultReason), Is.False);
+            Assert.That(defaultReason, Does.Contain("列表首项"));
             Assert.That(CampaignCalendarRules.TryCreateAdvancePlan(calendar, int.MaxValue, 1, out _, out _), Is.False);
             Assert.That(CampaignCalendarRules.TryCreateAdvancePlan(calendar, 1, 2, out _, out _), Is.False);
         }

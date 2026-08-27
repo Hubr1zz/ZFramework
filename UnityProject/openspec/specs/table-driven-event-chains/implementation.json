@@ -15,7 +15,7 @@
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
         "line": 530,
-        "fileHash": "c6c4030bde7ccafc5b4cef940f32e8a9b1365230ecc53aa20473705a7fd0b897",
+        "fileHash": "1ba2d17beabba9b5cfe46d8723549081bae7aa47358d1f0ce2159c07773e3b56",
         "status": "verified",
         "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "先合并全部事件来源，再传递拒绝错误引用，并按稳定 ID 和配置顺序绑定 Triggered 子链。"
@@ -24,7 +24,7 @@
         "guid": "d94d370a430db9b41b025aedfeb3a471",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
         "line": 37,
-        "fileHash": "1c3b64ae95de55bb90f2286adddf679feef3f584e7f0bf4a98366671199937ae",
+        "fileHash": "a3bbcaa28567a069555a6953a0b7cfed26ecfdfc14d057d0124b9235f3d34de9",
         "status": "verified",
         "checkedAt": "2026-08-25T14:50:04-07:00",
         "feature": "跨阶段复用单节点选择、实体随机交互、效果提交与子链检查点发布，View 不修改事件状态。"
@@ -33,7 +33,7 @@
         "guid": "e03f23b616fd5be46b68d164379dc2ef",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEventActions.cs",
         "line": 34,
-        "fileHash": "d0bd85e62fa24d5354c152c66218fff0ac6e6967b270e3f034aa42cafc8c6a1b",
+        "fileHash": "8885bad5967bf28ca7e8ffa2ebf48ce6c1957cd0bded76c9cfb6ebc6666ad6a3",
         "status": "verified",
         "checkedAt": "2026-08-25T14:50:04-07:00",
         "feature": "在同一 Settlement Root 中稳定执行初始节点与直接子 occurrence，并把有序祖先 ID 路径写入每个持久子节点。"
@@ -51,7 +51,7 @@
         "guid": "e159b3c1d6bfcce4082b45e63fc28083",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
         "line": 122,
-        "fileHash": "9381c741fdcf0882721a6be41c983d63fcbba440715dd868a48f48a133175144",
+        "fileHash": "a18a347713a2df3b610cf778a7c4b7ea70fd634c026038f8aee40835611296e0",
         "status": "verified",
         "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "在营地权威存档中保存链 ID、序号、诊断、待恢复节点与有序祖先稳定 ID。"
@@ -60,7 +60,7 @@
         "guid": "d22556d8e7f42df44b45cf799dc1c53e",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs",
         "line": 68,
-        "fileHash": "b2e76e5b5273e4e5947467b85dd7a67e8ae985e9607f9850b89f1f1a4b2bbd9f",
+        "fileHash": "4af6fc907d9c7de0ba1979708edfee96017ef3265bacdb1a9c07b18b925893f3",
         "status": "verified",
         "checkedAt": "2026-08-25T14:55:53-07:00",
         "feature": "读档时优先恢复持久 occurrence，未知内容、诊断及任何不受支持的 schema 均 fail closed 并保留检查点。"
@@ -69,7 +69,7 @@
         "guid": "3b94f2b91c9d4f1ba72fe3ffb4dd1ea6",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
         "line": 1,
-        "fileHash": "d4a61d17a7efd056a6cafc7ddc90108fa580f4f71f75d024abbbf551655b32cb",
+        "fileHash": "b4db9c18b62aecc587f5ea681f1518344d215fde4ae186a815aed72a13077984",
         "status": "verified",
         "checkedAt": "2026-08-25T14:50:04-07:00",
         "feature": "为单次狩猎维护带地图上下文和祖先路径的 occurrence，阻止循环并保留容量失败诊断。"
@@ -78,7 +78,7 @@
         "guid": "2a32e230eed309144a69d91ec3f752f4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/events.json",
         "line": 1,
-        "fileHash": "087ecafcad033f8081834cdc8f6c22492fc2f475231e224fe6c0f6a3f80c3a1d",
+        "fileHash": "0bc531f639068c67a284ce7b7fd52513df6946ad93a9a341ce67542404ead6a1",
         "status": "verified",
         "checkedAt": "2026-08-25T17:48:50-07:00",
         "feature": "提供事件分支、命运条件及稳定资源 ID 内容，并保持延迟事件为独立 ScheduleEvent 效果。"
@@ -87,7 +87,7 @@
         "guid": "6a052d984b59f624f9a084bb3ee4204f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
         "line": 616,
-        "fileHash": "f65d96aab41aa513e492d33bd83a8f25a0d8414bdd2bbdca596fa75d3d5e1915",
+        "fileHash": "fa2a633c7b184149fe7bac11fca4a01c3455e8a6b54df6a69f9af4ada1fabbd8",
         "status": "verified",
         "checkedAt": "2026-08-25T21:33:00-07:00",
         "feature": "以生产锈蚀葬坑成功分支触发 Triggered 子事件，保留风险翻牌与归还资源两条玩家路径。"
@@ -96,7 +96,7 @@
         "guid": "2667ba9674c844adbc87b87ecefef0b9",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
         "line": 148,
-        "fileHash": "638a4b409865085f2b90171918bcac6791049ad8100938d4c1ca30171f466b9d",
+        "fileHash": "aa5da28a4647646ecba715a2931c5e72dfd4b94b50bbc486437c281d20f8e418",
         "status": "verified",
         "checkedAt": "2026-08-25T21:33:00-07:00",
         "feature": "验证生产父事件提交后子 occurrence 继承坐标、年份、行动者与祖先，并可经 JSON 检查点恢复后排空。"
@@ -105,7 +105,7 @@
         "guid": "b53d54014d826bd4fb6897de7a6c4c83",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
         "line": 126,
-        "fileHash": "57d82acfc38f948c7c0fa1e7c72d206733dda347e08467b74d13edc2529f8a44",
+        "fileHash": "b46e5adc23281f9edb3cf8c821740bf1a2cb66e25ffe729b15c132603216b355",
         "status": "verified",
         "checkedAt": "2026-08-26T04:42:56-07:00",
         "feature": "选择事务按所选成功或失败子链在前、事件级子链在后的顺序合并，跳过空项，并避免分支链与事件级链共享的同一运行时引用重复入队。"
@@ -123,7 +123,7 @@
         "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
         "line": 1,
-        "fileHash": "b68a8fe8540145551b44a4b32260a28e518bc3ae7bc373b2b7bc17e22f7eade5",
+        "fileHash": "cc494237a0797f5c8204867821ac8844cf8ac17a310e43b5fb93c9a1f33126d2",
         "status": "verified",
         "checkedAt": "2026-08-26T04:42:56-07:00",
         "feature": "经正式装配与世界空间 3D 卡牌验证日程事件的父子链完成、存档恢复不重放，以及后续真实出猎入口。"

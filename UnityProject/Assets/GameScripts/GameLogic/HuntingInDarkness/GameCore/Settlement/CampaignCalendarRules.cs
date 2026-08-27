@@ -74,6 +74,8 @@ namespace HuntingInDarkness.GameCore.Settlement
                 return Fail("战役日历必须包含 1 至 64 个季节。", out reason);
             if (definition.DefaultSeasonIndex < 0 || definition.DefaultSeasonIndex >= definition.Seasons.Count)
                 return Fail("战役日历默认季节越界。", out reason);
+            if (definition.DefaultSeasonIndex != 0)
+                return Fail("战役日历默认季节必须是列表首项。", out reason);
 
             var ids = new HashSet<string>(StringComparer.Ordinal);
             var orders = new HashSet<int>();

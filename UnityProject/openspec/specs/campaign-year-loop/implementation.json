@@ -6,28 +6,30 @@
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "战役已使用冻结 CalendarId 与有序季节定义；默认两季分别完成两次权威回营后才跨年，年度事件只在真实年界创建，旧 pacing 字段保守迁移。",
+    "summary": "战役使用冻结 CalendarId 与首季起始的有序季节定义；默认两季分别完成两次权威回营后才跨年，年度事件只在真实年界创建，旧 pacing 字段保守迁移。",
     "validatedAgainstSpecHash": "5a6d85e84206572b5d08630578881d26bbe92baa2176897b2cffba56a85593ac",
     "evidence": [
-      { "guid": "8b5f1c9e4a1149a0a5c40f2e7d5b6c31", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/CampaignCalendarRules.cs", "line": 66, "fileHash": "32fb3130a20e8f96e89ad3e7df34b8ab55b13899768389d36918f71d3067df75", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "纯 C# 日历定义验证和任意季节列表的单步推进计划，包含越界与年份溢出失败关闭。" },
-      { "guid": "4d0d7c5e9f8b42aa8c4e6b2f1d3a7e90", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/CampaignCalendarConfig.cs", "line": 21, "fileHash": "49a66c10070890c093bfa1779069e42f22cd2374a42cb33479bb9a4abdecb3c0", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "把 ScriptableObject 日历复制为不可变领域定义，不携带季节效果。" },
-      { "guid": "76ee8c16e7264fc89ae0566031980a8a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs", "line": 56, "fileHash": "c4066585f102fd4eed77925466ac895150f77c4caf56069545f7490a0c5216a3", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "冻结默认和受支持日历目录，按存档 CalendarId 解析，并保守迁移旧 pacing schema。" },
-      { "guid": "5cb50ad3443a70f45af1ce3608fd42be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs", "line": 40, "fileHash": "e126b8b1ba1503e699eb4d00f375fe79a34a953b27758d183c2b2a8dbaec702f", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "在回营 mutation 前预检日历计划，每次发布季节与完成事实，仅跨年发布年度事实。" },
-      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 30, "fileHash": "661e2a38dc452594683cb2446f72a05caccb1ae9cf63e4f675bc7781f96c9e96", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "通过真实 GameManager 公共命令验证默认双季回营、检查点清理、失败保存和恢复门禁。" }
+      { "guid": "8b5f1c9e4a1149a0a5c40f2e7d5b6c31", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/CampaignCalendarRules.cs", "line": 66, "fileHash": "10c1d4e50b1e2c86f388199daa6fa996a206bbf4c5403f365df58e84a71aeb2f", "status": "verified", "checkedAt": "2026-08-26T23:00:00-07:00", "feature": "纯 C# 日历定义验证和任意季节列表的单步推进计划；非首项默认季、越界与年份溢出均失败关闭。" },
+      { "guid": "4d0d7c5e9f8b42aa8c4e6b2f1d3a7e90", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/CampaignCalendarConfig.cs", "line": 21, "fileHash": "73fca74a66692880d9b4da0589494410081c444f6ad7e8912c5f68f7412fd6f6", "status": "verified", "checkedAt": "2026-08-26T23:00:00-07:00", "feature": "把 ScriptableObject 日历复制为不可变领域定义；默认季必须是有序列表首项且不携带季节效果。" },
+      { "guid": "3f2a91c84d5b4e6f90817263abcde450", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignCalendarConfigTests.cs", "line": 8, "fileHash": "090fa6e92db7925594745e8f08f87b4749633c97b0551ceca538371b2b603fb6", "status": "verified", "checkedAt": "2026-08-26T23:00:00-07:00", "feature": "验证非首项默认季配置在 ScriptableObject Adapter 边界被可诊断拒绝。" },
+      { "guid": "76ee8c16e7264fc89ae0566031980a8a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs", "line": 56, "fileHash": "c1d30443af9d95afd33c1ff38e069fa5a48e50f4e6c54504fa487bd842823759", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "冻结默认和受支持日历目录，按存档 CalendarId 解析，并保守迁移旧 pacing schema。" },
+      { "guid": "5cb50ad3443a70f45af1ce3608fd42be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs", "line": 40, "fileHash": "1f49fa980ae6a68ccb280a2e7081a5bbbd2c51c85029dc1f614d3407b41d5700", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "在回营 mutation 前预检日历计划，每次发布季节与完成事实，仅跨年发布年度事实。" },
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 30, "fileHash": "a90e9da7f5a051e399bc1a563fb8d87971498b980293f05b3f1bd3701131bd29", "status": "verified", "checkedAt": "2026-08-26T02:00:00-07:00", "feature": "通过真实 GameManager 公共命令验证默认双季回营、检查点清理、失败保存和恢复门禁。" }
     ],
     "tests": [
       "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/CampaignCalendarRulesTests.cs",
+      "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignCalendarConfigTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignPacingTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignLoopSmokeTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "Unity CLI targeted EditMode: 78/78 passed",
+      "Unity 6000.5.9f1 CLI calendar contract EditMode: 17/17 passed",
       "Unity CLI targeted PlayMode campaign loop: 5/5 passed",
       "dotnet build ZFramework.sln --no-restore: 0 warnings, 0 errors"
     ],
-    "verifiedAt": "2026-08-26T02:00:00-07:00"
+    "verifiedAt": "2026-08-26T23:00:00-07:00"
   },
   "implementationOutline": [
-    "Settlement 内容目录把默认及受支持日历资产复制为不可变定义；新战役冻结默认 ID，旧档按原 ID 解析。",
+    "Settlement 内容目录把首季起始的默认及受支持日历资产复制为不可变定义；新战役冻结默认 ID，旧档按原 ID 解析。",
     "Settlement Runner 在单 root 中预检并提交一个配置季节；只有越过末季才推进年份和创建年度 occurrence。",
     "旧 HuntsCompletedThisYear/HuntsPerYear 只用于保守迁移，未知日历、未来 schema、非法年份与越界索引失败关闭。",
     "GameManager 保持既有回营检查点与两阶段保存，可靠清理后允许同年下一季再次正式出发。",

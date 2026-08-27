@@ -42,7 +42,7 @@
         "guid": "76ee8c16e7264fc89ae0566031980a8a",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
         "line": 103,
-        "fileHash": "a3542c8e3659834e516b9baffc735cf9ba9d873184b7438282508651a8198c28",
+        "fileHash": "c1d30443af9d95afd33c1ff38e069fa5a48e50f4e6c54504fa487bd842823759",
         "status": "verified",
         "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "在候选内容投影内执行 schema 门禁、旧特性迁移，并校验猎人模板与事件图只引用注册 ID。"
@@ -60,7 +60,7 @@
         "guid": "e159b3c1d6bfcce4082b45e63fc28083",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
         "line": 186,
-        "fileHash": "9381c741fdcf0882721a6be41c983d63fcbba440715dd868a48f48a133175144",
+        "fileHash": "a18a347713a2df3b610cf778a7c4b7ea70fd634c026038f8aee40835611296e0",
         "status": "verified",
         "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "持久化独立特性身份 schema，允许旧显示名迁移并拒绝未来版本被当前运行时覆写。"
@@ -87,7 +87,7 @@
         "guid": "e549d8b4d78e4d00aa85a1125c8148d0",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementProjectionTransactionTests.cs",
         "line": 111,
-        "fileHash": "43098ddc27f1ade49fe3cd14b6a710559badda68d955edc8abd927814e8f7a5f",
+        "fileHash": "af6272bce7b2a75002492e494a712363c87fcf228fe58eafbf8fa569082c83cd",
         "status": "verified",
         "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "验证真实营地候选投影把旧特性显示名迁移为稳定 ID 后才替换权威运行图。"

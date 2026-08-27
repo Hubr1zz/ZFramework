@@ -50,6 +50,11 @@ namespace HuntingInDarkness.Settlement
                 reason = $"战役日历默认季节不存在：{defaultSeasonId}";
                 return false;
             }
+            if (defaultSeasonIndex != 0)
+            {
+                reason = "战役日历默认季节必须是列表首项。";
+                return false;
+            }
 
             definition = new CampaignCalendarDefinition(calendarId, seasonDefinitions, defaultSeasonIndex);
             if (!CampaignCalendarRules.TryValidateDefinition(definition, out reason))
