@@ -25,13 +25,13 @@ public class MainToolbarInitializeOnLoad
 
 internal static class MainToolbarVisibilityMigration
 {
-    private const string MigrationKeyPrefix = "ZFramework.MainToolbarVisibilityMigration.v1.";
+    private const string MigrationKeyPrefix = "ZFramework.MainToolbarVisibilityMigration.v3.";
     private const string AgentWorkbenchElementPath = "Agent Workflow/Workbench";
-    private static readonly string[] TEngineElementPaths =
+    private static readonly string[] ZFrameworkElementPaths =
     {
-        "TEngine/Scene Launcher Button",
-        "TEngine/Scene Switcher",
-        "TEngine/Play Mode"
+        "ZFramework/Scene Launcher Button",
+        "ZFramework/Scene Switcher",
+        "ZFramework/Play Mode"
     };
 
     private static bool initialized;
@@ -67,11 +67,10 @@ internal static class MainToolbarVisibilityMigration
         if (!(overlaysProperty?.GetValue(canvas) is IEnumerable overlays))
             return;
 
-        var remainingPaths = new HashSet<string>(TEngineElementPaths, StringComparer.Ordinal);
+        var remainingPaths = new HashSet<string>(ZFrameworkElementPaths, StringComparer.Ordinal);
         if (typeof(MainToolbarInitializeOnLoad).Assembly.GetType("AgentWorkflow.Editor.AgentWorkbenchMainToolbar") != null)
             remainingPaths.Add(AgentWorkbenchElementPath);
 
-        var refreshedPaths = new List<string>(remainingPaths.Count);
         foreach (object overlay in overlays)
         {
             if (overlay == null)
@@ -83,7 +82,6 @@ internal static class MainToolbarVisibilityMigration
             if (string.IsNullOrEmpty(id) || !remainingPaths.Remove(id))
                 continue;
 
-            refreshedPaths.Add(id);
             PropertyInfo displayedProperty = overlayType.GetProperty("displayed", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (displayedProperty?.CanWrite == true)
                 displayedProperty.SetValue(overlay, true);
@@ -92,11 +90,37 @@ internal static class MainToolbarVisibilityMigration
         if (remainingPaths.Count != 0)
             return;
 
-        foreach (string elementPath in refreshedPaths)
-            MainToolbar.Refresh(elementPath);
+        if (!TryPersistToolbarState(windowType, windows[0]))
+        {
+            EditorApplication.update -= ShowToolbarElements;
+            return;
+        }
 
         EditorPrefs.SetBool(GetMigrationKey(), true);
         EditorApplication.update -= ShowToolbarElements;
+    }
+
+    private static bool TryPersistToolbarState(Type windowType, UnityEngine.Object window)
+    {
+        try
+        {
+            MethodInfo updateStateMethod = windowType.GetMethod("UpdateLatestSaveState", BindingFlags.Instance | BindingFlags.NonPublic);
+            Type canvasesDataType = typeof(Editor).Assembly.GetType("UnityEditor.Overlays.OverlayCanvasesData");
+            PropertyInfo instanceProperty = canvasesDataType?.BaseType?.GetProperty("instance", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            MethodInfo saveMethod = canvasesDataType?.GetMethod("Save", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly, null, Type.EmptyTypes, null);
+            object canvasesData = instanceProperty?.GetValue(null);
+            if (updateStateMethod == null || saveMethod == null || canvasesData == null)
+                return false;
+
+            updateStateMethod.Invoke(window, null);
+            saveMethod.Invoke(canvasesData, null);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning($"Failed to persist ZFramework toolbar visibility: {exception.Message}");
+            return false;
+        }
     }
 
     private static string GetMigrationKey() => MigrationKeyPrefix + Hash128.Compute(Application.dataPath);
