@@ -9,9 +9,9 @@
 - 战役日历配置化：默认日历包含两个季节，每次成功出猎并完成权威回营提交只推进一个季节；完成配置中的全部季节后才进入下一年。未来增减季节只改配置，不改流程代码。
 - 新年度事件只在进入新一年时触发一次。出发失败、取消和读档恢复本身不推进季节。
 - 日历推荐以 `CampaignCalendarConfig` 和有序 `SeasonDefinition` 列表表达；首期季节只需稳定 ID 与显示名。存档保存 `CalendarId`、`CurrentYear`、`CurrentSeasonIndex`，战役开始后冻结所选日历；`HuntsCompletedThisYear`、`HuntsPerYear` 仅用于兼容迁移。
-- `GameManager` 的目标职责仅为战役顶层 FSM、跨阶段事务和启动/关闭，并统一持有 Settlement、Hunt、Showdown 三个阶段管理者。阶段管理者优先由 ZFramework 生命周期管理，不增加平行 MonoBehaviour 权威；Showdown 当前只建立生命周期与接口，不推进玩法。
+- `GameManager` 是唯一 Unity `MonoBehaviour` 组合壳，只保留序列化场景引用、Unity 回调、阶段根表现、EventBus 适配和冻结兼容接口。`CampaignFlowCoordinator` 拥有战役顶层 FSM、跨阶段事务和持久化；ZFramework `PlayableCampaignRuntimeModule` 唯一持有 Settlement、Hunt、Showdown 三个阶段管理者。不得增加平行 MonoBehaviour 权威；Showdown 当前只维护生命周期与接口，不推进玩法。
 - 角色、事件、物品、装备、配方和路线只实现每个机制一个可验证的代表案例。未明确差异的内容只保留稳定 ID、入口和空配置，不自行发明数值或效果；美术、音效与演出只留接口。
-- 当前实施顺序：完成营地事件到下一次狩猎风险租约，再实现配置化季节/年度循环，最后做有边界的三阶段管理器拆分。
+- 营地事件到下一次狩猎风险租约、配置化季节/年度循环和三阶段管理器边界均已完成。后续优先补非 Showdown 的核心可玩闭环与必要 3D 桌游交互；不得以局部搬方法方式重新拆分 `GameManager`。
 
 | 需要了解的内容 | 代码入口 | 再读取 |
 | --- | --- | --- |

@@ -76,7 +76,7 @@ Campaign orchestration SHALL persist the complete stable PendingHuntReturn befor
 #### Scenario: The process exits before Settlement applies the return
 
 - **WHEN** the latest valid snapshot contains PendingHuntReturn but not its HuntHistory record
-- **THEN** continue SHALL submit that record to the Settlement runner, apply recorded resources and surviving-participant advancement exactly once, advance exactly one year, and restore the resulting annual Timeline through the ordinary event projection
+- **THEN** continue SHALL submit that record to the Settlement runner, apply recorded resources and surviving-participant advancement exactly once, advance exactly one configured season, and restore an annual Timeline through the ordinary event projection only when that season transition enters a new year
 
 #### Scenario: The clear-checkpoint save is retried
 

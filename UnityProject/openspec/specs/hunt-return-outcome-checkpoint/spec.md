@@ -8,7 +8,7 @@ title: "狩猎归来结果检查点"
 
 ## Purpose
 
-让正常狩猎归来的资源、参战猎人成长、远征历史、年份和年度事件在可恢复的 Settlement 提交边界内恰好生效一次。
+让正常狩猎归来的资源、参战猎人成长、远征历史、季节游标以及跨年时的年度事件在可恢复的 Settlement 提交边界内恰好生效一次。
 
 ## Requirements
 
@@ -41,7 +41,7 @@ Settlement Runner SHALL 在同一 root 修改状态前验证协议版本、Recor
 
 ### Requirement: Current return outcomes commit exactly once
 
-未应用的当前版本记录 SHALL 在一个 Settlement root 内转入记录中的资源、清除参战者携带物、只推进存活参战者并处理退休、追加 HuntHistory、推进恰好一年并物化年度 Timeline。死亡参战者 SHALL NOT 成长；提交事实 SHALL 仅从 root 的 EventBus outbox 发布。
+未应用的当前版本记录 SHALL 在一个 Settlement root 内转入记录中的资源、清除参战者携带物、只推进存活参战者并处理退休、追加 HuntHistory，并推进恰好一个配置季节。只有该季节提交越过冻结日历末尾时才 SHALL 推进一年并物化年度 Timeline。死亡参战者 SHALL NOT 成长；提交事实 SHALL 仅从 root 的 EventBus outbox 发布。
 
 #### Scenario: A current return commits
 
