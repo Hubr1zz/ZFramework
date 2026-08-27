@@ -192,7 +192,7 @@ namespace UI
             text.fontSize = fontSize;
             text.alignment = TextAlignmentOptions.Center;
             text.color = new Color(0.82f, 0.82f, 0.78f);
-            text.enableWordWrapping = true;
+            text.textWrappingMode = TextWrappingModes.Normal;
             text.overflowMode = TextOverflowModes.Ellipsis;
             text.rectTransform.sizeDelta = size;
             return text;
@@ -217,7 +217,7 @@ namespace UI
             label.fontSize = 0.10f;
             label.alignment = TextAlignmentOptions.Center;
             label.color = new Color(0.95f, 0.90f, 0.78f);
-            label.enableWordWrapping = true;
+            label.textWrappingMode = TextWrappingModes.Normal;
             label.overflowMode = TextOverflowModes.Ellipsis;
             label.rectTransform.sizeDelta = new Vector2(scale.x - 0.12f, scale.z - 0.04f);
             return button;
