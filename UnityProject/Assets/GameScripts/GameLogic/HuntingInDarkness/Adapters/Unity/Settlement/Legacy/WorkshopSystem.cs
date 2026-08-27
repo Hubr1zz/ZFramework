@@ -57,8 +57,13 @@ namespace HuntingInDarkness.Settlement
                 ToDefinition(recipe),
                 _settlement.IsInventionUnlocked,
                 _settlement.HasDiscoveredMaterial,
-                _settlement.GetResource,
+                GetIngredientAmount,
                 out reason);
+        }
+
+        public int GetIngredientAmount(CraftIngredientSource source, string itemId)
+        {
+            return source == CraftIngredientSource.ResourcePool ? _settlement.GetResource(itemId) : _settlement.GetStoredItem(itemId);
         }
 
         // ─── 制造 ─────────────────────────────────────────────────
@@ -72,14 +77,23 @@ namespace HuntingInDarkness.Settlement
                 return new List<ItemInstance>();
             }
 
-            // 消耗原料
-            foreach (var ing in recipe.ingredients)
-                if (ing.item != null) _settlement.SpendResource(ing.item, ing.count);
-
-            // 产出物品（加入资源存储）
             var output = new List<ItemInstance>();
-            for (int i = 0; i < recipe.outputCount; i++)
+            for (int index = 0; index < recipe.outputCount; index++)
                 output.Add(new ItemInstance(recipe.outputItem));
+
+            var spentIngredients = new List<RecipeIngredient>();
+            foreach (RecipeIngredient ingredient in recipe.ingredients)
+            {
+                if (ingredient?.item == null) continue;
+                bool spent = ingredient.item.itemType == ItemType.Resource ? _settlement.SpendResource(ingredient.item, ingredient.count) : _settlement.SpendStoredItem(ingredient.item, ingredient.count);
+                if (spent)
+                {
+                    spentIngredients.Add(ingredient);
+                    continue;
+                }
+                RollbackIngredients(spentIngredients);
+                throw new System.InvalidOperationException($"配方 {recipe.ContentId} 在完整校验后扣除原料失败：{ingredient.item.ContentId}");
+            }
 
             // 资源型产出直接存入仓库
             if (recipe.outputItem.itemType == ItemType.Resource)
@@ -91,15 +105,27 @@ namespace HuntingInDarkness.Settlement
             return output;
         }
 
+        private void RollbackIngredients(List<RecipeIngredient> spentIngredients)
+        {
+            for (int index = spentIngredients.Count - 1; index >= 0; index--)
+            {
+                RecipeIngredient ingredient = spentIngredients[index];
+                if (ingredient.item.itemType == ItemType.Resource)
+                    _settlement.AddResource(ingredient.item, ingredient.count);
+                else
+                    _settlement.AddStoredItem(ingredient.item, ingredient.count);
+            }
+        }
+
         private static CraftRecipeDefinition ToDefinition(CraftRecipe recipe)
         {
             if (recipe == null) return null;
-            var ingredients = new List<ResourceCost>();
+            var ingredients = new List<CraftIngredientCost>();
             foreach (RecipeIngredient ingredient in recipe.ingredients)
                 if (ingredient?.item != null)
-                    ingredients.Add(new ResourceCost(ingredient.item.ContentId, ingredient.count));
+                    ingredients.Add(new CraftIngredientCost(ingredient.item.ContentId, ingredient.count, ingredient.item.itemType == ItemType.Resource ? CraftIngredientSource.ResourcePool : CraftIngredientSource.StoredItemPool));
             return new CraftRecipeDefinition(
-                recipe.recipeName,
+                recipe.ContentId,
                 recipe.requiredInvention != null ? recipe.requiredInvention.ContentId : "",
                 recipe.unlockedByMaterial,
                 ingredients,

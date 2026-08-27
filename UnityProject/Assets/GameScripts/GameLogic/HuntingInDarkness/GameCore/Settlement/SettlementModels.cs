@@ -164,6 +164,26 @@ namespace HuntingInDarkness.GameCore.Settlement
         }
     }
 
+    public enum CraftIngredientSource
+    {
+        ResourcePool,
+        StoredItemPool
+    }
+
+    public readonly struct CraftIngredientCost
+    {
+        public CraftIngredientCost(string itemId, int amount, CraftIngredientSource source)
+        {
+            ItemId = itemId ?? string.Empty;
+            Amount = amount;
+            Source = source;
+        }
+
+        public string ItemId { get; }
+        public int Amount { get; }
+        public CraftIngredientSource Source { get; }
+    }
+
     public enum InventionEffectKind
     {
         None,
@@ -215,7 +235,7 @@ namespace HuntingInDarkness.GameCore.Settlement
         public string Id { get; }
         public string RequiredInventionId { get; }
         public bool UnlockedByMaterial { get; }
-        public IReadOnlyList<ResourceCost> Ingredients { get; }
+        public IReadOnlyList<CraftIngredientCost> Ingredients { get; }
         public string OutputId { get; }
         public int OutputCount { get; }
 
@@ -223,16 +243,30 @@ namespace HuntingInDarkness.GameCore.Settlement
             string id,
             string requiredInventionId,
             bool unlockedByMaterial,
-            IReadOnlyList<ResourceCost> ingredients,
+            IReadOnlyList<CraftIngredientCost> ingredients,
             string outputId,
             int outputCount)
         {
             Id = id ?? string.Empty;
             RequiredInventionId = requiredInventionId ?? string.Empty;
             UnlockedByMaterial = unlockedByMaterial;
-            Ingredients = ingredients ?? Array.Empty<ResourceCost>();
+            Ingredients = ingredients ?? Array.Empty<CraftIngredientCost>();
             OutputId = outputId ?? string.Empty;
             OutputCount = outputCount;
+        }
+
+        public CraftRecipeDefinition(string id, string requiredInventionId, bool unlockedByMaterial, IReadOnlyList<ResourceCost> ingredients, string outputId, int outputCount)
+            : this(id, requiredInventionId, unlockedByMaterial, ConvertResourceCosts(ingredients), outputId, outputCount)
+        {
+        }
+
+        private static IReadOnlyList<CraftIngredientCost> ConvertResourceCosts(IReadOnlyList<ResourceCost> ingredients)
+        {
+            if (ingredients == null || ingredients.Count == 0) return Array.Empty<CraftIngredientCost>();
+            var result = new CraftIngredientCost[ingredients.Count];
+            for (int index = 0; index < ingredients.Count; index++)
+                result[index] = new CraftIngredientCost(ingredients[index].ResourceId, ingredients[index].Amount, CraftIngredientSource.ResourcePool);
+            return result;
         }
     }
 }

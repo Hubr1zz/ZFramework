@@ -281,11 +281,12 @@ namespace HuntingInDarkness.Settlement
             HashSet<string> inventionAliases = BuildAliases(inventions, invention => invention.ContentId, invention => invention.inventionName, invention => invention.name);
             var itemReferences = new HashSet<ItemData>(items);
             var inventionReferences = new HashSet<InventionData>(inventions);
-            var recipeNames = new HashSet<string>(StringComparer.Ordinal);
+            var recipeIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (CraftRecipe recipe in recipes ?? Array.Empty<CraftRecipe>())
             {
                 string recipeName = recipe?.recipeName?.Trim() ?? string.Empty;
-                if (recipe == null || recipeName.Length == 0 || !recipeNames.Add(recipeName) || recipe.outputItem == null || !itemReferences.Contains(recipe.outputItem) || recipe.outputCount <= 0 || recipe.requiredInvention != null && !inventionReferences.Contains(recipe.requiredInvention))
+                string recipeId = recipe?.ContentId ?? string.Empty;
+                if (recipe == null || recipeName.Length == 0 || recipeId.Length == 0 || !recipeIds.Add(recipeId) || recipe.outputItem == null || !itemReferences.Contains(recipe.outputItem) || recipe.outputCount <= 0 || recipe.requiredInvention != null && !inventionReferences.Contains(recipe.requiredInvention))
                 {
                     reason = $"营地配方无效或引用了计划外内容：{recipeName}";
                     return false;

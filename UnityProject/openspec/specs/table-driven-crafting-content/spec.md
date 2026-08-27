@@ -13,7 +13,7 @@ title: "读表配方与事件奖励制造链"
 ## Requirements
 
 ### Requirement: Recipe tables bind content by stable asset identity
-Recipe records SHALL identify themselves, ingredients, outputs, and optional invention prerequisites by stable content IDs; display names SHALL remain presentation data rather than table references.
+Recipe records SHALL identify themselves, ingredients, outputs, and optional invention prerequisites by stable content IDs; the stable recipe ID SHALL survive runtime assembly and SHALL identify Action entities and committed crafting facts. Display names SHALL remain presentation data rather than table references.
 
 #### Scenario: A valid recipe table is assembled
 - **WHEN** Settlement content loads after item and invention catalogs are available
@@ -43,6 +43,10 @@ Table-defined recipes SHALL be registered and revalidated by the active Settleme
 #### Scenario: The player crafts a salt ward
 - **WHEN** the settlement owns one black salt and confirms `刻制盐纹护符`
 - **THEN** one black salt is consumed, one salt ward enters equipment storage, and the normal Crafting transaction facts are published once
+
+#### Scenario: A table recipe consumes a stored weapon and a resource
+- **WHEN** the settlement owns an unequipped stone knife and one black salt and confirms `塑制盐晶刃`
+- **THEN** the weapon is consumed from stored-item inventory, black salt is consumed from the resource pool, one salt crystal edge enters stored-item inventory, and one stable-ID Crafting transaction is published
 
 ### Requirement: Event rewards can feed later settlement choices
 The baseline content SHALL include a table-defined equipment recipe whose ingredient is obtainable from the existing keyword-gated event flow.

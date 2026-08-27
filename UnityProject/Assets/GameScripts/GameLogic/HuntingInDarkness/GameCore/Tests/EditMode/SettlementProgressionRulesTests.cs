@@ -75,6 +75,24 @@ namespace HuntingInDarkness.GameCore.Tests
         }
 
         [Test]
+        public void CanCraft_SeparatesResourceAndStoredItemPools()
+        {
+            var recipe = new CraftRecipeDefinition("shape_salt_crystal_edge", "tools", false, new[]
+            {
+                new CraftIngredientCost("black_salt", 1, CraftIngredientSource.ResourcePool),
+                new CraftIngredientCost("stone_knife", 1, CraftIngredientSource.StoredItemPool)
+            }, "salt_crystal_edge", 1);
+
+            bool missingKnife = WorkshopRules.CanCraft(recipe, _ => true, _ => true, (source, itemId) => source == CraftIngredientSource.ResourcePool && itemId == "black_salt" ? 1 : 0, out string missingReason);
+            bool available = WorkshopRules.CanCraft(recipe, _ => true, _ => true, (source, itemId) => source == CraftIngredientSource.ResourcePool && itemId == "black_salt" || source == CraftIngredientSource.StoredItemPool && itemId == "stone_knife" ? 1 : 0, out string availableReason);
+
+            Assert.That(missingKnife, Is.False);
+            Assert.That(missingReason, Does.Contain("仓库物品不足"));
+            Assert.That(available, Is.True);
+            Assert.That(availableReason, Is.Empty);
+        }
+
+        [Test]
         public void CanCraft_RejectsInvalidAmounts()
         {
             var negativeIngredient = new CraftRecipeDefinition("异常配方", "", false, new[] { new ResourceCost("碎石", -1) }, "石质工具", 1);

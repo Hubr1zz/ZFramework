@@ -172,7 +172,7 @@ namespace HuntingInDarkness.GameCore.Settlement
             if (!string.IsNullOrEmpty(recipe.RequiredInventionId) &&
                 !isInventionUnlocked(recipe.RequiredInventionId)) return false;
             if (!recipe.UnlockedByMaterial) return true;
-            return recipe.Ingredients.Any(cost => hasDiscoveredMaterial(cost.ResourceId));
+            return recipe.Ingredients.Any(cost => cost.Source == CraftIngredientSource.ResourcePool && hasDiscoveredMaterial(cost.ItemId));
         }
 
         public static bool CanCraft(
@@ -180,6 +180,16 @@ namespace HuntingInDarkness.GameCore.Settlement
             Func<string, bool> isInventionUnlocked,
             Func<string, bool> hasDiscoveredMaterial,
             Func<string, int> getResource,
+            out string reason)
+        {
+            return CanCraft(recipe, isInventionUnlocked, hasDiscoveredMaterial, (source, itemId) => source == CraftIngredientSource.ResourcePool ? getResource(itemId) : 0, out reason);
+        }
+
+        public static bool CanCraft(
+            CraftRecipeDefinition recipe,
+            Func<string, bool> isInventionUnlocked,
+            Func<string, bool> hasDiscoveredMaterial,
+            Func<CraftIngredientSource, string, int> getAmount,
             out string reason)
         {
             if (recipe == null)
@@ -202,18 +212,25 @@ namespace HuntingInDarkness.GameCore.Settlement
                 reason = "产出数量必须大于0";
                 return false;
             }
-            foreach (ResourceCost ingredient in recipe.Ingredients)
+            foreach (CraftIngredientCost ingredient in recipe.Ingredients)
             {
-                if (string.IsNullOrEmpty(ingredient.ResourceId) || ingredient.Amount <= 0)
+                if (string.IsNullOrEmpty(ingredient.ItemId) || ingredient.Amount <= 0 || ingredient.Source != CraftIngredientSource.ResourcePool && ingredient.Source != CraftIngredientSource.StoredItemPool)
                 {
                     reason = "配方材料配置无效";
                     return false;
                 }
-                int have = getResource(ingredient.ResourceId);
-                int required = recipe.Ingredients.Where(candidate => candidate.ResourceId == ingredient.ResourceId).Sum(candidate => candidate.Amount);
+                int have = getAmount(ingredient.Source, ingredient.ItemId);
+                long requiredAmount = recipe.Ingredients.Where(candidate => candidate.Source == ingredient.Source && candidate.ItemId == ingredient.ItemId).Sum(candidate => (long)candidate.Amount);
+                if (requiredAmount > int.MaxValue)
+                {
+                    reason = "配方材料配置无效";
+                    return false;
+                }
+                int required = (int)requiredAmount;
                 if (have < required)
                 {
-                    reason = $"资源不足：{ingredient.ResourceId} 需要 {required}，当前 {have}";
+                    string sourceName = ingredient.Source == CraftIngredientSource.ResourcePool ? "资源" : "仓库物品";
+                    reason = $"{sourceName}不足：{ingredient.ItemId} 需要 {required}，当前 {have}";
                     return false;
                 }
             }

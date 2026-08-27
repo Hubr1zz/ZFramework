@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.ContentTables;
@@ -226,6 +227,31 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task RuntimeUpgradeRecipe_ConsumesStoredKnifeAndBlackSalt()
+        {
+            List<ItemData> items = CreateRuntimeRecipeItems();
+            ItemData salt = items.Find(item => item.ContentId == "black_salt");
+            ItemData knife = items.Find(item => item.ContentId == "stone_knife");
+            InventionData tools = CreateInvention("tools", "工具");
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
+            CraftRecipe recipe = recipes.Single(candidate => candidate.ContentId == "shape_salt_crystal_edge");
+            var settlement = new SettlementInstance();
+            settlement.AddResource(salt, 1);
+            settlement.AddStoredItem(knife, 1);
+            settlement.UnlockInvention(tools.ContentId);
+            var workshop = new WorkshopSystem(settlement, new InventionSystem(settlement)) { AllRecipes = new List<CraftRecipe>(recipes) };
+            using var session = new PlayableSettlementActionSession(settlement, new EmptyWeaponTrainingContent(), workshopSystem: workshop);
+
+            SettlementCraftCommandResult result = await session.CraftAsync(recipe);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(result.RecipeId, Is.EqualTo("shape_salt_crystal_edge"));
+            Assert.That(settlement.GetResource(salt), Is.Zero);
+            Assert.That(settlement.GetStoredItem(knife), Is.Zero);
+            Assert.That(settlement.GetStoredItem("salt_crystal_edge"), Is.EqualTo(1));
+        }
+
+        [Test]
         public void RuntimeTable_ProvidesMushroomFleshPoulticeRecipe()
         {
             List<ItemData> items = CreateRuntimeRecipeItems();
@@ -246,7 +272,8 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 CreateItem("broken_stone", "碎石", ItemType.Resource),
                 CreateItem("mushroom_flesh", "蘑菇肉", ItemType.Resource),
-                CreateItem("soft_organ", "柔软器官", ItemType.Resource)
+                CreateItem("soft_organ", "柔软器官", ItemType.Resource),
+                CreateItem("stone_knife", "粗制石刃", ItemType.Weapon)
             };
             return items;
         }

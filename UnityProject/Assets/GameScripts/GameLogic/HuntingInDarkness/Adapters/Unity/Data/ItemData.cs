@@ -112,6 +112,7 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class CraftRecipe
     {
+        public string contentId;
         public string recipeName = "新配方";
         public List<RecipeIngredient> ingredients = new();
         public ItemData outputItem;
@@ -121,6 +122,8 @@ namespace HuntingInDarkness.Data
         public InventionData requiredInvention; // 可为空（基础配方无需发明）
         public bool unlockedByMaterial = false; // 收集到指定素材时解锁
         public string requiredWorkshopId;
+
+        public string ContentId => string.IsNullOrWhiteSpace(contentId) ? recipeName?.Trim() ?? string.Empty : contentId.Trim();
     }
 
     [System.Serializable]

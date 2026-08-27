@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "settlement-workshop-crafting",
-  "specHash": "0e1848529b7092523b5b02fada99844bcc5184970b47b393f84339725d649e30",
+  "specHash": "59eb0b811b5cf900ad83bae02221b54309a96d42eab02822e0d0763f0e0b54eb",
   "title": "营地桌面工坊制作",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；药剂工坊的真实组合根流程已覆盖建造、制造、库存卡消耗、保存与重建。",
-    "validatedAgainstSpecHash": "0e1848529b7092523b5b02fada99844bcc5184970b47b393f84339725d649e30",
+    "summary": "3D 工坊卡只提交玩家意图；Settlement ActionQueue 在提交前按来源聚合并验证资源池与仓库物品，稳定配方 ID 贯穿动作和事实。",
+    "validatedAgainstSpecHash": "59eb0b811b5cf900ad83bae02221b54309a96d42eab02822e0d0763f0e0b54eb",
     "evidence": [
       {
         "guid": "59e65c28f501e7944b628d6f642a2c36",
@@ -33,10 +33,19 @@
         "guid": "0dedb93c94f43e746b5dce4fc1eb02d3",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs",
         "line": 1,
-        "fileHash": "59b022407b12f1acc87a38c4fefd2b67d0be6e3a11ac524b281c9c54c1be6c43",
+        "fileHash": "21a6e0594177cd587fd1e4654d79045852bb69e318a407da5607634ed6d223fc",
         "status": "verified",
         "checkedAt": "2026-08-25T11:28:56-07:00",
         "feature": "原子校验和提交资源、产物及制作事实，竞争请求和 Reactor 阻止不产生重复产物。"
+      },
+      {
+        "guid": "3c4ad0914f399bf46a656f75e733eccd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/WorkshopSystem.cs",
+        "line": 1,
+        "fileHash": "1afe233f61b412c3d1601853788fa4d65631876647e292c623053569dd373807",
+        "status": "verified",
+        "checkedAt": "2026-08-26T17:00:00-07:00",
+        "feature": "按 ResourcePool 与 StoredItemPool 聚合校验配方输入，并在完整验证后确定性扣除。"
       },
       {
         "guid": "fae66be113c0f1b4aa8e8601a20f1b18",
@@ -51,7 +60,7 @@
         "guid": "f13dbbb521f1d294f806269bea89e1f2",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementCraftActionTests.cs",
         "line": 1,
-        "fileHash": "65fca19c7a521992818cf0d63e993efed9a34d725b2bf55b6b09bdf021894b27",
+        "fileHash": "9be77a59b812e1b05ba5e777e3cf8eb93e868e66690f0401c9d22929bde5b688",
         "status": "verified",
         "checkedAt": "2026-08-25T11:28:56-07:00",
         "feature": "覆盖成功事实、并发资源竞争、Reactor 阻止及未注册配方拒绝。"
@@ -60,7 +69,7 @@
         "guid": "156c7bea2196d0047b84b06aa2342495",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
         "line": 1,
-        "fileHash": "434ee771fbeba2f5b9a1c8cb3e48dc2bcca74c4b0852801cd6d4300c2172dbd9",
+        "fileHash": "e5f755d616f7d36634c9fec0cc3207d772f83b8faba42f52d8e3b993cc8545f7",
         "status": "verified",
         "checkedAt": "2026-08-25T18:37:36-07:00",
         "feature": "以稳定 ID 配置十一条基础制作路线，专门护甲配方绑定护甲工坊。"
@@ -69,7 +78,7 @@
         "guid": "b03cbb7b8c779d242836d8385b31e05b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
         "line": 1,
-        "fileHash": "e461b2c9349c1745bc057090ecfff797f93fdc45e9dac9b17a51972188f25582",
+        "fileHash": "ae83fbad3225e6306d27c102e78920c7206449cf2da14b35dea07504e168a93a",
         "status": "verified",
         "checkedAt": "2026-08-25T18:37:36-07:00",
         "feature": "验证混合来源素材、工具发明、护甲工坊门禁及失败后无消耗的原子制作。"
@@ -121,7 +130,9 @@
       }
     ],
     "tests": [
-      "PlayableSettlementCraftActionTests: 4/4 passed",
+      "PlayableSettlementCraftActionTests: 8/8 passed",
+      "SettlementProgressionRulesTests: 8/8 passed",
+      "PlayableRecipeTableTests: 10/10 passed",
       "Stone Forest crafting content cluster: 37/37 passed",
       "PlayableEquipmentRulesTests: 4/4 passed",
       "PlayableHuntNoiseActionTests: 7/7 passed",
@@ -129,17 +140,18 @@
       "Medical workshop focused cluster: 40/40 passed",
       "Workshop production PlayMode cluster: 2/2 passed"
     ],
-    "verifiedAt": "2026-08-26T14:18:00-07:00"
+    "verifiedAt": "2026-08-26T17:00:00-07:00"
   },
   "implementationOutline": [
     "WorkshopZone 从配置目录生成工坊和配方实体卡，View 不消费资源或创建产物。",
-    "PlayableSettlementActionSession 将命令送入 Settlement runner，Action 在执行时重验所有权、解锁、工坊和资源。",
+    "PlayableSettlementActionSession 将命令送入 Settlement runner，WorkshopSystem 在扣除前按 ResourcePool 与 StoredItemPool 聚合重验全部输入。",
     "提交事实驱动 GameManager 保存和 SettlementTable3D 刷新，资源卡耗尽后移除、重新获得后恢复。",
     "表配方通过稳定 ContentId 组合狩猎素材与表装备，工具发明统一控制基础加工路线。",
     "ScriptableObject 医疗扩展复用同一 CraftRecipe 契约，把狩猎器官转换为既有恢复资源。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/WorkshopSystem.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs:466",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json:1"

@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Settlement.PlayableSettlementContentExtension
   items: []
   recipes:
-  - recipeName: "培制药用菌肉"
+  - contentId: prepare_medicinal_flesh
+    recipeName: "培制药用菌肉"
     ingredients:
     - item: {fileID: 11400000, guid: 1bee435e4a486534b9598e60253f73e7, type: 2}
       count: 1

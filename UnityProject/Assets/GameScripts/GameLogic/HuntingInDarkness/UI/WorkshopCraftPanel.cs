@@ -58,7 +58,7 @@ namespace UI
             {
                 var card = WorkshopRecipeCard3D.Create(
                     recipes[i], workshop.CraftCommand, ContentRoot,
-                    new Vector3(startX + i * rowStep, 0f, 0f));
+                    new Vector3(startX + i * rowStep, 0f, 0f), workshop.IngredientAmount);
                 card.OnCrafted += OnRecipeCrafted;
                 _recipeCards.Add(card);
             }

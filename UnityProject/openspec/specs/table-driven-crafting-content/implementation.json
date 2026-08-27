@@ -2,20 +2,20 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "table-driven-crafting-content",
-  "specHash": "33eaddef6c573cd08d708001b12544f82b0218af8fd6fe5c1c9f39b1e17d6f61",
+  "specHash": "a50013c52f0a71e8cbdc5dee1da75d35dd5f81ad31247672bc9ab030f95cc333",
   "title": "读表配方与事件奖励制造链",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；石森林素材可制造十一种基础路线，专门护甲必须先建护甲工坊。",
-    "validatedAgainstSpecHash": "33eaddef6c573cd08d708001b12544f82b0218af8fd6fe5c1c9f39b1e17d6f61",
+    "summary": "配方表把稳定配方 ID 和物品 ID 装配为普通 CraftRecipe；装备升级可原子消费仓库物品与资源，并复用 3D 工坊和 Settlement ActionQueue。",
+    "validatedAgainstSpecHash": "a50013c52f0a71e8cbdc5dee1da75d35dd5f81ad31247672bc9ab030f95cc333",
     "evidence": [
       {
         "guid": "3563da353cb19f24981a644b6a0e641e",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableRecipeTable.cs",
         "line": 1,
-        "fileHash": "5b9b4ba3966da7dfc507a38f800e6e4902c2a98425ec65f7c0616b7536125f77",
+        "fileHash": "d90970d0ab390dc8a259f4c544d5b1e803f571747ba1d1ab4b96371a6bc0a6c3",
         "status": "verified",
         "checkedAt": "2026-08-25T11:28:56-07:00",
         "feature": "按稳定 ID 绑定原料、产物和发明前置，合并重复原料并拒绝歧义或溢出。"
@@ -24,16 +24,25 @@
         "guid": "0dedb93c94f43e746b5dce4fc1eb02d3",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs",
         "line": 1,
-        "fileHash": "59b022407b12f1acc87a38c4fefd2b67d0be6e3a11ac524b281c9c54c1be6c43",
+        "fileHash": "21a6e0594177cd587fd1e4654d79045852bb69e318a407da5607634ed6d223fc",
         "status": "verified",
         "checkedAt": "2026-08-25T11:28:56-07:00",
         "feature": "在 Settlement root action 内重验配方与资源，提交产物、资源变化及唯一制作事务事实。"
       },
       {
+        "guid": "3c4ad0914f399bf46a656f75e733eccd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/WorkshopSystem.cs",
+        "line": 1,
+        "fileHash": "1afe233f61b412c3d1601853788fa4d65631876647e292c623053569dd373807",
+        "status": "verified",
+        "checkedAt": "2026-08-26T17:00:00-07:00",
+        "feature": "把资源原料映射到资源池、装备和消耗品原料映射到仓库，并在完整验证后扣除。"
+      },
+      {
         "guid": "b03cbb7b8c779d242836d8385b31e05b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
         "line": 1,
-        "fileHash": "e461b2c9349c1745bc057090ecfff797f93fdc45e9dac9b17a51972188f25582",
+        "fileHash": "ae83fbad3225e6306d27c102e78920c7206449cf2da14b35dea07504e168a93a",
         "status": "verified",
         "checkedAt": "2026-08-25T18:37:36-07:00",
         "feature": "覆盖稳定绑定、歧义拒绝、混合来源引用、护甲工坊门禁和失败后重试。"
@@ -42,7 +51,7 @@
         "guid": "156c7bea2196d0047b84b06aa2342495",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
         "line": 1,
-        "fileHash": "434ee771fbeba2f5b9a1c8cb3e48dc2bcca74c4b0852801cd6d4300c2172dbd9",
+        "fileHash": "e5f755d616f7d36634c9fec0cc3207d772f83b8faba42f52d8e3b993cc8545f7",
         "status": "verified",
         "checkedAt": "2026-08-25T18:37:36-07:00",
         "feature": "提供十一条基础制造路线，并让专门护甲进入护甲工坊。"
@@ -59,18 +68,20 @@
     ],
     "tests": [
       "Stone Forest crafting content cluster: 37/37 passed",
-      "PlayableSettlementCraftActionTests: 4/4 passed",
+      "PlayableSettlementCraftActionTests: 8/8 passed",
+      "PlayableRecipeTableTests: 10/10 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
     ],
-    "verifiedAt": "2026-08-25T18:37:36-07:00"
+    "verifiedAt": "2026-08-26T17:00:00-07:00"
   },
   "implementationOutline": [
-    "PlayableRecipeTable 在内容组装时把稳定 ID 记录解析成普通 CraftRecipe，并复用现有目录与验证。",
+    "PlayableRecipeTable 在内容组装时把稳定配方 ID 与物品 ID 解析成普通 CraftRecipe，并复用现有目录与验证。",
     "WorkshopZone 只投影可用配方并提交命令；制作状态、并发和 Reactor 门禁属于 Settlement ActionQueue。",
     "生产内容以十一条配方把事件与采集奖励转化为基础装备，并以工坊门禁、关键词和噪音修正形成下一次狩猎的构筑选择。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableRecipeTable.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/WorkshopSystem.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json:1"
   ],

@@ -27,6 +27,15 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void LegacyRecipeWithoutContentId_UsesRecipeNameAsStableFallback()
+        {
+            CraftRecipe recipe = CreateRecipe("骨针制作", "骨", 2, "骨针", ItemType.Weapon);
+
+            Assert.That(recipe.contentId, Is.Null.Or.Empty);
+            Assert.That(recipe.ContentId, Is.EqualTo("骨针制作"));
+        }
+
+        [Test]
         public async Task CraftAsync_CommitsResourcesEquipmentAndFacts()
         {
             SettlementInstance settlement = CreateSettlement();
@@ -73,6 +82,84 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(Array.FindAll(results, result => result.Succeeded), Has.Length.EqualTo(1));
             Assert.That(settlement.GetResource("骨"), Is.EqualTo(1));
             Assert.That(settlement.GetStoredEquipment("骨针"), Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task CraftAsync_MixedInventoryConsumesStoredWeaponAndResourceAtomically()
+        {
+            SettlementInstance settlement = CreateSettlement();
+            ItemData salt = CreateItem("black_salt", ItemType.Resource);
+            ItemData knife = CreateItem("stone_knife", ItemType.Weapon);
+            ItemData edge = CreateItem("salt_crystal_edge", ItemType.Weapon);
+            CraftRecipe recipe = CreateMixedRecipe(salt, knife, edge);
+            settlement.AddResource(salt, 1);
+            settlement.AddStoredItem(knife, 1);
+            WorkshopSystem workshop = CreateWorkshop(settlement, recipe);
+            var received = new List<string>();
+            Action<ResourceChangedEvent> resourceHandler = evt => received.Add($"resource:{evt.ResourceName}:{evt.OldAmount}->{evt.NewAmount}");
+            Action<SettlementCraftedEvent> craftHandler = evt => received.Add($"crafted:{evt.RecipeId}:{evt.OutputName}");
+            EventBus.Subscribe(resourceHandler);
+            EventBus.Subscribe(craftHandler);
+            try
+            {
+                using PlayableSettlementActionSession session = CreateSession(settlement, workshop);
+
+                SettlementCraftCommandResult result = await session.CraftAsync(recipe);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(result.RecipeId, Is.EqualTo("shape_salt_crystal_edge"));
+                Assert.That(settlement.GetResource(salt), Is.Zero);
+                Assert.That(settlement.GetStoredItem(knife), Is.Zero);
+                Assert.That(settlement.GetStoredItem(edge), Is.EqualTo(1));
+                Assert.That(received, Is.EqualTo(new[] { "resource:black_salt:1->0", "crafted:shape_salt_crystal_edge:salt_crystal_edge" }));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(resourceHandler);
+                EventBus.Unsubscribe(craftHandler);
+            }
+        }
+
+        [Test]
+        public async Task CraftAsync_MissingStoredIngredientLeavesResourceUntouched()
+        {
+            SettlementInstance settlement = CreateSettlement();
+            ItemData salt = CreateItem("black_salt", ItemType.Resource);
+            ItemData knife = CreateItem("stone_knife", ItemType.Weapon);
+            ItemData edge = CreateItem("salt_crystal_edge", ItemType.Weapon);
+            CraftRecipe recipe = CreateMixedRecipe(salt, knife, edge);
+            settlement.AddResource(salt, 1);
+            WorkshopSystem workshop = CreateWorkshop(settlement, recipe);
+            using PlayableSettlementActionSession session = CreateSession(settlement, workshop);
+
+            SettlementCraftCommandResult result = await session.CraftAsync(recipe);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Reason, Does.Contain("仓库物品不足"));
+            Assert.That(settlement.GetResource(salt), Is.EqualTo(1));
+            Assert.That(settlement.GetStoredItem(knife), Is.Zero);
+            Assert.That(settlement.GetStoredItem(edge), Is.Zero);
+        }
+
+        [Test]
+        public async Task CraftAsync_ConcurrentMixedRequestsCommitOnlyOnce()
+        {
+            SettlementInstance settlement = CreateSettlement();
+            ItemData salt = CreateItem("black_salt", ItemType.Resource);
+            ItemData knife = CreateItem("stone_knife", ItemType.Weapon);
+            ItemData edge = CreateItem("salt_crystal_edge", ItemType.Weapon);
+            CraftRecipe recipe = CreateMixedRecipe(salt, knife, edge);
+            settlement.AddResource(salt, 1);
+            settlement.AddStoredItem(knife, 1);
+            WorkshopSystem workshop = CreateWorkshop(settlement, recipe);
+            using PlayableSettlementActionSession session = CreateSession(settlement, workshop);
+
+            SettlementCraftCommandResult[] results = await Task.WhenAll(session.CraftAsync(recipe).AsTask(), session.CraftAsync(recipe).AsTask());
+
+            Assert.That(Array.FindAll(results, result => result.Succeeded), Has.Length.EqualTo(1));
+            Assert.That(settlement.GetResource(salt), Is.Zero);
+            Assert.That(settlement.GetStoredItem(knife), Is.Zero);
+            Assert.That(settlement.GetStoredItem(edge), Is.EqualTo(1));
         }
 
         [Test]
@@ -136,9 +223,27 @@ namespace HuntingInDarkness.Adapter.Tests
             };
         }
 
+        private static CraftRecipe CreateMixedRecipe(ItemData salt, ItemData knife, ItemData edge)
+        {
+            return new CraftRecipe
+            {
+                contentId = "shape_salt_crystal_edge",
+                recipeName = "打磨盐晶短刃",
+                requiredWorkshopId = "骨工坊",
+                ingredients = new List<RecipeIngredient>
+                {
+                    new() { item = salt, count = 1 },
+                    new() { item = knife, count = 1 }
+                },
+                outputItem = edge,
+                outputCount = 1
+            };
+        }
+
         private ItemData CreateItem(string itemName, ItemType itemType)
         {
             ItemData item = ScriptableObject.CreateInstance<ItemData>();
+            item.name = itemName;
             item.itemName = itemName;
             item.itemType = itemType;
             createdObjects.Add(item);

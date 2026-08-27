@@ -104,7 +104,7 @@ namespace HuntingInDarkness.Settlement
             foreach (CraftRecipe recipe in source)
             {
                 if (recipe == null || string.IsNullOrWhiteSpace(recipe.recipeName)) continue;
-                if (target.Exists(existing => existing != null && existing.recipeName == recipe.recipeName)) continue;
+                if (target.Exists(existing => existing != null && existing.ContentId == recipe.ContentId)) continue;
                 target.Add(recipe);
             }
         }

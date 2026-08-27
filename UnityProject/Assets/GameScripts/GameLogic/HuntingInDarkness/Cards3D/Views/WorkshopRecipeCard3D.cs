@@ -20,6 +20,7 @@ namespace Cards3D
 
         private CraftRecipe recipe;
         private System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> craftCommand;
+        private System.Func<RecipeIngredient, int> ingredientAmount;
         private TextMeshPro nameText;
         private TextMeshPro requirementText;
         private TextMeshPro hintText;
@@ -36,13 +37,14 @@ namespace Cards3D
 
         protected override CardCategory GetDefaultCategory() => CardCategory.WorkshopRecipe;
 
-        public static WorkshopRecipeCard3D Create(CraftRecipe recipe, System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> craftCommand, Transform parent, Vector3 localPos = default)
+        public static WorkshopRecipeCard3D Create(CraftRecipe recipe, System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> craftCommand, Transform parent, Vector3 localPos = default, System.Func<RecipeIngredient, int> getIngredientAmount = null)
         {
             var go = new GameObject($"Recipe_{recipe?.recipeName}");
             go.transform.SetParent(parent, false);
             var card = go.AddComponent<WorkshopRecipeCard3D>();
             card.recipe = recipe;
             card.craftCommand = craftCommand;
+            card.ingredientAmount = getIngredientAmount;
             card.InitView(localPos);
             card.transform.localPosition = localPos;
             return card;
@@ -130,7 +132,16 @@ namespace Cards3D
             var text = new StringBuilder();
             foreach (RecipeIngredient ingredient in recipe.ingredients)
                 if (ingredient?.item != null)
-                    text.Append(ingredient.item.itemName).Append(" ×").Append(ingredient.count).AppendLine();
+                {
+                    string source = ingredient.item.itemType == ItemType.Resource ? "资源" : "仓库";
+                    int available = ingredientAmount?.Invoke(ingredient) ?? -1;
+                    text.Append(source).Append(" · ").Append(ingredient.item.itemName).Append(' ');
+                    if (available >= 0)
+                        text.Append(available).Append('/').Append(ingredient.count);
+                    else
+                        text.Append('×').Append(ingredient.count);
+                    text.AppendLine();
+                }
             return text.ToString().TrimEnd();
         }
 

@@ -378,7 +378,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle workshopEntity = environment.EntityHandles.GetOrCreate("settlement-workshop", string.IsNullOrWhiteSpace(recipe?.requiredWorkshopId) ? "shared" : recipe.requiredWorkshopId, string.IsNullOrWhiteSpace(recipe?.requiredWorkshopId) ? "共享工坊" : recipe.requiredWorkshopId);
-            ReactorEntityHandle recipeEntity = environment.EntityHandles.GetOrCreate("craft-recipe", recipe != null ? recipe.recipeName : "unknown", recipe != null ? recipe.recipeName : "未知配方");
+            ReactorEntityHandle recipeEntity = environment.EntityHandles.GetOrCreate("craft-recipe", recipe != null ? recipe.ContentId : "unknown", recipe != null ? recipe.recipeName : "未知配方");
             var action = new CraftSettlementRecipeAction(settlement, workshopSystem, recipe, outbox, workshopEntity, recipeEntity);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;

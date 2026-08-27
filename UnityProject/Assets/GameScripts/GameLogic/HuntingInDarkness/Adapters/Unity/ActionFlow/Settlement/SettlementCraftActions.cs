@@ -11,10 +11,11 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 {
     public readonly struct SettlementCraftCommandResult
     {
-        public SettlementCraftCommandResult(bool succeeded, string reason, string recipeName, string outputName, int outputCount)
+        public SettlementCraftCommandResult(bool succeeded, string reason, string recipeId, string recipeName, string outputName, int outputCount)
         {
             Succeeded = succeeded;
             Reason = reason ?? string.Empty;
+            RecipeId = recipeId ?? string.Empty;
             RecipeName = recipeName ?? string.Empty;
             OutputName = outputName ?? string.Empty;
             OutputCount = outputCount;
@@ -22,15 +23,17 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
         public bool Succeeded { get; }
         public string Reason { get; }
+        public string RecipeId { get; }
         public string RecipeName { get; }
         public string OutputName { get; }
         public int OutputCount { get; }
 
-        public static SettlementCraftCommandResult Failed(string reason) => new(false, reason, string.Empty, string.Empty, 0);
+        public static SettlementCraftCommandResult Failed(string reason) => new(false, reason, string.Empty, string.Empty, string.Empty, 0);
     }
 
     public struct SettlementCraftedEvent
     {
+        public string RecipeId;
         public string RecipeName;
         public string OutputName;
         public int OutputCount;
@@ -70,9 +73,9 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
             foreach (KeyValuePair<string, int> previous in previousResources)
                 eventOutbox.Stage(new ResourceChangedEvent { ResourceName = previous.Key, OldAmount = previous.Value, NewAmount = settlement.GetResource(previous.Key) });
-            Result = new SettlementCraftCommandResult(true, string.Empty, recipe.recipeName, recipe.outputItem.itemName, output.Count);
-            eventOutbox.Stage(new SettlementCraftedEvent { RecipeName = recipe.recipeName, OutputName = recipe.outputItem.itemName, OutputCount = output.Count });
-            eventOutbox.Stage(new SettlementTransactionCommittedEvent { TransactionId = $"craft:{recipe.requiredWorkshopId}:{recipe.recipeName}", Kind = SettlementTransactionKind.Crafting });
+            Result = new SettlementCraftCommandResult(true, string.Empty, recipe.ContentId, recipe.recipeName, recipe.outputItem.itemName, output.Count);
+            eventOutbox.Stage(new SettlementCraftedEvent { RecipeId = recipe.ContentId, RecipeName = recipe.recipeName, OutputName = recipe.outputItem.itemName, OutputCount = output.Count });
+            eventOutbox.Stage(new SettlementTransactionCommittedEvent { TransactionId = $"craft:{recipe.requiredWorkshopId}:{recipe.ContentId}", Kind = SettlementTransactionKind.Crafting });
             return UniTask.FromResult(ActionOutcome.Success());
         }
 
@@ -80,7 +83,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         {
             var amounts = new Dictionary<string, int>();
             foreach (RecipeIngredient ingredient in recipe.ingredients)
-                if (ingredient?.item != null && !amounts.ContainsKey(ingredient.item.ContentId))
+                if (ingredient?.item != null && ingredient.item.itemType == ItemType.Resource && !amounts.ContainsKey(ingredient.item.ContentId))
                     amounts.Add(ingredient.item.ContentId, settlement.GetResource(ingredient.item));
             return amounts;
         }

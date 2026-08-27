@@ -87,7 +87,7 @@ namespace UI
             {
                 string displayName = ResolveDisplayName(catalog, pair.Key);
                 WorkshopCard3D card = EntityCreator.CreateWorkshopCard(displayName, $"可制作 {pair.Value.Count} 种物品", transform);
-                card.Configure(pair.Value, craftCommand: OnCraftRequested);
+                card.Configure(pair.Value, OnCraftRequested, ingredient => ingredient?.item == null ? 0 : ingredient.item.itemType == ItemType.Resource ? settlement.GetResource(ingredient.item) : settlement.GetStoredItem(ingredient.item));
                 card.OnCraftMenuRequested = clicked => OnWorkshopClicked?.Invoke(clicked);
                 _grid.TryPlaceCard(card);
                 _cards.Add(card);

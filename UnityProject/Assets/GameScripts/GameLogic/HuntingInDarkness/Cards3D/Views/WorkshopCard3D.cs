@@ -32,6 +32,7 @@ namespace Cards3D
         [Header("工坊数据")]
         [SerializeField] List<CraftRecipe> _recipes = new(); // 已解锁的可生产配方
         private System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> craftCommand;
+        private System.Func<RecipeIngredient, int> ingredientAmount;
 
         public WorkshopCraftPanel _panel;
 
@@ -39,6 +40,7 @@ namespace Cards3D
         public IReadOnlyList<CraftRecipe> Recipes => _recipes;
 
         public System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> CraftCommand => craftCommand;
+        public System.Func<RecipeIngredient, int> IngredientAmount => ingredientAmount;
 
         /// <summary>点击工坊卡时触发（外部可附加逻辑；面板由本卡自行开关）。</summary>
         public System.Action<WorkshopCard3D> OnCraftMenuRequested;
@@ -49,10 +51,11 @@ namespace Cards3D
 
         // ─── 配置 ──────────────────────────────────────────────────────────
 
-        public void Configure(List<CraftRecipe> recipes, System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> craftCommand = null)
+        public void Configure(List<CraftRecipe> recipes, System.Func<CraftRecipe, UniTask<SettlementCraftCommandResult>> craftCommand = null, System.Func<RecipeIngredient, int> getIngredientAmount = null)
         {
             if (recipes != null) _recipes = recipes;
             if (craftCommand != null) this.craftCommand = craftCommand;
+            if (getIngredientAmount != null) ingredientAmount = getIngredientAmount;
         }
 
         // ─── 初始化 ────────────────────────────────────────────────────────

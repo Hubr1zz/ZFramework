@@ -37,7 +37,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 82d3979997c86da4288a14a92f7b2b7e, type: 2}
   inventionTable: {fileID: 4900000, guid: 644686d452642234cb73944616376d89, type: 3}
   recipes:
-  - recipeName: "\u6253\u78E8\u77F3\u5668"
+  - contentId: polish_stone_tool
+    recipeName: "\u6253\u78E8\u77F3\u5668"
     ingredients:
     - item: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
       count: 1
@@ -46,7 +47,8 @@ MonoBehaviour:
     requiredInvention: {fileID: 11400000, guid: bbdb198c4c6e406479b4717a7d1d8aa2, type: 2}
     unlockedByMaterial: 0
     requiredWorkshopId:
-  - recipeName: "\u7C97\u5236\u77F3\u5203"
+  - contentId: craft_stone_knife
+    recipeName: "\u7C97\u5236\u77F3\u5203"
     ingredients:
     - item: {fileID: 11400000, guid: 71c869daeab8fed47ae26709dcd5771b, type: 2}
       count: 1
@@ -57,7 +59,8 @@ MonoBehaviour:
     requiredInvention: {fileID: 11400000, guid: bbdb198c4c6e406479b4717a7d1d8aa2, type: 2}
     unlockedByMaterial: 0
     requiredWorkshopId:
-  - recipeName: "\u7B4B\u8171\u6295\u77F3\u7D22"
+  - contentId: craft_sinew_sling
+    recipeName: "\u7B4B\u8171\u6295\u77F3\u7D22"
     ingredients:
     - item: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
       count: 1

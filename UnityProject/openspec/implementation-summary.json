@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "54c120e74bedaffeecddc37cbfd4c60cd4f3df993aa8d7df65663d9668d44736",
-  "inputManifestDigest": "97d0ddcdcc7a0ca6814f6464f8477665a578c8c62c967c6ee67d35430783f8e9",
-  "outputDigest": "59d12c94463e6dae9156b2ef58f07355da4485f5d4e8761c36310bf4a3dfa9e1",
+  "inputDigest": "c90b24693d856fd862cd150840b3269475cd85df065aacc63dc22be1b91c0f8c",
+  "inputManifestDigest": "8d4d0da8201aab1557ed08f702a55ce141ba46ed227e92ce7a8db5e2726475a8",
+  "outputDigest": "d1af8aeb08fd742a151c406d59eb9865c1c94607cf99d443790b2aea8c14587d",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -102,7 +102,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
-      "sha256": "ff945fe8f3fde925abb1d97e141a3311b69445ef16d6e6bb6279faf462ad7f41",
+      "sha256": "187fd2e00bcd2f8615ef68ac23755624632c913930fdc08bd0e47d634633848e",
       "state": "current"
     },
     {
@@ -117,7 +117,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs",
-      "sha256": "59b022407b12f1acc87a38c4fefd2b67d0be6e3a11ac524b281c9c54c1be6c43",
+      "sha256": "21a6e0594177cd587fd1e4654d79045852bb69e318a407da5607634ed6d223fc",
       "state": "current"
     },
     {
@@ -212,7 +212,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableRecipeTable.cs",
-      "sha256": "5b9b4ba3966da7dfc507a38f800e6e4902c2a98425ec65f7c0616b7536125f77",
+      "sha256": "d90970d0ab390dc8a259f4c544d5b1e803f571747ba1d1ab4b96371a6bc0a6c3",
       "state": "current"
     },
     {
@@ -237,7 +237,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/ItemData.cs",
-      "sha256": "7ef31f2d8921534f3ff7a1f2f544124f2295d0f98e90f7f16c80e4e10b02ae3f",
+      "sha256": "165d82d20e327b591601fef857b7f8a5c55024722086cde3b53326d559f17b27",
       "state": "current"
     },
     {
@@ -346,6 +346,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/WorkshopSystem.cs",
+      "sha256": "1afe233f61b412c3d1601853788fa4d65631876647e292c623053569dd373807",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
       "sha256": "b46e5adc23281f9edb3cf8c821740bf1a2cb66e25ffe729b15c132603216b355",
       "state": "current"
@@ -362,7 +367,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
-      "sha256": "8fcfffd7001bbfbbfaeaa6e019c31fa5b03bbb0396633bb03de98e91d9116fe7",
+      "sha256": "c1d30443af9d95afd33c1ff38e069fa5a48e50f4e6c54504fa487bd842823759",
       "state": "current"
     },
     {
@@ -512,7 +517,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-      "sha256": "f092e889f9c7ed8ec3b2b9ecafe65515b46757412d7ab729c8e0ec4d8e12d6ea",
+      "sha256": "ae83fbad3225e6306d27c102e78920c7206449cf2da14b35dea07504e168a93a",
       "state": "current"
     },
     {
@@ -527,7 +532,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementCraftActionTests.cs",
-      "sha256": "65fca19c7a521992818cf0d63e993efed9a34d725b2bf55b6b09bdf021894b27",
+      "sha256": "9be77a59b812e1b05ba5e777e3cf8eb93e868e66690f0401c9d22929bde5b688",
       "state": "current"
     },
     {
@@ -807,12 +812,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementModels.cs",
-      "sha256": "c1c3df3e16f06333d7e805f49f44b151a82f885f5aab5285f5622ccf82bd1b4c",
+      "sha256": "1c80bff6e8335a496342fe547482b1249d6ccd5a6b314b0333b047ea545976ca",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementRules.cs",
-      "sha256": "7273c5b2bab7c5598f454980376c62c2d67db44bc21bab57f7eed4ec3cffa627",
+      "sha256": "1043663e4234eb51f11bd362d477bd2c1053e9ae65d79e6b60df26d00ba474e9",
       "state": "current"
     },
     {
@@ -837,7 +842,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/SettlementExtensions/BasicMedicine.asset",
-      "sha256": "aac22eda7be6f00299eaa192bc0f712b72f012069057191f830034d81fd9201e",
+      "sha256": "709a5aa31574229f46df7926f74a2b54e06a8940204fa4abc540bd5fec372e5f",
       "state": "current"
     },
     {
@@ -872,7 +877,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
-      "sha256": "662ebd591e9f30b2a06c674a5a49966b8f9c567734a186de059b5d21584d8249",
+      "sha256": "e5f755d616f7d36634c9fec0cc3207d772f83b8faba42f52d8e3b993cc8545f7",
       "state": "current"
     },
     {
@@ -907,7 +912,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
-      "sha256": "1acf0b9c22b55ee82b4e1fe85df713a52b071a88d3796c73d7081b5001962b95",
+      "sha256": "10b656bf6a8d3b5ca946b92c83ebb221e6dc12471e62af073149253fc4c28394",
       "state": "current"
     },
     {
@@ -921,8 +926,13 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntTileScoutPanel3D.cs",
+      "sha256": "a8206a4ffb0fa67b4f341b632c02ee051f74634bb46a9cec4188530b5451f550",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileCard3D.cs",
-      "sha256": "6a7049da7c21295eb218f9df9045082b38a5c27bb0077dce4e1648d2bd4647cd",
+      "sha256": "e3b0f0c85b6ccf2a903c894e89015de531ad4fa3bb31a8a76b0dd2a74649acf2",
       "state": "current"
     },
     {
@@ -1002,7 +1012,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
-      "sha256": "0ae307a69bb2712f822136e6c2da336495131bbe76195d8f7d83a4befcf6217d",
+      "sha256": "66d5c3bc7f1369b2044dc5a16d9b4d64bb8518c29400bc4e30a9fc2218f58877",
       "state": "current"
     },
     {
@@ -1347,12 +1357,12 @@
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/implementation.json",
-      "sha256": "065dc5d6c3196dc719bdc8e009f15d4945d881c3ddba9ad85b9361c042bdb7d5",
+      "sha256": "f5a3fccd5ea2d7e2f68858238c77a231d9ca32adde0b80e1fa81bd4286322fe2",
       "state": "current"
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/spec.md",
-      "sha256": "0e1848529b7092523b5b02fada99844bcc5184970b47b393f84339725d649e30",
+      "sha256": "59eb0b811b5cf900ad83bae02221b54309a96d42eab02822e0d0763f0e0b54eb",
       "state": "current"
     },
     {
@@ -1367,12 +1377,12 @@
     },
     {
       "path": "openspec/specs/table-driven-crafting-content/implementation.json",
-      "sha256": "1c9d9f58059aefa74dcb67aa26e1d5ebbddb8db6f3aa67d18f0d889b94d54213",
+      "sha256": "867798b1c966ab59a3bce05f9ad996104b14d961111ac84ce947953de54a86ee",
       "state": "current"
     },
     {
       "path": "openspec/specs/table-driven-crafting-content/spec.md",
-      "sha256": "33eaddef6c573cd08d708001b12544f82b0218af8fd6fe5c1c9f39b1e17d6f61",
+      "sha256": "a50013c52f0a71e8cbdc5dee1da75d35dd5f81ad31247672bc9ab030f95cc333",
       "state": "current"
     },
     {
@@ -1557,12 +1567,12 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-tile-cards/implementation.json",
-      "sha256": "8de5390b2ade9248eed95222b4145edabf36082aa764ca49210bb0128a83f595",
+      "sha256": "2836f2684c595165aab896f410138c7f0f0f2bf3fdb097465fc3df3af8488288",
       "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-hunt-tile-cards/spec.md",
-      "sha256": "582afa667c3fbe26217c83749d80c5a3ccbaf9b333e389724426ae45cfa70cf4",
+      "sha256": "3d5affaf4a1d68182eb8f0ab135865175bb8ebf7307fb092359a415c4fa2fd8e",
       "state": "current"
     },
     {
@@ -1768,6 +1778,11 @@
   ],
   "verificationRequired": [],
   "staleEvidence": [
+    {
+      "capability": "action-environment-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
+      "state": "stale"
+    },
     {
       "capability": "action-environment-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
@@ -2069,6 +2084,11 @@
       "state": "stale"
     },
     {
+      "capability": "hunt-map-presentation-queue",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileCard3D.cs",
+      "state": "stale"
+    },
+    {
       "capability": "hunt-noise-risk-deck",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs",
       "state": "stale"
@@ -2250,22 +2270,22 @@
     },
     {
       "capability": "settlement-workshop-crafting",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "settlement-workshop-crafting",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "state": "stale"
     },
     {
       "capability": "settlement-workshop-crafting",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/SettlementExtensions/BasicMedicine.asset",
       "state": "stale"
     },
     {
       "capability": "settlement-workshop-crafting",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "settlement-workshop-crafting",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
       "state": "stale"
     },
     {
@@ -2285,17 +2305,7 @@
     },
     {
       "capability": "table-driven-crafting-content",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "table-driven-crafting-content",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
-      "state": "stale"
-    },
-    {
-      "capability": "table-driven-crafting-content",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
       "state": "stale"
     },
     {
@@ -2615,6 +2625,11 @@
     },
     {
       "capability": "tabletop-random-interaction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementModels.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-random-interaction",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementRules.cs",
       "state": "stale"
     },
@@ -2700,7 +2715,17 @@
     },
     {
       "capability": "tabletop-settlement-workshop-construction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/SettlementExtensions/BasicMedicine.asset",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-workshop-construction",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-workshop-construction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
       "state": "stale"
     },
     {
@@ -2754,7 +2779,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
@@ -3497,7 +3522,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileCard3D.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -3919,7 +3944,7 @@
       "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "3D 工坊卡按配置分组配方并只提交玩家意图；药剂工坊的真实组合根流程已覆盖建造、制造、库存卡消耗、保存与重建。",
+      "summary": "3D 工坊卡只提交玩家意图；Settlement ActionQueue 在提交前按来源聚合并验证资源池与仓库物品，稳定配方 ID 贯穿动作和事实。",
       "designSources": [],
       "sources": [
         "openspec/specs/settlement-workshop-crafting/spec.md",
@@ -3928,7 +3953,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
@@ -3936,6 +3961,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/WorkshopSystem.cs",
           "state": "current"
         },
         {
@@ -3948,11 +3977,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEquipmentRulesTests.cs",
@@ -3960,7 +3989,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/SettlementExtensions/BasicMedicine.asset",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableWorkshopCatalog.asset",
@@ -4016,7 +4045,7 @@
       "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "配方表按稳定物品身份生成普通 CraftRecipe，与既有配方共同进入 3D 工坊和 Settlement ActionQueue；石森林素材可制造十一种基础路线，专门护甲必须先建护甲工坊。",
+      "summary": "配方表把稳定配方 ID 和物品 ID 装配为普通 CraftRecipe；装备升级可原子消费仓库物品与资源，并复用 3D 工坊和 Settlement ActionQueue。",
       "designSources": [],
       "sources": [
         "openspec/specs/table-driven-crafting-content/spec.md",
@@ -4033,12 +4062,16 @@
           "state": "current"
         },
         {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/WorkshopSystem.cs",
+          "state": "current"
+        },
+        {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableRecipeTableTests.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/recipes.json",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/items.json",
@@ -4842,7 +4875,7 @@
       "effectiveStatus": "stale",
       "progress": 0,
       "verificationStatus": "verified",
-      "summary": "地形卡继续消费权威地图状态；Boss encounter 标记改为按坐标维护的幂等 View 投影，重复刷新不会持续创建球体。",
+      "summary": "可交互地形卡仅投影地块名称；首次翻开前由世界空间 3D 卡确认，并在确认时创建新鲜会话快照后提交既有 Hunt ActionQueue 命令。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-hunt-tile-cards/spec.md",
@@ -4852,6 +4885,14 @@
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
           "state": "stale"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileCard3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntTileScoutPanel3D.cs",
+          "state": "current"
         }
       ]
     },
@@ -4925,7 +4966,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementModels.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterSymptomRules.cs",
@@ -5212,7 +5253,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementWorkshopConstructionActionTests.cs",
@@ -5228,7 +5269,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/SettlementExtensions/BasicMedicine.asset",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableWorkshopContentTests.cs",

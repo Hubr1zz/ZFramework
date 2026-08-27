@@ -134,6 +134,7 @@ namespace HuntingInDarkness.ContentTables
 
             recipe = new CraftRecipe
             {
+                contentId = record.id.Trim(),
                 recipeName = record.recipeName.Trim(),
                 ingredients = ingredients,
                 outputItem = outputItem,

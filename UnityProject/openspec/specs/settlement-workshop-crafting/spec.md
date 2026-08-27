@@ -27,11 +27,21 @@ A recipe card SHALL display its configured inputs and output, and SHALL translat
 - **THEN** the card submits exactly one request and displays pending, success, or failure feedback
 
 ### Requirement: Crafting is atomic inside the settlement runner
-Authoritative crafting SHALL execute as a root action in the active Settlement ActionQueue environment and SHALL validate recipe registration, workshop availability, unlock conditions, and resource amounts at execution time.
+Authoritative crafting SHALL execute as a root action in the active Settlement ActionQueue environment and SHALL validate recipe registration, workshop availability, unlock conditions, and every source-scoped ingredient amount at execution time. Resource ingredients SHALL come from the settlement resource pool; equipment and consumable ingredients SHALL come from stored-item inventory. Validation SHALL complete before either pool is mutated.
 
 #### Scenario: Two requests compete for one material batch
 - **WHEN** both crafting requests enter the same settlement runner
 - **THEN** only the first valid request consumes resources and the second fails without creating duplicate output
+
+#### Scenario: A recipe upgrades stored equipment with a resource
+- **GIVEN** the required equipment is unequipped and present in stored-item inventory
+- **AND** the required resource is present in the resource pool
+- **WHEN** the crafting root commits
+- **THEN** both source-scoped inputs are consumed once and the upgraded equipment enters stored-item inventory
+
+#### Scenario: Either source-scoped input is missing
+- **WHEN** the crafting root revalidates a mixed-inventory recipe
+- **THEN** the request fails without consuming an input from either pool or creating output
 
 #### Scenario: A reactor prevents crafting
 - **WHEN** a BeforeExecution reactor prevents the crafting action
@@ -72,7 +82,7 @@ The configured starter content SHALL offer multiple equipment outcomes that cons
 
 #### Scenario: The player chooses a louder weapon
 - **GIVEN** the Tools invention is mastered
-- **AND** the settlement owns black salt and broken stone
+- **AND** the settlement owns black salt and an unequipped stone knife
 - **WHEN** the player crafts the configured salt crystal edge
 - **THEN** the produced weapon exposes its positive Hunt noise modifier through the existing item contract
 

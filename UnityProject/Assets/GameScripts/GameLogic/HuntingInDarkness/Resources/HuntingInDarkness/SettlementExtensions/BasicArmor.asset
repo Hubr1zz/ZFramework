@@ -15,7 +15,8 @@ MonoBehaviour:
   items:
   - {fileID: 11400000, guid: ad4e9c1d66557fa4cb81662832fb8f29, type: 2}
   recipes:
-  - recipeName: "\u7F1D\u5236\u97E7\u819C\u80F8\u7532"
+  - contentId: sew_membrane_chest_armor
+    recipeName: "\u7F1D\u5236\u97E7\u819C\u80F8\u7532"
     ingredients:
     - item: {fileID: 11400000, guid: fc4cbca6803a94644bb1bbb7480254c9, type: 2}
       count: 1
