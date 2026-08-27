@@ -381,7 +381,7 @@ namespace UI
         private void FillAllZones()
         {
             _hunterZone.Fill(_mgr.Data.GetAvailableHunters());
-            _resourceZone.Fill(_mgr.Data.Resources);
+            _resourceZone.Synchronize(_mgr.Data.Resources);
             _workshopZone.Fill(_mgr.Workshop, _mgr.Data, workshopCatalog);
             _inventionZone.Fill(_mgr.Inventions);
         }
@@ -527,7 +527,7 @@ namespace UI
         public void RefreshCrafting()
         {
             if (_mgr == null) return;
-            _resourceZone.RefreshCounts(_mgr);
+            _resourceZone.Synchronize(_mgr.Data.Resources);
             _workshopZone.RefreshCards();
             hunterEquipmentPanel?.RefreshVisible();
             hunterRecoveryPanel?.RefreshVisible();
@@ -542,9 +542,7 @@ namespace UI
 
         private void OnResourceChanged(ResourceChangedEvent e)
         {
-            // 耗尽时移除实体卡；新增类型或重新获得已耗尽资源时整区重填。
-            if (e.NewAmount <= 0 || !_resourceZone.TryUpdateCount(e.ResourceName, e.NewAmount))
-                _resourceZone.Fill(_mgr.Data.Resources);
+            _resourceZone.Synchronize(_mgr.Data.Resources);
             RefreshContextPanels();
         }
 

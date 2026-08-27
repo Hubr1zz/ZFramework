@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cards3D;
 using HuntingInDarkness.Data;
@@ -15,50 +16,118 @@ namespace UI
         [SerializeField] private SlotGrid _grid;
 
         private readonly List<ResourceCard3D> _cards = new();
+        private List<ResourceEntry> pendingResources;
+        private int activeDragCount;
 
         public void SetRefs(SlotGrid grid) => _grid = grid;
 
-        public void Fill(List<ResourceEntry> resources)
+        public void Synchronize(IReadOnlyList<ResourceEntry> resources)
         {
-            Clear();
             if (_grid == null) return;
-
-            foreach (var entry in resources)
+            List<ResourceEntry> snapshot = CopyPositiveResources(resources);
+            if (activeDragCount > 0)
             {
-                if (entry.Value <= 0) continue;
-                string displayName = PlayableSettlementItemRegistry.GetDisplayName(entry.Key);
-                var card = EntityCreator.CreateResourceCard(entry.Key, displayName, entry.Value, transform);
-                _grid.TryPlaceCard(card);
-                _cards.Add(card);
+                pendingResources = snapshot;
+                return;
             }
+            ApplySnapshot(snapshot);
         }
 
-        /// <summary>资源数量变化：命中已有卡则就地更新并返回 true，否则返回 false（需整区重填）。</summary>
-        public bool TryUpdateCount(string resourceId, int newAmount)
+        private void ApplySnapshot(IReadOnlyList<ResourceEntry> resources)
         {
-            foreach (var c in _cards)
+            var desiredAmounts = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (ResourceEntry entry in resources)
+                desiredAmounts[entry.Key] = entry.Value;
+
+            var retainedIds = new HashSet<string>(StringComparer.Ordinal);
+            for (int index = _cards.Count - 1; index >= 0; index--)
             {
-                if (c.ResourceId == resourceId)
+                ResourceCard3D card = _cards[index];
+                if (card == null)
                 {
-                    c.UpdateCount(newAmount);
-                    return true;
+                    _cards.RemoveAt(index);
+                    continue;
                 }
+                if (!desiredAmounts.TryGetValue(card.ResourceId, out int amount) || !retainedIds.Add(card.ResourceId))
+                {
+                    RemoveCardAt(index);
+                    continue;
+                }
+                card.UpdateCount(amount);
             }
-            return false;
+
+            foreach (ResourceEntry entry in resources)
+            {
+                if (retainedIds.Contains(entry.Key)) continue;
+                string displayName = PlayableSettlementItemRegistry.GetDisplayName(entry.Key);
+                ResourceCard3D card = EntityCreator.CreateResourceCard(entry.Key, displayName, entry.Value, transform);
+                Subscribe(card);
+                if (!_grid.TryPlaceCard(card))
+                {
+                    Unsubscribe(card);
+                    Destroy(card.gameObject);
+                    Debug.LogWarning($"资源区没有可用卡槽：{entry.Key}");
+                    continue;
+                }
+                _cards.Add(card);
+                retainedIds.Add(entry.Key);
+            }
         }
 
-        /// <summary>按当前数据刷新所有资源卡数量。</summary>
-        public void RefreshCounts(SettlementManager mgr)
+        private static List<ResourceEntry> CopyPositiveResources(IReadOnlyList<ResourceEntry> resources)
         {
-            foreach (var card in _cards)
-                card.UpdateCount(mgr.Data.GetResource(card.ResourceId));
+            var snapshot = new List<ResourceEntry>();
+            foreach (ResourceEntry entry in resources ?? Array.Empty<ResourceEntry>())
+            {
+                if (entry == null || string.IsNullOrWhiteSpace(entry.Key) || entry.Value <= 0) continue;
+                snapshot.Add(new ResourceEntry { Key = entry.Key, Value = entry.Value });
+            }
+            return snapshot;
+        }
+
+        private void Subscribe(ResourceCard3D card)
+        {
+            card.DragStarted += OnCardDragStarted;
+            card.DragEnded += OnCardDragEnded;
+        }
+
+        private void Unsubscribe(ResourceCard3D card)
+        {
+            if (card == null) return;
+            card.DragStarted -= OnCardDragStarted;
+            card.DragEnded -= OnCardDragEnded;
+        }
+
+        private void OnCardDragStarted(CardView3D _) => activeDragCount++;
+
+        private void OnCardDragEnded(CardView3D _)
+        {
+            activeDragCount = Mathf.Max(0, activeDragCount - 1);
+            if (activeDragCount > 0 || pendingResources == null) return;
+            List<ResourceEntry> snapshot = pendingResources;
+            pendingResources = null;
+            ApplySnapshot(snapshot);
+        }
+
+        private void RemoveCardAt(int index)
+        {
+            ResourceCard3D card = _cards[index];
+            Unsubscribe(card);
+            card.CurrentSlot?.ClearCard();
+            Destroy(card.gameObject);
+            _cards.RemoveAt(index);
         }
 
         public void Clear()
         {
-            foreach (var c in _cards)
-                if (c != null) Destroy(c.gameObject);
+            foreach (ResourceCard3D card in _cards)
+            {
+                Unsubscribe(card);
+                if (card != null) Destroy(card.gameObject);
+            }
             _cards.Clear();
+            pendingResources = null;
+            activeDragCount = 0;
             if (_grid != null)
                 foreach (var slot in _grid.Slots) slot.ClearCard();
         }

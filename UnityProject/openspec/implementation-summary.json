@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "c2719f801987505b034857c79485cf65627a5e3c8b023e1bd48d39c6a7a01632",
-  "inputManifestDigest": "c3f22e4aa310f4e909a9c148eb3ddda3ed4a9ba7b263fe15605492eb583ca4c6",
-  "outputDigest": "e2bbb995e359dc42ff98e67092565ac883a04d4b9506e0078850cdfd26debc15",
+  "inputDigest": "5171883e7864503aae1b67f995910fd529081712fb6287d373787419b8b9a906",
+  "inputManifestDigest": "fdeae0076b081e70120ae69decc4f6e747138f4fb07c333ace5392b87efd494a",
+  "outputDigest": "93e0d4c972b510af47748dfb6dbdb8f8291cedef53bbab04e5d841b271b3660f",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -681,6 +681,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/ResourceZoneLayoutPlayModeTests.cs",
+      "sha256": "809f2a5aff4a21d90a213684fed3eea377060d21775d98a3ef6ad6c4867a9813",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopGameOverRestartPlayModeTests.cs",
       "sha256": "96715ead32ded847b8de8ade062b07ac87f5b2260d57a713f9b289316d8fa823",
       "state": "current"
@@ -1091,6 +1096,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/ResourceZone.cs",
+      "sha256": "1a809353eefffb3b1a078f2510e708192a37e08dc9956c728329e8309a365ed2",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementFacilityDutyPanel3D.cs",
       "sha256": "653cd869c8eb86b2d121328f58f3367aedea5f8d96b836abe71f23fabf1638a0",
       "state": "current"
@@ -1102,7 +1112,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
-      "sha256": "02987775c7d05aacfce287057dcb3b7786d91a993f95e376497d9d3168128e8f",
+      "sha256": "72d4eb20e1f558e7eef0150b96fa27cb9468dd64ce7b64d1b165d6258d0920ab",
       "state": "current"
     },
     {
@@ -1152,7 +1162,7 @@
     },
     {
       "path": "openspec/spec-metadata/dependencies.json",
-      "sha256": "8edaead67ea9749baa25ad977acb1b655665845a8e37e64828b4fd0f50b27688",
+      "sha256": "5b4feb00a2aaa928460c4680073a94e24d58cd4fb2ed528976777b02d48d9484",
       "state": "current"
     },
     {
@@ -1477,12 +1487,12 @@
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/implementation.json",
-      "sha256": "f5a3fccd5ea2d7e2f68858238c77a231d9ca32adde0b80e1fa81bd4286322fe2",
+      "sha256": "7ee94595da22f23c316ec87c842a83f87e813d2c5476a822b74687c08ca2f162",
       "state": "current"
     },
     {
       "path": "openspec/specs/settlement-workshop-crafting/spec.md",
-      "sha256": "59eb0b811b5cf900ad83bae02221b54309a96d42eab02822e0d0763f0e0b54eb",
+      "sha256": "fb0c3aaca396c9f011aeda46e49f8da016ac7039d1c9e6afbcc2a5620318be15",
       "state": "current"
     },
     {
@@ -1766,6 +1776,16 @@
       "state": "current"
     },
     {
+      "path": "openspec/specs/tabletop-settlement-resources/implementation.json",
+      "sha256": "45da3d879e77a3f9d94ba568f2c8932eefcf60376599157b230fbccdd21aa890",
+      "state": "current"
+    },
+    {
+      "path": "openspec/specs/tabletop-settlement-resources/spec.md",
+      "sha256": "1c826e61dbaaf9ee1296d6e66229984fb8edba8134e5792ab0c2b8f1dbb2c5b2",
+      "state": "current"
+    },
+    {
       "path": "openspec/specs/tabletop-settlement-symptoms/implementation.json",
       "sha256": "8f5c46eb9971595cd8a9e84bbd9bdc8e4796caf4fba32c39026926017746e827",
       "state": "current"
@@ -1823,7 +1843,7 @@
     "planned": 0,
     "unknown": 2,
     "blocked": 0,
-    "stale": 52
+    "stale": 53
   },
   "attentionRequired": [
     "action-environment-lifecycle",
@@ -1875,6 +1895,7 @@
     "tabletop-opening-sequence",
     "tabletop-random-interaction",
     "tabletop-settlement-advancement-ledger",
+    "tabletop-settlement-equipment",
     "tabletop-settlement-invention",
     "tabletop-settlement-notices",
     "tabletop-settlement-recovery",
@@ -2691,6 +2712,11 @@
     {
       "capability": "tabletop-settlement-advancement-ledger",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/CampLedgerPanel3D.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-equipment",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
       "state": "stale"
     },
     {
@@ -4034,7 +4060,7 @@
       "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "3D 工坊卡只提交玩家意图；Settlement ActionQueue 在提交前按来源聚合并验证资源池与仓库物品，稳定配方 ID 贯穿动作和事实。",
+      "summary": "3D 工坊卡只提交玩家意图；Settlement ActionQueue 原子验证并提交资源与仓库物品，提交后的资源卡增量刷新会移除耗尽卡并保留玩家桌面布局。",
       "designSources": [],
       "sources": [
         "openspec/specs/settlement-workshop-crafting/spec.md",
@@ -4092,6 +4118,14 @@
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
           "state": "stale"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/ResourceZone.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/ResourceZoneLayoutPlayModeTests.cs",
+          "state": "current"
         }
       ]
     },
@@ -5155,7 +5189,7 @@
       "id": "tabletop-settlement-equipment",
       "label": "营地桌面猎人装备",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "点击 3D 猎人卡可打开九槽世界空间装备桌并查看胆识、知识与有界特性摘要；仓库卡与精确装备实例通过拖放提交命令，Settlement ActionQueue 原子维护权威装备状态。",
@@ -5176,7 +5210,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEquipmentActionTests.cs",
@@ -5315,6 +5349,35 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+          "state": "current"
+        }
+      ]
+    },
+    {
+      "id": "tabletop-settlement-resources",
+      "label": "营地桌面资源卡布局",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "营地资源区按稳定 ID 增量同步 3D 资源卡，保留玩家摆放和卡牌实例；耗尽只释放目标槽，新增进入空槽，拖拽期间只保留最后一份权威刷新快照。",
+      "designSources": [],
+      "sources": [
+        "openspec/specs/tabletop-settlement-resources/spec.md",
+        "openspec/specs/tabletop-settlement-resources/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
+      ],
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/ResourceZone.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/ResourceZoneLayoutPlayModeTests.cs",
           "state": "current"
         }
       ]

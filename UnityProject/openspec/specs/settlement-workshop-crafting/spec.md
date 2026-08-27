@@ -56,7 +56,7 @@ A successful crafting action SHALL publish resource changes, a crafted output fa
 
 #### Scenario: Crafting consumes the final copy of a resource
 - **WHEN** a committed resource change reduces that material to zero
-- **THEN** its physical resource card is removed and the remaining positive resources are reflowed without showing zero-count cards
+- **THEN** only its physical resource card is removed, while the remaining positive resource cards retain their player-arranged slots
 
 #### Scenario: An exhausted resource is obtained again
 - **WHEN** a later committed resource change raises that material above zero

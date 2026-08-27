@@ -156,6 +156,13 @@
       "specPath": "openspec/specs/tabletop-settlement-equipment/spec.md"
     },
     {
+      "id": "tabletop-settlement-resources",
+      "label": "营地桌面资源卡布局",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-resources/spec.md"
+    },
+    {
       "id": "table-driven-item-keywords",
       "label": "读表物品与跨内容关键词",
       "category": "feature",
@@ -1741,6 +1748,16 @@
       "type": "requires",
       "status": "defined",
       "reason": "营地出发准备提供当前年份、唯一编队与一次性准备令牌",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-workshop-crafting--requires--tabletop-settlement-resources",
+      "from": "settlement-workshop-crafting",
+      "to": "tabletop-settlement-resources",
+      "type": "requires",
+      "status": "defined",
+      "reason": "制造资源提交通过稳定的 3D 营地资源卡增量投影反馈，且不重排玩家桌面布局",
       "gapId": "",
       "blocksImplementation": false
     }

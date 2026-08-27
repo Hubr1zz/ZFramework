@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-settlement-resources",
+  "specHash": "1c826e61dbaaf9ee1296d6e66229984fb8edba8134e5792ab0c2b8f1dbb2c5b2",
+  "title": "营地桌面资源卡布局",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "营地资源区按稳定 ID 增量同步 3D 资源卡，保留玩家摆放和卡牌实例；耗尽只释放目标槽，新增进入空槽，拖拽期间只保留最后一份权威刷新快照。",
+    "validatedAgainstSpecHash": "1c826e61dbaaf9ee1296d6e66229984fb8edba8134e5792ab0c2b8f1dbb2c5b2",
+    "evidence": [
+      {
+        "guid": "2de19b0d1756eab40aaea343ffc13e63",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/ResourceZone.cs",
+        "line": 1,
+        "fileHash": "1a809353eefffb3b1a078f2510e708192a37e08dc9956c728329e8309a365ed2",
+        "status": "verified",
+        "checkedAt": "2026-08-27T11:48:16-07:00",
+        "feature": "按稳定资源 ID 复用卡牌与 CurrentSlot，增量移除、增加，并在拖拽结束后应用最后的正数资源快照。"
+      },
+      {
+        "guid": "fae66be113c0f1b4aa8e8601a20f1b18",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
+        "line": 380,
+        "fileHash": "72d4eb20e1f558e7eef0150b96fa27cb9468dd64ce7b64d1b165d6258d0920ab",
+        "status": "verified",
+        "checkedAt": "2026-08-27T11:48:16-07:00",
+        "feature": "初始化、全量刷新、制造刷新与资源提交观察统一从权威 Settlement 数据同步资源区。"
+      },
+      {
+        "guid": "b071d73ceeb7efd41934076f4ba6972d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/ResourceZoneLayoutPlayModeTests.cs",
+        "line": 1,
+        "fileHash": "809f2a5aff4a21d90a213684fed3eea377060d21775d98a3ef6ad6c4867a9813",
+        "status": "verified",
+        "checkedAt": "2026-08-27T11:48:16-07:00",
+        "feature": "验证数量变化、单卡耗尽、新卡进入空槽、玩家落槽保留及拖拽期间延迟结构同步。"
+      }
+    ],
+    "tests": [
+      "ResourceZoneLayoutPlayModeTests: 2/2 passed"
+    ],
+    "verifiedAt": "2026-08-27T11:48:16-07:00"
+  },
+  "implementationOutline": [
+    "ResourceZone 从权威正数资源生成快照，以稳定 ID 复用现有卡牌并只处理差异。",
+    "CurrentSlot 只作为当前 View 会话布局，不进入 ActionQueue、GameCore 或战役存档。",
+    "拖拽开始和结束事件形成刷新门禁，期间覆盖缓存，只在结束后应用最新快照。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/ResourceZone.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs:380"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

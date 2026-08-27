@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "settlement-workshop-crafting",
-  "specHash": "59eb0b811b5cf900ad83bae02221b54309a96d42eab02822e0d0763f0e0b54eb",
+  "specHash": "fb0c3aaca396c9f011aeda46e49f8da016ac7039d1c9e6afbcc2a5620318be15",
   "title": "营地桌面工坊制作",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "3D 工坊卡只提交玩家意图；Settlement ActionQueue 在提交前按来源聚合并验证资源池与仓库物品，稳定配方 ID 贯穿动作和事实。",
-    "validatedAgainstSpecHash": "59eb0b811b5cf900ad83bae02221b54309a96d42eab02822e0d0763f0e0b54eb",
+    "summary": "3D 工坊卡只提交玩家意图；Settlement ActionQueue 原子验证并提交资源与仓库物品，提交后的资源卡增量刷新会移除耗尽卡并保留玩家桌面布局。",
+    "validatedAgainstSpecHash": "fb0c3aaca396c9f011aeda46e49f8da016ac7039d1c9e6afbcc2a5620318be15",
     "evidence": [
       {
         "guid": "59e65c28f501e7944b628d6f642a2c36",
@@ -127,6 +127,24 @@
         "status": "verified",
         "checkedAt": "2026-08-26T14:18:00-07:00",
         "feature": "通过正式 3D 卡牌与 GameManager 组合根完成药剂工坊建造、制造、消耗品恢复、保存和读档恢复。"
+      },
+      {
+        "guid": "2de19b0d1756eab40aaea343ffc13e63",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/ResourceZone.cs",
+        "line": 1,
+        "fileHash": "1a809353eefffb3b1a078f2510e708192a37e08dc9956c728329e8309a365ed2",
+        "status": "verified",
+        "checkedAt": "2026-08-27T11:48:16-07:00",
+        "feature": "制造提交后的权威资源同步只移除耗尽卡，并复用其余卡牌实例与当前槽位。"
+      },
+      {
+        "guid": "b071d73ceeb7efd41934076f4ba6972d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/ResourceZoneLayoutPlayModeTests.cs",
+        "line": 1,
+        "fileHash": "809f2a5aff4a21d90a213684fed3eea377060d21775d98a3ef6ad6c4867a9813",
+        "status": "verified",
+        "checkedAt": "2026-08-27T11:48:16-07:00",
+        "feature": "验证资源耗尽、新增和数量更新不会重排仍存在的资源卡。"
       }
     ],
     "tests": [
@@ -138,14 +156,15 @@
       "PlayableHuntNoiseActionTests: 7/7 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed",
       "Medical workshop focused cluster: 40/40 passed",
-      "Workshop production PlayMode cluster: 2/2 passed"
+      "Workshop production PlayMode cluster: 2/2 passed",
+      "ResourceZoneLayoutPlayModeTests: 2/2 passed"
     ],
-    "verifiedAt": "2026-08-26T17:00:00-07:00"
+    "verifiedAt": "2026-08-27T11:48:16-07:00"
   },
   "implementationOutline": [
     "WorkshopZone 从配置目录生成工坊和配方实体卡，View 不消费资源或创建产物。",
     "PlayableSettlementActionSession 将命令送入 Settlement runner，WorkshopSystem 在扣除前按 ResourcePool 与 StoredItemPool 聚合重验全部输入。",
-    "提交事实驱动 GameManager 保存和 SettlementTable3D 刷新，资源卡耗尽后移除、重新获得后恢复。",
+    "提交事实驱动 GameManager 保存和 SettlementTable3D 增量刷新，资源卡耗尽后只释放目标槽，重新获得后进入兼容空槽。",
     "表配方通过稳定 ContentId 组合狩猎素材与表装备，工具发明统一控制基础加工路线。",
     "ScriptableObject 医疗扩展复用同一 CraftRecipe 契约，把狩猎器官转换为既有恢复资源。"
   ],
