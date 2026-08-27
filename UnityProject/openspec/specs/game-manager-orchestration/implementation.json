@@ -20,11 +20,11 @@
       { "guid": "860c7509a68a0ad4a85b4210d362c813", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs", "line": 76, "fileHash": "888b022b400fb525ae57acc6a7698aa9927bb6a69964eed1fe0a60fb349aa15c", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "验证 GameManager 不持有 phase 权威、Flow 不复制阶段玩法方法、Showdown 生命周期与玩法端口相互隔离。" }
     ],
     "tests": [
-      "Unity 6000.5.9 CLI GameManagerCampaignLoopPlayModeTests 23/23",
-      "Unity 6000.5.9 CLI PlayableCampaignRuntimeModuleTests 19/19",
-      "Unity 6000.5.9 CLI PlayableSettlementEventProductionLoopPlayModeTests 2/2",
-      "Unity 6000.5.9 CLI EditMode full suite 764/764",
-      "Unity 6000.5.9 CLI PlayMode full suite 55/56; existing paused-time Hunt map intro fixture passed 1/1 in isolation",
+      "Unity 6000.5.9f1 CLI GameManagerCampaignLoopPlayModeTests 23/23",
+      "Unity 6000.5.9f1 CLI PlayableCampaignRuntimeModuleTests 19/19",
+      "Unity 6000.5.9f1 CLI PlayableSettlementEventProductionLoopPlayModeTests 2/2",
+      "Unity 6000.5.9f1 CLI EditMode full suite 764/764",
+      "Unity 6000.5.9f1 CLI PlayMode full suite 55/56; existing paused-time Hunt map intro fixture passed 1/1 in isolation",
       "dotnet build GameLogic and PlayModeTests: 0 errors"
     ],
     "verifiedAt": "2026-08-26T18:30:00-07:00"

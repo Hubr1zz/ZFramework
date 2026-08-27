@@ -1,13 +1,13 @@
 # Hunting in Darkness
 
-受 *Kingdom Death: Monster* 启发的回合制卡牌策略游戏原型（Unity 2022+）。
+受 *Kingdom Death: Monster* 启发的回合制卡牌策略游戏原型（Unity 6000.5）。
 
 ---
 
 ## 快速开始
 
-1. **Unity 版本**：2022.3 LTS（或更高）
-2. 用 Unity Hub 打开 `D:\UnityProjects\My project`
+1. **Unity 版本**：6000.5.9f1（工程锁定版本）
+2. 用 Unity Hub 打开 `D:\UnityProjects\ZFramework\UnityProject`
 3. 打开场景 `Assets/Scenes/SampleScene.unity`（或已有的主场景）
 4. 按 Play，游戏从**营地阶段**启动
 5. 按 `F1` 打开开发者模式面板，可一键跳转到任意阶段

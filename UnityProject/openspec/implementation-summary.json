@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "1c452e92a8212e857b4bf720c9710f939a7a8866a418eab224109bc37a49996f",
-  "inputManifestDigest": "3bf063d3ca2ba51827af90053c506f52c3538ce1877a6c15bb9c8d2a1a38dd11",
+  "inputDigest": "61256c0fc20b405c4aaa4600091862c5c3b48b01638515865ea7e389ffe35f94",
+  "inputManifestDigest": "c9285dbe1752b35fc25341e4c3f14f21ea98e25597cba4e3719bd07949915973",
   "outputDigest": "3ac189f16fdfecad31920eef4fb168e26ceda029fecca9da527424694d9864af",
   "inputManifest": [
     {
@@ -1227,7 +1227,7 @@
     },
     {
       "path": "openspec/specs/game-manager-orchestration/implementation.json",
-      "sha256": "359ff1eea9bb37e7c064d53888f3216862cdb3f123c0229ae2dd3859103bf6f7",
+      "sha256": "0034e74c175c0ad071125da295bac1c64ff0f9262d069cfa923b3b8d912e8f3a",
       "state": "current"
     },
     {
