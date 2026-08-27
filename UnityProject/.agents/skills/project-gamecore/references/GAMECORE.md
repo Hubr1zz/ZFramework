@@ -49,7 +49,7 @@ GameCore；GameCore 不知道 Unity、ViewLayer、ScriptableObject、EventBus �
 
 - 新玩法先确定一个高内聚的 GameCore 规则/状态 owner，再由 Unity 适配器装配；如果功能只有单一职责，直接放入该 owner，不为满足三层形式新增转发层。不要以“能挂在物体上”为理由新增 `MonoBehaviour`。
 - 运行生命周期优先由 ZFramework 的 Singleton System/Module/Procedure 持有。`MonoBehaviour` 只用于必须依赖 Unity 生命周期、场景身份、序列化引用或表现输入的边界；组合根保持轻薄，只转发 Unity 回调并装配 plain runtime/system，不持有跨阶段业务规则。
-- `GameManager` 的目标结构是统一持有 Settlement、Hunt、Showdown 三个阶段管理者，自身只负责战役顶层 FSM、跨阶段事务和启动/关闭。阶段管理者由 ZFramework 生命周期拥有；Showdown 在玩法重新确认前只拆生命周期与接口，不扩展具体战斗流程。
+- `GameManager` 是唯一 Unity `MonoBehaviour` 组合壳：保留序列化场景引用、Unity 回调、阶段根表现切换、EventBus 适配和冻结的旧接口转发，但不持有阶段 manager、runtime generation、ActionSession、跨阶段 transaction 或持久化权威。`CampaignFlowCoordinator` 只拥有顶层 FSM、启动/恢复/重开、出猎/回营/遭遇/决战结果等跨阶段事务和全局持久化；不得暴露或转发普通阶段玩法，也不得依赖具体 View、阶段 Manager 或 ActionSession。ZFramework `PlayableCampaignRuntimeModule` 唯一持有三个阶段 manager；阶段内状态、玩法端口、ActionSession、恢复和 3D 表现分别归 Settlement/Hunt/Showdown manager。Showdown 在玩法重新确认前只维护既有生命周期与兼容读写接口，不扩展具体战斗流程。该边界视为冻结规则：后续不得用局部搬方法的方式反复重构 GameManager；若需改变，必须先完整分析全部调用方、生命周期、序列化和存档事务，并作为一次集中重构实施。
 - 战役时间以配置化日历为权威：`CampaignCalendarConfig` 通过有序 `SeasonDefinition` 列表定义一年包含多少季，默认两季；每次成功回营的权威提交只完成一季，只有跨入下一年时才触发一次新年度事件。出发失败、取消和读档恢复不推进季节。存档保存冻结的 `CalendarId`、`CurrentYear`、`CurrentSeasonIndex`；`HuntsCompletedThisYear` / `HuntsPerYear` 仅用于旧档迁移，流程代码不得写死季节数。
 - `CardGame.ActionQueue` 只编排会改变权威游戏状态、产生随机或玩家选择结果、发布游戏性事实，或允许 Reactor 覆盖/注入的游戏性 Action。纯布局、Hover、按钮视觉和动画不进入队列；游戏性 Action 可以等待 Presenter 完成，但表现步骤本身没有可被 Reactor 单独拦截的 Action 身份。
 - 战斗与其他玩法统一使用 `CardGame.ActionQueue`。GameCore 不拥有队列或异步 runner；单场战斗由 `PlayableCombatSession` 管理状态和生命周期，`PlayableCombatActionSession` 只持有 Combat `ActionEnvironment` 并把 typed command 转换为根 `GameAction`。
