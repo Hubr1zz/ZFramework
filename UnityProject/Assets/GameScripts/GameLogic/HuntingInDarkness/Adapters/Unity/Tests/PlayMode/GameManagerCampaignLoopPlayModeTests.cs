@@ -98,6 +98,12 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
             Assert.That(manager.ActiveHuntHunters, Has.Count.EqualTo(1));
             Assert.That(manager.SettlementData.DepartingHunterIds, Is.Empty);
+            IPlayableHuntRetreatInput retreatInput = GetPrivateField<object>(manager, "campaignFlow") as IPlayableHuntRetreatInput;
+            Assert.That(retreatInput, Is.Not.Null);
+            HuntRetreatPreview firstPreview = retreatInput.GetRetreatPreview();
+            Assert.That(firstPreview.Calendar.IsAvailable, Is.True, firstPreview.Calendar.Reason);
+            Assert.That(firstPreview.Calendar.NextYear, Is.EqualTo(initialYear));
+            Assert.That(firstPreview.Calendar.AnnualEventGateOpens, Is.False);
 
             UniTask<HuntRetreatCommandResult>.Awaiter retreat = manager.RequestRetreatAsync().GetAwaiter();
             yield return WaitForCompletion(retreat);
@@ -108,6 +114,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Settlement));
             Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear));
             Assert.That(manager.SettlementData.CurrentSeasonIndex, Is.EqualTo(1));
+            Assert.That(contentCandidate.SettlementPlan.Calendar.TryGetSeason(manager.SettlementData.CurrentSeasonIndex, out SeasonDefinition firstCommittedSeason), Is.True);
+            Assert.That(firstCommittedSeason.Id, Is.EqualTo(firstPreview.Calendar.NextSeasonId));
             Assert.That(manager.SettlementData.HuntHistory, Has.Count.EqualTo(1));
             Assert.That(manager.SettlementData.PendingHuntReturn, Is.Null);
             Assert.That(manager.SettlementData.DepartingHunterIds, Is.Empty);
@@ -116,6 +124,10 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return WaitForCompletion(secondDeparture);
             SettlementDepartureCommandResult secondDepartureResult = secondDeparture.GetResult();
             Assert.That(secondDepartureResult.Succeeded, Is.True, secondDepartureResult.Reason);
+            HuntRetreatPreview secondPreview = retreatInput.GetRetreatPreview();
+            Assert.That(secondPreview.Calendar.IsAvailable, Is.True, secondPreview.Calendar.Reason);
+            Assert.That(secondPreview.Calendar.NextYear, Is.EqualTo(initialYear + 1));
+            Assert.That(secondPreview.Calendar.AnnualEventGateOpens, Is.True);
             UniTask<HuntRetreatCommandResult>.Awaiter secondRetreat = manager.RequestRetreatAsync().GetAwaiter();
             yield return WaitForCompletion(secondRetreat);
             HuntRetreatCommandResult secondRetreatResult = secondRetreat.GetResult();
@@ -124,6 +136,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
             Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear + 1));
             Assert.That(manager.SettlementData.CurrentSeasonIndex, Is.Zero);
+            Assert.That(contentCandidate.SettlementPlan.Calendar.TryGetSeason(manager.SettlementData.CurrentSeasonIndex, out SeasonDefinition secondCommittedSeason), Is.True);
+            Assert.That(secondCommittedSeason.Id, Is.EqualTo(secondPreview.Calendar.NextSeasonId));
             Assert.That(manager.SettlementData.HuntHistory, Has.Count.EqualTo(2));
             Assert.That(persistence.HasAppliedPendingSave(initialYear + 1), Is.True, "缺少已应用但仍保留回营检查点的第一阶段存档。");
 

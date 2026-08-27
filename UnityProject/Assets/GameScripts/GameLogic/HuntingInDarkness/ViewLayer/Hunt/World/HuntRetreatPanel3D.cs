@@ -90,17 +90,24 @@ namespace HuntingInDarkness.ViewLayer.Hunt
             string summary = preview.Materials.Count == 0
                 ? "无"
                 : string.Join("、", preview.Materials.Select(material => $"{material.DisplayName} ×{material.Count}"));
+            string calendarSummary = FormatCalendarSummary(preview.Calendar);
+            bool calendarAvailable = preview.Calendar.IsAvailable;
+            string calendarUnavailableReason = ResolveCalendarUnavailableReason(preview.Calendar);
+            string primaryStatus = !string.IsNullOrWhiteSpace(status)
+                ? status
+                : calendarAvailable ? "确认前仍可继续探索" : calendarUnavailableReason;
             TabletopEventPrimaryCard3D primary = TabletopEventPrimaryCard3D.Create(transform);
             primary.MoveTo(new Vector3(0f, 0f, 1.75f));
-            primary.Present("返回营地？", $"{mode}\n出发猎人 · {hunterCount}\n失去猎人 · {lostCount}\n携带素材 · {collectibleCount}\n{summary}\n\n回营后将结算收获并推进营地流程。", string.IsNullOrWhiteSpace(status) ? "确认前仍可继续探索" : status, string.IsNullOrWhiteSpace(status) ? TabletopEventPrimaryTone.Narrative : TabletopEventPrimaryTone.Failure);
+            primary.Present("返回营地？", $"{mode}\n出发猎人 · {hunterCount}\n失去猎人 · {lostCount}\n携带素材 · {collectibleCount}\n{summary}\n\n{calendarSummary}", primaryStatus, string.IsNullOrWhiteSpace(status) && calendarAvailable ? TabletopEventPrimaryTone.Narrative : TabletopEventPrimaryTone.Failure);
 
             if (preview.RequiresAbandonment)
                 PresentMaterialChoices(preview.Materials);
 
-            bool canConfirm = !requestInFlight && (!preview.RequiresAbandonment || !string.IsNullOrWhiteSpace(selectedAbandonedResourceId));
+            bool canConfirm = !requestInFlight && calendarAvailable && (!preview.RequiresAbandonment || !string.IsNullOrWhiteSpace(selectedAbandonedResourceId));
             float actionRowZ = ResolveActionRowZ(preview);
             TabletopEventChoiceCard3D confirm = TabletopEventChoiceCard3D.Create(transform, new Vector3(-0.82f, 0f, actionRowZ));
-            confirm.Present("结算并回营", preview.RequiresAbandonment ? "提交选定的放弃素材并结束狩猎。" : "将采集物转入营地，结束本次狩猎。", canConfirm, requestInFlight ? "正在结算" : canConfirm ? "点击确认" : "请先选择放弃素材", ConfirmAsync);
+            string confirmStatus = requestInFlight ? "正在结算" : !calendarAvailable ? "时间线不可用" : canConfirm ? "点击确认" : "请先选择放弃素材";
+            confirm.Present("结算并回营", preview.RequiresAbandonment ? "提交选定的放弃素材并结束狩猎。" : "将采集物转入营地，结束本次狩猎。", canConfirm, confirmStatus, ConfirmAsync);
             TabletopEventChoiceCard3D cancel = TabletopEventChoiceCard3D.Create(transform, new Vector3(0.82f, 0f, actionRowZ));
             bool canContinue = !requestInFlight && input?.IsReturnCheckpointLocked != true;
             cancel.Present("继续探索", "收起回营卡，保留当前狩猎进度。", canContinue, canContinue ? string.Empty : "检查点已锁定", RequestClose);
@@ -136,6 +143,18 @@ namespace HuntingInDarkness.ViewLayer.Hunt
             int materialRows = Mathf.CeilToInt(preview.Materials.Count / 3f);
             return 0.25f - (materialRows - 1) * 0.62f - 0.78f;
         }
+
+        private static string FormatCalendarSummary(HuntReturnCalendarPreview calendar)
+        {
+            if (!calendar.IsAvailable)
+                return $"回营时间暂不可确认：{ResolveCalendarUnavailableReason(calendar)}";
+            if (calendar.AnnualEventGateOpens)
+                return $"成功回营后：第 {calendar.NextYear} 年 · {calendar.NextSeasonName}；将进入年度事件结算（如有）。";
+            return $"成功回营后：第 {calendar.NextYear} 年 · {calendar.NextSeasonName}；不会创建新年度事件。";
+        }
+
+        private static string ResolveCalendarUnavailableReason(HuntReturnCalendarPreview calendar)
+            => string.IsNullOrWhiteSpace(calendar.Reason) ? "回营时间预览不可用。" : calendar.Reason;
 
         private void ConfirmAsync()
         {

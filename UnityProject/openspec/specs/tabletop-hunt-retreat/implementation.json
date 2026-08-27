@@ -2,23 +2,25 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "tabletop-hunt-retreat",
-  "specHash": "3472aaa7d9274ed367283bf194743b0db2e3a6a174ac09f6dc9846169f8370e3",
+  "specHash": "b21d87c76b4b1adc8f36642c9f9e167134d4f45942519e4dba7886d2424d4911",
   "title": "3D 狩猎回营结算",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "地图边缘实体回营卡区分安全回营与紧急撤退；远离营地时玩家用实体素材卡选择放弃一份，Hunt runner 重验并只过滤回营快照，再由 Campaign 与 Settlement runners 完成持久切换和年度结算。",
-    "validatedAgainstSpecHash": "3472aaa7d9274ed367283bf194743b0db2e3a6a174ac09f6dc9846169f8370e3",
+    "summary": "地图边缘实体回营卡区分安全与紧急撤退，并从冻结的配置化日历只读预告目标年份、季节和年度事件门禁；非法日历会关闭确认，权威 Settlement root 仍在提交时重新校验。",
+    "validatedAgainstSpecHash": "b21d87c76b4b1adc8f36642c9f9e167134d4f45942519e4dba7886d2424d4911",
     "evidence": [
-      { "guid": "304969fc70fda6f468fd46f7a274ad94", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntRetreatPanel3D.cs", "line": 1, "fileHash": "960972b4f2367813a417ef4ac2ec276070637df3d496242afc3d87223541ba70", "status": "verified", "checkedAt": "2026-08-25T20:48:01-07:00", "feature": "实体启动卡投影安全或紧急撤退，并以稳定排序、不会覆盖确认行的素材卡提交放弃选择。" },
-      { "guid": "8601354706c5d2243a2c3ad182a5a99a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs", "line": 1, "fileHash": "918a107b10f991dddf276a129807b78ca184e54f8679556b9f0a103f78fa11ca", "status": "verified", "checkedAt": "2026-08-25T20:48:01-07:00", "feature": "Hunt runner 重读位置和携带物，拒绝缺失或伪造选择，并只从回营快照过滤一份素材。" },
-      { "guid": "4ba73e89b3fe5ba4088fc947dc1e9f63", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs", "line": 60, "fileHash": "060b7f3e8a90857d58be188cb9a39844f74262234f366560e63cd696b113c98c", "status": "verified", "checkedAt": "2026-08-25T20:48:01-07:00", "feature": "在当前 Hunt generation 中生成撤退预览并把决策提交为 root GameAction。" },
+      { "guid": "304969fc70fda6f468fd46f7a274ad94", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntRetreatPanel3D.cs", "line": 81, "fileHash": "a99d073562d66d7b7a1ac9869d3ec640add9547919b90bb79442b4faf120d5d7", "status": "verified", "checkedAt": "2026-08-27T12:20:00-07:00", "feature": "3D 确认卡显示准确目标年季与可选年度事件门禁，并在日历无效或原因缺失时 fail-closed。" },
+      { "guid": "8601354706c5d2243a2c3ad182a5a99a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs", "line": 45, "fileHash": "df264c61088dc8e781f2356b1be88f591c91f7f1def8161b197efd313389e2fb", "status": "verified", "checkedAt": "2026-08-27T12:10:00-07:00", "feature": "回营预览 DTO 聚合货物与纯日历推进结果，不承载提交或年度事件抽取。" },
+      { "guid": "edd21ef2e5f546746ae399585e19662a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs", "line": 226, "fileHash": "f73d3bb047daecab9d17f02feb97db56f03adfdd2434e2684e8496905e471442", "status": "verified", "checkedAt": "2026-08-27T12:10:00-07:00", "feature": "Campaign 边界从营地时间线组合只读日历预览，阶段或日历不可用时 fail-closed。" },
+      { "guid": "4ba73e89b3fe5ba4088fc947dc1e9f63", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs", "line": 60, "fileHash": "9333b368c80d36bc3e2694a08bce7145c4ebf4e25f8e933a67b49babfbbaaedd", "status": "verified", "checkedAt": "2026-08-27T12:10:00-07:00", "feature": "在当前 Hunt generation 中生成撤退货物预览并把决策提交为 root GameAction。" },
       { "guid": "54577cf1f04cca143ab704d8d7037cb1", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntRetreatActionTests.cs", "line": 1, "fileHash": "3717adf44898a5097aabb58aa9862b6db81c007f8165da1f4dce5583d291d035", "status": "verified", "checkedAt": "2026-08-25T20:48:01-07:00", "feature": "覆盖安全全量结算、远程必选、快照单次过滤、伪造拒绝、空手返回和 Reactor 阻止。" },
-      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 298, "fileHash": "661e2a38dc452594683cb2446f72a05caccb1ae9cf63e4f675bc7781f96c9e96", "status": "verified", "checkedAt": "2026-08-25T20:48:01-07:00", "feature": "端到端测试通过真实素材选择卡完成紧急撤退、结算、年份推进及下一轮出发。" }
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 74, "fileHash": "ff591e23487f46931129b70f685f5e076064eb84f52cb9e78695fda550b00f0a", "status": "verified", "checkedAt": "2026-08-27T12:20:00-07:00", "feature": "生产组合根逐次对照真实回营预览与权威提交后的年份、季节 ID 和年度事件门禁。" },
+      { "guid": "a975c19abb00d4142a5f346445e18856", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntRetreatCalendarPreviewPlayModeTests.cs", "line": 31, "fileHash": "b661b4bef4fc275e5512d6a7a992065488cb5353e5b9258638b3ecfe65180349", "status": "verified", "checkedAt": "2026-08-27T12:10:00-07:00", "feature": "覆盖一季与三季日历、同年推进、跨年可选事件文案及非法日历禁用确认。" }
     ],
-    "tests": ["PlayableHuntRetreatActionTests: 8/8 passed", "GameManagerCampaignLoopPlayModeTests: 14/14 passed"],
-    "verifiedAt": "2026-08-25T20:48:01-07:00"
+    "tests": ["Unity CLI compile: passed", "HuntRetreatCalendarPreviewPlayModeTests: 4/4 passed", "PublicCommands_CompleteTwoSeasonLoopAndAllowNextDeparture: 1/1 passed", "PlayableHuntRetreatActionTests: 8/8 passed"],
+    "verifiedAt": "2026-08-27T12:20:00-07:00"
   },
   "publishedBy": { "mode": "direct-implementation-reconciliation", "changeId": "" }
 }

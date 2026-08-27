@@ -224,7 +224,16 @@ namespace Core
             => disposed || !CampaignStarted || CurrentPhase != GamePhase.Hunt || IsReturnCheckpointLocked;
 
         HuntRetreatPreview IPlayableHuntRetreatInput.GetRetreatPreview()
-            => disposed || !CampaignStarted || CurrentPhase != GamePhase.Hunt ? HuntRetreatPreview.Empty : RetreatPreview;
+        {
+            if (disposed || !CampaignStarted || CurrentPhase != GamePhase.Hunt)
+                return HuntRetreatPreview.Empty;
+
+            HuntRetreatPreview preview = RetreatPreview;
+            TimelineSystem timeline = SettlementManager?.Timeline;
+            if (timeline == null)
+                return preview.WithCalendar(HuntReturnCalendarPreview.Unavailable("营地时间线不可用，暂不能回营。"));
+            return preview.WithCalendar(HuntReturnCalendarPreview.Create(timeline.Calendar, timeline.CurrentYear, timeline.CurrentSeasonIndex));
+        }
 
         UniTask<HuntRetreatCommandResult> IPlayableHuntRetreatInput.RequestRetreatAsync(HuntRetreatDecision decision)
         {

@@ -5,6 +5,7 @@ using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 
 namespace HuntingInDarkness.ActionFlow.Hunt
@@ -44,20 +45,22 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
     public readonly struct HuntRetreatPreview
     {
-        private HuntRetreatPreview(bool isAtCamp, IReadOnlyList<HuntRetreatMaterial> materials)
+        private HuntRetreatPreview(bool isAtCamp, IReadOnlyList<HuntRetreatMaterial> materials, HuntReturnCalendarPreview calendar)
         {
             IsAtCamp = isAtCamp;
             Materials = materials ?? Array.Empty<HuntRetreatMaterial>();
+            Calendar = calendar;
         }
 
         public bool IsAtCamp { get; }
         public bool RequiresAbandonment => !IsAtCamp && Materials.Count > 0;
         public IReadOnlyList<HuntRetreatMaterial> Materials { get; }
+        public HuntReturnCalendarPreview Calendar { get; }
 
         public static HuntRetreatPreview Create(HuntManager manager)
         {
             if (manager == null)
-                return new HuntRetreatPreview(false, Array.Empty<HuntRetreatMaterial>());
+                return new HuntRetreatPreview(false, Array.Empty<HuntRetreatMaterial>(), HuntReturnCalendarPreview.Unavailable("狩猎运行时不可用。"));
 
             var counts = new Dictionary<string, HuntRetreatMaterial>(StringComparer.Ordinal);
             foreach (HunterInstance hunter in manager.ActiveHunters)
@@ -78,10 +81,51 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
             var materials = new List<HuntRetreatMaterial>(counts.Values);
             materials.Sort((left, right) => string.CompareOrdinal(left.ContentId, right.ContentId));
-            return new HuntRetreatPreview(manager.IsSquadAtCamp, materials.AsReadOnly());
+            return new HuntRetreatPreview(manager.IsSquadAtCamp, materials.AsReadOnly(), HuntReturnCalendarPreview.Unavailable("回营时间预览尚未绑定。"));
         }
 
-        public static HuntRetreatPreview Empty => new(false, Array.Empty<HuntRetreatMaterial>());
+        public HuntRetreatPreview WithCalendar(HuntReturnCalendarPreview calendar) => new(IsAtCamp, Materials, calendar);
+
+        public static HuntRetreatPreview Empty => new(false, Array.Empty<HuntRetreatMaterial>(), HuntReturnCalendarPreview.Unavailable("当前无法预览回营时间。"));
+    }
+
+    public readonly struct HuntReturnCalendarPreview
+    {
+        private HuntReturnCalendarPreview(bool isAvailable, string reason, int currentYear, string currentSeasonId, string currentSeasonName, int nextYear, string nextSeasonId, string nextSeasonName, bool yearAdvanced)
+        {
+            IsAvailable = isAvailable;
+            Reason = reason ?? string.Empty;
+            CurrentYear = currentYear;
+            CurrentSeasonId = currentSeasonId ?? string.Empty;
+            CurrentSeasonName = currentSeasonName ?? string.Empty;
+            NextYear = nextYear;
+            NextSeasonId = nextSeasonId ?? string.Empty;
+            NextSeasonName = nextSeasonName ?? string.Empty;
+            YearAdvanced = yearAdvanced;
+        }
+
+        public bool IsAvailable { get; }
+        public string Reason { get; }
+        public int CurrentYear { get; }
+        public string CurrentSeasonId { get; }
+        public string CurrentSeasonName { get; }
+        public int NextYear { get; }
+        public string NextSeasonId { get; }
+        public string NextSeasonName { get; }
+        public bool YearAdvanced { get; }
+        public bool AnnualEventGateOpens => YearAdvanced;
+
+        public static HuntReturnCalendarPreview Create(CampaignCalendarDefinition calendar, int currentYear, int currentSeasonIndex)
+        {
+            if (!CampaignCalendarRules.TryCreateAdvancePlan(calendar, currentYear, currentSeasonIndex, out CampaignCalendarAdvancePlan plan, out string reason))
+                return Unavailable(reason);
+            if (!calendar.TryGetSeason(plan.CurrentSeasonIndex, out SeasonDefinition currentSeason) || !calendar.TryGetSeason(plan.NextSeasonIndex, out SeasonDefinition nextSeason))
+                return Unavailable("回营时间预览无法解析季节配置。");
+            return new HuntReturnCalendarPreview(true, string.Empty, plan.CurrentYear, currentSeason.Id, currentSeason.DisplayName, plan.NextYear, nextSeason.Id, nextSeason.DisplayName, plan.YearAdvanced);
+        }
+
+        public static HuntReturnCalendarPreview Unavailable(string reason)
+            => new(false, string.IsNullOrWhiteSpace(reason) ? "回营时间预览不可用。" : reason, 0, string.Empty, string.Empty, 0, string.Empty, string.Empty, false);
     }
 
     public readonly struct HuntRetreatCommandResult

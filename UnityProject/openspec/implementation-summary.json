@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "5171883e7864503aae1b67f995910fd529081712fb6287d373787419b8b9a906",
-  "inputManifestDigest": "fdeae0076b081e70120ae69decc4f6e747138f4fb07c333ace5392b87efd494a",
-  "outputDigest": "93e0d4c972b510af47748dfb6dbdb8f8291cedef53bbab04e5d841b271b3660f",
+  "inputDigest": "6704c52ed0b56429f1130642beeaf4c9856272bdf8116c70347e90998be6c8cc",
+  "inputManifestDigest": "f0a172b77cfea8cc4d7d54167bb3176b08202a1f2013ed7e123dab1429bfb379",
+  "outputDigest": "c5e59b06706447d458907a0bfa62238055ba77c8c538837273a81a3809b8c90e",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -77,7 +77,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs",
-      "sha256": "918a107b10f991dddf276a129807b78ca184e54f8679556b9f0a103f78fa11ca",
+      "sha256": "df264c61088dc8e781f2356b1be88f591c91f7f1def8161b197efd313389e2fb",
       "state": "current"
     },
     {
@@ -642,7 +642,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "de8bcff87fa7cad9347302d4a73f382bc8adc073cdc37746c3d59d801e1a4f7e",
+      "sha256": "ff591e23487f46931129b70f685f5e076064eb84f52cb9e78695fda550b00f0a",
       "state": "current"
     },
     {
@@ -653,6 +653,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntCollectibleTray3DPlayModeTests.cs",
       "sha256": "942147e4475ec37163213b873822900c1673c786012cfde34391f6fa0135663d",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntRetreatCalendarPreviewPlayModeTests.cs",
+      "sha256": "b661b4bef4fc275e5512d6a7a992065488cb5353e5b9258638b3ecfe65180349",
       "state": "current"
     },
     {
@@ -757,7 +762,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs",
-      "sha256": "3d4966f860f1d18c5bdb706e64334baa0b0228b0d4224ee857c14c45e2b4d96c",
+      "sha256": "f73d3bb047daecab9d17f02feb97db56f03adfdd2434e2684e8496905e471442",
       "state": "current"
     },
     {
@@ -1012,7 +1017,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntRetreatPanel3D.cs",
-      "sha256": "960972b4f2367813a417ef4ac2ec276070637df3d496242afc3d87223541ba70",
+      "sha256": "a99d073562d66d7b7a1ac9869d3ec640add9547919b90bb79442b4faf120d5d7",
       "state": "current"
     },
     {
@@ -1162,7 +1167,7 @@
     },
     {
       "path": "openspec/spec-metadata/dependencies.json",
-      "sha256": "5b4feb00a2aaa928460c4680073a94e24d58cd4fb2ed528976777b02d48d9484",
+      "sha256": "257c78dd885e9cd182ee9d4781cc347ff683eefaf804f2a9f04371b9bed86e4d",
       "state": "current"
     },
     {
@@ -1657,12 +1662,12 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-retreat/implementation.json",
-      "sha256": "4b0df818d9f67d54f4337fe480e6d777654e3836d41a3bd7a317b2a25ee55079",
+      "sha256": "1fe68d983ac23a2a19ca2f90c6ac3e3e8272425648b6d48b1117b85940c11035",
       "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-hunt-retreat/spec.md",
-      "sha256": "3472aaa7d9274ed367283bf194743b0db2e3a6a174ac09f6dc9846169f8370e3",
+      "sha256": "b21d87c76b4b1adc8f36642c9f9e167134d4f45942519e4dba7886d2424d4911",
       "state": "current"
     },
     {
@@ -1837,13 +1842,13 @@
     }
   ],
   "counts": {
-    "verified": 11,
+    "verified": 10,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
     "unknown": 2,
     "blocked": 0,
-    "stale": 53
+    "stale": 54
   },
   "attentionRequired": [
     "action-environment-lifecycle",
@@ -1860,6 +1865,7 @@
     "event-occurrence-checkpoint-core",
     "event-recoverable-wounds",
     "expedition-build-progression-loop",
+    "game-manager-orchestration",
     "hunt-content-bundle-lifecycle",
     "hunt-event-resource-staging",
     "hunt-map-presentation-queue",
@@ -1888,7 +1894,6 @@
     "tabletop-hunt-departure",
     "tabletop-hunt-map-intro",
     "tabletop-hunt-resource-markers",
-    "tabletop-hunt-retreat",
     "tabletop-hunt-squad-pawn",
     "tabletop-hunt-squad-status",
     "tabletop-hunt-tile-cards",
@@ -1899,6 +1904,7 @@
     "tabletop-settlement-invention",
     "tabletop-settlement-notices",
     "tabletop-settlement-recovery",
+    "tabletop-settlement-recruitment",
     "tabletop-settlement-workshop-construction",
     "zworkflow-workbench-layout"
   ],
@@ -2165,6 +2171,16 @@
       "state": "spec-binding-invalid"
     },
     {
+      "capability": "game-manager-orchestration",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "game-manager-orchestration",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs",
+      "state": "stale"
+    },
+    {
       "capability": "hunt-content-bundle-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
       "state": "stale"
@@ -2177,6 +2193,11 @@
     {
       "capability": "hunt-event-resource-staging",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventResourceCommand.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-event-resource-staging",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs",
       "state": "stale"
     },
     {
@@ -2327,6 +2348,11 @@
     {
       "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "settlement-facility-duty",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "state": "stale"
     },
     {
@@ -2615,16 +2641,6 @@
       "state": "stale"
     },
     {
-      "capability": "tabletop-hunt-retreat",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "tabletop-hunt-retreat",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "state": "stale"
-    },
-    {
       "capability": "tabletop-hunt-squad-pawn",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "state": "stale"
@@ -2747,6 +2763,11 @@
     {
       "capability": "tabletop-settlement-recovery",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterRecoveryPanel3D.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-settlement-recruitment",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "state": "stale"
     },
     {
@@ -3386,8 +3407,8 @@
       "id": "game-manager-orchestration",
       "label": "GameManager管理器",
       "status": "verified",
-      "effectiveStatus": "verified",
-      "progress": 100,
+      "effectiveStatus": "stale",
+      "progress": 0,
       "verificationStatus": "verified",
       "summary": "GameManager 已冻结为 Unity 组合外壳；CampaignFlowCoordinator 唯一持有 ZFramework Campaign lease、跨阶段事务、持久化和统一恢复，并直接向阶段表现提供出发与回营窄端口。",
       "designSources": [],
@@ -3403,7 +3424,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableCampaignPhasePorts.cs",
@@ -3427,7 +3448,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
@@ -3501,7 +3522,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs",
@@ -3979,7 +4000,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -4884,10 +4905,10 @@
       "id": "tabletop-hunt-retreat",
       "label": "3D 狩猎回营结算",
       "status": "verified",
-      "effectiveStatus": "stale",
+      "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "地图边缘实体回营卡区分安全回营与紧急撤退；远离营地时玩家用实体素材卡选择放弃一份，Hunt runner 重验并只过滤回营快照，再由 Campaign 与 Settlement runners 完成持久切换和年度结算。",
+      "summary": "地图边缘实体回营卡区分安全与紧急撤退，并从冻结的配置化日历只读预告目标年份、季节和年度事件门禁；非法日历会关闭确认，权威 Settlement root 仍在提交时重新校验。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-hunt-retreat/spec.md",
@@ -4904,8 +4925,12 @@
           "state": "current"
         },
         {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs",
+          "state": "current"
+        },
+        {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntRetreatActionTests.cs",
@@ -4913,7 +4938,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "stale"
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntRetreatCalendarPreviewPlayModeTests.cs",
+          "state": "current"
         }
       ]
     },
@@ -5316,7 +5345,7 @@
       "id": "tabletop-settlement-recruitment",
       "label": "营地桌面猎人招募",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "设施值守人口已成为常规招募的配置化供给；0/1 名存活猎人的反软锁豁免、Reactor 后有效成本重算及资源/人口同事务提交均由 Settlement ActionQueue 掌权，并已通过生产组合根验证新猎人可再次出猎。",
@@ -5349,7 +5378,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },

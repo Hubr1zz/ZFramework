@@ -80,19 +80,41 @@ The orchestration boundary SHALL request Hunt-to-Settlement through the Campaign
 - **WHEN** both Runner operations commit
 - **THEN** Hunt is disposed only after its complete return record is durable, and the Settlement root transfers recorded collectibles and advances surviving participants exactly once
 
-### Requirement: Every accepted return advances exactly one year
-The Settlement ActionQueue SHALL consume each stable completion record at most once, advance the campaign from year N to N+1, and materialize the annual Timeline entries for N+1 before publishing committed facts. Annual pacing SHALL NOT depend on a configurable hunts-per-year quota.
+### Requirement: Return cards preview configured calendar consequences
+The Campaign orchestration boundary SHALL combine the current Hunt cargo preview with a read-only calendar preview produced from the frozen campaign calendar, current year, and current season. The 3D confirmation card SHALL name the exact target year and season before accepting the return.
+
+The preview SHALL distinguish a same-year season advance from a year boundary. It SHALL state that annual-event settlement opens only at a year boundary and SHALL describe that settlement as optional rather than claiming an event exists. Preview generation SHALL NOT materialize events, mutate campaign state, or enter an ActionQueue.
+
+If the configured calendar cannot produce a valid advance plan, the confirmation card SHALL display the reason and SHALL disable return confirmation. The authoritative Settlement root SHALL still recompute and validate the calendar advance when it consumes the stable completion record.
+
+#### Scenario: Return advances to another configured season in the same year
+- **WHEN** the current season is not the final season in the frozen campaign calendar
+- **THEN** the physical return card names the next configured season in the current year
+- **AND** states that no new annual event is created
+
+#### Scenario: Return crosses the configured year boundary
+- **WHEN** the current season is the final season in the frozen campaign calendar
+- **THEN** the physical return card names the first configured season in year N+1
+- **AND** states that annual-event settlement will run if applicable
+
+#### Scenario: Calendar preview is unavailable
+- **WHEN** the calendar is missing or invalid for the current saved position
+- **THEN** the return card fails closed with a visible reason and cannot submit a return
+
+### Requirement: Every accepted return advances exactly one configured season
+The Settlement ActionQueue SHALL consume each stable completion record at most once, advance the campaign to the next configured season, and materialize annual Timeline entries only when that advance enters year N+1. The number of complete Hunt returns per year SHALL derive from the frozen calendar rather than a hardcoded quota.
 
 #### Scenario: A new completion record reaches Settlement
 - **WHEN** the pending record has a stable ID that is absent from HuntHistory
-- **THEN** one Settlement root appends the record, advances exactly one year, and creates at most one random annual Timeline slot for the new year
+- **THEN** one Settlement root appends the record and advances exactly one configured season
+- **AND** creates annual Timeline work only if the configured advance crosses into a new year
 
 #### Scenario: The same completion record is replayed
 - **WHEN** transition retry or load recovery submits an already-applied stable record ID
 - **THEN** Settlement reports an idempotent success without advancing the year, duplicating HuntHistory, or drawing another annual event
 
 #### Scenario: Annual event materialization is interrupted
-- **WHEN** an annual Timeline slot already exists for the target year but the return record is still pending
+- **WHEN** a year-boundary return finds that an annual Timeline slot already exists for the target year but the return record is still pending
 - **THEN** retry reuses that slot and completes the year transition without drawing a replacement
 
 ### Requirement: Duplicate return requests are serialized

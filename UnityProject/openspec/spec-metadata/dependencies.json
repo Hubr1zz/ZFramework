@@ -457,7 +457,7 @@
       "to": "tabletop-hunt-retreat",
       "type": "requires",
       "status": "defined",
-      "reason": "远征奖励必须通过可靠回营记录一次性转入营地并推进年份",
+      "reason": "远征奖励必须通过可靠回营记录一次性转入营地并推进配置化日历",
       "gapId": "",
       "blocksImplementation": false
     },
@@ -778,6 +778,16 @@
       "type": "requires",
       "status": "defined",
       "reason": "回营快照由当前 Hunt Runner 生成并验证",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-retreat--requires--campaign-year-loop",
+      "from": "tabletop-hunt-retreat",
+      "to": "campaign-year-loop",
+      "type": "requires",
+      "status": "defined",
+      "reason": "回营卡从冻结的配置化日历预告下一季节，并由权威回营提交重新校验",
       "gapId": "",
       "blocksImplementation": false
     },
