@@ -29,7 +29,7 @@ namespace ZFramework.RTS.Editor
             new RtsCompileUnitSettings()
         };
         [SerializeField] private int activeCompileUnit;
-        [SerializeField] private string mainScene = "Assets/Scenes/main.unity";
+        [SerializeField] private string mainScene = string.Empty;
         [SerializeField] private RtsLaunchTarget launchTarget = RtsLaunchTarget.RtsTest;
         [SerializeField] private string rtsTestEntryScriptId = "game.session-entry";
         [SerializeField] private string formalizationSessionName = "DefaultSession";
@@ -118,7 +118,7 @@ namespace ZFramework.RTS.Editor
         }
         internal string LegacyRtsTestEntryScriptId => string.IsNullOrWhiteSpace(rtsTestEntryScriptId) ? string.Empty : rtsTestEntryScriptId.Trim();
         internal string RtsTestEntryScriptId => RtsSessionCatalog.Active?.Descriptor.entryScriptId ?? LegacyRtsTestEntryScriptId;
-        internal string ResolveMainScene() => ResolveProjectPath(mainScene);
+        internal string ResolveMainScene() => string.IsNullOrWhiteSpace(mainScene) ? string.Empty : ResolveProjectPath(mainScene);
 
         internal void SaveSettings() => Save(true);
 

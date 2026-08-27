@@ -49,8 +49,6 @@
 2. 提供商业化 UI 开发流程和资源管理，设计并实现了 YooAsset 资源自动释放，支持 LRU、ARC 管理资源内存。
 3. 支持全平台，已有项目使用ZFramework上架Steam、Wechat-minigame、AppStore。
 
-## <strong>最新的Demo飞机大战位于demo分支
-
 ## <strong>服务器相关
 ZFramework本身为纯净的客户端。不强绑定任何服务器。但是个人开发以及中小型公司开发双端则推荐C#服务器。
 

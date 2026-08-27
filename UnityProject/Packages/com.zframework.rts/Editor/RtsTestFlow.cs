@@ -69,7 +69,8 @@ namespace ZFramework.RTS.Editor
             string startupScene = string.IsNullOrWhiteSpace(session.Descriptor.startupScene)
                 ? RtsProjectSettings.instance.MainScene
                 : session.Descriptor.startupScene;
-            if (!File.Exists(Path.Combine(RtsProjectSettings.instance.ProjectRoot, startupScene)))
+            bool isSandbox = profile == RtsSessionLaunchProfile.Sandbox;
+            if (!isSandbox && !File.Exists(Path.Combine(RtsProjectSettings.instance.ProjectRoot, startupScene)))
             {
                 Log.Error("[RTS] Session startup scene does not exist: {0}.", startupScene);
                 return;
@@ -82,12 +83,13 @@ namespace ZFramework.RTS.Editor
             }
 
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
-            if (profile == RtsSessionLaunchProfile.Sandbox)
+            if (isSandbox)
             {
                 EnsureRequiredAssetFolders();
                 EnsureTestScene();
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                startupScene = TEST_SCENE_PATH;
             }
 
             SessionState.EraseBool(PENDING_KEY);

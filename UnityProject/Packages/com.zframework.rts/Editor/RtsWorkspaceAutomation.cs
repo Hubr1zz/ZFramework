@@ -106,7 +106,7 @@ namespace ZFramework.RTS.Editor
                     rtsTestEntryScriptId = settings.RtsTestEntryScriptId,
                     baseModules = activeSession?.Descriptor.baseModules ?? Array.Empty<string>(),
                     sessionDependencies = activeSession?.Descriptor.sessionDependencies ?? Array.Empty<string>(),
-                    sourceRoots = settings.ResolveSourceRoots().ToArray(), referenceAssemblies = settings.ResolveReferenceAssemblies().ToArray(),
+                    sourceRoots = settings.ResolveSourceRoots().Select(Relative).ToArray(), referenceAssemblies = settings.ResolveReferenceAssemblies().Select(Relative).ToArray(),
                     dummyManifest = RtsDummySandbox.ManifestPath,
                     runtimeStatus = RtsRuntimeStatus.RelativePath,
                     capabilities = new[] { "IRtsWorldServiceV1", "IRtsTargetQueryV1", "IRtsDamageServiceV1", "IRtsProjectileServiceV1", "IRtsEffectServiceV1", "IRtsObjectPoolV1", "IRtsAnimationServiceV1", "IRtsAudioServiceV1", "IRtsTimerServiceV1" },

@@ -104,7 +104,7 @@ Scope 按注册逆序清理并保证自身幂等。脚本仍可在 `Dispose` 中
 
 1. 回到 Edit Mode。
 2. 打开 `ZFramework > RTS > Control Center`，在“手动工具”选择 `RtsTest` 并启动。
-3. 工具会补齐 YooAsset 所需目录、生成 `Assets/AssetRaw/Scenes/RTSTest.unity`、编译当前 Session 脚本并从 `Assets/Scenes/main.unity` 启动。
+3. 工具会补齐 YooAsset 所需目录、生成 `Assets/AssetRaw/Scenes/RTSTest.unity`，编译当前 Session 脚本并从生成的测试场景启动。
 4. 完整 ZFramework Procedure 到达 `ProcedureStartGame` 后，工具通过 `ISceneModule` 加载 `RTSTest`，并装载最新 RTS DLL。
 5. 修改当前 Session 的 `Sources` 后保存，watcher 会自动编译并应用最新健康代。
 

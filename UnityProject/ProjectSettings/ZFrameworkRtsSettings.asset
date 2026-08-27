@@ -18,8 +18,8 @@ MonoBehaviour:
     referenceAssemblies: []
     outputDirectory: Library/ZFrameworkRTS/Compiled
   activeCompileUnit: 0
-  mainScene: Assets/Scenes/SampleScene.unity
-  launchTarget: 0
+  mainScene: ""
+  launchTarget: 1
   rtsTestEntryScriptId: framework.session-entry
   formalizationSessionName: DefaultSession
   stateMigrationPolicy: 0

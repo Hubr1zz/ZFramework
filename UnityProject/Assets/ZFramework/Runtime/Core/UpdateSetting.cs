@@ -53,7 +53,7 @@ namespace ZFramework
         /// 项目名称。
         /// </summary>
         [SerializeField]
-        private string projectName = "Demo";
+        private string projectName = "";
 
         [Header("更新设置")]
         public UpdateStyle UpdateStyle = UpdateStyle.Force;
@@ -64,13 +64,13 @@ namespace ZFramework
         /// 资源服务器地址。
         /// </summary>
         [SerializeField]
-        private string ResDownLoadPath = "http://127.0.0.1:8081";
+        private string ResDownLoadPath = "";
 
         /// <summary>
         /// 资源服务备用地址。
         /// </summary>
         [SerializeField]
-        private string FallbackResDownLoadPath = "http://127.0.0.1:8082";
+        private string FallbackResDownLoadPath = "";
 
         /// <summary>
         /// WebGL平台加载本地资源/加载远程资源。
@@ -132,7 +132,7 @@ namespace ZFramework
         /// </summary>
         public string GetResDownLoadPath()
         {
-            return Path.Combine(ResDownLoadPath, projectName, GetPlatformName()).Replace("\\", "/");
+            return GetDownloadPath(ResDownLoadPath);
         }
 
         /// <summary>
@@ -140,7 +140,15 @@ namespace ZFramework
         /// </summary>
         public string GetFallbackResDownLoadPath()
         {
-            return Path.Combine(FallbackResDownLoadPath, projectName, GetPlatformName()).Replace("\\", "/");
+            return GetDownloadPath(FallbackResDownLoadPath);
+        }
+
+        private string GetDownloadPath(string basePath)
+        {
+            if (string.IsNullOrWhiteSpace(basePath) || string.IsNullOrWhiteSpace(projectName))
+                return string.Empty;
+
+            return Path.Combine(basePath, projectName, GetPlatformName()).Replace("\\", "/");
         }
 
         /// <summary>

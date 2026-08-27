@@ -270,7 +270,14 @@ namespace ZFramework.RTS.Editor
                 return;
             }
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
-            EditorSceneManager.OpenScene(RtsProjectSettings.instance.MainScene, OpenSceneMode.Single);
+            string mainScene = RtsProjectSettings.instance.MainScene;
+            if (string.IsNullOrWhiteSpace(mainScene))
+            {
+                Log.Error("[RTS] No main scene is configured for the normal launch target.");
+                return;
+            }
+
+            EditorSceneManager.OpenScene(mainScene, OpenSceneMode.Single);
             EditorApplication.EnterPlaymode();
         }
     }

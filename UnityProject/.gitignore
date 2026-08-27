@@ -60,13 +60,6 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
-#HybirdCLR(HuaTuo)
-/HybirdCLRData/
-[Hh]ybridCLRData/
-[Aa]ssets/HybridCLRGenerate/
-[Aa]ssets/HybridCLRGenerate.meta
-
-
 #AATemp
 [Aa]ssets/AATemp/
 [Aa]ssets/AATemp.meta
