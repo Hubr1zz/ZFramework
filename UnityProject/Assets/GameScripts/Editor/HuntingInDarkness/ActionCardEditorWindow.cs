@@ -8,7 +8,7 @@ using UnityEngine;
 namespace HuntingInDarkness.Editor
 {
     /// <summary>
-    /// TEngine target-project action-card authoring window. Uses Unity's native
+    /// ZFramework target-project action-card authoring window. Uses Unity's native
     /// serialized inspector so the migrated project does not require Odin.
     /// </summary>
     public sealed class ActionCardEditorWindow : EditorWindow

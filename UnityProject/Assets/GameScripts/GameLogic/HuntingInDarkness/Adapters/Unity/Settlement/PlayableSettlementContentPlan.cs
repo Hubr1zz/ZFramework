@@ -61,7 +61,7 @@ namespace HuntingInDarkness.Settlement
         private readonly int deathInspirationMinimumAge;
         private bool retired;
 
-        public PlayableSettlementContentPlan(PlayableSettlementContentCatalog sourceCatalog, PlayableSettlementRegistryBundle registryBundle, PlayableTraitCatalog traitCatalog, PlayableEventTableGeneration eventGeneration, CampaignCalendarDefinition calendar, IReadOnlyDictionary<string, CampaignCalendarDefinition> calendars, List<CraftRecipe> recipes, List<EventData> randomEvents, List<EventData> mainStoryEvents, List<HunterData> startingHunters, List<HunterData> recruitmentTemplates, IReadOnlyList<StartingResourceDefinition> resources, List<UnityEngine.Object> ownedObjects, int deathInspirationGrowth, int deathInspirationMinimumAge)
+        public PlayableSettlementContentPlan(PlayableSettlementContentCatalog sourceCatalog, PlayableSettlementRegistryBundle registryBundle, PlayableTraitCatalog traitCatalog, PlayableEventTableGeneration eventGeneration, CampaignCalendarDefinition calendar, IReadOnlyDictionary<string, CampaignCalendarDefinition> calendars, List<CraftRecipe> recipes, List<EventData> randomEvents, List<EventData> mainStoryEvents, List<HunterData> startingHunters, List<HunterData> recruitmentTemplates, IReadOnlyList<StartingResourceDefinition> resources, IReadOnlyList<SettlementFacilityDutyDefinition> facilityDuties, List<UnityEngine.Object> ownedObjects, int deathInspirationGrowth, int deathInspirationMinimumAge)
         {
             SourceCatalog = sourceCatalog;
             RegistryBundle = registryBundle ?? throw new ArgumentNullException(nameof(registryBundle));
@@ -78,6 +78,7 @@ namespace HuntingInDarkness.Settlement
             Events = registryBundle.Events;
             StartingHunters = startingHunters.AsReadOnly();
             RecruitmentTemplates = recruitmentTemplates.AsReadOnly();
+            FacilityDuties = new ReadOnlyCollection<SettlementFacilityDutyDefinition>(new List<SettlementFacilityDutyDefinition>(facilityDuties ?? Array.Empty<SettlementFacilityDutyDefinition>()));
             startingResources = new List<StartingResourceSnapshot>();
             foreach (StartingResourceDefinition resource in resources ?? Array.Empty<StartingResourceDefinition>())
                 if (resource?.Item != null && resource.Amount > 0)
@@ -101,6 +102,7 @@ namespace HuntingInDarkness.Settlement
         public IReadOnlyList<EventData> Events { get; }
         public IReadOnlyList<HunterData> StartingHunters { get; }
         public IReadOnlyList<HunterData> RecruitmentTemplates { get; }
+        public IReadOnlyList<SettlementFacilityDutyDefinition> FacilityDuties { get; }
         public bool IsRetired => retired;
 
         public bool TryApplyTo(SettlementManager manager, out string reason)
@@ -115,7 +117,7 @@ namespace HuntingInDarkness.Settlement
                 reason = "营地管理器为空。";
                 return false;
             }
-            if (manager.Data.ItemIdentitySchemaVersion > PlayableSettlementItemRegistry.CurrentIdentitySchemaVersion || manager.Data.TraitIdentitySchemaVersion > PlayableTraitRegistry.CurrentIdentitySchemaVersion || manager.Data.InventionIdentitySchemaVersion > PlayableSettlementInventionRegistry.CurrentIdentitySchemaVersion || manager.Data.TimelineEventIdentitySchemaVersion > PlayableSettlementEventRegistry.CurrentIdentitySchemaVersion || manager.Data.CampaignPacingSchemaVersion > SettlementInstance.CurrentCampaignPacingSchemaVersion || manager.Data.SettlementModifierSchemaVersion > PlayableSettlementModifierRuntime.CurrentSchemaVersion || manager.Data.MaterialDiscoverySchemaVersion > SettlementInstance.CurrentMaterialDiscoverySchemaVersion || manager.Data.EventMemorySchemaVersion > SettlementInstance.CurrentEventMemorySchemaVersion)
+            if (manager.Data.ItemIdentitySchemaVersion > PlayableSettlementItemRegistry.CurrentIdentitySchemaVersion || manager.Data.TraitIdentitySchemaVersion > PlayableTraitRegistry.CurrentIdentitySchemaVersion || manager.Data.InventionIdentitySchemaVersion > PlayableSettlementInventionRegistry.CurrentIdentitySchemaVersion || manager.Data.TimelineEventIdentitySchemaVersion > PlayableSettlementEventRegistry.CurrentIdentitySchemaVersion || manager.Data.CampaignPacingSchemaVersion > SettlementInstance.CurrentCampaignPacingSchemaVersion || manager.Data.SettlementModifierSchemaVersion > PlayableSettlementModifierRuntime.CurrentSchemaVersion || manager.Data.MaterialDiscoverySchemaVersion > SettlementInstance.CurrentMaterialDiscoverySchemaVersion || manager.Data.EventMemorySchemaVersion > SettlementInstance.CurrentEventMemorySchemaVersion || manager.Data.FacilityDutySchemaVersion > SettlementInstance.CurrentFacilityDutySchemaVersion)
             {
                 reason = "营地存档 schema 高于当前内容版本。";
                 return false;
@@ -130,6 +132,8 @@ namespace HuntingInDarkness.Settlement
             MigrateMaterialDiscovery(manager.Data);
             MigrateEventMemories(manager.Data);
             PlayableSettlementInventionRegistry.MigratePersistentState(manager.Data);
+            if (!MigrateFacilityDuties(manager.Data, out reason)) return false;
+            if (!ValidateFacilityDuties(manager.Data, out reason)) return false;
             PlayableSettlementEventRegistry.MigratePersistentState(manager.Data);
             manager.Timeline.RandomEventPool = new List<EventData>(RandomEvents);
             manager.Timeline.MainStoryEvents = new List<EventData>(MainStoryEvents);
@@ -214,6 +218,65 @@ namespace HuntingInDarkness.Settlement
                 settlement.EventMemorySchemaVersion = SettlementInstance.CurrentEventMemorySchemaVersion;
                 settlement.EventMemoryMigrationDiagnostic = string.Empty;
             }
+        }
+
+        private static bool MigrateFacilityDuties(SettlementInstance settlement, out string reason)
+        {
+            reason = string.Empty;
+            settlement.FacilityDuties ??= new List<SettlementFacilityDutyState>();
+            settlement.FacilityDuties.RemoveAll(state => state == null || state.Status != SettlementFacilityDutyStateStatus.Active);
+            if (settlement.FacilityDutySchemaVersion > SettlementInstance.CurrentFacilityDutySchemaVersion)
+            {
+                reason = "设施值守存档 schema 高于当前版本。";
+                return false;
+            }
+            if (settlement.FacilityDutySchemaVersion < SettlementInstance.CurrentFacilityDutySchemaVersion)
+            {
+                foreach (SettlementFacilityDutyState state in settlement.FacilityDuties)
+                {
+                    if (string.IsNullOrWhiteSpace(state.CalendarId)) state.CalendarId = settlement.CampaignCalendarId;
+                    if (string.IsNullOrWhiteSpace(state.AssignmentId)) state.AssignmentId = $"facility-duty:migrated:{state.DutyId}:{state.StartYear}:{state.StartSeasonIndex}:{state.AssignedHunterId}";
+                }
+                settlement.FacilityDutySchemaVersion = SettlementInstance.CurrentFacilityDutySchemaVersion;
+                settlement.FacilityDutyMigrationDiagnostic = string.Empty;
+            }
+            return true;
+        }
+
+        private bool ValidateFacilityDuties(SettlementInstance settlement, out string reason)
+        {
+            reason = string.Empty;
+            var assignmentIds = new HashSet<string>(StringComparer.Ordinal);
+            var dutyIds = new HashSet<string>(StringComparer.Ordinal);
+            var hunterIds = new HashSet<int>();
+            foreach (SettlementFacilityDutyState state in settlement.FacilityDuties ?? new List<SettlementFacilityDutyState>())
+            {
+                if (state == null || state.Status != SettlementFacilityDutyStateStatus.Active) continue;
+                if (string.IsNullOrWhiteSpace(state.AssignmentId) || string.IsNullOrWhiteSpace(state.DutyId) || string.IsNullOrWhiteSpace(state.CalendarId) || state.AssignedHunterId <= 0 || !assignmentIds.Add(state.AssignmentId) || !dutyIds.Add(state.DutyId) || !hunterIds.Add(state.AssignedHunterId) || !string.Equals(state.CalendarId, settlement.CampaignCalendarId, StringComparison.Ordinal) || !Calendars.TryGetValue(state.CalendarId, out CampaignCalendarDefinition stateCalendar) || stateCalendar.Seasons == null || stateCalendar.Seasons.Count == 0)
+                {
+                    reason = $"设施值守存档缺少有效派驻身份：{state?.DutyId}";
+                    return false;
+                }
+                SettlementFacilityDutyDefinition definition = null;
+                foreach (SettlementFacilityDutyDefinition candidate in FacilityDuties)
+                    if (candidate != null && string.Equals(candidate.DutyId, state.DutyId, StringComparison.Ordinal))
+                    {
+                        definition = candidate;
+                        break;
+                    }
+                bool requirementMet = definition != null && (string.IsNullOrWhiteSpace(definition.RequiredInventionId) ? settlement.IsWorkshopBuilt(state.FacilityId) : settlement.IsInventionUnlocked(definition.RequiredInventionId));
+                if (!requirementMet || !string.Equals(definition.RequiredFacilityId, state.FacilityId, StringComparison.Ordinal) || settlement.GetHunter(state.AssignedHunterId) == null)
+                {
+                    reason = $"设施值守存档引用无效：{state?.DutyId}";
+                    return false;
+                }
+                if (!SettlementFacilityDutyRules.TryCalculateDueCoordinate(definition, state.StartYear, state.StartSeasonIndex, stateCalendar.Seasons.Count, out int dueYear, out int dueSeasonIndex, out _) || state.DueYear != dueYear || state.DueSeasonIndex != dueSeasonIndex)
+                {
+                    reason = $"设施值守存档到期坐标无效：{state?.DutyId}";
+                    return false;
+                }
+            }
+            return true;
         }
 
         public void Dispose()

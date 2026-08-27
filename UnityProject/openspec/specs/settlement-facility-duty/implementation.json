@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "settlement-facility-duty",
+  "specHash": "ac5a2e171302f92a177b72b7a389126c2c1f8c867b199a34f8ac99d7342056b9",
+  "title": "配置化营地设施值守",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "设施值守已接入营地 ActionQueue、配置化季节坐标、存档迁移、出猎双门禁与世界空间卡牌交互；取消或无效骰点不会产生部分写入。",
+    "validatedAgainstSpecHash": "ac5a2e171302f92a177b72b7a389126c2c1f8c867b199a34f8ac99d7342056b9",
+    "evidence": [
+      {
+        "guid": "9a7d1c6e8f2345b8a4d7c9012e6f3b10",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementFacilityDuty.cs",
+        "line": 1,
+        "fileHash": "2f84b87ae17dd8c3ec512c499c4be57536cc28d9b6e5e8c5a7e51ff0df0301eb",
+        "status": "verified",
+        "checkedAt": "2026-08-27T07:20:00-07:00",
+        "feature": "定义稳定值守身份、绝对到期季节、配置化骰子区间与人口饱和规则。"
+      },
+      {
+        "guid": "4d6f8a1c2e3b4970b5c7d9e0f1234568",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementFacilityDutyActions.cs",
+        "line": 1,
+        "fileHash": "8fdffdb0758968eaf3d466dd00ffdd1b548de5b8023603e44b19bc560c847b0d",
+        "status": "verified",
+        "checkedAt": "2026-08-27T07:20:00-07:00",
+        "feature": "通过独立营地 Root Action 完成派驻、取消和桌面骰结算，并在提交后投影事实。"
+      },
+      {
+        "guid": "8b3e7a2c1d4f4906a5b8c7d9e0f12345",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableFacilityDutyTable.cs",
+        "line": 1,
+        "fileHash": "2270fd1dcc32a96a97b49757ebc453ec58159e0e4b48250cb2de10d1666979ee",
+        "status": "verified",
+        "checkedAt": "2026-08-27T07:20:00-07:00",
+        "feature": "从 JSON 表加载值守定义，并对稳定 ID、前置、骰子与完整人口区间 fail closed。"
+      },
+      {
+        "guid": "e159b3c1d6bfcce4082b45e63fc28083",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
+        "line": 248,
+        "fileHash": "d3544410eb2158fad40282f61adcdc1e84a88c32ae3a532d0c101c096d985d29",
+        "status": "verified",
+        "checkedAt": "2026-08-27T07:20:00-07:00",
+        "feature": "持久化人口和值守状态，并统一提供到期与猎人出发资格门禁。"
+      },
+      {
+        "guid": "6b0d2e8f4a1c4973b5e7d9f012345680",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementFacilityDutyPanel3D.cs",
+        "line": 1,
+        "fileHash": "439413bb94e0c1e54a234b1ff09bfca6b9a9251cf544e5952b1d7fd508f33a4b",
+        "status": "verified",
+        "checkedAt": "2026-08-27T07:20:00-07:00",
+        "feature": "提供世界空间岗位卡、猎人卡和异步 generation guard，不持有权威玩法状态。"
+      }
+    ],
+    "tests": [
+      "SettlementFacilityDutyRulesTests: 4/4 passed",
+      "PlayableSettlementFacilityDutyActionTests: 8/8 passed",
+      "PlayableSettlementDepartureActionTests: 4/4 passed",
+      "PlayableCampaignContentAssemblerTests: 18/18 passed",
+      "PlayableCampaignPacingTests: 14/14 passed"
+    ],
+    "verifiedAt": "2026-08-27T07:20:00-07:00"
+  },
+  "implementationOutline": [
+    "SettlementInstance 保存活动值守，内容计划负责旧档迁移和活动引用校验。",
+    "派驻、取消和结算分别作为营地 ActionQueue Root 执行，纯 UI 反馈不进入队列。",
+    "准备出发与最终战役名册均拒绝到期岗位或已派驻猎人。",
+    "营地桌面以 3D 岗位卡和猎人卡显式选择，并复用 PhysicalDice 表现接口。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementFacilityDuty.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementFacilityDutyActions.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementFacilityDutyPanel3D.cs:1"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

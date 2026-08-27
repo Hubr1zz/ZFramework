@@ -34,9 +34,10 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly HunterManagementSystem hunterManagement;
         private readonly IPlayableCampaignPersistentEffectProjection persistentEffectProjection;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
+        private readonly IReadOnlyList<SettlementFacilityDutyDefinition> facilityDuties;
         private readonly ActionEnvironment environment;
 
-        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null, Func<string, EventData> resolveEvent = null, TimelineSystem timeline = null, HunterManagementSystem hunterManagement = null, ISettlementConsumableContent consumableContent = null, IPlayableCampaignPersistentEffectProjection persistentEffectProjection = null)
+        public PlayableSettlementActionSession(SettlementInstance settlement, IWeaponTrainingContent weaponTrainingContent, EventSystem eventSystem = null, IPlayableEventInput eventInput = null, ISettlementCareContent careContent = null, ISettlementEquipmentContent equipmentContent = null, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, WorkshopSystem workshopSystem = null, InventionSystem inventionSystem = null, PlayableWorkshopCatalog workshopCatalog = null, ISettlementSymptomContent symptomContent = null, IActionEnvironmentInstallerRegistry installerRegistry = null, Func<string, EventData> resolveEvent = null, TimelineSystem timeline = null, HunterManagementSystem hunterManagement = null, ISettlementConsumableContent consumableContent = null, IPlayableCampaignPersistentEffectProjection persistentEffectProjection = null, IReadOnlyList<SettlementFacilityDutyDefinition> facilityDuties = null)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.weaponTrainingContent = weaponTrainingContent ?? throw new ArgumentNullException(nameof(weaponTrainingContent));
@@ -55,6 +56,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             this.hunterManagement = hunterManagement ?? new HunterManagementSystem(settlement, new SystemRandomSource());
             this.persistentEffectProjection = persistentEffectProjection;
             this.randomInteractionPresenter = randomInteractionPresenter;
+            this.facilityDuties = facilityDuties ?? Array.Empty<SettlementFacilityDutyDefinition>();
             EventInput = eventInput;
             SessionId = Guid.NewGuid();
             environment = new ActionEnvironment(new ActionEnvironmentConfiguration
@@ -460,6 +462,82 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? SettlementWorkshopConstructionResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public bool CanAssignFacilityDuty(string dutyId, string facilityId, int hunterId, out string reason)
+        {
+            SettlementFacilityDutyDefinition definition = SettlementFacilityDutyActionHelpers.Find(facilityDuties, dutyId);
+            HunterInstance hunter = settlement.GetHunter(hunterId);
+            bool requirementMet = definition != null && (string.IsNullOrWhiteSpace(definition.RequiredInventionId) ? settlement.IsWorkshopBuilt(facilityId) : settlement.IsInventionUnlocked(definition.RequiredInventionId));
+            if (!requirementMet || hunter == null || !hunter.IsAvailable || settlement.GetDepartureEligibleHunters(settlement.CurrentYear, settlement.CurrentSeasonIndex).Count <= 1 || settlement.HasDueFacilityDuty(settlement.CurrentYear, settlement.CurrentSeasonIndex) || settlement.HasActiveFacilityDuty(dutyId) || settlement.HasAssignedFacilityDuty(hunterId))
+            {
+                reason = "设施、发明或猎人资格不满足值守条件。";
+                return false;
+            }
+            int seasonsPerYear = timelineSystem.Calendar?.Seasons.Count ?? 0;
+            return SettlementFacilityDutyRules.TryCreateState(definition, facilityId, hunterId, settlement.CurrentYear, settlement.CurrentSeasonIndex, seasonsPerYear, out _, out reason);
+        }
+
+        public async UniTask<SettlementFacilityDutyCommandResult> AssignFacilityDutyAsync(string dutyId, string facilityId, int hunterId, CancellationToken cancellationToken = default)
+        {
+            if (!IsActive) return SettlementFacilityDutyCommandResult.Failed("当前不在营地阶段。");
+            var outbox = new ActionEventOutbox();
+            var facilityEntity = environment.EntityHandles.GetOrCreate("settlement-facility", facilityId ?? "unknown", facilityId ?? "未知设施");
+            var hunterEntity = environment.EntityHandles.GetOrCreate("hunter", hunterId.ToString(), $"猎人 {hunterId}");
+            var action = new AssignSettlementFacilityDutyAction(settlement, facilityDuties, dutyId, facilityId, hunterId, timelineSystem.Calendar?.Seasons.Count ?? 0, timelineSystem.Calendar?.CalendarId, outbox, facilityEntity, hunterEntity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            return outcome.IsSuccess ? action.Result : SettlementFacilityDutyCommandResult.Failed(string.IsNullOrWhiteSpace(action.Result.Reason) ? outcome.Reason : action.Result.Reason);
+        }
+
+        public bool CanCancelFacilityDuty(string dutyId, out string reason)
+        {
+            if (settlement.TryGetFacilityDuty(dutyId, out SettlementFacilityDutyState state) && !SettlementFacilityDutyRules.IsDue(state, settlement.CurrentYear, settlement.CurrentSeasonIndex))
+            {
+                reason = string.Empty;
+                return true;
+            }
+            return FailDutyCheck("值守岗位不存在或已到期。", out reason);
+        }
+
+        public async UniTask<SettlementFacilityDutyCommandResult> CancelFacilityDutyAsync(string dutyId, CancellationToken cancellationToken = default)
+        {
+            if (!IsActive) return SettlementFacilityDutyCommandResult.Failed("当前不在营地阶段。");
+            var outbox = new ActionEventOutbox();
+            var entity = environment.EntityHandles.GetOrCreate("settlement-facility", dutyId ?? "unknown", dutyId ?? "值守岗位");
+            var action = new CancelSettlementFacilityDutyAction(settlement, dutyId, outbox, entity, entity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            return outcome.IsSuccess ? action.Result : SettlementFacilityDutyCommandResult.Failed(string.IsNullOrWhiteSpace(action.Result.Reason) ? outcome.Reason : action.Result.Reason);
+        }
+
+        public bool CanResolveFacilityDuty(string dutyId, out string reason)
+        {
+            if (settlement.TryGetFacilityDuty(dutyId, out SettlementFacilityDutyState state) && SettlementFacilityDutyRules.IsDue(state, settlement.CurrentYear, settlement.CurrentSeasonIndex))
+            {
+                HunterInstance hunter = settlement.GetHunter(state.AssignedHunterId);
+                if (randomInteractionPresenter != null || hunter == null || !hunter.IsAlive || !hunter.IsAvailable)
+                {
+                    reason = string.Empty;
+                    return true;
+                }
+            }
+            reason = "值守岗位尚未到期或桌面骰子未配置。";
+            return false;
+        }
+
+        public async UniTask<SettlementFacilityDutyCommandResult> ResolveFacilityDutyAsync(string dutyId, CancellationToken cancellationToken = default)
+        {
+            if (!IsActive) return SettlementFacilityDutyCommandResult.Failed("当前不在营地阶段。");
+            var outbox = new ActionEventOutbox();
+            var entity = environment.EntityHandles.GetOrCreate("settlement-facility", dutyId ?? "unknown", dutyId ?? "值守岗位");
+            var action = new ResolveSettlementFacilityDutyAction(settlement, facilityDuties, dutyId, randomInteractionPresenter, outbox, entity, entity);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            return outcome.IsSuccess ? action.Result : SettlementFacilityDutyCommandResult.Failed(string.IsNullOrWhiteSpace(action.Result.Reason) ? outcome.Reason : action.Result.Reason);
+        }
+
+        private static bool FailDutyCheck(string message, out string reason)
+        {
+            reason = message;
+            return false;
         }
 
         public async UniTask<WeaponTrainingCommandResult> TrainWeaponAsync(int hunterId, string masteryId)

@@ -30,6 +30,7 @@ namespace HuntingInDarkness.Settlement
         [SerializeField] private List<EventData> mainStoryEvents = new();
         [SerializeField] private List<InventionData> inventions = new();
         [SerializeField] private TextAsset inventionTable;
+        [SerializeField] private TextAsset facilityDutyTable;
         [SerializeField] private List<CraftRecipe> recipes = new();
 
         [Header("战役日历")]
@@ -63,6 +64,7 @@ namespace HuntingInDarkness.Settlement
         public CampaignCalendarConfig CampaignCalendar => defaultCalendar;
         public CampaignCalendarConfig DefaultCalendar => defaultCalendar;
         public IReadOnlyList<CampaignCalendarConfig> SupportedCalendars => supportedCalendars;
+        public TextAsset FacilityDutyTable => facilityDutyTable;
 
         public bool ApplyTo(SettlementManager manager)
         {
@@ -113,6 +115,7 @@ namespace HuntingInDarkness.Settlement
             {
                 if (!PlayableTraitCatalog.TryLoad(traitTable, out PlayableTraitCatalog traitCatalog, out string traitReason)) errors.Add(traitReason);
                 PlayableSettlementContentExtensions.Prepare(GetKnownItems(), recipes, inventions, inventionTable, tableEvents, ownership, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions, errors.Add);
+                bool dutiesValid = PlayableFacilityDutyTable.Build(facilityDutyTable, allInventions, out List<SettlementFacilityDutyDefinition> facilityDuties, errors.Add);
                 bool huntersValid = PlayableHunterTemplateTableRuntime.Extend(startingHunters, recruitmentTemplates, allItems, hunterTable, out List<HunterData> allStartingHunters, out List<HunterData> allRecruitmentTemplates, out List<HunterData> generatedHunters, errors.Add);
                 ownership.OwnRange(generatedHunters);
                 PlayableEventTableRuntime.Extend(randomEvents, mainStoryEvents, tableEvents, out List<EventData> allRandomEvents, out List<EventData> allMainStoryEvents);
@@ -121,12 +124,13 @@ namespace HuntingInDarkness.Settlement
                 if (traitCatalog != null && !PlayableSettlementContentPlan.ValidateContent(allItems, allInventions, allRecipes, allEvents, allStartingHunters, allRecruitmentTemplates, traitCatalog, out string validationReason)) errors.Add(validationReason);
                 if (!PlayableSettlementRegistryBundle.TryCreate(allItems, allInventions, allEvents, out PlayableSettlementRegistryBundle registryBundle, out string registryReason)) errors.Add(registryReason);
                 if (!huntersValid || allStartingHunters.Count == 0) errors.Add("猎人内容未提供任何有效初始模板。");
+                if (!dutiesValid) errors.Add("设施值守内容表无效。");
                 if (errors.Count > 0)
                 {
                     reason = string.Join("；", errors);
                     return false;
                 }
-                plan = new PlayableSettlementContentPlan(this, registryBundle, traitCatalog, eventGeneration, calendarDefinition, calendars, allRecipes, allRandomEvents, allMainStoryEvents, allStartingHunters, allRecruitmentTemplates, startingResources, ownership.Objects, deathInspirationGrowth, deathInspirationMinimumAge);
+                plan = new PlayableSettlementContentPlan(this, registryBundle, traitCatalog, eventGeneration, calendarDefinition, calendars, allRecipes, allRandomEvents, allMainStoryEvents, allStartingHunters, allRecruitmentTemplates, startingResources, facilityDuties, ownership.Objects, deathInspirationGrowth, deathInspirationMinimumAge);
                 ownership.Transfer();
                 return true;
             }

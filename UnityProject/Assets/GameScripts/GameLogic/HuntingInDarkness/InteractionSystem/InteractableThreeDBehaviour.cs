@@ -45,7 +45,7 @@ namespace InteractionSystem.Runtime
 
         public override void Initialize()
         {
-            // Legacy Unity input is polled by ReferencedInputTrigger. TEngine owns
+            // Legacy Unity input is polled by ReferencedInputTrigger. ZFramework owns
             // module lifecycle; this view-side input object has nothing to register.
         }
 

@@ -12,7 +12,7 @@ namespace HuntingInDarkness.ActionFlow
         Discarded
     }
 
-    /// <summary>暂存 TEngine 事件；只有所属 Root Action 成功后才按登记顺序发布。</summary>
+    /// <summary>暂存 ZFramework 事件；只有所属 Root Action 成功后才按登记顺序发布。</summary>
     public sealed class ActionEventOutbox
     {
         private readonly List<IPendingEvent> pendingEvents = new();

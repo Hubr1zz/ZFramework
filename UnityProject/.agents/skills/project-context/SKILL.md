@@ -12,6 +12,6 @@ description: ZFramework Unity 项目的低成本事实入口与 skill 路由。�
 - Unity：Unity 6；`ProjectSettings/ProjectVersion.txt` 当前为 `6000.5.9f1`，版本敏感任务必须重新读取该文件。
 - 框架：ZFramework 基于 TEngine 扩展，项目内使用 YooAsset、UniTask 与 Luban 工具链；具体版本和安装位置以项目清单、asmdef 与源码为准。
 - 正式启动：`GameEntry.Awake` 启动 Procedure 状态链，`ProcedureStartGame` 调用 `GameApp.Entrance`，再由 `PlayableGameBootstrap.EnsureInstalled` 在配置的入口场景装配可玩内容与 `GameManager`。
-- 代码修改：必须进入 `.agents/skills/tengine-dev/references/CODE-WORKFLOW.md`。
+- 代码修改：必须进入 `.agents/skills/zframework-dev/references/CODE-WORKFLOW.md`。
 
 这些概况只用于路由，不作为长期权威副本。无法由索引确认或可能随版本变化的事实必须回到源码、asmdef、`ProjectVersion.txt`、Package 清单或项目 Wiki 核验。

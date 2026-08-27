@@ -87,7 +87,7 @@ namespace Core
             if (manager == null) throw new ArgumentNullException(nameof(manager));
             if (installerRegistryProvider == null || persistentEffectProjectionProvider == null)
                 throw new InvalidOperationException("营地阶段玩法组合尚未配置。");
-            return new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), manager.Events, eventInputProvider(), new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementContentRuntime.Items), tabletopInteraction, manager.Workshop, manager.Inventions, workshopCatalog, PlayableSymptomRuntime.Catalog, installerRegistryProvider(), manager.Timeline.ResolveEvent, manager.Timeline, persistentEffectProjection: persistentEffectProjectionProvider(), hunterManagement: manager.HunterMgmt, consumableContent: new PlayableSettlementConsumableContentAdapter(PlayableSettlementContentRuntime.Items));
+            return new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(PlayableWeaponMasteryRuntime.Catalog), manager.Events, eventInputProvider(), new PlayableSettlementCareContentAdapter(settlementContentCatalog), new PlayableSettlementEquipmentContentAdapter(PlayableSettlementContentRuntime.Items), tabletopInteraction, manager.Workshop, manager.Inventions, workshopCatalog, PlayableSymptomRuntime.Catalog, installerRegistryProvider(), manager.Timeline.ResolveEvent, manager.Timeline, persistentEffectProjection: persistentEffectProjectionProvider(), hunterManagement: manager.HunterMgmt, consumableContent: new PlayableSettlementConsumableContentAdapter(PlayableSettlementContentRuntime.Items), facilityDuties: manager.FacilityDutyDefinitions);
         }
 
         internal bool TryActivate(PlayableSettlementRuntime runtime, out string reason)
@@ -166,6 +166,9 @@ namespace Core
             settlementTable.OnInventionUnlockRequested = invention => UnlockInvention(manager, invention);
             settlementTable.OnInventionEffectRequested = (invention, effect) => ActivateInventionEffect(manager, invention, effect);
             settlementTable.OnWorkshopConstructionRequested = definition => BuildWorkshop(manager, definition);
+            settlementTable.OnFacilityDutyAssignRequested = (dutyId, facilityId, hunterId) => AssignFacilityDuty(manager, dutyId, facilityId, hunterId);
+            settlementTable.OnFacilityDutyCancelRequested = dutyId => CancelFacilityDuty(manager, dutyId);
+            settlementTable.OnFacilityDutyResolveRequested = dutyId => ResolveFacilityDuty(manager, dutyId);
             settlementTable.OnRecoveryRequested = (hunterId, bodyPart) => Recover(manager, hunterId, bodyPart);
             settlementTable.OnRecruitRequested = (template, requestedName) => Recruit(manager, template, requestedName);
             settlementTable.OnGrowthRequested = (hunterId, choice) => SpendGrowth(manager, hunterId, choice);
@@ -427,6 +430,24 @@ namespace Core
         {
             PlayableSettlementActionSession session = GetSession(manager);
             return session != null ? session.RecoverHunterAsync(hunterId, bodyPart) : UniTask.FromResult(RecoverHunterCommandResult.Failed("当前不在营地阶段。"));
+        }
+
+        private UniTask<SettlementFacilityDutyCommandResult> AssignFacilityDuty(SettlementManager manager, string dutyId, string facilityId, int hunterId)
+        {
+            PlayableSettlementActionSession session = GetSession(manager);
+            return session != null ? session.AssignFacilityDutyAsync(dutyId, facilityId, hunterId) : UniTask.FromResult(SettlementFacilityDutyCommandResult.Failed("当前不在营地阶段。"));
+        }
+
+        private UniTask<SettlementFacilityDutyCommandResult> CancelFacilityDuty(SettlementManager manager, string dutyId)
+        {
+            PlayableSettlementActionSession session = GetSession(manager);
+            return session != null ? session.CancelFacilityDutyAsync(dutyId) : UniTask.FromResult(SettlementFacilityDutyCommandResult.Failed("当前不在营地阶段。"));
+        }
+
+        private UniTask<SettlementFacilityDutyCommandResult> ResolveFacilityDuty(SettlementManager manager, string dutyId)
+        {
+            PlayableSettlementActionSession session = GetSession(manager);
+            return session != null ? session.ResolveFacilityDutyAsync(dutyId) : UniTask.FromResult(SettlementFacilityDutyCommandResult.Failed("当前不在营地阶段。"));
         }
 
         private UniTask<RecruitHunterCommandResult> Recruit(SettlementManager manager, HunterData template, string requestedName)

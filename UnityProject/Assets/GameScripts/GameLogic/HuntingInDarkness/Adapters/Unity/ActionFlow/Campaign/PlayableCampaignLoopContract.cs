@@ -37,6 +37,11 @@ namespace HuntingInDarkness.ActionFlow.Campaign
             }
             IReadOnlyList<int> hunterIds = settlement.DepartingHunterIds;
             if (!DepartureRules.CanDepart(hunterIds, out reason)) return false;
+            if (settlement.HasDueFacilityDuty(settlement.CurrentYear, settlement.CurrentSeasonIndex))
+            {
+                reason = "存在已到期的设施值守，结算后才能出猎。";
+                return false;
+            }
 
             var uniqueIds = new HashSet<int>();
             foreach (int hunterId in hunterIds)
@@ -48,7 +53,7 @@ namespace HuntingInDarkness.ActionFlow.Campaign
                     return false;
                 }
                 HunterInstance hunter = settlement.GetHunter(hunterId);
-                if (hunter == null || !hunter.IsAvailable)
+                if (hunter == null || !settlement.CanHunterDepart(hunterId, settlement.CurrentYear, settlement.CurrentSeasonIndex))
                 {
                     reason = "已提交的出发小队包含无法出战的猎人。";
                     hunters.Clear();
@@ -63,7 +68,7 @@ namespace HuntingInDarkness.ActionFlow.Campaign
 
         public static bool TryResolveDevelopmentRoster(SettlementInstance settlement, out List<HunterInstance> hunters, out string reason)
         {
-            hunters = settlement?.GetAvailableHunters() ?? new List<HunterInstance>();
+            hunters = settlement?.GetDepartureEligibleHunters(settlement.CurrentYear, settlement.CurrentSeasonIndex) ?? new List<HunterInstance>();
             var hunterIds = new List<int>(hunters.Count);
             foreach (HunterInstance hunter in hunters)
                 if (hunter != null)

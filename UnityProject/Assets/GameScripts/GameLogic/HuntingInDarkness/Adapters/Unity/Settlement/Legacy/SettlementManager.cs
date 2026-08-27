@@ -29,6 +29,7 @@ namespace HuntingInDarkness.Settlement
         public InventionSystem Inventions => binding.Inventions;
         public WorkshopSystem Workshop => binding.Workshop;
         public HunterManagementSystem HunterMgmt => binding.HunterMgmt;
+        public IReadOnlyList<SettlementFacilityDutyDefinition> FacilityDutyDefinitions => contentPlan?.FacilityDuties ?? Array.Empty<SettlementFacilityDutyDefinition>();
 
         private readonly Func<IRandomSource> randomFactory;
         private RuntimeBinding binding;

@@ -75,6 +75,12 @@ namespace UI
         [SerializeField] private WorkshopConstructionPanel3D workshopConstructionPanel;
         [SerializeField] private Transform workshopConstructionPanelAnchor;
 
+        [Header("设施值守 3D 面板")]
+        [SerializeField] private SettlementFacilityDutyPanel3D facilityDutyPanel;
+        [SerializeField] private Transform facilityDutyPanelAnchor;
+        [SerializeField] private Vector3 fallbackFacilityDutyLauncherPosition = new(-3.25f, 0.03f, -3.35f);
+        private Cards3D.SettlementFacilityDutyLauncherCard3D facilityDutyLauncher;
+
         [Header("狩猎整备入口")]
         [SerializeField] private Vector3 fallbackDepartureLauncherPosition = new(3.25f, 0.03f, -2.65f);
         private TabletopDepartureLauncherCard3D departureLauncher;
@@ -97,6 +103,9 @@ namespace UI
         public System.Func<int, HuntingInDarkness.GameCore.Settlement.HunterGrowthChoice, UniTask<HunterGrowthCommandResult>> OnGrowthRequested;
         public System.Func<int, string, UniTask<WeaponTrainingCommandResult>> OnWeaponTrainingRequested;
         public System.Func<int, string, HuntingInDarkness.GameCore.Settlement.SymptomResolutionChoice, UniTask<HunterSymptomCommandResult>> OnSymptomRequested;
+        public System.Func<string, string, int, UniTask<SettlementFacilityDutyCommandResult>> OnFacilityDutyAssignRequested;
+        public System.Func<string, UniTask<SettlementFacilityDutyCommandResult>> OnFacilityDutyCancelRequested;
+        public System.Func<string, UniTask<SettlementFacilityDutyCommandResult>> OnFacilityDutyResolveRequested;
 
         // ─── 注入数据 ─────────────────────────────────────────────────────
         private SettlementManager _mgr;
@@ -125,6 +134,7 @@ namespace UI
             EnsureInventionUnlockPanel();
             EnsureInventionActiveEffectPanel();
             EnsureWorkshopConstructionPanel();
+            EnsureFacilityDutyPanel();
             EnsureDepartureLauncher();
             WireZoneCallbacks();  // 把上层设的回调下发给分区
             HideContextPanels();
@@ -293,6 +303,23 @@ namespace UI
             workshopConstructionPanel.EnsureBuilt();
         }
 
+        private void EnsureFacilityDutyPanel()
+        {
+            if (facilityDutyPanel == null) facilityDutyPanel = SettlementFacilityDutyPanel3D.Create(transform);
+            facilityDutyPanel.EnsureBuilt();
+            if (facilityDutyLauncher == null) facilityDutyLauncher = Cards3D.SettlementFacilityDutyLauncherCard3D.Create(transform, fallbackFacilityDutyLauncherPosition);
+            facilityDutyLauncher.Configure(_mgr.Data);
+            facilityDutyLauncher.Clicked = ShowFacilityDuty;
+        }
+
+        private void ShowFacilityDuty()
+        {
+            if (facilityDutyPanel == null || _mgr == null) return;
+            HideContextPanels();
+            Vector3 position = facilityDutyPanelAnchor != null ? facilityDutyPanelAnchor.position : transform.TransformPoint(new Vector3(-3.25f, 0.08f, -3.0f));
+            facilityDutyPanel.Open(_mgr.Data, _mgr.FacilityDutyDefinitions, OnFacilityDutyAssignRequested, OnFacilityDutyCancelRequested, OnFacilityDutyResolveRequested, position);
+        }
+
         private void ShowWorkshopCrafting(WorkshopCard3D card)
         {
             HideContextPanels(card);
@@ -347,6 +374,7 @@ namespace UI
             inventionUnlockPanel?.Hide();
             inventionActiveEffectPanel?.Hide();
             workshopConstructionPanel?.Hide();
+            facilityDutyPanel?.Hide();
             _workshopZone?.CloseCraftPanels(retainedWorkshop);
         }
 
@@ -483,6 +511,8 @@ namespace UI
             RefreshContextPanels();
             inventionUnlockPanel?.RefreshVisible();
             workshopConstructionPanel?.RefreshVisible();
+            facilityDutyPanel?.RefreshVisible();
+            facilityDutyLauncher?.Configure(_mgr.Data);
         }
 
         /// <summary>刷新发明与工坊卡牌的视觉状态。</summary>
@@ -491,6 +521,7 @@ namespace UI
             _inventionZone.RefreshCards();
             _workshopZone.RefreshCards();
             RefreshContextPanels();
+            facilityDutyPanel?.RefreshVisible();
         }
 
         public void RefreshCrafting()
@@ -503,6 +534,8 @@ namespace UI
             RefreshContextPanels();
             inventionUnlockPanel?.RefreshVisible();
             workshopConstructionPanel?.RefreshVisible();
+            facilityDutyPanel?.RefreshVisible();
+            facilityDutyLauncher?.Configure(_mgr.Data);
         }
 
         // ─── EventBus ─────────────────────────────────────────────────────

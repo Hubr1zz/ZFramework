@@ -88,8 +88,8 @@ namespace HuntingInDarkness.Bootstrap
                 mainCamera.gameObject.AddComponent<PlayablePhaseCameraRig>().Initialize(manager, settings.BossCameraPosition, settings.BossCameraEulerAngles, settings.KeyLightColor, settings.KeyLightIntensity);
             gameObject.AddComponent<PlayableBossVitalityView>().Initialize(manager);
 
-            if (settings.HideFrameworkDebugger && TEngine.Debugger.Instance != null)
-                TEngine.Debugger.Instance.ActiveWindow = false;
+            if (settings.HideFrameworkDebugger && ZFramework.Debugger.Instance != null)
+                ZFramework.Debugger.Instance.ActiveWindow = false;
 
             if (settings.ShowStartMenu || settings.ShowFlowGuide && settings.ShowOpeningNarrative)
                 gameObject.AddComponent<PlayableOpeningSequence3D>().Initialize(manager, settings);

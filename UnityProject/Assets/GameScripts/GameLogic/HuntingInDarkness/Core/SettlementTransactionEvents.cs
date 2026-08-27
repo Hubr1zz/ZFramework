@@ -1,6 +1,6 @@
 namespace Core
 {
-    public enum SettlementTransactionKind
+        public enum SettlementTransactionKind
     {
         WeaponTraining,
         Recruitment,
@@ -15,6 +15,7 @@ namespace Core
         EventReroll,
         EventResolution,
         Consumable
+        ,FacilityDuty
     }
 
     /// <summary>营地权威事务已经成功提交；持久化、刷新与统计只观察该事实。</summary>

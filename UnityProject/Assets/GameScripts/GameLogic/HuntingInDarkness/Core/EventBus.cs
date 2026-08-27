@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using GameplayBase;
 using SO.Boss.ActionCard;
-using TEngine;
+using ZFramework;
 using UnityEngine;
 
 namespace Core
 {
     /// <summary>
-    /// 迁移兼容门面。实际派发由 TEngine GameEvent 负责；旧调用点无需一次性重写。
+    /// 迁移兼容门面。实际派发由 ZFramework GameEvent 负责；旧调用点无需一次性重写。
     /// 用法：
     ///   EventBus.Subscribe&lt;CardFlippedEvent&gt;(OnCardFlipped);
     ///   EventBus.Publish(new CardFlippedEvent(card, oldFace, newFace));

@@ -38,7 +38,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         {
             if (requestInFlight || manager == null || manager.SettlementData == null || manager.CurrentGamePhase != GamePhase.Settlement)
                 return;
-            List<HunterInstance> hunters = manager.SettlementData.GetAvailableHunters();
+            List<HunterInstance> hunters = manager.SettlementData.GetDepartureEligibleHunters(manager.SettlementData.CurrentYear, manager.SettlementData.CurrentSeasonIndex);
 
             pendingHunterIds.Clear();
             if (hunterIds != null)
@@ -113,7 +113,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         {
             if (manager?.SettlementData == null || manager.CurrentGamePhase != GamePhase.Settlement)
                 return;
-            panel.PresentSquad(GetPanelAnchor(), manager.SettlementData.GetAvailableHunters(), pendingHunterIds, OpenDestinations, Close);
+            panel.PresentSquad(GetPanelAnchor(), manager.SettlementData.GetDepartureEligibleHunters(manager.SettlementData.CurrentYear, manager.SettlementData.CurrentSeasonIndex), pendingHunterIds, OpenDestinations, Close);
         }
 
         private List<HunterInstance> ResolvePendingHunters()

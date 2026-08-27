@@ -88,6 +88,26 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void SettlementCatalog_MissingFacilityDutyTableFailsClosed()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSettlementContentCatalog clone = Object.Instantiate(settings.SettlementContent);
+            try
+            {
+                SetPrivateField(clone, "facilityDutyTable", null);
+
+                bool prepared = clone.TryPreparePlan(null, out _, out string reason);
+
+                Assert.That(prepared, Is.False);
+                Assert.That(reason, Does.Contain("设施值守表未配置"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(clone);
+            }
+        }
+
+        [Test]
         public void SettlementCatalog_RequiresDefaultCalendarInSupportedSetAndRejectsDuplicateIds()
         {
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);

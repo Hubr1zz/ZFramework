@@ -330,11 +330,11 @@ namespace ZFramework.RTS
                 _suppressedCanvases.Add(canvas);
             }
 #if UNITY_6000_5_OR_NEWER
-            global::TEngine.Debugger[] debuggers = FindObjectsByType<global::TEngine.Debugger>(FindObjectsInactive.Include);
+            global::ZFramework.Debugger[] debuggers = FindObjectsByType<global::ZFramework.Debugger>(FindObjectsInactive.Include);
 #elif UNITY_2023_1_OR_NEWER
-            global::TEngine.Debugger[] debuggers = FindObjectsByType<global::TEngine.Debugger>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            global::ZFramework.Debugger[] debuggers = FindObjectsByType<global::ZFramework.Debugger>(FindObjectsInactive.Include, FindObjectsSortMode.None);
 #else
-            global::TEngine.Debugger[] debuggers = FindObjectsOfType<global::TEngine.Debugger>(true);
+            global::ZFramework.Debugger[] debuggers = FindObjectsOfType<global::ZFramework.Debugger>(true);
 #endif
             for (int i = 0; i < debuggers.Length; i++)
             {

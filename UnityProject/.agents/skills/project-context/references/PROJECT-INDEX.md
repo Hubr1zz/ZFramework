@@ -6,9 +6,9 @@
 | --- | --- | --- |
 | 项目概况与正式启动 | `../SKILL.md`、`../../../../Assets/GameScripts/GameEntry.cs`、`../../../../Assets/GameScripts/GameLogic/GameApp.cs`、`../../../../Assets/GameScripts/Procedure/ProcedureStartGame.cs` | 需要技术栈、运行入口或组合根时 |
 | Unity 与包版本 | `../../../../ProjectSettings/ProjectVersion.txt`、`../../../../Packages/manifest.json` | 版本、包兼容或 Editor 行为敏感任务 |
-| 代码实现或修改 | `../../tengine-dev/references/CODE-WORKFLOW.md` | 所有会修改项目 C# 的任务 |
+| 代码实现或修改 | `../../zframework-dev/references/CODE-WORKFLOW.md` | 所有会修改项目 C# 的任务 |
 | C# 类型、调用者与影响范围 | `../../codebase-query/SKILL.md` | C# 方案设计、结构理解或修改影响分析 |
-| TEngine API | `../../tengine-dev/SKILL.md` | UI、资源、事件、模块、启动与排障 |
+| ZFramework API | `../../zframework-dev/SKILL.md` | UI、资源、事件、模块、启动与排障 |
 | Luban 配置 | `../../luban-dev/SKILL.md` | 修改表结构、数据或生成流程 |
 | 工程模块图 | `../../project-tooling/references/tooling-catalog.json` | 资源、启动、异步、编辑器扩展或模块依赖 |
 | 项目 Wiki | `../../../../repowiki/zh/content/index.md` | 需要系统说明或文档同步时 |

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "duties": [
+    {
+      "id": "shelter_watch",
+      "facilityId": "shelter",
+      "requiredInventionId": "shelter",
+      "displayName": "庇护所值守",
+      "description": "派驻一名猎人守护庇护所，下一季以桌面骰检验收获。",
+      "resultText": "值守成果转化为营地人口。",
+      "durationSeasons": 1,
+      "checkType": "PhysicalDice",
+      "diceCount": 1,
+      "diceSides": 6,
+      "populationBands": [
+        { "minimumRoll": 1, "maximumRoll": 2, "populationGain": 0 },
+        { "minimumRoll": 3, "maximumRoll": 5, "populationGain": 1 },
+        { "minimumRoll": 6, "maximumRoll": 6, "populationGain": 2 }
+      ]
+    }
+  ]
+}

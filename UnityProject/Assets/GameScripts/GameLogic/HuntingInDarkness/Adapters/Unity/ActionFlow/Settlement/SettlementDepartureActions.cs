@@ -67,6 +67,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             cancellationToken.ThrowIfCancellationRequested();
             if (!DepartureRules.CanDepart(requestedHunterIds, out string reason))
                 return Fail(reason);
+            if (settlement.HasDueFacilityDuty(settlement.CurrentYear, settlement.CurrentSeasonIndex))
+                return Fail("存在已到期的设施值守，结算后才能出猎。");
 
             var committedIds = new List<int>(requestedHunterIds.Count);
             var uniqueIds = new HashSet<int>();
@@ -75,7 +77,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 if (!uniqueIds.Add(hunterId))
                     return Fail("出发小队中存在重复猎人。");
                 HunterInstance hunter = settlement.GetHunter(hunterId);
-                if (hunter == null || !hunter.IsAvailable)
+                if (hunter == null || !settlement.CanHunterDepart(hunterId, settlement.CurrentYear, settlement.CurrentSeasonIndex))
                     return Fail("小队包含无法出发的猎人。");
                 committedIds.Add(hunterId);
             }

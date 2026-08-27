@@ -248,8 +248,11 @@ namespace HuntingInDarkness.Data
         public int SettlementModifierSchemaVersion;
         public int MaterialDiscoverySchemaVersion;
         public const int CurrentEventMemorySchemaVersion = 1;
+        public const int CurrentFacilityDutySchemaVersion = 1;
         public int EventMemorySchemaVersion;
         public string EventMemoryMigrationDiagnostic;
+        public int FacilityDutySchemaVersion;
+        public string FacilityDutyMigrationDiagnostic;
 
         [Header("时间线")]
         public int CurrentYear = 1;
@@ -257,6 +260,7 @@ namespace HuntingInDarkness.Data
         public int CurrentSeasonIndex;
         public int HuntsCompletedThisYear;
         public int HuntsPerYear = 2;
+        public int Population;
         public int CampaignPacingSchemaVersion;
         public string CampaignPacingMigrationDiagnostic;
         public int LastRecruitmentYear;
@@ -287,6 +291,9 @@ namespace HuntingInDarkness.Data
 
         [Header("已建工坊（稳定工坊 ID → 是否建成）")]
         public List<StringBoolEntry> BuiltWorkshops = new();
+
+        [Header("设施值守")]
+        public List<SettlementFacilityDutyState> FacilityDuties = new();
 
         [Header("Timeline")]
         public List<AnnalEntry> Timeline = new();
@@ -412,6 +419,66 @@ namespace HuntingInDarkness.Data
         public HunterInstance GetHunter(int id) => Hunters.Find(h => h.InstanceId == id);
         public List<HunterInstance> GetAliveHunters() => Hunters.FindAll(h => h.IsAlive);
         public List<HunterInstance> GetAvailableHunters() => Hunters.FindAll(h => h.IsAvailable);
+
+        public bool TryGetFacilityDuty(string dutyId, out SettlementFacilityDutyState state)
+        {
+            state = null;
+            string normalizedId = dutyId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 || FacilityDuties == null) return false;
+            state = FacilityDuties.Find(candidate => candidate != null && candidate.Status == SettlementFacilityDutyStateStatus.Active && (string.Equals(candidate.DutyId?.Trim(), normalizedId, System.StringComparison.Ordinal) || string.Equals(candidate.AssignmentId?.Trim(), normalizedId, System.StringComparison.Ordinal)));
+            return state != null;
+        }
+
+        public bool HasActiveFacilityDuty(string dutyId) => TryGetFacilityDuty(dutyId, out _);
+
+        public bool HasDueFacilityDuty(int year, int seasonIndex) => SettlementFacilityDutyRules.HasDueDuty(FacilityDuties, year, seasonIndex);
+
+        public bool HasAssignedFacilityDuty(int hunterId)
+        {
+            return FacilityDuties != null && FacilityDuties.Exists(duty => SettlementFacilityDutyRules.IsAssigned(duty, hunterId));
+        }
+
+        public bool CanHunterDepart(int hunterId, int currentYear, int currentSeasonIndex)
+        {
+            HunterInstance hunter = GetHunter(hunterId);
+            return hunter != null && hunter.IsAvailable && !HasDueFacilityDuty(currentYear, currentSeasonIndex) && !HasAssignedFacilityDuty(hunterId);
+        }
+
+        public List<HunterInstance> GetDepartureEligibleHunters(int currentYear, int currentSeasonIndex)
+        {
+            if (HasDueFacilityDuty(currentYear, currentSeasonIndex)) return new List<HunterInstance>();
+            var result = new List<HunterInstance>();
+            foreach (HunterInstance hunter in Hunters ?? new List<HunterInstance>())
+                if (hunter != null && CanHunterDepart(hunter.InstanceId, currentYear, currentSeasonIndex)) result.Add(hunter);
+            return result;
+        }
+
+        public bool TryAddFacilityDuty(SettlementFacilityDutyState state, out string reason)
+        {
+            reason = string.Empty;
+            if (state == null || string.IsNullOrWhiteSpace(state.DutyId) || string.IsNullOrWhiteSpace(state.AssignmentId) || string.IsNullOrWhiteSpace(state.CalendarId) || string.IsNullOrWhiteSpace(state.FacilityId) || state.AssignedHunterId <= 0 || state.Status != SettlementFacilityDutyStateStatus.Active)
+            {
+                reason = "值守状态无效。";
+                return false;
+            }
+            if (HasActiveFacilityDuty(state.DutyId) || HasAssignedFacilityDuty(state.AssignedHunterId))
+            {
+                reason = "该值守岗位或猎人已经被占用。";
+                return false;
+            }
+            FacilityDuties ??= new List<SettlementFacilityDutyState>();
+            FacilityDuties.Add(state);
+            FacilityDutySchemaVersion = CurrentFacilityDutySchemaVersion;
+            FacilityDutyMigrationDiagnostic = string.Empty;
+            return true;
+        }
+
+        public bool TryRemoveFacilityDuty(string assignmentId)
+        {
+            string normalizedId = assignmentId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 || FacilityDuties == null) return false;
+            return FacilityDuties.RemoveAll(state => state != null && string.Equals(state.AssignmentId?.Trim(), normalizedId, System.StringComparison.Ordinal)) > 0;
+        }
 
         public bool HasPendingEventChainOccurrences => PendingEventChains != null && PendingEventChains.Exists(chain => chain != null && chain.PendingOccurrences != null && chain.PendingOccurrences.Count > 0);
 
