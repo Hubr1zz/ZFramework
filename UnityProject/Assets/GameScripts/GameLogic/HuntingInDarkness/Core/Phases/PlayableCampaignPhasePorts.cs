@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using CardGame.ActionQueue;
+using CardTactics.CombatSystem;
 using Cysharp.Threading.Tasks;
+using Config;
 using GameplayBase;
+using GameplayBase.CombatSystem;
 using HuntingInDarkness.ActionFlow;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
@@ -12,12 +16,16 @@ using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Combat;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunters;
+using HuntingInDarkness.GameCore.Cards;
+using HuntingInDarkness.GameCore.Combat;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using UI;
 using UI.Hunt;
 using UI.Settlement;
+using SO.Boss.ActionCard;
+using SO.Boss.HitLocation;
 using UnityEngine;
 
 namespace Core
@@ -83,9 +91,38 @@ namespace Core
     internal interface IPlayableShowdownPhasePort
     {
         PlayableCombatSession Current { get; }
+        IPlayableShowdownGameplayPort Gameplay { get; }
         bool TryPrepare(PlayableCombatSessionConfiguration configuration, out string reason);
         void Start(IReadOnlyList<HunterInstance> hunters, HunterManagementSystem hunterManagement, Action onPartyDefeated);
         void Update();
         void DisposeCurrent();
+    }
+
+    internal interface IPlayableShowdownGameplayPort
+    {
+        CombatManager CombatManager { get; }
+        TurnPhase CurrentPhase { get; }
+        int CurrentTurnNumber { get; }
+        IReadOnlyList<ICharacterState> PlayerCharacters { get; }
+        IBossState Boss { get; }
+        IReadOnlyList<HitLocationRuntimeState> BossHitLocationStates { get; }
+        IReadOnlyList<BossActionCardData> BossRevealedCards { get; }
+        Character GetCharacter(int characterId);
+        CharacterRuntimeData GetCharacterData(int characterId);
+        IReadOnlyList<ICharacterActionCardInstanceState> GetCardsOf(int characterId);
+        ICharacterActionCardInstanceState GetCard(int cardInstanceId);
+        Vector3 GetEntityWorldPosition(int entityId);
+        void SelectCharacter(int characterId);
+        void PlayCard(int cardInstanceId, int targetEntityId);
+        void RestoreCard(int cardInstanceId);
+        void DiscardCard(int cardInstanceId);
+        void EndTurn();
+        bool AssistOvertimeCharacter(int helperId, int targetId);
+        int AddInspiration(int characterId, int amount);
+        UniTask<InspirationGain> AddInspirationAsync(int characterId, CombatInspirationColor color, CancellationToken cancellationToken);
+        IReadOnlyList<CombatInspirationToken> GetInspirationTokens(int characterId);
+        int GetInspirationCapacity(int characterId);
+        bool RelieveOvertimeCharacter(int targetId);
+        TimelineActionStatus GetTimelineStatus(int characterId);
     }
 }

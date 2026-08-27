@@ -54,6 +54,8 @@ namespace Core
         internal IPlayableSettlementPhasePort SettlementPhase => settlementPhase;
         internal IPlayableHuntPhasePort HuntPhase => huntPhase;
         internal IPlayableShowdownPhasePort ShowdownPhase => showdownPhase;
+        internal IPlayableSettlementGameplayPort SettlementGameplay => settlementPhase;
+        internal IPlayableShowdownGameplayPort ShowdownGameplay => showdownPhase?.Gameplay;
         internal CampaignPersistenceCoordinator Persistence => persistenceCoordinator;
         internal CampaignStartupTransaction Startup => startup;
         internal CampaignRestartTransaction Restart => restart;
@@ -306,19 +308,6 @@ namespace Core
         internal UniTask<CampaignStartupResult> ContinueAsync(CancellationToken cancellationToken = default) => startup.ContinueAsync(cancellationToken);
 
         internal void EnsureSettlementPresentation() => settlementPhase?.EnsurePresentation(SettlementManager);
-        internal bool CanTrainWeapon(int hunterId, string masteryId, out string reason) => settlementPhase.CanTrainWeapon(hunterId, masteryId, out reason);
-        internal UniTask<WeaponTrainingCommandResult> TrainWeaponAsync(int hunterId, string masteryId) => settlementPhase.TrainWeaponAsync(hunterId, masteryId);
-        internal bool CanCraft(CraftRecipe recipe, out string reason) => settlementPhase.CanCraft(recipe, out reason);
-        internal UniTask<SettlementCraftCommandResult> CraftAsync(CraftRecipe recipe) => settlementPhase.CraftAsync(recipe);
-        internal UniTask<SettlementEquipmentCommandResult> EquipItemAsync(int hunterId, ItemData item) => settlementPhase.EquipItemAsync(hunterId, item);
-        internal UniTask<SettlementEquipmentCommandResult> UnequipItemAsync(int hunterId, int equipmentInstanceId) => settlementPhase.UnequipItemAsync(hunterId, equipmentInstanceId);
-        internal bool CanRecruitHunter(out string reason) => settlementPhase.CanRecruitHunter(out reason);
-        internal UniTask<RecruitHunterCommandResult> RecruitHunterAsync(HunterData template, string requestedName) => settlementPhase.RecruitHunterAsync(template, requestedName);
-        internal bool HasRecoverableHunter() => CampaignStarted && settlementPhase.HasRecoverableHunter();
-        internal bool CanRecoverHunter(int hunterId, HunterBodyPart bodyPart, out string reason) => settlementPhase.CanRecoverHunter(hunterId, bodyPart, out reason);
-        internal UniTask<RecoverHunterCommandResult> RecoverHunterAsync(int hunterId, HunterBodyPart bodyPart) => settlementPhase.RecoverHunterAsync(hunterId, bodyPart);
-        internal UniTask<HunterGrowthCommandResult> SpendHunterGrowthAsync(int hunterId, HunterGrowthChoice choice) => settlementPhase.SpendHunterGrowthAsync(hunterId, choice);
-
         internal void SetPlayableEventInput(IPlayableEventInput input)
         {
             playableEventInput = input;

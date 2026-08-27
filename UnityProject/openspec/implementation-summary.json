@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "c90b24693d856fd862cd150840b3269475cd85df065aacc63dc22be1b91c0f8c",
-  "inputManifestDigest": "8d4d0da8201aab1557ed08f702a55ce141ba46ed227e92ce7a8db5e2726475a8",
-  "outputDigest": "d1af8aeb08fd742a151c406d59eb9865c1c94607cf99d443790b2aea8c14587d",
+  "inputDigest": "08002fba7f0da5e00e614f225abec03365018ff0278fa0e73c7a8b1168873abc",
+  "inputManifestDigest": "b021257f17be463645d565c955670b6ac3a15be2166355e7d1be334a33e70e47",
+  "outputDigest": "76c35f3fe92ab64e98c64acb3ad15c0537b3b1e6a490a2f3052cf01f1bff0220",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -602,12 +602,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "7f0da89a50abbc77002257b9a5092026cd282c32d40e2bca911d0b064360ba91",
+      "sha256": "64f43fff9cd29262be90b344a12f23c10615d85941d3a9b0c195629eb6adf3cb",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
-      "sha256": "bcff425321877b02815f305191383bda9b19bd07523a1f38b53c3e9ba066adcc",
+      "sha256": "888b022b400fb525ae57acc6a7698aa9927bb6a69964eed1fe0a60fb349aa15c",
       "state": "current"
     },
     {
@@ -692,7 +692,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs",
-      "sha256": "fd2b630b685f8f7e6397e83be0fe78531424053099a1c8f734cf0232937876d1",
+      "sha256": "c5dc50c2c7794cd6667fce1b2a341a363f9484d1335efc695e9caba99b22f8e1",
       "state": "current"
     },
     {
@@ -727,12 +727,17 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "0cfb7445feb8a5fa38942c1e241bd682dec4beeac243a3a4b1119268b72cd17c",
+      "sha256": "756e347dc143228a55446adf6b35453e7a11f9acd7892cd0b4ca01b22d013f96",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PhaseManager.cs",
       "sha256": "3b526237dfc65d150a77f2c3e3c5d1f638e50e93753ae8aeb447573316921674",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableCampaignPhasePorts.cs",
+      "sha256": "a01d6c41dacb38bc6fbd091f45a8656b6afbd0279285e432412c932508a65f5e",
       "state": "current"
     },
     {
@@ -757,7 +762,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableShowdownPhaseManager.cs",
-      "sha256": "ffaafa6d6b678f4f992b2a58eea1501bad253802ec0e07dfd16f95e11daa3eef",
+      "sha256": "b02993f74909b477d56cb26546a1abfbfb070775e02f077415f27a2c2becb348",
       "state": "current"
     },
     {
@@ -1197,12 +1202,12 @@
     },
     {
       "path": "openspec/specs/game-manager-orchestration/implementation.json",
-      "sha256": "b3117278787afd1347ed852a982b1ff50ba0c3e746efb0b58828580f8356e438",
+      "sha256": "359ff1eea9bb37e7c064d53888f3216862cdb3f123c0229ae2dd3859103bf6f7",
       "state": "current"
     },
     {
       "path": "openspec/specs/game-manager-orchestration/spec.md",
-      "sha256": "705627c90ca4484fdc719301fb97b64298c4c94f8e08822cd0bad545e0a5703e",
+      "sha256": "c15c6731fd78dc83f8a126e8e8b0dbe1d90086b16e6d1a27d94d7fa789399fc1",
       "state": "current"
     },
     {
@@ -3354,7 +3359,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "GameManager 已冻结为 Unity 组合外壳；CampaignFlowCoordinator 唯一持有 ZFramework Campaign lease、三个阶段端口、跨阶段事务、持久化和统一恢复。Continue/DevLoad 共享快照恢复算法，异步世代、目标阶段激活和提交前回滚均已验证。",
+      "summary": "GameManager 已冻结为 Unity 组合外壳；CampaignFlowCoordinator 唯一持有 ZFramework Campaign lease、跨阶段事务、持久化和统一恢复。阶段内玩法经独立窄端口直达阶段管理器，Showdown 生命周期与玩法契约保持可替换的组合关系。",
       "designSources": [],
       "sources": [
         "openspec/specs/game-manager-orchestration/spec.md",
@@ -3368,6 +3373,14 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableCampaignPhasePorts.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableShowdownPhaseManager.cs",
           "state": "current"
         },
         {

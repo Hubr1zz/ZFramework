@@ -81,11 +81,15 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             string[] forbiddenFieldTypes = { "Core.PlayableSettlementPhaseManager", "Core.PlayableSettlementPhaseCoordinator", "Core.PlayableHuntPhaseManager", "Core.PlayableHuntPhaseCoordinator", "Core.PlayableShowdownPhaseManager" };
             Type flowType = typeof(GameManager).Assembly.GetType("Core.CampaignFlowCoordinator", true);
             FieldInfo[] flowFields = flowType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+            string[] settlementGameplayMethods = { "CanTrainWeapon", "TrainWeaponAsync", "CanCraft", "CraftAsync", "EquipItemAsync", "UnequipItemAsync", "CanRecruitHunter", "RecruitHunterAsync", "HasRecoverableHunter", "CanRecoverHunter", "RecoverHunterAsync", "SpendHunterGrowthAsync" };
+            Type showdownGameplayPort = typeof(GameManager).Assembly.GetType("Core.IPlayableShowdownGameplayPort", true);
 
             Assert.That(accessType, Is.Not.Null);
             Assert.That(accessType.GetProperty("SettlementPhase").PropertyType.Name, Is.EqualTo("IPlayableSettlementPhasePort"));
             Assert.That(accessType.GetProperty("HuntPhase").PropertyType.Name, Is.EqualTo("IPlayableHuntPhasePort"));
             Assert.That(accessType.GetProperty("ShowdownPhase").PropertyType.Name, Is.EqualTo("IPlayableShowdownPhasePort"));
+            Assert.That(showdownGameplayPort.IsAssignableFrom(accessType.GetProperty("ShowdownPhase").PropertyType), Is.False);
+            Assert.That(accessType.GetProperty("ShowdownPhase").PropertyType.GetProperty("Gameplay").PropertyType, Is.EqualTo(showdownGameplayPort));
             Assert.That(accessType.GetProperty("SettlementPhase").PropertyType.GetMethod("CreateActionSession"), Is.Null);
             Assert.That(accessType.GetProperty("HuntPhase").PropertyType.GetMethod("CreateManager"), Is.Null);
             Assert.That(accessType.GetProperty("HuntPhase").PropertyType.GetMethod("CreateActionSession"), Is.Null);
@@ -97,6 +101,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(typeof(GameManager).GetInterfaces().Any(contract => contract.Name.StartsWith("ICampaign") && contract.Name.EndsWith("Host")), Is.False);
             Assert.That(flowFields.Count(field => typeof(IPlayableCampaignRuntime).IsAssignableFrom(field.FieldType)), Is.EqualTo(1));
             Assert.That(flowType.GetInterfaces().Count(contract => contract.Name.StartsWith("ICampaign") && contract.Name.EndsWith("Host")), Is.GreaterThanOrEqualTo(8));
+            Assert.That(settlementGameplayMethods.Any(methodName => flowType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null), Is.False);
         }
 
         [Test]

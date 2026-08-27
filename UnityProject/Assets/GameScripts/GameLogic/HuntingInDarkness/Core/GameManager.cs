@@ -182,7 +182,7 @@ namespace Core
 
         /// <summary>本场战斗的装配载荷（狩猎阶段注入；未注入时由序列化配置组装）</summary>
         // ─── ICombatProvider ───
-        public CombatManager CombatManager => campaignFlow?.CombatSession?.CombatManager;
+        public CombatManager CombatManager => campaignFlow?.ShowdownGameplay?.CombatManager;
 
         // ═══════════════════════════════════════════
         // 初始化
@@ -524,32 +524,32 @@ namespace Core
         // IGameContext 实现
         // ═══════════════════════════════════════════
 
-        public TurnPhase CurrentPhase => campaignFlow?.CombatSession?.CurrentPhase ?? TurnPhase.PlayerTurn;
-        public int CurrentTurnNumber => campaignFlow?.CombatSession?.CurrentTurnNumber ?? 0;
-        public IReadOnlyList<ICharacterState> PlayerCharacters => campaignFlow?.CombatSession?.PlayerCharacters ?? System.Array.Empty<ICharacterState>();
-        public IBossState Boss => campaignFlow?.CombatSession?.Boss;
-        public IReadOnlyList<HitLocationRuntimeState> BossHitLocationStates => campaignFlow?.CombatSession?.BossHitLocationStates ?? System.Array.Empty<HitLocationRuntimeState>();
-        public IReadOnlyList<BossActionCardData> BossRevealedCards => campaignFlow?.CombatSession?.BossRevealedCards ?? System.Array.Empty<BossActionCardData>();
-        public Character GetCharacter(int characterId) => campaignFlow?.CombatSession?.GetCharacter(characterId);
-        public CharacterRuntimeData GetCharacterData(int characterId) => campaignFlow?.CombatSession?.GetCharacterData(characterId);
-        public IReadOnlyList<ICharacterActionCardInstanceState> GetCardsOf(int characterId) => campaignFlow?.CombatSession?.GetCardsOf(characterId) ?? System.Array.Empty<ICharacterActionCardInstanceState>();
-        public ICharacterActionCardInstanceState GetCard(int cardInstanceId) => campaignFlow?.CombatSession?.GetCard(cardInstanceId);
-        public Vector3 GetEntityWorldPosition(int entityId) => campaignFlow?.CombatSession?.GetEntityWorldPosition(entityId) ?? Vector3.zero;
+        public TurnPhase CurrentPhase => campaignFlow?.ShowdownGameplay?.CurrentPhase ?? TurnPhase.PlayerTurn;
+        public int CurrentTurnNumber => campaignFlow?.ShowdownGameplay?.CurrentTurnNumber ?? 0;
+        public IReadOnlyList<ICharacterState> PlayerCharacters => campaignFlow?.ShowdownGameplay?.PlayerCharacters ?? System.Array.Empty<ICharacterState>();
+        public IBossState Boss => campaignFlow?.ShowdownGameplay?.Boss;
+        public IReadOnlyList<HitLocationRuntimeState> BossHitLocationStates => campaignFlow?.ShowdownGameplay?.BossHitLocationStates ?? System.Array.Empty<HitLocationRuntimeState>();
+        public IReadOnlyList<BossActionCardData> BossRevealedCards => campaignFlow?.ShowdownGameplay?.BossRevealedCards ?? System.Array.Empty<BossActionCardData>();
+        public Character GetCharacter(int characterId) => campaignFlow?.ShowdownGameplay?.GetCharacter(characterId);
+        public CharacterRuntimeData GetCharacterData(int characterId) => campaignFlow?.ShowdownGameplay?.GetCharacterData(characterId);
+        public IReadOnlyList<ICharacterActionCardInstanceState> GetCardsOf(int characterId) => campaignFlow?.ShowdownGameplay?.GetCardsOf(characterId) ?? System.Array.Empty<ICharacterActionCardInstanceState>();
+        public ICharacterActionCardInstanceState GetCard(int cardInstanceId) => campaignFlow?.ShowdownGameplay?.GetCard(cardInstanceId);
+        public Vector3 GetEntityWorldPosition(int entityId) => campaignFlow?.ShowdownGameplay?.GetEntityWorldPosition(entityId) ?? Vector3.zero;
 
         // ═══════════════════════════════════════════
         // UI 输入接口
         // ═══════════════════════════════════════════
 
-        public void OnSelectCharacter(int characterId) => campaignFlow?.CombatSession?.OnSelectCharacter(characterId);
-        public void OnPlayCard(int cardInstanceId, int targetEntityId) => campaignFlow?.CombatSession?.OnPlayCard(cardInstanceId, targetEntityId);
-        public void OnRestoreCard(int cardInstanceId) => campaignFlow?.CombatSession?.OnRestoreCard(cardInstanceId);
-        public void OnDiscardCard(int cardInstanceId) => campaignFlow?.CombatSession?.OnDiscardCard(cardInstanceId);
-        public void OnEndTurn() => campaignFlow?.CombatSession?.OnEndTurn();
-        public bool OnAssistOvertimeCharacter(int helperId, int targetId) => campaignFlow?.CombatSession?.TryAssistOvertimeCharacter(helperId, targetId) == true;
-        public int AddCombatInspiration(int characterId, int amount) => campaignFlow?.CombatSession?.AddCombatInspiration(characterId, amount) ?? 0;
-        public UniTask<InspirationGain> AddCombatInspirationAsync(int characterId, CombatInspirationColor color, System.Threading.CancellationToken cancellationToken = default) => campaignFlow?.CombatSession != null ? campaignFlow.CombatSession.AddCombatInspirationAsync(characterId, color, cancellationToken) : UniTask.FromResult(new InspirationGain(InspirationGainResult.Rejected, default));
-        public IReadOnlyList<CombatInspirationToken> GetCombatInspirationTokens(int characterId) => campaignFlow?.CombatSession?.GetCombatInspirationTokens(characterId) ?? System.Array.Empty<CombatInspirationToken>();
-        public int GetCombatInspirationCapacity(int characterId) => campaignFlow?.CombatSession?.GetCombatInspirationCapacity(characterId) ?? 0;
+        public void OnSelectCharacter(int characterId) => campaignFlow?.ShowdownGameplay?.SelectCharacter(characterId);
+        public void OnPlayCard(int cardInstanceId, int targetEntityId) => campaignFlow?.ShowdownGameplay?.PlayCard(cardInstanceId, targetEntityId);
+        public void OnRestoreCard(int cardInstanceId) => campaignFlow?.ShowdownGameplay?.RestoreCard(cardInstanceId);
+        public void OnDiscardCard(int cardInstanceId) => campaignFlow?.ShowdownGameplay?.DiscardCard(cardInstanceId);
+        public void OnEndTurn() => campaignFlow?.ShowdownGameplay?.EndTurn();
+        public bool OnAssistOvertimeCharacter(int helperId, int targetId) => campaignFlow?.ShowdownGameplay?.AssistOvertimeCharacter(helperId, targetId) == true;
+        public int AddCombatInspiration(int characterId, int amount) => campaignFlow?.ShowdownGameplay?.AddInspiration(characterId, amount) ?? 0;
+        public UniTask<InspirationGain> AddCombatInspirationAsync(int characterId, CombatInspirationColor color, System.Threading.CancellationToken cancellationToken = default) => campaignFlow?.ShowdownGameplay != null ? campaignFlow.ShowdownGameplay.AddInspirationAsync(characterId, color, cancellationToken) : UniTask.FromResult(new InspirationGain(InspirationGainResult.Rejected, default));
+        public IReadOnlyList<CombatInspirationToken> GetCombatInspirationTokens(int characterId) => campaignFlow?.ShowdownGameplay?.GetInspirationTokens(characterId) ?? System.Array.Empty<CombatInspirationToken>();
+        public int GetCombatInspirationCapacity(int characterId) => campaignFlow?.ShowdownGameplay?.GetInspirationCapacity(characterId) ?? 0;
 
         // ═══════════════════════════════════════════
         // Boss 战利品结算
@@ -678,14 +678,14 @@ namespace Core
                 reason = "仅可在营地阶段训练";
                 return false;
             }
-            return campaignFlow.CanTrainWeapon(hunterId, masteryId, out reason);
+            return campaignFlow.SettlementGameplay.CanTrainWeapon(hunterId, masteryId, out reason);
         }
 
         public UniTask<WeaponTrainingCommandResult> TrainWeaponAsync(int hunterId, string masteryId)
         {
             if (!IsCampaignRuntimeActive)
                 return UniTask.FromResult(WeaponTrainingCommandResult.Failed("战役入口尚未完成。"));
-            return campaignFlow.TrainWeaponAsync(hunterId, masteryId);
+            return campaignFlow.SettlementGameplay.TrainWeaponAsync(hunterId, masteryId);
         }
 
         public bool CanCraft(CraftRecipe recipe, out string reason)
@@ -700,28 +700,28 @@ namespace Core
                 reason = "仅可在营地阶段制作。";
                 return false;
             }
-            return campaignFlow.CanCraft(recipe, out reason);
+            return campaignFlow.SettlementGameplay.CanCraft(recipe, out reason);
         }
 
         public UniTask<SettlementCraftCommandResult> CraftAsync(CraftRecipe recipe)
         {
             if (!IsCampaignRuntimeActive)
                 return UniTask.FromResult(SettlementCraftCommandResult.Failed("战役入口尚未完成。"));
-            return campaignFlow.CraftAsync(recipe);
+            return campaignFlow.SettlementGameplay.CraftAsync(recipe);
         }
 
         public UniTask<SettlementEquipmentCommandResult> EquipItemAsync(int hunterId, ItemData item)
         {
             if (!IsCampaignRuntimeActive)
                 return UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
-            return campaignFlow.EquipItemAsync(hunterId, item);
+            return campaignFlow.SettlementGameplay.EquipItemAsync(hunterId, item);
         }
 
         public UniTask<SettlementEquipmentCommandResult> UnequipItemAsync(int hunterId, int equipmentInstanceId)
         {
             if (!IsCampaignRuntimeActive)
                 return UniTask.FromResult(SettlementEquipmentCommandResult.Failed("当前不在营地阶段。"));
-            return campaignFlow.UnequipItemAsync(hunterId, equipmentInstanceId);
+            return campaignFlow.SettlementGameplay.UnequipItemAsync(hunterId, equipmentInstanceId);
         }
 
         public bool CanRecruitHunter(out string reason)
@@ -736,17 +736,17 @@ namespace Core
                 reason = "仅可在营地阶段招募。";
                 return false;
             }
-            return campaignFlow.CanRecruitHunter(out reason);
+            return campaignFlow.SettlementGameplay.CanRecruitHunter(out reason);
         }
 
         public UniTask<RecruitHunterCommandResult> RecruitHunterAsync(HunterData template, string requestedName)
         {
             if (!IsCampaignRuntimeActive)
                 return UniTask.FromResult(RecruitHunterCommandResult.Failed("战役入口尚未完成。"));
-            return campaignFlow.RecruitHunterAsync(template, requestedName);
+            return campaignFlow.SettlementGameplay.RecruitHunterAsync(template, requestedName);
         }
 
-        public bool HasRecoverableHunter() => campaignFlow?.HasRecoverableHunter() == true;
+        public bool HasRecoverableHunter() => IsCampaignRuntimeActive && campaignFlow?.SettlementGameplay?.HasRecoverableHunter() == true;
 
         public bool CanRecoverHunter(int hunterId, HunterBodyPart bodyPart, out string reason)
         {
@@ -760,29 +760,29 @@ namespace Core
                 reason = "仅可在营地阶段休养。";
                 return false;
             }
-            return campaignFlow.CanRecoverHunter(hunterId, bodyPart, out reason);
+            return campaignFlow.SettlementGameplay.CanRecoverHunter(hunterId, bodyPart, out reason);
         }
 
         public UniTask<RecoverHunterCommandResult> RecoverHunterAsync(int hunterId, HunterBodyPart bodyPart)
         {
             if (!IsCampaignRuntimeActive)
                 return UniTask.FromResult(RecoverHunterCommandResult.Failed("战役入口尚未完成。"));
-            return campaignFlow.RecoverHunterAsync(hunterId, bodyPart);
+            return campaignFlow.SettlementGameplay.RecoverHunterAsync(hunterId, bodyPart);
         }
 
         public UniTask<HunterGrowthCommandResult> SpendHunterGrowthAsync(int hunterId, HunterGrowthChoice choice)
         {
             if (!IsCampaignRuntimeActive)
                 return UniTask.FromResult(HunterGrowthCommandResult.Failed("战役入口尚未完成。"));
-            return campaignFlow.SpendHunterGrowthAsync(hunterId, choice);
+            return campaignFlow.SettlementGameplay.SpendHunterGrowthAsync(hunterId, choice);
         }
 
         public bool OnRelieveOvertimeCharacter(int targetId)
         {
-            return campaignFlow?.CombatSession?.TryRelieveOvertimeCharacter(targetId) == true;
+            return campaignFlow?.ShowdownGameplay?.RelieveOvertimeCharacter(targetId) == true;
         }
 
-        public TimelineActionStatus GetTimelineStatus(int characterId) => campaignFlow?.CombatSession?.GetTimelineStatus(characterId) ?? TimelineActionStatus.Done;
+        public TimelineActionStatus GetTimelineStatus(int characterId) => campaignFlow?.ShowdownGameplay?.GetTimelineStatus(characterId) ?? TimelineActionStatus.Done;
 
         public void LoadSettlementProgress() => DevLoad();
 

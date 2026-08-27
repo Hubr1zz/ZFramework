@@ -1476,6 +1476,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         private sealed class RejectingShowdownPhasePort : IPlayableShowdownPhasePort
         {
             public PlayableCombatSession Current => null;
+            public IPlayableShowdownGameplayPort Gameplay => null;
             public int PrepareCount { get; private set; }
 
             public bool TryPrepare(PlayableCombatSessionConfiguration configuration, out string reason)

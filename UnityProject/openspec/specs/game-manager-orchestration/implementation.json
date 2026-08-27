@@ -2,20 +2,22 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "game-manager-orchestration",
-  "specHash": "705627c90ca4484fdc719301fb97b64298c4c94f8e08822cd0bad545e0a5703e",
+  "specHash": "c15c6731fd78dc83f8a126e8e8b0dbe1d90086b16e6d1a27d94d7fa789399fc1",
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "GameManager 已冻结为 Unity 组合外壳；CampaignFlowCoordinator 唯一持有 ZFramework Campaign lease、三个阶段端口、跨阶段事务、持久化和统一恢复。Continue/DevLoad 共享快照恢复算法，异步世代、目标阶段激活和提交前回滚均已验证。",
-    "validatedAgainstSpecHash": "705627c90ca4484fdc719301fb97b64298c4c94f8e08822cd0bad545e0a5703e",
+    "summary": "GameManager 已冻结为 Unity 组合外壳；CampaignFlowCoordinator 唯一持有 ZFramework Campaign lease、跨阶段事务、持久化和统一恢复。阶段内玩法经独立窄端口直达阶段管理器，Showdown 生命周期与玩法契约保持可替换的组合关系。",
+    "validatedAgainstSpecHash": "c15c6731fd78dc83f8a126e8e8b0dbe1d90086b16e6d1a27d94d7fa789399fc1",
     "evidence": [
-      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 191, "fileHash": "0cfb7445feb8a5fa38942c1e241bd682dec4beeac243a3a4b1119268b72cd17c", "status": "verified", "checkedAt": "2026-08-26T16:00:00-07:00", "feature": "仅保留序列化组合、Unity 生命周期、场景根、EventBus adapter、pre-Awake 兼容与公开 facade。" },
-      { "guid": "edd21ef2e5f546746ae399585e19662a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs", "line": 31, "fileHash": "fd2b630b685f8f7e6397e83be0fe78531424053099a1c8f734cf0232937876d1", "status": "verified", "checkedAt": "2026-08-26T16:00:00-07:00", "feature": "唯一持有 CampaignRuntime lease、三个阶段端口、全部跨阶段事务、统一恢复、阶段提交/回滚和关闭顺序。" },
+      { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 185, "fileHash": "756e347dc143228a55446adf6b35453e7a11f9acd7892cd0b4ca01b22d013f96", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "仅保留序列化组合、Unity 生命周期、场景根、EventBus adapter 与通过窄玩法端口转发的公开兼容 facade。" },
+      { "guid": "edd21ef2e5f546746ae399585e19662a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs", "line": 31, "fileHash": "c5dc50c2c7794cd6667fce1b2a341a363f9484d1335efc695e9caba99b22f8e1", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "唯一持有 CampaignRuntime lease、阶段生命周期端口、全部跨阶段事务、统一恢复、阶段提交/回滚和关闭顺序；不再复制阶段玩法方法。" },
+      { "guid": "00a929577c7f64b4f9b31464ab10c5be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableCampaignPhasePorts.cs", "line": 40, "fileHash": "a01d6c41dacb38bc6fbd091f45a8656b6afbd0279285e432412c932508a65f5e", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "定义 Settlement 与 Showdown 独立 gameplay ports，并将 Showdown lifecycle 与 gameplay 以组合关系隔离。" },
+      { "guid": "d33ce639881364c778490d42c9524506", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableShowdownPhaseManager.cs", "line": 20, "fileHash": "b02993f74909b477d56cb26546a1abfbfb070775e02f077415f27a2c2becb348", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "Showdown phase manager 组合实现生命周期与兼容玩法端口，不新增战斗规则。" },
       { "guid": "8e0c0c6d4de147e6a5e087fbf6f2b4f8", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowBindings.cs", "line": 26, "fileHash": "0504376c8a351b354ae13e3324e30d64dd86ed215a851abd253c3ebd43006d12", "status": "verified", "checkedAt": "2026-08-26T16:00:00-07:00", "feature": "冻结 Unity 场景、Presenter 与配置回调，不持有 gameplay runtime 或 phase state。" },
       { "guid": "068ba2da339b45faa6b002d03f649f3a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupTransaction.cs", "line": 17, "fileHash": "93efa2bdd20533652b68c19716b72673d4f64fcbfeb7e397c61829cd76319f26", "status": "verified", "checkedAt": "2026-08-26T16:00:00-07:00", "feature": "启动和继续操作使用 generation/dispose 门禁，旧异步 continuation 不再访问已释放 flow。" },
       { "guid": "14ce1f834e26c5e4092eee2a5a0b887d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs", "line": 53, "fileHash": "8efc2a520bf881f1ec628e28d9e18a2ea5f9464618de4a2a51cedfca4db97c47", "status": "verified", "checkedAt": "2026-08-26T16:00:00-07:00", "feature": "ZFramework CampaignRuntime 唯一创建并按逆依赖顺序释放 Settlement、Hunt、Showdown phase manager。" },
-      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 1042, "fileHash": "7f0da89a50abbc77002257b9a5092026cd282c32d40e2bca911d0b064360ba91", "status": "verified", "checkedAt": "2026-08-26T16:00:00-07:00", "feature": "覆盖公开战役闭环、恢复、遭遇回滚、pre-Awake 配置与读档等待期间销毁 flow。" },
-      { "guid": "860c7509a68a0ad4a85b4210d362c813", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs", "line": 76, "fileHash": "bcff425321877b02815f305191383bda9b19bd07523a1f38b53c3e9ba066adcc", "status": "verified", "checkedAt": "2026-08-26T16:00:00-07:00", "feature": "验证 GameManager 不再持有 phase 权威、Flow 唯一持有 runtime，及 generation/reset/dispose 约束。" }
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 1042, "fileHash": "64f43fff9cd29262be90b344a12f23c10615d85941d3a9b0c195629eb6adf3cb", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "覆盖公开战役闭环、恢复、遭遇回滚、pre-Awake 配置与读档等待期间销毁 flow。" },
+      { "guid": "860c7509a68a0ad4a85b4210d362c813", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs", "line": 76, "fileHash": "888b022b400fb525ae57acc6a7698aa9927bb6a69964eed1fe0a60fb349aa15c", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "验证 GameManager 不持有 phase 权威、Flow 不复制阶段玩法方法、Showdown 生命周期与玩法端口相互隔离。" }
     ],
     "tests": [
       "Unity 6000.5.9 CLI GameManagerCampaignLoopPlayModeTests 23/23",
@@ -25,17 +27,18 @@
       "Unity 6000.5.9 CLI PlayMode full suite 55/56; existing paused-time Hunt map intro fixture passed 1/1 in isolation",
       "dotnet build GameLogic and PlayModeTests: 0 errors"
     ],
-    "verifiedAt": "2026-08-26T16:00:00-07:00"
+    "verifiedAt": "2026-08-26T18:30:00-07:00"
   },
   "implementationOutline": [
     "GameManager 仅负责 MonoBehaviour 生命周期、serialized composition、场景根/相机、EventBus adapter 与公开兼容 facade。",
     "CampaignFlowCoordinator 是 CampaignRuntime lease、phase ports、persistence coordinator 与全部跨阶段 transaction 的唯一 owner。",
     "Continue 与 DevLoad 调用同一快照恢复入口；候选在提交前可回滚，提交后的 pending return/event 恢复失败保留新权威态和门禁。",
     "Settlement 目标 ActionSession 和最低 3D 表现激活成功后才释放 Hunt/Showdown 来源；失败恢复来源阶段和 runtime。",
-    "ActionQueue 仅继续承载 gameplay commands；场景根、UI 刷新、日志和存档调度不进入队列。"
+    "ActionQueue 仅继续承载 gameplay commands；场景根、UI 刷新、日志和存档调度不进入队列。",
+    "Settlement 与 Showdown 的阶段内玩法经独立 gameplay ports 访问；CampaignFlowCoordinator 不再复制普通阶段玩法 API。"
   ],
   "sourceReferences": [
-    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:191",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:185",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs:31",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowBindings.cs:26",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupTransaction.cs:17",

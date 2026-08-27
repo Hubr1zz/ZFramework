@@ -11,16 +11,16 @@
   "implementationNotes": "实现已通过定向编译与 PlayMode 验证；Draft 仅供 Changes 人工审核，批准后再显式同步正式 Spec。",
   "verification": {
     "status": "implemented",
-    "summary": "GameManager 仅消费三阶段窄操作端口，具体 manager/coordinator、运行态 factory 与 current provider 均收回 CampaignRuntime 所有权边界。",
+    "summary": "GameManager 仅消费三阶段窄操作端口；Settlement 普通玩法不再经 Flow 重复包装，Showdown 生命周期与玩法端口分离组合，具体 session 与 manager 仍由 CampaignRuntime 阶段管理器持有。",
     "codeEvidence": [
       {
         "guid": "00a929577c7f64b4f9b31464ab10c5be",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableCampaignPhasePorts.cs",
-        "fileHash": "768f814ff5168fc3b9e414e3369834bded6094c4456acf6def1b0a7d7f0229fd",
+        "fileHash": "a01d6c41dacb38bc6fbd091f45a8656b6afbd0279285e432412c932508a65f5e",
         "line": 22,
         "feature": "定义 Campaign-owned 三阶段窄操作端口",
         "status": "verified",
-        "checkedAt": "2026-08-26T16:45:00Z"
+        "checkedAt": "2026-08-27T01:30:00Z"
       },
       {
         "guid": "14ce1f834e26c5e4092eee2a5a0b887d",
@@ -29,36 +29,36 @@
         "line": 87,
         "feature": "由 ZFramework CampaignRuntime 唯一持有三个具体阶段管理器",
         "status": "verified",
-        "checkedAt": "2026-08-26T16:45:00Z"
+        "checkedAt": "2026-08-27T01:30:00Z"
       },
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-        "fileHash": "597fc8c922d7b1765f623e508ed5f455c8a313d1112ff7c6efaac646247f1783",
+        "fileHash": "756e347dc143228a55446adf6b35453e7a11f9acd7892cd0b4ca01b22d013f96",
         "line": 139,
         "feature": "GameManager 仅持有三阶段操作端口并保留跨阶段事务",
         "status": "verified",
-        "checkedAt": "2026-08-26T16:45:00Z"
+        "checkedAt": "2026-08-27T01:30:00Z"
       },
       {
         "guid": "860c7509a68a0ad4a85b4210d362c813",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
-        "fileHash": "17761c6ad23a9c3681fb4c7e55dbefa4807bd2fa825906e07765d929b46320b2",
+        "fileHash": "888b022b400fb525ae57acc6a7698aa9927bb6a69964eed1fe0a60fb349aa15c",
         "line": 76,
         "feature": "约束端口不得暴露具体管理器、构造 factory 或调用方 current provider",
         "status": "verified",
-        "checkedAt": "2026-08-26T16:45:00Z"
+        "checkedAt": "2026-08-27T01:30:00Z"
       }
     ],
     "evidence": [
       "dotnet build GameLogic.csproj: 0 warnings / 0 errors",
       "PlayableCampaignRuntimeModuleTests PlayMode: 19/19 passed",
-      "GameManagerCampaignLoopPlayModeTests: 18/18 passed",
+      "GameManagerCampaignLoopPlayModeTests: 23/23 passed",
       "OpenSpec strict validation passed",
       "git diff --check passed"
     ],
     "differences": [],
-    "verifiedAt": "2026-08-26T16:45:00Z"
+    "verifiedAt": "2026-08-27T01:30:00Z"
   },
   "reviewIssues": [],
   "gapIds": [],
