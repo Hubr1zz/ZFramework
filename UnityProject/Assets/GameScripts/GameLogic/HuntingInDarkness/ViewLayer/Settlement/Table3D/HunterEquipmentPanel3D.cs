@@ -21,6 +21,8 @@ namespace UI
         private const string StorageDropScope = "settlement-equipment-storage";
         private const string ConsumableUseDropScope = "settlement-consumable-use";
         private const int StoragePageSize = 9;
+        private const int VisibleTraitCount = 3;
+        private const int VisibleTraitNameLength = 10;
 
         private readonly List<ItemData> storedItems = new();
         private TextMeshPro statsText;
@@ -160,10 +162,10 @@ namespace UI
             statsObject.transform.localPosition = new Vector3(0f, 0.015f, 1.74f);
             statsObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             statsText = statsObject.AddComponent<TextMeshPro>();
-            statsText.fontSize = 0.09f;
+            statsText.fontSize = 0.075f;
             statsText.alignment = TextAlignmentOptions.Center;
             statsText.color = new Color(0.82f, 0.82f, 0.78f);
-            statsText.rectTransform.sizeDelta = new Vector2(5.2f, 0.32f);
+            statsText.rectTransform.sizeDelta = new Vector2(5.2f, 0.48f);
         }
 
         private void BuildStatus()
@@ -556,7 +558,23 @@ namespace UI
         private static string BuildStats(HunterInstance hunter)
         {
             string bloodline = string.IsNullOrWhiteSpace(hunter.BloodlineName) ? "未知血脉" : $"{hunter.BloodlineName} · {(hunter.IsBloodlineActivated ? "已激活" : "未激活")}";
-            return $"年龄 {hunter.Age}  意志 {hunter.Willpower}/{hunter.WillpowerMax}  命运 {hunter.Luck}  压抑 {hunter.Insanity}    力 {hunter.Stats.strength}  准 {hunter.Stats.accuracy}  敏 {hunter.Stats.evasion}  移 {hunter.Stats.movement}  速 {hunter.Stats.speed}\n血脉 {bloodline}    装备 {hunter.Equipment?.Count ?? 0}/{EquipmentRules.MaximumEquipmentCount}";
+            return $"年龄 {hunter.Age}  意志 {hunter.Willpower}/{hunter.WillpowerMax}  命运 {hunter.Luck}  压抑 {hunter.Insanity}    力 {hunter.Stats.strength}  准 {hunter.Stats.accuracy}  敏 {hunter.Stats.evasion}  移 {hunter.Stats.movement}  速 {hunter.Stats.speed}\n胆识 {hunter.Courage}  知识 {hunter.Understanding}  特性 {BuildTraitSummary(hunter.Traits)}\n血脉 {bloodline}    装备 {hunter.Equipment?.Count ?? 0}/{EquipmentRules.MaximumEquipmentCount}";
+        }
+
+        private static string BuildTraitSummary(IReadOnlyList<string> traits)
+        {
+            if (traits == null || traits.Count == 0) return "无";
+            var displayNames = new List<string>();
+            int count = Mathf.Min(VisibleTraitCount, traits.Count);
+            for (int index = 0; index < count; index++)
+            {
+                string displayName = PlayableTraitRegistry.GetDisplayName(traits[index]);
+                if (string.IsNullOrWhiteSpace(displayName)) displayName = "未知";
+                if (displayName.Length > VisibleTraitNameLength) displayName = $"{displayName.Substring(0, VisibleTraitNameLength)}…";
+                displayNames.Add(displayName);
+            }
+            string remaining = traits.Count > count ? $" +{traits.Count - count}" : string.Empty;
+            return $"{string.Join("、", displayNames)}{remaining}";
         }
 
         private static bool IsWounded(HunterInstance hunter)

@@ -40,6 +40,10 @@ World-space cards and hunter detail presentation SHALL resolve stored trait IDs 
 - **WHEN** the card is rendered
 - **THEN** the player sees the configured localized trait name
 
+#### Scenario: A hunter dossier contains several traits
+- **WHEN** the world-space equipment dossier is rendered or refreshed
+- **THEN** it shows a bounded localized trait summary with a remaining count instead of overflowing the tabletop panel
+
 ### Requirement: Trait keywords remain content-driven
 Keyword aggregation SHALL include the trait's canonical ID, display name, legacy aliases, and configured keywords without routing presentation events through ActionQueue.
 

@@ -2,70 +2,70 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "tabletop-settlement-equipment",
-  "specHash": "beef8302b7cb158b79fd82ce5e16af9c97e4855b57c37b7621187b96b9f76969",
+  "specHash": "4b94e9046acb35752cf4fa5e8d805ea9f849d667ea470d66c532da9b04d5b06a",
   "title": "营地桌面猎人装备",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "点击 3D 猎人卡可打开九槽世界空间装备桌，仓库卡与精确装备实例通过拖放提交命令；Settlement ActionQueue 原子维护库存、稳定身份、部位与双武器限制并触发保存刷新。",
-    "validatedAgainstSpecHash": "beef8302b7cb158b79fd82ce5e16af9c97e4855b57c37b7621187b96b9f76969",
+    "summary": "点击 3D 猎人卡可打开九槽世界空间装备桌并查看胆识、知识与有界特性摘要；仓库卡与精确装备实例通过拖放提交命令，Settlement ActionQueue 原子维护权威装备状态。",
+    "validatedAgainstSpecHash": "4b94e9046acb35752cf4fa5e8d805ea9f849d667ea470d66c532da9b04d5b06a",
     "evidence": [
       {
         "guid": "aec121c9e9ab40f9a94917d816e762d2",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs",
         "line": 1,
-        "fileHash": "e2788d27d9e5209e0b1935a4cc4f6a414ea5e27281a9f6d535fd9c5f7c9fd41c",
+        "fileHash": "dd0d78d065772ec5c36d55c6c952456efe4094f81950d52cd07217e01a3ee48f",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:28:56-07:00",
-        "feature": "以两个九槽实体卡网格展示仓库和猎人装备，并把合法拖放转换为装备或精确实例卸装命令。"
+        "checkedAt": "2026-08-27T11:36:18-07:00",
+        "feature": "以实体卡网格展示仓库和猎人装备，投影胆识、知识与有界特性摘要，并把合法拖放转换为装备或精确实例卸装命令。"
       },
       {
         "guid": "c6c33c3c6c4846ea8f3f33df45de9ad2",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs",
         "line": 1,
-        "fileHash": "6ddc25caa38dfb629f80b1087c81479485b7e7e6432d7c51d6658d1ce035ad3f",
+        "fileHash": "ed63d2c47ac253d7e663375464bd057483ff8e5cce7ded26bf089388b9bcd9a9",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "checkedAt": "2026-08-27T11:43:00-07:00",
         "feature": "在 Settlement root action 内重验猎人、内容和库存，原子维护运行时实例与稳定 ContentId。"
       },
       {
         "guid": "fae66be113c0f1b4aa8e8601a20f1b18",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs",
         "line": 150,
-        "fileHash": "ce1de17d82c77b0d037bbde1e0bba51845252261e55fae93705b1cab0e760595",
+        "fileHash": "02987775c7d05aacfce287057dcb3b7786d91a993f95e376497d9d3168128e8f",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "checkedAt": "2026-08-27T11:43:00-07:00",
         "feature": "从猎人卡打开装备桌并与其他营地上下文面板互斥，事务提交后刷新可见权威状态。"
       },
       {
         "guid": "ac43dd4a2d11481ea04399b3c1cc6c6e",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementEquipmentActionTests.cs",
         "line": 1,
-        "fileHash": "dd8a35d18af42d1f1ae53151afd8a55a41017ff2799da1b17eea8ebd521a2ab9",
+        "fileHash": "f8278b8cb630f44ff694cff0fa28cd889b74e01ae01d24878d2af27049c9249a",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:28:56-07:00",
+        "checkedAt": "2026-08-27T11:43:00-07:00",
         "feature": "覆盖装备提交、并发竞争、Reactor 阻止、精确实例卸装及外部内容拒绝。"
       },
       {
-        "guid": "e9276d2cbb23419c8514e96956fed1cd",
-        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-        "line": 95,
-        "fileHash": "661e2a38dc452594683cb2446f72a05caccb1ae9cf63e4f675bc7781f96c9e96",
+        "guid": "6d8b5d32f6a44a3e9f8e81382c98a4f1",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HunterEquipmentPanel3DPlayModeTests.cs",
+        "line": 1,
+        "fileHash": "7326e0cca92347924f9750a9b3cfd1735507d8ab5e0c824ca7573f664885c525",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:28:56-07:00",
-        "feature": "验证真实奖励、制作、装备、保存恢复、再次出猎生效及精确卸装闭环。"
+        "checkedAt": "2026-08-27T11:36:18-07:00",
+        "feature": "验证档案初次显示和可见刷新会更新胆识、知识、空特性及多特性的有界摘要。"
       }
     ],
     "tests": [
-      "PlayableSettlementEquipmentActionTests: 5/5 passed",
+      "PlayableSettlementEquipmentActionTests: 6/6 passed",
       "PlayableEquipmentRulesTests: 4/4 passed",
-      "GameManagerCampaignLoopPlayModeTests: 14/14 passed"
+      "HunterEquipmentPanel3DPlayModeTests: 5/5 passed"
     ],
-    "verifiedAt": "2026-08-25T11:28:56-07:00"
+    "verifiedAt": "2026-08-27T11:36:18-07:00"
   },
   "implementationOutline": [
-    "SettlementTable3D 从 3D 猎人卡打开唯一上下文装备桌，仓库和装备均以实体卡槽呈现。",
+    "SettlementTable3D 从 3D 猎人卡打开唯一上下文装备桌，仓库和装备均以实体卡槽呈现，决策属性与本地化特性在顶部只读投影。",
     "拖放只产生装备或卸装命令；失败时卡牌回到原位，成功后由事务事实刷新权威投影。",
     "Settlement ActionQueue 串行执行装备变化，纯规则层限制九件装备、两件武器和防具部位冲突。",
     "存档保存稳定 ContentId，恢复时通过活动内容注册表重建运行时实例。"

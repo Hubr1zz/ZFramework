@@ -19,7 +19,12 @@ title: 营地桌面猎人装备
 #### Scenario: A hunter is inspected
 
 - **WHEN** 玩家点击营地中的猎人卡
-- **THEN** 装备桌 SHALL 显示该猎人的属性、已装备实例和当前可用仓库装备卡
+- **THEN** 装备桌 SHALL 显示该猎人的属性、胆识、知识、本地化特性摘要、已装备实例和当前可用仓库装备卡
+
+#### Scenario: Hunter decision attributes change while the dossier is visible
+
+- **WHEN** 权威猎人状态更新后刷新当前装备桌
+- **THEN** 胆识、知识与有界特性摘要 SHALL 直接重读权威状态，且 SHALL NOT 向 ActionQueue 发布 UI 刷新事件
 
 ### Requirement: Equipment cards use physical drag intent
 

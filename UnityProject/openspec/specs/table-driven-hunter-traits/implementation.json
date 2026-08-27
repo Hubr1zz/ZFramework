@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "table-driven-hunter-traits",
-  "specHash": "18a06caace9934564a85079aa6ad685f178c615b1bce575fbfacbc08da07cff5",
+  "specHash": "4edffa490adf19fa83118de2647c4946d48fb6d06c0c2a0642c5081a8451873c",
   "title": "读表猎人特性与稳定身份",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "特性表统一提供稳定 ID、显示名、旧别名与关键词；模板、事件、成长、症状和武器熟练只引用注册 ID，旧存档在营地候选投影事务内幂等迁移，3D 卡牌与猎人详情仍显示本地化名称。",
-    "validatedAgainstSpecHash": "18a06caace9934564a85079aa6ad685f178c615b1bce575fbfacbc08da07cff5",
+    "summary": "特性表统一提供稳定 ID、显示名、旧别名与关键词；模板、事件、成长、症状和武器熟练只引用注册 ID，旧存档在营地候选投影事务内幂等迁移，3D 招募卡和装备档案显示有界的本地化名称。",
+    "validatedAgainstSpecHash": "4edffa490adf19fa83118de2647c4946d48fb6d06c0c2a0642c5081a8451873c",
     "evidence": [
       {
         "guid": "31d854fa25174dc2a79acf36561498a6",
@@ -39,15 +39,6 @@
         "feature": "登记当前模板、事件、成长、症状与武器熟练所需的 38 项基础特性。"
       },
       {
-        "guid": "76ee8c16e7264fc89ae0566031980a8a",
-        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
-        "line": 103,
-        "fileHash": "c1d30443af9d95afd33c1ff38e069fa5a48e50f4e6c54504fa487bd842823759",
-        "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
-        "feature": "在候选内容投影内执行 schema 门禁、旧特性迁移，并校验猎人模板与事件图只引用注册 ID。"
-      },
-      {
         "guid": "2c7d0e3a7e71476e9d04f85e0a4db4d4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentCandidate.cs",
         "line": 139,
@@ -57,15 +48,6 @@
         "feature": "发布后提交前验证成长、武器熟练与症状派生特性完整，失败时沿既有内容安装事务回滚。"
       },
       {
-        "guid": "e159b3c1d6bfcce4082b45e63fc28083",
-        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
-        "line": 186,
-        "fileHash": "a18a347713a2df3b610cf778a7c4b7ea70fd634c026038f8aee40835611296e0",
-        "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
-        "feature": "持久化独立特性身份 schema，允许旧显示名迁移并拒绝未来版本被当前运行时覆写。"
-      },
-      {
         "guid": "63d119b9265b7b545b017335d3d73241",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/RecruitmentTemplateCard3D.cs",
         "line": 1,
@@ -73,6 +55,15 @@
         "status": "verified",
         "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "世界空间招募卡只读解析特性显示名，不读取 JSON、不写状态也不向 ActionQueue 发布 UI 事件。"
+      },
+      {
+        "guid": "aec121c9e9ab40f9a94917d816e762d2",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs",
+        "line": 1,
+        "fileHash": "dd0d78d065772ec5c36d55c6c952456efe4094f81950d52cd07217e01a3ee48f",
+        "status": "verified",
+        "checkedAt": "2026-08-27T11:36:18-07:00",
+        "feature": "世界空间装备档案直接投影胆识、知识与最多三项本地化特性，并用剩余计数限制长列表。"
       },
       {
         "guid": "af345fc8a0984b2ca5538015451d23c8",
@@ -103,14 +94,15 @@
       "PlayableSettlementActionSessionTests: 33/33 passed",
       "PlayableSettlementProjectionTransactionTests: 4/4 passed",
       "CampaignSaveStorageTests: 13/13 passed",
-      "HuntingInDarkness.GameCore.Tests: 157/157 passed"
+      "HuntingInDarkness.GameCore.Tests: 157/157 passed",
+      "HunterEquipmentPanel3DPlayModeTests: 5/5 passed"
     ],
-    "verifiedAt": "2026-08-25T17:24:23-07:00"
+    "verifiedAt": "2026-08-27T11:36:18-07:00"
   },
   "implementationOutline": [
     "版本化 traits.json 在营地内容计划构建时形成不可变身份目录，并对跨内容引用执行 fail-closed 预检。",
     "SettlementInstance 记录特性 schema；旧显示名迁移在候选投影中幂等完成，未知外部 ID 保留。",
-    "规则层继续只处理字符串身份，Adapter 负责表解析和本地化，View 只做只读显示名投影。"
+    "规则层继续只处理字符串身份，Adapter 负责表解析和本地化，View 只做有界的只读显示名投影。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableTraitTable.cs:1",

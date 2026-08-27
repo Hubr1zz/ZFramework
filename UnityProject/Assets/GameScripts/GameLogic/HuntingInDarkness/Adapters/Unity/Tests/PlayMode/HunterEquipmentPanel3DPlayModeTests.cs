@@ -7,6 +7,7 @@ using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
+using TMPro;
 using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -50,6 +51,36 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return null;
 
             Assert.That(storageSlot.OccupantCard, Is.Null);
+        }
+
+        [UnityTest]
+        public IEnumerator Show_ProjectsDecisionAttributesAndBoundedTraitSummary()
+        {
+            var root = new GameObject("HunterDecisionDossierTest");
+            createdObjects.Add(root);
+            HunterData template = CreateTemplate();
+            var hunter = new HunterInstance(template, 906) { Courage = 2, Understanding = 3 };
+            hunter.Traits.AddRange(new[] { "异常冗长的特性显示名称用于测试", "敏锐", "守望者", "不会完整显示的第四项特性" });
+            var settlement = new SettlementInstance();
+            HunterEquipmentPanel3D panel = HunterEquipmentPanel3D.Create(root.transform);
+
+            panel.Show(hunter, settlement, System.Array.Empty<ItemData>(), Vector3.zero);
+            TextMeshPro statsText = GetPrivateField<TextMeshPro>(panel, "statsText");
+
+            Assert.That(statsText.text, Does.Contain("胆识 2"));
+            Assert.That(statsText.text, Does.Contain("知识 3"));
+            Assert.That(statsText.text, Does.Contain("特性 异常冗长的特性显示名…、敏锐、守望者 +1"));
+            Assert.That(statsText.text, Does.Not.Contain("第四项特性"));
+
+            hunter.Courage = 4;
+            hunter.Understanding = 5;
+            hunter.Traits.Clear();
+            panel.RefreshVisible();
+            yield return null;
+
+            Assert.That(statsText.text, Does.Contain("胆识 4"));
+            Assert.That(statsText.text, Does.Contain("知识 5"));
+            Assert.That(statsText.text, Does.Contain("特性 无"));
         }
 
         [UnityTest]
