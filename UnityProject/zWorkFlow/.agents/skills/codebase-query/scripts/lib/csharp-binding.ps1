@@ -10,7 +10,6 @@ function Remove-CSharpTrivia {
         return [regex]::Replace($match.Value, '[^\r\n]', ' ')
     })
 }
-
 function Split-CSharpTypeList {
     param([string]$Text)
 

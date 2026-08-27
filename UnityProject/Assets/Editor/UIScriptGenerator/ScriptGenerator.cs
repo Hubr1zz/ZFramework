@@ -3,7 +3,7 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
-namespace TEngine.Editor.UI
+namespace ZFramework.Editor.UI
 {
     public partial class ScriptGenerator
     {
@@ -81,7 +81,7 @@ namespace TEngine.Editor.UI
 
                     strFile.Append("using UnityEngine;\n");
                     strFile.Append("using UnityEngine.UI;\n");
-                    strFile.Append("using TEngine;\n\n");
+                    strFile.Append("using ZFramework;\n\n");
                     strFile.Append($"namespace {ScriptGeneratorSetting.GetUINameSpace()}\n");
                     strFile.Append("{\n");
 
@@ -336,7 +336,7 @@ namespace TEngine.Editor.UI
             [MenuItem("GameObject/ScriptGenerator/About", priority = 49)]
             public static void About()
             {
-                TEngineUISettingsProvider.OpenSettings();
+                ZFrameworkUISettingsProvider.OpenSettings();
             }
         }
     }

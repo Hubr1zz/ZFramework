@@ -1,0 +1,16 @@
+{
+  "name": "ZFramework.ECS",
+  "rootNamespace": "ZFramework.ECS",
+  "references": [
+    "ZFramework.Runtime"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,8 +1,8 @@
-﻿using TEngine;
+﻿using ZFramework;
 
 namespace Procedure
 {
-    public abstract class ProcedureBase : TEngine.ProcedureBase
+    public abstract class ProcedureBase : ZFramework.ProcedureBase
     {
         /// <summary>
         /// 获取流程是否使用原生对话框

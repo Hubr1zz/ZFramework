@@ -6,12 +6,12 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityToolbarExtender;
 
-namespace TEngine
+namespace ZFramework
 {
     public partial class UnityToolbarExtenderLeft
     {
-        private const string PreviousSceneKey = "TEngine_PreviousScenePath"; // 用于存储之前场景路径的键
-        private const string IsLauncherBtn = "TEngine_IsLauncher"; // 用于存储之前是否按下launcher
+        private const string PreviousSceneKey = "ZFramework_PreviousScenePath"; // 用于存储之前场景路径的键
+        private const string IsLauncherBtn = "ZFramework_IsLauncher"; // 用于存储之前是否按下launcher
 
         private static readonly string SceneMain = "SampleScene";
 

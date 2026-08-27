@@ -3,8 +3,8 @@
   "generationLanguage": "source",
   "specTitles": [
     {
-      "capability": "tengine-startup-lifecycle",
-      "zhCN": "TEngine 启动生命周期",
+      "capability": "zframework-startup-lifecycle",
+      "zhCN": "ZFramework 启动生命周期",
       "enUS": ""
     }
   ]

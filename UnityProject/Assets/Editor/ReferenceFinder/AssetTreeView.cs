@@ -9,7 +9,7 @@ using TreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
 using TreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 #endif
 
-namespace TEngine.Editor
+namespace ZFramework.Editor
 {
     internal sealed class AssetTreeView : TreeView
     {

@@ -1,4 +1,4 @@
-namespace TEngine.Editor
+namespace ZFramework.Editor
 {
     internal sealed class ListInfo
     {

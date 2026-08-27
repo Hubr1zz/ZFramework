@@ -669,6 +669,14 @@ namespace AgentWorkflow.Editor
             public string absolutePath;
             public string relativePath;
         }
+
+        private sealed class DesignDocumentFileCandidate
+        {
+            public DesignSourceEntry source;
+            public string sourceRoot;
+            public string absolutePath;
+            public string relativePath;
+        }
     }
 }
 #endif

@@ -12,7 +12,7 @@
 
 1. `repowiki/zh/content/index.md`
 2. `repowiki/zh/content/` 中命中的页面
-3. `.agents/skills/tengine-dev/references/` 中命中的规范
+3. `.agents/skills/zframework-dev/references/` 中命中的规范
 4. `.agents/skills/project-*/references/`
 5. OpenSpec specs / ADR
 6. 项目 README 与 Books

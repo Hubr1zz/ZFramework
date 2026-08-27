@@ -104,12 +104,12 @@ internal static class MainToolbarVisibilityMigration
 
 public class MainToolbarSceneLauncherButton
 {
-    private const string PreviousSceneKey = "TEngine_PreviousScenePath"; // 用于存储之前场景路径的键
-    private const string IsLauncherBtn = "TEngine_IsLauncher"; // 用于存储之前是否按下launcher
+    private const string PreviousSceneKey = "ZFramework_PreviousScenePath"; // 用于存储之前场景路径的键
+    private const string IsLauncherBtn = "ZFramework_IsLauncher"; // 用于存储之前是否按下launcher
 
         private static readonly string SceneMain = "SampleScene";
 
-    [MainToolbarElement("TEngine/Scene Launcher Button", defaultDockIndex = -10, defaultDockPosition = MainToolbarDockPosition.Middle)]
+    [MainToolbarElement("ZFramework/Scene Launcher Button", defaultDockIndex = -10, defaultDockPosition = MainToolbarDockPosition.Middle)]
     private static MainToolbarElement ProjectSettingsButton()
     {
         var onIcon = EditorGUIUtility.IconContent("PlayButton").image as Texture2D;
@@ -134,7 +134,7 @@ public class MainToolbarSceneLauncherButton
     private static void OnPlayModeStateChanged(PlayModeStateChange state)
     {
         ProjectSettingsButton();
-        MainToolbar.Refresh("TEngine/Scene Launcher Button");
+        MainToolbar.Refresh("ZFramework/Scene Launcher Button");
         if (state == PlayModeStateChange.EnteredEditMode)
         {
             // 从 EditorPrefs 读取之前的场景路径 并恢复之前的场景
@@ -234,7 +234,7 @@ public class MainToolbarSceneLauncherButton
 
 public class MainToolbarDropdownSceneSelector
 {
-    const string kElementPath = "TEngine/Scene Switcher";
+    const string kElementPath = "ZFramework/Scene Switcher";
 
     private static List<(string sceneName, string scenePath)> m_initScenes;
     private static List<(string sceneName, string scenePath)> m_defaultScenes;
@@ -258,7 +258,10 @@ public class MainToolbarDropdownSceneSelector
 
         var icon = EditorGUIUtility.IconContent("UnityLogo").image as Texture2D;
         var content = new MainToolbarContent(activeSceneName, icon, "Select active scene");
-        return new MainToolbarDropdown(content, ShowDropdownMenu);
+        return new MainToolbarDropdown(content, ShowDropdownMenu)
+        {
+            displayed = true
+        };
     }
 
     public static void Init()
@@ -400,7 +403,7 @@ public class MainToolbarDropdownSceneSelector
 
 public class MainToolbarDropdownPlayMode
 {
-    const string kElementPath = "TEngine/Play Mode";
+    const string kElementPath = "ZFramework/Play Mode";
 
     private static readonly string[] _resourceModeNames =
     {
@@ -418,12 +421,13 @@ public class MainToolbarDropdownPlayMode
     [MainToolbarElement(kElementPath, defaultDockPosition = MainToolbarDockPosition.Middle, defaultDockIndex = 51)]
     public static MainToolbarElement CreateExampleDropdown()
     {
+        _resourceModeIndex = Mathf.Clamp(EditorPrefs.GetInt("EditorPlayMode"), 0, _resourceModeNames.Length - 1);
         var content = new MainToolbarContent(_resourceModeNames[ResourceModeIndex]);
         m_btn = new MainToolbarDropdown(content, ShowDropdownMenu)
         {
+            displayed = true,
             enabled = !EditorApplication.isPlaying
         };
-        _resourceModeIndex = EditorPrefs.GetInt("EditorPlayMode");
         return m_btn;
     }
 

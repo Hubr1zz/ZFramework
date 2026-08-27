@@ -3,7 +3,7 @@
 `.agents/` 是本工作流包的共享规范源。
 
 - `skills/`：完整 skill 内容；Codex、Cursor、GitHub Copilot、Gemini CLI、Windsurf、Kimi Code CLI 等支持该开放路径的工具直接扫描。
-- `skills/tengine-rts-development/`：RTS Session、Roslyn 热更新与增量正式化的设计门禁；它与其他 Unity 项目 skills 共用本目录，不在仓库外层维护副本。
+- `skills/zframework-rts-development/`：RTS Session、Roslyn 热更新与增量正式化的设计门禁；它与其他 Unity 项目 skills 共用本目录，不在仓库外层维护副本。
 - `agent-roles/`：跨 AI 工具共享的 agent 角色说明。
 - `skills/<功能>/references/`：该功能的完整规则、项目事实和可变工作台数据；保护清单与待处理重构项分别位于 `project-refactor-queue/references/PROTECTED_FILES.md`、`REFACTOR_QUEUE.md`，按需读取。
 - 项目读取先走 `project-context/references/PROJECT-INDEX.md`，再按需打开一个参考小节与目标脚本。

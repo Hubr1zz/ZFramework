@@ -1,6 +1,6 @@
 # AI 开发工作流指南
 
-> 本文档介绍 TEngine 项目完整的 AI 辅助开发工作流，包含 tengine-dev skill 按需查询架构、任务等级分级机制、会话缓存策略，以及与 openspec / unity-skills 的集成使用方式。
+> 本文档介绍 ZFramework 项目完整的 AI 辅助开发工作流，包含 zframework-dev skill 按需查询架构、任务等级分级机制、会话缓存策略，以及与 openspec / unity-skills 的集成使用方式。
 
 **更新时间**: 2026-04-21
 
@@ -10,7 +10,7 @@
 
 ### 必需工具
 
-在开始使用 TEngine AI 开发工作流之前，请确保已安装以下工具：
+在开始使用 ZFramework AI 开发工作流之前，请确保已安装以下工具：
 
 #### 1. Claude (claude.ai/code)
 
@@ -18,8 +18,8 @@
 
 - 官方地址：[https://claude.ai/code](https://claude.ai/code)
 - 支持本地文件操作、代码编辑、Unity Editor 自动化
-- 集成 openspec、tengine-dev 等技能
-- 提供上下文感知的 TEngine 开发指导
+- 集成 openspec、zframework-dev 等技能
+- 提供上下文感知的 ZFramework 开发指导
 
 **安装方法**:
 ```bash
@@ -59,7 +59,7 @@
 
 - 通过 REST API 自动化 Unity Editor 操作
 - 已集成到 `unity-skills` 技能中
-- 安装方法见 [unity-mcp-guide.md](skills/tengine-dev/references/unity-mcp-guide.md)
+- 安装方法见 [unity-mcp-guide.md](skills/zframework-dev/references/unity-mcp-guide.md)
 
 **unity-skills 触发词**：Unity、Unity Skills、in Unity、automate Unity、editor automation、创建脚本、场景分析、build scene、管理资源、Unity Editor 自动化、Unity 编辑器、Unity 技能、操作 Unity、全自动模式、半自动模式
 
@@ -71,7 +71,7 @@
   - [必需工具](#必需工具)
   - [可选工具](#可选工具)
 - [概述](#概述)
-- [tengine-dev Skill 工作流](#tengine-dev-skill-工作流)
+- [zframework-dev Skill 工作流](#zframework-dev-skill-工作流)
   - [整体流程总览](#整体流程总览)
   - [时序图一：规范获取流程](#时序图一规范获取流程)
   - [时序图二：会话内缓存机制](#时序图二会话内缓存机制)
@@ -80,7 +80,7 @@
   - [任务等级分级说明](#任务等级分级说明)
 - [快速开始](#快速开始)
 - [openspec 工作流](#openspec-工作流)
-- [tengine-dev Skills](#tengine-dev-skills)
+- [zframework-dev Skills](#zframework-dev-skills)
 - [集成工作流](#集成工作流)
   - [完整开发流程图](#完整开发流程图)
   - [详细流程说明](#详细流程说明)
@@ -100,9 +100,9 @@
 
 ## 概述
 
-TEngine 项目提供了一套完整的 AI 辅助开发工作流，由以下核心组件构成：
+ZFramework 项目提供了一套完整的 AI 辅助开发工作流，由以下核心组件构成：
 
-- **tengine-dev skill**: Claude Code 专用 TEngine 开发技能，从 `references/` 按需提供精炼规范
+- **zframework-dev skill**: Claude Code 专用 ZFramework 开发技能，从 `references/` 按需提供精炼规范
 - **任务等级分级（L1-L4）**: 按任务复杂度决定查询深度，简单任务零开销
 - **会话内缓存**: 同一主题在同一会话中只查询一次，后续任务复用
 - **冲突标注**: 主动检测 references 与代码冲突，标注后以代码实现为准
@@ -111,7 +111,7 @@ TEngine 项目提供了一套完整的 AI 辅助开发工作流，由以下核�
 
 ---
 
-## tengine-dev Skill 工作流
+## zframework-dev Skill 工作流
 
 ### 整体流程总览
 
@@ -120,9 +120,9 @@ flowchart TD
     A([用户发起任务]) --> B{判断任务等级}
 
     B -->|L1 简单\ntypo/注释/日志| C[直接编写代码]
-    B -->|L2 调用\n单一 API 修改| D[触发 tengine-dev skill\n只查该主题]
-    B -->|L3 功能\n新功能/跨文件| E[触发 tengine-dev skill\n全量相关主题]
-    B -->|L4 架构\n系统设计/重构| F[触发 tengine-dev skill\n并行多主题]
+    B -->|L2 调用\n单一 API 修改| D[触发 zframework-dev skill\n只查该主题]
+    B -->|L3 功能\n新功能/跨文件| E[触发 zframework-dev skill\n全量相关主题]
+    B -->|L4 架构\n系统设计/重构| F[触发 zframework-dev skill\n并行多主题]
 
     D --> G{会话缓存命中?}
     E --> G
@@ -145,13 +145,13 @@ flowchart TD
 
 ### 时序图一：规范获取流程
 
-> **核心优势**：tengine-dev skill 直接从精炼的 `references/` 文档提取规范，无多余上下文噪声。
+> **核心优势**：zframework-dev skill 直接从精炼的 `references/` 文档提取规范，无多余上下文噪声。
 
 ```mermaid
 sequenceDiagram
     participant U as 用户
     participant M as 主 Agent (Claude)
-    participant S as tengine-dev (skill)
+    participant S as zframework-dev (skill)
     participant R as references/
 
     U->>M: 请实现背包 UI
@@ -179,7 +179,7 @@ sequenceDiagram
 sequenceDiagram
     participant U as 用户
     participant M as 主 Agent
-    participant S as tengine-dev skill
+    participant S as zframework-dev skill
     participant C as 会话缓存
 
     U->>M: 任务①: 实现登录界面 UI
@@ -213,9 +213,9 @@ sequenceDiagram
 sequenceDiagram
     participant U as 用户
     participant M as 主 Agent
-    participant S1 as tengine-dev #1
-    participant S2 as tengine-dev #2
-    participant S3 as tengine-dev #3
+    participant S1 as zframework-dev #1
+    participant S2 as zframework-dev #2
+    participant S3 as zframework-dev #3
 
     U->>M: 设计战斗系统架构<br/>涉及: UI + 事件 + FSM + 资源
 
@@ -244,7 +244,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant M as 主 Agent
-    participant S as tengine-dev skill
+    participant S as zframework-dev skill
     participant Code as 项目代码
     participant Mem as .claude/memory/
 
@@ -270,9 +270,9 @@ sequenceDiagram
 | 等级 | 判断标准 | 知识查询策略 |
 |------|---------|-------------|
 | **L1 简单** | typo 修正、注释修改、日志输出、单行变量改名（前提：不涉及框架 API 名称、UI 节点前缀、事件定义或资源路径） | ❌ 跳过查询，直接编码 |
-| **L2 调用** | 调用已知 API、单一模块的局部修改 | ✅ 触发 `tengine-dev` skill（只查该主题） |
-| **L3 功能** | 新功能开发、跨文件修改、新增 UI/资源/事件逻辑 | ✅ 触发 `tengine-dev` skill（全量相关主题） |
-| **L4 架构** | 模块设计、系统重构、多模块协作、架构决策 | ✅ 触发 `tengine-dev` skill（并行多主题） |
+| **L2 调用** | 调用已知 API、单一模块的局部修改 | ✅ 触发 `zframework-dev` skill（只查该主题） |
+| **L3 功能** | 新功能开发、跨文件修改、新增 UI/资源/事件逻辑 | ✅ 触发 `zframework-dev` skill（全量相关主题） |
+| **L4 架构** | 模块设计、系统重构、多模块协作、架构决策 | ✅ 触发 `zframework-dev` skill（并行多主题） |
 
 > **判断原则**：宁可高估等级，不可低估——不确定时上调一级。
 
@@ -280,11 +280,11 @@ sequenceDiagram
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                   TEngine AI 工作流                      │
+│                   ZFramework AI 工作流                      │
 ├─────────────────────────────────────────────────────────┤
 │  Step 0  判断任务等级 L1/L2/L3/L4                        │
 │  Step 1  L1 直接编码                                     │
-│         L2-L4 触发 tengine-dev skill 获取规范            │
+│         L2-L4 触发 zframework-dev skill 获取规范            │
 │         （会话内缓存命中则直接复用，无需重复触发）        │
 │  Step 2  基于规范输出代码/方案                            │
 │  Step 3  若规范与代码冲突，标注冲突，记录到 .claude/memory/│
@@ -297,7 +297,7 @@ sequenceDiagram
 
 ## 快速开始
 
-### 5 分钟上手 TEngine AI 开发
+### 5 分钟上手 ZFramework AI 开发
 
 ```mermaid
 graph LR
@@ -317,8 +317,8 @@ graph LR
 # 安装 openspec
 npm install -g @fission-ai/openspec@latest
 
-# 在 TEngine 项目根目录初始化
-cd I:\WorkSpace\TEngine
+# 在 ZFramework 项目根目录初始化
+cd I:\WorkSpace\ZFramework
 openspec init
 
 # 选择 Claude Code 作为 AI 工具
@@ -347,7 +347,7 @@ Claude 会自动生成：
 Claude 会：
 1. 读取所有 artifact 内容
 2. 逐个完成 tasks.md 中的任务
-3. 自动触发 tengine-dev 技能（如果涉及 TEngine 代码）
+3. 自动触发 zframework-dev 技能（如果涉及 ZFramework 代码）
 4. 自动使用 unity-skills（如果需要操作 Unity Editor）
 
 #### 第四步：测试与归档
@@ -381,7 +381,7 @@ sequenceDiagram
     OpenSpec-->>Claude: 加载所有上下文
 
     Claude->>Claude: 读取 tasks.md
-    Claude->>Claude: 触发 tengine-dev 技能
+    Claude->>Claude: 触发 zframework-dev 技能
     Claude->>Claude: 生成 UIInventory.cs
 
     Claude->>Unity: 使用 unity-skills
@@ -553,23 +553,23 @@ flowchart TD
     style DirectFix fill:#fff4e1
 ```
 
-### explore 与 tengine-dev 的协作
+### explore 与 zframework-dev 的协作
 
-在探索过程中，Claude 会自动触发 `tengine-dev` skill 获取框架规范，确保探索结论符合 TEngine 架构约束：
+在探索过程中，Claude 会自动触发 `zframework-dev` skill 获取框架规范，确保探索结论符合 ZFramework 架构约束：
 
 ```mermaid
 sequenceDiagram
     participant U as 用户
     participant M as 主 Agent
     participant E as /opsx:explore
-    participant S as tengine-dev skill
+    participant S as zframework-dev skill
     participant Code as 项目代码
 
     U->>M: "我想优化 UI 加载性能，但不确定瓶颈在哪"
     M->>E: 进入探索模式
 
     E->>S: 查询资源加载规范 + UI 生命周期规范
-    S-->>E: 返回 TEngine 规范摘要
+    S-->>E: 返回 ZFramework 规范摘要
 
     E->>Code: 搜索 UIWindow 子类中的资源加载模式
     E->>Code: 检查 SetSprite vs LoadAssetAsync<Sprite> 使用情况
@@ -685,15 +685,15 @@ sequenceDiagram
 
 ---
 
-## tengine-dev Skills
+## zframework-dev Skills
 
-### 什么是 tengine-dev？
+### 什么是 zframework-dev？
 
-`tengine-dev` 是 Claude Code 的技能，专门用于 TEngine 框架开发指导。
+`zframework-dev` 是 Claude Code 的技能，专门用于 ZFramework 框架开发指导。
 
 ### 触发条件
 
-在 TEngine 项目中编写或修改代码时，以下关键词会触发 tengine-dev 技能：
+在 ZFramework 项目中编写或修改代码时，以下关键词会触发 zframework-dev 技能：
 
 - **模块系统**: ResourceModule, AudioModule, TimerModule, GameModule
 - **UI 开发**: UIWindow, UIWidget, UIModule
@@ -704,7 +704,7 @@ sequenceDiagram
 
 ### 核心原则
 
-tengine-dev 技能遵循以下核心原则：
+zframework-dev 技能遵循以下核心原则：
 
 1. **异步优先**: IO 操作用 `UniTask`，禁止同步加载/Coroutine
 2. **模块访问**: 通过 `GameModule.XXX` 访问
@@ -725,7 +725,7 @@ GameScripts/HotFix/                    → 历史目录名
 
 #### luban-dev
 
-Luban 游戏配置全栈工具，支持枚举/Bean/数据表的增删改查、代码生成、TEngine 集成。
+Luban 游戏配置全栈工具，支持枚举/Bean/数据表的增删改查、代码生成、ZFramework 集成。
 
 **触发场景**：
 - 编辑游戏配置数据（配置表/数据表/道具表/技能表/奖励表/活动表）
@@ -784,11 +784,11 @@ flowchart TD
 
     ChooseTask --> CheckType{任务类型?}
 
-    CheckType -->|代码开发| TengineDev[tengine-dev 技能<br/>TEngine 开发指导]
+    CheckType -->|代码开发| ZFrameworkDev[zframework-dev 技能<br/>ZFramework 开发指导]
     CheckType -->|Unity 操作| UnitySkills[unity-skills<br/>Editor 自动化]
     CheckType -->|通用开发| GeneralDev[Claude Code<br/>常规开发]
 
-    TengineDev --> CodeImpl[实现代码<br/>遵循 TEngine 规范]
+    ZFrameworkDev --> CodeImpl[实现代码<br/>遵循 ZFramework 规范]
     UnitySkills --> UnityImpl[执行 Unity 操作<br/>场景/Prefab/组件]
     GeneralDev --> CodeImpl
     UnityImpl --> CodeImpl
@@ -820,7 +820,7 @@ flowchart TD
     style End fill:#e1f5e1
     style Explore fill:#fff4e1
     style ExploreMode fill:#e1f0ff
-    style TengineDev fill:#ffe1f0
+    style ZFrameworkDev fill:#ffe1f0
     style UnitySkills fill:#f0e1ff
     style Archive fill:#e1ffe1
 ```
@@ -863,7 +863,7 @@ ls openspec/changes/add-user-inventory-system/
 
 ```bash
 # 开始实施，可以附加额外条件
-/opsx:apply "使用 UniTask 异步加载，遵循 TEngine 资源管理规范"
+/opsx:apply "使用 UniTask 异步加载，遵循 ZFramework 资源管理规范"
 ```
 
 **Claude Code 会自动**:
@@ -873,9 +873,9 @@ ls openspec/changes/add-user-inventory-system/
 
 **开发过程中**:
 
-- **TEngine 代码开发** → 自动触发 `tengine-dev` 技能
+- **ZFramework 代码开发** → 自动触发 `zframework-dev` 技能
   - 提供模块系统、UI 开发、事件系统、资源管理等指导
-  - 确保代码符合 TEngine 规范（异步优先、资源释放、程序集边界等）
+  - 确保代码符合 ZFramework 规范（异步优先、资源释放、程序集边界等）
 
 - **Unity Editor 操作** → 使用 `unity-skills`
   - 创建/修改 GameObject、Prefab、Scene
@@ -905,7 +905,7 @@ ls openspec/changes/add-user-inventory-system/
 
 **会保存的内容**:
 - 解决的技术难题
-- TEngine 特定的最佳实践
+- ZFramework 特定的最佳实践
 - 常见错误的解决方案
 - 项目特定的约定
 
@@ -929,7 +929,7 @@ git push
 flowchart LR
     A[/opsx:propose] --> B[编写 specs]
     B --> C[/opsx:apply]
-    C --> D[tengine-dev 指导]
+    C --> D[zframework-dev 指导]
     D --> E[unity-skills 操作]
     E --> F[测试]
     F --> G[/opsx:archive]
@@ -939,7 +939,7 @@ flowchart LR
 # 示例：添加背包系统
 /opsx:propose "add-inventory-system"
 # 审查生成的 artifacts
-/opsx:apply "使用 TEngine 模块系统"
+/opsx:apply "使用 ZFramework 模块系统"
 # 开发...
 /opsx:archive
 ```
@@ -1012,9 +1012,9 @@ flowchart LR
 **无需手动调用技能**，只需在描述中包含关键词：
 
 ```
-❌ 不好：请使用 tengine-dev 技能帮我创建一个 UIWindow
+❌ 不好：请使用 zframework-dev 技能帮我创建一个 UIWindow
 ✅ 好的：帮我创建一个背包 UIWindow，需要加载道具图标资源
-→ 自动触发 tengine-dev，提供 UIWindow、资源管理指导
+→ 自动触发 zframework-dev，提供 UIWindow、资源管理指导
 ```
 
 #### 2. 分阶段处理复杂任务
@@ -1113,7 +1113,7 @@ flowchart LR
 
 ### 2. 代码规范
 
-#### TEngine 核心原则检查清单
+#### ZFramework 核心原则检查清单
 
 在每次开发完成后，确认：
 
@@ -1249,7 +1249,7 @@ git push
 提交 PR 前的自检清单：
 
 - [ ] `tasks.md` 中的所有任务已完成
-- [ ] 代码符合 TEngine 规范（异步、资源释放等）
+- [ ] 代码符合 ZFramework 规范（异步、资源释放等）
 - [ ] 已在 Unity 中测试功能
 - [ ] 重要改动已记录到文档
 - [ ] 变更已归档（`/opsx:archive`）
@@ -1265,7 +1265,7 @@ git push
 → Claude 会：
 1. 读取相关代码
 2. 检查资源加载逻辑
-3. 验证 TEngine 规范
+3. 验证 ZFramework 规范
 4. 提供具体修复建议
 ```
 
@@ -1371,11 +1371,11 @@ graph TB
 
     subgraph "工作流工具"
         openspec[openspec<br/>规范驱动开发]
-        skills[TEngine Skills<br/>tengine-dev]
+        skills[ZFramework Skills<br/>zframework-dev]
         unity[unity-skills<br/>Unity 自动化]
     end
 
-    subgraph "TEngine 框架"
+    subgraph "ZFramework 框架"
         content[YooAsset Package<br/>DLC / Mod 扩展]
         yoo[YooAsset<br/>资源管理]
         uni[UniTask<br/>异步编程]
@@ -1420,7 +1420,7 @@ graph TB
 | **ccswitch** | API 管理和反代 | 密钥管理、访问加速 |
 | **claude-mem** | 长期记忆库 | 知识积累、历史查询 |
 | **openspec** | 规范驱动开发 | 需求管理、文档生成 |
-| **tengine-dev** | TEngine 开发指导 | 代码开发、规范检查 |
+| **zframework-dev** | ZFramework 开发指导 | 代码开发、规范检查 |
 | **unity-skills** | Unity 自动化 | Editor 操作、资源管理 |
 
 ### 数据流向
@@ -1431,7 +1431,7 @@ sequenceDiagram
     participant Claude as Claude Code
     participant Mem as claude-mem
     participant Spec as openspec
-    participant Skills as tengine-dev
+    participant Skills as zframework-dev
     participant Unity as Unity Editor
 
     User->>Claude: 提出需求
@@ -1443,7 +1443,7 @@ sequenceDiagram
 
     User->>Claude: 确认开始开发
     Claude->>Spec: 加载上下文
-    Claude->>Skills: 触发 TEngine 技能
+    Claude->>Skills: 触发 ZFramework 技能
 
     Skills->>Skills: 生成符合规范的代码
     Skills->>Unity: 调用 unity-skills
@@ -1458,10 +1458,10 @@ sequenceDiagram
 ## 相关文档
 
 - [openspec 官方文档](https://github.com/openspec/openspec)
-- [TEngine 框架文档](Books/0-介绍.md)
-- [tengine-dev 技能参考](skills/tengine-dev/references/)
+- [ZFramework 框架文档](Books/0-介绍.md)
+- [zframework-dev 技能参考](skills/zframework-dev/references/)
 - [claude-mem 插件](https://github.com/fission-ai/claude-mem)
-- [Unity-MCP 指南](skills/tengine-dev/references/unity-mcp-guide.md)
+- [Unity-MCP 指南](skills/zframework-dev/references/unity-mcp-guide.md)
 
 ---
 
@@ -1488,10 +1488,10 @@ A: 可以，但强烈推荐使用：
 - **中等需求**: 建议使用 openspec 记录设计
 - **大型需求**: 必须使用 openspec 确保需求清晰
 
-### Q: tengine-dev 技能如何触发？
+### Q: zframework-dev 技能如何触发？
 
 A: 自动触发，无需手动调用：
-- 描述中包含 TEngine 关键词即可
+- 描述中包含 ZFramework 关键词即可
 - 如：UIWindow、GameModule、YooAsset、UniTask 等
 - Claude 会自动加载相应的开发指导
 
@@ -1507,7 +1507,7 @@ ccswitch list
 
 # 3. 在 Claude Code 中测试
 "请帮我创建一个简单的 UIWindow"
-→ 应该自动触发 tengine-dev 技能
+→ 应该自动触发 zframework-dev 技能
 
 # 4. 测试 claude-mem
 "上次我们是怎么处理资源加载的？"
@@ -1532,13 +1532,13 @@ mkdir -p .openspec/templates/ui-feature
 # spec-template.md
 ```
 
-### 扩展 tengine-dev 技能
+### 扩展 zframework-dev 技能
 
-在 `skills/tengine-dev/references/` 中添加自定义参考文档：
+在 `skills/zframework-dev/references/` 中添加自定义参考文档：
 
 ```bash
 # 添加项目特定的最佳实践
-touch skills/tengine-dev/references/custom-patterns.md
+touch skills/zframework-dev/references/custom-patterns.md
 ```
 
 ### 配置 unity-skills 脚本模板

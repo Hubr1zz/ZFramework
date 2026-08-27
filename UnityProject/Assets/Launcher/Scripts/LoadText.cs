@@ -52,7 +52,7 @@ namespace Launcher
         public string Label_Region_NonConfigApplication = "未配置此应用";
         public string Label_Region_SystemError = "系统异常";
 
-        public string Label_PreventionOfAddiction = "著作人权：XX市TEngine有限公司 软著登记号：2022SR0000000\n抵制不良游戏，拒绝盗版游戏。注意自我保护，谨防受骗上当。适度游戏益脑，" +
+        public string Label_PreventionOfAddiction = "著作人权：XX市ZFramework有限公司 软著登记号：2022SR0000000\n抵制不良游戏，拒绝盗版游戏。注意自我保护，谨防受骗上当。适度游戏益脑，" +
                                                     "沉迷游戏伤身。合理安排时间，享受健康生活。";
 
         public string Label_Btn_Update = "确定";

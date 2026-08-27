@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace TEngine.Editor.UI
+namespace ZFramework.Editor.UI
 {
     [System.Serializable]
-    [CreateAssetMenu(menuName = "TEngine/ScriptGeneratorSetting", fileName = "ScriptGeneratorSetting")]
+    [CreateAssetMenu(menuName = "ZFramework/ScriptGeneratorSetting", fileName = "ScriptGeneratorSetting")]
     public class ScriptGeneratorSetting : ScriptableObject
     {
         private static ScriptGeneratorSetting _instance;
@@ -97,7 +97,7 @@ namespace TEngine.Editor.UI
         public List<ScriptGenerateRuler> ScriptGenerateRule => scriptGenerateRule;
 
 
-        [MenuItem("TEngine/Create ScriptGeneratorSetting")]
+        [MenuItem("ZFramework/Create ScriptGeneratorSetting")]
         private static void CreateAutoBindGlobalSetting()
         {
             string[] paths = AssetDatabase.FindAssets("t:ScriptGeneratorSetting");

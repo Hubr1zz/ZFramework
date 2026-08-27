@@ -43,7 +43,6 @@ $script:PathComparer = if ($IsWindows) {
 else {
     [StringComparer]::Ordinal
 }
-
 function Find-CodebaseQuerySkillRoot {
     param([string]$ProjectRoot)
 

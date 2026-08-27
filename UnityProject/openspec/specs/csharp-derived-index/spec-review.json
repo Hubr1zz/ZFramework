@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 3,
+  "capability": "csharp-derived-index",
+  "title": "C# 派生索引",
+  "category": "system",
+  "readiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "PowerShell 回归测试覆盖增量复用、alias 防环与原子发布；Unity MCP 从工作台启动路径完成全量索引，覆盖率 100%，缺失与异常路径均为 0。",
+    "evidence": [
+      ".agents/skills/codebase-query/tests/codebase-query.tests.ps1",
+      ".agents/skills/codebase-query/scripts/codebase-query.ps1",
+      "zWorkFlow/WORKFLOW_DEVELOPER_GUIDE.md"
+    ],
+    "differences": [],
+    "verifiedAt": "2026-08-20T07:41:00-07:00",
+    "codeEvidence": [
+      {
+        "guid": "995e9a44316d7ea40ac0592b1b060078",
+        "displayPath": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
+        "line": 48
+      }
+    ]
+  },
+  "implementationOutline": [
+    "Workbench 启动 pwsh 子进程执行公共 codebase-query 入口，并轮询本地进度快照而不阻塞 Unity 主线程。",
+    "索引器只重新提取变化文件，复用未变化文件事实后统一重绑定；类型哈希表负责解析标识符，visited 集合阻止别名循环递归。",
+    "构建完成后比较磁盘清单、索引路径、缺失项与异常项，全部一致才显示成功。"
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": [
+    "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs:48",
+    ".agents/skills/codebase-query/scripts/codebase-query.ps1:1"
+  ]
+}

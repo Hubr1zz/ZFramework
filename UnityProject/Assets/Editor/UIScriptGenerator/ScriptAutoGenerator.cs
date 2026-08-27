@@ -9,7 +9,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace TEngine.Editor.UI
+namespace ZFramework.Editor.UI
 {
     public partial class ScriptGenerator
     {
@@ -150,7 +150,7 @@ namespace TEngine.Editor.UI
 
                 strFile.AppendLine("using UnityEngine;");
                 strFile.AppendLine("using UnityEngine.UI;");
-                strFile.AppendLine("using TEngine;");
+                strFile.AppendLine("using ZFramework;");
                 strFile.AppendLine();
                 strFile.AppendLine($"namespace {ScriptGeneratorSetting.GetUINameSpace()}");
                 strFile.AppendLine("{");
@@ -387,7 +387,7 @@ namespace TEngine.Editor.UI
 
             strFile.AppendLine("using UnityEngine;");
             strFile.AppendLine("using UnityEngine.UI;");
-            strFile.AppendLine("using TEngine;");
+            strFile.AppendLine("using ZFramework;");
             strFile.AppendLine();
             strFile.AppendLine($"namespace {ScriptGeneratorSetting.GetUINameSpace()}");
             strFile.AppendLine("{");

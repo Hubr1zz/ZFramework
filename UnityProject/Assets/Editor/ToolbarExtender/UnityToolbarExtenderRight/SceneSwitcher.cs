@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 
-namespace TEngine
+namespace ZFramework
 {
     /// <summary>
     /// SceneSwitcher

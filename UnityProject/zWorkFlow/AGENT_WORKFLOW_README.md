@@ -109,6 +109,6 @@
 - `project-refactor-queue`
 - `project-doc-sync`
 
-架构设计层按目标技术栈选择性复用。TEngine 等技术栈专用 skill 不属于默认安装项，只有检测到目标项目实际使用时才接入。
+架构设计层按目标技术栈选择性复用。ZFramework 等技术栈专用 skill 不属于默认安装项，只有检测到目标项目实际使用时才接入。
 
 目标是 Unity 项目、`Assets` 或配置的项目内源码根存在 C#，且 PowerShell 7（`pwsh`）可用时，setup 条件安装 `codebase-query`；不要求 `Assets/Scripts`。Windows 与 macOS 使用同一份 UTF-8、可移植路径索引。缺少 PowerShell 7 时可在获得用户许可后尝试安装；未获许可或失败则跳过并继续使用 Agent 原生检索，不阻塞迁移。

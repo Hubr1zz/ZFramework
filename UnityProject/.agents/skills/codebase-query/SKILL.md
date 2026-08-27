@@ -74,3 +74,4 @@ Agent 共同复用，不要让多个 Agent 分别重查同一目标。
 稳定地址才能启动能力。
 
 详细命令与准确性说明见 [QUERY-CONTRACT.md](references/QUERY-CONTRACT.md)。
+

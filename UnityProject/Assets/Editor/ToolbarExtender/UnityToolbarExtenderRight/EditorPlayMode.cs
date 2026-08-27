@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityToolbarExtender;
 
-namespace TEngine
+namespace ZFramework
 {
     /// <summary>
     /// EditorPlayMode 控件（资源模式选择器）

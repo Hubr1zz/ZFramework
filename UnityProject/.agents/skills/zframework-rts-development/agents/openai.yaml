@@ -1,0 +1,4 @@
+interface:
+  display_name: "ZFramework RTS Development"
+  short_description: "Design RTS gameplay for clean live and formalized code"
+  default_prompt: "Use $zframework-rts-development to design or modify this RTS feature with pure Data, thin Adaptors, engine Views, stable asset keys, and incremental formalization."

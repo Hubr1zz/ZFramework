@@ -6,7 +6,7 @@ source ./path_define.sh
 
 "${UNITYEDITOR_PATH}/Unity" "${WORKSPACE}" \
   -logFile "${BUILD_LOGFILE}" \
-  -executeMethod TEngine.ReleaseTools.AutomationBuildAndroid \
+  -executeMethod ZFramework.ReleaseTools.AutomationBuildAndroid \
   -quit -batchmode \
   -CustomArgs:Language=en_US "${WORKSPACE}"
 
