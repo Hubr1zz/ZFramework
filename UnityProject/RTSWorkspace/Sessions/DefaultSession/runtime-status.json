@@ -1,10 +1,10 @@
 {
     "schemaVersion": 1,
-    "updatedUtc": "2026-08-25T06:12:14.0519302Z",
+    "updatedUtc": "2026-08-27T02:05:46.9267420Z",
     "activeSession": "DefaultSession",
     "isPlaying": false,
-    "activeScene": "",
-    "editorDomainGeneration": 2,
+    "activeScene": "Assets/Scenes/main.unity",
+    "editorDomainGeneration": 1,
     "sceneLoadCount": 0,
     "lastCompileSucceeded": false,
     "lastCompileMs": 0.0,

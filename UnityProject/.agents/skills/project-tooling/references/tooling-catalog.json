@@ -41,25 +41,6 @@
       "dependencies": []
     },
     {
-      "id": "mcp-for-unity",
-      "displayName": "MCP for Unity",
-      "displayNameEn": "MCP for Unity",
-      "kind": "plugin",
-      "description": "为 AI 客户端提供 Unity Editor 自动化桥接。",
-      "descriptionEn": "Provides a Unity Editor automation bridge for AI clients.",
-      "version": "9.7.3",
-      "source": "Packages/MCPForUnity",
-      "usagePolicy": "available",
-      "decisionBasis": "",
-      "locked": false,
-      "capabilities": ["Unity Editor 自动化", "场景与资源操作"],
-      "capabilitiesEn": ["Unity Editor automation", "Scene and asset operations"],
-      "constraints": [],
-      "constraintsEn": [],
-      "evidence": ["Packages/MCPForUnity/package.json", "Packages/packages-lock.json"],
-      "dependencies": []
-    },
-    {
       "id": "zframework-module-system",
       "displayName": "ZFramework ModuleSystem",
       "displayNameEn": "ZFramework ModuleSystem",

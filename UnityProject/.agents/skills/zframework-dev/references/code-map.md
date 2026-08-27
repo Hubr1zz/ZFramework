@@ -49,7 +49,6 @@
 
 | 包 | 版本/来源 |
 |---|---|
-| `com.coplaydev.unity-mcp` | `file:MCPForUnity (embedded)` |
 | `com.cysharp.unitask` | `file:UniTask (embedded)` |
 | `com.tuyoogame.yooasset` | `file:YooAsset (embedded)` |
 | `com.unity.ide.rider` | `3.0.38 (registry)` |
