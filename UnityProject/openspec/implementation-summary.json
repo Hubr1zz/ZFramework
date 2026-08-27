@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "08002fba7f0da5e00e614f225abec03365018ff0278fa0e73c7a8b1168873abc",
-  "inputManifestDigest": "b021257f17be463645d565c955670b6ac3a15be2166355e7d1be334a33e70e47",
-  "outputDigest": "76c35f3fe92ab64e98c64acb3ad15c0537b3b1e6a490a2f3052cf01f1bff0220",
+  "inputDigest": "1c452e92a8212e857b4bf720c9710f939a7a8866a418eab224109bc37a49996f",
+  "inputManifestDigest": "3bf063d3ca2ba51827af90053c506f52c3538ce1877a6c15bb9c8d2a1a38dd11",
+  "outputDigest": "3ac189f16fdfecad31920eef4fb168e26ceda029fecca9da527424694d9864af",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -421,6 +421,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/HuntCollectiblePresentationTests.cs",
+      "sha256": "8fcf410b36c857d5cea1e795362ceb91d8fccfc29e8eac51bc0aaa9458588459",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableCampaignContentAssemblerTests.cs",
       "sha256": "5e743ea7606b5f85af43294c1af5ccc8ca5d11c6eea6a854d53ac18416928de7",
       "state": "current"
@@ -602,7 +607,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "64f43fff9cd29262be90b344a12f23c10615d85941d3a9b0c195629eb6adf3cb",
+      "sha256": "a90e9da7f5a051e399bc1a563fb8d87971498b980293f05b3f1bd3701131bd29",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntCollectibleTray3DPlayModeTests.cs",
+      "sha256": "942147e4475ec37163213b873822900c1673c786012cfde34391f6fa0135663d",
       "state": "current"
     },
     {
@@ -911,6 +921,21 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleCard3D.cs",
+      "sha256": "18096e7f6982bf0694fabce6a0fe4fad8ade722af4e422eb4b480ae5a6c93452",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectiblePresentation.cs",
+      "sha256": "3388ed96a3e6849b2c55cc260e27e23f49f6db3ec90b4836069e413b4c7aa1f8",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleTray3D.cs",
+      "sha256": "4ab25b1dc28eaa081d55bcafe0afc8242fba3c30c921c06ad88bd8d6be234e57",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntHarvestPanel3D.cs",
       "sha256": "f718d515ce64c6e8d22a4e63a45aa876551aad4b69eacbbe479973ca7f68192c",
       "state": "current"
@@ -927,7 +952,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs",
-      "sha256": "19d8ebd96a223032b1916c3ba5c3761cc18673dbe0ed1312762d22c015949bc6",
+      "sha256": "bd8d5d4c64d6d4581bd0e89471d9dd49c87e0b4c99d98eb01def44857e3d4377",
       "state": "current"
     },
     {
@@ -1562,12 +1587,12 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-squad-status/implementation.json",
-      "sha256": "b94917543c7732f6302ef1fdafa14489914e803479f5e76f1d806e867287fc15",
+      "sha256": "faa71d7f515ae9df68234ae05313192950f04102d88f3f8916d5a16fda8af1c7",
       "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-hunt-squad-status/spec.md",
-      "sha256": "9c69daff24297432ef802b15bbdd170e0f0b133bfc92f8602d08f8118fee2ca5",
+      "sha256": "1988d125c97dee0d0925c7f761fba718287c97f82a4948c7e12e73b7db13f9c8",
       "state": "current"
     },
     {
@@ -1735,6 +1760,7 @@
     "event-occurrence-checkpoint-core",
     "event-recoverable-wounds",
     "expedition-build-progression-loop",
+    "game-manager-orchestration",
     "hunt-content-bundle-lifecycle",
     "hunt-event-resource-staging",
     "hunt-map-presentation-queue",
@@ -1769,7 +1795,6 @@
     "tabletop-hunt-resource-markers",
     "tabletop-hunt-retreat",
     "tabletop-hunt-squad-pawn",
-    "tabletop-hunt-squad-status",
     "tabletop-hunt-tile-cards",
     "tabletop-opening-sequence",
     "tabletop-random-interaction",
@@ -2049,6 +2074,11 @@
       "state": "stale"
     },
     {
+      "capability": "game-manager-orchestration",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "state": "stale"
+    },
+    {
       "capability": "hunt-content-bundle-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
       "state": "stale"
@@ -2171,6 +2201,11 @@
     {
       "capability": "hunt-squad-action-availability",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-squad-action-availability",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs",
       "state": "stale"
     },
     {
@@ -2576,11 +2611,6 @@
     {
       "capability": "tabletop-hunt-squad-pawn",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "tabletop-hunt-squad-status",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "state": "stale"
     },
     {
@@ -3356,8 +3386,8 @@
       "id": "game-manager-orchestration",
       "label": "GameManager管理器",
       "status": "verified",
-      "effectiveStatus": "verified",
-      "progress": 100,
+      "effectiveStatus": "stale",
+      "progress": 0,
       "verificationStatus": "verified",
       "summary": "GameManager 已冻结为 Unity 组合外壳；CampaignFlowCoordinator 唯一持有 ZFramework Campaign lease、跨阶段事务、持久化和统一恢复。阶段内玩法经独立窄端口直达阶段管理器，Showdown 生命周期与玩法契约保持可替换的组合关系。",
       "designSources": [],
@@ -3397,7 +3427,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
@@ -3737,7 +3767,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
@@ -4856,10 +4886,10 @@
       "id": "tabletop-hunt-squad-status",
       "label": "3D 狩猎小队状态桌",
       "status": "verified",
-      "effectiveStatus": "stale",
+      "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "正常 3D 狩猎仅创建世界空间状态桌，展示目的地、位置、风险、生命、意志和携带物，并从 ActionQueue 已提交事实刷新。",
+      "summary": "正常 3D 狩猎以世界空间状态桌展示目的地与猎人状态；选中猎人的权威 Collectibles 按稳定 ContentId 聚合为持续存在的 3D 资源卡，并在采集、事件提交和行动者切换后刷新。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-hunt-squad-status/spec.md",
@@ -4876,8 +4906,28 @@
           "state": "current"
         },
         {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectiblePresentation.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleCard3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleTray3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/HuntCollectiblePresentationTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntCollectibleTray3DPlayModeTests.cs",
+          "state": "current"
+        },
+        {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "stale"
+          "state": "current"
         }
       ]
     },

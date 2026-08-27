@@ -2,21 +2,36 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "tabletop-hunt-squad-status",
-  "specHash": "9c69daff24297432ef802b15bbdd170e0f0b133bfc92f8602d08f8118fee2ca5",
+  "specHash": "1988d125c97dee0d0925c7f761fba718287c97f82a4948c7e12e73b7db13f9c8",
   "title": "3D 狩猎小队状态桌",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "正常 3D 狩猎仅创建世界空间状态桌，展示目的地、位置、风险、生命、意志和携带物，并从 ActionQueue 已提交事实刷新。",
-    "validatedAgainstSpecHash": "9c69daff24297432ef802b15bbdd170e0f0b133bfc92f8602d08f8118fee2ca5",
+    "summary": "正常 3D 狩猎以世界空间状态桌展示目的地与猎人状态；选中猎人的权威 Collectibles 按稳定 ContentId 聚合为持续存在的 3D 资源卡，并在采集、事件提交和行动者切换后刷新。",
+    "validatedAgainstSpecHash": "1988d125c97dee0d0925c7f761fba718287c97f82a4948c7e12e73b7db13f9c8",
     "evidence": [
-      { "guid": "ebb448198a81de643bb81b0ceab402cb", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs", "line": 1, "fileHash": "19d8ebd96a223032b1916c3ba5c3761cc18673dbe0ed1312762d22c015949bc6", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "世界空间摘要卡和猎人卡读取权威状态并只提交行动猎人选择。" },
+      { "guid": "ebb448198a81de643bb81b0ceab402cb", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs", "line": 13, "fileHash": "bd8d5d4c64d6d4581bd0e89471d9dd49c87e0b4c99d98eb01def44857e3d4377", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "世界空间摘要卡、猎人卡与携带物托盘读取权威 Hunt 状态；只有猎人卡提交行动者选择。" },
       { "guid": "9ecc7b5ba61f1a3469e8ce81fed5056e", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs", "line": 1, "fileHash": "e8c590f599cb09d6ad600d4afdcbc58b55effcd6d13291598d9d2a506e530951", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "3D 地图路径不创建旧屏幕 HUD，并订阅地块、采集与事件提交事实刷新状态桌。" },
-      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 190, "fileHash": "661e2a38dc452594683cb2446f72a05caccb1ae9cf63e4f675bc7781f96c9e96", "status": "verified", "checkedAt": "2026-08-25T11:54:00-07:00", "feature": "生产狩猎入口验证状态桌及部署猎人卡数量。" }
+      { "guid": "6a0e0e14fe0870d45b5bf5fdba163dd7", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectiblePresentation.cs", "line": 8, "fileHash": "3388ed96a3e6849b2c55cc260e27e23f49f6db3ec90b4836069e413b4c7aa1f8", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "按 ContentId 聚合、饱和计数并产生稳定排序的只读携带物卡牌投影。" },
+      { "guid": "96f1a5426542428388391882a1225116", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleCard3D.cs", "line": 9, "fileHash": "18096e7f6982bf0694fabce6a0fe4fad8ade722af4e422eb4b480ae5a6c93452", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "只读实体资源卡显示稳定身份、名称和聚合数量，不启用拖拽或玩法命令。" },
+      { "guid": "1bc21962f11645d2b2c3868b58e237a5", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleTray3D.cs", "line": 9, "fileHash": "4ab25b1dc28eaa081d55bcafe0afc8242fba3c30c921c06ad88bd8d6be234e57", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "有界托盘随选中猎人及物品身份、名称、数量变化重建实体卡，并停用旧卡后再销毁。" },
+      { "guid": "6a5244c97786a0f4f889f1e657628014", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/HuntCollectiblePresentationTests.cs", "line": 9, "fileHash": "8fcf410b36c857d5cea1e795362ceb91d8fccfc29e8eac51bc0aaa9458588459", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "覆盖重复堆叠、稳定顺序、无效项和整数溢出边界。" },
+      { "guid": "4d02ef9d9b514a67b038c00d7d4dfada", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntCollectibleTray3DPlayModeTests.cs", "line": 10, "fileHash": "942147e4475ec37163213b873822900c1673c786012cfde34391f6fa0135663d", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "验证实体卡创建、猎人切换和空库存清理。" },
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 513, "fileHash": "a90e9da7f5a051e399bc1a563fb8d87971498b980293f05b3f1bd3701131bd29", "status": "verified", "checkedAt": "2026-08-26T18:30:00-07:00", "feature": "生产组合根验证翻图、移动、实体采集、携带物卡刷新、回营和旧会话拒绝的连续路径。" }
     ],
-    "tests": ["GameManagerCampaignLoopPlayModeTests: 14/14 passed"],
-    "verifiedAt": "2026-08-25T11:54:00-07:00"
+    "tests": [
+      "Unity 6000.5.9f1 CLI EditMode HuntCollectiblePresentationTests: 3/3 passed",
+      "Unity 6000.5.9f1 CLI PlayMode HuntCollectibleTray3DPlayModeTests: 1/1 passed",
+      "Unity 6000.5.9f1 CLI PlayMode ExplorationPort_CompletesTabletopRevealMoveHarvestReturnAndRejectsStaleSession: 1/1 passed",
+      "dotnet build GameLogic.csproj: 0 errors"
+    ],
+    "verifiedAt": "2026-08-26T18:30:00-07:00"
   },
-  "publishedBy": { "mode": "direct-implementation-reconciliation", "changeId": "" }
+  "implementationOutline": [
+    "携带物投影按稳定 ContentId 聚合重复 ItemInstance，并限制视觉卡牌数量而不裁剪完整统计。",
+    "HuntStatusBoard3D 持有只读 HuntCollectibleTray3D；HuntUIManager 继续从已提交的采集与事件事实刷新状态桌。",
+    "卡牌是 ViewLayer 投影，不进入 ActionQueue、不改变 Collectibles、不开启拖拽命令。"
+  ],
+  "publishedBy": { "mode": "direct-authority-sync", "changeId": "" }
 }

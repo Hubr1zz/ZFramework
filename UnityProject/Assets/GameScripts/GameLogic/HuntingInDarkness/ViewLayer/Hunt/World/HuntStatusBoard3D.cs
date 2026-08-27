@@ -15,8 +15,11 @@ namespace UI.Hunt
         private readonly List<TabletopEventChoiceCard3D> hunterCards = new();
         private HuntManager manager;
         private TabletopEventPrimaryCard3D summaryCard;
+        private HuntCollectibleTray3D collectibleTray;
 
         public int ActiveHunterCardCount => hunterCards.Count;
+        public int CollectibleCardCount => collectibleTray?.CardCount ?? 0;
+        public string CollectibleOwnerName => collectibleTray?.OwnerName ?? string.Empty;
         public string SelectedHunterName => manager?.SelectedHunter?.Name ?? string.Empty;
 
         public bool TryGetHunterAnchor(int hunterId, out Vector3 anchor)
@@ -61,6 +64,7 @@ namespace UI.Hunt
             PresentSummary();
             for (int index = 0; index < hunterCards.Count; index++)
                 PresentHunterCard(hunterCards[index], manager.ActiveHunters[index]);
+            collectibleTray?.Present(manager.SelectedHunter);
         }
 
         private void Rebuild()
@@ -81,6 +85,7 @@ namespace UI.Hunt
                 card.Clicked = () => SelectHunter(hunterId);
                 hunterCards.Add(card);
             }
+            collectibleTray = HuntCollectibleTray3D.Create(transform);
             Refresh();
         }
 
@@ -153,6 +158,7 @@ namespace UI.Hunt
         private void ClearCards()
         {
             summaryCard = null;
+            collectibleTray = null;
             hunterCards.Clear();
             foreach (Transform child in transform)
             {

@@ -603,6 +603,9 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return null;
             Assert.That(harvestPanel.IsOpen, Is.False);
             Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
+            int carriedStackCount = manager.ActiveHuntHunters[0].Collectibles.Where(item => item?.Data != null && item.Count > 0).Select(item => item.Data.ContentId).Distinct().Count();
+            Assert.That(statusBoard.CollectibleOwnerName, Is.EqualTo(manager.ActiveHuntHunters[0].Name));
+            Assert.That(statusBoard.CollectibleCardCount, Is.EqualTo(Mathf.Min(carriedStackCount, HuntStatusBoardLayout.MaximumCollectibleCards)), "采集提交后状态桌应立即投影权威携带物卡牌。");
 
             yield return WaitForActiveHuntSnapshot(persistence, coordinate, true);
             CampaignSnapshot harvestedSnapshot = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);

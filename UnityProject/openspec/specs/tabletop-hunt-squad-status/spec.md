@@ -46,6 +46,24 @@ Hunter cards and the retreat confirmation SHALL derive totals and material label
 - **THEN** both views show the same aggregate carried count
 - **AND** the visible material labels are compact while omitted kinds remain represented by an additional-kind count
 
+### Requirement: Selected hunter collectibles remain physical cards
+The world-space Hunt status board SHALL continuously project the selected living hunter's committed collectibles as face-up 3D resource cards. Card identity and ordering SHALL use stable item ContentId, while localized display names SHALL affect text only. The projection SHALL NOT create gameplay Actions, mutate collectibles, or enable drag commands.
+
+#### Scenario: Harvest or event resources commit
+- **WHEN** a Hunt harvest or event node adds, removes, or changes stacked collectibles
+- **THEN** the selected hunter's collectible tray refreshes from authoritative Hunt state
+- **AND** repeated stacks of one ContentId appear as one card with the aggregate count
+
+#### Scenario: Player selects a different hunter
+- **WHEN** a different living hunter becomes the Hunt action owner
+- **THEN** the collectible tray replaces its cards with that hunter's carried resources
+- **AND** the old hunter's cards cannot remain interactive or visible
+
+#### Scenario: More material kinds exist than the tabletop capacity
+- **WHEN** the selected hunter carries more distinct ContentIds than the bounded tray can display
+- **THEN** the tray displays a deterministic subset ordered by ContentId
+- **AND** the status text still reports the complete item and distinct-kind totals
+
 ### Requirement: Harvest remains physical on the normal map
 The normal 3D Hunt path SHALL open physical harvest cards even when a resource marker presentation position is temporarily unavailable, using the map interaction anchor as a bounded fallback.
 
