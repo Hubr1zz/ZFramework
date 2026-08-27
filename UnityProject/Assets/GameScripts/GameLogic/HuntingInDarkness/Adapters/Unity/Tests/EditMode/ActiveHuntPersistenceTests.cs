@@ -103,6 +103,31 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task SelectedHunterCommand_RoundTripsThroughExistingActiveHuntField()
+        {
+            HunterData template = CreateAsset<HunterData>("selected-hunter-template");
+            var first = new HunterInstance(template, 111);
+            var second = new HunterInstance(template, 112);
+            var settlement = new SettlementInstance { CurrentYear = 3 };
+            settlement.Hunters.Add(first);
+            settlement.Hunters.Add(second);
+            HuntManager source = CreateManager(settlement, null, null, 18);
+            source.OnEnter(new List<HunterInstance> { first, second }, settlement.CurrentYear);
+            using var session = new PlayableHuntActionSession(source, "encounter", source.BoundRoute.DestinationId);
+
+            HuntActorSelectionResult selection = await session.SelectActorAsync(second.InstanceId);
+            Assert.That(selection.Succeeded, Is.True, selection.Reason);
+            Assert.That(ActiveHuntSnapshotAdapter.TryCapture(settlement, source, session, "expedition-selected-hunter", out CampaignSnapshot captured, out string reason), Is.True, reason);
+            Assert.That(captured.ActiveHunt.SelectedHunterId, Is.EqualTo(second.InstanceId));
+            HuntManager destination = CreateManager(captured.Settlement, null, null, 19);
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(captured, destination, out PlayableHuntRuntimeState runtime, out _, out reason), Is.True, reason);
+            Assert.That(destination.TryRestore(runtime, out reason), Is.True, reason);
+
+            Assert.That(destination.SelectedHunter, Is.Not.Null);
+            Assert.That(destination.SelectedHunter.InstanceId, Is.EqualTo(second.InstanceId));
+        }
+
+        [Test]
         public void Restore_RejectsDestinationOrBundleMismatchBeforeMutatingCollectibles()
         {
             HunterData template = CreateAsset<HunterData>("hunter-template-mismatch");

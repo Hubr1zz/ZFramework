@@ -32,6 +32,12 @@ title: "活动狩猎检查点与恢复"
 - **THEN** GameManager SHALL 冻结新的活动狩猎载荷
 - **AND** 退出保存 SHALL 使用最近一次完整载荷，不序列化正在执行中的半成品 Action
 
+#### Scenario: The player commits another Hunt action owner
+
+- **WHEN** 当前 Hunt session 通过 ActionQueue 提交不同的存活小队成员
+- **THEN** Runner SHALL 在同一提交边界冻结包含新 `SelectedHunterId` 的活动狩猎载荷
+- **AND** 恢复该载荷 SHALL 继续使用相同猎人作为默认行动者
+
 ### Requirement: Active Hunt restore requires the same content generation
 
 活动狩猎 schema v2 SHALL 携带非空 ContentBundleId。恢复 SHALL 从当前发布 Bundle 按 DestinationId 与年份只读解析精确 RoutePlan，并以 Ordinal 比较存档 BundleId、当前 BundleId 与 RoutePlan BundleId；任一不一致 SHALL 在构建地图或修改携带物前 fail closed。缺少 Bundle 身份的 active schema v1 SHALL NOT 自动迁移；旧 Settlement-only 存档 SHALL 继续兼容。

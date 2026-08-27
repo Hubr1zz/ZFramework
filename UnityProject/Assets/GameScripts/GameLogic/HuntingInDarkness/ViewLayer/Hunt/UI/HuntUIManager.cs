@@ -48,7 +48,7 @@ namespace UI.Hunt
             if (_initialized)
             {
                 if (statusBoard3D != null)
-                    statusBoard3D.Initialize(_huntMgr);
+                    statusBoard3D.Initialize(_huntMgr, explorationPort);
                 Refresh();
                 return;
             }
@@ -61,6 +61,7 @@ namespace UI.Hunt
             EventBus.Subscribe<HuntTileInteractionCommittedEvent>(OnTileInteractionCommitted);
             EventBus.Subscribe<HarvestCommittedEvent>(OnHarvestCommitted);
             EventBus.Subscribe<HuntEventNodeCommittedEvent>(OnHuntEventNodeCommitted);
+            EventBus.Subscribe<HuntActorSelectionCommittedEvent>(OnHuntActorSelectionCommitted);
             _initialized = true;
         }
 
@@ -69,7 +70,7 @@ namespace UI.Hunt
             if (huntVisualizer != null)
             {
                 statusBoard3D = HuntStatusBoard3D.Create(huntVisualizer.transform);
-                statusBoard3D.Initialize(_huntMgr);
+                statusBoard3D.Initialize(_huntMgr, explorationPort);
                 return;
             }
 
@@ -144,6 +145,12 @@ namespace UI.Hunt
 
         private void OnHuntEventNodeCommitted(HuntEventNodeCommittedEvent _) => Refresh();
 
+        private void OnHuntActorSelectionCommitted(HuntActorSelectionCommittedEvent evt)
+        {
+            if (explorationPort != null && evt.SessionId == explorationPort.SessionId)
+                Refresh();
+        }
+
         // ─── uGUI 工厂 ────────────────────────────────────────────
 
         private GameObject NewPanel(string name, Vector2 aMin, Vector2 aMax)
@@ -188,6 +195,7 @@ namespace UI.Hunt
             EventBus.Unsubscribe<HuntTileInteractionCommittedEvent>(OnTileInteractionCommitted);
             EventBus.Unsubscribe<HarvestCommittedEvent>(OnHarvestCommitted);
             EventBus.Unsubscribe<HuntEventNodeCommittedEvent>(OnHuntEventNodeCommitted);
+            EventBus.Unsubscribe<HuntActorSelectionCommittedEvent>(OnHuntActorSelectionCommitted);
             ClearResourcePresentationCallbacks();
             if (statusBoard3D != null)
                 Destroy(statusBoard3D.gameObject);

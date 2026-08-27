@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "61256c0fc20b405c4aaa4600091862c5c3b48b01638515865ea7e389ffe35f94",
-  "inputManifestDigest": "c9285dbe1752b35fc25341e4c3f14f21ea98e25597cba4e3719bd07949915973",
-  "outputDigest": "3ac189f16fdfecad31920eef4fb168e26ceda029fecca9da527424694d9864af",
+  "inputDigest": "67dfa64797d319e63a32081a90496203e4f5a288e656bb683367c378a26f5fd8",
+  "inputManifestDigest": "30070e092dac450c1d14cf865b66e6ac499657700b52fb672d196935c39389ad",
+  "outputDigest": "a7e229b8f0f29a2db6370b471bb79763920ffcdb794fc982c35152ca20baac1f",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -56,6 +56,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntActorSelectionActions.cs",
+      "sha256": "8e8e9989102a1c49a070716a801c4fafc82183e2d432f418c8685a5fd6a12823",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntHarvestActions.cs",
       "sha256": "b005c71d5df53e86f4c56c5bf5f7cf22a1a568808eab100ff21e69c409d092be",
       "state": "current"
@@ -77,7 +82,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-      "sha256": "0009b500aa8f9d110961813f5e919a7677df6a044eca23a4c9e9b59cb8a7cd4c",
+      "sha256": "9333b368c80d36bc3e2694a08bce7145c4ebf4e25f8e933a67b49babfbbaaedd",
       "state": "current"
     },
     {
@@ -251,6 +256,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntExplorationPort.cs",
+      "sha256": "5a9e3fa9c8080c085458327b56ffc50de30bf78d204dc5b688f252d3c4364e8b",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HexMapGenerator.cs",
       "sha256": "98c571ced5800921e24afeb21d621b9cff5f78b59e2b10259a1891aa5cf04484",
       "state": "current"
@@ -262,7 +272,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
-      "sha256": "937d53273a8f9c63b0d0dbea7f91b746191b299aead36270aaed5ae034e2c052",
+      "sha256": "64d822fff59959ca780b96e6e5d2b99613cb523a8d7708e66f4c5447dbadcfb6",
       "state": "current"
     },
     {
@@ -402,7 +412,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
-      "sha256": "23631b2ff6bd22cc95f5cee79918905f3ce5e193a6a97f34687bc1b34e7eeeb0",
+      "sha256": "f21e166971a98b5580b3b3934548ec78b9779cf979792f84b8829422b80334ed",
       "state": "current"
     },
     {
@@ -476,6 +486,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActorSelectionTests.cs",
+      "sha256": "7e144a87a541a26f33ed16b5f90ae18ae498317da2047db5b5653595de57afc8",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
       "sha256": "ac66f7859a1975d3428069dff5769c78373836f9cf805a5828a3e53fa9280933",
       "state": "current"
@@ -492,7 +507,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
-      "sha256": "c55cfe8ec0f95430c77585b82761aad933c8b438276596a4bb9660d1aa95a352",
+      "sha256": "aa5da28a4647646ecba715a2931c5e72dfd4b94b50bbc486437c281d20f8e418",
       "state": "current"
     },
     {
@@ -608,6 +623,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "sha256": "a90e9da7f5a051e399bc1a563fb8d87971498b980293f05b3f1bd3701131bd29",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntActorSelection3DPlayModeTests.cs",
+      "sha256": "36e442e705cc9b0219c39fe14221aae42e0dd5be7aa662ccd9d916ba5b396001",
       "state": "current"
     },
     {
@@ -917,7 +937,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
-      "sha256": "e8c590f599cb09d6ad600d4afdcbc58b55effcd6d13291598d9d2a506e530951",
+      "sha256": "234abc37bc4c257135f17af6a99ce7c6642523497b0382d48118a91f08167e43",
       "state": "current"
     },
     {
@@ -952,7 +972,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs",
-      "sha256": "bd8d5d4c64d6d4581bd0e89471d9dd49c87e0b4c99d98eb01def44857e3d4377",
+      "sha256": "ec75c7ede2110ef34fbd069cb22434135b6d6aa60ba672297e3f06dcfa5eae3e",
       "state": "current"
     },
     {
@@ -1097,12 +1117,12 @@
     },
     {
       "path": "openspec/specs/active-hunt-persistence/implementation.json",
-      "sha256": "3b0a0e8444352fcec7633f03c8deb8771b8b41298ea89d160e0b37b63615102d",
+      "sha256": "f72a3df4892fbf57f25061e8be2656000e7e4ea34ed8a9bb1422dbf7f3bdbfbd",
       "state": "current"
     },
     {
       "path": "openspec/specs/active-hunt-persistence/spec.md",
-      "sha256": "f3c37e7bf4fa431c7b0635b336b153f37d4913abc9a6fc4ef5649d31a25f6678",
+      "sha256": "f20445c8e860ebe0b24f56d1903c862761de4b42f4262d010e79d69377395c98",
       "state": "current"
     },
     {
@@ -1327,7 +1347,7 @@
     },
     {
       "path": "openspec/specs/hunt-squad-action-availability/implementation.json",
-      "sha256": "625f4cef22722d6379a48a5fc5f6feb1e845f87575d3df601f43f7ffdf6f1d50",
+      "sha256": "5f89d094c4d43d9aa669cfeedf3f53e5ddf67df29398c88ac19f6c81a84fca65",
       "state": "current"
     },
     {
@@ -1587,12 +1607,12 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-squad-status/implementation.json",
-      "sha256": "faa71d7f515ae9df68234ae05313192950f04102d88f3f8916d5a16fda8af1c7",
+      "sha256": "5d1e919846c78d3a444b277a99119071edf580c164da5a2ad1a1d894eb7b0f24",
       "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-hunt-squad-status/spec.md",
-      "sha256": "1988d125c97dee0d0925c7f761fba718287c97f82a4948c7e12e73b7db13f9c8",
+      "sha256": "aa23ab5775dc0f9c7196acb9829244f37f0e718049556110b23b6b91882e1647",
       "state": "current"
     },
     {
@@ -1737,17 +1757,16 @@
     }
   ],
   "counts": {
-    "verified": 5,
+    "verified": 7,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
     "unknown": 3,
     "blocked": 0,
-    "stale": 56
+    "stale": 54
   },
   "attentionRequired": [
     "action-environment-lifecycle",
-    "active-hunt-persistence",
     "campaign-content-cache-lifecycle",
     "campaign-content-preflight-assembly",
     "campaign-persistence",
@@ -1769,7 +1788,6 @@
     "hunt-return-outcome-checkpoint",
     "hunt-route-entry-context",
     "hunt-session-event-occurrence-recovery",
-    "hunt-squad-action-availability",
     "hunt-tabletop-harvest",
     "hunt-tile-reveal-events",
     "settlement-content-plan-lifecycle",
@@ -1810,22 +1828,17 @@
   "staleEvidence": [
     {
       "capability": "action-environment-lifecycle",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "action-environment-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs",
       "state": "stale"
     },
     {
       "capability": "action-environment-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "active-hunt-persistence",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "active-hunt-persistence",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
     },
     {
@@ -2186,26 +2199,6 @@
     {
       "capability": "hunt-session-event-occurrence-recovery",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-squad-action-availability",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-squad-action-availability",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-squad-action-availability",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-squad-action-availability",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs",
       "state": "stale"
     },
     {
@@ -2818,7 +2811,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Combat/PlayableCombatActionSession.cs",
@@ -2842,10 +2835,10 @@
       "id": "active-hunt-persistence",
       "label": "活动狩猎检查点与恢复",
       "status": "verified",
-      "effectiveStatus": "stale",
-      "progress": 0,
+      "effectiveStatus": "verified",
+      "progress": 100,
       "verificationStatus": "verified",
-      "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份；恢复事务通过 Settlement/Hunt phase managers 发布候选 generations，再由 Hunt coordinator 重建当前 session 与表现。",
+      "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份和已提交的 SelectedHunterId；恢复事务重建当前 session、表现与默认行动者。",
       "designSources": [],
       "sources": [
         "openspec/specs/active-hunt-persistence/spec.md",
@@ -2859,7 +2852,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignEncounterHandoffTransaction.cs",
@@ -2887,7 +2880,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
-          "state": "stale"
+          "state": "current"
         }
       ]
     },
@@ -3738,7 +3731,7 @@
       "id": "hunt-squad-action-availability",
       "label": "狩猎小队行动资格与失能交接",
       "status": "verified",
-      "effectiveStatus": "stale",
+      "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "地图、资源点、采集事务、事件提交与 3D 状态桌共用同一存活远征猎人资格；当前行动猎人死亡时在提交事实前交接给存活队员，全员失能后停止探索与采集但保留实体回营路径。",
@@ -3755,11 +3748,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntHarvestActions.cs",
@@ -3767,11 +3760,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntHarvestActionSessionTests.cs",
@@ -4889,7 +4882,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "正常 3D 狩猎以世界空间状态桌展示目的地与猎人状态；选中猎人的权威 Collectibles 按稳定 ContentId 聚合为持续存在的 3D 资源卡，并在采集、事件提交和行动者切换后刷新。",
+      "summary": "正常 3D 狩猎以世界空间状态桌展示目的地与猎人状态；实体猎人卡通过当前 Hunt session port 提交 ActionQueue 玩法命令，提交后刷新行动者与其 3D 携带物卡。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-hunt-squad-status/spec.md",
@@ -4903,6 +4896,14 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntActorSelectionActions.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntExplorationPort.cs",
           "state": "current"
         },
         {
@@ -4923,6 +4924,14 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntCollectibleTray3DPlayModeTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActorSelectionTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntActorSelection3DPlayModeTests.cs",
           "state": "current"
         },
         {

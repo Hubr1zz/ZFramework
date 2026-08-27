@@ -323,11 +323,12 @@ namespace HuntingInDarkness.Adapter.Tests
             var input = new RetryInput(false);
             using var rig = new SessionRig(input);
             HuntTileCommandResult first = await rig.Session.InteractTileAsync(rig.Interactable.AxialCoord);
-            rig.Manager.SelectHunter(rig.SecondHunter.InstanceId);
+            HuntActorSelectionResult selection = await rig.Session.SelectActorAsync(rig.SecondHunter.InstanceId);
 
             HuntRetreatCommandResult retreat = await rig.Session.PrepareRetreatAsync(1);
 
             Assert.That(first.Succeeded, Is.False);
+            Assert.That(selection.Succeeded, Is.True, selection.Reason);
             Assert.That(retreat.Succeeded, Is.True, retreat.Reason);
             Assert.That(input.NarrativeActorIds, Is.EqualTo(new[] { rig.Hunter.InstanceId }));
         }

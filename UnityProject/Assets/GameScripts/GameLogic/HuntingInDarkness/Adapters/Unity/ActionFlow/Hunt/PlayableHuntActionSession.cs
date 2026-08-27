@@ -115,6 +115,27 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             }
         }
 
+        public async UniTask<HuntActorSelectionResult> SelectActorAsync(int hunterId, CancellationToken cancellationToken = default)
+        {
+            if (!IsActive) return HuntActorSelectionResult.Failed("狩猎会话已经结束");
+            if (IsRunning || resourceSelectionInFlight || PlayableHuntInputGuard.IsBlocked) return HuntActorSelectionResult.Failed("狩猎桌面正在处理其他交互");
+            if (gameplayLocked) return HuntActorSelectionResult.Failed("遭遇事件正在等待交接，当前狩猎操作已暂停");
+            if (returnCheckpointLocked) return HuntActorSelectionResult.Failed("回营检查点已锁定，请直接重试回营");
+            if (HasActiveHarvest) return HuntActorSelectionResult.Failed("请先完成或离开当前资源采集");
+
+            HunterInstance requested = manager.ActiveHunters.Find(hunter => hunter != null && hunter.InstanceId == hunterId);
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle actor = GetHunterHandle(hunterId, requested?.Name);
+            ReactorEntityHandle squad = environment.EntityHandles.GetOrCreate("hunt-squad", "active", "狩猎小队");
+            var action = new SelectHuntActorAction(manager, hunterId, SessionId, outbox, actor, squad);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            if (!outcome.IsSuccess)
+                return string.IsNullOrWhiteSpace(action.Result.Reason) ? HuntActorSelectionResult.Failed(outcome.Reason) : action.Result;
+            if (action.Result.Changed)
+                await NotifyCheckpointWhenIdleAsync();
+            return action.Result;
+        }
+
         public async UniTask<PlayableHarvestTransaction> PrepareHarvestAsync(ResourcePointInstance point)
         {
             if (!IsActive || gameplayLocked || !await ResumePendingEventsAsync() || returnCheckpointLocked || point == null) return null;

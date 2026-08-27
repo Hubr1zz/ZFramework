@@ -34,6 +34,7 @@ namespace HuntingInDarkness.Hunt
     {
         Guid SessionId { get; }
         bool TryCreateSnapshot(Vector2Int coordinate, int resourcePointIndex, out HuntExplorationSnapshot snapshot);
+        UniTask<HuntActorSelectionResult> SubmitActorSelectionAsync(int hunterId);
         UniTask<HuntTileCommandResult> SubmitTileAsync(HuntExplorationSnapshot snapshot);
         UniTask<bool> SubmitResourcePointAsync(HuntExplorationSnapshot snapshot);
         UniTask<PlayableHarvestTransaction> PrepareHarvestAsync(HuntExplorationSnapshot target);
@@ -53,6 +54,7 @@ namespace HuntingInDarkness.Hunt
 
         public Guid SessionId { get; }
         public bool TryCreateSnapshot(Vector2Int coordinate, int resourcePointIndex, out HuntExplorationSnapshot snapshot) => runtime.TryCreateSnapshot(SessionId, coordinate, resourcePointIndex, out snapshot);
+        public UniTask<HuntActorSelectionResult> SubmitActorSelectionAsync(int hunterId) => runtime.SubmitActorSelectionAsync(SessionId, hunterId);
         public UniTask<HuntTileCommandResult> SubmitTileAsync(HuntExplorationSnapshot snapshot) => runtime.SubmitTileAsync(SessionId, snapshot);
         public UniTask<bool> SubmitResourcePointAsync(HuntExplorationSnapshot snapshot) => runtime.SubmitResourcePointAsync(SessionId, snapshot);
         public UniTask<PlayableHarvestTransaction> PrepareHarvestAsync(HuntExplorationSnapshot target) => runtime.PrepareHarvestAsync(SessionId, target);
@@ -64,11 +66,13 @@ namespace HuntingInDarkness.Hunt
     {
         private readonly HuntManager manager;
         private readonly PlayableHuntActionSession session;
+        private readonly Func<bool> isCurrentGeneration;
 
-        public HuntExplorationRuntime(HuntManager manager, PlayableHuntActionSession session)
+        public HuntExplorationRuntime(HuntManager manager, PlayableHuntActionSession session, Func<bool> isCurrentGeneration = null)
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.session = session ?? throw new ArgumentNullException(nameof(session));
+            this.isCurrentGeneration = isCurrentGeneration ?? (() => true);
             Port = new HuntExplorationSessionPort(this, session.SessionId);
         }
 
@@ -92,6 +96,12 @@ namespace HuntingInDarkness.Hunt
             return session.InteractTileAsync(snapshot.Coordinate);
         }
 
+        internal UniTask<HuntActorSelectionResult> SubmitActorSelectionAsync(Guid leaseSessionId, int hunterId)
+        {
+            if (!IsCurrentLease(leaseSessionId)) return UniTask.FromResult(HuntActorSelectionResult.Failed("当前没有可用的狩猎交互会话。"));
+            return session.SelectActorAsync(hunterId);
+        }
+
         internal UniTask<bool> SubmitResourcePointAsync(Guid leaseSessionId, HuntExplorationSnapshot snapshot)
         {
             if (!TryValidateSnapshot(leaseSessionId, snapshot, true, out _)) return UniTask.FromResult(false);
@@ -111,7 +121,7 @@ namespace HuntingInDarkness.Hunt
             return session.AdvanceHarvestAsync(transaction, cardIndex);
         }
 
-        private bool IsCurrentLease(Guid leaseSessionId) => session.IsActive && session.SessionId == leaseSessionId && Port.SessionId == leaseSessionId;
+        private bool IsCurrentLease(Guid leaseSessionId) => isCurrentGeneration() && session.IsActive && session.SessionId == leaseSessionId && Port.SessionId == leaseSessionId;
 
         private bool TryValidateSnapshot(Guid leaseSessionId, HuntExplorationSnapshot snapshot, bool requireResourcePoint, out string reason)
         {

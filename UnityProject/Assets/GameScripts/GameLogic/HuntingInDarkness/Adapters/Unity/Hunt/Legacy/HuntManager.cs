@@ -484,11 +484,18 @@ namespace HuntingInDarkness.Hunt
             return _navigation.IsAdjacent(ToCore(coord));
         }
 
-        public void SelectHunter(int hunterId)
+        internal bool TryCommitSelectedHunter(int hunterId, out HunterInstance previous, out HunterInstance selected, out string reason)
         {
-            HunterInstance selected = ActiveHunters.Find(hunter => hunter != null && hunter.InstanceId == hunterId && hunter.IsAlive);
-            if (selected != null)
-                SelectedHunter = selected;
+            previous = SelectedHunter;
+            selected = ActiveHunters.Find(hunter => hunter != null && hunter.InstanceId == hunterId && hunter.IsAlive);
+            if (selected == null)
+            {
+                reason = "选择的猎人不属于当前远征或已失去行动能力。";
+                return false;
+            }
+            SelectedHunter = selected;
+            reason = string.Empty;
+            return true;
         }
 
         internal HunterInstance EnsureSelectedHunterAvailable()

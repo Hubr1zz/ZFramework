@@ -94,7 +94,7 @@ namespace Core
                     reason = "狩猎 ActionSession 工厂返回空结果。";
                     return false;
                 }
-                var candidateExploration = new HuntExplorationRuntime(Manager, candidate);
+                var candidateExploration = new HuntExplorationRuntime(Manager, candidate, () => IsCurrent);
                 actionSession = candidate;
                 exploration = candidateExploration;
                 reason = string.Empty;

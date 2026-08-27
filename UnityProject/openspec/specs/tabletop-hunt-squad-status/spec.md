@@ -20,11 +20,21 @@ The normal 3D Hunt map SHALL present destination progress and up to four deploye
 - **THEN** the status board appears beside the map with one summary card and one card per deployed hunter up to squad capacity
 
 ### Requirement: Hunter cards select the action owner
-Each living hunter card SHALL submit its hunter identity through `HuntManager.SelectHunter`, and SHALL ignore selection while another tabletop Hunt interaction owns input.
+Each living hunter card SHALL submit its hunter identity through the current Hunt session port. The Hunt ActionQueue SHALL validate and commit a changed living squad member before publishing one selection fact and one active-Hunt checkpoint. Presentation-only highlight, pending, and failure state SHALL NOT enter the ActionQueue.
 
 #### Scenario: Player selects another hunter
 - **WHEN** Hunt input is available and the player clicks a different living hunter card
 - **THEN** `SelectedHunter` changes and the cards refresh their selected state
+- **AND** the committed selection is included in the next active-Hunt checkpoint
+
+#### Scenario: Player selects the current hunter again
+- **WHEN** the submitted living hunter is already the authoritative action owner
+- **THEN** the command succeeds without publishing another selection fact or checkpoint
+
+#### Scenario: Selection cannot enter the current Hunt session
+- **WHEN** the session is stale, another Hunt gameplay interaction owns input, or the requested hunter is unavailable
+- **THEN** the command is rejected without changing `SelectedHunter`
+- **AND** the world-space board restores interaction from authoritative state
 
 ### Requirement: Cards reflect committed Hunt state
 The status board SHALL refresh from Hunt ActionQueue committed tile, harvest, and event-node facts and SHALL show current body-part health, willpower, carried-resource count, and a bounded material breakdown.
