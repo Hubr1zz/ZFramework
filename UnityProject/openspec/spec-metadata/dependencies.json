@@ -6,7 +6,14 @@
       "label": "ZFramework 启动生命周期",
       "category": "system",
       "readiness": "implemented",
-      "specPath": "openspec/specs/tengine-startup-lifecycle/spec.md"
+      "specPath": "openspec/specs/zframework-startup-lifecycle/spec.md"
+    },
+    {
+      "id": "player-build-bootstrap",
+      "label": "Player 构建与 ZFramework 启动入口",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/player-build-bootstrap/spec.md"
     },
     {
       "id": "game-manager-orchestration",
@@ -367,6 +374,16 @@
     }
   ],
   "edges": [
+    {
+      "id": "player-build-bootstrap--requires--zframework-startup-lifecycle",
+      "from": "player-build-bootstrap",
+      "to": "zframework-startup-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Player 首场景通过 GameEntry、框架模块与 Procedure 链进入项目业务入口",
+      "gapId": "",
+      "blocksImplementation": false
+    },
     {
       "id": "table-driven-hunter-symptoms--requires--table-driven-hunter-traits",
       "from": "table-driven-hunter-symptoms",

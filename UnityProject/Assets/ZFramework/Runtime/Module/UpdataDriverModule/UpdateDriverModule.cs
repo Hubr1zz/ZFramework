@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace ZFramework
 {
-    internal class UpdateDriverModule : Module, IUpdateDriver
+    internal class UpdateDriver : Module, IUpdateDriver
     {
         private GameObject _entity;
         private MainBehaviour _behaviour;

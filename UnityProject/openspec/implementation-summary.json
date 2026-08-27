@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "9a022752c6a54127c6006c7d5a3c27fb10627e5e4a5f9f6a94c1b998d2c8cfc6",
-  "inputManifestDigest": "5e6bb35c7b58e9bfeb831148d1c3213da16aa3c5d1a95a171b6f9313536b6bdf",
-  "outputDigest": "a1f65135564af3aee46f2432e51fd81ece0cf6677e22d302b2bcdf2f9eb0b515",
+  "inputDigest": "b194c8f61dd78d6b3cef2c99b3a43c00d58bfd59095e1d60678ef32b0dd2a04b",
+  "inputManifestDigest": "00b805bea55526b6c5cdf4f6b24e87ec41aa19778ebc3e2edf586a8631e86943",
+  "outputDigest": "fee1c3d99d6e2272ed73f851b28968b9674463dd9d5548e43788298f8b172445",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -13,6 +13,11 @@
     {
       "path": "Assets/GameScripts/GameEntry.cs",
       "sha256": "7281c2559300c4aa885a52ca6c4d036274ce5b1ae57287f9fa9c7249c4047eca",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/GameApp.cs",
+      "sha256": "1531962570397108165df7080acb8e7e3e8020a0ded89be2670e99579c0d75a5",
       "state": "current"
     },
     {
@@ -1121,11 +1126,6 @@
       "state": "current"
     },
     {
-      "path": "Assets/GameScripts/HotFix/GameLogic/GameApp.cs",
-      "sha256": "",
-      "state": "missing"
-    },
-    {
       "path": "Assets/GameScripts/Procedure/ProcedureInitResources.cs",
       "sha256": "e3c422d1a6e85eca35b111f47aa653d057642353eb42cbbefa1eea10b61f9dfe",
       "state": "current"
@@ -1136,8 +1136,18 @@
       "state": "current"
     },
     {
+      "path": "Assets/ZFramework/Runtime/Module/UpdataDriverModule/UpdateDriverModule.cs",
+      "sha256": "b05150aab923e4a8d76624adf2c188d402da009d874b0f18654060d91d32ae9b",
+      "state": "current"
+    },
+    {
+      "path": "ProjectSettings/EditorBuildSettings.asset",
+      "sha256": "2d689e8e21500dbc0630f00e47684e03ec5ba48dcc391305894bb95bea84e648",
+      "state": "current"
+    },
+    {
       "path": "openspec/spec-metadata/dependencies.json",
-      "sha256": "9089286186d514db4d712fe2c9fe7e336a2e2668358e1bc410cb81ee94cf288c",
+      "sha256": "8edaead67ea9749baa25ad977acb1b655665845a8e37e64828b4fd0f50b27688",
       "state": "current"
     },
     {
@@ -1187,7 +1197,7 @@
     },
     {
       "path": "openspec/specs/campaign-persistence/spec.md",
-      "sha256": "ca9163e9c69d9baa50b149cbbca8627bdb77426a15c08bdf7506347399a82508",
+      "sha256": "0dd8834f0519cb5b8777425f2a24373cdfc6b388d9e6eba557841fc4eb1322fe",
       "state": "current"
     },
     {
@@ -1277,7 +1287,7 @@
     },
     {
       "path": "openspec/specs/expedition-build-progression-loop/spec.md",
-      "sha256": "17dfba2113c22c3337e1b18dbc03e585dbba31dd2c681ba3d0cd158d66c95cf2",
+      "sha256": "4160ed0b8a70f0cecbdfa4f9d38d13df9df1399c7ae002e1f2797e4a1c0b99e2",
       "state": "current"
     },
     {
@@ -1357,7 +1367,7 @@
     },
     {
       "path": "openspec/specs/hunt-return-outcome-checkpoint/spec.md",
-      "sha256": "b6b6bb345d20971dd53652ad0490c654266a0f40f9b28d2c275ba711c9f8062f",
+      "sha256": "ee25e3af14c1194e936bc8545a9aa27f35f55476ebc0073bdb062139db6466c8",
       "state": "current"
     },
     {
@@ -1411,6 +1421,16 @@
       "state": "current"
     },
     {
+      "path": "openspec/specs/player-build-bootstrap/implementation.json",
+      "sha256": "76983890352d20932f80e62b153d0903fb625f42063654e2f652d6eeab8f6460",
+      "state": "current"
+    },
+    {
+      "path": "openspec/specs/player-build-bootstrap/spec.md",
+      "sha256": "18097f6c9cf78ac11f1c0c53d8be1cfd6a9f1e136c30e6417a7339b9d307e053",
+      "state": "current"
+    },
+    {
       "path": "openspec/specs/settlement-content-plan-lifecycle/implementation.json",
       "sha256": "06b7bbaf8b97ef31f7ff1c8611836365eec3b086173848c92392938ec5c65a24",
       "state": "current"
@@ -1427,7 +1447,7 @@
     },
     {
       "path": "openspec/specs/settlement-facility-duty/spec.md",
-      "sha256": "ac5a2e171302f92a177b72b7a389126c2c1f8c867b199a34f8ac99d7342056b9",
+      "sha256": "da4dce52c5620e828670ac37ba6f64edfe238b7eb6426dece12d6a709245b2e1",
       "state": "current"
     },
     {
@@ -1762,7 +1782,7 @@
     },
     {
       "path": "openspec/specs/zframework-startup-lifecycle/implementation.json",
-      "sha256": "8ff7c0ba7e5aa9fd7eb123c814b14f1988fae128f993333c3c36a5e13097953d",
+      "sha256": "386eeac74e96d115d3cfa9d226de0525d123a2eb1fb97f1709bc1e7a92d39345",
       "state": "current"
     },
     {
@@ -1792,7 +1812,7 @@
     }
   ],
   "counts": {
-    "verified": 8,
+    "verified": 9,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
@@ -1825,6 +1845,7 @@
     "hunt-tabletop-harvest",
     "hunt-tile-reveal-events",
     "settlement-content-plan-lifecycle",
+    "settlement-facility-duty",
     "settlement-timeline-event-identity",
     "settlement-workshop-crafting",
     "showdown-phase-orchestration",
@@ -1855,7 +1876,6 @@
     "tabletop-settlement-notices",
     "tabletop-settlement-recovery",
     "tabletop-settlement-workshop-construction",
-    "zframework-startup-lifecycle",
     "zworkflow-workbench-layout"
   ],
   "verificationRequired": [],
@@ -1954,6 +1974,11 @@
       "capability": "campaign-persistence",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
+    },
+    {
+      "capability": "campaign-persistence",
+      "path": "openspec/specs/campaign-persistence/implementation.json",
+      "state": "spec-binding-invalid"
     },
     {
       "capability": "campaign-startup-transaction",
@@ -2111,6 +2136,11 @@
       "state": "stale"
     },
     {
+      "capability": "expedition-build-progression-loop",
+      "path": "openspec/specs/expedition-build-progression-loop/implementation.json",
+      "state": "spec-binding-invalid"
+    },
+    {
       "capability": "hunt-content-bundle-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
       "state": "stale"
@@ -2179,6 +2209,11 @@
       "capability": "hunt-return-outcome-checkpoint",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HuntReturnRules.cs",
       "state": "unverified"
+    },
+    {
+      "capability": "hunt-return-outcome-checkpoint",
+      "path": "openspec/specs/hunt-return-outcome-checkpoint/implementation.json",
+      "state": "spec-binding-invalid"
     },
     {
       "capability": "hunt-route-entry-context",
@@ -2269,6 +2304,11 @@
       "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
+    },
+    {
+      "capability": "settlement-facility-duty",
+      "path": "openspec/specs/settlement-facility-duty/implementation.json",
+      "state": "spec-binding-invalid"
     },
     {
       "capability": "settlement-timeline-event-identity",
@@ -2744,31 +2784,6 @@
       "capability": "tabletop-settlement-workshop-construction",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs",
       "state": "stale"
-    },
-    {
-      "capability": "zframework-startup-lifecycle",
-      "path": "Assets/GameScripts/GameEntry.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "zframework-startup-lifecycle",
-      "path": "Assets/GameScripts/HotFix/GameLogic/GameApp.cs",
-      "state": "missing"
-    },
-    {
-      "capability": "zframework-startup-lifecycle",
-      "path": "Assets/GameScripts/Procedure/ProcedureInitResources.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "zframework-startup-lifecycle",
-      "path": "Assets/GameScripts/Procedure/ProcedureStartGame.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "zframework-startup-lifecycle",
-      "path": "openspec/specs/zframework-startup-lifecycle/implementation.json",
-      "state": "spec-binding-invalid"
     }
   ],
   "requirements": [
@@ -3849,6 +3864,31 @@
       ]
     },
     {
+      "id": "player-build-bootstrap",
+      "label": "Player 构建与 ZFramework 启动入口",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "Player 已包含唯一 ZFramework 启动场景，IUpdateDriver 实现遵循 ModuleSystem 反射命名约定；Windows 构建和实际图形启动烟雾验证通过。",
+      "designSources": [],
+      "sources": [
+        "openspec/specs/player-build-bootstrap/spec.md",
+        "openspec/specs/player-build-bootstrap/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
+      ],
+      "evidence": [
+        {
+          "path": "ProjectSettings/EditorBuildSettings.asset",
+          "state": "current"
+        },
+        {
+          "path": "Assets/ZFramework/Runtime/Module/UpdataDriverModule/UpdateDriverModule.cs",
+          "state": "current"
+        }
+      ]
+    },
+    {
       "id": "settlement-content-plan-lifecycle",
       "label": "营地内容计划生命周期",
       "status": "verified",
@@ -3909,7 +3949,7 @@
       "id": "settlement-facility-duty",
       "label": "配置化营地设施值守",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "设施值守已接入营地 ActionQueue、配置化季节坐标、存档迁移、出猎双门禁与世界空间卡牌交互；新战役会保留当前内容计划，使正式阶段 Session 可读取值守定义并跨季结算人口。",
@@ -5404,11 +5444,11 @@
     {
       "id": "zframework-startup-lifecycle",
       "label": "ZFramework 启动生命周期",
-      "status": "implemented",
-      "effectiveStatus": "stale",
-      "progress": 0,
-      "verificationStatus": "confirmed",
-      "summary": "项目 Wiki 描述的启动主链已由入口、资源初始化、最终流程和 GameApp 源码交叉核验。",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "启动主链已由入口、资源初始化、最终流程、GameApp 源码以及实际 Player 启动烟雾交叉验证。",
       "designSources": [
         {
           "sourceId": "",
@@ -5429,19 +5469,19 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameEntry.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/Procedure/ProcedureInitResources.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/Procedure/ProcedureStartGame.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
-          "path": "Assets/GameScripts/HotFix/GameLogic/GameApp.cs",
-          "state": "missing"
+          "path": "Assets/GameScripts/GameLogic/GameApp.cs",
+          "state": "current"
         }
       ]
     },

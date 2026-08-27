@@ -1,56 +1,57 @@
 {
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
-  "capability": "tengine-startup-lifecycle",
-  "specHash": "1990d61ebac19372e43bb9dbf897cb2e4f0058e923f2326fe97d9b8b0f7f0125",
+  "capability": "zframework-startup-lifecycle",
+  "specHash": "8e5da64a4a71cff6c3b9c1130fc302ed6237c264cd6a496398acefe438e961fd",
   "codeReadiness": "implemented",
   "verification": {
-    "status": "confirmed",
-    "summary": "项目 Wiki 描述的启动主链已由入口、资源初始化、最终流程和 GameApp 源码交叉核验。",
-    "validatedAgainstSpecHash": "1990d61ebac19372e43bb9dbf897cb2e4f0058e923f2326fe97d9b8b0f7f0125",
+    "status": "verified",
+    "summary": "启动主链已由入口、资源初始化、最终流程、GameApp 源码以及实际 Player 启动烟雾交叉验证。",
+    "validatedAgainstSpecHash": "8e5da64a4a71cff6c3b9c1130fc302ed6237c264cd6a496398acefe438e961fd",
     "evidence": [
       {
         "guid": "9cdc4a1084443e8408c7e46ec9e661c7",
         "displayPath": "Assets/GameScripts/GameEntry.cs",
-        "fileHash": "fa7911e13e0caf2a6254021d374af17ca79514dafba20212a9e0d4dc224455fc",
+        "fileHash": "7281c2559300c4aa885a52ca6c4d036274ce5b1ae57287f9fa9c7249c4047eca",
         "line": 4,
         "feature": "在 Awake 中取得核心模块并启动首个 Procedure",
         "status": "verified",
-        "checkedAt": "2026-07-28T09:00:00-07:00"
+        "checkedAt": "2026-08-27T11:30:00-07:00"
       },
       {
-        "guid": "49285f361d08436aab23bdf729c10ea0",
+        "guid": "0a4d3f6d88f8fba42bd1279c3de0bac7",
         "displayPath": "Assets/GameScripts/Procedure/ProcedureInitResources.cs",
-        "fileHash": "15088ab08887f7b93cc62429c843dab45fe899345dc439d738aff65e3e7ad461",
+        "fileHash": "e3c422d1a6e85eca35b111f47aa653d057642353eb42cbbefa1eea10b61f9dfe",
         "line": 10,
         "feature": "更新资源包版本与清单，并按运行模式选择下载或内容包流程",
         "status": "verified",
-        "checkedAt": "2026-07-28T09:00:00-07:00"
+        "checkedAt": "2026-08-27T11:30:00-07:00"
       },
       {
-        "guid": "db61ddc0f5f34d639fae224363a3ac49",
+        "guid": "62121fa43bc144049bf4a15006dba945",
         "displayPath": "Assets/GameScripts/Procedure/ProcedureStartGame.cs",
-        "fileHash": "e5ab1f078248aa26650a33db69c69e3876adcda7abc510a0b10f3be524ab71af",
+        "fileHash": "e9e0cecb3559bc8728e96449f2bba294684ed7233113d44d3cb001bdfbe21f4c",
         "line": 8,
         "feature": "进入最终启动阶段时调用游戏逻辑入口并隐藏启动器 UI",
         "status": "verified",
-        "checkedAt": "2026-07-28T09:00:00-07:00"
+        "checkedAt": "2026-08-27T11:30:00-07:00"
       },
       {
         "guid": "87dc927a71fa444468edfce6da4e54ca",
-        "displayPath": "Assets/GameScripts/HotFix/GameLogic/GameApp.cs",
-        "fileHash": "da37a31a9a6282225126333b7973a60e9a27567297be1a0270010d2d406941e9",
+        "displayPath": "Assets/GameScripts/GameLogic/GameApp.cs",
+        "fileHash": "1531962570397108165df7080acb8e7e3e8020a0ded89be2670e99579c0d75a5",
         "line": 9,
         "feature": "初始化游戏事件、注册释放回调并启动首个游戏逻辑界面",
         "status": "verified",
-        "checkedAt": "2026-07-28T09:00:00-07:00"
+        "checkedAt": "2026-08-27T11:30:00-07:00"
       }
     ],
     "tests": [
       "repowiki/zh/content/核心架构/启动与生命周期.md",
-      "repowiki/zh/content/流程管理/启动流程.md"
+      "repowiki/zh/content/流程管理/启动流程.md",
+      "Unity 6000.5.9f1 actual-graphics Player startup smoke: Exceptions=0"
     ],
-    "verifiedAt": "07/28/2026 09:00:00"
+    "verifiedAt": "2026-08-27T11:30:00-07:00"
   },
   "implementationOutline": [
     "GameEntry.Awake -> 初始化核心模块 -> StartProcedure",

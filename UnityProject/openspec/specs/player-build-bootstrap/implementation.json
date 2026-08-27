@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "player-build-bootstrap",
+  "specHash": "18097f6c9cf78ac11f1c0c53d8be1cfd6a9f1e136c30e6417a7339b9d307e053",
+  "codeReadiness": "implemented",
+  "verification": {
+    "status": "verified",
+    "summary": "Player 已包含唯一 ZFramework 启动场景，IUpdateDriver 实现遵循 ModuleSystem 反射命名约定；Windows 构建和实际图形启动烟雾验证通过。",
+    "validatedAgainstSpecHash": "18097f6c9cf78ac11f1c0c53d8be1cfd6a9f1e136c30e6417a7339b9d307e053",
+    "evidence": [
+      {
+        "displayPath": "ProjectSettings/EditorBuildSettings.asset",
+        "line": 7,
+        "fileHash": "2d689e8e21500dbc0630f00e47684e03ec5ba48dcc391305894bb95bea84e648",
+        "status": "verified",
+        "checkedAt": "2026-08-27T11:30:00-07:00",
+        "feature": "把 Assets/Scenes/main.unity 作为启用的 Player 首场景。"
+      },
+      {
+        "guid": "0a2f0f36a08345dbb8b326caedcf84cd",
+        "displayPath": "Assets/ZFramework/Runtime/Module/UpdataDriverModule/UpdateDriverModule.cs",
+        "line": 11,
+        "fileHash": "b05150aab923e4a8d76624adf2c188d402da009d874b0f18654060d91d32ae9b",
+        "status": "verified",
+        "checkedAt": "2026-08-27T11:30:00-07:00",
+        "feature": "提供可由 ModuleSystem.GetModule<IUpdateDriver>() 发现的 ZFramework.UpdateDriver。"
+      }
+    ],
+    "tests": [
+      "Unity 6000.5.9f1 CLI StandaloneWindows64 Player build: succeeded",
+      "Actual-graphics Player startup smoke: Entrance=1, Bootstrap=1, AwaitingChoice=1, Exceptions=0"
+    ],
+    "verifiedAt": "2026-08-27T11:30:00-07:00"
+  },
+  "implementationOutline": [
+    "EditorBuildSettings 启用包含 GameEntry 与 UIRoot 的 main 场景。",
+    "UpdateDriver 遵循 IUpdateDriver 去掉 I 的 ModuleSystem 自动发现约定。",
+    "Player 通过资源初始化 Procedure 进入 GameApp.Entrance，并停在正式开场选择。"
+  ],
+  "sourceReferences": [
+    "Assets/Scenes/main.unity",
+    "Assets/GameScripts/GameEntry.cs",
+    "Assets/ZFramework/Runtime/Core/ModuleSystem.cs",
+    "Assets/ZFramework/Runtime/Module/UpdataDriverModule/UpdateDriverModule.cs"
+  ],
+  "publishedBy": {
+    "mode": "direct-authority-sync",
+    "changeId": ""
+  }
+}
