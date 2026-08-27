@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using CardTactics.CombatSystem;
 using Cysharp.Threading.Tasks;
@@ -42,11 +41,11 @@ using Cards3D;
 namespace Core
 {
     /// <summary>
-    /// 场景中唯一的 MonoBehaviour 核心。持久单例。
+    /// Unity 组合壳与兼容 facade。持久单例。
     /// 管理三个游戏大阶段（Settlement / Hunt / BossFight）的根物体开关，
-    /// 以及 Boss决战子系统的初始化与运行。
+    /// 以及场景表现与兼容入口；战役运行态由 CampaignFlowCoordinator 持有。
     /// </summary>
-    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider, IPlayableHuntRetreatInput, ISettlementDepartureRequestPort
+    public class GameManager : MonoBehaviour, IGameContext, ICombatProvider, ICombatInspirationReadModel, IPlayableActionCardCommandSink, ICombatRuntimeDataProvider
     {
         // ─── 单例 ─────────────────────────────────────────────────────
         public static GameManager Instance { get; private set; }
@@ -232,7 +231,6 @@ namespace Core
                 WorkshopCatalog = workshopContentCatalog,
                 SettlementContentCatalog = settlementContentCatalog,
                 TabletopInteraction = tabletopInteractionRouter,
-                HuntDepartureInput = this,
                 Warning = message => Debug.LogWarning($"[GameManager] {message}")
             }, configuredCampaignPersistence ?? new SaveLoadSystemCampaignPersistenceAdapter(), configuredWaitForEntrySelection);
             if (preAwakePendingSetup != null)
@@ -252,9 +250,9 @@ namespace Core
             }
             campaignFlow.ConfigurePersistentEffectProjection(registry => new HuntNoiseLeaseProjection(registry));
             campaignFlow.ConfigureGameplay(tabletopInteractionRouter);
-            campaignFlow.ConfigureSettlement(this);
-            campaignFlow.ConfigureSettlementPresentation(squad => RequestHuntDeparture(squad != null ? squad.Where(hunter => hunter != null).Select(hunter => hunter.InstanceId).ToList() : new List<int>()));
-            campaignFlow.ConfigureHunt(request => BeginEncounterAsync(request).Forget());
+            campaignFlow.ConfigureSettlement();
+            campaignFlow.ConfigureSettlementPresentation();
+            campaignFlow.ConfigureHunt();
 
             // 全局事件订阅
             EventBus.Subscribe<BossDefeatedEvent>(OnBossDefeated);
@@ -573,8 +571,6 @@ namespace Core
         public bool IsHuntActionSessionActive => campaignFlow?.IsHuntActionSessionActive == true;
         public bool IsHuntActionSessionRunning => campaignFlow?.IsHuntActionSessionRunning == true;
         public bool IsHuntReturnInFlight => campaignFlow?.IsHuntReturnRecoveryInFlight == true;
-        bool IPlayableHuntRetreatInput.IsReturnCheckpointLocked => campaignFlow?.IsReturnCheckpointLocked == true;
-        HuntRetreatPreview IPlayableHuntRetreatInput.GetRetreatPreview() => campaignFlow?.RetreatPreview ?? HuntRetreatPreview.Empty;
         public bool IsCampaignActionSessionActive => campaignFlow?.IsCampaignActionSessionActive == true;
         public bool IsCampaignRuntimeActive => campaignFlow?.CampaignStarted == true;
         public bool IsSettlementActionSessionRunning => campaignFlow?.IsSettlementActionSessionRunning == true;
@@ -658,7 +654,6 @@ namespace Core
             return campaignFlow?.TryDepartForHunt(hunterIds) == true;
         }
 
-        bool ISettlementDepartureRequestPort.RequestDeparture(IReadOnlyList<int> hunterIds) => TryDepartForHunt(hunterIds);
 
         public void SaveSettlementProgress()
         {

@@ -13,7 +13,7 @@ title: 营地阶段编排
 ## Requirements
 
 ### Requirement: Settlement phase enters through GameManager
-The project SHALL enter Settlement through GameManager and activate the Settlement world and UI roots. SettlementPhaseManager SHALL own Settlement runtime generations and their ActionSession lifecycle; GameManager SHALL retain the pending-return persistence transaction and current table composition bridge until that bridge is migrated explicitly.
+The project SHALL enter Settlement through GameManager and activate the Settlement world and UI roots. SettlementPhaseManager SHALL own Settlement runtime generations and their ActionSession lifecycle; SettlementPhaseCoordinator SHALL own the current table composition bridge, while CampaignFlowCoordinator SHALL own the pending-return persistence transaction. GameManager SHALL provide scene references and retain only the compatibility facade.
 
 #### Scenario: Entering Settlement
 - **WHEN** the global phase changes to Settlement
@@ -45,12 +45,12 @@ Loading a campaign in Settlement SHALL first recover a persisted pending hunt re
 
 #### Scenario: Continue restores an interrupted return handoff
 - **WHEN** loaded Settlement data contains a pending stable hunt return
-- **THEN** GameManager applies it idempotently without directly queueing its returned events, then projects the resulting incomplete Timeline exactly once
+- **THEN** CampaignFlowCoordinator applies it idempotently without directly queueing its returned events, then asks the Settlement phase coordinator to project the resulting incomplete Timeline exactly once
 - **AND** departure remains gated until both operations succeed
 
 #### Scenario: Continue restores an unresolved event chain
 - **WHEN** loaded Settlement data contains one or more unresolved event entries
-- **THEN** GameManager resolves their configured content in persisted order and submits one chain to the active Settlement ActionQueue
+- **THEN** CampaignFlowCoordinator resolves their configured content in persisted order and submits one chain through the active Settlement phase coordinator
 - **AND** every departure entry remains rejected until the chain completes successfully
 
 #### Scenario: Event restoration fails
@@ -58,7 +58,7 @@ Loading a campaign in Settlement SHALL first recover a persisted pending hunt re
 - **THEN** the failure remains observable and the campaign SHALL NOT enter Hunt through another departure entry
 
 ### Requirement: Settlement table assembly is scene-authorable and reentrant
-GameManager SHALL initialize the same SettlementTable3D command ports and data bindings whether the table is assigned by the scene or created as a runtime fallback. Repeated settlement entry and load SHALL reuse the table without duplicating its generated hierarchy or EventBus subscriptions.
+SettlementPhaseCoordinator SHALL initialize the same SettlementTable3D command ports and data bindings whether the table is assigned by the scene or created as a runtime fallback. GameManager SHALL provide the scene reference, and repeated settlement entry and load SHALL reuse the table without duplicating its generated hierarchy or EventBus subscriptions.
 
 #### Scenario: A scene-authored settlement table enters play
 - **WHEN** GameManager already has a serialized SettlementTable3D reference

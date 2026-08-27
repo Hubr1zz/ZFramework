@@ -21,7 +21,7 @@ GameManager SHALL retain serialized scene references, Unity lifecycle callbacks,
 - **AND** only the committed phase callback changes scene roots and camera state
 
 ### Requirement: GameManager delegates domain behavior
-GameManager SHALL NOT implement campaign transaction host interfaces or own CampaignRuntime, phase manager, ActionSession, persistence coordinator, or gameplay transaction fields.
+GameManager SHALL NOT implement campaign transaction host interfaces, `ISettlementDepartureRequestPort`, or `IPlayableHuntRetreatInput`, and SHALL NOT own CampaignRuntime, phase manager, ActionSession, persistence coordinator, or gameplay transaction fields. CampaignFlowCoordinator SHALL provide the settlement departure and Hunt retreat ports to the phase runtimes.
 
 #### Scenario: Entering a phase
 - **WHEN** gameplay or persistence behavior is added

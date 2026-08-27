@@ -28,7 +28,7 @@ namespace Core
     /// Campaign-owned flow coordinator. It owns all runtime leases and cross-stage transactions;
     /// Unity presentation/configuration is supplied by CampaignFlowBindings.
     /// </summary>
-    internal sealed class CampaignFlowCoordinator : ICampaignPhaseTransitionHost, ICampaignPhaseTransitionRequestHost, ICampaignRestartHost, ICampaignStartupTransactionHost, ICampaignHuntReturnHost, ICampaignHuntDepartureHost, ICampaignShowdownOutcomeHost, ICampaignEncounterHandoffHost
+    internal sealed class CampaignFlowCoordinator : ICampaignPhaseTransitionHost, ICampaignPhaseTransitionRequestHost, ICampaignRestartHost, ICampaignStartupTransactionHost, ICampaignHuntReturnHost, ICampaignHuntDepartureHost, ICampaignShowdownOutcomeHost, ICampaignEncounterHandoffHost, ISettlementDepartureRequestPort, IPlayableHuntRetreatInput
     {
         private readonly CampaignFlowBindings bindings;
         private readonly ICampaignPersistencePort persistence;
@@ -105,17 +105,23 @@ namespace Core
             settlementPhase.ConfigureGameplay(() => playableEventInput, tabletop, () => campaignRuntime.ActionEnvironmentInstallers, () => campaignRuntime.PersistentEffectProjection);
         }
 
-        internal void ConfigureSettlement(ISettlementDepartureRequestPort departurePort)
-            => settlementPhase.ConfigureRuntime(departurePort);
+        internal void ConfigureSettlement()
+            => settlementPhase.ConfigureRuntime(this);
 
-        internal void ConfigureSettlementPresentation(Action<List<HunterInstance>> departureRequested)
-            => settlementPhase.ConfigurePresentation(bindings.SettlementTable, bindings.SettlementRoot, bindings.SettlementUI, bindings.WorkshopCatalog, bindings.SettlementContentCatalog, departureRequested);
+        internal void ConfigureSettlementPresentation()
+            => settlementPhase.ConfigurePresentation(bindings.SettlementTable, bindings.SettlementRoot, bindings.SettlementUI, bindings.WorkshopCatalog, bindings.SettlementContentCatalog, RequestHuntDepartureFromSettlement);
 
-        internal void ConfigureHunt(Action<CampaignEncounterRequest> encounterRequested)
+        private void RequestHuntDepartureFromSettlement(List<HunterInstance> squad)
+            => RequestHuntDeparture(squad != null ? squad.Where(hunter => hunter != null).Select(hunter => hunter.InstanceId).ToList() : new List<int>());
+
+        internal void ConfigureHunt()
         {
-            huntPhase.Configure(() => campaignRuntime.ActionEnvironmentInstallers, bindings.TabletopInteraction, bindings.HuntRoot, bindings.UiHunt, bindings.HuntDepartureInput, encounterRequested, HandleHuntCompleted, OnHuntCheckpointCommitted);
+            huntPhase.Configure(() => campaignRuntime.ActionEnvironmentInstallers, bindings.TabletopInteraction, bindings.HuntRoot, bindings.UiHunt, this, RequestEncounter, HandleHuntCompleted, OnHuntCheckpointCommitted);
             huntPhase.ConfigureRuntime();
         }
+
+        private void RequestEncounter(CampaignEncounterRequest request)
+            => BeginEncounterAsync(request, ResolveLifetimeToken()).Forget();
 
         internal void EnsureGameplayRuntime(IActionEnvironmentInstaller gameplayInstaller)
             => campaignRuntime.EnsureGameplayRuntime(gameplayInstaller);
@@ -207,6 +213,25 @@ namespace Core
 
         internal UniTask<HuntRetreatCommandResult> RequestRetreatAsync(HuntRetreatDecision decision, CancellationToken cancellationToken)
             => huntReturn.PrepareRetreatAsync(decision, cancellationToken);
+
+        bool ISettlementDepartureRequestPort.RequestDeparture(IReadOnlyList<int> hunterIds)
+        {
+            if (disposed || !CampaignStarted || CurrentPhase != GamePhase.Settlement) return false;
+            return TryDepartForHunt(hunterIds);
+        }
+
+        bool IPlayableHuntRetreatInput.IsReturnCheckpointLocked
+            => disposed || !CampaignStarted || CurrentPhase != GamePhase.Hunt || IsReturnCheckpointLocked;
+
+        HuntRetreatPreview IPlayableHuntRetreatInput.GetRetreatPreview()
+            => disposed || !CampaignStarted || CurrentPhase != GamePhase.Hunt ? HuntRetreatPreview.Empty : RetreatPreview;
+
+        UniTask<HuntRetreatCommandResult> IPlayableHuntRetreatInput.RequestRetreatAsync(HuntRetreatDecision decision)
+        {
+            if (disposed || !CampaignStarted || CurrentPhase != GamePhase.Hunt)
+                return UniTask.FromResult(HuntRetreatCommandResult.Failed("当前阶段不能回营。"));
+            return RequestRetreatAsync(decision, ResolveLifetimeToken());
+        }
 
         internal UniTask<bool> ApplyPendingReturnAsync(bool queueAnnualEvents, CancellationToken cancellationToken)
             => ApplyPendingReturnCoreAsync(queueAnnualEvents, cancellationToken);

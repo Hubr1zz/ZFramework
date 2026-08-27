@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "81592f76c47e38bccb5b748e71fe107483756bbf38e9c18e8da68c12f0878292",
-  "inputManifestDigest": "13edea35caa0c4760e7d7518d4369920be210bc5bbb4cfa7989683ecd9f309ef",
-  "outputDigest": "6f63a4e23b6676292517549941be6889246190d70ad0a549af52ba19723c26ee",
+  "inputDigest": "9a022752c6a54127c6006c7d5a3c27fb10627e5e4a5f9f6a94c1b998d2c8cfc6",
+  "inputManifestDigest": "5e6bb35c7b58e9bfeb831148d1c3213da16aa3c5d1a95a171b6f9313536b6bdf",
+  "outputDigest": "a1f65135564af3aee46f2432e51fd81ece0cf6677e22d302b2bcdf2f9eb0b515",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -652,7 +652,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
-      "sha256": "888b022b400fb525ae57acc6a7698aa9927bb6a69964eed1fe0a60fb349aa15c",
+      "sha256": "85979bcf52f7ff4c07bdad12e923fb444b6ddc0f84a8cb96cc1973a5c69e0d21",
       "state": "current"
     },
     {
@@ -737,12 +737,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowBindings.cs",
-      "sha256": "0504376c8a351b354ae13e3324e30d64dd86ed215a851abd253c3ebd43006d12",
+      "sha256": "9131e1b11cb783f9d43d914b592235a8af7a691dc1656b03df5a13388f18f40e",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs",
-      "sha256": "c5dc50c2c7794cd6667fce1b2a341a363f9484d1335efc695e9caba99b22f8e1",
+      "sha256": "3d4966f860f1d18c5bdb706e64334baa0b0228b0d4224ee857c14c45e2b4d96c",
       "state": "current"
     },
     {
@@ -777,7 +777,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "sha256": "756e347dc143228a55446adf6b35453e7a11f9acd7892cd0b4ca01b22d013f96",
+      "sha256": "6aa7758b986a25f474c815a7f4ec26f41b34182a870d0c5579f4a4a267468651",
       "state": "current"
     },
     {
@@ -1282,12 +1282,12 @@
     },
     {
       "path": "openspec/specs/game-manager-orchestration/implementation.json",
-      "sha256": "0034e74c175c0ad071125da295bac1c64ff0f9262d069cfa923b3b8d912e8f3a",
+      "sha256": "0e3b35de708b0829d00c232d1448776962ea7280aac328ddec1cc946ef544e85",
       "state": "current"
     },
     {
       "path": "openspec/specs/game-manager-orchestration/spec.md",
-      "sha256": "c15c6731fd78dc83f8a126e8e8b0dbe1d90086b16e6d1a27d94d7fa789399fc1",
+      "sha256": "13b280968e81e90efd6f790a78568f05576df20dbeb30696d79d5ed62462edbc",
       "state": "current"
     },
     {
@@ -1342,12 +1342,12 @@
     },
     {
       "path": "openspec/specs/hunt-phase-orchestration/implementation.json",
-      "sha256": "26440addd4f786be6c61716fdfe0ceefe6d7a568db5adba042523bf1ae2912b5",
+      "sha256": "8753a745c36c2da89fbb2774ba70486c987c281a5c6d7fde196d498dc8c43f6d",
       "state": "current"
     },
     {
       "path": "openspec/specs/hunt-phase-orchestration/spec.md",
-      "sha256": "e101d9780dd57d32de6a94083e049aab82bf19abc69e6168bbad149920e1aeb0",
+      "sha256": "d851bb19a007a2e87166a1fc70833292596545d1ab56f33f2e652d3f445941d0",
       "state": "current"
     },
     {
@@ -1432,12 +1432,12 @@
     },
     {
       "path": "openspec/specs/settlement-phase-orchestration/implementation.json",
-      "sha256": "7019f05f2d6097f93f5eaca24fd8695e32f393354e761d797027f0207e5bede8",
+      "sha256": "2e4ca1450140dbfa78311fc5730e12706a8f89afc2c99765a35e4d07eb4a67ea",
       "state": "current"
     },
     {
       "path": "openspec/specs/settlement-phase-orchestration/spec.md",
-      "sha256": "0d29bd6ee8859e5a35a9b6701ca0ab8daddadfde5374281c4e7a9ae3bc57dcad",
+      "sha256": "47a9436aca7c8cd67d688020b38a996d395788315a64a946a7a0e749fc636d6b",
       "state": "current"
     },
     {
@@ -1792,16 +1792,17 @@
     }
   ],
   "counts": {
-    "verified": 6,
+    "verified": 8,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
     "unknown": 2,
     "blocked": 0,
-    "stale": 56
+    "stale": 54
   },
   "attentionRequired": [
     "action-environment-lifecycle",
+    "active-hunt-persistence",
     "campaign-content-cache-lifecycle",
     "campaign-content-preflight-assembly",
     "campaign-persistence",
@@ -1814,19 +1815,16 @@
     "event-occurrence-checkpoint-core",
     "event-recoverable-wounds",
     "expedition-build-progression-loop",
-    "game-manager-orchestration",
     "hunt-content-bundle-lifecycle",
     "hunt-event-resource-staging",
     "hunt-map-presentation-queue",
     "hunt-noise-risk-deck",
-    "hunt-phase-orchestration",
     "hunt-return-outcome-checkpoint",
     "hunt-route-entry-context",
     "hunt-session-event-occurrence-recovery",
     "hunt-tabletop-harvest",
     "hunt-tile-reveal-events",
     "settlement-content-plan-lifecycle",
-    "settlement-phase-orchestration",
     "settlement-timeline-event-identity",
     "settlement-workshop-crafting",
     "showdown-phase-orchestration",
@@ -1875,6 +1873,11 @@
     {
       "capability": "action-environment-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "active-hunt-persistence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
       "state": "stale"
     },
     {
@@ -2108,16 +2111,6 @@
       "state": "stale"
     },
     {
-      "capability": "game-manager-orchestration",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "game-manager-orchestration",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
-      "state": "stale"
-    },
-    {
       "capability": "hunt-content-bundle-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
       "state": "stale"
@@ -2165,16 +2158,6 @@
     {
       "capability": "hunt-noise-risk-deck",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-phase-orchestration",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "hunt-phase-orchestration",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseManager.cs",
       "state": "stale"
     },
     {
@@ -2285,16 +2268,6 @@
     {
       "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "settlement-phase-orchestration",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseCoordinator.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "settlement-phase-orchestration",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
       "state": "stale"
     },
     {
@@ -2856,8 +2829,8 @@
       "id": "active-hunt-persistence",
       "label": "活动狩猎检查点与恢复",
       "status": "verified",
-      "effectiveStatus": "verified",
-      "progress": 100,
+      "effectiveStatus": "stale",
+      "progress": 0,
       "verificationStatus": "verified",
       "summary": "活动狩猎 schema v2 保存精确 Route/Bundle 身份和已提交的 SelectedHunterId；恢复事务重建当前 session、表现与默认行动者。",
       "designSources": [],
@@ -2873,7 +2846,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignEncounterHandoffTransaction.cs",
@@ -3404,10 +3377,10 @@
       "id": "game-manager-orchestration",
       "label": "GameManager管理器",
       "status": "verified",
-      "effectiveStatus": "stale",
-      "progress": 0,
+      "effectiveStatus": "verified",
+      "progress": 100,
       "verificationStatus": "verified",
-      "summary": "GameManager 已冻结为 Unity 组合外壳；CampaignFlowCoordinator 唯一持有 ZFramework Campaign lease、跨阶段事务、持久化和统一恢复。阶段内玩法经独立窄端口直达阶段管理器，Showdown 生命周期与玩法契约保持可替换的组合关系。",
+      "summary": "GameManager 已冻结为 Unity 组合外壳；CampaignFlowCoordinator 唯一持有 ZFramework Campaign lease、跨阶段事务、持久化和统一恢复，并直接向阶段表现提供出发与回营窄端口。",
       "designSources": [],
       "sources": [
         "openspec/specs/game-manager-orchestration/spec.md",
@@ -3441,11 +3414,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
@@ -3620,10 +3593,10 @@
       "id": "hunt-phase-orchestration",
       "label": "狩猎阶段编排",
       "status": "verified",
-      "effectiveStatus": "stale",
-      "progress": 0,
+      "effectiveStatus": "verified",
+      "progress": 100,
       "verificationStatus": "verified",
-      "summary": "HuntPhaseManager 拥有 Hunt generations 与 composition coordinator；独立出猎、回营和遭遇交接事务负责跨阶段提交、可靠检查点与失败回滚。",
+      "summary": "HuntPhaseManager 拥有 Hunt generations 与 composition coordinator；CampaignFlowCoordinator 直接向 Hunt 表现提供回营端口，并持有出猎、回营和遭遇交接事务。",
       "designSources": [],
       "sources": [
         "openspec/specs/hunt-phase-orchestration/spec.md",
@@ -3633,7 +3606,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseManager.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs",
@@ -3641,7 +3614,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs",
@@ -3980,10 +3953,10 @@
       "id": "settlement-phase-orchestration",
       "label": "营地阶段编排",
       "status": "verified",
-      "effectiveStatus": "stale",
-      "progress": 0,
+      "effectiveStatus": "verified",
+      "progress": 100,
       "verificationStatus": "verified",
-      "summary": "SettlementPhaseManager 已拥有营地 runtime generation，并通过 coordinator façade 统一管理 session、事件恢复、队列与营地玩法命令；GameManager 仅保留跨阶段回营事务。",
+      "summary": "SettlementPhaseManager 拥有营地 runtime generation，SettlementPhaseCoordinator 统一管理 session、事件恢复、队列、表面表现与玩法命令；CampaignFlowCoordinator 直接提供出发端口并持有跨阶段事务。",
       "designSources": [],
       "sources": [
         "openspec/specs/settlement-phase-orchestration/spec.md",
@@ -3997,11 +3970,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseCoordinator.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs",
-          "state": "stale"
+          "state": "current"
         }
       ]
     },

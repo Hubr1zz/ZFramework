@@ -13,7 +13,7 @@ title: 狩猎阶段编排
 ## Requirements
 
 ### Requirement: Hunt phase enters through GameManager
-The project SHALL enter Hunt through GameManager and activate the Hunt world and UI roots. HuntPhaseManager SHALL own Hunt runtime generations and one Hunt composition coordinator; GameManager SHALL retain route/departure, retreat persistence and encounter handoff transactions.
+The project SHALL enter Hunt through GameManager and activate the Hunt world and UI roots. HuntPhaseManager SHALL own Hunt runtime generations and one Hunt composition coordinator; CampaignFlowCoordinator SHALL retain route/departure, retreat persistence and encounter handoff transactions and SHALL provide the settlement departure and Hunt retreat operation ports. GameManager SHALL retain only the compatibility facade and scene binding.
 
 #### Scenario: Entering Hunt
 - **WHEN** the global phase changes to Hunt

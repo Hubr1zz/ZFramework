@@ -5,7 +5,6 @@ using GameplayBase;
 using GameplayBase.CombatSystem;
 using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Events;
-using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
@@ -43,7 +42,6 @@ namespace Core
         internal PlayableWorkshopCatalog WorkshopCatalog { get; set; }
         internal PlayableSettlementContentCatalog SettlementContentCatalog { get; set; }
         internal ITabletopRandomInteractionPresenter TabletopInteraction { get; set; }
-        internal IPlayableHuntRetreatInput HuntDepartureInput { get; set; }
         internal Action<string> Warning { get; set; }
     }
 

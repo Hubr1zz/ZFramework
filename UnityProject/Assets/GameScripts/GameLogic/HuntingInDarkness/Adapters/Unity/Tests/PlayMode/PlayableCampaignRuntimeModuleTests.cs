@@ -99,9 +99,39 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(gameManagerFields.Any(field => forbiddenFieldTypes.Contains(field.FieldType.FullName)), Is.False);
             Assert.That(gameManagerFields.Count(field => field.FieldType == flowType), Is.EqualTo(1));
             Assert.That(typeof(GameManager).GetInterfaces().Any(contract => contract.Name.StartsWith("ICampaign") && contract.Name.EndsWith("Host")), Is.False);
+            Assert.That(typeof(GameManager).GetInterfaces().Contains(typeof(ISettlementDepartureRequestPort)), Is.False);
+            Assert.That(typeof(GameManager).GetInterfaces().Contains(typeof(IPlayableHuntRetreatInput)), Is.False);
+            Assert.That(typeof(ISettlementDepartureRequestPort).IsAssignableFrom(flowType), Is.True);
+            Assert.That(typeof(IPlayableHuntRetreatInput).IsAssignableFrom(flowType), Is.True);
             Assert.That(flowFields.Count(field => typeof(IPlayableCampaignRuntime).IsAssignableFrom(field.FieldType)), Is.EqualTo(1));
             Assert.That(flowType.GetInterfaces().Count(contract => contract.Name.StartsWith("ICampaign") && contract.Name.EndsWith("Host")), Is.GreaterThanOrEqualTo(8));
             Assert.That(settlementGameplayMethods.Any(methodName => flowType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null), Is.False);
+        }
+
+        [Test]
+        public void CampaignFlowPorts_FailClosedAfterDispose()
+        {
+            CampaignFlowCoordinator flow = new(new CampaignFlowBindings(), new SaveLoadSystemCampaignPersistenceAdapter(), true);
+            try
+            {
+                ISettlementDepartureRequestPort departure = flow;
+                IPlayableHuntRetreatInput retreat = flow;
+
+                Assert.That(departure.RequestDeparture(Array.Empty<int>()), Is.False);
+                Assert.That(retreat.GetRetreatPreview().Materials, Is.Empty);
+                Assert.That(retreat.IsReturnCheckpointLocked, Is.True);
+
+                flow.Dispose();
+
+                Assert.That(departure.RequestDeparture(Array.Empty<int>()), Is.False);
+                Assert.That(retreat.GetRetreatPreview().Materials, Is.Empty);
+                Assert.That(retreat.IsReturnCheckpointLocked, Is.True);
+                Assert.That(retreat.RequestRetreatAsync(HuntRetreatDecision.None).GetAwaiter().GetResult().Succeeded, Is.False);
+            }
+            finally
+            {
+                flow.Dispose();
+            }
         }
 
         [Test]
