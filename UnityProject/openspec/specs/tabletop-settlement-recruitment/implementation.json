@@ -8,17 +8,18 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "设施值守人口已成为常规招募的配置化供给；0/1 名存活猎人的反软锁豁免、Reactor 后有效成本重算及资源/人口同事务提交均由 Settlement ActionQueue 掌权，3D View 仅提交意图。",
+    "summary": "设施值守人口已成为常规招募的配置化供给；0/1 名存活猎人的反软锁豁免、Reactor 后有效成本重算及资源/人口同事务提交均由 Settlement ActionQueue 掌权，并已通过生产组合根验证新猎人可再次出猎。",
     "validatedAgainstSpecHash": "2429c3fd20c80ca657f194fbdfd4285421b730470f5bc0163dc151a0623bc279",
     "evidence": [
       { "guid": "c0a18d1ff9ace464f92ba184f152e167", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/RecruitmentPanel3D.cs", "line": 1, "fileHash": "b6b6c493a3f704c5a6d57a0fb68c9aa12bafad3faa48c64601d59295c797e50c", "status": "verified", "checkedAt": "2026-08-27T00:42:01-07:00", "feature": "用五卡分页和世界空间命名牌呈现候选，并显示资源与人口组合成本。" },
       { "guid": "dcec38ea35640204a8ab0c443fd45c98", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs", "line": 1, "fileHash": "80024a6316121145fb5baa80ac9ebb8db4294dad8b1ca98e9812142300479839", "status": "verified", "checkedAt": "2026-08-27T00:42:01-07:00", "feature": "Runner 在 Reactor 后重算有效成本，重验资源与人口并在同一提交段创建猎人。" },
       { "guid": "189018da13ded844ead44d0d2504ab95", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/RecruitmentRules.cs", "line": 1, "fileHash": "5d4acd76763679367a01df6455e21bdb6f0cb587d94635fcb1d9efce3f321885", "status": "verified", "checkedAt": "2026-08-27T00:42:01-07:00", "feature": "集中定义常规人口成本和 0/1 名存活猎人的反软锁豁免。" },
       { "guid": "d83222627b2bf78418ae1a72a4489485", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Settlement/PlayableSettlementContentCatalog.asset", "line": 1, "fileHash": "f508cf883e31f63ebe0c4d6e11015e27e7f03e0bebab247330187fc6d3273716", "status": "verified", "checkedAt": "2026-08-27T00:42:01-07:00", "feature": "正式营地内容将常规招募人口成本配置为 1。" },
-      { "guid": "e65368a998ba4e9a8a529d770b46e9d7", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/CardView3DFactoryPositionTests.cs", "line": 1, "fileHash": "16b8f02048fcd7afe27c62ceee17f47ffb315105bb3a18cc5df8d2a4db5c3fc3", "status": "verified", "checkedAt": "2026-08-27T00:42:01-07:00", "feature": "真实招募入口与候选卡工厂按配置局部坐标分离摆放。" }
+      { "guid": "e65368a998ba4e9a8a529d770b46e9d7", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/CardView3DFactoryPositionTests.cs", "line": 1, "fileHash": "16b8f02048fcd7afe27c62ceee17f47ffb315105bb3a18cc5df8d2a4db5c3fc3", "status": "verified", "checkedAt": "2026-08-27T00:42:01-07:00", "feature": "真实招募入口与候选卡工厂按配置局部坐标分离摆放。" },
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "line": 138, "fileHash": "de8bcff87fa7cad9347302d4a73f382bc8adc073cdc37746c3d59d801e1a4f7e", "status": "verified", "checkedAt": "2026-08-27T00:59:31-07:00", "feature": "正式 3D 营地回调消费值守人口完成招募，并让新猎人进入下一次正式出猎名册。" }
     ],
-    "tests": ["RecruitmentRulesTests: 5/5 passed", "PlayableSettlementCareActionTests: 13/13 passed", "PlayableRecruitmentContentTests: 1/1 passed", "PlayableRecruitmentServiceTests: 2/2 passed", "C# compilation: 0 errors"],
-    "verifiedAt": "2026-08-27T00:42:01-07:00"
+    "tests": ["RecruitmentRulesTests: 5/5 passed", "PlayableSettlementCareActionTests: 13/13 passed", "PlayableRecruitmentContentTests: 1/1 passed", "PlayableRecruitmentServiceTests: 2/2 passed", "ProductionSettlementDutyAndRecruitmentUseBoundTableCallbacks: 1/1 passed", "C# compilation: 0 errors"],
+    "verifiedAt": "2026-08-27T00:59:31-07:00"
   },
   "publishedBy": { "mode": "direct-implementation-reconciliation", "changeId": "" }
 }

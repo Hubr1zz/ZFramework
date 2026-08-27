@@ -8,53 +8,71 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "设施值守已接入营地 ActionQueue、配置化季节坐标、存档迁移、出猎双门禁与世界空间卡牌交互；取消或无效骰点不会产生部分写入。",
+    "summary": "设施值守已接入营地 ActionQueue、配置化季节坐标、存档迁移、出猎双门禁与世界空间卡牌交互；新战役会保留当前内容计划，使正式阶段 Session 可读取值守定义并跨季结算人口。",
     "validatedAgainstSpecHash": "ac5a2e171302f92a177b72b7a389126c2c1f8c867b199a34f8ac99d7342056b9",
     "evidence": [
       {
         "guid": "9a7d1c6e8f2345b8a4d7c9012e6f3b10",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementFacilityDuty.cs",
         "line": 1,
-        "fileHash": "2f84b87ae17dd8c3ec512c499c4be57536cc28d9b6e5e8c5a7e51ff0df0301eb",
+        "fileHash": "04d25cdaf3e31ed56d5370b57686c7e50b4dc3ca36002d5e578eead353393c38",
         "status": "verified",
-        "checkedAt": "2026-08-27T07:20:00-07:00",
+        "checkedAt": "2026-08-27T00:59:31-07:00",
         "feature": "定义稳定值守身份、绝对到期季节、配置化骰子区间与人口饱和规则。"
       },
       {
         "guid": "4d6f8a1c2e3b4970b5c7d9e0f1234568",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementFacilityDutyActions.cs",
         "line": 1,
-        "fileHash": "8fdffdb0758968eaf3d466dd00ffdd1b548de5b8023603e44b19bc560c847b0d",
+        "fileHash": "c585cdf1f8a705c444e8545cc6d4b325ee2b33bc604fb3f8222c8ab80beaa48f",
         "status": "verified",
-        "checkedAt": "2026-08-27T07:20:00-07:00",
+        "checkedAt": "2026-08-27T00:59:31-07:00",
         "feature": "通过独立营地 Root Action 完成派驻、取消和桌面骰结算，并在提交后投影事实。"
       },
       {
         "guid": "8b3e7a2c1d4f4906a5b8c7d9e0f12345",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableFacilityDutyTable.cs",
         "line": 1,
-        "fileHash": "2270fd1dcc32a96a97b49757ebc453ec58159e0e4b48250cb2de10d1666979ee",
+        "fileHash": "f8aff0ebb854a919ba453a4b2812aa5535ec8fdda091cbb3cbde0a4b9d6e7fc0",
         "status": "verified",
-        "checkedAt": "2026-08-27T07:20:00-07:00",
+        "checkedAt": "2026-08-27T00:59:31-07:00",
         "feature": "从 JSON 表加载值守定义，并对稳定 ID、前置、骰子与完整人口区间 fail closed。"
       },
       {
         "guid": "e159b3c1d6bfcce4082b45e63fc28083",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
         "line": 248,
-        "fileHash": "d3544410eb2158fad40282f61adcdc1e84a88c32ae3a532d0c101c096d985d29",
+        "fileHash": "d5f0c5d1bd84bd47365f750ddeab510457eca0a81620e2d2cdcf6755193604ef",
         "status": "verified",
-        "checkedAt": "2026-08-27T07:20:00-07:00",
+        "checkedAt": "2026-08-27T00:59:31-07:00",
         "feature": "持久化人口和值守状态，并统一提供到期与猎人出发资格门禁。"
       },
       {
         "guid": "6b0d2e8f4a1c4973b5e7d9f012345680",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementFacilityDutyPanel3D.cs",
         "line": 1,
-        "fileHash": "439413bb94e0c1e54a234b1ff09bfca6b9a9251cf544e5952b1d7fd508f33a4b",
+        "fileHash": "653cd869c8eb86b2d121328f58f3367aedea5f8d96b836abe71f23fabf1638a0",
         "status": "verified",
-        "checkedAt": "2026-08-27T07:20:00-07:00",
+        "checkedAt": "2026-08-27T00:59:31-07:00",
         "feature": "提供世界空间岗位卡、猎人卡和异步 generation guard，不持有权威玩法状态。"
+      },
+      {
+        "guid": "1575b817a3362e94fbebfde4875d6115",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/SettlementManager.cs",
+        "line": 1,
+        "fileHash": "2162ff015c482132fce4ddaafa8a4f8a756837d22ea3682157843a322512ea28",
+        "status": "verified",
+        "checkedAt": "2026-08-27T00:59:31-07:00",
+        "feature": "新战役应用当前营地内容后保留同一内容计划，阶段 Session 可读取正式值守定义。"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "line": 138,
+        "fileHash": "de8bcff87fa7cad9347302d4a73f382bc8adc073cdc37746c3d59d801e1a4f7e",
+        "status": "verified",
+        "checkedAt": "2026-08-27T00:59:31-07:00",
+        "feature": "正式组合根完成值守派驻、跨季回营、物理骰人口结算、3D 招募消费与新猎人再出猎。"
       }
     ],
     "tests": [
@@ -62,9 +80,11 @@
       "PlayableSettlementFacilityDutyActionTests: 8/8 passed",
       "PlayableSettlementDepartureActionTests: 4/4 passed",
       "PlayableCampaignContentAssemblerTests: 18/18 passed",
-      "PlayableCampaignPacingTests: 14/14 passed"
+      "PlayableCampaignPacingTests: 14/14 passed",
+      "ProductionSettlementDutyAndRecruitmentUseBoundTableCallbacks: 1/1 passed",
+      "PlayableSettlementProjectionTransactionTests: 4/4 passed"
     ],
-    "verifiedAt": "2026-08-27T07:20:00-07:00"
+    "verifiedAt": "2026-08-27T00:59:31-07:00"
   },
   "implementationOutline": [
     "SettlementInstance 保存活动值守，内容计划负责旧档迁移和活动引用校验。",

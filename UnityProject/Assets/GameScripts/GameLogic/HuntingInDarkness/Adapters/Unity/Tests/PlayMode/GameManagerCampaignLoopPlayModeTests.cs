@@ -135,6 +135,75 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator ProductionSettlementDutyAndRecruitmentUseBoundTableCallbacks()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            var randomPresenter = new FixedTabletopInteraction(4);
+            GameManager manager = CreateProductionManager(persistence, randomPresenter: randomPresenter);
+            yield return WaitForSettlementIdle(manager);
+            SettlementTable3D table = managerObject.GetComponentInChildren<SettlementTable3D>(true);
+            Assert.That(table, Is.Not.Null);
+            Assert.That(table.GetComponentsInChildren<SettlementFacilityDutyLauncherCard3D>(true), Is.Not.Empty);
+            Assert.That(table.GetComponentsInChildren<RecruitmentLauncherCard3D>(true), Is.Not.Empty);
+            SettlementManager settlementManager = GetPrivateField<SettlementManager>(table, "_mgr");
+            Assert.That(settlementManager.FacilityDutyDefinitions.Any(definition => definition?.DutyId == "shelter_watch"), Is.True);
+
+            SettlementInstance settlement = manager.SettlementData;
+            int initialYear = settlement.CurrentYear;
+            int initialSeason = settlement.CurrentSeasonIndex;
+            settlement.UnlockInvention("shelter");
+            Assert.That(settlement.IsInventionUnlocked("shelter"), Is.True);
+            List<HunterInstance> hunters = settlement.GetDepartureEligibleHunters(initialYear, initialSeason);
+            Assert.That(hunters, Has.Count.GreaterThanOrEqualTo(2));
+            int workerId = hunters[0].InstanceId;
+            int explorerId = hunters[1].InstanceId;
+
+            UniTask<SettlementFacilityDutyCommandResult>.Awaiter assign = table.OnFacilityDutyAssignRequested("shelter_watch", "shelter", workerId).GetAwaiter();
+            yield return WaitForCompletion(assign);
+            Assert.That(assign.GetResult().Succeeded, Is.True, assign.GetResult().Reason);
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { explorerId }, GetDestination(settlement.CurrentYear)).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            Assert.That(departure.GetResult().Succeeded, Is.True, departure.GetResult().Reason);
+            UniTask<HuntRetreatCommandResult>.Awaiter retreat = manager.RequestRetreatAsync().GetAwaiter();
+            yield return WaitForCompletion(retreat);
+            Assert.That(retreat.GetResult().Succeeded, Is.True, retreat.GetResult().Reason);
+            yield return WaitForSettlementIdle(manager);
+            Assert.That(settlement.Population, Is.Zero);
+            Assert.That(settlement.CurrentYear, Is.EqualTo(initialYear));
+            Assert.That(settlement.CurrentSeasonIndex, Is.EqualTo(initialSeason + 1));
+            Assert.That(settlement.HasDueFacilityDuty(settlement.CurrentYear, settlement.CurrentSeasonIndex), Is.True);
+
+            int randomRequestCount = randomPresenter.RequestCount;
+            UniTask<SettlementFacilityDutyCommandResult>.Awaiter resolve = table.OnFacilityDutyResolveRequested("shelter_watch").GetAwaiter();
+            yield return WaitForCompletion(resolve);
+            Assert.That(resolve.GetResult().Succeeded, Is.True, resolve.GetResult().Reason);
+            Assert.That(randomPresenter.RequestCount, Is.EqualTo(randomRequestCount + 1));
+            Assert.That(randomPresenter.LastRequest?.Kind, Is.EqualTo(TabletopRandomInteractionKind.PhysicalDice));
+            Assert.That(settlement.Population, Is.EqualTo(1));
+            Assert.That(settlement.HasActiveFacilityDuty("shelter_watch"), Is.False);
+
+            ItemData costItem = contentCandidate.SettlementContent.RecruitmentCostItem;
+            Assert.That(costItem, Is.Not.Null);
+            settlement.AddResource(costItem, contentCandidate.SettlementContent.RecruitmentCost);
+            int resourceBeforeRecruitment = settlement.GetResource(costItem);
+            int rosterCount = settlement.GetAliveHunters().Count;
+            HunterData template = contentCandidate.SettlementContent.RecruitmentTemplates.First(candidate => candidate != null);
+            UniTask<RecruitHunterCommandResult>.Awaiter recruit = table.OnRecruitRequested(template, "值守后新猎人").GetAwaiter();
+            yield return WaitForCompletion(recruit);
+            RecruitHunterCommandResult recruitResult = recruit.GetResult();
+            Assert.That(recruitResult.Succeeded, Is.True, recruitResult.Reason);
+            Assert.That(recruitResult.Hunter, Is.Not.Null);
+            Assert.That(settlement.Population, Is.Zero);
+            Assert.That(settlement.GetResource(costItem), Is.EqualTo(resourceBeforeRecruitment - contentCandidate.SettlementContent.RecruitmentCost));
+            Assert.That(settlement.GetAliveHunters(), Has.Count.EqualTo(rosterCount + 1));
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter finalDeparture = manager.DepartForHuntAsync(new[] { recruitResult.Hunter.InstanceId }, GetDestination(settlement.CurrentYear)).GetAwaiter();
+            yield return WaitForCompletion(finalDeparture);
+            Assert.That(finalDeparture.GetResult().Succeeded, Is.True, finalDeparture.GetResult().Reason);
+            Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
+        }
+
+        [UnityTest]
         public IEnumerator HuntCompletionNotice_FormatsSeasonAndYearBoundary()
         {
             var persistence = new MemoryCampaignPersistence();

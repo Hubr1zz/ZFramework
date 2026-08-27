@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "790a54bb23d40ec1748d41afd2d20826e41047f0faf9a87ce1edd17958b1c123",
-  "inputManifestDigest": "7bb32d99df854f2b1f797f410165b9e882032ec32dbe40c36e1a9e05df275490",
-  "outputDigest": "9b49ca564dd45bd07fead737d3a95602ca85ecc8927f4f42cf9ad4f580306a8e",
+  "inputDigest": "81592f76c47e38bccb5b748e71fe107483756bbf38e9c18e8da68c12f0878292",
+  "inputManifestDigest": "13edea35caa0c4760e7d7518d4369920be210bc5bbb4cfa7989683ecd9f309ef",
+  "outputDigest": "6f63a4e23b6676292517549941be6889246190d70ad0a549af52ba19723c26ee",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -357,7 +357,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/SettlementManager.cs",
-      "sha256": "e374bb1094e4e44223a8cbaa7e0d7ff0dcfae65b91ee7609d606fc87277a2552",
+      "sha256": "2162ff015c482132fce4ddaafa8a4f8a756837d22ea3682157843a322512ea28",
       "state": "current"
     },
     {
@@ -637,7 +637,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "f33b7e9d91eb164f87b84f18467fdcc1393dcd024d705befe23e45552b9953c7",
+      "sha256": "de8bcff87fa7cad9347302d4a73f382bc8adc073cdc37746c3d59d801e1a4f7e",
       "state": "current"
     },
     {
@@ -1422,7 +1422,7 @@
     },
     {
       "path": "openspec/specs/settlement-facility-duty/implementation.json",
-      "sha256": "12decab3cac95a0ce5bf9bce451b74002b64f9acef972f420bb8195d16f3cf9a",
+      "sha256": "45d67c333798a9090373d54717f2153f7f7a65a9610b8461213e8622255493b4",
       "state": "current"
     },
     {
@@ -1732,7 +1732,7 @@
     },
     {
       "path": "openspec/specs/tabletop-settlement-recruitment/implementation.json",
-      "sha256": "b249877f00dffc046959437b3b991965f1a801aa4c7eed0fbe7de2b7e4832a8f",
+      "sha256": "312b570e5b504e97b8bc85366c5ace7649a3814de5849b96959e5a9238feb24a",
       "state": "current"
     },
     {
@@ -1792,13 +1792,13 @@
     }
   ],
   "counts": {
-    "verified": 7,
+    "verified": 6,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
     "unknown": 2,
     "blocked": 0,
-    "stale": 55
+    "stale": 56
   },
   "attentionRequired": [
     "action-environment-lifecycle",
@@ -1824,8 +1824,8 @@
     "hunt-route-entry-context",
     "hunt-session-event-occurrence-recovery",
     "hunt-tabletop-harvest",
+    "hunt-tile-reveal-events",
     "settlement-content-plan-lifecycle",
-    "settlement-facility-duty",
     "settlement-phase-orchestration",
     "settlement-timeline-event-identity",
     "settlement-workshop-crafting",
@@ -1848,6 +1848,7 @@
     "tabletop-hunt-retreat",
     "tabletop-hunt-squad-pawn",
     "tabletop-hunt-squad-status",
+    "tabletop-hunt-tile-cards",
     "tabletop-opening-sequence",
     "tabletop-random-interaction",
     "tabletop-settlement-advancement-ledger",
@@ -1989,6 +1990,11 @@
     {
       "capability": "campaign-year-loop",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "campaign-year-loop",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "state": "stale"
     },
     {
@@ -2227,6 +2233,11 @@
       "state": "stale"
     },
     {
+      "capability": "hunt-tile-reveal-events",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "state": "stale"
+    },
+    {
       "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs",
       "state": "stale"
@@ -2274,31 +2285,6 @@
     {
       "capability": "settlement-content-plan-lifecycle",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "settlement-facility-duty",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementFacilityDutyActions.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "settlement-facility-duty",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableFacilityDutyTable.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "settlement-facility-duty",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "settlement-facility-duty",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementFacilityDuty.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "settlement-facility-duty",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementFacilityDutyPanel3D.cs",
       "state": "stale"
     },
     {
@@ -2623,6 +2609,11 @@
     },
     {
       "capability": "tabletop-hunt-squad-status",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-hunt-tile-cards",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "state": "stale"
     },
@@ -3151,7 +3142,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -3847,7 +3838,7 @@
       "id": "hunt-tile-reveal-events",
       "label": "狩猎地块揭示事件",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "普通地块在显式揭示事件与噪音风险牌堆之间只选择一个来源；生产蘑菇林已通过真实 3D 侦察、物理 d10、结果提交与恢复验证，事件根完成后才解锁邻居。",
@@ -3880,7 +3871,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -3945,10 +3936,10 @@
       "id": "settlement-facility-duty",
       "label": "配置化营地设施值守",
       "status": "verified",
-      "effectiveStatus": "stale",
+      "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "设施值守已接入营地 ActionQueue、配置化季节坐标、存档迁移、出猎双门禁与世界空间卡牌交互；取消或无效骰点不会产生部分写入。",
+      "summary": "设施值守已接入营地 ActionQueue、配置化季节坐标、存档迁移、出猎双门禁与世界空间卡牌交互；新战役会保留当前内容计划，使正式阶段 Session 可读取值守定义并跨季结算人口。",
       "designSources": [],
       "sources": [
         "openspec/specs/settlement-facility-duty/spec.md",
@@ -3957,23 +3948,31 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementFacilityDuty.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementFacilityDutyActions.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableFacilityDutyTable.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementFacilityDutyPanel3D.cs",
-          "state": "stale"
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/SettlementManager.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+          "state": "current"
         }
       ]
     },
@@ -5004,8 +5003,8 @@
       "id": "tabletop-hunt-tile-cards",
       "label": "3D 狩猎地形卡翻面",
       "status": "verified",
-      "effectiveStatus": "verified",
-      "progress": 100,
+      "effectiveStatus": "stale",
+      "progress": 0,
       "verificationStatus": "verified",
       "summary": "可交互地形卡仅投影地块名称；生产蘑菇林已通过真实点击、3D 侦察取消与确认、事件完成 checkpoint 及重建不重放验证。",
       "designSources": [],
@@ -5028,7 +5027,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -5309,7 +5308,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "设施值守人口已成为常规招募的配置化供给；0/1 名存活猎人的反软锁豁免、Reactor 后有效成本重算及资源/人口同事务提交均由 Settlement ActionQueue 掌权，3D View 仅提交意图。",
+      "summary": "设施值守人口已成为常规招募的配置化供给；0/1 名存活猎人的反软锁豁免、Reactor 后有效成本重算及资源/人口同事务提交均由 Settlement ActionQueue 掌权，并已通过生产组合根验证新猎人可再次出猎。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-settlement-recruitment/spec.md",
@@ -5335,6 +5334,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/CardView3DFactoryPositionTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
           "state": "current"
         }
       ]

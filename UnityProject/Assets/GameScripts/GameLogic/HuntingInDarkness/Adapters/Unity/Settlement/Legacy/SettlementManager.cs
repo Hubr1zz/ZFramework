@@ -106,7 +106,11 @@ namespace HuntingInDarkness.Settlement
         /// </summary>
         public void EnsureStartingConditions()
         {
-            if (PlayableSettlementContentRuntime.TryApplyTo(this)) return;
+            if (PlayableSettlementContentRuntime.TryApplyTo(this))
+            {
+                contentPlan = PlayableSettlementContentRuntime.CurrentPlan;
+                return;
+            }
             if (Data.Hunters.Count > 0) return;
 
             HunterMgmt.AddStartingHunter("战士·陈");
