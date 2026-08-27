@@ -104,8 +104,10 @@ namespace VInspector
                 typeof(ParticleSystem),
                 typeof(TrailRenderer),
                 typeof(LineRenderer),
+#pragma warning disable CS0618 // Keep clipboard support for legacy Built-In Render Pipeline components.
                 typeof(LensFlare),
                 typeof(Projector),
+#pragma warning restore CS0618
                 typeof(AudioReverbZone),
                 typeof(AudioEchoFilter),
 #if TERRAIN_PACKAGE_ENABLED

@@ -11,10 +11,9 @@ using static VInspector.Libs.VGUI;
 
 namespace VInspector
 {
-    public class VInspectorMenu
+    class VInspectorMenu
     {
         public static bool navigationBarEnabled { get => EditorPrefsCached.GetBool("vInspector-navigationBarEnabled", false); set => EditorPrefsCached.SetBool("vInspector-navigationBarEnabled", value); }
-        public static bool componentTabsEnabled { get => EditorPrefsCached.GetBool("vInspector-componentTabsEnabled", false); set => EditorPrefsCached.SetBool("vInspector-componentTabsEnabled", value); }
         public static bool copyPasteButtonsEnabled { get => EditorPrefsCached.GetBool("vInspector-copyPasteButtonsEnabled", false); set => EditorPrefsCached.SetBool("vInspector-copyPasteButtonsEnabled", value); }
         public static bool playmodeSaveButtonEnabled { get => EditorPrefsCached.GetBool("vInspector-saveInPlaymodeButtonEnabled", false); set => EditorPrefsCached.SetBool("vInspector-saveInPlaymodeButtonEnabled", value); }
         public static bool componentWindowsEnabled { get => EditorPrefsCached.GetBool("vInspector-componentWindowsEnabled", componentWindowsEnabledByDefault); set => EditorPrefsCached.SetBool("vInspector-componentWindowsEnabled", value); }
@@ -54,7 +53,6 @@ namespace VInspector
 
 
 
-#if false // Settings are exposed through Tools/EditorTools/Settings.
         const string dir = "Tools/EditorTools/vInspector/";
 #if UNITY_EDITOR_OSX
         const string cmd = "Cmd";
@@ -149,7 +147,6 @@ namespace VInspector
         [MenuItem(dir + "More", true, 10001)] static bool dadsadsdasas123() => false;
 
         [MenuItem(disablePlugin, true, 100001)] static bool dadsaddssdsdaasadsadadsdasadsas() { Menu.SetChecked(disablePlugin, pluginDisabled); return true; }
-#endif
 
 
 

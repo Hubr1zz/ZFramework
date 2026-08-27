@@ -1,4 +1,117 @@
 {
   "schemaVersion": 1,
-  "entries": []
+  "entries": [
+    {
+      "sourcePath": "drafts/changes/design-import-20260724-boss-attack-resolution/proposal.md",
+      "targetPath": "openspec/translations/en-US/drafts/changes/design-import-20260724-boss-attack-resolution/proposal.md",
+      "authoritativeLanguage": "zh-CN",
+      "targetLanguage": "en-US",
+      "sourceHash": "d1ffadcc6f0b473bdf580310c89e6f9f1fa8c9027f3df993edb2dd0fcc874bf2",
+      "translatedHash": "2d5a2cf2c76ff72b544d2537ee5c03f36c05797e57b740ffd92369f622b8f0f8",
+      "blocks": [
+        {
+          "id": "md:0001",
+          "kind": "heading",
+          "sourceHash": "8aca254b4054ab06ebfd69758ad489ceaaf7c88b47017a3c015e95ab31b340bc",
+          "translatedHash": "53b6614bdb01935f6cefc78bc8c3938546b8a3959bcbe8dce3296f4fdbe8c8d2"
+        },
+        {
+          "id": "md:0002",
+          "kind": "blank",
+          "sourceHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "translatedHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "id": "md:0003",
+          "kind": "heading",
+          "sourceHash": "54c8172fe2d28de6b6b1f03d6bbe1405a7447f68d166fe29c0079344022462bc",
+          "translatedHash": "eac4cfa69f9217dad9735482e886be4a92227f636f7ace14e1da29d3c240b605"
+        },
+        {
+          "id": "md:0004",
+          "kind": "blank",
+          "sourceHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "translatedHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "id": "md:0005",
+          "kind": "list",
+          "sourceHash": "97a9d34872edf78fc1d9eeac4a8cd0f325854b626314b230c772ce3143c18eef",
+          "translatedHash": "9cda3785a1fe2ad4772d2468ee375b57fdcd6f8ab0d2abc3b11225f68033bbfa"
+        },
+        {
+          "id": "md:0006",
+          "kind": "blank",
+          "sourceHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "translatedHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "id": "md:0007",
+          "kind": "heading",
+          "sourceHash": "ff2a6153fc0c17396cc930950e7b500435acdb1eed55942e3b9c1326cbf2d3ff",
+          "translatedHash": "2adc9e75119a6a03b292360310d3d40f2ca4588156ed834ce4cd433b5e71dbd2"
+        },
+        {
+          "id": "md:0008",
+          "kind": "blank",
+          "sourceHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "translatedHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "id": "md:0009",
+          "kind": "body",
+          "sourceHash": "5e2547f343baa83e34a179d89e108a780aec9f0cababf49b8ab91c14a0d4e6b0",
+          "translatedHash": "0fbc4a77b2b6e98610dbf45fa202a2ad20a35f11982272e358353818bc6f37ab"
+        },
+        {
+          "id": "md:0010",
+          "kind": "blank",
+          "sourceHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "translatedHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "id": "md:0011",
+          "kind": "heading",
+          "sourceHash": "8624095e830b7f6dc7692b9a3ebcae2555776460473b3854b4f4e3b98d4f5ff1",
+          "translatedHash": "22a0114d4fef576f1b2b520aca10fcbb049fa923eddcf7c3bc59a13bc296f4d4"
+        },
+        {
+          "id": "md:0012",
+          "kind": "blank",
+          "sourceHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "translatedHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "id": "md:0013",
+          "kind": "body",
+          "sourceHash": "98c435a0287fb65b56514a72f34fb5f47c195b87ec95d44226edc82167abedf4",
+          "translatedHash": "0ece1d977d6aedbe7049148add5254de7a3ea057a8ae36348a769544df6132f0"
+        },
+        {
+          "id": "md:0014",
+          "kind": "blank",
+          "sourceHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "translatedHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "id": "md:0015",
+          "kind": "heading",
+          "sourceHash": "c3f3d61edaa5607c6b5464d5edfd0540ebf1bfbd2bb361b3dc96d25c7ba0dff8",
+          "translatedHash": "bea640554574d6d5d63b0ee3b31bcb73934c0af1edd567d6d2079e87b4c5f45e"
+        },
+        {
+          "id": "md:0016",
+          "kind": "blank",
+          "sourceHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "translatedHash": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+        },
+        {
+          "id": "md:0017",
+          "kind": "list",
+          "sourceHash": "e45e4257b0e68dc16e9e45bf7a1129673993b6f3274f1a22a129293d7782e6b1",
+          "translatedHash": "508f9a6007ff4adb3bbcec586bc4eba870334fda3acc68af80df00c7db544b6a"
+        }
+      ]
+    }
+  ]
 }

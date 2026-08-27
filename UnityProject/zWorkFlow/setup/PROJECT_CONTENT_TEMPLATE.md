@@ -1,6 +1,6 @@
 # Project Content Template
 
-本模板只在项目没有等价能力、目标路径未被占用且用户当前任务确实需要时使用。它用于创建 zWorkFlow 自有的最小项目上下文；不得覆盖或改写已有同类文档。若已有能力足够，在能力映射中标记 `reuse-existing`，不要生成本模板。
+本模板在完整 setup 未发现等价项目路由且目标路径未被占用时使用。`project-context/SKILL.md` 与 `references/PROJECT-INDEX.md` 是一组不可拆分的最小路由能力；领域、架构和代码流程资料仍只按目标项目实际需要生成。不得覆盖或改写已有同类文档；若已有能力足够，在能力映射中记录其具体入口并标记 `reuse-existing`，不要生成本模板。
 
 ## project-context/SKILL.md
 

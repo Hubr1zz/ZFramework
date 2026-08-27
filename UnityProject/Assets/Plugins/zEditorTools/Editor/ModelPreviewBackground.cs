@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -17,11 +16,8 @@ namespace ZEditorTools
     [InitializeOnLoad]
     internal static class ModelPreviewBackground
     {
-        private const string packageAssetRoot = "Packages/com.leonz.z-editor-tools";
-        private const string embeddedAssetRoot = "Assets/Plugins/zEditorTools";
-        private static string assetRoot => AssetDatabase.IsValidFolder(packageAssetRoot) ? packageAssetRoot : embeddedAssetRoot;
-        private static string modelPath => CombineAssetPath("Model", "fb.fbx");
-        private static string texturePath => CombineAssetPath("Model", "FeiBi_SubTool2Tex2.png");
+        private const string ModelPath = "Assets/Plugins/zEditorTools/Model/菲比啾比.obj";
+        private const string TexturePath = "Assets/Plugins/zEditorTools/Model/FeiBi_SubTool2Tex2.png";
         private const string EnabledPref = "zEditorTools.ModelPreviewBackground.Enabled";
         private const string ModelGuidPref = "zEditorTools.ModelPreviewBackground.ModelGuid";
         private const double ScanInterval = 0.5d;
@@ -56,9 +52,6 @@ namespace ZEditorTools
         private static float pendingWheelDelta;
         private static double pendingWheelExpiry;
         private static EditorWindow focusedPreviewHost;
-
-        private static string CombineAssetPath(string directory, string fileName) =>
-            Path.Combine(assetRoot, directory, fileName).Replace('\\', '/');
 
         static ModelPreviewBackground()
         {
@@ -119,7 +112,7 @@ namespace ZEditorTools
             {
                 var selectedModel = value != null
                     ? value
-                    : AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+                    : AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath);
                 if (sourceModel == selectedModel)
                     return;
 
@@ -128,7 +121,7 @@ namespace ZEditorTools
                     ? string.Empty
                     : AssetDatabase.AssetPathToGUID(path);
                 if (string.IsNullOrEmpty(guid) ||
-                    string.Equals(path, modelPath, StringComparison.OrdinalIgnoreCase))
+                    string.Equals(path, ModelPath, StringComparison.OrdinalIgnoreCase))
                     EditorPrefs.DeleteKey(ModelGuidPref);
                 else
                     EditorPrefs.SetString(ModelGuidPref, guid);
@@ -174,7 +167,7 @@ namespace ZEditorTools
         internal static void ResetDecorationModel()
         {
             EditorPrefs.DeleteKey(ModelGuidPref);
-            DecorationModel = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+            DecorationModel = AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath);
         }
 
         private static GameObject LoadConfiguredSourceModel()
@@ -189,7 +182,7 @@ namespace ZEditorTools
                     return configuredModel;
             }
 
-            return AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+            return AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath);
         }
 
         internal static void SettingsChanged()
@@ -215,7 +208,7 @@ namespace ZEditorTools
                 : LoadConfiguredSourceModel();
             sourceTexture = sourceTexture != null
                 ? sourceTexture
-                : AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+                : AssetDatabase.LoadAssetAtPath<Texture2D>(TexturePath);
 
             if (sourceModel == null)
                 return;
@@ -709,7 +702,7 @@ namespace ZEditorTools
                 };
 
                 var useDefaultTextureFallback = string.Equals(
-                    AssetDatabase.GetAssetPath(sourceModel), modelPath,
+                    AssetDatabase.GetAssetPath(sourceModel), ModelPath,
                     StringComparison.OrdinalIgnoreCase);
                 var texture = GetMainTexture(source) ??
                               (useDefaultTextureFallback ? sourceTexture : null);

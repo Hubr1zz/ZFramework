@@ -25,8 +25,9 @@
 | 多 AI 工具、团队并存与模型路由 | `AI_TOOL_ADAPTERS.md`、`adapters/registry.json`、`registry.schema.json` | 共享角色只声明模型需求 profile；只为当前 active 或用户明确指定的工具增量适配；已验证映射或唯一运行时候选自动选择，歧义由当前成员确认一次并存入本地忽略文件；无团队级唯一 active tool / model |
 | 多路径设计来源 | `design-source.json` schema v2、`design-source-schema.md` | 多个等价路径使用稳定 ID；按 scope 跨路径收敛后再做语义类型过滤，同名来源可审计 |
 | OpenSpec 中英文增量翻译 | `openspec-translate/`、`openspec/localization.json`、`openspec/translations/` | 原路径保持唯一权威；文件与块级 SHA-256 只重译变化块；Spec 条目名称按 capability ID 分别保存中英文并驱动当前语言引用 |
-| C# 代码结构查询加速 | `codebase-query/` | Unity 项目在 `Assets` 或显式项目内 source roots 存在 C# 且 PowerShell 7+ 可用时安装；索引 v5 使用 UTF-8 和可移植 `/` 路径，提供文件级增量提取、完整类型、继承、receiver 调用绑定、影响分级、原子发布和词法回退；缺少 `pwsh` 时经用户许可才尝试安装，否则回退原生检索 |
+| C# 代码结构查询加速 | `codebase-query/` | Unity 项目在 `Assets` 或显式项目内 source roots 存在 C# 且 PowerShell 7+ 可用时安装；索引 v7 保存 UTF-8 内容指纹、可移植路径和声明行范围，正式索引进入 Git但由 `.ignore` 排除通用文本检索，并提供增量提取、一次性 context 事实包、receiver 调用绑定、紧凑影响分级、输出预算和按需词法展开；缺少 `pwsh` 时经用户许可才尝试安装，否则回退原生检索 |
 | C# 索引可视化 | `AgentWorkbenchWindow.CodeIndex.cs` | 主入口手动异步构建 `Assets/**/*.cs` 全量派生索引，展示构建进度、磁盘/索引文件数、覆盖率、缺失项、类型、方法与解析调用统计 |
+| 实现路由索引与旁路实现收养 | `track-implementation-progress/`、`reconcile-direct-implementation/`、`implementation-audit.json` | 从正式 Spec 的 `implementation.json` 与 active Change 生成带输入 digest 的轻量路由摘要；Git/C# 变化只生成本地候选。直接实现若符合不变的正式 Spec则核验投影，否则生成 post-hoc adoption Change 供人类审查，不维护全局 Ledger |
 | 共享功能目录边界 | `.agents/skills/<功能>/references/` | 保护清单与维护队列分离并按需读取；项目事实和完整功能文档只保留一个权威源；工具目录只含入口、命令、配置和薄 wrapper |
 | 已有工作流内容保全接入 | `AGENT_WORKFLOW_COEXISTENCE.md` | 完整 Claude/Codex Skills、角色与项目代码流程先迁入共享源并校验，再把原路径薄化；冲突项不做半迁移，工具设置/凭据/历史保持不变 |
 | 工程能力模块拆分 | `project-tooling/` | README/Wiki 核心模块经目录、接口、asmdef 或配置证据核验后分别建条目；总框架/启动 System 不得吞并 Resource、Event、Config、UI、Procedure 等稳定模块 |
@@ -64,11 +65,11 @@
 - 导入批次/Draft Change capability 分组导航；进入批次默认单独显示导入记录信息与提示，左侧返回按钮右侧提供切换入口，点击 Spec 条目后右侧只显示对应详情。Draft 列表与 OpenSpec 一样支持全部、System、Feature、游戏规则分类筛选，并提供删除确认、Change ID 复制、Review Issue 接受和审批门禁；Game Rule 不显示共享 Proposal/Tasks，Design 只显示反向来源文档链接与配对 Feature 跳转。
 - Draft 与正式 Change 的审核问题统一使用表格展示；blocking/warning/info 以迷你图标和颜色区分，非阻塞项支持逐行勾选接受及编辑 `acceptanceNote`，并同步 Change 与 capability 两层审核记录。
 - 配对 Feature 是详细信息与唯一审批入口，承担共享 Proposal/Design/Tasks、审核、依赖、实现差异和实现 Spec；Game Rule 只显示来源、配对 Feature 跳转和规则专属信息，并随 Feature 自动批准与同步。
-- Feature/Architecture 仅在 `spec-review.json.editorGuidance` 含有效人工动作时显示“引擎配置”按钮；正式 Spec 显示自身指引，正式 Change 汇总内部 capability，Draft 只显示当前 capability，纯 C#/无人工接入内容不显示空按钮。
+- Feature/System 仅在 Change 的 `spec-review.json.editorGuidance` 或正式 `implementation.json.editorGuidance` 含有效人工动作时显示“引擎配置”按钮；正式 Change 汇总内部 capability，Draft 只显示当前 capability，纯 C#/无人工接入内容不显示空按钮。
 - Draft Change 在导入时立即生成完整工件并记录正式目标 hash 与存在时的 Change 内快照；所有类别审批后都只整体转移到正式 Change。apply 不触碰正式 Spec。显式 sync 比较 base/current/Delta：非重叠 Requirement 可保留式合并，目标删除、重叠或旧基线无快照进入审查，只有确认覆盖/语义混杂才阻止。普通 EventBus 等工具不建节点，只有项目公共契约变化或至少两个 capability 依赖稳定语义时才生成 System 节点；真 Architecture 进入工程能力目录。
 - 正式 Change 的归档按钮只在 Tasks 全完成且 Spec 已同步时启用；纯代码移动到日期 archive，不自动 sync，且与永久 Delete 明确区分。
 - 导入批次只在仍引用至少一个现存 Draft Change 时保留；批准、删除或外部移动最后一个 Draft 后自动删除该导入记录，并清除中央 Draft 索引中的悬空批次引用。
-- “设计文档树”顶部可添加、替换和移除多个等价路径；选择任意含 Markdown 的目录时保存根路径，并由项目在 `openspec/implementation-ledger.json` 维护账本。工具栏状态灯只表示桥接有效；树按 Markdown 目录显示每个文件的实现进度、实现后变更与摘要，外部未登记修改显示“手动修改”。独立“指令列表”覆盖设计导入与筛选、检查文档及时性、修改导入、Spec 翻译/同步、apply、sync 和归档。
+- “设计文档树”顶部可添加、替换和移除多个等价路径；工具栏状态灯只表示桥接有效。树按 Markdown 目录显示与正式 capability 关联的进度，且只消费通过 input manifest 校验的路由摘要；缺失或过期时 fail-closed。独立“指令列表”覆盖设计导入与筛选、检查文档及时性、修改导入、Spec 翻译/同步、apply、sync 和归档。
 - 中英文、独立浅色/深色主题切换、深色控件线框增强、工作台正文/背景/面板颜色、警告与提示文字跟随正文、Markdown H1-H6/正文颜色、Markdown 默认应用、窗口位置与偏好尺寸自动恢复，以及本地配置隔离；不得读取 Unity 主题。
 - 生成权威语言由 Git 同步的 `openspec/localization.json` 配置，默认跟随设计文档并支持中英文；同一文件还按 capability ID 保存可分别重命名的 `zhCN` / `enUS` Spec 条目显示名。翻译副本位于 `openspec/translations/<language>/`，只有文件/块 hash 与权威内容同步时才显示。缺失或失效时只显示翻译指令，非权威 Markdown 在工作台只读。
 - 配置了有效设计来源时，玩法规则 Spec 可按 `<source-id>::<relative-path>:<line>` 来源引用反向打开设计 Markdown；旧单路径引用继续兼容，不依赖 bridge 开关。

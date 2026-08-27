@@ -6,11 +6,11 @@
 
 | 程序集 | 路径 | 工程内依赖 |
 |---|---|---|
-| `GameLogic` | `Assets/GameScripts/HotFix/GameLogic` | `ZFramework.Runtime`, `GameProto` |
-| `GameProto` | `Assets/GameScripts/HotFix/GameProto` | `ZFramework.Runtime` |
+| `GameLogic` | `Assets/GameScripts/GameLogic` | `TEngine.Runtime`, `HuntingInDarkness.GameCore` |
+| `HuntingInDarkness.GameCore` | `Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore` | 仅第三方/Unity 依赖 |
 | `Launcher` | `Assets/Launcher` | 仅第三方/Unity 依赖 |
-| `ZFramework.Editor` | `Assets/ZFramework/Editor` | `ZFramework.Runtime`, `GameLogic` |
-| `ZFramework.Runtime` | `Assets/ZFramework/Runtime` | 仅第三方/Unity 依赖 |
+| `TEngine.Editor` | `Assets/TEngine/Editor` | `TEngine.Runtime` |
+| `TEngine.Runtime` | `Assets/TEngine/Runtime` | 仅第三方/Unity 依赖 |
 
 ## GameModule 入口
 
@@ -50,11 +50,13 @@
 | 包 | 版本/来源 |
 |---|---|
 | `com.cysharp.unitask` | `file:UniTask (embedded)` |
+| `com.tengine.rts` | `file:com.tengine.rts (embedded)` |
 | `com.tuyoogame.yooasset` | `file:YooAsset (embedded)` |
-| `com.unity.ide.rider` | `3.0.38 (registry)` |
+| `com.unity.ai.navigation` | `1.1.5 (registry)` |
+| `com.unity.ide.rider` | `3.0.40 (registry)` |
 | `com.unity.ide.visualstudio` | `2.0.23 (registry)` |
-| `com.unity.ide.vscode` | `1.2.5 (registry)` |
 | `com.unity.nuget.newtonsoft-json` | `3.2.1 (registry)` |
+| `com.unity.textmeshpro` | `3.0.9 (builtin)` |
 | `com.unity.ugui` | `2.0.0 (builtin)` |
 
-Unity 内置模块共 32 个，完整列表以 `Packages/manifest.json` 为准。
+Unity 内置模块共 31 个，完整列表以 `Packages/manifest.json` 为准。

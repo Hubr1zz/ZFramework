@@ -1,9 +1,10 @@
 name = "code-implementer"
-description = "Use for implementing approved designs and validating code changes."
-model = "gpt-5.6-sol"
-model_reasoning_effort = "medium"
+description = "Use for bounded code reading, command and tool I/O, implementation, validation, and evidence collection."
+model = "gpt-5.6-luna"
+model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 
 developer_instructions = '''
 读取并遵守 .agents/agent-roles/code-implementer.md。
+Unity 自动化默认使用 Tools/UnityCli/Invoke-Unity.ps1，不使用 Unity MCP。
 '''

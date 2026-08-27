@@ -6,7 +6,7 @@
 
 ## 强制规则
 
-- 会新增或改变功能、外部可观察行为或公共运行契约的非平凡产品功能或运行框架改动先通过 `openspec-intake-gate`；行为保持型重构和实现方案调整即使位于框架代码也不进入。只有用户显式调用 OpenSpec/zWorkFlow 才覆盖此判断。
+- 会新增或改变玩法功能、玩家可观察行为或 Player 运行时公共契约的非平凡游戏改动先通过 `openspec-intake-gate`；行为保持型重构、实现方案调整和开发工具不进入正式 Spec。用户显式调用 OpenSpec/zWorkFlow 只触发审阅，不能覆盖正式 Spec 的玩法范围门禁。
 - 完整 skill 内容只维护在 `.agents/skills/`。
 - 项目事实、维护队列和共享工作台状态只维护在对应 `.agents/skills/<功能>/references/`；`.claude/` 不保存正文副本。
 - `.claude/skills/` 只保留 wrapper；不要在这里复制完整 skill 正文。

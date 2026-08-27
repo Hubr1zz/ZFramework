@@ -6,7 +6,42 @@
       "label": "ZFramework 启动生命周期",
       "category": "system",
       "readiness": "implemented",
-      "specPath": "openspec/specs/zframework-startup-lifecycle/spec.md"
+      "specPath": "openspec/specs/tengine-startup-lifecycle/spec.md"
+    },
+    {
+      "id": "game-manager-orchestration",
+      "label": "GameManager管理器",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/game-manager-orchestration/spec.md"
+    },
+    {
+      "id": "action-environment-lifecycle",
+      "label": "ActionQueue 全生命周期环境",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/action-environment-lifecycle/spec.md"
+    },
+    {
+      "id": "settlement-phase-orchestration",
+      "label": "营地阶段编排",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/settlement-phase-orchestration/spec.md"
+    },
+    {
+      "id": "hunt-phase-orchestration",
+      "label": "狩猎阶段编排",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-phase-orchestration/spec.md"
+    },
+    {
+      "id": "showdown-phase-orchestration",
+      "label": "决战阶段编排",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/showdown-phase-orchestration/spec.md"
     },
     {
       "id": "csharp-derived-index",
@@ -14,7 +49,1683 @@
       "category": "system",
       "readiness": "implemented",
       "specPath": "openspec/specs/csharp-derived-index/spec.md"
+    },
+    {
+      "id": "tabletop-opening-sequence",
+      "label": "3D 桌面开场序列",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-opening-sequence/spec.md"
+    },
+    {
+      "id": "campaign-persistence",
+      "label": "战役持久化与恢复",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-persistence/spec.md"
+    },
+    {
+      "id": "tabletop-hunt-departure",
+      "label": "3D 狩猎远征整备",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-hunt-departure/spec.md"
+    },
+    {
+      "id": "tabletop-hunt-retreat",
+      "label": "3D 狩猎回营结算",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-hunt-retreat/spec.md"
+    },
+    {
+      "id": "hunt-tabletop-harvest",
+      "label": "狩猎桌面资源采集",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-tabletop-harvest/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-invention",
+      "label": "营地桌面发明解锁",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-invention/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-workshop-construction",
+      "label": "营地桌面工坊建设",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-workshop-construction/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-recovery",
+      "label": "营地桌面猎人休养",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-recovery/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-recruitment",
+      "label": "营地桌面猎人招募",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-recruitment/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-advancement-ledger",
+      "label": "营地桌面成长训练与年鉴",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-advancement-ledger/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-symptoms",
+      "label": "营地桌面症状成长",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-symptoms/spec.md"
+    },
+    {
+      "id": "tabletop-random-interaction",
+      "label": "桌游式随机交互",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-random-interaction/spec.md"
+    },
+    {
+      "id": "tabletop-event-interaction",
+      "label": "跨阶段桌面事件交互",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-event-interaction/spec.md"
+    },
+    {
+      "id": "tabletop-settlement-equipment",
+      "label": "营地桌面猎人装备",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-equipment/spec.md"
+    },
+    {
+      "id": "table-driven-item-keywords",
+      "label": "读表物品与跨内容关键词",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-item-keywords/spec.md"
+    },
+    {
+      "id": "table-driven-crafting-content",
+      "label": "读表配方与事件奖励制造链",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-crafting-content/spec.md"
+    },
+    {
+      "id": "table-driven-invention-content",
+      "label": "读表发明与信仰分支",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-invention-content/spec.md"
+    },
+    {
+      "id": "table-driven-hunter-bloodlines",
+      "label": "读表猎人血脉",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-hunter-bloodlines/spec.md"
+    },
+    {
+      "id": "table-driven-hunter-templates",
+      "label": "读表猎人模板与稳定身份",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-hunter-templates/spec.md"
+    },
+    {
+      "id": "table-driven-hunter-traits",
+      "label": "读表猎人特性与稳定身份",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-hunter-traits/spec.md"
+    },
+    {
+      "id": "table-driven-hunter-symptoms",
+      "label": "读表猎人症状内容",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-hunter-symptoms/spec.md"
+    },
+    {
+      "id": "event-driven-hunter-death",
+      "label": "事件驱动猎人永久死亡",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/event-driven-hunter-death/spec.md"
+    },
+    {
+      "id": "table-driven-event-chains",
+      "label": "读表事件分支与事件链",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-event-chains/spec.md"
+    },
+    {
+      "id": "event-occurrence-checkpoint-core",
+      "label": "跨阶段事件 occurrence 检查点核心",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/event-occurrence-checkpoint-core/spec.md"
+    },
+    {
+      "id": "hunt-session-event-occurrence-recovery",
+      "label": "狩猎会话事件链恢复",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-session-event-occurrence-recovery/spec.md"
+    },
+    {
+      "id": "active-hunt-persistence",
+      "label": "活动狩猎检查点与恢复",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/active-hunt-persistence/spec.md"
+    },
+    {
+      "id": "settlement-timeline-event-identity",
+      "label": "营地时间线事件稳定身份",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/settlement-timeline-event-identity/spec.md"
+    },
+    {
+      "id": "campaign-year-loop",
+      "label": "战役年度出猎闭环",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-year-loop/spec.md"
+    },
+    {
+      "id": "campaign-startup-transaction",
+      "label": "战役开场启动事务",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-startup-transaction/spec.md"
+    },
+    {
+      "id": "table-driven-hunt-events",
+      "label": "读表狩猎事件内容",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/table-driven-hunt-events/spec.md"
+    },
+    {
+      "id": "hunt-event-resource-staging",
+      "label": "狩猎事件资源暂存与回营提交",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-event-resource-staging/spec.md"
+    },
+    {
+      "id": "tabletop-hunt-squad-status",
+      "label": "3D 狩猎小队状态桌",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-hunt-squad-status/spec.md"
+    },
+    {
+      "id": "hunt-squad-action-availability",
+      "label": "狩猎小队行动资格与失能交接",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-squad-action-availability/spec.md"
+    },
+    {
+      "id": "event-effect-resolution-reporting",
+      "label": "事件效果结构化结算结果",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/event-effect-resolution-reporting/spec.md"
+    },
+    {
+      "id": "event-driven-hunter-symptom-acquisition",
+      "label": "事件驱动猎人症状获得",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/event-driven-hunter-symptom-acquisition/spec.md"
+    },
+    {
+      "id": "hunt-tile-reveal-events",
+      "label": "狩猎地块揭示事件",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-tile-reveal-events/spec.md"
+    },
+    {
+      "id": "tabletop-game-over",
+      "label": "3D 桌面战役终局",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-game-over/spec.md"
+    },
+    {
+      "id": "hunt-noise-risk-deck",
+      "label": "狩猎噪音风险牌堆",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-noise-risk-deck/spec.md"
+    },
+    {
+      "id": "hunt-return-outcome-checkpoint",
+      "label": "狩猎归来结果检查点",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-return-outcome-checkpoint/spec.md"
+    },
+    {
+      "id": "campaign-content-cache-lifecycle",
+      "label": "战役内容缓存生命周期",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-content-cache-lifecycle/spec.md"
+    },
+    {
+      "id": "campaign-content-preflight-assembly",
+      "label": "战役内容启动预检装配",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-content-preflight-assembly/spec.md"
+    },
+    {
+      "id": "settlement-content-plan-lifecycle",
+      "label": "营地内容计划生命周期",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/settlement-content-plan-lifecycle/spec.md"
+    },
+    {
+      "id": "hunt-content-bundle-lifecycle",
+      "label": "狩猎内容 Bundle 生命周期",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-content-bundle-lifecycle/spec.md"
+    },
+    {
+      "id": "hunt-route-entry-context",
+      "label": "狩猎路线入场上下文",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-route-entry-context/spec.md"
+    },
+    {
+      "id": "expedition-build-progression-loop",
+      "label": "远征奖励与营地构筑闭环",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/expedition-build-progression-loop/spec.md"
     }
   ],
-  "edges": []
+  "edges": [
+    {
+      "id": "table-driven-hunter-symptoms--requires--table-driven-hunter-traits",
+      "from": "table-driven-hunter-symptoms",
+      "to": "table-driven-hunter-traits",
+      "type": "requires",
+      "status": "defined",
+      "reason": "每项症状的内化与克服结果必须解析为已登记的稳定特性 ID",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-symptom-acquisition--requires--table-driven-hunter-symptoms",
+      "from": "event-driven-hunter-symptom-acquisition",
+      "to": "table-driven-hunter-symptoms",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件效果以症状表中的稳定 ID 校验并获得权威症状定义",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-symptoms--requires--table-driven-hunter-symptoms",
+      "from": "tabletop-settlement-symptoms",
+      "to": "table-driven-hunter-symptoms",
+      "type": "requires",
+      "status": "defined",
+      "reason": "世界空间症状卡只读展示表定义并向既有 Settlement Runner 转发选择",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-traits--requires--table-driven-hunter-templates",
+      "from": "table-driven-hunter-traits",
+      "to": "table-driven-hunter-templates",
+      "type": "requires",
+      "status": "defined",
+      "reason": "初始与招募模板只保存注册特性 ID，3D 候选卡通过特性目录投影显示名",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-traits--requires--campaign-persistence",
+      "from": "table-driven-hunter-traits",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "特性身份 schema 与幂等旧显示名迁移随 SettlementInstance 持久化",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-traits--requires--table-driven-event-chains",
+      "from": "table-driven-hunter-traits",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件条件与 AddTrait 效果在内容装配阶段校验注册的稳定特性 ID",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "expedition-build-progression-loop--requires--tabletop-hunt-retreat",
+      "from": "expedition-build-progression-loop",
+      "to": "tabletop-hunt-retreat",
+      "type": "requires",
+      "status": "defined",
+      "reason": "远征奖励必须通过可靠回营记录一次性转入营地并推进年份",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "expedition-build-progression-loop--requires--table-driven-hunt-events",
+      "from": "expedition-build-progression-loop",
+      "to": "table-driven-hunt-events",
+      "type": "requires",
+      "status": "defined",
+      "reason": "可获得的远征奖励使用表驱动事件效果和稳定资源 ContentId",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "expedition-build-progression-loop--requires--table-driven-crafting-content",
+      "from": "expedition-build-progression-loop",
+      "to": "table-driven-crafting-content",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地构筑使用当前内容计划拥有的表驱动配方和物品身份",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "expedition-build-progression-loop--requires--tabletop-settlement-equipment",
+      "from": "expedition-build-progression-loop",
+      "to": "tabletop-settlement-equipment",
+      "type": "requires",
+      "status": "defined",
+      "reason": "制造产物通过 3D 营地装备意图和 Settlement ActionQueue 进入猎人构筑",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "expedition-build-progression-loop--requires--campaign-persistence",
+      "from": "expedition-build-progression-loop",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "稳定装备 ID、年度结果和已清除回营检查点必须跨继续战役恢复",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-content-bundle-lifecycle--requires--campaign-content-preflight-assembly",
+      "from": "hunt-content-bundle-lifecycle",
+      "to": "campaign-content-preflight-assembly",
+      "type": "requires",
+      "status": "defined",
+      "reason": "战役安装事务负责准备、发布和逆序回滚 Hunt Bundle 及其依赖世代",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-content-bundle-lifecycle--requires--settlement-content-plan-lifecycle",
+      "from": "hunt-content-bundle-lifecycle",
+      "to": "settlement-content-plan-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "狩猎资源与事件引用使用同批 Settlement Registry 和 EventGeneration 对象身份",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-content-preflight-assembly--requires--hunt-noise-risk-deck",
+      "from": "campaign-content-preflight-assembly",
+      "to": "hunt-noise-risk-deck",
+      "type": "requires",
+      "status": "defined",
+      "reason": "启动候选要求默认地区与每个目的地的危险事件区间连续覆盖无终止年战役",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-content-preflight-assembly--requires--campaign-content-cache-lifecycle",
+      "from": "campaign-content-preflight-assembly",
+      "to": "campaign-content-cache-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "启动预检安装复用单一事件对象世代，并在 GameManager 创建前完成重建",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-content-preflight-assembly--requires--game-manager-orchestration",
+      "from": "campaign-content-preflight-assembly",
+      "to": "game-manager-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "只有候选安装和隔离营地投影通过后才允许创建正式组合根",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-content-cache-lifecycle--requires--tengine-startup-lifecycle",
+      "from": "campaign-content-cache-lifecycle",
+      "to": "tengine-startup-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "正式事件缓存只在 GameManager 激活前的同步组合根门禁内重建",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--campaign-content-preflight-assembly",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "campaign-content-preflight-assembly",
+      "type": "requires",
+      "status": "defined",
+      "reason": "战役安装事务负责暂存、发布、回滚并退役完整营地内容计划",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--campaign-content-cache-lifecycle",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "campaign-content-cache-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地计划引用同批事件世代并在事件对象仍有效时完成发布或回滚",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--table-driven-item-keywords",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "table-driven-item-keywords",
+      "type": "requires",
+      "status": "defined",
+      "reason": "计划拥有表生成物品并以稳定 ID 解析配方、事件与猎人装备",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--table-driven-invention-content",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "table-driven-invention-content",
+      "type": "requires",
+      "status": "defined",
+      "reason": "计划冻结发明图、成本、主动事件与配方解锁引用",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--table-driven-hunter-templates",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "table-driven-hunter-templates",
+      "type": "requires",
+      "status": "defined",
+      "reason": "计划拥有表生成猎人模板并向开局与招募流程提供同一对象身份",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-content-plan-lifecycle--requires--table-driven-event-chains",
+      "from": "settlement-content-plan-lifecycle",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地计划冻结同一事件世代及其稳定 ID 分支引用，避免跨世代对象混用",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-content-cache-lifecycle--requires--table-driven-event-chains",
+      "from": "campaign-content-cache-lifecycle",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "共享缓存拥有表驱动事件及其同批次链引用的生命周期",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "action-environment-lifecycle--requires--tengine-startup-lifecycle",
+      "from": "action-environment-lifecycle",
+      "to": "tengine-startup-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "提交后的跨环境事实通过 TEngine GameEvent 兼容门面派发",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "game-manager-orchestration--requires--action-environment-lifecycle",
+      "from": "game-manager-orchestration",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "GameManager 维护 Campaign 环境并在阶段切换时替换功能环境",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "game-manager-orchestration--requires--tengine-startup-lifecycle",
+      "from": "game-manager-orchestration",
+      "to": "tengine-startup-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "ProcedureStartGame 通过 GameApp.Entrance 交接到 Hunting in Darkness 组合根",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-phase-orchestration--requires--game-manager-orchestration",
+      "from": "settlement-phase-orchestration",
+      "to": "game-manager-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地阶段由 GameManager 激活、进入并完成持久化交接",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-phase-orchestration--requires--game-manager-orchestration",
+      "from": "hunt-phase-orchestration",
+      "to": "game-manager-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "狩猎阶段通过 GameManager 接入全局阶段循环",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "showdown-phase-orchestration--requires--game-manager-orchestration",
+      "from": "showdown-phase-orchestration",
+      "to": "game-manager-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "决战阶段由 GameManager 激活并向营地阶段交接",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-opening-sequence--requires--tengine-startup-lifecycle",
+      "from": "tabletop-opening-sequence",
+      "to": "tengine-startup-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "ZFramework 启动完成后由可游玩组合根创建世界空间战役入口",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-opening-sequence--requires--settlement-phase-orchestration",
+      "from": "tabletop-opening-sequence",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "开场序列暂时遮蔽营地表现，并在结束后恢复已经等待输入的营地流程",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-persistence--requires--tabletop-opening-sequence",
+      "from": "campaign-persistence",
+      "to": "tabletop-opening-sequence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "继续战役通过 3D 开场序列发现并加载最近营地记录",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-persistence--requires--settlement-phase-orchestration",
+      "from": "campaign-persistence",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地阶段提供需要跨会话保存和恢复的权威 SettlementInstance",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-persistence--requires--tabletop-event-interaction",
+      "from": "campaign-persistence",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "继续战役把未完成 Timeline 引用重建为同一世界空间事件链，并在完成前保持出猎门禁",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-departure--requires--settlement-phase-orchestration",
+      "from": "tabletop-hunt-departure",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "远征名册在营地阶段 Runner 内验证并提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-departure--requires--hunt-phase-orchestration",
+      "from": "tabletop-hunt-departure",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "确认后的地区内容与小队交由狩猎阶段初始化消费",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-departure--requires--action-environment-lifecycle",
+      "from": "tabletop-hunt-departure",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "所有正式与兼容出猎入口都通过 Settlement 与 Campaign Runner 的单一受控命令链提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-retreat--requires--hunt-phase-orchestration",
+      "from": "tabletop-hunt-retreat",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "回营快照由当前 Hunt Runner 生成并验证",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-retreat--requires--settlement-phase-orchestration",
+      "from": "tabletop-hunt-retreat",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Campaign 接受切换后由营地消费狩猎记录与转入资源",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-retreat--requires--campaign-persistence",
+      "from": "tabletop-hunt-retreat",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "跨 Runner 的完整归来记录必须在离开 Hunt 和修改营地结果前持久化",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-retreat--requires--hunt-return-outcome-checkpoint",
+      "from": "tabletop-hunt-retreat",
+      "to": "hunt-return-outcome-checkpoint",
+      "type": "requires",
+      "status": "defined",
+      "reason": "实体回营确认生成的稳定记录由可恢复的归来结果检查点消费",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-return-outcome-checkpoint--requires--hunt-phase-orchestration",
+      "from": "hunt-return-outcome-checkpoint",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "当前 Hunt Runner 冻结参战者、伤亡和资源稳定身份",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-return-outcome-checkpoint--requires--settlement-phase-orchestration",
+      "from": "hunt-return-outcome-checkpoint",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "资源、成长、历史和年份由 Settlement Runner 的单一 root 权威提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-return-outcome-checkpoint--requires--action-environment-lifecycle",
+      "from": "hunt-return-outcome-checkpoint",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "完整预检、串行提交与提交后 EventBus outbox 复用阶段 Action 环境",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-return-outcome-checkpoint--requires--campaign-persistence",
+      "from": "hunt-return-outcome-checkpoint",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "pending、已应用结果和清除检查点通过顺序化快照跨进程收敛",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-tabletop-harvest--requires--hunt-phase-orchestration",
+      "from": "hunt-tabletop-harvest",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "资源点选择、逐卡揭示与最终收获由 Hunt Runner 串行提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-invention--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-invention",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "发明解锁由营地阶段 Runner 串行校验、提交并发布持久化事务",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-workshop-construction--requires--tabletop-settlement-invention",
+      "from": "tabletop-settlement-workshop-construction",
+      "to": "tabletop-settlement-invention",
+      "type": "requires",
+      "status": "defined",
+      "reason": "工坊蓝图可由前置发明控制建设资格",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-workshop-construction--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-workshop-construction",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "建设事务在营地 Runner 内串行提交并触发持久化",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-recovery--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-recovery",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "分部位休养由营地 Runner 校验并提交资源与生命变更",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-recruitment--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-recruitment",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "候选与命名意图由营地 Runner 串行校验并提交名册、资源及年鉴事实",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-advancement-ledger--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-advancement-ledger",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "成长与训练由营地 Runner 提交，年鉴读取同一营地持久状态",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-symptoms--requires--settlement-phase-orchestration",
+      "from": "tabletop-settlement-symptoms",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "症状内化与克服由营地 Runner 串行重验并提交长期猎人状态",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-item-keywords--requires--tabletop-event-interaction",
+      "from": "table-driven-item-keywords",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "关键词条件通过共享世界空间事件卡显示并提交玩家选择",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-event-interaction--requires--tabletop-random-interaction",
+      "from": "tabletop-event-interaction",
+      "to": "tabletop-random-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地与狩猎事件通过统一桌面随机路由等待并校验骰子、抽牌、翻牌或抽鬼牌结果",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-item-keywords--requires--tabletop-settlement-equipment",
+      "from": "table-driven-item-keywords",
+      "to": "tabletop-settlement-equipment",
+      "type": "requires",
+      "status": "defined",
+      "reason": "装备名称由营地权威仓库恢复为内容并聚合可查询关键词",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-crafting-content--requires--table-driven-item-keywords",
+      "from": "table-driven-crafting-content",
+      "to": "table-driven-item-keywords",
+      "type": "requires",
+      "status": "defined",
+      "reason": "配方以稳定物品 ID 解析原料和产物，并让制造出的护符进入统一关键词规则",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-crafting-content--requires--tabletop-settlement-workshop-construction",
+      "from": "table-driven-crafting-content",
+      "to": "tabletop-settlement-workshop-construction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "表配方复用现有工坊可用性、3D 配方卡与 Settlement ActionQueue 制作事务",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-invention-content--requires--table-driven-item-keywords",
+      "from": "table-driven-invention-content",
+      "to": "table-driven-item-keywords",
+      "type": "requires",
+      "status": "defined",
+      "reason": "发明成本以稳定物品 ContentId 解析并由统一资源账本消费",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-invention-content--requires--tabletop-settlement-invention",
+      "from": "table-driven-invention-content",
+      "to": "tabletop-settlement-invention",
+      "type": "requires",
+      "status": "defined",
+      "reason": "表发明复用现有 3D 发明卡、稳定身份目录与 Settlement ActionQueue 解锁事务",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-bloodlines--requires--tabletop-settlement-recruitment",
+      "from": "table-driven-hunter-bloodlines",
+      "to": "tabletop-settlement-recruitment",
+      "type": "requires",
+      "status": "defined",
+      "reason": "血脉在 Settlement Runner 的招募提交点抽取并随猎人进入权威名册",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-bloodlines--requires--campaign-persistence",
+      "from": "table-driven-hunter-bloodlines",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "稳定血脉 ID、缓存显示名与激活状态随猎人数据跨会话保存和恢复",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-bloodlines--requires--tabletop-event-interaction",
+      "from": "table-driven-hunter-bloodlines",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "血脉资格与激活结果通过统一3D事件卡展示，并在所属阶段ActionQueue节点内提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-templates--requires--tabletop-settlement-recruitment",
+      "from": "table-driven-hunter-templates",
+      "to": "tabletop-settlement-recruitment",
+      "type": "requires",
+      "status": "defined",
+      "reason": "表模板复用营地 3D 候选卡与 Settlement ActionQueue 招募事务",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-templates--requires--table-driven-item-keywords",
+      "from": "table-driven-hunter-templates",
+      "to": "table-driven-item-keywords",
+      "type": "requires",
+      "status": "defined",
+      "reason": "初始装备通过稳定物品 ContentId 解析并进入统一装备数据契约",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunter-templates--requires--campaign-persistence",
+      "from": "table-driven-hunter-templates",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "猎人来源模板 ID 与初始装备 ID 随权威猎人状态跨会话保存",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-death--requires--tabletop-event-interaction",
+      "from": "event-driven-hunter-death",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "致死选项由所属阶段事件 Action 节点选择猎人、等待实体交互并提交效果",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-death--requires--campaign-persistence",
+      "from": "event-driven-hunter-death",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "死亡状态、装备归还和年鉴记录属于需要保存的权威营地事务",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-death--requires--tabletop-game-over",
+      "from": "event-driven-hunter-death",
+      "to": "tabletop-game-over",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件杀死最后一名猎人后沿用统一 3D 战役失败与重开流程",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-game-over--requires--game-manager-orchestration",
+      "from": "tabletop-game-over",
+      "to": "game-manager-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "跨阶段 GameOver 事实订阅与战役重置由 GameManager 统一协调",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-invention-content--requires--action-environment-lifecycle",
+      "from": "table-driven-invention-content",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "战役发明通过 Installer 注册到匹配阶段 Runner，并随环境释放 Reactor 租约",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-invention-content--requires--hunt-tabletop-harvest",
+      "from": "table-driven-invention-content",
+      "to": "hunt-tabletop-harvest",
+      "type": "requires",
+      "status": "defined",
+      "reason": "植物知识在 BeginHarvestAction 的前置窗口覆盖草药采集概率，并由 3D 采集桌展示最终值",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-invention--requires--tabletop-event-interaction",
+      "from": "tabletop-settlement-invention",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "已掌握发明的主动效果复用世界空间事件选择、实体随机表现与事件链提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-invention--requires--campaign-persistence",
+      "from": "tabletop-settlement-invention",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "主动效果的年度使用次数随 SettlementInstance 保存，并在跨年或读档后继续重验",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-event-chains--requires--tabletop-event-interaction",
+      "from": "table-driven-event-chains",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "表中解析出的直接分支复用营地与狩猎共享的世界空间事件节点",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-event-chains--requires--action-environment-lifecycle",
+      "from": "table-driven-event-chains",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "直接后续由所属阶段 Runner 在同一有限因果链中串行调度并去重",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-event-chains--requires--campaign-persistence",
+      "from": "table-driven-event-chains",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "已提交父事件产生的直接子 occurrence 通过稳定链检查点跨取消、异常与读档继续",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunt-events--requires--table-driven-event-chains",
+      "from": "table-driven-hunt-events",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "狩猎表内容复用统一稳定 ID、分支引用装配与因果链去重规则",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunt-events--requires--hunt-phase-orchestration",
+      "from": "table-driven-hunt-events",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "表事件由当前 Hunt Runner 选择、等待桌面输入并串行提交效果",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-hunt-events--requires--tabletop-random-interaction",
+      "from": "table-driven-hunt-events",
+      "to": "tabletop-random-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "物理骰与抽牌判定通过统一 3D 桌面随机交互接口表现",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-event-resource-staging--requires--table-driven-hunt-events",
+      "from": "hunt-event-resource-staging",
+      "to": "table-driven-hunt-events",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Hunt 类别表事件通过阶段资源端口获得或失去携带物",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-event-resource-staging--requires--hunt-phase-orchestration",
+      "from": "hunt-event-resource-staging",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Hunt Runner 为共享事件节点注入当前狩猎的资源命令与小队上下文",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-event-resource-staging--requires--tabletop-hunt-retreat",
+      "from": "hunt-event-resource-staging",
+      "to": "tabletop-hunt-retreat",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件奖励与采集物共同经过正式回营快照和 Campaign 接受后的转入边界",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-event-resource-staging--requires--campaign-persistence",
+      "from": "hunt-event-resource-staging",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "接受回营后转入的稳定资源 ID 与狩猎记录进入权威营地存档",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-squad-status--requires--hunt-phase-orchestration",
+      "from": "tabletop-hunt-squad-status",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "状态桌只读取 Hunt Runner 已提交的小队、地图与猎人权威状态",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-squad-status--requires--hunt-event-resource-staging",
+      "from": "tabletop-hunt-squad-status",
+      "to": "hunt-event-resource-staging",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件节点提交后以同一携带物投影刷新猎人卡的素材总数与摘要",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-squad-status--requires--tabletop-hunt-retreat",
+      "from": "tabletop-hunt-squad-status",
+      "to": "tabletop-hunt-retreat",
+      "type": "requires",
+      "status": "defined",
+      "reason": "猎人卡与回营确认复用同一只读携带物摘要，保证探索与结算预览一致",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-squad-action-availability--requires--hunt-phase-orchestration",
+      "from": "hunt-squad-action-availability",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "地图、采集和回营命令从同一 Hunt 会话读取当前部署猎人的存活资格",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-squad-action-availability--requires--event-driven-hunter-death",
+      "from": "hunt-squad-action-availability",
+      "to": "event-driven-hunter-death",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件死亡提交后重新选择存活行动者，并在最终成员失去后关闭探索命令",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-squad-action-availability--requires--hunt-tabletop-harvest",
+      "from": "hunt-squad-action-availability",
+      "to": "hunt-tabletop-harvest",
+      "type": "requires",
+      "status": "defined",
+      "reason": "采集最终提交重验猎人存活状态，失败时释放资源点预约并允许关闭实体卡",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-squad-action-availability--requires--tabletop-hunt-retreat",
+      "from": "hunt-squad-action-availability",
+      "to": "tabletop-hunt-retreat",
+      "type": "requires",
+      "status": "defined",
+      "reason": "远征失去全部行动者后禁止继续探索，但保留正式回营结算边界",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-effect-resolution-reporting--requires--table-driven-event-chains",
+      "from": "event-effect-resolution-reporting",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "读表事件节点按配置顺序执行效果，并将每项应用或拒绝结果汇总到同一批次",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-effect-resolution-reporting--requires--action-environment-lifecycle",
+      "from": "event-effect-resolution-reporting",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地与狩猎 ActionQueue Root 在提交边界暴露效果批次而不伪造回滚语义",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-effect-resolution-reporting--requires--settlement-phase-orchestration",
+      "from": "event-effect-resolution-reporting",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地事件命令向上返回跨节点聚合的效果成功与失败计数",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-effect-resolution-reporting--requires--hunt-phase-orchestration",
+      "from": "event-effect-resolution-reporting",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "狩猎地块事件命令显式返回阶段资源拒绝等效果结果",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-noise-risk-deck--requires--hunt-phase-orchestration",
+      "from": "hunt-noise-risk-deck",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "普通地块噪音判定、地图提交与危险事件解析由当前 Hunt Runner 串行拥有",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-noise-risk-deck--requires--action-environment-lifecycle",
+      "from": "hunt-noise-risk-deck",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Reactor 修正、提交检查点与 EventBus outbox 事实复用全生命周期 Action 环境",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-noise-risk-deck--requires--tabletop-random-interaction",
+      "from": "hunt-noise-risk-deck",
+      "to": "tabletop-random-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "噪音风险在地图提交前通过共享世界空间 3D 抽牌端口等待并校验",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-noise-risk-deck--requires--table-driven-hunt-events",
+      "from": "hunt-noise-risk-deck",
+      "to": "table-driven-hunt-events",
+      "type": "requires",
+      "status": "defined",
+      "reason": "危险牌从冻结的年度可用狩猎事件池按稳定 ID 与内容权重选择事件",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-symptom-acquisition--requires--event-effect-resolution-reporting",
+      "from": "event-driven-hunter-symptom-acquisition",
+      "to": "event-effect-resolution-reporting",
+      "type": "requires",
+      "status": "defined",
+      "reason": "症状效果通过有序效果结果暴露稳定目标、猎人和幂等状态变化",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-symptom-acquisition--requires--table-driven-hunt-events",
+      "from": "event-driven-hunter-symptom-acquisition",
+      "to": "table-driven-hunt-events",
+      "type": "requires",
+      "status": "defined",
+      "reason": "狩猎事件表以稳定症状 ID 配置获得效果并在装配时校验",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-symptom-acquisition--requires--tabletop-settlement-symptoms",
+      "from": "event-driven-hunter-symptom-acquisition",
+      "to": "tabletop-settlement-symptoms",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件写入的权威症状状态由现有猎人卡与世界空间症状板呈现和成长",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-driven-hunter-symptom-acquisition--requires--tabletop-event-interaction",
+      "from": "event-driven-hunter-symptom-acquisition",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地与狩猎复用统一世界空间事件选择、随机表现和结果确认流程",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-tile-reveal-events--requires--hunt-phase-orchestration",
+      "from": "hunt-tile-reveal-events",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "地块翻牌提交、专属事件结算与相邻地块解锁由当前 Hunt Runner 串行拥有",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-tile-reveal-events--requires--tabletop-event-interaction",
+      "from": "hunt-tile-reveal-events",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "专属地块事件复用世界空间事件选择与实体随机交互端口",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-tile-reveal-events--requires--hunt-noise-risk-deck",
+      "from": "hunt-tile-reveal-events",
+      "to": "hunt-noise-risk-deck",
+      "type": "requires",
+      "status": "defined",
+      "reason": "显式地块事件与普通地块噪音牌堆互斥选择，保证两种生产内容入口同时存在",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-tile-reveal-events--requires--hunt-event-resource-staging",
+      "from": "hunt-tile-reveal-events",
+      "to": "hunt-event-resource-staging",
+      "type": "requires",
+      "status": "defined",
+      "reason": "地块事件资源奖励使用稳定物品 ID 并在正式回营前暂存为远征携带物",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "event-occurrence-checkpoint-core--requires--action-environment-lifecycle",
+      "from": "event-occurrence-checkpoint-core",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "共享 occurrence 只定义 Action 节点提交后的有限身份与幂等边界",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "table-driven-event-chains--requires--event-occurrence-checkpoint-core",
+      "from": "table-driven-event-chains",
+      "to": "event-occurrence-checkpoint-core",
+      "type": "requires",
+      "status": "defined",
+      "reason": "直接事件分支以稳定 occurrence 序号区分重复内容引用并阻止祖先回边",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-persistence--requires--event-occurrence-checkpoint-core",
+      "from": "campaign-persistence",
+      "to": "event-occurrence-checkpoint-core",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Settlement Adapter 保持现有 Schema 1 DTO 与存档字段，Hunt 耐久恢复等待完整 active-Hunt snapshot",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-session-event-occurrence-recovery--requires--event-occurrence-checkpoint-core",
+      "from": "hunt-session-event-occurrence-recovery",
+      "to": "event-occurrence-checkpoint-core",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Hunt store 复用 occurrence Sequence、稳定内容身份与有界提交算法",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-session-event-occurrence-recovery--requires--hunt-phase-orchestration",
+      "from": "hunt-session-event-occurrence-recovery",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "待办事件、玩法门禁和遭遇交接锁由单次 Hunt Runner 生命周期拥有",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-session-event-occurrence-recovery--requires--tabletop-event-interaction",
+      "from": "hunt-session-event-occurrence-recovery",
+      "to": "tabletop-event-interaction",
+      "type": "requires",
+      "status": "defined",
+      "reason": "恢复节点继续使用世界空间选择、随机交互与结果确认端口",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-session-event-occurrence-recovery--requires--table-driven-event-chains",
+      "from": "hunt-session-event-occurrence-recovery",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "待恢复 children 来自事件表配置的有序直接分支",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-timeline-event-identity--requires--settlement-phase-orchestration",
+      "from": "settlement-timeline-event-identity",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "精确年鉴 occurrence 由 Settlement Runner 在事件提交检查点完成",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-timeline-event-identity--requires--campaign-persistence",
+      "from": "settlement-timeline-event-identity",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "稳定 ContentId、迁移 schema 与诊断随 SettlementInstance 持久化",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-timeline-event-identity--requires--event-occurrence-checkpoint-core",
+      "from": "settlement-timeline-event-identity",
+      "to": "event-occurrence-checkpoint-core",
+      "type": "requires",
+      "status": "defined",
+      "reason": "父事件提交后以 occurrence 检查点保存可恢复的直接子事件",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "settlement-timeline-event-identity--requires--table-driven-event-chains",
+      "from": "settlement-timeline-event-identity",
+      "to": "table-driven-event-chains",
+      "type": "requires",
+      "status": "defined",
+      "reason": "内容目录以表配置事件的稳定 ContentId 解析年度事件与直接子链",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-year-loop--requires--settlement-phase-orchestration",
+      "from": "campaign-year-loop",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "出发名册与回营结果由 Settlement Runner 串行验证并提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-year-loop--requires--hunt-phase-orchestration",
+      "from": "campaign-year-loop",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Hunt Runner 冻结本次小队、年份与撤退记录",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-year-loop--requires--hunt-return-outcome-checkpoint",
+      "from": "campaign-year-loop",
+      "to": "hunt-return-outcome-checkpoint",
+      "type": "requires",
+      "status": "defined",
+      "reason": "回营资源、成长、历史与年份通过稳定记录和两阶段保存可靠提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-year-loop--requires--campaign-persistence",
+      "from": "campaign-year-loop",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "PendingHuntReturn 在应用与清理两个保存边界间保持可恢复",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-startup-transaction--requires--campaign-persistence",
+      "from": "campaign-startup-transaction",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "开场事务通过可替换端口检查、删除或加载存档，并在候选发布前保持零写入",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-startup-transaction--requires--active-hunt-persistence",
+      "from": "campaign-startup-transaction",
+      "to": "active-hunt-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Continue 复用活动狩猎候选验证并直接发布 Hunt 运行态",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-startup-transaction--requires--settlement-phase-orchestration",
+      "from": "campaign-startup-transaction",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "有效营地候选发布后才创建 Settlement Runner 并恢复待处理事件",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "active-hunt-persistence--requires--campaign-persistence",
+      "from": "active-hunt-persistence",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "复用校验封套、备份恢复与原子文件替换保存战役阶段快照",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "active-hunt-persistence--requires--hunt-phase-orchestration",
+      "from": "active-hunt-persistence",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Hunt Runner 的已提交 Action 边界定义可冻结检查点",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "active-hunt-persistence--requires--hunt-session-event-occurrence-recovery",
+      "from": "active-hunt-persistence",
+      "to": "hunt-session-event-occurrence-recovery",
+      "type": "requires",
+      "status": "defined",
+      "reason": "活动快照持久化并恢复当前 Hunt session 的 occurrence store",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "active-hunt-persistence--requires--hunt-content-bundle-lifecycle",
+      "from": "active-hunt-persistence",
+      "to": "hunt-content-bundle-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "活动快照保存确定性 Bundle 指纹，并从同一冻结 RoutePlan 对象图解析地块、事件和物品",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "active-hunt-persistence--requires--hunt-route-entry-context",
+      "from": "active-hunt-persistence",
+      "to": "hunt-route-entry-context",
+      "type": "requires",
+      "status": "defined",
+      "reason": "恢复事务复用精确 RoutePlan 的只读解析、身份校验、提交和 RuntimeState 回滚契约",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "campaign-year-loop--requires--active-hunt-persistence",
+      "from": "campaign-year-loop",
+      "to": "active-hunt-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "正常狩猎进程重启与回营交接保持唯一权威状态",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-route-entry-context--requires--hunt-content-bundle-lifecycle",
+      "from": "hunt-route-entry-context",
+      "to": "hunt-content-bundle-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "出发上下文携带当前战役内容世代拥有的精确冻结 RoutePlan",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-route-entry-context--requires--action-environment-lifecycle",
+      "from": "hunt-route-entry-context",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "Campaign Runner 串行执行并允许 Reactor 观察或阻止完整入场请求",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-route-entry-context--requires--game-manager-orchestration",
+      "from": "hunt-route-entry-context",
+      "to": "game-manager-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "组合根负责重新验证令牌与 Bundle 身份，并原子发布或回滚 Hunt 运行图",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-route-entry-context--requires--campaign-year-loop",
+      "from": "hunt-route-entry-context",
+      "to": "campaign-year-loop",
+      "type": "requires",
+      "status": "defined",
+      "reason": "营地出发准备提供当前年份、唯一编队与一次性准备令牌",
+      "gapId": "",
+      "blocksImplementation": false
+    }
+  ]
 }

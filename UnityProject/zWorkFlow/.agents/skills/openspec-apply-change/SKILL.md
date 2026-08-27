@@ -108,7 +108,7 @@ Implement tasks from an OpenSpec change.
 
 8. **Stop at the Change sandbox boundary**
 
-   Apply only changes implementation code, tests, task checkboxes, verification and `implementationOutline` inside the active Change. It MUST NOT create, edit or merge anything under `openspec/specs/` or `openspec/spec-metadata/`, and MUST NOT invoke `openspec-sync-specs`. When implementation finishes, keep `change-review.json.specSyncStatus=pending` and report that the user may explicitly run sync after reviewing the delta. Each Change remains an independent sandbox until that manual sync.
+   Apply only changes implementation code, tests, task checkboxes, verification and `implementationOutline` inside the active Change. It MUST NOT create, edit or merge anything under `openspec/specs/` or `openspec/spec-metadata/`, and MUST NOT invoke `openspec-sync-specs`. When implementation finishes, keep `change-review.json.specSyncStatus=pending` so the human can review the implemented Change and request adjustments before explicit sync. Each Change remains an independent sandbox until that manual sync.
 
    Do not copy ordinary implementation output into the incremental refactor queue: source files, Git and the active Change already provide those records. If apply reveals deferred technical debt, a non-functional refactor or an architecture risk that is intentionally left outside the approved Change, add or update one actionable queue item through `project-refactor-queue`; do not use the queue for completed work or as a duplicate change log.
 

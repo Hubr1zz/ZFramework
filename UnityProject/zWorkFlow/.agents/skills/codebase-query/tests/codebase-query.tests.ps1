@@ -19,13 +19,35 @@ $localRoot = [System.IO.Path]::GetFullPath((Join-Path $projectRoot '.agent-memor
 New-Item -ItemType Directory -Path $localRoot -Force | Out-Null
 
 $build = & $queryScript build -Root $projectRoot | ConvertFrom-Json
+$canonicalIndexPath = Join-Path $projectRoot '.agents/codebase-query/code-query-index.json'
+$firstCanonicalIndex = Get-Content -Raw -LiteralPath $canonicalIndexPath -Encoding utf8
 Assert-True ($build.fileCount -gt 0) 'at least one target C# file should be indexed.'
 Assert-True ($build.qualifiedTypeCount -gt 0) 'qualified C# types should be indexed.'
 Assert-True ($build.coveragePercent -eq 100 -and $build.missingFileCount -eq 0 -and $build.unexpectedFileCount -eq 0) `
     'the default build must verify complete Assets C# coverage.'
 $repeatBuild = & $queryScript build -Root $projectRoot | ConvertFrom-Json
+$secondCanonicalIndex = Get-Content -Raw -LiteralPath $canonicalIndexPath -Encoding utf8
 Assert-True ($repeatBuild.parsedFileCount -eq 0 -and $repeatBuild.reusedFileCount -eq $repeatBuild.fileCount) `
     'a repeated manual build should reuse every unchanged file extraction.'
+Assert-True ($firstCanonicalIndex -ceq $secondCanonicalIndex) `
+    'a repeated build must produce byte-identical canonical index output.'
+$canonicalIndex = $secondCanonicalIndex | ConvertFrom-Json
+$canonicalProperties = @($canonicalIndex.PSObject.Properties.Name)
+Assert-True ($canonicalProperties -notcontains 'root' -and $canonicalProperties -notcontains 'generatedAtUtc') `
+    'the canonical index must not contain machine-local roots or generation timestamps.'
+Assert-True (@($canonicalIndex.files | Where-Object {
+    -not $_.sourceHash -or @($_.PSObject.Properties.Name) -contains 'sourceWriteTimeUtcTicks'
+}).Count -eq 0) `
+    'every indexed file must use a portable content hash instead of a local write timestamp.'
+Assert-True (@($canonicalIndex.files | ForEach-Object { $_.methodDefinitions } | Where-Object {
+    -not $_.startLine -or -not $_.endLine -or $_.endLine -lt $_.startLine
+}).Count -eq 0) 'every indexed method must expose a valid source line range.'
+$defaultArchitecture = & $queryScript architecture -Root $projectRoot | ConvertFrom-Json
+Assert-True (@($defaultArchitecture.topFolders).Count -le 8 -and @($defaultArchitecture.namespaces).Count -le 8) `
+    'the default query limit should keep discovery output compact.'
+$budgetResult = & $queryScript search -Root $projectRoot -Query 'e' -IncludeMethods -Limit 200 -MaxOutputBytes 2048 | ConvertFrom-Json
+Assert-True ($budgetResult.truncated -eq $true -and $budgetResult.reason -eq 'max-output-bytes') `
+    'oversized query output should fail compactly at the explicit byte budget.'
 
 $relocationRoot = Join-Path $localRoot ("codebase-query-relocation-" + [Guid]::NewGuid().ToString('N'))
 try {
@@ -38,7 +60,7 @@ try {
         -Destination (Join-Path $implementationRoot 'type-binding.ps1')
     $relocatedStatus = & (Join-Path $relocationRoot 'scripts/run.ps1') status -Root $projectRoot |
         ConvertFrom-Json
-    Assert-True ($relocatedStatus.schemaVersion -eq 5) `
+    Assert-True ($relocatedStatus.schemaVersion -eq 7) `
         'renaming and moving implementation scripts inside the skill must preserve the stable entrypoint.'
 }
 finally {
@@ -147,6 +169,37 @@ namespace PortableFixture
         "default Unity discovery must work without an Assets/Scripts convention. Result: $($serviceResult | ConvertTo-Json -Depth 6 -Compress)"
     Assert-True (@($serviceResult.resolvedCallers | Where-Object { $_.receiver -eq '_aliasedService' }).Count -eq 1) `
         'using aliases should resolve without recursive alias expansion.'
+    Assert-True ($serviceResult.lexicalFallbackExpanded -eq $false -and @($serviceResult.lexicalFallbackFiles).Count -le 3) `
+        'callers should fold lexical fallback output by default.'
+    $expandedServiceResult = & $queryScript callers -Root $fixtureRoot -Query 'PortableService.Run' -Limit 20 -IncludeLexical |
+        ConvertFrom-Json
+    Assert-True ($expandedServiceResult.lexicalFallbackExpanded -eq $true) `
+        'callers should expand lexical fallback only when explicitly requested.'
+
+    $typeSearch = & $queryScript search -Root $fixtureRoot -Query 'PortableService' | ConvertFrom-Json
+    Assert-True (@($typeSearch.types).Count -eq 1 -and @($typeSearch.methods).Count -eq 0) `
+        'an exact type search should not emit every qualified method of that type.'
+    Assert-True ($typeSearch.types[0].startLine -gt 0 -and $typeSearch.types[0].endLine -ge $typeSearch.types[0].startLine) `
+        'type search should return a readable source range.'
+    $methodSearch = & $queryScript search -Root $fixtureRoot -Query 'PortableService.Run' | ConvertFrom-Json
+    Assert-True (@($methodSearch.methods).Count -eq 1 -and $methodSearch.methods[0].startLine -gt 0) `
+        'an explicit Type.Method search should return the method definition and line range.'
+    $contextResult = & $queryScript context -Root $fixtureRoot -Query 'PortableService.Run' | ConvertFrom-Json
+    Assert-True ($contextResult.targetKind -eq 'method' -and @($contextResult.definitions).Count -eq 1) `
+        'context should resolve a method definition.'
+    Assert-True ($contextResult.resolvedCallerCount -ge 2 -and @($contextResult.recommendedReads).Count -eq 1) `
+        'context should combine direct callers with a targeted read range.'
+    $methodImpact = & $queryScript impact -Root $fixtureRoot -Query 'PortableService.Run' | ConvertFrom-Json
+    Assert-True (@($methodImpact.definitionFiles) -contains 'Assets/GameRuntime/Code/Services.cs') `
+        'impact should resolve a qualified method definition path.'
+    $fileImpact = & $queryScript impact -Root $fixtureRoot -Path 'Assets/GameRuntime/Code/Services.cs' | ConvertFrom-Json
+    Assert-True (@($fileImpact.symbols) -notcontains 'Run') `
+        'whole-file lexical impact should omit common method names.'
+    Assert-True (@($fileImpact.candidates | Where-Object { $_.confidence -eq 'lexical' }).Count -eq 0) `
+        'impact should keep lexical-only candidates folded by default.'
+    $expandedFileImpact = & $queryScript impact -Root $fixtureRoot -Path 'Assets/GameRuntime/Code/Services.cs' -IncludeLexical | ConvertFrom-Json
+    Assert-True (@($expandedFileImpact.symbols) -contains 'Run') `
+        'explicit lexical expansion should restore common method symbols.'
 
     $eventResult = & $queryScript callers -Root $fixtureRoot -Query 'PortableEvents.Publish' -Limit 20 |
         ConvertFrom-Json
@@ -160,22 +213,35 @@ namespace PortableFixture
     Assert-True ($basePaths -contains 'Assets/GameRuntime/Code/DerivedView.cs') `
         'base method calls should resolve through inheritance.'
 
+    $fixtureIndexPath = Join-Path $fixtureRoot '.agents/codebase-query/code-query-index.json'
+    $lfIndex = Get-Content -Raw -LiteralPath $fixtureIndexPath -Encoding utf8
+    foreach ($sourceFile in Get-ChildItem -LiteralPath (Join-Path $fixtureRoot 'Assets') -Recurse -Filter '*.cs' -File) {
+        $sourceText = [System.IO.File]::ReadAllText($sourceFile.FullName, [Text.Encoding]::UTF8)
+        $crlfText = $sourceText.Replace("`r`n", "`n").Replace("`r", "`n").Replace("`n", "`r`n")
+        [System.IO.File]::WriteAllText($sourceFile.FullName, $crlfText, [System.Text.UTF8Encoding]::new($false))
+    }
+    $fixtureStatePath = Join-Path $fixtureRoot '.agent-memory/zworkflow/local/code-query-state.json'
+    if (Test-Path -LiteralPath $fixtureStatePath) { Remove-Item -LiteralPath $fixtureStatePath -Force }
+    & $queryScript build -Root $fixtureRoot 2>$null | Out-Null
+    $crlfIndex = Get-Content -Raw -LiteralPath $fixtureIndexPath -Encoding utf8
+    Assert-True ($lfIndex -ceq $crlfIndex) `
+        'LF and CRLF checkouts of identical C# text must publish byte-identical canonical indexes.'
+
     Move-Item -LiteralPath (Join-Path $fixtureCodeRoot 'PortableConsumer.cs') `
         -Destination (Join-Path $fixtureCodeRoot 'RenamedPortableConsumer.cs')
+    $incrementalBuild = & $queryScript build -Root $fixtureRoot | ConvertFrom-Json
+    Assert-True ($incrementalBuild.parsedFileCount -eq 1 -and $incrementalBuild.reusedFileCount -eq 4) `
+        'renaming one file should parse the new path once and reuse all unchanged file facts.'
     $renamedResult = & $queryScript callers -Root $fixtureRoot -Query 'PortableService.Run' -Limit 20 |
         ConvertFrom-Json
     $renamedPaths = @($renamedResult.resolvedCallers | ForEach-Object { $_.path })
     Assert-True (($renamedPaths -contains 'Assets/GameRuntime/Code/RenamedPortableConsumer.cs') -and
         ($renamedPaths -notcontains 'Assets/GameRuntime/Code/PortableConsumer.cs')) `
         'renaming or moving a target C# file must invalidate stale cached paths.'
-    $incrementalStatus = & $queryScript status -Root $fixtureRoot | ConvertFrom-Json
-    Assert-True ($incrementalStatus.parsedFileCount -eq 1 -and $incrementalStatus.reusedFileCount -eq 4) `
-        'renaming one file should parse the new path once and reuse all unchanged file facts.'
-
     $invalidIndexPath = Join-Path $fixtureRoot 'invalid-index.json'
     '{}' | Set-Content -LiteralPath $invalidIndexPath -Encoding utf8
     $recoveredStatus = & $queryScript status -Root $fixtureRoot -IndexPath $invalidIndexPath | ConvertFrom-Json
-    Assert-True ($recoveredStatus.schemaVersion -eq 5 -and $recoveredStatus.fileCount -eq 5) `
+    Assert-True ($recoveredStatus.schemaVersion -eq 7 -and $recoveredStatus.fileCount -eq 5) `
         'a valid JSON file with an incompatible cache shape should be discarded and rebuilt.'
 
     $packageResult = & $queryScript callers -Root $fixtureRoot `
@@ -210,9 +276,9 @@ finally {
 
 [pscustomobject]@{
     passed = $true
-    schemaVersion = 5
+    schemaVersion = 7
     targetFileCount = $build.fileCount
     qualifiedTypeCount = $build.qualifiedTypeCount
     resolvedCallCount = $build.resolvedCallCount
-    assertions = 15
+    assertions = 32
 } | ConvertTo-Json -Compress

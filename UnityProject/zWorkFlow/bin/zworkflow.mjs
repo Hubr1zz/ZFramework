@@ -2,7 +2,7 @@
 
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync } from "node:fs";
-import { basename, dirname, resolve, sep } from "node:path";
+import { basename, dirname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -21,6 +21,14 @@ const EXCLUDED_TOP_LEVEL = new Set([
 ]);
 const MANAGED_TOP_LEVEL = new Set(manifest.upgradePolicy?.managedTopLevel ?? []);
 const PRESERVED_TOP_LEVEL = new Set(manifest.upgradePolicy?.preserveTopLevel ?? []);
+const PORTABLE_PACKAGE_EXCLUDES = (manifest.portablePackageExcludes ?? [])
+  .map((path) => String(path).replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/$/, ""));
+
+function isPortablePackagePath(sourceRoot, sourcePath) {
+  const portablePath = relative(sourceRoot, sourcePath).replaceAll("\\", "/");
+  return !PORTABLE_PACKAGE_EXCLUDES.some((excluded) =>
+    portablePath === excluded || portablePath.startsWith(`${excluded}/`));
+}
 
 export function parseVersion(text) {
   const match = String(text ?? "").match(/v?(\d+)\.(\d+)\.(\d+)/);
@@ -99,6 +107,7 @@ export function copyPortablePackage(sourceRoot, destinationRoot) {
         recursive: true,
         errorOnExist: true,
         force: false,
+        filter: (sourcePath) => isPortablePackagePath(sourceRoot, sourcePath),
       });
     }
     renameSync(stagingRoot, destinationRoot);
@@ -121,6 +130,7 @@ function copyPackageEntries(sourceRoot, destinationRoot) {
     cpSync(resolve(sourceRoot, entry.name), resolve(destinationRoot, entry.name), {
       recursive: true,
       force: true,
+      filter: (sourcePath) => isPortablePackagePath(sourceRoot, sourcePath),
     });
   }
 }

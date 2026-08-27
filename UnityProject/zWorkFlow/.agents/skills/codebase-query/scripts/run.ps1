@@ -1,18 +1,23 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('build', 'status', 'architecture', 'search', 'callers', 'impact', 'changed')]
+    [ValidateSet('build', 'status', 'architecture', 'search', 'callers', 'impact', 'changed', 'context')]
     [string]$Command = 'status',
     [string]$Query,
     [string]$Path,
     [string]$Root = (Get-Location).Path,
-    [string]$IndexPath = '.agent-memory/zworkflow/local/code-query-index.json',
+    [string]$IndexPath = '.agents/codebase-query/code-query-index.json',
     [string]$ProgressPath = '.agent-memory/zworkflow/local/code-query-progress.json',
+    [string]$StatePath = '.agent-memory/zworkflow/local/code-query-state.json',
     [string[]]$SourceRoots = @(),
     [string[]]$ExcludeRoots = @(),
     [switch]$IncludeAll,
     [ValidateRange(1, 200)]
-    [int]$Limit = 30,
+    [int]$Limit = 8,
+    [switch]$IncludeLexical,
+    [switch]$IncludeMethods,
+    [ValidateRange(2048, 1048576)]
+    [int]$MaxOutputBytes = 12288,
     [switch]$Pretty
 )
 
@@ -39,10 +44,14 @@ $arguments = @{
     Root = $Root
     IndexPath = $IndexPath
     ProgressPath = $ProgressPath
+    StatePath = $StatePath
     SourceRoots = $SourceRoots
     ExcludeRoots = $ExcludeRoots
     IncludeAll = $IncludeAll
     Limit = $Limit
+    IncludeLexical = $IncludeLexical
+    IncludeMethods = $IncludeMethods
+    MaxOutputBytes = $MaxOutputBytes
     Pretty = $Pretty
 }
 if ($PSBoundParameters.ContainsKey('Query')) { $arguments.Query = $Query }

@@ -24,8 +24,8 @@ Unity / YooAsset / UniTask / Luban
 | `Assets/ZFramework/Editor/` | 构建和编辑器工具 |
 | `Assets/Launcher/` | 启动阶段 UI |
 | `Assets/GameScripts/Procedure/` | 启动状态机 |
-| `Assets/GameScripts/HotFix/GameLogic/` | 游戏业务普通程序集 |
-| `Assets/GameScripts/HotFix/GameProto/` | Luban 配置普通程序集 |
+| `Assets/GameScripts/GameLogic/` | 游戏业务普通程序集 |
+| `Assets/GameScripts/GameProto/` | Luban 配置普通程序集 |
 | `Assets/AssetRaw/` | YooAsset 收集资源 |
 | `Configs/GameConfig/` | Luban 配置工程（仓库根目录） |
 

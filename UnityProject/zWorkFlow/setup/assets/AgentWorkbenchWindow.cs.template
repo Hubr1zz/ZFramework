@@ -111,13 +111,12 @@ namespace AgentWorkflow.Editor
         private string _engineeringLayerFilterId = string.Empty;
         private string _engineeringCatalogError;
         private readonly List<DesignSourceEntry> _designDocumentSources = new();
-        private readonly List<DocumentImplementationEntry> _changedImplementedDocuments = new();
         private readonly List<DesignDocumentTreeItem> _designDocumentTreeItems = new();
         private string _designSourceStatus = "sync.notConfigured";
         private string _documentChangeStatus = "sync.packageNotSelected";
         private string _documentStructureError = string.Empty;
         private bool _documentBridgeConnected;
-        private DocumentImplementationLedger _documentImplementationLedger;
+        private ImplementationRoutingSummary _implementationRoutingSummary;
         private Vector2 _designDocumentTreeScroll;
         private readonly HashSet<string> _expandedDesignDocumentNodes = new(StringComparer.OrdinalIgnoreCase);
         private string _maintainer;
@@ -824,7 +823,7 @@ namespace AgentWorkflow.Editor
             {
                 UpdateSpecDisplayTitle(
                     spec.Path,
-                    Path.Combine(Path.GetDirectoryName(spec.Path) ?? _openSpecPath, "spec-review.json"),
+                    string.Empty,
                     nextTitle);
                 ReplaceDependencyNodeLabel(spec.Capability, nextTitle);
             }
@@ -2796,8 +2795,8 @@ namespace AgentWorkflow.Editor
                     GUI.enabled = true;
                 }
 
-                if (_changedImplementedDocuments.Count == 0)
-                    EditorGUILayout.HelpBox(L("sync.noImplementedChanges"), MessageType.None);
+                if (_implementationRoutingSummary == null)
+                    EditorGUILayout.HelpBox(L("sync.routingIndexMissingOrStale"), MessageType.Info);
 
                 EditorGUILayout.LabelField(
                     L("sync.bridgeHint"),
@@ -2812,7 +2811,7 @@ namespace AgentWorkflow.Editor
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.LabelField(
-                        AgentWorkbenchText.Format("sync.documentStructure", _designDocumentTreeItems.Count(item => !item.isDirectory)),
+                        AgentWorkbenchText.Format("sync.documentStructure", _designDocumentTreeItems.Count(item => !item.isDirectory && !item.isImplementation)),
                         EditorStyles.boldLabel);
                 }
 
@@ -2836,11 +2835,13 @@ namespace AgentWorkflow.Editor
                     GUILayout.MinHeight(150),
                     GUILayout.MaxHeight(420));
                 var visibleDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var visibleDocuments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var item in _designDocumentTreeItems)
                 {
-                    var visible = string.IsNullOrWhiteSpace(item.parentKey) ||
-                                  (_expandedDesignDocumentNodes.Contains(item.parentKey) &&
-                                   visibleDirectories.Contains(item.parentKey));
+                    var visible = item.isImplementation
+                        ? visibleDocuments.Contains(item.parentKey)
+                        : string.IsNullOrWhiteSpace(item.parentKey) ||
+                          (_expandedDesignDocumentNodes.Contains(item.parentKey) && visibleDirectories.Contains(item.parentKey));
                     if (!visible)
                         continue;
                     using (new EditorGUILayout.HorizontalScope(item.isDirectory ? EditorStyles.helpBox : GUIStyle.none))
@@ -2865,6 +2866,31 @@ namespace AgentWorkflow.Editor
                             continue;
                         }
 
+                        if (item.isImplementation)
+                        {
+                            EditorGUILayout.LabelField(
+                                new GUIContent($"↳ {item.displayName}", item.treeKey),
+                                EditorStyles.miniLabel,
+                                GUILayout.MinWidth(150),
+                                GUILayout.ExpandWidth(true));
+                            var implementationProgressRect = GUILayoutUtility.GetRect(125, 18, GUILayout.Width(125));
+                            EditorGUI.ProgressBar(
+                                implementationProgressRect,
+                                item.implementationProgress / 100f,
+                                $"{LocalizeImplementationStatus(item.implementationStatus)} {item.implementationProgress}%");
+                            EditorGUILayout.LabelField(
+                                LocalizeVerificationStatus(item.verificationStatus),
+                                EditorStyles.miniLabel,
+                                GUILayout.Width(82));
+                            EditorGUILayout.LabelField(
+                                Or(item.changeSummary, Or(item.discoverySource, "-")),
+                                EditorStyles.wordWrappedMiniLabel,
+                                GUILayout.MinWidth(80),
+                                GUILayout.ExpandWidth(true));
+                            continue;
+                        }
+
+                        visibleDocuments.Add(item.treeKey);
                         EditorGUILayout.LabelField(
                             new GUIContent(item.displayName, item.relativePath),
                             GUILayout.MinWidth(150),
@@ -2881,7 +2907,8 @@ namespace AgentWorkflow.Editor
                         EditorGUILayout.LabelField(
                             Or(item.changeSummary, "-"),
                             EditorStyles.wordWrappedMiniLabel,
-                            GUILayout.Width(230));
+                            GUILayout.MinWidth(80),
+                            GUILayout.ExpandWidth(true));
                         GUI.enabled = File.Exists(item.absolutePath);
                         if (GUILayout.Button(L("sync.open"), GUILayout.Width(56)))
                             OpenMarkdownDocument(item.absolutePath);
@@ -2897,8 +2924,25 @@ namespace AgentWorkflow.Editor
             return status?.Trim().ToLowerInvariant() switch
             {
                 "implemented" => L("sync.statusImplemented"),
+                "verified" => L("sync.statusVerified"),
+                "stale" => L("sync.statusStale"),
+                "blocked" => L("sync.statusBlocked"),
+                "partial" => L("sync.statusInProgress"),
+                "planned" => L("sync.statusNotImplemented"),
                 "in-progress" => L("sync.statusInProgress"),
                 _ => L("sync.statusNotImplemented")
+            };
+        }
+
+        private string LocalizeVerificationStatus(string status)
+        {
+            return status?.Trim().ToLowerInvariant() switch
+            {
+                "verified" => L("sync.verificationVerified"),
+                "implemented" => L("sync.verificationImplemented"),
+                "failed" => L("sync.verificationFailed"),
+                "stale" => L("sync.statusStale"),
+                _ => L("sync.verificationUnverified")
             };
         }
 

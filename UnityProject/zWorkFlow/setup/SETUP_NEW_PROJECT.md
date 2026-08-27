@@ -41,7 +41,7 @@ Node 与安装命令以 OpenSpec 官方安装说明为准：[OpenSpec Installati
 4. 从 `setup/templates/openspec/` 幂等创建缺失的空 Draft Change 索引、`openspec/drafts/changes/` 和 Spec metadata；不得创建正式 Spec、Change、archive、导入历史或已废止的 `openspec/drafts/specs/`。
 5. 幂等创建 `openspec/localization.json` 与空的 `openspec/translations/manifest.json`。能读取设计来源时，把 `generationLanguage` 初始化为设计文档主语言；尚未配置来源时保留 `source`。`specTitles` 初始化为空数组，后续以 capability ID 保存中英文条目显示名。翻译目录和 manifest 必须参与 Git，同 setup 不携带任何项目翻译正文。
 5. 通用核心是本次 setup 的默认安装项，不需要第二次确认；可选文档包与项目桥接仍必须显式选择。
-6. 清单中的条件 skill 只在目标满足 `when` 时逐文件安装。`codebase-query` 要求 Unity 项目的 `Assets` 或用户显式提供的项目内 source roots 存在 C#，且当前环境可执行 PowerShell 7+（`pwsh`）；不要求 `Assets/Scripts`。先运行 `pwsh --version` 验证主版本。缺失时，setup 只可在用户明确许可安装本机依赖后尝试：Windows 客户端优先使用微软推荐的 `winget install --id Microsoft.PowerShell --source winget`；macOS 优先提示安装微软签名的 PKG，也可在用户接受社区维护方式且已安装 Homebrew 时运行 `brew install powershell`，或在已有 .NET SDK 时运行 `dotnet tool install --global PowerShell`。安装后重新探测 `pwsh`；未获许可、无法安装或验证失败时记录 `skipped-condition`，继续使用 Agent 原生 `rg` 与源码读取，不得阻塞 setup。不得静默执行系统级安装、`sudo` 或修改用户 PATH。
+6. 清单中的条件 skill 只在目标满足 `when` 时逐文件安装。`codebase-query` 要求 Unity 项目的 `Assets` 或用户显式提供的项目内 source roots 存在 C#，且当前环境可执行 PowerShell 7+（`pwsh`）；不要求 `Assets/Scripts`。安装后幂等创建或追加根 `.ignore` 中的 `**/code-query-index.json`，避免通用 `rg` 扫描 Git 管理的正式索引或旧迁移索引；不得覆盖其他规则。先运行 `pwsh --version` 验证主版本。缺失时，setup 只可在用户明确许可安装本机依赖后尝试：Windows 客户端优先使用微软推荐的 `winget install --id Microsoft.PowerShell --source winget`；macOS 优先提示安装微软签名的 PKG，也可在用户接受社区维护方式且已安装 Homebrew 时运行 `brew install powershell`，或在已有 .NET SDK 时运行 `dotnet tool install --global PowerShell`。安装后重新探测 `pwsh`；未获许可、无法安装或验证失败时记录 `skipped-condition`，继续使用 Agent 原生 `rg` 与源码读取，不得阻塞 setup。不得静默执行系统级安装、`sudo` 或修改用户 PATH。
 
 安装方式只引用微软当前官方文档：[Windows 安装 PowerShell 7](https://learn.microsoft.com/powershell/scripting/install/install-powershell-on-windows) 与 [macOS 安装 PowerShell 7](https://learn.microsoft.com/powershell/scripting/install/install-powershell-on-macos)。Homebrew 属于微软文档列出的社区维护替代方式，setup 报告必须明确这一点。
 
@@ -122,7 +122,7 @@ setup 开始时先建立只读基线，列出已有入口、skills、commands、
 
 - 自动识别项目内部具有全局约束性质的架构 Markdown 或同等文档。
 - 用代码、依赖配置和模块边界简单交叉核验描述是否仍然成立。
-- 只把与具体项目耦合且已确认的边界生成分类为 `system` 的正式 Spec；legacy `architecture` 仅兼容读取。
+- 只把进入 Player 构建、与具体游戏玩法耦合且已确认的稳定运行时边界生成分类为 `system` 的正式 Spec；开发工具与工作流不得进入，legacy `architecture` 仅兼容读取。
 - capability 已存在时不覆盖：相同内容跳过，有变化时走 OpenSpec Change。
 - 增量维护依赖图；System Spec 只依赖 System Spec。真 Architecture 与 Plugin 写入 `project-tooling`，不进入玩法 Spec 分类。
 - Gap 只表示缺失的依赖节点或契约。
@@ -133,9 +133,10 @@ setup 开始时先建立只读基线，列出已有入口、skills、commands、
 
 根据 Phase 2 的能力映射决定是否需要 zWorkFlow 自己的能力：
 
-- 已有等价项目速查时只记录引用，不创建重复 `project-context`。
+- setup 完成时必须存在且只存在一个可达的项目路由入口：已有等价项目速查时记录其具体入口并标记 `reuse-existing`；否则生成 `.agents/skills/project-context/SKILL.md` 与 `references/PROJECT-INDEX.md`。不得交付“没有等价入口且没有 Project Index”的中间状态。
+- 已有等价项目速查时不创建重复 `project-context`。若外部同名 `project-context` 已占用但缺少可用索引或等价路由，不覆盖其正文；将该能力标记为 `conflict` 并停止依赖项目路由的后续薄化，等待用户决定迁移或补全。
 - 已有等价重构队列、文档同步或成员偏好流程时标记复用，不创建重复能力。
-- 没有等价能力时，从 [PROJECT_CONTENT_TEMPLATE.md](PROJECT_CONTENT_TEMPLATE.md) 创建最小 `project-context`、`project-architecture` 与命中的 `project-domain-*`；通用核心已经提供空的 `project-refactor-queue` 与可配置的 `project-doc-sync`。只写 Phase 1 已确认事实，不复制安装源所在项目的内容。
+- 没有等价能力时，从 [PROJECT_CONTENT_TEMPLATE.md](PROJECT_CONTENT_TEMPLATE.md) 成对创建最小 `project-context` 与 `PROJECT-INDEX.md`，再按需创建 `project-architecture` 与命中的 `project-domain-*`；通用核心已经提供空的 `project-refactor-queue` 与可配置的 `project-doc-sync`。只写 Phase 1 已确认事实，不复制安装源所在项目的内容。
 - 通用 `project-tooling` 安装后，把 Phase 1 已确认的 Plugin/System 候选写入其 `references/tooling-catalog.json`。Plugin 的 `decisionBasis` 保持空白，除非用户本次明确给出依据；Architecture 只有经用户确认才能创建，且必须 `usagePolicy=required`、`locked=true`。
 - 若目标项目有明确代码分层，在目录顶层声明项目自定义 `layers`，并用条目 `layerIds` 标记一个能力横跨的零到多个实现层。`kind` 仍只表示 Plugin/Architecture/System 的归属与复用边界，不把 Data/Adapter/View 或 MVC 等项目分层编码成 System 子类型；没有分层约束的项目省略这些可选字段。
 - 写入目录前先按稳定模块边界拆分：一个条目必须拥有可单独路由的职责、证据、约束和依赖；禁止用“整个引擎/整个框架”条目代替 README 与代码已明确区分的核心模块。生命周期、启动编排或状态管线在剥离玩法/UI/内容数据后仍可独立复用时归为 Architecture；具体项目接入另归 System。文档存在但实现缺失的条目只能以明确 partial 约束写入，不得宣称已实现。
@@ -160,7 +161,7 @@ setup 开始时先建立只读基线，列出已有入口、skills、commands、
 - Spec 分类和依赖 metadata 的缺失空结构。
 - 成员映射或维护队列的空模板。
 - 文档包、中间桥接层及额外运行时均为显式可选项。
-- 安装 `document-project-bridge` 时只把 `inspect-implemented-design-changes` 安装到项目侧。Workbench 允许选择任意候选目录，只要可扫描到 Markdown 就保存文档根路径并点亮桥接灯；项目在 `openspec/implementation-ledger.json` 幂等创建账本，随后只读扫描设计 Markdown，重建显示实现进度、实现后变更与摘要的简化结构。不得向设计包注入 `projectRoot` 或工程状态，不得因文档变化自动调用设计导入或创建 proposal。
+- 安装 `document-project-bridge` 时只把 `inspect-implemented-design-changes` 安装到项目侧。Workbench 允许选择任意候选目录，只要可扫描到 Markdown 就保存文档根路径并点亮桥接灯；项目不创建全局 Ledger，只读扫描设计 Markdown，并从校验有效的实现路由摘要投影进度。不得向设计包注入 `projectRoot` 或工程状态，不得因文档变化自动调用设计导入或创建 proposal。
 - 发现旧 `.agent-bridge/project-sync.json` 时把它报告为 deprecated，不读取其中项目路径、不继续执行 `document-change-to-openspec`，也不为了迁移而改写外部设计包；由设计包 setup 幂等创建新账本。
 
 除 OpenSpec CLI 官方要求的 Node.js 外，Python 或其他额外运行时不得成为前置条件。已有有效配置保持不变；缺失配置只在当前能力确实需要时创建。

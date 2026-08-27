@@ -104,10 +104,12 @@ __pycache__/
 *.py[cod]
 /openspec/workbench-config.json
 /openspec/design-source.json
-/.agent-memory/team/MAINTAINERS.md
-/.agent-memory/team/members/
+/.agent-memory/zworkflow/team/MAINTAINERS.md
+/.agent-memory/zworkflow/team/members/
 /.agent-memory/zworkflow/local/
+/.agent-memory/unity-cli/
 /zWorkFlow/zWorkFlow Pack/
 !/zWorkFlow/bin/
 !/zWorkFlow/bin/zworkflow.mjs
+/TestResults/
 # <<< zWorkFlow local preferences <<<

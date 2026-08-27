@@ -51,9 +51,20 @@ namespace AgentWorkflow.Editor
         [Serializable]
         private sealed class EngineeringCapabilityCatalog
         {
-            public int schemaVersion = 1;
+            public int schemaVersion = 2;
             public string updatedAt;
+            public EngineeringLayerDefinition[] layers;
             public EngineeringCapabilityEntry[] entries;
+        }
+
+        [Serializable]
+        private sealed class EngineeringLayerDefinition
+        {
+            public string id;
+            public string displayName;
+            public string displayNameEn;
+            public string description;
+            public string descriptionEn;
         }
 
         [Serializable]
@@ -78,6 +89,7 @@ namespace AgentWorkflow.Editor
             public string[] constraintsEn;
             public string[] evidence;
             public string[] dependencies;
+            public string[] layerIds;
         }
 
         private sealed class QueueItem
@@ -427,6 +439,31 @@ namespace AgentWorkflow.Editor
         }
 
         [Serializable]
+        private sealed class FormalImplementation
+        {
+            public int schemaVersion = 1;
+            public string artifactRole;
+            public string capability;
+            public string specHash;
+            public string codeReadiness;
+            public FormalImplementationVerification verification;
+            public string[] implementationOutline;
+            public EditorGuidance editorGuidance;
+            public string[] sourceReferences;
+        }
+
+        [Serializable]
+        private sealed class FormalImplementationVerification
+        {
+            public string status;
+            public string summary;
+            public string validatedAgainstSpecHash;
+            public CodeEvidence[] evidence;
+            public string[] tests;
+            public string verifiedAt;
+        }
+
+        [Serializable]
         private sealed class EditorGuidance
         {
             public string summary;
@@ -559,38 +596,57 @@ namespace AgentWorkflow.Editor
         }
 
         [Serializable]
-        private sealed class DocumentImplementationLedger
+        private sealed class ImplementationRoutingSummary
         {
             public int schemaVersion = 2;
-            public string updatedAt;
-            public DocumentImplementationEntry[] entries;
+            public string role;
+            public string inputDigest;
+            public string inputManifestDigest;
+            public string outputDigest;
+            public ImplementationManifestEntry[] inputManifest;
+            public ImplementationRoutingEntry[] requirements;
         }
 
         [Serializable]
-        private sealed class DocumentImplementationEntry
+        private sealed class ImplementationManifestEntry
+        {
+            public string path;
+            public string sha256;
+            public string state;
+        }
+
+        [Serializable]
+        private sealed class ImplementationRoutingEntry
+        {
+            public string id;
+            public string label;
+            public string effectiveStatus;
+            public int progress;
+            public string verificationStatus;
+            public string summary;
+            public ImplementationDesignSource[] designSources;
+            public string[] sources;
+            public ImplementationEvidenceState[] evidence;
+        }
+
+        [Serializable]
+        private sealed class ImplementationDesignSource
         {
             public string sourceId;
-            public string documentPath;
-            public string implementationId;
-            public string implementationLabel;
-            public string implementationStatus;
-            public int implementationProgress;
-            public string implementedAt;
-            public string implementedRevision;
-            public string implementedFingerprint;
-            public string previousImplementedFingerprint;
-            public string currentRevision;
-            public string currentFingerprint;
-            public bool changedAfterImplementation;
-            public string changedAt;
-            public string changeSummary;
-            [NonSerialized] public bool detectedByFingerprint;
-            [NonSerialized] public bool manualChangeDetected;
+            public string path;
+        }
+
+        [Serializable]
+        private sealed class ImplementationEvidenceState
+        {
+            public string path;
+            public string state;
         }
 
         private sealed class DesignDocumentTreeItem
         {
             public bool isDirectory;
+            public bool isImplementation;
             public int depth;
             public string treeKey;
             public string parentKey;
@@ -602,6 +658,16 @@ namespace AgentWorkflow.Editor
             public int implementationProgress;
             public bool changedAfterImplementation;
             public string changeSummary;
+            public string verificationStatus;
+            public string discoverySource;
+        }
+
+        private sealed class DesignDocumentFileCandidate
+        {
+            public DesignSourceEntry source;
+            public string sourceRoot;
+            public string absolutePath;
+            public string relativePath;
         }
 
         private sealed class DesignDocumentFileCandidate

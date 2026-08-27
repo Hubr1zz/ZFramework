@@ -28,6 +28,20 @@ test("compares package versions", () => {
   assert.throws(() => comparePackageVersions("latest", "2026.08.04"), /无法比较/);
 });
 
+test("uniform tabs stay inside the width allocated by their parent", () => {
+  const template = readFileSync(new URL("../setup/assets/AgentWorkbenchWindow.ImportReports.cs.template", import.meta.url), "utf8");
+  const runtime = readFileSync(new URL("../../Assets/Editor/zWorkFlow/AgentWorkbenchWindow.ImportReports.cs", import.meta.url), "utf8");
+  const methodStart = template.indexOf("private static int DrawUniformTabs(");
+  const methodEnd = template.indexOf("private static GUIStyle ReportButtonStyle", methodStart);
+  const method = template.slice(methodStart, methodEnd);
+
+  assert.ok(methodStart >= 0 && methodEnd > methodStart);
+  assert.match(method, /GUILayoutUtility\.GetRect/);
+  assert.match(method, /GUI\.Toggle\(rect/);
+  assert.doesNotMatch(method, /GUILayout\.Toggle/);
+  assert.equal(runtime, template);
+});
+
 test("copies a package without machine or repository state", () => {
   const root = mkdtempSync(join(tmpdir(), "zworkflow-cli-"));
   try {
@@ -38,7 +52,20 @@ test("copies a package without machine or repository state", () => {
     mkdirSync(join(source, "node_modules"), { recursive: true });
     mkdirSync(join(source, "zWorkFlow Pack"), { recursive: true });
     mkdirSync(join(source, "setup"), { recursive: true });
+    mkdirSync(join(source, ".agents", "skills", "zworkflow-workbench-responsive"), { recursive: true });
     writeFileSync(join(source, "setup", "SETUP_NEW_PROJECT.md"), "setup");
+    writeFileSync(join(source, "setup", "PACKAGE_MANIFEST.json"), JSON.stringify({
+      runtimeRequirements: {
+        openSpecCli: {
+          nodeMinimumVersion: "20.19.0",
+          minimumVersion: "1.6.0",
+          maximumExclusiveVersion: "2.0.0",
+          installSpec: "@fission-ai/openspec@^1.6.0",
+        },
+      },
+      portablePackageExcludes: [".agents/skills/zworkflow-workbench-responsive"],
+    }));
+    writeFileSync(join(source, ".agents", "skills", "zworkflow-workbench-responsive", "SKILL.md"), "private");
     writeFileSync(join(source, ".git", "config"), "private");
     writeFileSync(join(source, ".github", "README.md"), "site");
 
@@ -48,6 +75,7 @@ test("copies a package without machine or repository state", () => {
     assert.equal(existsSync(join(target, ".github")), false);
     assert.equal(existsSync(join(target, "node_modules")), false);
     assert.equal(existsSync(join(target, "zWorkFlow Pack")), false);
+    assert.equal(existsSync(join(target, ".agents", "skills", "zworkflow-workbench-responsive")), false);
     assert.throws(() => copyPortablePackage(source, target), /目标已存在/);
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -62,9 +90,11 @@ test("upgrades managed files while preserving project data", () => {
     mkdirSync(join(source, "setup"), { recursive: true });
     mkdirSync(join(source, "packages", "new-bridge"), { recursive: true });
     mkdirSync(join(source, ".agent-memory", "team"), { recursive: true });
+    mkdirSync(join(source, ".agents", "skills", "zworkflow-workbench-responsive"), { recursive: true });
     writeFileSync(join(source, "setup", "PACKAGE_MANIFEST.json"), JSON.stringify({ packageVersion: "2026.08.04" }));
     writeFileSync(join(source, "packages", "new-bridge", "SKILL.md"), "new");
     writeFileSync(join(source, ".agent-memory", "team", "member.md"), "template");
+    writeFileSync(join(source, ".agents", "skills", "zworkflow-workbench-responsive", "SKILL.md"), "private");
 
     mkdirSync(join(target, "setup"), { recursive: true });
     mkdirSync(join(target, "packages", "old-bridge"), { recursive: true });
@@ -82,6 +112,7 @@ test("upgrades managed files while preserving project data", () => {
     assert.deepEqual(result.cleanupPending, []);
     assert.equal(existsSync(join(target, "packages", "new-bridge", "SKILL.md")), true);
     assert.equal(existsSync(join(target, "packages", "old-bridge", "SKILL.md")), false);
+    assert.equal(existsSync(join(target, ".agents", "skills", "zworkflow-workbench-responsive")), false);
     assert.equal(readFileSync(join(target, ".agent-memory", "team", "member.md"), "utf8"), "personal");
     assert.equal(readFileSync(join(target, "openspec", "spec.md"), "utf8"), "project spec");
     assert.equal(readFileSync(join(target, "custom-data", "state.json"), "utf8"), "state");

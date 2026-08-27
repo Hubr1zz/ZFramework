@@ -40,8 +40,8 @@ if not exist "%PROJECT_DIR%UnityProject\Assets\ZFramework\" (
 )
 
 :: 当前版本的 RTS/Roslyn 包必须存在
-if not exist "%PROJECT_DIR%UnityProject\Packages\com.zframework.rts\" (
-    echo [ERROR] 'UnityProject\Packages\com.zframework.rts' not found.
+if not exist "%PROJECT_DIR%UnityProject\Packages\com.tengine.rts\" (
+    echo [ERROR] 'UnityProject\Packages\com.tengine.rts' not found.
     echo         This updater targets the ZFramework Project branch.
     goto :fail
 )

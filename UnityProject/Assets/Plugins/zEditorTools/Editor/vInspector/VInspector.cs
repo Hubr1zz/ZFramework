@@ -33,23 +33,14 @@ namespace VInspector
 
 
                 var hasNavbar = navbars_byWindow.ContainsKey(window);
-                var shouldHaveNavbar = (VInspectorMenu.navigationBarEnabled || VInspectorMenu.componentTabsEnabled) && !window.GetMemberValue<bool>("isLocked");
+                var shouldHaveNavbar = VInspectorMenu.navigationBarEnabled && !window.GetMemberValue<bool>("isLocked");
 
 
                 if (!hasNavbar && shouldHaveNavbar)
-                {
                     createNavbar(window);
-                    hasNavbar = true;
-                }
 
                 if (hasNavbar && !shouldHaveNavbar)
-                {
                     destroyNavbar(window);
-                    hasNavbar = false;
-                }
-
-                if (hasNavbar)
-                    updateComponentTabs(window);
 
             }
 
@@ -71,20 +62,6 @@ namespace VInspector
 
 
 
-                var componentTabsGui = new VInspectorComponentTabs(window);
-                var componentTabs = new IMGUIContainer();
-
-                componentTabs.name = "vInspector-component-tabs";
-                componentTabs.style.position = Position.Absolute;
-                componentTabs.style.top = 28f;
-                componentTabs.style.width = Length.Percent(100);
-                componentTabs.style.height = componentTabsGui.RequiredHeight;
-                componentTabs.onGUIHandler = () => componentTabsGui.OnGUI(componentTabs.contentRect);
-
-                window.rootVisualElement.Add(componentTabs);
-
-
-
                 var navbarSpacer = new VisualElement();
 
                 navbarSpacer.name = "vInspector-navbar-spacer";
@@ -98,40 +75,20 @@ namespace VInspector
 
                 navbars_byWindow[window] = navbar;
                 navbarSpacers_byWindow[window] = navbarSpacer;
-                componentTabsByWindow[window] = componentTabs;
-                componentTabsGuiByWindow[window] = componentTabsGui;
 
             }
             void destroyNavbar(EditorWindow window)
             {
                 var navbar = window.rootVisualElement.Q("vInspector-navbar");
                 var navbarSpacer = window.rootVisualElement.Q("vInspector-navbar-spacer");
-                var componentTabs = window.rootVisualElement.Q("vInspector-component-tabs");
 
-                navbar?.RemoveFromHierarchy();
-                navbarSpacer?.RemoveFromHierarchy();
-                componentTabs?.RemoveFromHierarchy();
-
-                if (componentTabsGuiByWindow.TryGetValue(window, out var componentTabsGui))
-                    componentTabsGui.Detach();
+                navbar.RemoveFromHierarchy();
+                navbarSpacer.RemoveFromHierarchy();
 
 
                 navbars_byWindow.Remove(window);
                 navbarSpacers_byWindow.Remove(window);
-                componentTabsByWindow.Remove(window);
-                componentTabsGuiByWindow.Remove(window);
 
-            }
-            void updateComponentTabs(EditorWindow window)
-            {
-                if (!componentTabsByWindow.TryGetValue(window, out var componentTabs)) return;
-                if (!componentTabsGuiByWindow.TryGetValue(window, out var componentTabsGui)) return;
-                if (!navbarSpacers_byWindow.TryGetValue(window, out var navbarSpacer)) return;
-
-                var showComponentTabs = componentTabsGui.Update();
-                componentTabs.style.display = showComponentTabs ? DisplayStyle.Flex : DisplayStyle.None;
-                componentTabs.style.height = componentTabsGui.RequiredHeight;
-                navbarSpacer.style.height = 29f + (showComponentTabs ? componentTabsGui.RequiredHeight : 0f);
             }
 
 
@@ -142,15 +99,6 @@ namespace VInspector
 
         static Dictionary<EditorWindow, VisualElement> navbars_byWindow = new();
         static Dictionary<EditorWindow, VisualElement> navbarSpacers_byWindow = new();
-        static Dictionary<EditorWindow, VisualElement> componentTabsByWindow = new();
-        static Dictionary<EditorWindow, VInspectorComponentTabs> componentTabsGuiByWindow = new();
-
-        public static void DeselectAllComponentTabs(EditorWindow window)
-        {
-            if (!componentTabsGuiByWindow.TryGetValue(window, out var componentTabsGui)) return;
-
-            componentTabsGui.DeselectAll();
-        }
 
 
 

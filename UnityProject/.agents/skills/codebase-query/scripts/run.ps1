@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('build', 'status', 'architecture', 'search', 'callers', 'impact', 'changed')]
+    [ValidateSet('build', 'status', 'architecture', 'search', 'callers', 'impact', 'changed', 'context')]
     [string]$Command = 'status',
     [string]$Query,
     [string]$Path,
@@ -13,7 +13,11 @@ param(
     [string[]]$ExcludeRoots = @(),
     [switch]$IncludeAll,
     [ValidateRange(1, 200)]
-    [int]$Limit = 30,
+    [int]$Limit = 8,
+    [switch]$IncludeLexical,
+    [switch]$IncludeMethods,
+    [ValidateRange(2048, 1048576)]
+    [int]$MaxOutputBytes = 12288,
     [switch]$Pretty
 )
 
@@ -45,6 +49,9 @@ $arguments = @{
     ExcludeRoots = $ExcludeRoots
     IncludeAll = $IncludeAll
     Limit = $Limit
+    IncludeLexical = $IncludeLexical
+    IncludeMethods = $IncludeMethods
+    MaxOutputBytes = $MaxOutputBytes
     Pretty = $Pretty
 }
 if ($PSBoundParameters.ContainsKey('Query')) { $arguments.Query = $Query }

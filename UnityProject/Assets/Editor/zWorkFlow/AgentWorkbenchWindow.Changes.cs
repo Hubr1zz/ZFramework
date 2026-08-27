@@ -15,6 +15,8 @@ namespace AgentWorkflow.Editor
     {
         private const float ChangeListWidth = 270f;
         private const float ChangePanelGap = 6f;
+        private const float ChangeDetailHorizontalChrome = 20f;
+        private float changeDetailContentWidth = 1f;
 
         private void DrawChangesPanel()
         {
@@ -49,6 +51,7 @@ namespace AgentWorkflow.Editor
                 GUILayout.Space(ChangePanelGap);
                 using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
                 {
+                    UpdateChangeDetailContentWidth();
                     _changeDetailScroll.x = 0f;
                     _changeDetailScroll = BeginVerticalScrollView(
                         _changeDetailScroll,
@@ -942,7 +945,17 @@ namespace AgentWorkflow.Editor
 
         private float ChangeDetailContentWidth()
         {
-            return CurrentLayoutContentWidth();
+            return changeDetailContentWidth;
+        }
+
+        private void UpdateChangeDetailContentWidth()
+        {
+            var measuredWidth = CurrentLayoutContentWidth(ChangeDetailHorizontalChrome);
+            if (Event.current.type != EventType.Repaint || measuredWidth <= 1f || Mathf.Approximately(measuredWidth, changeDetailContentWidth))
+                return;
+
+            changeDetailContentWidth = measuredWidth;
+            Repaint();
         }
 
         private bool IsEditingChangeNotes(string path) =>

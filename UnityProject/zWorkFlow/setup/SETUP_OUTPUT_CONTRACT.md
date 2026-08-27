@@ -54,6 +54,7 @@ setup 完成后按本契约交付。核心验收项是：通用核心已安装�
 - 需要用户确认的模型歧义：
 
 ### zWorkFlow 路由优化
+- 项目路由入口：`reuse-existing:<path>` / `generated:.agents/skills/project-context/references/PROJECT-INDEX.md` / `conflict:<path>`
 - 后续直接复用的能力：
 - 被跳过的重复步骤：
 - 仅在缺口出现时运行的步骤：
@@ -111,3 +112,4 @@ setup 完成后按本契约交付。核心验收项是：通用核心已安装�
 - `FEATURE_COVERAGE.md` 中任一必需资产缺失、运行源码与 setup 模板哈希不一致或发布压缩包落后于来源目录时，setup 判定失败。
 - `setup/adapters/registry.json` 无法解析、adapter id 重复、角色引用不存在的 model profile、adapter 缺少 model routing、安装策略不是 `active-or-explicit-only`、模板缺失或共享配置保存唯一 active tool 时，setup 判定失败。
 - OpenSpec CLI 未通过兼容版本验证时，OpenSpec 命令能力必须报告为不可用，平台工作台必须为 `blocked-openspec-cli`，不得声称工作台安装成功。
+- 项目路由入口既未复用也未生成，或生成的 `project-context/SKILL.md` 与 `references/PROJECT-INDEX.md` 缺少任一文件时，setup 判定失败。

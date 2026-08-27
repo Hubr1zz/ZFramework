@@ -5,8 +5,8 @@
 | 程序集 | 路径 | 职责 |
 |---|---|---|
 | `Assembly-CSharp` | `Assets/GameScripts/` | GameEntry 与 Procedure |
-| `GameProto` | `Assets/GameScripts/HotFix/GameProto/` | Luban 生成代码和协议 |
-| `GameLogic` | `Assets/GameScripts/HotFix/GameLogic/` | 业务、UI 与 GameApp |
+| `GameProto` | `Assets/GameScripts/GameProto/` | Luban 生成代码和协议 |
+| `GameLogic` | `Assets/GameScripts/GameLogic/` | 业务、UI 与 GameApp |
 
 三个程序集均随 Player 构建。不要生成、打包或运行外部托管 DLL。`GameLogic` 可以依赖 `GameProto` 与 `ZFramework.Runtime`；自定义 asmdef 不得反向依赖 `Assembly-CSharp`。
 

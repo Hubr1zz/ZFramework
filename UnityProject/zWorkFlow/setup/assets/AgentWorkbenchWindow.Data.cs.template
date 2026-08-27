@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -127,8 +128,7 @@ namespace AgentWorkflow.Editor
 
         private void ReloadDocumentImplementationChanges()
         {
-            _documentImplementationLedger = null;
-            _changedImplementedDocuments.Clear();
+            _implementationRoutingSummary = null;
             _documentStructureError = string.Empty;
             _documentBridgeConnected = false;
             if (!_designDocumentSources.Any(source =>
@@ -140,60 +140,89 @@ namespace AgentWorkflow.Editor
                 return;
             }
 
-            if (!EnsureProjectImplementationLedger())
-            {
-                _designDocumentTreeItems.Clear();
-                return;
-            }
-
-            var ledgerPath = ProjectImplementationLedgerPath();
-
             try
             {
-                _documentImplementationLedger = JsonUtility.FromJson<DocumentImplementationLedger>(
-                    File.ReadAllText(ledgerPath, Encoding.UTF8));
-                if (_documentImplementationLedger?.entries != null)
+                var summaryPath = Path.Combine(_openSpecPath, "implementation-summary.json");
+                if (File.Exists(summaryPath))
                 {
-                    foreach (var entry in _documentImplementationLedger.entries.Where(entry => entry != null))
-                    {
-                        entry.detectedByFingerprint = false;
-                        entry.manualChangeDetected = false;
-                        var documentPath = ResolveImplementationDocumentPath(entry);
-                        if (!string.IsNullOrWhiteSpace(entry.implementedFingerprint) &&
-                            !string.IsNullOrWhiteSpace(documentPath) && File.Exists(documentPath))
-                        {
-                            var currentFingerprint = StableSpecHash(File.ReadAllText(documentPath, Encoding.UTF8));
-                            entry.detectedByFingerprint = !string.Equals(
-                                currentFingerprint,
-                                entry.implementedFingerprint,
-                                StringComparison.OrdinalIgnoreCase);
-                            entry.manualChangeDetected = !string.IsNullOrWhiteSpace(entry.currentFingerprint)
-                                ? !string.Equals(currentFingerprint, entry.currentFingerprint,
-                                    StringComparison.OrdinalIgnoreCase)
-                                : entry.detectedByFingerprint && !entry.changedAfterImplementation;
-                        }
-                    }
-
-                    _changedImplementedDocuments.AddRange(_documentImplementationLedger.entries
-                        .Where(entry => entry != null &&
-                                        (entry.changedAfterImplementation || entry.detectedByFingerprint) &&
-                                        !string.IsNullOrWhiteSpace(entry.documentPath))
-                        .OrderByDescending(entry => entry.changedAt)
-                        .ThenBy(entry => entry.documentPath, StringComparer.OrdinalIgnoreCase));
+                    var candidate = JsonUtility.FromJson<ImplementationRoutingSummary>(File.ReadAllText(summaryPath, Encoding.UTF8));
+                    if (IsCurrentImplementationSummary(candidate))
+                        _implementationRoutingSummary = candidate;
                 }
-
-                _documentChangeStatus = _changedImplementedDocuments.Count == 0
-                    ? "sync.noImplementedChanges"
-                    : AgentWorkbenchText.Format("sync.implementedChangesFound", _changedImplementedDocuments.Count);
+                _documentChangeStatus = _implementationRoutingSummary == null
+                    ? "sync.routingIndexMissingOrStale"
+                    : "sync.routingIndexCurrent";
                 _documentBridgeConnected = true;
                 BuildDesignDocumentTree();
             }
             catch (Exception exception)
             {
                 _designDocumentTreeItems.Clear();
-                _documentChangeStatus = AgentWorkbenchText.Format("sync.ledgerError", exception.Message);
+                _documentChangeStatus = AgentWorkbenchText.Format("sync.routingIndexError", exception.Message);
             }
         }
+
+        private bool IsCurrentImplementationSummary(ImplementationRoutingSummary summary)
+        {
+            if (summary == null || summary.schemaVersion != 2 || !string.Equals(summary.role, "derived-routing-index", StringComparison.Ordinal) || string.IsNullOrWhiteSpace(summary.inputDigest) || string.IsNullOrWhiteSpace(summary.inputManifestDigest) || summary.inputManifest == null || summary.requirements == null || !string.Equals(summary.outputDigest, GetRoutingOutputDigest(summary.requirements), StringComparison.OrdinalIgnoreCase))
+                return false;
+            var manifestPaths = new HashSet<string>(summary.inputManifest.Where(entry => entry != null).Select(entry => NormalizeDocumentRelativePath(entry.path)), StringComparer.OrdinalIgnoreCase);
+            foreach (var entry in summary.inputManifest)
+            {
+                if (entry == null || string.IsNullOrWhiteSpace(entry.path)) return false;
+                var path = AbsoluteProjectPath(entry.path);
+                var exists = File.Exists(path);
+                if (string.Equals(entry.state, "missing", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (exists) return false;
+                    continue;
+                }
+                if (!exists || !string.Equals(NormalizedFileHash(path), entry.sha256, StringComparison.OrdinalIgnoreCase)) return false;
+            }
+            var specsPath = Path.Combine(_openSpecPath, "specs");
+            var formalCapabilities = Directory.Exists(specsPath)
+                ? Directory.GetDirectories(specsPath).Select(Path.GetFileName).Where(id => !string.IsNullOrWhiteSpace(id)).ToArray()
+                : Array.Empty<string>();
+            if (formalCapabilities.Length != summary.requirements.Length) return false;
+            foreach (var capability in formalCapabilities)
+            {
+                var requirement = summary.requirements.FirstOrDefault(item => item != null && string.Equals(item.id, capability, StringComparison.OrdinalIgnoreCase));
+                if (requirement == null) return false;
+                if (!manifestPaths.Contains($"openspec/specs/{capability}/spec.md") || !manifestPaths.Contains($"openspec/specs/{capability}/implementation.json")) return false;
+                if ((requirement.evidence ?? Array.Empty<ImplementationEvidenceState>()).Any(evidence => evidence == null || !manifestPaths.Contains(NormalizeDocumentRelativePath(evidence.path)))) return false;
+            }
+            return true;
+        }
+
+        private static string NormalizedFileHash(string path)
+        {
+            var content = File.ReadAllText(path, Encoding.UTF8).Replace("\r\n", "\n").Replace("\r", "\n");
+            using var sha = SHA256.Create();
+            return string.Concat(sha.ComputeHash(Encoding.UTF8.GetBytes(content)).Select(value => value.ToString("x2")));
+        }
+
+        private static string GetRoutingOutputDigest(IEnumerable<ImplementationRoutingEntry> requirements)
+        {
+            var lines = new List<string>();
+            foreach (var item in requirements ?? Array.Empty<ImplementationRoutingEntry>())
+            {
+                if (item == null) continue;
+                lines.Add($"R|{DigestToken(item.id)}|{DigestToken(item.label)}|{DigestToken(item.effectiveStatus)}|{DigestToken(item.progress.ToString(CultureInfo.InvariantCulture))}|{DigestToken(item.verificationStatus)}|{DigestToken(item.summary)}");
+                foreach (var source in item.designSources ?? Array.Empty<ImplementationDesignSource>())
+                {
+                    if (source != null) lines.Add($"D|{DigestToken(item.id)}|{DigestToken(source.sourceId)}|{DigestToken(source.path)}");
+                }
+                foreach (var evidence in item.evidence ?? Array.Empty<ImplementationEvidenceState>())
+                {
+                    if (evidence != null) lines.Add($"E|{DigestToken(item.id)}|{DigestToken(evidence.path)}|{DigestToken(evidence.state)}");
+                }
+            }
+            lines.Sort(StringComparer.Ordinal);
+            using var sha = SHA256.Create();
+            return string.Concat(sha.ComputeHash(Encoding.UTF8.GetBytes(string.Join("\n", lines))).Select(value => value.ToString("x2")));
+        }
+
+        private static string DigestToken(string value) => Convert.ToBase64String(Encoding.UTF8.GetBytes(value ?? string.Empty));
 
         private void BuildDesignDocumentTree()
         {
@@ -231,28 +260,6 @@ namespace AgentWorkflow.Editor
                             sourceRoot = sourceRoot,
                             absolutePath = absolutePath,
                             relativePath = relativePath
-                        });
-                    }
-                }
-
-                if (_documentImplementationLedger?.entries != null)
-                {
-                    foreach (var entry in _documentImplementationLedger.entries.Where(entry => entry != null))
-                    {
-                        var path = ResolveImplementationDocumentPath(entry);
-                        if (string.IsNullOrWhiteSpace(path) || documentFiles.Any(file =>
-                                string.Equals(file.absolutePath, path, StringComparison.OrdinalIgnoreCase)))
-                            continue;
-                        var source = ResolveImplementationSource(entry, path, validSources);
-                        if (source == null)
-                            continue;
-                        var sourceRoot = Path.GetFullPath(source.path);
-                        documentFiles.Add(new DesignDocumentFileCandidate
-                        {
-                            source = source,
-                            sourceRoot = sourceRoot,
-                            absolutePath = path,
-                            relativePath = DocumentRelativePath(path, sourceRoot)
                         });
                     }
                 }
@@ -317,15 +324,14 @@ namespace AgentWorkflow.Editor
                             parentKey = directoryKey;
                         }
 
-                        var matchingEntries = (_documentImplementationLedger?.entries ?? Array.Empty<DocumentImplementationEntry>())
+                        var matchingEntries = (_implementationRoutingSummary?.requirements ?? Array.Empty<ImplementationRoutingEntry>())
                             .Where(entry => EntryMatchesSource(entry, source.id, file.relativePath, relativePathCounts))
                             .ToList();
-                        var progress = matchingEntries.Count == 0 ? 0 : matchingEntries.Max(ResolveImplementationProgress);
-                        var changed = matchingEntries.Any(entry => entry.changedAfterImplementation || entry.detectedByFingerprint);
+                        var progress = matchingEntries.Count == 0 ? 0 : Mathf.RoundToInt((float)matchingEntries.Average(entry => Math.Max(0, Math.Min(100, entry.progress))));
+                        var changed = matchingEntries.Any(entry => string.Equals(entry.effectiveStatus, "stale", StringComparison.OrdinalIgnoreCase));
                         var summaries = matchingEntries
-                            .Where(entry => entry.changedAfterImplementation || entry.detectedByFingerprint)
-                            .Select(entry => entry.manualChangeDetected || string.IsNullOrWhiteSpace(entry.changeSummary)
-                                ? L("sync.manualChange") : entry.changeSummary.Trim())
+                            .Where(entry => !string.IsNullOrWhiteSpace(entry.summary))
+                            .Select(entry => entry.summary.Trim())
                             .Distinct(StringComparer.Ordinal).ToArray();
                         var fileKey = $"{sourceKey}:{file.relativePath}";
                         treeKeys.Add(fileKey);
@@ -343,6 +349,31 @@ namespace AgentWorkflow.Editor
                             changedAfterImplementation = changed,
                             changeSummary = string.Join("；", summaries)
                         });
+                        foreach (var entry in matchingEntries
+                                     .Where(entry => !string.IsNullOrWhiteSpace(entry.id))
+                                     .OrderBy(entry => entry.label, StringComparer.OrdinalIgnoreCase)
+                                     .ThenBy(entry => entry.id, StringComparer.OrdinalIgnoreCase))
+                        {
+                            var implementationKey = $"{fileKey}:implementation:{entry.id}";
+                            treeKeys.Add(implementationKey);
+                            _designDocumentTreeItems.Add(new DesignDocumentTreeItem
+                            {
+                                isImplementation = true,
+                                depth = segments.Length + 1,
+                                treeKey = implementationKey,
+                                parentKey = fileKey,
+                                sourceId = source.id,
+                                displayName = string.IsNullOrWhiteSpace(entry.label) ? entry.id : entry.label,
+                                relativePath = file.relativePath,
+                                absolutePath = file.absolutePath,
+                                implementationProgress = Math.Max(0, Math.Min(100, entry.progress)),
+                                implementationStatus = Or(entry.effectiveStatus, "unknown"),
+                                changedAfterImplementation = string.Equals(entry.effectiveStatus, "stale", StringComparison.OrdinalIgnoreCase),
+                                changeSummary = entry.summary,
+                                verificationStatus = entry.verificationStatus,
+                                discoverySource = "formal-implementation"
+                            });
+                        }
                     }
                 }
 
@@ -402,124 +433,32 @@ namespace AgentWorkflow.Editor
             (path ?? string.Empty).Replace('\\', '/').TrimStart('/');
 
         private static bool EntryMatchesSource(
-            DocumentImplementationEntry entry,
+            ImplementationRoutingEntry entry,
             string sourceId,
             string relativePath,
             IReadOnlyDictionary<string, int> relativePathCounts)
         {
-            if (entry == null || !string.Equals(
-                    NormalizeDocumentRelativePath(entry.documentPath), relativePath,
-                    StringComparison.OrdinalIgnoreCase))
-                return false;
-            if (!string.IsNullOrWhiteSpace(entry.sourceId))
-                return string.Equals(entry.sourceId, sourceId, StringComparison.OrdinalIgnoreCase);
-            return relativePathCounts.TryGetValue(relativePath, out var count) && count == 1;
-        }
-
-        private static int ResolveImplementationProgress(DocumentImplementationEntry entry)
-        {
-            if (entry == null)
-                return 0;
-            if (entry.implementationProgress > 0)
-                return Math.Max(0, Math.Min(100, entry.implementationProgress));
-            return !string.IsNullOrWhiteSpace(entry.implementedAt) ||
-                   !string.IsNullOrWhiteSpace(entry.implementedFingerprint)
-                ? 100
-                : 0;
+            if (entry?.designSources == null) return false;
+            foreach (var candidate in entry.designSources.Where(candidate => candidate != null))
+            {
+                if (!string.Equals(NormalizeDocumentRelativePath(candidate.path), relativePath, StringComparison.OrdinalIgnoreCase)) continue;
+                if (!string.IsNullOrWhiteSpace(candidate.sourceId))
+                    return string.Equals(candidate.sourceId, sourceId, StringComparison.OrdinalIgnoreCase);
+                if (relativePathCounts.TryGetValue(relativePath, out var count) && count == 1) return true;
+            }
+            return false;
         }
 
         private static string ResolveImplementationStatus(
-            IReadOnlyCollection<DocumentImplementationEntry> entries,
+            IReadOnlyCollection<ImplementationRoutingEntry> entries,
             int progress)
         {
-            var explicitStatus = entries
-                .Select(entry => entry.implementationStatus)
-                .FirstOrDefault(status => !string.IsNullOrWhiteSpace(status));
-            if (!string.IsNullOrWhiteSpace(explicitStatus))
-                return explicitStatus;
+            if (entries.Any(entry => string.Equals(entry.effectiveStatus, "stale", StringComparison.OrdinalIgnoreCase))) return "stale";
+            if (entries.Any(entry => string.Equals(entry.effectiveStatus, "blocked", StringComparison.OrdinalIgnoreCase))) return "blocked";
+            if (entries.Any(entry => string.Equals(entry.effectiveStatus, "partial", StringComparison.OrdinalIgnoreCase))) return "partial";
             if (progress >= 100)
-                return "implemented";
+                return entries.Count > 0 && entries.All(entry => string.Equals(entry.effectiveStatus, "verified", StringComparison.OrdinalIgnoreCase)) ? "verified" : "implemented";
             return progress > 0 ? "in-progress" : "not-implemented";
-        }
-
-        private string ProjectImplementationLedgerPath()
-        {
-            return Path.Combine(_openSpecPath, "implementation-ledger.json");
-        }
-
-        private bool EnsureProjectImplementationLedger()
-        {
-            var ledgerPath = ProjectImplementationLedgerPath();
-            if (File.Exists(ledgerPath))
-                return true;
-
-            try
-            {
-                Directory.CreateDirectory(_openSpecPath);
-                var ledger = new DocumentImplementationLedger
-                {
-                    schemaVersion = 2,
-                    updatedAt = DateTime.Now.ToString("o"),
-                    entries = Array.Empty<DocumentImplementationEntry>()
-                };
-                File.WriteAllText(
-                    ledgerPath,
-                    JsonUtility.ToJson(ledger, true) + Environment.NewLine,
-                    new UTF8Encoding(false));
-                return true;
-            }
-            catch (Exception exception)
-            {
-                _documentChangeStatus = AgentWorkbenchText.Format("sync.ledgerError", exception.Message);
-                return false;
-            }
-        }
-
-        private string ResolveImplementationDocumentPath(DocumentImplementationEntry entry)
-        {
-            if (entry == null || string.IsNullOrWhiteSpace(entry.documentPath))
-                return null;
-
-            var relativePath = entry.documentPath
-                .Replace('/', Path.DirectorySeparatorChar)
-                .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            var candidates = _designDocumentSources
-                .Where(source => source != null && !string.IsNullOrWhiteSpace(source.id) &&
-                                 !string.IsNullOrWhiteSpace(source.path) && Directory.Exists(source.path) &&
-                                 (string.IsNullOrWhiteSpace(entry.sourceId) || string.Equals(
-                                     entry.sourceId, source.id, StringComparison.OrdinalIgnoreCase)))
-                .Select(source =>
-                {
-                    var sourceRoot = Path.GetFullPath(source.path)
-                        .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                    var candidate = Path.GetFullPath(Path.Combine(sourceRoot, relativePath));
-                    var sourcePrefix = sourceRoot + Path.DirectorySeparatorChar;
-                    return candidate.StartsWith(sourcePrefix, StringComparison.OrdinalIgnoreCase) && File.Exists(candidate)
-                        ? candidate : null;
-                })
-                .Where(path => !string.IsNullOrWhiteSpace(path))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .Take(2).ToList();
-            return candidates.Count == 1 ? candidates[0] : null;
-        }
-
-        private static DesignSourceEntry ResolveImplementationSource(
-            DocumentImplementationEntry entry,
-            string documentPath,
-            IReadOnlyCollection<DesignSourceEntry> sources)
-        {
-            var candidates = sources.Where(source =>
-            {
-                if (!string.IsNullOrWhiteSpace(entry.sourceId) && !string.Equals(
-                        entry.sourceId, source.id, StringComparison.OrdinalIgnoreCase))
-                    return false;
-                var sourceRoot = Path.GetFullPath(source.path)
-                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                var fullPath = Path.GetFullPath(documentPath);
-                return fullPath.StartsWith(sourceRoot + Path.DirectorySeparatorChar,
-                    StringComparison.OrdinalIgnoreCase);
-            }).Take(2).ToList();
-            return candidates.Count == 1 ? candidates[0] : null;
         }
 
         private void ReloadQueue()
@@ -604,27 +543,33 @@ namespace AgentWorkflow.Editor
                     if (string.Equals(capability, "spec.md", StringComparison.OrdinalIgnoreCase))
                         capability = Path.GetFileNameWithoutExtension(path);
                     var content = File.ReadAllText(path, Encoding.UTF8);
-                    var reviewPath = Path.Combine(Path.GetDirectoryName(path) ?? specsPath, "spec-review.json");
-                    ImportSpecReview review = null;
+                    var reviewPath = Path.Combine(Path.GetDirectoryName(path) ?? specsPath, "implementation.json");
+                    FormalImplementation implementation = null;
                     if (File.Exists(reviewPath))
-                        review = JsonUtility.FromJson<ImportSpecReview>(File.ReadAllText(reviewPath, Encoding.UTF8));
-                    var category = NormalizeCategory(Or(review?.category, ReadFrontmatterValue(content, "category")));
-                    var canonicalTitle = Or(review?.title, ExtractMarkdownTitle(content, capability));
-                    capability = Or(review?.capability, capability);
+                        implementation = JsonUtility.FromJson<FormalImplementation>(File.ReadAllText(reviewPath, Encoding.UTF8));
+                    var category = NormalizeCategory(ReadFrontmatterValue(content, "category"));
+                    var canonicalTitle = ExtractMarkdownTitle(content, capability);
+                    capability = Or(implementation?.capability, capability);
                     var title = ResolveSpecDisplayTitle(capability, path, canonicalTitle);
+                    var verification = implementation?.verification == null ? null : new ImportSpecVerification
+                    {
+                        status = implementation.verification.status,
+                        summary = implementation.verification.summary,
+                        codeEvidence = implementation.verification.evidence,
+                        evidence = implementation.verification.tests,
+                        verifiedAt = implementation.verification.verifiedAt
+                    };
                     _specFiles.Add(new SpecFile(
                         title,
                         path,
                         capability,
                         category,
-                        BuildCodeEvidence(review?.verification, review?.sourceReferences, title),
-                        review?.sourceReferences,
+                        BuildCodeEvidence(verification, implementation?.sourceReferences, title),
+                        implementation?.sourceReferences,
                         content,
-                        review?.editorGuidance,
-                        review?.pairedFeatureCapability,
-                        review?.pairedRuleCapability,
-                        review?.implementationOutline,
-                        canonicalTitle));
+                        implementation?.editorGuidance,
+                        implementationOutline: implementation?.implementationOutline,
+                        canonicalTitle: canonicalTitle));
                 }
             }
 
@@ -1457,7 +1402,7 @@ namespace AgentWorkflow.Editor
                 var content = File.ReadAllText(specPath, Encoding.UTF8);
                 var reviewPath = Path.Combine(
                     Path.GetDirectoryName(specPath) ?? specsRoot,
-                    "spec-review.json");
+                    "implementation.json");
                 ImportSpecReview review = null;
                 if (File.Exists(reviewPath))
                 {

@@ -14,6 +14,13 @@ Tools/FileServer/AssetRoot
 UnityProject/ProjectSettings/CommonBurstAotSettings.json
 UnityProject/ProjectSettings/BurstAotSettings_StandaloneWindows.json
 
+# Agent/Unity CLI local outputs
+/.agent-memory/
+/Temp/
+/UnityProject/.agent-memory/code-index-progress.json
+/UnityProject/.agent-memory/zworkflow/team/
+/UnityProject/UserSettings/Layouts/CurrentMaximizeLayout.dwlt
+
 #GameEventSourceGenerator
 Tools/GameEventSourceGenerator/*/.idea
 Tools/GameEventSourceGenerator/*/bin

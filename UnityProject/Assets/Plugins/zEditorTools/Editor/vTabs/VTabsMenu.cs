@@ -47,7 +47,6 @@ namespace VTabs
 
 
 
-#if false // Settings are exposed through Tools/EditorTools/Settings.
         const string dir = "Tools/EditorTools/vTabs/";
 #if UNITY_EDITOR_OSX
         const string cmd = "Cmd";
@@ -170,7 +169,6 @@ namespace VTabs
 
         [MenuItem(disablePlugin, false, 100001)] static void dadsadsdasadasdasdsadadsas() { pluginDisabled = !pluginDisabled; VTabs.UpdateStyleSheet(); UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation(); }
         [MenuItem(disablePlugin, true, 100001)] static bool dadsaddssdaasadsadadsdasadsas() { Menu.SetChecked(disablePlugin, pluginDisabled); return true; }
-#endif
 
 
     }
