@@ -10,7 +10,12 @@ namespace HuntingInDarkness.GameCore.Settlement
 
         public static int GetCost(int aliveCount, int configuredCost) => aliveCount <= 0 ? 0 : Math.Max(0, configuredCost);
 
+        public static int GetPopulationCost(int aliveCount, int configuredCost) => aliveCount <= 1 ? 0 : Math.Max(0, configuredCost);
+
         public static bool CanRecruit(int currentYear, int lastRecruitmentYear, int aliveCount, int maximumLivingHunters, int availableResource, int configuredCost, out string reason)
+            => CanRecruit(currentYear, lastRecruitmentYear, aliveCount, maximumLivingHunters, availableResource, configuredCost, int.MaxValue, 0, out reason);
+
+        public static bool CanRecruit(int currentYear, int lastRecruitmentYear, int aliveCount, int maximumLivingHunters, int availableResource, int configuredCost, int availablePopulation, int configuredPopulationCost, out string reason)
         {
             int safeAliveCount = Math.Max(0, aliveCount);
             if (safeAliveCount >= Math.Max(1, maximumLivingHunters))
@@ -35,6 +40,13 @@ namespace HuntingInDarkness.GameCore.Settlement
             if (Math.Max(0, availableResource) < cost)
             {
                 reason = "营地缺少接纳新人的口粮。";
+                return false;
+            }
+
+            int populationCost = GetPopulationCost(safeAliveCount, configuredPopulationCost);
+            if (Math.Max(0, availablePopulation) < populationCost)
+            {
+                reason = "营地缺少可供接纳新人的人口。";
                 return false;
             }
 

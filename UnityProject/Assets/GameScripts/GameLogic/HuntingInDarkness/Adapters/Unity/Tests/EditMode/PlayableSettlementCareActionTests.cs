@@ -85,6 +85,59 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task RecruitHunterAsync_TwoLivingHuntersRequiresAndConsumesPopulation()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 2 };
+            settlement.Hunters.Add(new HunterInstance(null, 100) { Name = "守火者一" });
+            settlement.Hunters.Add(new HunterInstance(null, 101) { Name = "守火者二" });
+            settlement.AddResource("口粮", 1);
+            HunterData template = CreateTemplate("流浪者");
+            try
+            {
+                using var session = CreateSession(settlement, template, recruitmentCost: 1, recruitmentPopulationCost: 1);
+
+                Assert.That(session.CanRecruit(out string missingPopulationReason), Is.False);
+                Assert.That(missingPopulationReason, Does.Contain("人口"));
+                Assert.That(settlement.GetResource("口粮"), Is.EqualTo(1));
+
+                settlement.Population = 1;
+                RecruitHunterCommandResult result = await session.RecruitHunterAsync(template, "新火");
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(settlement.Population, Is.Zero);
+                Assert.That(settlement.GetResource("口粮"), Is.Zero);
+                Assert.That(settlement.GetAliveHunters(), Has.Count.EqualTo(3));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(template);
+            }
+        }
+
+        [Test]
+        public async Task RecruitHunterAsync_ReactorCannotChargeEmergencyAidCosts()
+        {
+            var settlement = new SettlementInstance { CurrentYear = 2 };
+            HunterData template = CreateTemplate("流浪者");
+            try
+            {
+                using var session = CreateSession(settlement, template);
+                session.Reactors.RegisterGlobal(new RecruitmentTermsReactor(3, 2, 3));
+
+                RecruitHunterCommandResult result = await session.RecruitHunterAsync(template, "续火者");
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(settlement.Population, Is.Zero);
+                Assert.That(settlement.GetResource("口粮"), Is.Zero);
+                Assert.That(settlement.GetAliveHunters(), Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(template);
+            }
+        }
+
+        [Test]
         public async Task RecruitHunterAsync_RetiredLivingHunterStillCountsTowardCapacity()
         {
             var settlement = new SettlementInstance { CurrentYear = 2 };
@@ -302,9 +355,9 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(hunter.HP.body, Is.EqualTo(1));
         }
 
-        private static PlayableSettlementActionSession CreateSession(SettlementInstance settlement, HunterData template = null, int recruitmentCost = 0, int maximumLivingHunters = 6, int recoveryCost = 0, int recoveryAmount = 1)
+        private static PlayableSettlementActionSession CreateSession(SettlementInstance settlement, HunterData template = null, int recruitmentCost = 0, int maximumLivingHunters = 6, int recoveryCost = 0, int recoveryAmount = 1, int recruitmentPopulationCost = 0)
         {
-            var content = new TestCareContent(template, recruitmentCost, maximumLivingHunters, recoveryCost, recoveryAmount);
+            var content = new TestCareContent(template, recruitmentCost, maximumLivingHunters, recoveryCost, recoveryAmount, recruitmentPopulationCost);
             return new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), careContent: content);
         }
 
@@ -319,10 +372,11 @@ namespace HuntingInDarkness.Adapter.Tests
 
         private sealed class TestCareContent : ISettlementCareContent
         {
-            public TestCareContent(HunterData template, int recruitmentCost, int maximumLivingHunters, int recoveryCost, int recoveryAmount)
+            public TestCareContent(HunterData template, int recruitmentCost, int maximumLivingHunters, int recoveryCost, int recoveryAmount, int recruitmentPopulationCost)
             {
                 RecruitmentTemplates = template != null ? new[] { template } : Array.Empty<HunterData>();
                 RecruitmentCost = recruitmentCost;
+                RecruitmentPopulationCost = recruitmentPopulationCost;
                 MaximumLivingHunters = maximumLivingHunters;
                 RecoveryCost = recoveryCost;
                 RecoveryAmount = recoveryAmount;
@@ -331,6 +385,7 @@ namespace HuntingInDarkness.Adapter.Tests
             public IReadOnlyList<HunterData> RecruitmentTemplates { get; }
             public string RecruitmentCostResourceId => "口粮";
             public int RecruitmentCost { get; }
+            public int RecruitmentPopulationCost { get; }
             public int MaximumLivingHunters { get; }
             public string RecoveryCostResourceId => "口粮";
             public int RecoveryCost { get; }
@@ -354,11 +409,13 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             private readonly int resourceCost;
             private readonly int maximumLivingHunters;
+            private readonly int populationCost;
 
-            public RecruitmentTermsReactor(int resourceCost, int maximumLivingHunters)
+            public RecruitmentTermsReactor(int resourceCost, int maximumLivingHunters, int populationCost = 0)
             {
                 this.resourceCost = resourceCost;
                 this.maximumLivingHunters = maximumLivingHunters;
+                this.populationCost = populationCost;
             }
 
             public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
@@ -367,6 +424,7 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 action.SetResourceCost(resourceCost);
                 action.SetMaximumLivingHunters(maximumLivingHunters);
+                action.SetPopulationCost(populationCost);
             }
         }
 

@@ -42,6 +42,7 @@ namespace HuntingInDarkness.Settlement
         [SerializeField] private List<HunterData> recruitmentTemplates = new();
         [SerializeField] private ItemData recruitmentCostItem;
         [SerializeField, Min(0)] private int recruitmentCost = 1;
+        [SerializeField, Min(0)] private int recruitmentPopulationCost = 1;
         [SerializeField, Min(1)] private int maximumLivingHunters = 6;
 
         [Header("营火休养")]
@@ -57,6 +58,7 @@ namespace HuntingInDarkness.Settlement
         public IReadOnlyList<HunterData> RecruitmentTemplates => PlayableSettlementContentRuntime.TryGetPlan(this, out PlayableSettlementContentPlan plan) ? plan.RecruitmentTemplates : recruitmentTemplates;
         public ItemData RecruitmentCostItem => recruitmentCostItem;
         public int RecruitmentCost => Mathf.Max(0, recruitmentCost);
+        public int RecruitmentPopulationCost => Mathf.Max(0, recruitmentPopulationCost);
         public int MaximumLivingHunters => Mathf.Max(1, maximumLivingHunters);
         public ItemData RecoveryCostItem => recoveryCostItem;
         public int RecoveryCost => Mathf.Max(0, recoveryCost);

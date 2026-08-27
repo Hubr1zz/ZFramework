@@ -275,7 +275,7 @@ namespace UI
                 return false;
             }
             int availableResource = settlement.GetResource(catalog.RecruitmentCostItem);
-            return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, aliveCount, catalog.MaximumLivingHunters, availableResource, catalog.RecruitmentCost, out reason);
+            return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, aliveCount, catalog.MaximumLivingHunters, availableResource, catalog.RecruitmentCost, settlement.Population, catalog.RecruitmentPopulationCost, out reason);
         }
 
         private HunterData GetSelectedTemplate()
@@ -312,9 +312,17 @@ namespace UI
 
         private string FormatCost()
         {
-            int cost = RecruitmentRules.GetCost(settlement?.GetAliveHunters().Count ?? 0, catalog?.RecruitmentCost ?? 0);
-            if (cost == 0) return "无人守火时免费援助";
-            return catalog?.RecruitmentCostItem != null ? $"{catalog.RecruitmentCostItem.itemName} ×{cost}" : "物资未配置";
+            int aliveCount = settlement?.GetAliveHunters().Count ?? 0;
+            int cost = RecruitmentRules.GetCost(aliveCount, catalog?.RecruitmentCost ?? 0);
+            int populationCost = RecruitmentRules.GetPopulationCost(aliveCount, catalog?.RecruitmentPopulationCost ?? 0);
+            if (cost == 0 && populationCost == 0) return aliveCount <= 0 ? "无人守火时免费援助" : "无需额外成本";
+            string resourceLabel = string.Empty;
+            if (cost > 0)
+                resourceLabel = catalog?.RecruitmentCostItem != null ? $"{catalog.RecruitmentCostItem.itemName} ×{cost}" : "物资未配置";
+            string populationLabel = populationCost > 0 ? $"人口 ×{populationCost}" : string.Empty;
+            if (string.IsNullOrEmpty(resourceLabel)) return populationLabel;
+            if (string.IsNullOrEmpty(populationLabel)) return resourceLabel;
+            return $"{resourceLabel} + {populationLabel}";
         }
 
         private void BuildNameSlate()

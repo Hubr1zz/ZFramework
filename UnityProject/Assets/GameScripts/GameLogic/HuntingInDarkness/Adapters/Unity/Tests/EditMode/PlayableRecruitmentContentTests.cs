@@ -20,6 +20,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(catalog.RecruitmentCostItem, Is.Not.Null);
             Assert.That(catalog.RecruitmentCostItem.itemType, Is.EqualTo(ItemType.Resource));
             Assert.That(catalog.RecruitmentCost, Is.GreaterThan(0));
+            Assert.That(catalog.RecruitmentPopulationCost, Is.EqualTo(1));
             Assert.That(catalog.MaximumLivingHunters, Is.GreaterThanOrEqualTo(4));
 
             var names = new HashSet<string>();

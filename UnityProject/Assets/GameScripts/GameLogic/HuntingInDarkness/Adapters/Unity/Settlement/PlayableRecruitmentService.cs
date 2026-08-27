@@ -13,17 +13,19 @@ namespace HuntingInDarkness.Settlement
         private readonly List<HunterData> templates = new();
         private readonly ItemData costItem;
         private readonly int configuredCost;
+        private readonly int configuredPopulationCost;
         private readonly int maximumLivingHunters;
 
         public IReadOnlyList<HunterData> Templates => templates;
         public string CostItemName => costItem != null ? costItem.itemName : string.Empty;
 
-        public PlayableRecruitmentService(Func<SettlementInstance> settlementProvider, Func<HunterManagementSystem> managementProvider, IEnumerable<HunterData> recruitmentTemplates, ItemData costItem, int configuredCost, int maximumLivingHunters)
+        public PlayableRecruitmentService(Func<SettlementInstance> settlementProvider, Func<HunterManagementSystem> managementProvider, IEnumerable<HunterData> recruitmentTemplates, ItemData costItem, int configuredCost, int maximumLivingHunters, int configuredPopulationCost = 1)
         {
             this.settlementProvider = settlementProvider;
             this.managementProvider = managementProvider;
             this.costItem = costItem;
             this.configuredCost = Math.Max(0, configuredCost);
+            this.configuredPopulationCost = Math.Max(0, configuredPopulationCost);
             this.maximumLivingHunters = Math.Max(1, maximumLivingHunters);
             if (recruitmentTemplates == null) return;
 
@@ -61,7 +63,7 @@ namespace HuntingInDarkness.Settlement
             }
 
             int availableResource = settlement.GetResource(costItem);
-            return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, livingCount, maximumLivingHunters, availableResource, configuredCost, out reason);
+            return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, livingCount, maximumLivingHunters, availableResource, configuredCost, settlement.Population, configuredPopulationCost, out reason);
         }
 
         public bool TryRecruit(HunterData template, string requestedName, out HunterInstance hunter, out string reason)
@@ -82,6 +84,7 @@ namespace HuntingInDarkness.Settlement
             if (!RecruitmentRules.TryNormalizeName(requestedName, existingNames, out string normalizedName, out reason)) return false;
 
             int cost = RecruitmentRules.GetCost(settlement.GetAliveHunters().Count, configuredCost);
+            int populationCost = RecruitmentRules.GetPopulationCost(settlement.GetAliveHunters().Count, configuredPopulationCost);
             if (cost > 0 && !settlement.SpendResource(costItem, cost))
             {
                 reason = "招募所需物资已经发生变化。";
@@ -96,6 +99,9 @@ namespace HuntingInDarkness.Settlement
                 reason = "新人没有抵达营地，物资已经返还。";
                 return false;
             }
+
+            if (populationCost > 0)
+                settlement.Population -= populationCost;
 
             PlayableSymptomRuntime.SynchronizeHunter(hunter);
 

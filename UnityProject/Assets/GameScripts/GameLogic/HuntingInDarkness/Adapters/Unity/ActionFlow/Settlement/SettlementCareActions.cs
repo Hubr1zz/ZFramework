@@ -70,7 +70,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         private readonly string costResourceId;
         private readonly ActionEventOutbox eventOutbox;
 
-        public RecruitHunterAction(SettlementInstance settlement, HunterData template, string requestedName, IReadOnlyList<HunterData> allowedTemplates, string costResourceId, int resourceCost, int maximumLivingHunters, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+        public RecruitHunterAction(SettlementInstance settlement, HunterData template, string requestedName, IReadOnlyList<HunterData> allowedTemplates, string costResourceId, int resourceCost, int maximumLivingHunters, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, int populationCost = 0)
         {
             this.settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             this.template = template;
@@ -82,15 +82,18 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             Target = target ?? throw new ArgumentNullException(nameof(target));
             SetResourceCost(resourceCost);
             SetMaximumLivingHunters(maximumLivingHunters);
+            SetPopulationCost(populationCost);
         }
 
         public int ResourceCost { get; private set; }
+        public int PopulationCost { get; private set; }
         public int MaximumLivingHunters { get; private set; }
         public RecruitHunterCommandResult Result { get; private set; }
         public IReactorEntity Source { get; }
         public IReactorEntity Target { get; }
 
         public void SetResourceCost(int value) => ResourceCost = Math.Max(0, value);
+        public void SetPopulationCost(int value) => PopulationCost = Math.Max(0, value);
         public void SetMaximumLivingHunters(int value) => MaximumLivingHunters = Math.Max(1, value);
 
         protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
@@ -99,9 +102,11 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             if (template == null || !ContainsTemplate(template)) return Fail("请选择一名愿意靠近营火的陌生人。");
 
             int livingCount = settlement.GetAliveHunters().Count;
-            if (ResourceCost > 0 && string.IsNullOrWhiteSpace(costResourceId)) return Fail("招募成本尚未配置。");
+            int effectiveResourceCost = RecruitmentRules.GetCost(livingCount, ResourceCost);
+            int effectivePopulationCost = RecruitmentRules.GetPopulationCost(livingCount, PopulationCost);
+            if (effectiveResourceCost > 0 && string.IsNullOrWhiteSpace(costResourceId)) return Fail("招募成本尚未配置。");
             int availableResource = string.IsNullOrWhiteSpace(costResourceId) ? 0 : settlement.GetResource(costResourceId);
-            if (!RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, livingCount, MaximumLivingHunters, availableResource, ResourceCost, out string reason)) return Fail(reason);
+            if (!RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, livingCount, MaximumLivingHunters, availableResource, effectiveResourceCost, settlement.Population, effectivePopulationCost, out string reason)) return Fail(reason);
 
             var existingNames = new List<string>();
             foreach (HunterInstance existingHunter in settlement.Hunters)
@@ -124,14 +129,16 @@ namespace HuntingInDarkness.ActionFlow.Settlement
 
             cancellationToken.ThrowIfCancellationRequested();
             int oldResourceAmount = availableResource;
-            if (ResourceCost > 0 && !settlement.SpendResource(costResourceId, ResourceCost)) return Fail("招募所需物资已经发生变化。");
+            if (effectiveResourceCost > 0 && !settlement.SpendResource(costResourceId, effectiveResourceCost)) return Fail("招募所需物资已经发生变化。");
+            if (effectivePopulationCost > 0)
+                settlement.Population -= effectivePopulationCost;
             settlement.Hunters.Add(hunter);
             settlement.LastRecruitmentYear = settlement.CurrentYear;
             settlement.Timeline ??= new List<AnnalEntry>();
             settlement.Timeline.Add(annal);
 
             Result = new RecruitHunterCommandResult(true, string.Empty, hunter);
-            if (ResourceCost > 0)
+            if (effectiveResourceCost > 0)
                 eventOutbox.Stage(new ResourceChangedEvent { ResourceName = costResourceId, OldAmount = oldResourceAmount, NewAmount = settlement.GetResource(costResourceId) });
             eventOutbox.Stage(new HunterRecruitedEvent { HunterId = hunter.InstanceId, HunterName = hunter.Name, TemplateId = template.ContentId });
             eventOutbox.Stage(new HunterRosterChangedEvent());

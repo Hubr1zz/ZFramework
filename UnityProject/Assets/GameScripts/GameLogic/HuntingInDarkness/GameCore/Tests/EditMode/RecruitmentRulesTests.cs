@@ -14,6 +14,16 @@ namespace HuntingInDarkness.GameCore.Tests
             Assert.That(canRecruit, Is.True);
             Assert.That(reason, Is.Empty);
             Assert.That(RecruitmentRules.GetCost(0, 2), Is.Zero);
+            Assert.That(RecruitmentRules.GetPopulationCost(1, 2), Is.Zero);
+        }
+
+        [Test]
+        public void CanRecruit_TwoLivingHuntersRequiresAvailablePopulation()
+        {
+            Assert.That(RecruitmentRules.GetPopulationCost(2, 1), Is.EqualTo(1));
+            Assert.That(RecruitmentRules.CanRecruit(3, 2, 2, 6, 1, 1, 0, 1, out string reason), Is.False);
+            Assert.That(reason, Does.Contain("人口"));
+            Assert.That(RecruitmentRules.CanRecruit(3, 2, 2, 6, 1, 1, 1, 1, out reason), Is.True, reason);
         }
 
         [Test]

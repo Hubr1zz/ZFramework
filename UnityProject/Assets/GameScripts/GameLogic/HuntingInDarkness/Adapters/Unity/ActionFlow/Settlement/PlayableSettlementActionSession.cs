@@ -127,7 +127,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 return false;
             }
             int availableResource = string.IsNullOrWhiteSpace(careContent.RecruitmentCostResourceId) ? 0 : settlement.GetResource(careContent.RecruitmentCostResourceId);
-            return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, livingCount, careContent.MaximumLivingHunters, availableResource, careContent.RecruitmentCost, out reason);
+            return RecruitmentRules.CanRecruit(settlement.CurrentYear, settlement.LastRecruitmentYear, livingCount, careContent.MaximumLivingHunters, availableResource, careContent.RecruitmentCost, settlement.Population, careContent.RecruitmentPopulationCost, out reason);
         }
 
         public async UniTask<RecruitHunterCommandResult> RecruitHunterAsync(HunterData template, string requestedName)
@@ -138,7 +138,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             ReactorEntityHandle settlementEntity = environment.EntityHandles.GetOrCreate("settlement", "active", "营地");
             ReactorEntityHandle recruitEntity = environment.EntityHandles.GetOrCreate("recruitment-template", template != null ? template.name : "unknown", template != null ? template.hunterName : "未知猎人模板");
             int resourceCost = RecruitmentRules.GetCost(settlement.GetAliveHunters().Count, careContent.RecruitmentCost);
-            var action = new RecruitHunterAction(settlement, template, requestedName, careContent.RecruitmentTemplates, careContent.RecruitmentCostResourceId, resourceCost, careContent.MaximumLivingHunters, outbox, settlementEntity, recruitEntity);
+            int populationCost = RecruitmentRules.GetPopulationCost(settlement.GetAliveHunters().Count, careContent.RecruitmentPopulationCost);
+            var action = new RecruitHunterAction(settlement, template, requestedName, careContent.RecruitmentTemplates, careContent.RecruitmentCostResourceId, resourceCost, careContent.MaximumLivingHunters, outbox, settlementEntity, recruitEntity, populationCost);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? RecruitHunterCommandResult.Failed(outcome.Reason) : action.Result;

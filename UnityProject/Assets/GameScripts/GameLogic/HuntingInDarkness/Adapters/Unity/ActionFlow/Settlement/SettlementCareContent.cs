@@ -10,6 +10,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         IReadOnlyList<HunterData> RecruitmentTemplates { get; }
         string RecruitmentCostResourceId { get; }
         int RecruitmentCost { get; }
+        int RecruitmentPopulationCost { get; }
         int MaximumLivingHunters { get; }
         string RecoveryCostResourceId { get; }
         int RecoveryCost { get; }
@@ -30,6 +31,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         public IReadOnlyList<HunterData> RecruitmentTemplates => catalog != null ? catalog.RecruitmentTemplates : emptyTemplates;
         public string RecruitmentCostResourceId => catalog?.RecruitmentCostItem != null ? catalog.RecruitmentCostItem.ContentId : string.Empty;
         public int RecruitmentCost => catalog?.RecruitmentCost ?? 0;
+        public int RecruitmentPopulationCost => catalog?.RecruitmentPopulationCost ?? 0;
         public int MaximumLivingHunters => catalog?.MaximumLivingHunters ?? 1;
         public string RecoveryCostResourceId => catalog?.RecoveryCostItem != null ? catalog.RecoveryCostItem.ContentId : string.Empty;
         public int RecoveryCost => catalog?.RecoveryCost ?? 0;
