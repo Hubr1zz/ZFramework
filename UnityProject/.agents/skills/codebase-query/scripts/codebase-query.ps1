@@ -97,8 +97,10 @@ function Convert-ToPortablePath {
 function Get-GitProjectPrefix {
     param([string]$ProjectRoot)
 
-    $repositoryRoot = @(& git -C $ProjectRoot rev-parse --show-toplevel 2>$null | Select-Object -First 1)
-    if ($LASTEXITCODE -ne 0 -or $repositoryRoot.Count -ne 1) { throw 'Cannot resolve the Git repository root.' }
+    $repositoryRootOutput = @(& git -C $ProjectRoot rev-parse --show-toplevel 2>$null)
+    $gitExitCode = $LASTEXITCODE
+    $repositoryRoot = @($repositoryRootOutput | Select-Object -First 1)
+    if ($gitExitCode -ne 0 -or $repositoryRoot.Count -ne 1) { throw 'Cannot resolve the Git repository root.' }
 
     $resolvedRepositoryRoot = [System.IO.Path]::GetFullPath($repositoryRoot[0]).TrimEnd('\', '/')
     $resolvedProjectRoot = [System.IO.Path]::GetFullPath($ProjectRoot).TrimEnd('\', '/')
