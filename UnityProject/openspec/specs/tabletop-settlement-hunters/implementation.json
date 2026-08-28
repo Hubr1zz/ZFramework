@@ -15,9 +15,9 @@
         "guid": "680c4dd3ef562024ebe38aa3a5bb7aa1",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs",
         "line": 186,
-        "fileHash": "fb28c7c29b62b66de11d19eecfc634c5124a2b23a3aa4ab0ad0144d376443efd",
+        "fileHash": "db087fd0be9e0d48b7d5c8ec7feac463410a11a510a1b0a9aa8401e630408a8b",
         "status": "verified",
-        "checkedAt": "2026-08-27T20:52:00.7650754-07:00",
+        "checkedAt": "2026-08-28T03:10:00-07:00",
         "feature": "指针按下只武装手势，松手且未开始拖拽时才发出点击；拖拽结束不会补发点击。"
       },
       {
@@ -49,12 +49,12 @@
       }
     ],
     "tests": [
-      "HunterTabletopInteractionPlayModeTests: 4/4 passed",
+      "HunterTabletopInteractionPlayModeTests: 5/5 passed",
       "ResourceZoneLayoutPlayModeTests + TabletopHuntDeparturePanel3DTests + HunterEquipmentPanel3DPlayModeTests: 8/8 passed",
       "SlotDraggableCardView3DTests: 2/2 passed",
       "Unity 6000.5.9f1 CLI compile: passed"
     ],
-    "verifiedAt": "2026-08-27T20:52:00.7650754-07:00"
+    "verifiedAt": "2026-08-28T03:10:00-07:00"
   },
   "implementationOutline": [
     "CardView3D 统一在指针释放时确认点击，已形成拖拽时只走拖放结束路径。",

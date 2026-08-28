@@ -26,9 +26,9 @@ namespace HuntingInDarkness.Settlement
                 if (outcome.Retired)
                 {
                     outcomes.Add(outcome);
-                    management.CompleteRetirement(hunter);
+                    if (!management.TryCompleteRetirement(hunter, true, out int returnedEquipmentCount)) continue;
                     Debug.Log($"[HunterAdvancement] {hunter.Name} 在年龄 {hunter.Age} 退休");
-                    EventBus.Publish(new HunterRetiredEvent { HunterId = hunter.InstanceId, Age = hunter.Age });
+                    EventBus.Publish(new HunterRetiredEvent { HunterId = hunter.InstanceId, HunterName = hunter.Name, Age = hunter.Age, Year = management.CurrentYear, ReturnedEquipmentCount = returnedEquipmentCount });
                     continue;
                 }
                 if (!outcome.Advanced) continue;
@@ -57,8 +57,8 @@ namespace HuntingInDarkness.Settlement
                 if (outcome.Retired)
                 {
                     outcomes.Add(outcome);
-                    management.CompleteRetirement(hunter, false);
-                    eventOutbox.Stage(new HunterRetiredEvent { HunterId = hunter.InstanceId, Age = hunter.Age });
+                    if (!management.TryCompleteRetirement(hunter, false, out int returnedEquipmentCount)) continue;
+                    eventOutbox.Stage(new HunterRetiredEvent { HunterId = hunter.InstanceId, HunterName = hunter.Name, Age = hunter.Age, Year = management.CurrentYear, ReturnedEquipmentCount = returnedEquipmentCount });
                     rosterChanged = true;
                     continue;
                 }
@@ -96,6 +96,9 @@ namespace HuntingInDarkness.Settlement
     public struct HunterRetiredEvent
     {
         public int HunterId;
+        public string HunterName;
         public int Age;
+        public int Year;
+        public int ReturnedEquipmentCount;
     }
 }

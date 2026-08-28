@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "00187f75a69b8c963acdb35ae72af8371a2f97e23845174e9015701f174e59d0",
-  "inputManifestDigest": "f09e22094b79ca1e77d15793f2320af73d2cf2cbae90cd42878ec0d213bb80d4",
-  "outputDigest": "0571ff238854b924d11ae0b93a4622fa5a2138b980378b54a574988a28db2811",
+  "inputDigest": "f16ac513985a8ddf4575376f0f293ed1e3980e4a40dabedb0aa1bc4aee8316fb",
+  "inputManifestDigest": "bc770eab9ceda89aa55ff7e2380cd3d02ebf1ea3c29b8f639cd0c3c8d9cb3010",
+  "outputDigest": "141317ad3ea7295fcd912ce3ba93f125787686790d45a52a9ccc9521decd8b5c",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -352,7 +352,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/HunterManagementSystem.cs",
-      "sha256": "ccf35f79495b2033e6c7ecdd2a5a2c40999687f32eb507558b7cbebb7082cb42",
+      "sha256": "dd89410aef853fe21f13e54a4e6fd382c5f1a02899203b012423de30059d333c",
       "state": "current"
     },
     {
@@ -637,7 +637,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "65ca7d3c68dcaae824f96a9d80f9ddf7e44153a9e442a91bdcfe4806e84f81a0",
+      "sha256": "bfced834cebc4f8b87ac10961e64ff46d2a81bf9ab932bdb5b0d221e73025578",
       "state": "current"
     },
     {
@@ -1142,7 +1142,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs",
-      "sha256": "5ebf173c86eeda3addccb905a843841dbf15088a7fcb0ef04558dd6862e61f27",
+      "sha256": "f84a67bdea3591c3ccbccd7b8ed129750d1a4e75e5c61a74695c573bb4fe7b5c",
       "state": "current"
     },
     {
@@ -1787,7 +1787,7 @@
     },
     {
       "path": "openspec/specs/tabletop-settlement-hunters/implementation.json",
-      "sha256": "602affb0c9ddc16eb487d8559b312d900ebe2c28a5f32e64303a4df6af0c50b0",
+      "sha256": "062c40d43f22b915481571cc43aa8dbc932f1b38732288e056d5b2ae7be7d4e0",
       "state": "current"
     },
     {
@@ -2154,6 +2154,11 @@
     {
       "capability": "event-driven-hunter-death",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "event-driven-hunter-death",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/HunterManagementSystem.cs",
       "state": "stale"
     },
     {
@@ -2977,11 +2982,6 @@
       "state": "stale"
     },
     {
-      "capability": "tabletop-settlement-hunters",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs",
-      "state": "stale"
-    },
-    {
       "capability": "tabletop-settlement-invention",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionActiveEffectPanel3D.cs",
       "state": "stale"
@@ -3446,7 +3446,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/HunterManagementSystem.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs",
@@ -5551,7 +5551,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/HunterCard3D.cs",

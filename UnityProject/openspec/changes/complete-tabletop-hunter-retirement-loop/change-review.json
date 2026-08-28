@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 5,
+  "changeId": "complete-tabletop-hunter-retirement-loop",
+  "title": "完成猎人退休与替补桌面闭环",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现与定向验证已完成；正式 Spec 保持不变，等待人类在 Changes 中审查并显式同步。",
+  "verification": {
+    "status": "implemented",
+    "summary": "首次退休已恰好一次归还装备并生成 3D 归档；名册、仓库、保存恢复、替补招募与再次出发形成生产闭环。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity 6000.5.9f1 EditMode 退休推进与同职责回归 58/58。",
+      "Unity 6000.5.9f1 PlayMode 退休通知与生产闭环 2/2。",
+      "Unity 6000.5.9f1 EditMode 死亡装备归还回归 2/2。"
+    ],
+    "differences": [
+      "正式 Spec 尚未完整描述退休装备归还、3D 归档、名册投影和读档不重放的联合契约。"
+    ],
+    "verifiedAt": "2026-08-28T03:10:00-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-HUNTER-RETIREMENT-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认退休装备归还、3D 归档与恢复不重放属于长期战役正式契约。",
+      "details": "批准后仅同步四个 Delta，不新增退休数值、传承效果或 Showdown 内容。",
+      "sourceId": "conversation::2026-08-28",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": [
+    "hunt-return-outcome-checkpoint",
+    "tabletop-settlement-hunters",
+    "tabletop-settlement-notices",
+    "campaign-persistence"
+  ],
+  "syncTargets": [
+    {
+      "capability": "campaign-persistence",
+      "title": "战役持久化与恢复",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/specs/campaign-persistence/spec.md",
+      "targetSpecPath": "openspec/specs/campaign-persistence/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "fb3cb2408e150b0c347b4a3caea726caef2196ce871cef6c814a35e5dc0a35f3",
+      "baseSnapshotPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/.sync-baseline/campaign-persistence/spec.md"
+    },
+    {
+      "capability": "hunt-return-outcome-checkpoint",
+      "title": "狩猎归来结果检查点",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/specs/hunt-return-outcome-checkpoint/spec.md",
+      "targetSpecPath": "openspec/specs/hunt-return-outcome-checkpoint/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "7e5a8669d185ce3e99b5e4062325ec51c8789e637ade2ef1c9cac8a898ef1747",
+      "baseSnapshotPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/.sync-baseline/hunt-return-outcome-checkpoint/spec.md"
+    },
+    {
+      "capability": "tabletop-settlement-hunters",
+      "title": "营地桌面猎人卡交互",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/specs/tabletop-settlement-hunters/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-settlement-hunters/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "6340cb3d4aec8ecdfabda54394e686e72bdde6b85883390a99db3694bfb88816",
+      "baseSnapshotPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/.sync-baseline/tabletop-settlement-hunters/spec.md"
+    },
+    {
+      "capability": "tabletop-settlement-notices",
+      "title": "3D 营地消息记录",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/specs/tabletop-settlement-notices/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-settlement-notices/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "ebad9c376cd5d773109b8fc0211a405e104211e6d3802250de52324bceac7421",
+      "baseSnapshotPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/.sync-baseline/tabletop-settlement-notices/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "正式 Spec 基线已记录。",
+    "conflicts": [],
+    "validatedAt": "2026-08-28T02:43:08-07:00"
+  },
+  "createdAt": "2026-08-28T03:10:00-07:00"
+}

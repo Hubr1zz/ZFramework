@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-notices",
+  "title": "3D 营地消息记录",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "退休事实已投影为非权威 3D 归档卡，并在归来摘要前保留提交顺序。",
+    "codeEvidence": [
+      { "guid": "49defc1c58ea64e44875f3a790412007", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs", "fileHash": "f84a67bdea3591c3ccbccd7b8ed129750d1a4e75e5c61a74695c573bb4fe7b5c", "line": 200, "feature": "世界空间退休归档卡投影", "status": "verified", "checkedAt": "2026-08-28T03:10:00-07:00" },
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "fileHash": "bfced834cebc4f8b87ac10961e64ff46d2a81bf9ab932bdb5b0d221e73025578", "line": 402, "feature": "退休通知顺序与装备说明验证", "status": "verified", "checkedAt": "2026-08-28T03:10:00-07:00" }
+    ],
+    "evidence": ["Unity PlayMode 退休通知测试 1/1。"],
+    "differences": ["正式 Spec 尚未列出退休归档及其可读字段。"],
+    "verifiedAt": "2026-08-28T03:10:00-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["订阅已提交退休事实。", "仅排队 3D 记录卡，不创建 GameAction。"],
+  "reviewIssues": []
+}

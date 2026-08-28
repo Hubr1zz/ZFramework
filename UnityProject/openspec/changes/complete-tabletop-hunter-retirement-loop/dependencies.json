@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "hunt-return-outcome-checkpoint", "label": "狩猎归来结果检查点", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/specs/hunt-return-outcome-checkpoint/spec.md" },
+    { "id": "tabletop-settlement-hunters", "label": "营地桌面猎人卡交互", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/specs/tabletop-settlement-hunters/spec.md" },
+    { "id": "tabletop-settlement-notices", "label": "3D 营地消息记录", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/specs/tabletop-settlement-notices/spec.md" },
+    { "id": "campaign-persistence", "label": "战役持久化与恢复", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/complete-tabletop-hunter-retirement-loop/specs/campaign-persistence/spec.md" }
+  ],
+  "edges": [
+    { "from": "hunt-return-outcome-checkpoint", "to": "tabletop-settlement-notices", "type": "produces" },
+    { "from": "hunt-return-outcome-checkpoint", "to": "campaign-persistence", "type": "persists" },
+    { "from": "hunt-return-outcome-checkpoint", "to": "tabletop-settlement-hunters", "type": "projects" }
+  ]
+}

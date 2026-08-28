@@ -1,0 +1,6 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的采纳对账：完成猎人退休、装备归还、3D 归档、存档恢复与替补招募闭环。",
+  "sourceRoots": ["openspec/specs"],
+  "sourceReferences": ["conversation::2026-08-28", "formal::hunt-return-outcome-checkpoint", "formal::tabletop-settlement-hunters", "formal::tabletop-settlement-notices", "formal::campaign-persistence"]
+}

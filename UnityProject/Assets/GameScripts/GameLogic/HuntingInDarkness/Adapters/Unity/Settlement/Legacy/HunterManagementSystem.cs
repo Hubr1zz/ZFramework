@@ -19,6 +19,8 @@ namespace HuntingInDarkness.Settlement
         private int deathInspirationGrowth = 1;
         private int deathInspirationMinimumAge = 2;
 
+        public int CurrentYear => _settlement?.CurrentYear ?? 0;
+
         public HunterManagementSystem(SettlementInstance settlement, IRandomSource rng)
         {
             _settlement = settlement;
@@ -166,15 +168,22 @@ namespace HuntingInDarkness.Settlement
         /// <summary>提交规则层已经判定的退休，归还装备并保留猎人历史。</summary>
         public void CompleteRetirement(HunterInstance hunter, bool publishEvent = true)
         {
+            TryCompleteRetirement(hunter, publishEvent, out _);
+        }
+
+        /// <summary>提交一次新的退休归档，并返回实际归还到仓库的装备数量。</summary>
+        public bool TryCompleteRetirement(HunterInstance hunter, bool publishEvent, out int returnedEquipmentCount)
+        {
+            returnedEquipmentCount = 0;
             if (hunter == null || !hunter.IsAlive || hunter.Availability != HunterAvailabilityState.Retired)
-                return;
+                return false;
 
             _settlement.Timeline ??= new List<AnnalEntry>();
             string eventId = $"retirement:{hunter.InstanceId}:{_settlement.CurrentYear}";
             if (_settlement.Timeline.Exists(entry => entry.EventId == eventId))
-                return;
+                return false;
 
-            ReturnEquipmentToStorage(hunter);
+            returnedEquipmentCount = ReturnEquipmentToStorage(hunter);
             _settlement.Timeline.Add(new AnnalEntry
             {
                 Year = _settlement.CurrentYear,
@@ -185,6 +194,7 @@ namespace HuntingInDarkness.Settlement
             });
             if (publishEvent)
                 EventBus.Publish(new HunterRosterChangedEvent());
+            return true;
         }
 
         // ─── 统计 ─────────────────────────────────────────────────
@@ -193,18 +203,23 @@ namespace HuntingInDarkness.Settlement
         public int AvailableCount => _settlement.GetAvailableHunters().Count;
         public bool AllDead    => AliveCount == 0;
 
-        private void ReturnEquipmentToStorage(HunterInstance hunter)
+        private int ReturnEquipmentToStorage(HunterInstance hunter)
         {
-            if (hunter == null) return;
+            if (hunter == null) return 0;
             hunter.EquippedItemIds ??= new List<string>();
             hunter.EquippedItemNames ??= new List<string>();
             IReadOnlyList<string> savedItems = hunter.EquippedItemIds.Count > 0 ? hunter.EquippedItemIds : hunter.EquippedItemNames;
+            int returnedEquipmentCount = 0;
             foreach (string itemId in savedItems)
                 if (!string.IsNullOrEmpty(itemId))
+                {
                     _settlement.AddStoredEquipment(PlayableSettlementItemRegistry.ResolveContentId(itemId), 1);
+                    returnedEquipmentCount++;
+                }
             hunter.Equipment?.Clear();
             hunter.EquippedItemIds.Clear();
             hunter.EquippedItemNames.Clear();
+            return returnedEquipmentCount;
         }
 
         private bool CommitDeath(HunterInstance hunter, string causeId, string causeText)

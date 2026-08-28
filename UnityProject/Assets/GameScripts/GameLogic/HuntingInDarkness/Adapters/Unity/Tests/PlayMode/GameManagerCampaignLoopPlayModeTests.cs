@@ -159,6 +159,89 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator Retirement_ReturnsEquipmentShows3DArchivePersistsAndAllowsReplacementDeparture()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            yield return WaitForSettlementIdle(manager);
+            SettlementInstance settlement = manager.SettlementData;
+            HunterInstance retiringHunter = settlement.GetAvailableHunters()[0];
+            retiringHunter.Name = "归盐者";
+            retiringHunter.Age = HunterAdvancementRules.MaximumAge;
+            retiringHunter.Equipment.Clear();
+            retiringHunter.EquippedItemIds.Clear();
+            retiringHunter.EquippedItemNames.Clear();
+            retiringHunter.EquippedItemIds.Add("salt_ward");
+            int retirementYear = settlement.CurrentYear;
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { retiringHunter.InstanceId }, GetDestination(retirementYear)).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            Assert.That(departure.GetResult().Succeeded, Is.True, departure.GetResult().Reason);
+            UniTask<HuntRetreatCommandResult>.Awaiter retreat = manager.RequestRetreatAsync().GetAwaiter();
+            yield return WaitForCompletion(retreat);
+            Assert.That(retreat.GetResult().Succeeded, Is.True, retreat.GetResult().Reason);
+            yield return WaitForSettlementIdle(manager);
+
+            Assert.That(retiringHunter.Availability, Is.EqualTo(HunterAvailabilityState.Retired));
+            Assert.That(retiringHunter.EquippedItemIds, Is.Empty);
+            Assert.That(settlement.GetStoredEquipment("salt_ward"), Is.EqualTo(1));
+            Assert.That(settlement.Timeline.Count(entry => entry.EventId == $"retirement:{retiringHunter.InstanceId}:{retirementYear}"), Is.EqualTo(1));
+            Assert.That(settlement.HuntHistory, Has.Count.EqualTo(1));
+            SettlementNoticePresenter3D notice = managerObject.GetComponent<SettlementNoticePresenter3D>();
+            Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("猎人退休归档"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("归盐者").And.Contain("1 件装备已归还"));
+            SettlementTable3D table = managerObject.GetComponentInChildren<SettlementTable3D>(true);
+            Assert.That(table.GetComponentsInChildren<HunterCard3D>(true).Any(card => card.Hunter?.InstanceId == retiringHunter.InstanceId), Is.False);
+            HunterCard3D availableCard = table.GetComponentsInChildren<HunterCard3D>(true).First(card => card.Hunter?.IsAvailable == true);
+            availableCard.OnHunterClicked?.Invoke(availableCard);
+            yield return null;
+            HunterEquipmentPanel3D equipmentPanel = GetPrivateField<HunterEquipmentPanel3D>(table, "hunterEquipmentPanel");
+            ItemData saltWard = PlayableSettlementItemRegistry.Items.Single(item => item.ContentId == "salt_ward");
+            Assert.That(FindStorageCard(equipmentPanel, saltWard), Is.Not.Null, "退休装备应回到现有 3D 仓库卡区。");
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter retiredDeparture = manager.DepartForHuntAsync(new[] { retiringHunter.InstanceId }, GetDestination(settlement.CurrentYear)).GetAwaiter();
+            yield return WaitForCompletion(retiredDeparture);
+            Assert.That(retiredDeparture.GetResult().Succeeded, Is.False);
+            CampaignSnapshot saved = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+            Assert.That(saved.Settlement.GetHunter(retiringHunter.InstanceId).Availability, Is.EqualTo(HunterAvailabilityState.Retired));
+            Assert.That(saved.Settlement.GetStoredEquipment("salt_ward"), Is.EqualTo(1));
+
+            persistence.SnapshotToLoad = saved;
+            UnityEngine.Object.Destroy(managerObject);
+            managerObject = null;
+            yield return null;
+            GameManager restoredManager = CreateProductionManager(persistence, true);
+            UniTask<CampaignStartupResult>.Awaiter restore = restoredManager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(restore);
+            Assert.That(restore.GetResult().Succeeded, Is.True, restore.GetResult().Reason);
+            yield return WaitForSettlementIdle(restoredManager);
+            SettlementInstance restoredSettlement = restoredManager.SettlementData;
+            Assert.That(restoredSettlement.GetHunter(retiringHunter.InstanceId).Availability, Is.EqualTo(HunterAvailabilityState.Retired));
+            Assert.That(restoredSettlement.GetStoredEquipment("salt_ward"), Is.EqualTo(1));
+            Assert.That(restoredSettlement.Timeline.Count(entry => entry.EventId == $"retirement:{retiringHunter.InstanceId}:{retirementYear}"), Is.EqualTo(1));
+            Assert.That(restoredSettlement.HuntHistory, Has.Count.EqualTo(1));
+            Assert.That(managerObject.GetComponent<SettlementNoticePresenter3D>().ActiveNoticeTitle, Is.Not.EqualTo("猎人退休归档"), "Continue 不得重放已经提交的退休通知。");
+
+            ItemData recruitmentCostItem = contentCandidate.SettlementContent.RecruitmentCostItem;
+            restoredSettlement.AddResource(recruitmentCostItem, contentCandidate.SettlementContent.RecruitmentCost);
+            restoredSettlement.Population = Math.Max(restoredSettlement.Population, contentCandidate.SettlementContent.RecruitmentPopulationCost);
+            SettlementTable3D restoredTable = managerObject.GetComponentInChildren<SettlementTable3D>(true);
+            HunterData template = contentCandidate.SettlementContent.RecruitmentTemplates.First(candidate => candidate != null);
+            UniTask<RecruitHunterCommandResult>.Awaiter recruitment = restoredTable.OnRecruitRequested(template, "续火者").GetAwaiter();
+            yield return WaitForCompletion(recruitment);
+            RecruitHunterCommandResult recruitmentResult = recruitment.GetResult();
+            Assert.That(recruitmentResult.Succeeded, Is.True, recruitmentResult.Reason);
+            Assert.That(recruitmentResult.Hunter.BloodlineId, Is.Not.Empty);
+            yield return null;
+            Assert.That(restoredTable.GetComponentsInChildren<HunterCard3D>(true).Any(card => card.Hunter?.InstanceId == recruitmentResult.Hunter.InstanceId), Is.True);
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter replacementDeparture = restoredManager.DepartForHuntAsync(new[] { recruitmentResult.Hunter.InstanceId }, GetDestination(restoredSettlement.CurrentYear)).GetAwaiter();
+            yield return WaitForCompletion(replacementDeparture);
+            Assert.That(replacementDeparture.GetResult().Succeeded, Is.True, replacementDeparture.GetResult().Reason);
+            Assert.That(restoredManager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
+        }
+
+        [UnityTest]
         public IEnumerator DepartureWithoutHuntWorldRoot_RollsBackBeforePlayableHuntCommits()
         {
             var persistence = new MemoryCampaignPersistence();
@@ -313,6 +396,25 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return null;
             Assert.That(notice.ActiveNoticeBody, Does.Contain("第 2 年·第 1 季"));
             Assert.That(notice.ActiveNoticeBody, Does.Contain("第 2 年·第 2 季"));
+        }
+
+        [UnityTest]
+        public IEnumerator HunterRetirementNotice_PrecedesHuntSummaryAndExplainsEquipmentReturn()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            yield return WaitForSettlementIdle(manager);
+            SettlementNoticePresenter3D notice = managerObject.GetComponent<SettlementNoticePresenter3D>();
+            Assert.That(notice, Is.Not.Null);
+            notice.ResetForCampaignChange();
+
+            EventBus.Publish(new HunterRetiredEvent { HunterId = 104, HunterName = "归盐者", Age = 12, Year = 4, ReturnedEquipmentCount = 1 });
+            EventBus.Publish(new HuntCompletedEvent { CompletedYear = 4, CompletedSeasonIndex = 0, AdvancedToYear = 4, AdvancedToSeasonIndex = 1, TotalHunts = 3 });
+            yield return null;
+
+            Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("猎人退休归档"));
+            Assert.That(notice.ActiveNoticeBody, Does.Contain("归盐者").And.Contain("年龄 12").And.Contain("1 件装备已归还"));
+            Assert.That(notice.PendingNoticeCount, Is.EqualTo(1));
         }
 
         [UnityTest]

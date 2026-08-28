@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-return-outcome-checkpoint",
+  "title": "狩猎归来结果检查点",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "退休首次提交、装备归还、年鉴和事实发布已具备统一幂等门禁。",
+    "codeEvidence": [
+      { "guid": "098359c4ec83d724f9c32ec50c2f2b34", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/HunterManagementSystem.cs", "fileHash": "dd89410aef853fe21f13e54a4e6fd382c5f1a02899203b012423de30059d333c", "line": 175, "feature": "退休幂等归档与实际装备归还计数", "status": "verified", "checkedAt": "2026-08-28T03:10:00-07:00" },
+      { "guid": "07598d3de65b9b44797fa11c4d51e539", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableHunterAdvancementAdapter.cs", "fileHash": "8693386e21e7e29fa30c9fd0fb1136f0eb41e765c75a31daacf3910bfa7c3b05", "line": 24, "feature": "首次退休事实发布与 outbox 接入", "status": "verified", "checkedAt": "2026-08-28T03:10:00-07:00" },
+      { "guid": "ad82a8d90d391f14cb0ef4afee342a54", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHunterAdvancementAdapterTests.cs", "fileHash": "cc94bc9e480956515a1f7cd3fe7846caceb956383b332119bacc34ba231e959b", "line": 45, "feature": "退休恰好一次与可读事实验证", "status": "verified", "checkedAt": "2026-08-28T03:10:00-07:00" }
+    ],
+    "evidence": ["Unity EditMode 定向测试 3/3。"],
+    "differences": ["正式 Spec 尚未明确实际归还数量与退休事实字段。"],
+    "verifiedAt": "2026-08-28T03:10:00-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["以退休年鉴事件 ID 阻止重复提交。", "复用既有仓库 ContentId 入口归还装备。", "仅从首次提交发布可读事实。"],
+  "reviewIssues": []
+}

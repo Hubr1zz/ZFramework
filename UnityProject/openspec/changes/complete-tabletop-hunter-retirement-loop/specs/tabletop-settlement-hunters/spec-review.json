@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-hunters",
+  "title": "营地桌面猎人卡交互",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "退休名册移除与替补招募均复用既有增量 3D 猎人卡投影。",
+    "codeEvidence": [
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "fileHash": "bfced834cebc4f8b87ac10961e64ff46d2a81bf9ab932bdb5b0d221e73025578", "line": 162, "feature": "退休移除、替补加入与再次出发生产闭环", "status": "verified", "checkedAt": "2026-08-28T03:10:00-07:00" }
+    ],
+    "evidence": ["Unity PlayMode 生产闭环 1/1。"],
+    "differences": ["正式 Spec 尚未把退休与替补明确为同一名册差异闭环。"],
+    "verifiedAt": "2026-08-28T03:10:00-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["名册变化后重读权威可用猎人。", "复用既有招募 Action 和 HunterCard3D 增量同步。"],
+  "reviewIssues": []
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 5,
+  "capability": "campaign-persistence",
+  "title": "战役持久化与恢复",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "退休状态、装备归还、年鉴和名册可恢复，Continue 不重放退休事实。",
+    "codeEvidence": [
+      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "fileHash": "bfced834cebc4f8b87ac10961e64ff46d2a81bf9ab932bdb5b0d221e73025578", "line": 162, "feature": "退休保存恢复、不重放与替补出发验证", "status": "verified", "checkedAt": "2026-08-28T03:10:00-07:00" }
+    ],
+    "evidence": ["Unity PlayMode 生产保存恢复闭环 1/1。"],
+    "differences": ["正式 Spec 尚未明确 Continue 不重放退休表现事实。"],
+    "verifiedAt": "2026-08-28T03:10:00-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["退休状态沿既有 Settlement 快照保存。", "恢复只重建权威状态与 3D 投影，不重发瞬时事实。"],
+  "reviewIssues": []
+}
