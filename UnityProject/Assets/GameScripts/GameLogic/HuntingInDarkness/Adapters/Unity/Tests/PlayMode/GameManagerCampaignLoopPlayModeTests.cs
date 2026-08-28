@@ -63,7 +63,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
-        public IEnumerator ConfigurePlayableRuntime_PreservesBattleSetupAcrossAwake()
+        public IEnumerator ConfigureCampaign_PreservesBattleSetupAcrossAwake()
         {
             var persistence = new MemoryCampaignPersistence();
             GameManager manager = CreateProductionManager(persistence);
@@ -1366,19 +1366,22 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             managerObject = new GameObject("GameManager Campaign Loop Smoke");
             managerObject.SetActive(false);
             var manager = managerObject.AddComponent<GameManager>();
-            manager.ConfigurePlayableRuntime(contentCandidate.DefaultBattleSetup, contentCandidate.CellSize);
-            manager.ConfigureSettlementContent(contentCandidate.SettlementContent);
-            manager.ConfigureWorkshopContent(contentCandidate.WorkshopContent);
-            Assert.That(manager.ConfigurePlayableStartup(deferStartup), Is.True);
             if (!useRealEventView)
                 manager.SetPlayableEventInput(new ImmediateEventInput(() => manager.SettlementData));
-            if (!useProductionTabletopInteraction)
-                Assert.That(manager.ConfigureTabletopInteraction(randomPresenter ?? new ImmediateTabletopInteraction()), Is.True);
-            Assert.That(manager.ConfigureCampaignPersistence(persistence), Is.True);
+            Assert.That(manager.ConfigureCampaign(new CampaignBootstrapRequest
+            {
+                BattleSetup = contentCandidate.DefaultBattleSetup,
+                CellSize = contentCandidate.CellSize,
+                SettlementContent = contentCandidate.SettlementContent,
+                WorkshopContent = contentCandidate.WorkshopContent,
+                WaitForEntrySelection = deferStartup,
+                TabletopInteraction = useProductionTabletopInteraction ? null : randomPresenter ?? new ImmediateTabletopInteraction(),
+                Persistence = persistence
+            }), Is.True);
             if (useRealEventView)
                 PlayableGameBootstrap.EnsureRequiredWorldSpacePorts(managerObject, manager, settings);
             managerObject.SetActive(true);
-            Assert.That(manager.ConfigureCampaignPersistence(new MemoryCampaignPersistence()), Is.False, "Awake 后即使停用对象也不得替换持久化端口。");
+            Assert.That(manager.ConfigureCampaign(new CampaignBootstrapRequest { Persistence = new MemoryCampaignPersistence() }), Is.False, "Awake 后即使停用对象也不得替换战役配置。");
             return manager;
         }
 

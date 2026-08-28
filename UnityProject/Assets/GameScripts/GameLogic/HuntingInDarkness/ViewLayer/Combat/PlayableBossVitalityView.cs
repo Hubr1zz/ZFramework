@@ -1,5 +1,7 @@
+using System;
 using Core;
 using GameplayBase;
+using HuntingInDarkness.GameCore.Combat;
 using UnityEngine;
 
 namespace HuntingInDarkness.ViewLayer.Combat
@@ -7,24 +9,30 @@ namespace HuntingInDarkness.ViewLayer.Combat
     /// <summary>决战阶段持续展示 Boss 全局生命，不承担任何战斗结算。</summary>
     public sealed class PlayableBossVitalityView : MonoBehaviour
     {
-        private GameManager manager;
+        private Func<GamePhase> phaseProvider;
+        private Func<IBossState> bossProvider;
         private GUIStyle panelStyle;
         private GUIStyle titleStyle;
         private GUIStyle healthStyle;
         private Texture2D panelTexture;
 
-        public void Initialize(GameManager gameManager) => manager = gameManager;
+        internal void Initialize(Func<GamePhase> currentPhase, Func<IBossState> currentBoss)
+        {
+            phaseProvider = currentPhase;
+            bossProvider = currentBoss;
+        }
 
         private void OnGUI()
         {
-            if (manager == null || manager.CurrentGamePhase != GamePhase.BossFight) return;
-            if (manager.Boss is not IBossVitalityState vitality) return;
+            if (phaseProvider?.Invoke() != GamePhase.BossFight) return;
+            IBossState boss = bossProvider?.Invoke();
+            if (boss is not IBossVitalityState vitality) return;
 
             EnsureStyles();
             const float width = 320f;
             var area = new Rect((Screen.width - width) * 0.5f, 14f, width, 78f);
             GUILayout.BeginArea(area, panelStyle);
-            GUILayout.Label(manager.Boss.Name, titleStyle);
+            GUILayout.Label(boss.Name, titleStyle);
             GUILayout.Label($"生命 {vitality.CurrentHealth}/{vitality.MaxHealth}", healthStyle);
             Rect barRect = GUILayoutUtility.GetRect(width - 28f, 12f);
             GUI.Box(barRect, GUIContent.none);

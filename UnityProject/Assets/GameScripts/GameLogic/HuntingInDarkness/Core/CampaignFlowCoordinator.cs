@@ -34,6 +34,7 @@ namespace Core
         private readonly ICampaignPersistencePort persistence;
         private readonly IPlayableCampaignRuntime campaignRuntime;
         private readonly IPlayableSettlementPhasePort settlementPhase;
+        private readonly IPlayableSettlementGameplayPort settlementGameplay;
         private readonly IPlayableHuntPhasePort huntPhase;
         private readonly IPlayableShowdownPhasePort showdownPhase;
         private readonly CampaignPersistenceCoordinator persistenceCoordinator;
@@ -54,7 +55,7 @@ namespace Core
         internal IPlayableSettlementPhasePort SettlementPhase => settlementPhase;
         internal IPlayableHuntPhasePort HuntPhase => huntPhase;
         internal IPlayableShowdownPhasePort ShowdownPhase => showdownPhase;
-        internal IPlayableSettlementGameplayPort SettlementGameplay => settlementPhase;
+        internal IPlayableSettlementGameplayPort SettlementGameplay => settlementGameplay;
         internal IPlayableShowdownGameplayPort ShowdownGameplay => showdownPhase?.Gameplay;
         internal CampaignPersistenceCoordinator Persistence => persistenceCoordinator;
         internal CampaignStartupTransaction Startup => startup;
@@ -83,6 +84,7 @@ namespace Core
             if (campaignRuntime is not IPlayableCampaignPhasePortAccess phaseAccess)
                 throw new InvalidOperationException("战役运行态未提供阶段管理器组合根访问接口。");
             settlementPhase = phaseAccess.SettlementPhase;
+            settlementGameplay = phaseAccess.SettlementGameplay;
             huntPhase = phaseAccess.HuntPhase;
             showdownPhase = phaseAccess.ShowdownPhase;
             persistenceCoordinator = new CampaignPersistenceCoordinator(persistence, TryCaptureCampaignSnapshot);
@@ -470,6 +472,15 @@ namespace Core
         internal void HandleBossDefeated()
         {
             if (CurrentPhase == GamePhase.BossFight && showdownPhase.Current != null) showdownOutcome.HandleBossDefeated();
+        }
+
+        internal void HandleCampaignEncounterRequested(CampaignEncounterRequestedEvent evt)
+            => BeginCampaignEncounterRequestedAsync(evt.Request).Forget();
+
+        private async UniTaskVoid BeginCampaignEncounterRequestedAsync(CampaignEncounterRequest request)
+        {
+            CampaignEncounterStartResult result = await BeginEncounterAsync(request, ResolveLifetimeToken());
+            if (!result.Succeeded) bindings.Warning?.Invoke($"无法开始遭遇 {request.EncounterId}：{result.Reason}");
         }
 
         internal void HandlePlayableEventEncounterRequested(PlayableEventEncounterRequestedEvent evt)

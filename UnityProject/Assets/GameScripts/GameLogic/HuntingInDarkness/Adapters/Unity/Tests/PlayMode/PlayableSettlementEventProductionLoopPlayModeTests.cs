@@ -157,12 +157,16 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             managerObject = new GameObject("Playable Settlement Event Production Loop");
             managerObject.SetActive(false);
             GameManager manager = managerObject.AddComponent<GameManager>();
-            manager.ConfigurePlayableRuntime(contentCandidate.DefaultBattleSetup, contentCandidate.CellSize);
-            manager.ConfigureSettlementContent(contentCandidate.SettlementContent);
-            manager.ConfigureWorkshopContent(contentCandidate.WorkshopContent);
-            Assert.That(manager.ConfigurePlayableStartup(true), Is.True);
-            Assert.That(manager.ConfigureTabletopInteraction(presenter), Is.True);
-            Assert.That(manager.ConfigureCampaignPersistence(persistence), Is.True);
+            Assert.That(manager.ConfigureCampaign(new CampaignBootstrapRequest
+            {
+                BattleSetup = contentCandidate.DefaultBattleSetup,
+                CellSize = contentCandidate.CellSize,
+                SettlementContent = contentCandidate.SettlementContent,
+                WorkshopContent = contentCandidate.WorkshopContent,
+                WaitForEntrySelection = true,
+                TabletopInteraction = presenter,
+                Persistence = persistence
+            }), Is.True);
             PlayableGameBootstrap.EnsureRequiredWorldSpacePorts(managerObject, manager, settings);
             managerObject.SetActive(true);
             return manager;

@@ -1,4 +1,5 @@
 using Core;
+using GameplayBase;
 using HuntingInDarkness.Testing;
 using HuntingInDarkness.ViewLayer.Camera;
 using HuntingInDarkness.ViewLayer.Combat;
@@ -76,17 +77,26 @@ namespace HuntingInDarkness.Bootstrap
             var managerObject = new GameObject("GameManager (Playable)");
             managerObject.SetActive(false);
             var manager = managerObject.AddComponent<GameManager>();
-            manager.ConfigurePlayableRuntime(contentCandidate.DefaultBattleSetup, contentCandidate.CellSize);
-            manager.ConfigureSettlementContent(contentCandidate.SettlementContent);
-            manager.ConfigureWorkshopContent(contentCandidate.WorkshopContent);
-            manager.ConfigurePlayableStartup(settings.ShowStartMenu);
+            if (!manager.ConfigureCampaign(new CampaignBootstrapRequest
+                {
+                    BattleSetup = contentCandidate.DefaultBattleSetup,
+                    CellSize = contentCandidate.CellSize,
+                    SettlementContent = contentCandidate.SettlementContent,
+                    WorkshopContent = contentCandidate.WorkshopContent,
+                    WaitForEntrySelection = settings.ShowStartMenu
+                }))
+            {
+                Debug.LogError("[PlayableGameBootstrap] GameManager 战役配置被拒绝。", manager);
+                Destroy(managerObject);
+                return;
+            }
             EnsureRequiredWorldSpacePorts(gameObject, manager, settings);
             managerObject.SetActive(true);
 
             var mainCamera = Camera.main;
             if (mainCamera != null)
                 mainCamera.gameObject.AddComponent<PlayablePhaseCameraRig>().Initialize(manager, settings.BossCameraPosition, settings.BossCameraEulerAngles, settings.KeyLightColor, settings.KeyLightIntensity);
-            gameObject.AddComponent<PlayableBossVitalityView>().Initialize(manager);
+            gameObject.AddComponent<PlayableBossVitalityView>().Initialize(() => manager != null ? manager.CurrentGamePhase : GamePhase.Settlement, () => manager != null ? manager.ShowdownGameplay?.Boss : null);
 
             if (settings.HideFrameworkDebugger && ZFramework.Debugger.Instance != null)
                 ZFramework.Debugger.Instance.ActiveWindow = false;

@@ -13,10 +13,10 @@ title: "GameManager管理器"
 ## Requirements
 
 ### Requirement: GameManager is a Unity composition shell
-GameManager SHALL retain serialized scene references, Unity lifecycle callbacks, presentation assembly, EventBus adapters and public compatibility APIs. It SHALL delegate campaign lease ownership, phase transitions, persistence and cross-phase transactions to one plain C# CampaignFlowCoordinator.
+GameManager SHALL retain serialized scene references, Unity lifecycle callbacks, scene-root/camera assembly and bounded public compatibility APIs. It SHALL delegate campaign lease ownership, phase transitions, persistence and cross-phase transactions to one plain C# CampaignFlowCoordinator; Unity EventBus subscriptions and cross-phase tabletop presentation SHALL belong to disposable Unity bridge/presentation collaborators rather than GameManager methods.
 
 #### Scenario: Transitioning between game phases
-- **WHEN** a public command or Unity event requests a phase transition
+- **WHEN** a public command or Unity bridge event requests a phase transition
 - **THEN** GameManager forwards it to CampaignFlowCoordinator
 - **AND** only the committed phase callback changes scene roots and camera state
 
@@ -35,7 +35,7 @@ CampaignFlowCoordinator SHALL be the sole owner of the acquired CampaignRuntime 
 #### Scenario: Campaign flow shuts down
 
 - **WHEN** GameManager is destroyed
-- **THEN** it unsubscribes Unity event adapters and disposes CampaignFlowCoordinator once
+- **THEN** it disposes the Unity event bridge and global presentation before disposing CampaignFlowCoordinator once
 - **AND** the coordinator invalidates in-flight flow/persistence work before releasing the CampaignRuntime lease
 
 ### Requirement: Continue and replacement load share one restore algorithm
@@ -119,3 +119,23 @@ CampaignRuntime SHALL expose Settlement、Hunt 与 Showdown only through interna
 - **THEN** neither contract SHALL accept arbitrary manager or ActionSession factories
 - **AND** no phase port SHALL return a concrete phase manager or coordinator
 - **AND** Showdown lifecycle substitution SHALL NOT require implementing its gameplay facade
+
+### Requirement: Presentation consumes bounded campaign access ports
+
+普通 View 与跨阶段表现 SHALL 通过独立的 campaign read、command 与 internal diagnostics ports 访问战役。只读端口 SHALL NOT 暴露 Runtime、ActionSession 或 Reactor registry；具体 Hunt runtime 与 registries SHALL 仅保留为 internal diagnostics，不得成为普通 View 公共依赖。
+
+#### Scenario: A global Unity event reaches campaign flow
+
+- **WHEN** Unity EventBus 发布战役相关事件
+- **THEN** 一个可释放的 plain C# CampaignUnityBridge SHALL 把玩法意图转发给 CampaignFlowCoordinator 或把表现事件转发给全局桌面表现
+- **AND** UI 空白点击 SHALL 由 View MonoBehaviour 处理且不得进入 gameplay ActionQueue
+
+### Requirement: Campaign bootstrap is atomic and legacy combat facades stay closed
+
+启动代码 SHALL 在 GameManager 激活前通过一个 CampaignBootstrapRequest 一次性提交运行配置。GameManager SHALL NOT 继续实现 IGameContext、ICombatProvider、战斗卡命令或战斗运行数据接口；Showdown gameplay SHALL 由 ZFramework CampaignRuntime 所有的 Showdown phase manager/session 提供，且本阶段不增加战斗规则。
+
+#### Scenario: Runtime configuration is submitted
+
+- **WHEN** bootstrap 在 inactive GameObject 上配置 GameManager
+- **THEN** BattleSetup、内容目录、持久化、桌面交互和开场选择 SHALL 作为一个请求提交
+- **AND** Awake 后或第二次配置 SHALL fail closed，不得部分替换组合根依赖

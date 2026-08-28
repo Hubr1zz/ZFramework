@@ -82,12 +82,27 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Type flowType = typeof(GameManager).Assembly.GetType("Core.CampaignFlowCoordinator", true);
             FieldInfo[] flowFields = flowType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
             string[] settlementGameplayMethods = { "CanTrainWeapon", "TrainWeaponAsync", "CanCraft", "CraftAsync", "EquipItemAsync", "UnequipItemAsync", "CanRecruitHunter", "RecruitHunterAsync", "HasRecoverableHunter", "CanRecoverHunter", "RecoverHunterAsync", "SpendHunterGrowthAsync" };
+            Type settlementGameplayPort = typeof(GameManager).Assembly.GetType("Core.IPlayableSettlementGameplayPort", true);
             Type showdownGameplayPort = typeof(GameManager).Assembly.GetType("Core.IPlayableShowdownGameplayPort", true);
+            Type campaignReadModel = typeof(GameManager).Assembly.GetType("Core.ICampaignReadModel", true);
+            Type campaignCommandPort = typeof(GameManager).Assembly.GetType("Core.ICampaignCommandPort", true);
+            Type campaignDiagnostics = typeof(GameManager).Assembly.GetType("Core.ICampaignDiagnostics", true);
+            Type campaignAccessPorts = typeof(GameManager).Assembly.GetType("Core.CampaignAccessPorts", true);
+            Type campaignUnityBridge = typeof(GameManager).Assembly.GetType("Core.CampaignUnityBridge", true);
+            Type globalTabletopPresentation = typeof(GameManager).Assembly.GetType("Core.GlobalTabletopPresentation", true);
+            Type backgroundDeselectionInput = typeof(GameManager).Assembly.GetType("HuntingInDarkness.ViewLayer.Flow.BackgroundDeselectionInput3D", true);
+            Type developerCommands = typeof(GameManager).Assembly.GetType("Core.CampaignDeveloperCommands", true);
+            string[] movedUnityHandlers = { "HandleBackgroundClick", "OnBossDefeated", "OnGameOver", "OnHunterRosterChanged", "OnCardHoverPreview", "OnCardHoverPreviewEnd", "OnSettlementTransactionCommitted", "OnCampaignEncounterRequested", "OnPlayableEventEncounterRequested" };
+            string[] removedBootstrapMethods = { "ConfigurePlayableRuntime", "ConfigureDevelopmentStart", "ConfigureForStandaloneTest", "ConfigureSettlementContent", "ConfigureWorkshopContent", "ConfigureCampaignPersistence", "ConfigurePlayableStartup", "ConfigureTabletopInteraction" };
+            string[] removedDeveloperMethods = { "DevAddHunter", "DevAddResource", "DevAdvanceYear", "DevSave", "DevLoad" };
+            string[] internalDiagnosticProperties = { "ActiveHuntRuntime", "ActionEnvironmentInstallers", "SettlementActionReactors", "CampaignActionReactors", "HuntActionReactors", "ActiveHuntExplorationPort" };
 
             Assert.That(accessType, Is.Not.Null);
             Assert.That(accessType.GetProperty("SettlementPhase").PropertyType.Name, Is.EqualTo("IPlayableSettlementPhasePort"));
+            Assert.That(accessType.GetProperty("SettlementGameplay").PropertyType, Is.EqualTo(settlementGameplayPort));
             Assert.That(accessType.GetProperty("HuntPhase").PropertyType.Name, Is.EqualTo("IPlayableHuntPhasePort"));
             Assert.That(accessType.GetProperty("ShowdownPhase").PropertyType.Name, Is.EqualTo("IPlayableShowdownPhasePort"));
+            Assert.That(settlementGameplayPort.IsAssignableFrom(accessType.GetProperty("SettlementPhase").PropertyType), Is.False);
             Assert.That(showdownGameplayPort.IsAssignableFrom(accessType.GetProperty("ShowdownPhase").PropertyType), Is.False);
             Assert.That(accessType.GetProperty("ShowdownPhase").PropertyType.GetProperty("Gameplay").PropertyType, Is.EqualTo(showdownGameplayPort));
             Assert.That(accessType.GetProperty("SettlementPhase").PropertyType.GetMethod("CreateActionSession"), Is.Null);
@@ -106,6 +121,24 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(flowFields.Count(field => typeof(IPlayableCampaignRuntime).IsAssignableFrom(field.FieldType)), Is.EqualTo(1));
             Assert.That(flowType.GetInterfaces().Count(contract => contract.Name.StartsWith("ICampaign") && contract.Name.EndsWith("Host")), Is.GreaterThanOrEqualTo(8));
             Assert.That(settlementGameplayMethods.Any(methodName => flowType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null), Is.False);
+            Assert.That(campaignReadModel.IsAssignableFrom(campaignAccessPorts), Is.True);
+            Assert.That(campaignCommandPort.IsAssignableFrom(campaignAccessPorts), Is.True);
+            Assert.That(campaignDiagnostics.IsAssignableFrom(campaignAccessPorts), Is.True);
+            Assert.That(typeof(GameManager).GetProperty("CampaignReadModel", BindingFlags.Instance | BindingFlags.NonPublic).PropertyType, Is.EqualTo(campaignReadModel));
+            Assert.That(typeof(GameManager).GetProperty("CampaignCommands", BindingFlags.Instance | BindingFlags.NonPublic).PropertyType, Is.EqualTo(campaignCommandPort));
+            Assert.That(typeof(GameManager).GetProperty("CampaignDiagnostics", BindingFlags.Instance | BindingFlags.NonPublic).PropertyType, Is.EqualTo(campaignDiagnostics));
+            Assert.That(campaignReadModel.GetProperties().Any(property => property.PropertyType.Name.Contains("Runtime") || property.PropertyType.Name.Contains("Session") || property.PropertyType.Name.Contains("Registry")), Is.False);
+            Assert.That(campaignDiagnostics.IsNotPublic, Is.True);
+            Assert.That(typeof(MonoBehaviour).IsAssignableFrom(campaignUnityBridge), Is.False);
+            Assert.That(typeof(MonoBehaviour).IsAssignableFrom(globalTabletopPresentation), Is.False);
+            Assert.That(typeof(MonoBehaviour).IsAssignableFrom(backgroundDeselectionInput), Is.True);
+            Assert.That(movedUnityHandlers.Any(methodName => typeof(GameManager).GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic) != null), Is.False);
+            Assert.That(typeof(MonoBehaviour).IsAssignableFrom(developerCommands), Is.False);
+            Assert.That(typeof(GameManager).GetMethod("ConfigureCampaign", BindingFlags.Instance | BindingFlags.Public), Is.Not.Null);
+            Assert.That(removedBootstrapMethods.Any(methodName => typeof(GameManager).GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null), Is.False);
+            Assert.That(removedDeveloperMethods.Any(methodName => typeof(GameManager).GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null), Is.False);
+            Assert.That(typeof(GameManager).GetInterfaces().Any(contract => contract == typeof(IGameContext) || contract.Name is "ICombatProvider" or "ICombatInspirationReadModel" or "IPlayableActionCardCommandSink" or "ICombatRuntimeDataProvider"), Is.False);
+            Assert.That(internalDiagnosticProperties.Any(propertyName => typeof(GameManager).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public) != null), Is.False);
         }
 
         [Test]

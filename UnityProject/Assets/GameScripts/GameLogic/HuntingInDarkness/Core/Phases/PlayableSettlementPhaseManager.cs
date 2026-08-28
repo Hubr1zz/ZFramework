@@ -16,7 +16,7 @@ using UnityEngine;
 
 namespace Core
 {
-    internal sealed class PlayableSettlementPhaseManager : IDisposable, IPlayableSettlementPhasePort
+    internal sealed class PlayableSettlementPhaseManager : IDisposable, IPlayableSettlementPhasePort, IPlayableSettlementGameplayPort
     {
         private readonly Func<IPlayableCampaignPersistentEffectProjection> persistentEffectProjectionProvider;
         private readonly PlayableSettlementPhaseCoordinator coordinator;

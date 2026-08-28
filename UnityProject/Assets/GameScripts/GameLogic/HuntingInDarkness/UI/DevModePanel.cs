@@ -1,5 +1,4 @@
 using Core;
-using Cysharp.Threading.Tasks;
 using GameplayBase;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,15 +22,15 @@ namespace UI
         [Header("切换快捷键")]
         public KeyCode toggleKey = KeyCode.F1;
 
-        private GameManager _gm;
+        private ICampaignDeveloperCommands commands;
         private GameObject  _panel;
         private bool        _visible = false;
 
         // ─── 初始化 ──────────────────────────────────────────────
 
-        public void Init(GameManager gm)
+        internal void Init(ICampaignDeveloperCommands developerCommands)
         {
-            _gm = gm;
+            commands = developerCommands;
             BuildPanel();
             _panel.SetActive(false);
         }
@@ -102,9 +101,9 @@ namespace UI
         {
             // ── 阶段跳转 ──
             AddSection(parent, "── 阶段跳转 ──");
-            AddBtn(parent, "▶ 营地阶段",   () => _gm?.TransitionToPhase(GamePhase.Settlement));
-            AddBtn(parent, "▶ 狩猎阶段",   () => _gm?.TransitionToPhase(GamePhase.Hunt));
-            AddBtn(parent, "▶ Boss决战",   () => _gm?.TransitionToPhase(GamePhase.BossFight));
+            AddBtn(parent, "▶ 营地阶段",   () => commands?.Transition(GamePhase.Settlement));
+            AddBtn(parent, "▶ 狩猎阶段",   () => commands?.Transition(GamePhase.Hunt));
+            AddBtn(parent, "▶ Boss决战",   () => commands?.Transition(GamePhase.BossFight));
 
             // ── Boss决战控制 ──
             AddSection(parent, "── Boss决战 ──");
@@ -119,7 +118,7 @@ namespace UI
 
             // ── 猎人 ──
             AddSection(parent, "── 猎人 ──");
-            AddBtn(parent, "+ 招募猎人", () => _gm?.DevAddHunter("测试猎人"));
+            AddBtn(parent, "+ 招募猎人", () => commands?.AddHunter("测试猎人"));
 
             // ── 年份 ──
             AddSection(parent, "── 时间线 ──");
@@ -127,21 +126,21 @@ namespace UI
 
             // ── 存档 ──
             AddSection(parent, "── 存档 ──");
-            AddBtn(parent, "💾 保存",   () => _gm?.DevSave());
-            AddBtn(parent, "📂 读档",   () => _gm?.DevLoad());
-            AddBtn(parent, "🗑 删除存档", () => _gm?.DeleteCampaignSaveAsync().Forget());
+            AddBtn(parent, "💾 保存",   () => commands?.Save());
+            AddBtn(parent, "📂 读档",   () => commands?.Load());
+            AddBtn(parent, "🗑 删除存档", () => commands?.DeleteSave());
         }
 
         // ─── 按钮逻辑 ─────────────────────────────────────────────
 
         private void OnDevBossDefeated()
         {
-            EventBus.Publish(new BossDefeatedEvent());
+            commands?.SignalBossDefeated();
         }
 
         private void DevResource(string name, int amount)
         {
-            _gm?.DevAddResource(name, amount);
+            commands?.AddResource(name, amount);
         }
 
         // ─── uGUI 工厂 ────────────────────────────────────────────

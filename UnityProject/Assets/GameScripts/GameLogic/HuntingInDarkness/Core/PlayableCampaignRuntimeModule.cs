@@ -109,6 +109,7 @@ namespace Core
             public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers => actionEnvironmentInstallers;
             public ReactorRegistry ActionReactors => actionSession?.Reactors;
             IPlayableSettlementPhasePort IPlayableCampaignPhasePortAccess.SettlementPhase => settlementPhaseManager;
+            IPlayableSettlementGameplayPort IPlayableCampaignPhasePortAccess.SettlementGameplay => settlementPhaseManager;
             IPlayableHuntPhasePort IPlayableCampaignPhasePortAccess.HuntPhase => huntPhaseManager;
             IPlayableShowdownPhasePort IPlayableCampaignPhasePortAccess.ShowdownPhase => showdownPhaseManager;
 

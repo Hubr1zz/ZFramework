@@ -33,11 +33,12 @@ namespace Core
     internal interface IPlayableCampaignPhasePortAccess
     {
         IPlayableSettlementPhasePort SettlementPhase { get; }
+        IPlayableSettlementGameplayPort SettlementGameplay { get; }
         IPlayableHuntPhasePort HuntPhase { get; }
         IPlayableShowdownPhasePort ShowdownPhase { get; }
     }
 
-    internal interface IPlayableSettlementPhasePort : IPlayableSettlementGameplayPort
+    internal interface IPlayableSettlementPhasePort
     {
         IPlayableSettlementRuntime Current { get; }
         PlayableSettlementActionSession CurrentSession { get; }

@@ -88,8 +88,16 @@ namespace UnitTests
             gmGo.SetActive(false);
             var gm = gmGo.AddComponent<GameManager>();
 
-            // 2) 通过显式测试配置 API 注入装配与启动参数。
-            gm.ConfigureForStandaloneTest(setup, GamePhase.BossFight, cellSize, entityCreator, chineseFontAsset, chineseCharacterSet);
+            // 2) 通过统一组合根配置注入装配与显式测试起始阶段。
+            gm.ConfigureCampaign(new CampaignBootstrapRequest
+            {
+                BattleSetup = setup,
+                CellSize = cellSize,
+                EntityCreator = entityCreator,
+                ChineseFontAsset = chineseFontAsset,
+                ChineseCharacterSet = chineseCharacterSet,
+                DevelopmentStartPhase = GamePhase.BossFight
+            });
 
             // 4) 可选战斗事件日志。
             if (logCombatEvents)

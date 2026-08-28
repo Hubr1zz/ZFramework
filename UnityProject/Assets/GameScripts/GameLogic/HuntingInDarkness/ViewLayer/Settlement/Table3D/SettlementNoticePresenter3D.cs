@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core;
 using GameplayBase;
@@ -16,7 +17,8 @@ namespace UI
         [SerializeField] private Vector3 anchorOffset = new(0f, 0.66f, -3.65f);
 
         private readonly Queue<SettlementNotice> pendingNotices = new();
-        private GameManager manager;
+        private Func<GamePhase> phaseProvider;
+        private Func<Transform> presentationRootProvider;
         private GameObject presentationRoot;
         private TabletopEventPrimaryCard3D noticeCard;
         private TabletopEventChoiceCard3D dismissCard;
@@ -31,11 +33,11 @@ namespace UI
         public string ActiveNoticeTitle => activeNotice?.Title ?? string.Empty;
         public string ActiveNoticeBody => activeNotice?.Body ?? string.Empty;
 
-        public void Initialize(GameManager gameManager)
+        public void Initialize(Func<GamePhase> currentPhase, Func<Transform> tabletopRoot)
         {
-            if (manager != null || gameManager == null)
-                return;
-            manager = gameManager;
+            if (phaseProvider != null || currentPhase == null || tabletopRoot == null) return;
+            phaseProvider = currentPhase;
+            presentationRootProvider = tabletopRoot;
             EventBus.Subscribe<HunterGrowthMilestoneReachedEvent>(OnGrowthMilestoneReached);
             EventBus.Subscribe<HunterDiedEvent>(OnHunterDied);
             EventBus.Subscribe<WeaponMasteryChangedEvent>(OnWeaponMasteryChanged);
@@ -87,8 +89,7 @@ namespace UI
 
         private void Update()
         {
-            if (manager == null || manager.CurrentGamePhase != GamePhase.Settlement)
-                return;
+            if (phaseProvider?.Invoke() != GamePhase.Settlement) return;
             if (activeNotice == null)
             {
                 ShowNext();
@@ -131,7 +132,7 @@ namespace UI
 
         private void EnsureCards()
         {
-            Transform parent = manager.TabletopPresentationRoot != null ? manager.TabletopPresentationRoot : transform;
+            Transform parent = presentationRootProvider?.Invoke() ?? transform;
             if (presentationRoot != null)
             {
                 if (presentationRoot.transform.parent != parent)

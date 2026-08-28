@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Core;
 using Cysharp.Threading.Tasks;
+using HuntingInDarkness.Combat;
 using SO.Character;
 using UnityEngine;
 
@@ -33,12 +33,12 @@ namespace GameplayBase.CombatSystem
     {
         public UniTask<WeaponData> ResolveAsync(ActionCardContext context, IPlayerInputProvider input, CancellationToken cancellationToken = default)
         {
-            if (context.GameContext is GameManager gm)
+            if (context.GameContext is ICombatRuntimeDataProvider combatData)
             {
-                var data = gm.GetCharacterData(context.SourceCharacterId);
+                var data = combatData.GetCharacterData(context.SourceCharacterId);
                 return UniTask.FromResult(data?.EquippedWeapon);
             }
-            Debug.LogWarning("[EquippedWeaponResolver] GameContext 不是 GameManager，无法获取武器");
+            Debug.LogWarning("[EquippedWeaponResolver] GameContext 未提供战斗角色数据，无法获取武器");
             return UniTask.FromResult<WeaponData>(null);
         }
     }
@@ -83,8 +83,8 @@ namespace GameplayBase.CombatSystem
 
         private List<WeaponData> GetCandidates(ActionCardContext context)
         {
-            if (context.GameContext is not GameManager gm) return new();
-            var data = gm.GetCharacterData(context.SourceCharacterId);
+            if (context.GameContext is not ICombatRuntimeDataProvider combatData) return new();
+            var data = combatData.GetCharacterData(context.SourceCharacterId);
             if (data == null) return new();
 
             var available = data.GetAvailableWeapons();
