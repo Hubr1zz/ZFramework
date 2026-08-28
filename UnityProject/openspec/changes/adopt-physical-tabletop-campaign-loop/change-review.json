@@ -13,27 +13,108 @@
   "implementationNotes": "实现、对抗审查和聚焦生产验证已完成；等待人类审核后再显式同步为正式集成 Spec。",
   "verification": {
     "status": "implemented",
-    "summary": "Unity 6000.5.9f1；3D 营地事件、编队出猎、狩猎交互、回营事件、季节与 Continue 生产闭环 PlayMode 32/32。",
+    "summary": "Unity 6000.5.9f1；既有 3D 生产闭环 PlayMode 32/32，并新增实体开场、两季出猎回营、跨年与下一次出猎单路径 smoke 1/1。",
     "codeEvidence": [
-      { "guid": "680c4dd3ef562024ebe38aa3a5bb7aa1", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs", "fileHash": "16fbb40b98bc9c1fa59bb646ce6efa63f8add9138283be86f174b70dc52351ca", "line": 204, "feature": "共享实体卡短按、拖拽阈值与世界投影输入生命周期", "status": "verified", "checkedAt": "2026-08-28T07:47:10Z" },
-      { "guid": "be1dd4a931323614b9012755fa6f0e43", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopEventChoiceCard3D.cs", "fileHash": "d2dc61abd96c838ed49377a4992107d3ae0a67164d83770900775715eb4829d3", "line": 70, "feature": "实体事件、路线与回营选项在短按释放时转发已有意图", "status": "verified", "checkedAt": "2026-08-28T07:47:10Z" },
-      { "guid": "2cd81f1c0dad20e4ab0656aa356f47f5", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/TileClickHandler.cs", "fileHash": "707fbf96babf9ebb8d6f19f7beac9430feda060cca2f42b5b4d69fb77ec93634", "line": 20, "feature": "区分鼠标 UI 穿透检查与已解析地块世界指针", "status": "verified", "checkedAt": "2026-08-28T07:47:10Z" },
-      { "guid": "fbf3922a6a34f8243b3fea1922d8c541", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/ResourceMarkerClickHandler.cs", "fileHash": "6bba33cdecc16a78075c7ca2022fe57cbe5616e2cefb9dd6dec9ed727367798a", "line": 39, "feature": "已解析资源棋子世界指针经 Hunt 端口提交选择", "status": "verified", "checkedAt": "2026-08-28T07:47:10Z" },
-      { "guid": "e9276d2cbb23419c8514e96956fed1cd", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs", "fileHash": "65ca7d3c68dcaae824f96a9d80f9ddf7e44153a9e442a91bdcfe4806e84f81a0", "line": 632, "feature": "验证地块侦察、移动、资源棋子、采集牌、回营与陈旧会话门禁", "status": "verified", "checkedAt": "2026-08-28T07:47:10Z" },
-      { "guid": "9f3f3c95db5b4a7cae536b57f22ea37d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs", "fileHash": "d58269f75911abe9068cd8fdf7d251321221a794a684a4c4f58b3d47ff474a13", "line": 57, "feature": "验证事件、真实编队、出猎、回营随机事件、季节与 Continue 完整生产闭环", "status": "verified", "checkedAt": "2026-08-28T07:47:10Z" }
+      {
+        "guid": "680c4dd3ef562024ebe38aa3a5bb7aa1",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs",
+        "fileHash": "16fbb40b98bc9c1fa59bb646ce6efa63f8add9138283be86f174b70dc52351ca",
+        "line": 204,
+        "feature": "共享实体卡短按、拖拽阈值与世界投影输入生命周期",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:47:10Z"
+      },
+      {
+        "guid": "be1dd4a931323614b9012755fa6f0e43",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopEventChoiceCard3D.cs",
+        "fileHash": "d2dc61abd96c838ed49377a4992107d3ae0a67164d83770900775715eb4829d3",
+        "line": 70,
+        "feature": "实体事件、路线与回营选项在短按释放时转发已有意图",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:47:10Z"
+      },
+      {
+        "guid": "2cd81f1c0dad20e4ab0656aa356f47f5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/TileClickHandler.cs",
+        "fileHash": "707fbf96babf9ebb8d6f19f7beac9430feda060cca2f42b5b4d69fb77ec93634",
+        "line": 20,
+        "feature": "区分鼠标 UI 穿透检查与已解析地块世界指针",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:47:10Z"
+      },
+      {
+        "guid": "fbf3922a6a34f8243b3fea1922d8c541",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/ResourceMarkerClickHandler.cs",
+        "fileHash": "6bba33cdecc16a78075c7ca2022fe57cbe5616e2cefb9dd6dec9ed727367798a",
+        "line": 39,
+        "feature": "已解析资源棋子世界指针经 Hunt 端口提交选择",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:47:10Z"
+      },
+      {
+        "guid": "e9276d2cbb23419c8514e96956fed1cd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+        "fileHash": "2a20a1d224f73692572e5f2b0701d651c23404f7cad5ba25e70a3236434e8182",
+        "line": 82,
+        "feature": "验证实体开场、两次实体编队出猎、地块翻面移动、回营、配置季节跨年及下一次出猎入口",
+        "status": "verified",
+        "checkedAt": "2026-08-28T09:16:08-07:00"
+      },
+      {
+        "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+        "fileHash": "d58269f75911abe9068cd8fdf7d251321221a794a684a4c4f58b3d47ff474a13",
+        "line": 57,
+        "feature": "验证事件、真实编队、出猎、回营随机事件、季节与 Continue 完整生产闭环",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:47:10Z"
+      }
     ],
-    "evidence": ["Physical campaign loop PlayMode cluster: 32/32 passed", "OpenSpec strict validation passed", "targeted git diff --check passed", "对抗审查修复非鼠标输入误受鼠标 UI 状态拦截及演出等待竞态"],
-    "differences": ["正式 Spec 已分别描述各阶段能力，但尚未定义跨阶段 3D 玩家输入集成契约。"],
-    "verifiedAt": "2026-08-28T07:47:10Z"
+    "evidence": [
+      "Physical campaign loop PlayMode cluster: 32/32 passed",
+      "Physical opening-to-next-year targeted PlayMode smoke: 1/1 passed",
+      "HuntingInDarkness.Adapter.PlayModeTests.csproj build: 0 errors",
+      "OpenSpec strict validation passed",
+      "targeted git diff --check passed",
+      "对抗审查修复非鼠标输入误受鼠标 UI 状态拦截及演出等待竞态，并补齐翻牌刷新帧与 Hunt 入场锁等待"
+    ],
+    "differences": [
+      "正式 Spec 已分别描述各阶段能力，但尚未定义跨阶段 3D 玩家输入集成契约。"
+    ],
+    "verifiedAt": "2026-08-28T09:16:08-07:00"
   },
   "reviewIssues": [],
   "gapIds": [],
-  "dependencyIds": ["tabletop-event-interaction", "tabletop-hunt-departure", "hunt-tabletop-harvest", "tabletop-hunt-retreat", "campaign-year-loop", "tabletop-random-interaction"],
-  "capabilities": ["physical-tabletop-campaign-loop"],
+  "dependencyIds": [
+    "tabletop-event-interaction",
+    "tabletop-hunt-departure",
+    "hunt-tabletop-harvest",
+    "tabletop-hunt-retreat",
+    "campaign-year-loop",
+    "tabletop-random-interaction"
+  ],
+  "capabilities": [
+    "physical-tabletop-campaign-loop"
+  ],
   "syncTargets": [
-    { "capability": "physical-tabletop-campaign-loop", "title": "3D 桌面战役循环", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-physical-tabletop-campaign-loop/specs/physical-tabletop-campaign-loop/spec.md", "targetSpecPath": "openspec/specs/physical-tabletop-campaign-loop/spec.md", "targetExisted": false, "baseFileHash": "", "baseSnapshotPath": "" }
+    {
+      "capability": "physical-tabletop-campaign-loop",
+      "title": "3D 桌面战役循环",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-physical-tabletop-campaign-loop/specs/physical-tabletop-campaign-loop/spec.md",
+      "targetSpecPath": "openspec/specs/physical-tabletop-campaign-loop/spec.md",
+      "targetExisted": false,
+      "baseFileHash": "",
+      "baseSnapshotPath": ""
+    }
   ],
   "specSyncStatus": "pending",
-  "syncValidation": { "status": "baseline-captured", "summary": "正式目标尚不存在，Delta 等待人工审核。", "changes": ["增加 3D 桌面战役循环集成能力。"], "conflicts": [], "validatedAt": "2026-08-28T07:47:10Z" },
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与基线一致，可以 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-28T09:17:20-07:00"
+  },
   "createdAt": "2026-08-28T07:47:10Z"
 }

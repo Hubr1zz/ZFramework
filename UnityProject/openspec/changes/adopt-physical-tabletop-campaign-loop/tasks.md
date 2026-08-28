@@ -13,3 +13,4 @@
 
 - [x] 3.1 运行相关 PlayMode 生产回归并通过对抗审查
 - [x] 3.2 刷新 C# 派生索引、zWorkFlow 进度与 OpenSpec strict validation
+- [x] 3.3 验证实体开场、两季出猎回营、跨年与下一次实体出猎的单路径 smoke

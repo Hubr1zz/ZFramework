@@ -6,11 +6,11 @@
   "readiness": "implemented",
   "verification": {
     "status": "implemented",
-    "summary": "正式组合根已通过共享实体输入完成营地事件、出猎、狩猎交互、回营事件、季节提交与 Continue 恢复。",
+    "summary": "正式组合根已通过共享实体输入完成营地事件、出猎、狩猎交互、回营事件、季节提交、跨年、下一次出猎与 Continue 恢复。",
     "codeEvidence": [],
-    "evidence": ["Physical campaign loop PlayMode cluster: 32/32 passed", "OpenSpec strict validation passed", "对抗审查修复非鼠标 UI 误拦截与演出等待竞态"],
+    "evidence": ["Physical campaign loop PlayMode cluster: 32/32 passed", "Physical opening-to-next-year targeted PlayMode smoke: 1/1 passed", "HuntingInDarkness.Adapter.PlayModeTests.csproj build: 0 errors", "OpenSpec strict validation passed", "对抗审查修复非鼠标 UI 误拦截与演出等待竞态，并补齐翻牌刷新帧与 Hunt 入场锁等待"],
     "differences": ["现有正式能力分别描述各阶段，但尚无端到端 3D 输入集成契约。"],
-    "verifiedAt": "2026-08-28T07:47:10Z"
+    "verifiedAt": "2026-08-28T09:16:08-07:00"
   },
   "gapIds": [],
   "dependencyIds": ["tabletop-event-interaction", "tabletop-hunt-departure", "hunt-tabletop-harvest", "tabletop-hunt-retreat", "campaign-year-loop", "tabletop-random-interaction"],
