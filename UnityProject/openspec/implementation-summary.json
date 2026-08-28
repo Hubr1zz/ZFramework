@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "8775f127e93d39203e2b293e7ffd8900851b6dbd6d0f0497190753bcf6a9798b",
-  "inputManifestDigest": "df301e8db1d8fd70f7a3dc045fb4ed75c5575df36099eebbb5922dc09309c189",
-  "outputDigest": "b8cedc482317f3d333504082ab8e3be5aa7dce16b344c15cf5fa738740f45826",
+  "inputDigest": "a1613f1575cbdcb434a2885cf5f78d48fb90e6e01397f842465f9e1cecbde2d4",
+  "inputManifestDigest": "f1ce78abb1cab3bfaccba5ed29663cb27e40763858a2cfd683a14f6be0efc58f",
+  "outputDigest": "24210bdac11cfdda1f2c397ae62ac60506f592168a8c0a5a85b09d820e2c5881",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -87,7 +87,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-      "sha256": "9333b368c80d36bc3e2694a08bce7145c4ebf4e25f8e933a67b49babfbbaaedd",
+      "sha256": "cf1bfa76e0fc70189ee6728acfdfe5a15d3bfad31b298aa88c2456c38d46e8c0",
       "state": "current"
     },
     {
@@ -272,7 +272,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntExplorationPort.cs",
-      "sha256": "5a9e3fa9c8080c085458327b56ffc50de30bf78d204dc5b688f252d3c4364e8b",
+      "sha256": "6bddd1f5b2a094abbc6daef247668772cb72eade0ce4ab537925f7599e083578",
       "state": "current"
     },
     {
@@ -422,7 +422,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
-      "sha256": "5caf2b47b1eba68eae9260ef1631cc89c3d42449039223677ab64cf9619123ae",
+      "sha256": "ffa610d3a8ec406a7a17989375c8ae5d78880816d7c31e6de5baa73a99b14258",
       "state": "current"
     },
     {
@@ -492,7 +492,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
-      "sha256": "037c25552a2707974199c6e51713c8f174472a00c60ed5d60d6f9baa83a8ad58",
+      "sha256": "23dad42128b2698c17193bc194febc4b520fafec444701ce015d4554f5772732",
       "state": "current"
     },
     {
@@ -647,7 +647,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntCollectibleTray3DPlayModeTests.cs",
-      "sha256": "942147e4475ec37163213b873822900c1673c786012cfde34391f6fa0135663d",
+      "sha256": "7eef38749c0ac994f0ebb6df495c5dbbe3aa1779d6fa13d1d005b1ee6efa4611",
       "state": "current"
     },
     {
@@ -1007,22 +1007,22 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
-      "sha256": "38a3aba442f2bef1654983afabafe3e0e932763b17a6728f272719e0fd75b1d9",
+      "sha256": "0e3d5e341d8b48ff26719c151a9a5bad027494f1394d803e55154db1cb1a30be",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleCard3D.cs",
-      "sha256": "18096e7f6982bf0694fabce6a0fe4fad8ade722af4e422eb4b480ae5a6c93452",
+      "sha256": "e7ed1b1ccebe1bfc2e35d6c3da47c097d625a5d1c4128397e1c9c0387a3e5ca8",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectiblePresentation.cs",
-      "sha256": "3388ed96a3e6849b2c55cc260e27e23f49f6db3ec90b4836069e413b4c7aa1f8",
+      "sha256": "eebc1488c50465252876c9bd6a61440b60dbaa4aa2fab134170bcabf8a6683eb",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleTray3D.cs",
-      "sha256": "4ab25b1dc28eaa081d55bcafe0afc8242fba3c30c921c06ad88bd8d6be234e57",
+      "sha256": "c178761396c59e0d6a438b9e856385df85de6278f22390868f7927ce3a7aebdb",
       "state": "current"
     },
     {
@@ -1042,7 +1042,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs",
-      "sha256": "09835d0b328525c3940b141cabaf107a3d80a80acb57c852b8de222b44c0450d",
+      "sha256": "5aef613da46b5217f2f18e37fc24e0a7befeac07a181ac969fb40d8ccbe24a4a",
       "state": "current"
     },
     {
@@ -1976,6 +1976,11 @@
     },
     {
       "capability": "active-hunt-persistence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "active-hunt-persistence",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
       "state": "stale"
     },
@@ -2327,6 +2332,11 @@
     {
       "capability": "hunt-phase-orchestration",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-phase-orchestration",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
       "state": "stale"
     },
     {
@@ -2781,6 +2791,11 @@
     },
     {
       "capability": "tabletop-hunt-retreat",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-hunt-retreat",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntRetreatActionTests.cs",
       "state": "stale"
     },
@@ -2811,12 +2826,37 @@
     },
     {
       "capability": "tabletop-hunt-squad-status",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntExplorationPort.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-hunt-squad-status",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "state": "stale"
     },
     {
       "capability": "tabletop-hunt-squad-status",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntCollectibleTray3DPlayModeTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-hunt-squad-status",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-hunt-squad-status",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleCard3D.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-hunt-squad-status",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectiblePresentation.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-hunt-squad-status",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleTray3D.cs",
       "state": "stale"
     },
     {
@@ -3069,7 +3109,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/ActiveHuntPersistenceTests.cs",
@@ -3801,7 +3841,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
@@ -5095,7 +5135,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntRetreatActionTests.cs",
@@ -5168,19 +5208,19 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntExplorationPort.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectiblePresentation.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleCard3D.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleTray3D.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/HuntCollectiblePresentationTests.cs",
@@ -5188,7 +5228,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntCollectibleTray3DPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActorSelectionTests.cs",

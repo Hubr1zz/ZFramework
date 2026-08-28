@@ -14,21 +14,27 @@ namespace UI.Hunt
         private TextMeshPro countText;
         private TextMeshPro labelText;
 
+        public System.Action Clicked;
+
         public string ContentId => stack.ContentId;
         public int Count => stack.Count;
+        public bool IsInteractable => stack.CanUseInHunt && Clicked != null;
         public override string DisplayName => $"{stack.DisplayName} ×{stack.Count}";
 
-        public static HuntCollectibleCard3D Create(HuntCollectibleStackPresentation stack, Transform parent, Vector3 localPosition)
+        public static HuntCollectibleCard3D Create(HuntCollectibleStackPresentation stack, Transform parent, Vector3 localPosition, System.Action clicked = null)
         {
             var gameObject = new GameObject($"HuntCollectible_{stack.ContentId}");
             gameObject.transform.SetParent(parent, false);
             var card = gameObject.AddComponent<HuntCollectibleCard3D>();
             card.stack = stack;
+            card.Clicked = clicked;
             card.InitView(localPosition);
             return card;
         }
 
         protected override CardCategory GetDefaultCategory() => CardCategory.Resource;
+
+        protected override bool CanHover() => IsInteractable;
 
         protected override void BuildTextFields()
         {
@@ -45,10 +51,15 @@ namespace UI.Hunt
             if (nameText == null) return;
             nameText.text = stack.DisplayName;
             countText.text = $"×{stack.Count}";
-            labelText.text = "狩猎携带物";
+            labelText.text = IsInteractable ? "点击使用" : "狩猎携带物";
             nameText.color = new Color(0.95f, 0.91f, 0.80f);
             countText.color = Color.white;
             labelText.color = new Color(0.74f, 0.72f, 0.65f);
+        }
+
+        protected override void OnMouseDown()
+        {
+            if (IsInteractable) Clicked.Invoke();
         }
     }
 }

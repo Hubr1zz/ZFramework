@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-tabletop-hunt-consumables",
+  "title": "收养狩猎桌面消耗品",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现、对抗审查和定向验证已完成；等待人类确认后同步为新的正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "Unity 6000.5.9f1 编译通过；Hunt ActionSession 与活动快照 EditMode 41/41，3D 携带卡 PlayMode 2/2。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity CLI 编译成功，返回码 0。",
+      "Hunt ActionSession 与 ActiveHuntPersistence 定向 EditMode 41/41。",
+      "携带卡、部位面板和权威命令 3D PlayMode 2/2。",
+      "对抗审查修复提交期间重复开启面板、非法空 ID 与未处理 HuntNoise 的失败关闭。"
+    ],
+    "differences": ["正式 Spec 尚未定义狩猎中使用携带消耗品或其 3D 交互与命令门禁。"],
+    "verifiedAt": "2026-08-27T23:30:04-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-HUNT-CONSUMABLE-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认首期只允许当前行动猎人使用自己的携带消耗品治疗自己。",
+      "details": "批准后创建新的正式能力；跨猎人治疗、物品转移、持续效果和 Showdown 使用仍不在本能力范围。",
+      "sourceId": "conversation::2026-08-27",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": ["tabletop-settlement-consumables", "event-recoverable-wounds", "active-hunt-persistence", "hunt-squad-action-availability"],
+  "capabilities": ["tabletop-hunt-consumables"],
+  "syncTargets": [
+    { "capability": "tabletop-hunt-consumables", "title": "狩猎桌面消耗品", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-tabletop-hunt-consumables/specs/tabletop-hunt-consumables/spec.md", "targetSpecPath": "openspec/specs/tabletop-hunt-consumables/spec.md", "targetExisted": false, "baseFileHash": "", "baseSnapshotPath": "" }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "正式目标尚不存在，Delta 只等待人工确认。",
+    "changes": ["增加狩猎桌面消耗品能力。"],
+    "conflicts": [],
+    "validatedAt": "2026-08-27T23:30:04-07:00"
+  },
+  "createdAt": "2026-08-27T23:30:04-07:00"
+}

@@ -15,6 +15,7 @@ using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Hunt;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
@@ -585,6 +586,72 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task UseConsumableAsync_ConsumesSelectedHuntersItemAndRecoversBodyPart()
+        {
+            using var rig = new HuntRig();
+            rig.Hunter.HP.arms = 1;
+            rig.Hunter.Collectibles.Add(new ItemInstance(rig.RewardItem, 2));
+            HuntConsumableUsedEvent received = default;
+            int factCount = 0;
+            Action<HuntConsumableUsedEvent> handler = evt =>
+            {
+                received = evt;
+                factCount++;
+            };
+            EventBus.Subscribe(handler);
+            try
+            {
+                HuntConsumableCommandResult result = await rig.Session.UseConsumableAsync(rig.Hunter.InstanceId, rig.RewardItem.ContentId, HunterBodyPart.Arms);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(result.Recovery.PreviousHealth, Is.EqualTo(1));
+                Assert.That(result.Recovery.CurrentHealth, Is.EqualTo(2));
+                Assert.That(result.RemainingCount, Is.EqualTo(1));
+                Assert.That(rig.Hunter.Collectibles.Sum(item => item.Count), Is.EqualTo(1));
+                Assert.That(factCount, Is.EqualTo(1));
+                Assert.That(received.SessionId, Is.EqualTo(rig.Session.SessionId));
+                Assert.That(received.HunterId, Is.EqualTo(rig.Hunter.InstanceId));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
+        public async Task UseConsumableAsync_PreventAndInvalidRequestsDoNotMutateHunter()
+        {
+            using var rig = new HuntRig(includeSurvivor: true);
+            rig.Hunter.HP.legs = 1;
+            rig.Hunter.Collectibles.Add(new ItemInstance(rig.RewardItem, 1));
+            IDisposable prevention = rig.Session.Reactors.RegisterGlobal(new PreventHuntConsumableReactor());
+            try
+            {
+                HuntConsumableCommandResult prevented = await rig.Session.UseConsumableAsync(rig.Hunter.InstanceId, rig.RewardItem.ContentId, HunterBodyPart.Legs);
+                Assert.That(prevented.Succeeded, Is.False);
+                Assert.That(rig.Hunter.HP.legs, Is.EqualTo(1));
+                Assert.That(rig.Hunter.Collectibles.Sum(item => item.Count), Is.EqualTo(1));
+            }
+            finally
+            {
+                prevention.Dispose();
+            }
+            HuntConsumableCommandResult foreignOwner = await rig.Session.UseConsumableAsync(rig.Survivor.InstanceId, rig.RewardItem.ContentId, HunterBodyPart.Legs);
+            Assert.That(foreignOwner.Succeeded, Is.False);
+            Assert.That(rig.Hunter.HP.legs, Is.EqualTo(1));
+            Assert.That(rig.Hunter.Collectibles.Sum(item => item.Count), Is.EqualTo(1));
+
+            HuntConsumableCommandResult missingId = await rig.Session.UseConsumableAsync(rig.Hunter.InstanceId, string.Empty, HunterBodyPart.Legs);
+            Assert.That(missingId.Succeeded, Is.False);
+            Assert.That(rig.Hunter.Collectibles.Sum(item => item.Count), Is.EqualTo(1));
+
+            rig.Hunter.HP.legs = rig.Hunter.MaxHP.legs;
+            HuntConsumableCommandResult healthy = await rig.Session.UseConsumableAsync(rig.Hunter.InstanceId, rig.RewardItem.ContentId, HunterBodyPart.Legs);
+            Assert.That(healthy.Succeeded, Is.False);
+            Assert.That(rig.Hunter.Collectibles.Sum(item => item.Count), Is.EqualTo(1));
+        }
+
+        [Test]
         public void HuntEventResourceReward_RejectsCountOverflowWithoutMutation()
         {
             using var rig = new HuntRig();
@@ -879,6 +946,12 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
             protected override void React(ResolvePlayableEventNodeAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试规则覆盖事件节点");
+        }
+
+        private sealed class PreventHuntConsumableReactor : GameActionReactor<UseHuntConsumableAction>
+        {
+            public override ReactionTiming Timing => ReactionTiming.BeforeExecution;
+            protected override void React(UseHuntConsumableAction action, ReactionContext context, ReactionResponse response) => response.Prevent("测试规则阻止狩猎消耗品");
         }
 
         private sealed class FirstRandom : IRandomSource

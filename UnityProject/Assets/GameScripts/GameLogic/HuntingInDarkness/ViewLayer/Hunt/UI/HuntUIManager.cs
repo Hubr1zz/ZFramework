@@ -64,6 +64,7 @@ namespace UI.Hunt
             EventBus.Subscribe<HarvestCommittedEvent>(OnHarvestCommitted);
             EventBus.Subscribe<HuntEventNodeCommittedEvent>(OnHuntEventNodeCommitted);
             EventBus.Subscribe<HuntActorSelectionCommittedEvent>(OnHuntActorSelectionCommitted);
+            EventBus.Subscribe<HuntConsumableUsedEvent>(OnHuntConsumableUsed);
             _initialized = true;
         }
 
@@ -82,6 +83,7 @@ namespace UI.Hunt
             EventBus.Unsubscribe<HarvestCommittedEvent>(OnHarvestCommitted);
             EventBus.Unsubscribe<HuntEventNodeCommittedEvent>(OnHuntEventNodeCommitted);
             EventBus.Unsubscribe<HuntActorSelectionCommittedEvent>(OnHuntActorSelectionCommitted);
+            EventBus.Unsubscribe<HuntConsumableUsedEvent>(OnHuntConsumableUsed);
             ClearResourcePresentationCallbacks();
         }
 
@@ -166,6 +168,12 @@ namespace UI.Hunt
         private void OnHuntEventNodeCommitted(HuntEventNodeCommittedEvent _) => Refresh();
 
         private void OnHuntActorSelectionCommitted(HuntActorSelectionCommittedEvent evt)
+        {
+            if (explorationPort != null && evt.SessionId == explorationPort.SessionId)
+                Refresh();
+        }
+
+        private void OnHuntConsumableUsed(HuntConsumableUsedEvent evt)
         {
             if (explorationPort != null && evt.SessionId == explorationPort.SessionId)
                 Refresh();

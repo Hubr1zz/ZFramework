@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Hunt;
 using UnityEngine;
 
@@ -30,7 +31,7 @@ namespace HuntingInDarkness.Hunt
     }
 
     /// <summary>狩猎 View 到当前 ActionQueue 会话的窄交互端口。</summary>
-    public interface IHuntExplorationPort
+    public interface IHuntExplorationPort : IPlayableHuntConsumableInput
     {
         Guid SessionId { get; }
         bool TryCreateSnapshot(Vector2Int coordinate, int resourcePointIndex, out HuntExplorationSnapshot snapshot);
@@ -59,6 +60,7 @@ namespace HuntingInDarkness.Hunt
         public UniTask<bool> SubmitResourcePointAsync(HuntExplorationSnapshot snapshot) => runtime.SubmitResourcePointAsync(SessionId, snapshot);
         public UniTask<PlayableHarvestTransaction> PrepareHarvestAsync(HuntExplorationSnapshot target) => runtime.PrepareHarvestAsync(SessionId, target);
         public UniTask<PlayableHarvestStepResult> AdvanceHarvestAsync(Guid sessionId, PlayableHarvestTransaction transaction, int cardIndex) => runtime.AdvanceHarvestAsync(SessionId, sessionId, transaction, cardIndex);
+        public UniTask<HuntConsumableCommandResult> UseConsumableAsync(int ownerHunterId, string itemId, HunterBodyPart bodyPart) => runtime.UseConsumableAsync(SessionId, ownerHunterId, itemId, bodyPart);
     }
 
     /// <summary>持有单次狩猎的权威交互租约与快照校验；组合根只负责装配和释放。</summary>
@@ -119,6 +121,12 @@ namespace HuntingInDarkness.Hunt
             if (!IsCurrentLease(leaseSessionId) || targetSessionId != leaseSessionId || transaction == null)
                 return UniTask.FromResult(PlayableHarvestStepResult.Failed("采集事务属于旧的狩猎会话。"));
             return session.AdvanceHarvestAsync(transaction, cardIndex);
+        }
+
+        internal UniTask<HuntConsumableCommandResult> UseConsumableAsync(Guid leaseSessionId, int ownerHunterId, string itemId, HunterBodyPart bodyPart)
+        {
+            if (!IsCurrentLease(leaseSessionId)) return UniTask.FromResult(HuntConsumableCommandResult.Failed("当前没有可用的狩猎交互会话。"));
+            return session.UseConsumableAsync(ownerHunterId, itemId, bodyPart);
         }
 
         private bool IsCurrentLease(Guid leaseSessionId) => isCurrentGeneration() && session.IsActive && session.SessionId == leaseSessionId && Port.SessionId == leaseSessionId;

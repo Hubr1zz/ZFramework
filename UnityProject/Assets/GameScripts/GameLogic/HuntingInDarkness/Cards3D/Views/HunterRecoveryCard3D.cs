@@ -17,6 +17,7 @@ namespace Cards3D
         private TextMeshPro hintText;
         private bool canRecover;
         private string reason = string.Empty;
+        private string availableHint = "点击休养";
 
         public HunterBodyPart BodyPart => bodyPart;
         public System.Action<HunterRecoveryCard3D> OnRecoveryRequested;
@@ -34,10 +35,11 @@ namespace Cards3D
             return card;
         }
 
-        public void ConfigureState(bool recoverable, string unavailableReason)
+        public void ConfigureState(bool recoverable, string unavailableReason, string enabledHint = "点击休养")
         {
             canRecover = recoverable;
             reason = unavailableReason ?? string.Empty;
+            availableHint = string.IsNullOrWhiteSpace(enabledHint) ? "点击休养" : enabledHint;
             ApplyVisuals();
         }
 
@@ -58,7 +60,7 @@ namespace Cards3D
             HunterRecoveryRules.GetHealth(hunter, bodyPart, out int currentHealth, out int maximumHealth);
             nameText.text = GetBodyPartName(bodyPart);
             healthText.text = $"{currentHealth}/{maximumHealth}";
-            hintText.text = canRecover ? "点击休养" : reason;
+            hintText.text = canRecover ? availableHint : reason;
         }
 
         protected override void OnMouseDown()

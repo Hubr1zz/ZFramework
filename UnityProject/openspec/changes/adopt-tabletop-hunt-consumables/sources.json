@@ -1,0 +1,10 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的收养对账：狩猎中使用 3D 携带消耗品治疗普通伤势。",
+  "sourceRoots": ["C:/Users/leonz/Desktop/GameDesignVault"],
+  "sourceReferences": [
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/物品 Items.md",
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/猎人 Hunter.md",
+    "conversation::2026-08-27"
+  ]
+}

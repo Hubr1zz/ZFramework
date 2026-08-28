@@ -97,6 +97,7 @@ namespace UI.Hunt
                 hunterCards.Add(card);
             }
             collectibleTray = HuntCollectibleTray3D.Create(transform);
+            collectibleTray.Initialize(explorationPort);
             Refresh();
         }
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.ViewLayer.Hunt;
 using TMPro;
@@ -12,10 +13,14 @@ namespace UI.Hunt
         private readonly List<HuntCollectibleCard3D> cards = new();
         private TextMeshPro titleText;
         private TextMeshPro statusText;
+        private IPlayableHuntConsumableInput consumableInput;
+        private HunterInstance currentHunter;
+        private HuntConsumablePanel3D consumablePanel;
         private string presentationSignature;
 
         public int CardCount => cards.Count;
         public string OwnerName { get; private set; } = string.Empty;
+        public bool IsConsumablePanelOpen => consumablePanel != null && consumablePanel.gameObject.activeSelf;
 
         public static HuntCollectibleTray3D Create(Transform parent)
         {
@@ -27,19 +32,44 @@ namespace UI.Hunt
             return tray;
         }
 
+        public void Initialize(IPlayableHuntConsumableInput input)
+        {
+            consumableInput = input;
+            presentationSignature = string.Empty;
+        }
+
         public void Present(HunterInstance hunter)
         {
             HuntCollectiblePresentation presentation = HuntCollectiblePresentation.Create(hunter?.Collectibles, HuntStatusBoardLayout.MaximumCollectibleCards);
             string signature = CreateSignature(hunter, presentation.Stacks);
             if (string.Equals(signature, presentationSignature, System.StringComparison.Ordinal)) return;
             presentationSignature = signature;
+            currentHunter = hunter;
             OwnerName = hunter?.Name ?? string.Empty;
             ClearCards();
             titleText.text = hunter != null ? $"{OwnerName} · 携带物" : "携带物";
             statusText.text = presentation.TotalCount > 0 ? $"共 {presentation.TotalCount} 件 · {presentation.DistinctCount} 类" : hunter != null ? "尚未获得狩猎素材" : "没有可行动猎人";
             int visibleCount = Mathf.Min(presentation.Stacks.Count, HuntStatusBoardLayout.MaximumCollectibleCards);
             for (int index = 0; index < visibleCount; index++)
-                cards.Add(HuntCollectibleCard3D.Create(presentation.Stacks[index], transform, HuntStatusBoardLayout.GetCollectibleCardLocalPosition(index)));
+            {
+                HuntCollectibleStackPresentation stack = presentation.Stacks[index];
+                System.Action clicked = stack.CanUseInHunt && consumableInput != null && hunter?.IsAlive == true && hunter.IsAvailable ? () => OpenConsumable(stack) : null;
+                cards.Add(HuntCollectibleCard3D.Create(stack, transform, HuntStatusBoardLayout.GetCollectibleCardLocalPosition(index), clicked));
+            }
+        }
+
+        private void OpenConsumable(HuntCollectibleStackPresentation stack)
+        {
+            if (currentHunter == null || consumableInput == null || !stack.CanUseInHunt || consumablePanel?.IsSubmitting == true) return;
+            consumablePanel ??= HuntConsumablePanel3D.Create(transform.parent);
+            consumablePanel.Open(currentHunter, stack, consumableInput, transform.position + new Vector3(0f, 0.05f, -2.2f), OnConsumableCompleted);
+        }
+
+        private void OnConsumableCompleted(HuntConsumableCommandResult result)
+        {
+            if (!result.Succeeded || currentHunter == null) return;
+            presentationSignature = string.Empty;
+            Present(currentHunter);
         }
 
         private void BuildLabels()
@@ -83,6 +113,10 @@ namespace UI.Hunt
             cards.Clear();
         }
 
-        private void OnDestroy() => ClearCards();
+        private void OnDestroy()
+        {
+            ClearCards();
+            if (consumablePanel != null) Destroy(consumablePanel.gameObject);
+        }
     }
 }

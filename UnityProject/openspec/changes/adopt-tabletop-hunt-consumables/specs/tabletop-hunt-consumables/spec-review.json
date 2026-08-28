@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-hunt-consumables",
+  "title": "狩猎桌面消耗品",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "Hunt canonical 内容、ActionQueue 使用、3D 携带卡与部位选择、活动快照复用均已实现并通过定向验证。",
+    "codeEvidence": [
+      { "guid": "27de743ca9674bf69a0635c71bb5e196", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntConsumableActions.cs", "fileHash": "9287c72c202d4ac1349dd25d06eaf65e055a18350fb35ebd8ee60c45a579c7ed", "line": 91, "feature": "canonical 携带物扣除与部位恢复 root Action", "status": "verified", "checkedAt": "2026-08-27T23:30:04-07:00" },
+      { "guid": "4ba73e89b3fe5ba4088fc947dc1e9f63", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs", "fileHash": "3338ec0689d1e72bd91fc38a8987d22ea7fd41423c4d16811a95b4375b8bed66", "line": 192, "feature": "Hunt runner 门禁、Reactor 与活动检查点", "status": "verified", "checkedAt": "2026-08-27T23:30:04-07:00" },
+      { "guid": "f7ab62bac7064a73aec5537062063aae", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntConsumablePanel3D.cs", "fileHash": "00942723faebb009ebbdb832c4ac0a410e43356e9fec7219c8fdab406c8e7b12", "line": 15, "feature": "世界空间部位选择与重复输入锁", "status": "verified", "checkedAt": "2026-08-27T23:30:04-07:00" },
+      { "guid": "1bc21962f11645d2b2c3868b58e237a5", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleTray3D.cs", "fileHash": "ad64c480308b9b2eb60bd9efae920b707a7499e2332147896900c36e8757635a", "line": 11, "feature": "Consumable 实体携带卡入口与权威刷新", "status": "verified", "checkedAt": "2026-08-27T23:30:04-07:00" }
+    ],
+    "evidence": [
+      "Unity CLI 编译通过。",
+      "PlayableHuntActionSessionTests 与 ActiveHuntPersistenceTests 41/41。",
+      "HuntCollectibleTray3DPlayModeTests 2/2。"
+    ],
+    "differences": ["该能力尚无正式 Spec；当前 Delta 完整描述已实现行为。"],
+    "verifiedAt": "2026-08-27T23:30:04-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["tabletop-settlement-consumables", "event-recoverable-wounds", "active-hunt-persistence", "hunt-squad-action-availability"],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/物品 Items.md", "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/猎人 Hunter.md", "conversation::2026-08-27"],
+  "implementationOutline": [
+    "当前 Hunt 交互租约提交稳定消耗品命令。",
+    "Hunt root 失败关闭并原子修改 owner 携带物与普通生命。",
+    "3D 携带卡与身体部位卡只投影状态和提交意图。",
+    "既有活动狩猎 checkpoint 保存结果。"
+  ],
+  "reviewIssues": [
+    { "id": "ISSUE-HUNT-CONSUMABLE-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认当前行动猎人自用是首期正式边界。", "details": "当前不支持跨猎人治疗、物品转移、持续效果或 Showdown 使用。", "sourceId": "conversation::2026-08-27", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

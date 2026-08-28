@@ -11,6 +11,7 @@ using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using Cysharp.Threading.Tasks;
@@ -49,7 +50,7 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void Snapshot_RoundTripsMapRosterPositionAndRandomState()
+        public async Task Snapshot_RoundTripsMapRosterPositionAndRandomState()
         {
             HunterData template = CreateAsset<HunterData>("hunter-template");
             var hunter = new HunterInstance(template, 101);
@@ -73,7 +74,11 @@ namespace HuntingInDarkness.Adapter.Tests
                 DrawCount = 1,
                 IsExhausted = true
             });
+            ItemData dressing = PlayableSettlementItemRegistry.Items.Single(item => item != null && item.ContentId == "weathered_field_dressing");
+            hunter.Collectibles.Add(new ItemInstance(dressing, 2));
             using var session = new PlayableHuntActionSession(source, "encounter", "destination");
+            HuntConsumableCommandResult consumableResult = await session.UseConsumableAsync(hunter.InstanceId, dressing.ContentId, HunterBodyPart.Arms);
+            Assert.That(consumableResult.Succeeded, Is.True, consumableResult.Reason);
 
             Assert.That(ActiveHuntSnapshotAdapter.TryCapture(settlement, source, session, "expedition-1", out CampaignSnapshot captured, out string reason), Is.True, reason);
             Assert.That(SaveLoadSystem.TryCreatePayload(captured, out string payload, out reason), Is.True, reason);
@@ -85,7 +90,8 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(destination.CurrentYear, Is.EqualTo(3));
             Assert.That(destination.ActiveHunters, Has.Count.EqualTo(1));
             Assert.That(destination.ActiveHunters[0].InstanceId, Is.EqualTo(101));
-            Assert.That(destination.ActiveHunters[0].HP.arms, Is.EqualTo(1));
+            Assert.That(destination.ActiveHunters[0].HP.arms, Is.EqualTo(2));
+            Assert.That(destination.ActiveHunters[0].Collectibles.Sum(item => item?.Data?.ContentId == dressing.ContentId ? item.Count : 0), Is.EqualTo(1));
             Assert.That(destination.Map.Count, Is.EqualTo(source.Map.Count));
             Assert.That(destination.SquadPosition, Is.EqualTo(source.SquadPosition));
             Assert.That(destination.CaptureRandomState().Value, Is.EqualTo(source.CaptureRandomState().Value));

@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.Hunt;
 using UnityEngine;
 
@@ -26,13 +27,14 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly HashSet<PlayableHarvestTransaction> activeHarvests = new();
         private readonly Dictionary<ResourcePointInstance, ReactorEntityHandle> resourcePointHandles = new();
         private readonly PlayableHuntEventOccurrenceStore occurrenceStore;
+        private readonly IHuntConsumableContent consumableContent;
         private readonly Action checkpointCommitted;
         private int nextResourcePointHandleId;
         private bool returnCheckpointLocked;
         private bool gameplayLocked;
         private bool resourceSelectionInFlight;
 
-        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, IActionEnvironmentInstallerRegistry installerRegistry = null, PlayableHuntEventOccurrenceStore restoredOccurrenceStore = null, Action checkpointCommitted = null)
+        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, IActionEnvironmentInstallerRegistry installerRegistry = null, PlayableHuntEventOccurrenceStore restoredOccurrenceStore = null, Action checkpointCommitted = null, IHuntConsumableContent consumableContent = null)
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.defaultEncounterId = string.IsNullOrWhiteSpace(defaultEncounterId) ? "default" : defaultEncounterId.Trim();
@@ -40,6 +42,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             this.randomInteractionPresenter = randomInteractionPresenter;
             this.tileInteractionPresenter = tileInteractionPresenter;
             occurrenceStore = restoredOccurrenceStore ?? new PlayableHuntEventOccurrenceStore();
+            this.consumableContent = consumableContent ?? new PlayableHuntConsumableContentAdapter(manager);
             this.checkpointCommitted = checkpointCommitted;
             SessionId = Guid.NewGuid();
             environment = new ActionEnvironment(new ActionEnvironmentConfiguration
@@ -184,6 +187,30 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 await NotifyCheckpointWhenIdleAsync();
             if (outcome.IsSuccess) return action.Result;
             return string.IsNullOrWhiteSpace(action.Result.Reason) ? PlayableHarvestStepResult.Failed(outcome.Reason) : action.Result;
+        }
+
+        public async UniTask<HuntConsumableCommandResult> UseConsumableAsync(int ownerHunterId, string itemId, HunterBodyPart bodyPart, CancellationToken cancellationToken = default)
+        {
+            if (!IsActive) return HuntConsumableCommandResult.Failed("狩猎会话已经结束。");
+            if (ownerHunterId <= 0 || string.IsNullOrWhiteSpace(itemId)) return HuntConsumableCommandResult.Failed("狩猎消耗品请求缺少猎人或物品 ID。");
+            if (PlayableHuntInputGuard.IsBlocked) return HuntConsumableCommandResult.Failed("狩猎桌面交互当前已锁定。");
+            if (gameplayLocked) return HuntConsumableCommandResult.Failed("遭遇事件正在等待交接，当前狩猎操作已暂停。");
+            if (!await ResumePendingEventsAsync(cancellationToken)) return HuntConsumableCommandResult.Failed("请先完成待恢复的狩猎事件。");
+            if (returnCheckpointLocked) return HuntConsumableCommandResult.Failed("回营检查点已锁定，请直接重试回营。");
+            if (HasActiveHarvest) return HuntConsumableCommandResult.Failed("请先完成或离开当前资源采集。");
+
+            HunterInstance hunter = manager.ActiveHunters?.Find(candidate => candidate != null && candidate.InstanceId == ownerHunterId);
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle actor = GetHunterHandle(ownerHunterId, hunter?.Name);
+            ReactorEntityHandle item = environment.EntityHandles.GetOrCreate("hunt-consumable", itemId?.Trim() ?? string.Empty, "狩猎消耗品");
+            var action = new UseHuntConsumableAction(manager, SessionId, ownerHunterId, itemId, bodyPart, consumableContent, outbox, actor, item);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            if (outcome.IsSuccess)
+            {
+                await NotifyCheckpointWhenIdleAsync();
+                return action.Result;
+            }
+            return string.IsNullOrWhiteSpace(action.Result.Reason) ? HuntConsumableCommandResult.Failed(outcome.Reason) : action.Result;
         }
 
         public UniTask<HuntRetreatCommandResult> PrepareRetreatAsync(int currentYear, CancellationToken cancellationToken = default)

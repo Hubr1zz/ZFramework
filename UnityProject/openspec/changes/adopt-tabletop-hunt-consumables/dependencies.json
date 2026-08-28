@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "tabletop-hunt-consumables", "label": "狩猎桌面消耗品", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-tabletop-hunt-consumables/specs/tabletop-hunt-consumables/spec.md" },
+    { "id": "tabletop-settlement-consumables", "label": "营地桌面消耗品", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-tabletop-settlement-consumables/specs/tabletop-settlement-consumables/spec.md" },
+    { "id": "event-recoverable-wounds", "label": "事件普通伤势", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/event-recoverable-wounds/spec.md" },
+    { "id": "active-hunt-persistence", "label": "活动狩猎检查点与恢复", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/active-hunt-persistence/spec.md" },
+    { "id": "hunt-squad-action-availability", "label": "狩猎小队行动资格", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/hunt-squad-action-availability/spec.md" }
+  ],
+  "edges": [
+    { "from": "tabletop-settlement-consumables", "to": "tabletop-hunt-consumables", "type": "supports" },
+    { "from": "event-recoverable-wounds", "to": "tabletop-hunt-consumables", "type": "supports" },
+    { "from": "hunt-squad-action-availability", "to": "tabletop-hunt-consumables", "type": "constrains" },
+    { "from": "tabletop-hunt-consumables", "to": "active-hunt-persistence", "type": "uses" }
+  ]
+}
