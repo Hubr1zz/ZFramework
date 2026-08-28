@@ -38,7 +38,6 @@ namespace Core
         internal GameObject SettlementRoot { get; set; }
         internal GameObject HuntRoot { get; set; }
         internal GameObject UiHunt { get; set; }
-        internal SettlementUIManager SettlementUI { get; set; }
         internal PlayableWorkshopCatalog WorkshopCatalog { get; set; }
         internal PlayableSettlementContentCatalog SettlementContentCatalog { get; set; }
         internal ITabletopRandomInteractionPresenter TabletopInteraction { get; set; }

@@ -44,7 +44,7 @@ namespace Core
         PlayableSettlementActionSession CurrentSession { get; }
         void ConfigureRuntime(ISettlementDepartureRequestPort departureRequestPort);
         void ConfigureGameplay(Func<IPlayableEventInput> inputProvider, ITabletopRandomInteractionPresenter tabletop, Func<IActionEnvironmentInstallerRegistry> installerProvider, Func<IPlayableCampaignPersistentEffectProjection> projectionProvider);
-        void ConfigurePresentation(SettlementTable3D table, GameObject root, SettlementUIManager ui, PlayableWorkshopCatalog workshop, PlayableSettlementContentCatalog settlementContent, Action<List<HunterInstance>> onDepartureRequested);
+        void ConfigurePresentation(SettlementTable3D table, GameObject root, PlayableWorkshopCatalog workshop, PlayableSettlementContentCatalog settlementContent, Action<List<HunterInstance>> onDepartureRequested);
         bool ActivateCurrentActionSession(out string reason);
         void DeactivateCurrentActionSession();
         void EnsurePresentation(SettlementManager manager);

@@ -39,7 +39,7 @@ namespace Core
         PlayableSettlementActionSession IPlayableSettlementPhasePort.CurrentSession => coordinator.CurrentSession;
         void IPlayableSettlementPhasePort.ConfigureRuntime(ISettlementDepartureRequestPort departureRequestPort) => Configure(new PlayableSettlementRuntimeConfiguration(departureRequestPort, coordinator.CreateActionSession));
         void IPlayableSettlementPhasePort.ConfigureGameplay(Func<IPlayableEventInput> inputProvider, ITabletopRandomInteractionPresenter tabletop, Func<IActionEnvironmentInstallerRegistry> installerProvider, Func<IPlayableCampaignPersistentEffectProjection> projectionProvider) => coordinator.ConfigureGameplay(inputProvider, tabletop, installerProvider, projectionProvider);
-        void IPlayableSettlementPhasePort.ConfigurePresentation(SettlementTable3D table, GameObject root, SettlementUIManager ui, PlayableWorkshopCatalog workshop, PlayableSettlementContentCatalog settlementContent, Action<List<HunterInstance>> onDepartureRequested) => coordinator.ConfigurePresentation(table, root, ui, workshop, settlementContent, onDepartureRequested);
+        void IPlayableSettlementPhasePort.ConfigurePresentation(SettlementTable3D table, GameObject root, PlayableWorkshopCatalog workshop, PlayableSettlementContentCatalog settlementContent, Action<List<HunterInstance>> onDepartureRequested) => coordinator.ConfigurePresentation(table, root, workshop, settlementContent, onDepartureRequested);
         bool IPlayableSettlementPhasePort.ActivateCurrentActionSession(out string reason)
         {
             if (current == null)

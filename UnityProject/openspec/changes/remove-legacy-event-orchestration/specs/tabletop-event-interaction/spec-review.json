@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-event-interaction",
+  "title": "跨阶段桌面事件交互",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "Settlement 组合根已移除 screen-space HUD 端口，共享 3D 事件输入仍独立安装。",
+    "codeEvidence": [
+      {
+        "guid": "f7ee862994491514fbb756893fbdbd65",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseCoordinator.cs",
+        "fileHash": "91f2ab3096e14983dee90ead926d41038ae323a5dd0fdec57dc697c7c16762f2",
+        "line": 21,
+        "feature": "Settlement 只绑定 3D 桌面交互",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:14:16-07:00"
+      }
+    ],
+    "evidence": [
+      "PlayableSettlementEventView PlayMode 2/2。",
+      "Settlement world-space port/phase 边界 EditMode 通过。"
+    ],
+    "differences": [
+      "正式 Spec 仍描述 legacy HUD visibility 兼容条件。"
+    ],
+    "verifiedAt": "2026-08-28T07:14:16-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [
+    "tabletop-event-interaction--requires--action-environment-lifecycle"
+  ],
+  "sourceReferences": [
+    "formal::tabletop-event-interaction",
+    "formal::tabletop-hunt-departure"
+  ],
+  "implementationOutline": [
+    "Settlement phase presentation port 不再传入 HUD。",
+    "PlayableSettlementEventView 仍由 world-space installer 独立创建。"
+  ],
+  "reviewIssues": []
+}

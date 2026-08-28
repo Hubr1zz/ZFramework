@@ -61,13 +61,13 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void LegacySettlementHud_DoesNotExposeEventResolutionPanel()
+        public void LegacySettlementHud_IsNotPartOfTheRuntimeAssembly()
         {
-            System.Type hudType = typeof(UI.Settlement.SettlementUIManager);
+            System.Reflection.Assembly runtimeAssembly = typeof(PlayableSettlementEventView).Assembly;
 
-            Assert.That(hudType.GetMethod("ShowEvent", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic), Is.Null);
-            Assert.That(hudType.Assembly.GetType("UI.Settlement.EventPopup"), Is.Null);
-            Assert.That(hudType.Assembly.GetType("UI.Settlement.EventOptionButton"), Is.Null);
+            Assert.That(runtimeAssembly.GetType("UI.Settlement.SettlementUIManager"), Is.Null);
+            Assert.That(runtimeAssembly.GetType("UI.Settlement.EventPopup"), Is.Null);
+            Assert.That(runtimeAssembly.GetType("UI.Settlement.EventOptionButton"), Is.Null);
         }
 
         private static T GetPrivateField<T>(object target, string fieldName) => (T)target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(target);

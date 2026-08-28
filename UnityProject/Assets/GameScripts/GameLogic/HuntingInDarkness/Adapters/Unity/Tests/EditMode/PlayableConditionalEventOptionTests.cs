@@ -67,9 +67,6 @@ namespace HuntingInDarkness.Adapter.Tests
             int optionIndex = gameEvent.options.FindIndex(item => !item.alwaysAvailable);
 
             Assert.That(eventSystem.PrepareChoice(gameEvent, optionIndex, stranger), Is.Null);
-            EventResolutionResult legacyResult = eventSystem.ResolveChoice(gameEvent, optionIndex, stranger);
-            Assert.That(legacyResult.Success, Is.False);
-            Assert.That(legacyResult.ResultText, Does.Contain("守望者"));
             Assert.That(stranger.Understanding, Is.Zero);
             Assert.That(eventSystem.PrepareChoice(gameEvent, optionIndex, watcher), Is.Not.Null);
         }
@@ -413,22 +410,13 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(death.targetName, Is.EqualTo("dark_bargain"));
             Assert.That(death.description, Is.Not.Empty);
             Assert.That(eventSystem.PrepareChoice(gameEvent, optionIndex), Is.Null);
-            EventResolutionResult legacyResult = eventSystem.ResolveChoice(gameEvent, optionIndex);
-            Assert.That(legacyResult.Success, Is.False);
-            Assert.That(legacyResult.ResultText, Does.Contain("猎人"));
             Assert.That(eventSystem.PrepareChoice(gameEvent, optionIndex, hunter), Is.Null);
-            EventResolutionResult missingPortResult = eventSystem.ResolveChoice(gameEvent, optionIndex, hunter);
-            Assert.That(missingPortResult.Success, Is.False);
-            Assert.That(missingPortResult.ResultText, Does.Contain("死亡流程"));
             Assert.That(settlement.GetResource("black_salt"), Is.Zero);
             Assert.That(hunter.IsAlive, Is.True);
 
             var manager = new SettlementManager(1);
             var foreign = new HunterInstance(null, 9107) { Name = "外来交易者" };
             Assert.That(manager.Events.PrepareChoice(gameEvent, optionIndex, foreign), Is.Null);
-            EventResolutionResult foreignResult = manager.Events.ResolveChoice(gameEvent, optionIndex, foreign);
-            Assert.That(foreignResult.Success, Is.False);
-            Assert.That(foreignResult.ResultText, Does.Contain("不属于"));
             Assert.That(manager.Data.GetResource("black_salt"), Is.Zero);
             Assert.That(foreign.IsAlive, Is.True);
         }

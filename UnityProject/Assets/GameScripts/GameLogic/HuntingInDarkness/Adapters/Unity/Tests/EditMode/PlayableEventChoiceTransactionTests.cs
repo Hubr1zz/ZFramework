@@ -20,9 +20,6 @@ namespace HuntingInDarkness.Adapter.Tests
             settlement.Hunters.Add(hunter);
             var eventSystem = new EventSystem(settlement, new SequenceRandom(1, 8));
             EventData gameEvent = CreateCheckedEvent();
-            int completedCount = 0;
-            eventSystem.OnEventChainCompleted = () => completedCount++;
-
             try
             {
                 PlayableEventChoiceTransaction transaction = eventSystem.PrepareChoice(gameEvent, 0, hunter);
@@ -36,15 +33,10 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(hunter.Willpower, Is.Zero);
                 Assert.That(hunter.Luck, Is.EqualTo(1));
 
-                transaction.Commit();
-                transaction.Commit();
+                transaction.CommitStandalone();
+                transaction.CommitStandalone();
                 Assert.That(settlement.GetResource("碎石"), Is.EqualTo(2));
                 Assert.That(settlement.HasDiscoveredMaterial("碎石"), Is.True);
-                Assert.That(completedCount, Is.Zero);
-
-                transaction.Continue();
-                transaction.Continue();
-                Assert.That(completedCount, Is.EqualTo(1));
             }
             finally
             {

@@ -123,7 +123,6 @@ namespace Core
         private CampaignUnityBridge campaignUnityBridge;
         private GlobalTabletopPresentation globalTabletopPresentation;
         private CampaignDeveloperCommands developerCommands;
-        [SerializeField] private SettlementUIManager _settlementUIManager; // 场景预建并连线（缺失则报错）
         [SerializeField] private SettlementTable3D _settlementTable3D;
         private DevModePanel         _devPanel;
         private BattleSetup preAwakePendingSetup;
@@ -229,7 +228,6 @@ namespace Core
                 SettlementRoot = settlementRoot,
                 HuntRoot = huntRoot,
                 UiHunt = uiHunt,
-                SettlementUI = _settlementUIManager,
                 WorkshopCatalog = workshopContentCatalog,
                 SettlementContentCatalog = settlementContentCatalog,
                 TabletopInteraction = tabletopInteractionRouter,

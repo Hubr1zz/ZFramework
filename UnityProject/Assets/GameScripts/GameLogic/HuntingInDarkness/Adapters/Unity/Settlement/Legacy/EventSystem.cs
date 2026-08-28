@@ -11,9 +11,8 @@ using UnityEngine;
 namespace HuntingInDarkness.Settlement
 {
     /// <summary>
-    /// 事件处理系统（纯 C#）。
-    /// 职责：事件触发流程（显示文本 → 选项 → 判定 → 效果 → 子事件链），
-    /// 骰子投掷，意志点重投机制。
+    /// 事件规则与效果解析器（纯 C#）。
+    /// 由阶段 ActionQueue 传入显式事件、执行者与效果端口；不持有事件队列或 View 回调。
     /// </summary>
     public partial class EventSystem
     {
@@ -22,18 +21,9 @@ namespace HuntingInDarkness.Settlement
         private readonly IDelayedEventScheduler delayedEventScheduler;
         private readonly IHunterDeathCommand hunterDeathCommand;
 
-        /// <summary>当事件需要展示 UI 时，调用此回调（SettlementUIManager 注入）</summary>
-        public System.Action<EventData, HunterInstance> OnEventTriggered;
-
-        /// <summary>当事件结束（包含子事件链全部处理完）后调用</summary>
-        public System.Action OnEventChainCompleted;
         internal SettlementInstance Settlement => _settlement;
         internal IRandomSource RandomSource => _rng;
         internal IHunterDeathCommand HunterDeathCommand => hunterDeathCommand;
-
-        // 当前处理中的事件队列（子事件链用）
-        private readonly Queue<EventData> _pendingChain = new();
-        private HunterInstance            _selectedHunter;
 
         public EventSystem(SettlementInstance settlement, IRandomSource rng, IDelayedEventScheduler delayedEventScheduler = null, IHunterDeathCommand hunterDeathCommand = null)
         {
@@ -41,59 +31,6 @@ namespace HuntingInDarkness.Settlement
             _rng        = rng;
             this.delayedEventScheduler = delayedEventScheduler;
             this.hunterDeathCommand = hunterDeathCommand;
-        }
-
-        // ─── 触发事件 ────────────────────────────────────────────
-
-        /// <summary>触发单个事件，指定生效猎人（可为 null 表示营地整体）</summary>
-        public void TriggerEvent(EventData evt, HunterInstance hunter = null)
-        {
-            if (evt == null) return;
-            _selectedHunter = hunter;
-            _pendingChain.Clear();
-            _pendingChain.Enqueue(evt);
-            ProcessNextInChain();
-        }
-
-        /// <summary>触发多个事件（按顺序依次处理）</summary>
-        public void TriggerEventList(List<EventData> events, HunterInstance hunter = null)
-        {
-            _selectedHunter = hunter;
-            _pendingChain.Clear();
-            foreach (var e in events)
-                if (e != null) _pendingChain.Enqueue(e);
-            ProcessNextInChain();
-        }
-
-        private void ProcessNextInChain()
-        {
-            if (_pendingChain.Count == 0)
-            {
-                OnEventChainCompleted?.Invoke();
-                return;
-            }
-            var next = _pendingChain.Dequeue();
-            EventBus.Publish(new GameEventTriggeredEvent { EventId = next.name });
-            OnEventTriggered?.Invoke(next, _selectedHunter);
-        }
-
-        // ─── 叙事事件结算 ────────────────────────────────────────
-
-        /// <summary>
-        /// 叙事事件：玩家点击"确认"后调用。
-        /// 执行效果，追加子事件链，继续处理。
-        /// </summary>
-        public void ResolveNarrative(EventData evt)
-        {
-            PlayableEventNodeCommitResult result = ResolveNarrativeNode(evt, _selectedHunter, false);
-            MarkEventCompleted(evt);
-            if (result.EncounterIds.Count > 0)
-            {
-                _pendingChain.Clear();
-                return;
-            }
-            EnqueueChain(result.ChainedEvents);
-            ProcessNextInChain();
         }
 
         /// <summary>结算单个叙事节点并返回后续节点，不触碰共享事件队列。</summary>
@@ -124,84 +61,6 @@ namespace HuntingInDarkness.Settlement
             if (!captureEncounterRequests)
                 PublishEncounters(encounterIds, gameEvent.name);
             return new PlayableEventNodeCommitResult(gameEvent.chainedEvents, encounterIds, new PlayableEventEffectBatchResult(effectResults));
-        }
-
-        // ─── 抉择事件结算 ────────────────────────────────────────
-
-        /// <summary>
-        /// 抉择事件：玩家选择一个选项后调用。
-        /// 进行判定（有需要时）并执行对应效果。
-        /// 返回 EventResolutionResult 供 UI 展示结果文本。
-        /// </summary>
-        public EventResolutionResult ResolveChoice(EventData evt, int optionIndex,
-            HunterInstance actor = null)
-        {
-            if (evt?.options == null || optionIndex < 0 || optionIndex >= evt.options.Count)
-                return new EventResolutionResult { Success = false, ResultText = "无效选项" };
-
-            var option = evt.options[optionIndex];
-            actor ??= _selectedHunter;
-            bool requiresHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
-            if (requiresHunter && actor == null)
-                return new EventResolutionResult { Success = false, ResultText = "该选项需要一名猎人执行。" };
-            if (requiresHunter && !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))
-                return new EventResolutionResult { Success = false, ResultText = "所选猎人不属于当前营地。" };
-            if (PlayableEventOptionAvailability.HasHunterDeathEffect(option) && hunterDeathCommand == null)
-                return new EventResolutionResult { Success = false, ResultText = "猎人死亡流程尚未准备完成。" };
-            if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, out string unavailableReason))
-                return new EventResolutionResult { Success = false, ResultText = unavailableReason };
-
-            bool success = true;
-            int  rollValue = 0;
-
-            // 判定（有 checkType 时）
-            if (option.checkType != CheckType.None)
-            {
-                rollValue = RollDice(PlayableEventCheckRules.ResolveCount(option), PlayableEventCheckRules.ResolveSides(option));
-                int bonus = GetCheckBonus(actor, option.checkType);
-                success = PlayableEventCheckRules.IsSuccessful(option, rollValue, bonus);
-            }
-
-            // 执行效果
-            var effects = success ? option.successEffects : option.failEffects;
-            var encounterIds = new List<string>();
-            var effectResults = new List<PlayableEventEffectResult>();
-            if (evt.eventType == GameEventType.Combat && !string.IsNullOrWhiteSpace(evt.combatEncounterId))
-                RecordEncounter(evt.combatEncounterId, encounterIds);
-            if (effects != null)
-                for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
-                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, null, null, null, effectIndex, evt.ContentId));
-            if (evt.eventType == GameEventType.Combat && encounterIds.Count == 0)
-                RecordEncounter(evt.combatEncounterId, encounterIds);
-            bool campaignEnded = _settlement.GetAliveHunters().Count == 0;
-            if (campaignEnded)
-                encounterIds.Clear();
-            else
-                PublishEncounters(encounterIds, evt.name);
-            MarkEventCompleted(evt);
-
-            var result = new EventResolutionResult
-            {
-                Success = success,
-                RollValue = rollValue,
-                ResultText = success ? option.successText : option.failText,
-                EffectResults = new PlayableEventEffectBatchResult(effectResults)
-            };
-            if (campaignEnded)
-            {
-                _pendingChain.Clear();
-                return result;
-            }
-            if (encounterIds.Count > 0)
-            {
-                _pendingChain.Clear();
-                return result;
-            }
-
-            // 追加子事件链
-            EnqueueChain(success ? option.successChain : option.failChain);
-            ProcessNextInChain();
-            return result;
         }
 
         // ─── 骰子系统 ────────────────────────────────────────────
@@ -242,7 +101,7 @@ namespace HuntingInDarkness.Settlement
 
         public void ApplyEffect(EventEffect effect, HunterInstance target)
         {
-            PlayableEventEffectResult result = ApplyEffect(effect, target, _selectedHunter ?? target, null, null, null, null, -1);
+            PlayableEventEffectResult result = ApplyEffect(effect, target, target, null, null, null, null, -1);
             if (!result.Succeeded)
             {
                 if (effect?.effectType == EventEffectType.UnlockInvention && result.Reason.StartsWith("未注册发明："))
@@ -441,13 +300,6 @@ namespace HuntingInDarkness.Settlement
         private static PlayableEventEffectResult FailedEffect(int effectIndex, EventEffect effect, string reason, string eventId) => new(effectIndex, effect, PlayableEventEffectStatus.Failed, reason, eventId);
 
         // ─── 工具 ────────────────────────────────────────────────
-
-        private void EnqueueChain(IEnumerable<EventData> chain)
-        {
-            if (chain == null) return;
-            foreach (var e in chain)
-                if (e != null) _pendingChain.Enqueue(e);
-        }
 
         private static void RecordEncounter(string encounterId, List<string> encounterIds)
         {

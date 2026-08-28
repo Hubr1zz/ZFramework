@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 5,
+  "capability": "action-environment-lifecycle",
+  "title": "ActionQueue 全生命周期环境",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "事件 resolver 已收窄为显式 context adapter，不再维护平行事件队列。",
+    "codeEvidence": [
+      {
+        "guid": "415d8d7b8cbb06540ad790f520dafbde",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+        "fileHash": "c7d3ec8334ea3cc61c89ac4e02d8c00ed408c3700327646891a90d723724678c",
+        "line": 18,
+        "feature": "显式 actor/context 效果解析",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:14:16-07:00"
+      }
+    ],
+    "evidence": [
+      "Unity 编译通过。",
+      "事件 resolver 定向 EditMode 通过。"
+    ],
+    "differences": [
+      "正式 Spec 尚未明确 resolver 不得维护共享 queue/UI callback。"
+    ],
+    "verifiedAt": "2026-08-28T07:14:16-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": [
+    "formal::action-environment-lifecycle",
+    "conversation::2026-08-28"
+  ],
+  "implementationOutline": [
+    "阶段 Action root 传入 event、actor 与窄效果 command。",
+    "resolver 返回子节点、遇敌与效果结果，不继续队列。"
+  ],
+  "reviewIssues": []
+}

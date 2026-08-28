@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 5,
+  "changeId": "remove-legacy-event-orchestration",
+  "title": "移除旧事件编排与屏幕 UI 旁路",
+  "category": "architecture",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "EventSystem 去队列化、Settlement HUD 接线删除与 Hunt 3D presenter 收窄已完成；等待在 Changes 中审查后显式同步。",
+  "verification": {
+    "status": "implemented",
+    "summary": "事件链不再有共享 queue/UI callback 执行入口，正式 Settlement/Hunt 表现只保留 3D 桌面主路。",
+    "codeEvidence": [
+      {
+        "guid": "415d8d7b8cbb06540ad790f520dafbde",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
+        "fileHash": "c7d3ec8334ea3cc61c89ac4e02d8c00ed408c3700327646891a90d723724678c",
+        "line": 18,
+        "feature": "保留显式 context 事件效果 resolver，移除共享队列与隐式 actor",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:14:16-07:00"
+      },
+      {
+        "guid": "f7ee862994491514fbb756893fbdbd65",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseCoordinator.cs",
+        "fileHash": "91f2ab3096e14983dee90ead926d41038ae323a5dd0fdec57dc697c7c16762f2",
+        "line": 21,
+        "feature": "Settlement 组合边界只绑定 3D 桌面表现",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:14:16-07:00"
+      },
+      {
+        "guid": "9ecc7b5ba61f1a3469e8ce81fed5056e",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
+        "fileHash": "a25392ec43aa09abbbd16938660c7375bd55deb2c3b468caf0e23921203f6bbc",
+        "line": 12,
+        "feature": "只持有 Hunt 3D 状态板与采集面板",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:14:16-07:00"
+      }
+    ],
+    "evidence": [
+      "Unity 6000.5.9f1 编译通过。",
+      "事件 resolver 与 Settlement 组合边界 EditMode 33/33。",
+      "事件桌面 PlayMode 2/2。",
+      "战役季节循环与 3D 狩猎采集 smoke 2/2。",
+      "删除脚本 GUID 在 .unity/.prefab/.asset 中零命中。"
+    ],
+    "differences": [
+      "action-environment-lifecycle 尚未明确事件 resolver 不得持有共享队列与 View callback。",
+      "tabletop-event-interaction 仍以 legacy HUD visibility 为兼容前提，实现已完全移除该组合端口。",
+      "hunt-tabletop-harvest 仍允许 screen-space 采集 fallback，实现已按正式 3D 启动边界删除。"
+    ],
+    "verifiedAt": "2026-08-28T07:14:16-07:00"
+  },
+  "reviewIssues": [],
+  "gapIds": [],
+  "dependencyIds": [
+    "tabletop-event-interaction--requires--action-environment-lifecycle",
+    "hunt-tabletop-harvest--requires--action-environment-lifecycle"
+  ],
+  "capabilities": [
+    "action-environment-lifecycle",
+    "tabletop-event-interaction",
+    "hunt-tabletop-harvest"
+  ],
+  "syncTargets": [
+    {
+      "capability": "action-environment-lifecycle",
+      "title": "ActionQueue 全生命周期环境",
+      "category": "architecture",
+      "deltaSpecPath": "openspec/changes/remove-legacy-event-orchestration/specs/action-environment-lifecycle/spec.md",
+      "targetSpecPath": "openspec/specs/action-environment-lifecycle/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "3f0b7d11e6687935b9ba29416307fc0d739773bff5cd9558355eacc9560fff44",
+      "baseSnapshotPath": "openspec/changes/remove-legacy-event-orchestration/.sync-baseline/action-environment-lifecycle/spec.md"
+    },
+    {
+      "capability": "hunt-tabletop-harvest",
+      "title": "狩猎桌面资源采集",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/remove-legacy-event-orchestration/specs/hunt-tabletop-harvest/spec.md",
+      "targetSpecPath": "openspec/specs/hunt-tabletop-harvest/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "7605f71f0830071b02d9bf083690b3e6fddf78777109a40164ed530f5b06fa49",
+      "baseSnapshotPath": "openspec/changes/remove-legacy-event-orchestration/.sync-baseline/hunt-tabletop-harvest/spec.md"
+    },
+    {
+      "capability": "tabletop-event-interaction",
+      "title": "跨阶段桌面事件交互",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/remove-legacy-event-orchestration/specs/tabletop-event-interaction/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-event-interaction/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "6acfafb0947ab5ceb544416f992efdb455ab2ecb1409bb9f5c3e29c0317710cc",
+      "baseSnapshotPath": "openspec/changes/remove-legacy-event-orchestration/.sync-baseline/tabletop-event-interaction/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与基线一致，可以 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-28T07:19:28-07:00"
+  },
+  "createdAt": "2026-08-28T07:14:16-07:00"
+}

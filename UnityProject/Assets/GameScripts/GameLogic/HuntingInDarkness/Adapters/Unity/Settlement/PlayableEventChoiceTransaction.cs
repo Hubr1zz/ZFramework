@@ -23,7 +23,6 @@ namespace HuntingInDarkness.Settlement
         private IReadOnlyList<EventData> standaloneChain;
         private IReadOnlyList<string> standaloneEncounterIds;
         private PlayableEventEffectBatchResult standaloneEffectResults;
-        private bool continued;
         private Dictionary<int, PlayableEventFatalInjuryPreparation> fatalInjuryPreparations = new();
 
         public EventData GameEvent => gameEvent;
@@ -137,12 +136,6 @@ namespace HuntingInDarkness.Settlement
             return new PlayableEventCommitResult(committedResult, standaloneChain, standaloneEncounterIds, standaloneEffectResults);
         }
 
-        public void Continue()
-        {
-            if (!IsCommitted || continued) return;
-            continued = true;
-            eventSystem.ContinuePreparedChoice();
-        }
     }
 
     public partial class EventSystem
@@ -152,7 +145,6 @@ namespace HuntingInDarkness.Settlement
             if (gameEvent?.options == null || optionIndex < 0 || optionIndex >= gameEvent.options.Count) return null;
             EventOption option = gameEvent.options[optionIndex];
             if (preparedRoll.HasValue && !PlayableEventCheckRules.IsValidRoll(option, preparedRoll.Value)) return null;
-            actor ??= _selectedHunter;
             bool requiresHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
             if (requiresHunter && (actor == null || !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))) return null;
             if (PlayableEventOptionAvailability.HasHunterDeathEffect(option) && hunterDeathCommand == null) return null;
@@ -198,10 +190,6 @@ namespace HuntingInDarkness.Settlement
         {
             PlayableEventCommitResult result = CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, success, rollValue, resourceCommand, worldCommand, settlementCommand, itemCommand: itemCommand, populationCommand: populationCommand);
             MarkEventCompleted(gameEvent);
-            if (result.EncounterIds.Count > 0)
-                _pendingChain.Clear();
-            else
-                EnqueueChain(result.ChainedEvents);
             return result.Result;
         }
 
@@ -333,7 +321,6 @@ namespace HuntingInDarkness.Settlement
             return new PlayableEventCommitResult(rejected, System.Array.Empty<EventData>(), System.Array.Empty<string>(), rejected.EffectResults);
         }
 
-        internal void ContinuePreparedChoice() => ProcessNextInChain();
     }
 
     internal static class PlayableEventCheckRules

@@ -1,15 +1,13 @@
 using Core;
 using HuntingInDarkness.ActionFlow.Hunt;
-using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace UI.Hunt
 {
     /// <summary>
-    /// 狩猎阶段 UI 总协调器（MonoBehaviour）。
-    /// 显示猎人状态面板、资源采集弹窗、开发者模式按钮。
+    /// 狩猎阶段 3D 桌面表现协调器。
+    /// 持有状态板与资源采集面板，不承担任何玩法结算。
     /// </summary>
     public class HuntUIManager : MonoBehaviour
     {
@@ -18,15 +16,8 @@ namespace UI.Hunt
         private IHuntExplorationPort explorationPort;
         private bool _initialized;
 
-        // 子面板
-        private HunterStatusOverlay  _statusOverlay;
-        private ResourceHarvestPopup _harvestPopup;
-        private EventPopupHunt       _eventPopupHunt;
         private HuntHarvestPanel3D harvestPanel3D;
         private HuntStatusBoard3D statusBoard3D;
-
-        // 顶部信息栏
-        private Text _infoLabel;
 
         public bool IsTabletopReady => huntVisualizer != null && explorationPort != null && statusBoard3D != null;
 
@@ -44,12 +35,14 @@ namespace UI.Hunt
             _huntMgr = huntMgr;
             huntVisualizer = visualizer;
             explorationPort = port;
-            huntMgr.OnResourcePointClicked = visualizer == null ? ShowHarvestPopup : null;
+            huntMgr.OnResourcePointClicked = null;
             huntMgr.OnResourcePointPresentationRequested = visualizer != null && port != null ? ShowHarvestPresentation : null;
 
             if (_initialized)
             {
-                if (statusBoard3D != null)
+                if (statusBoard3D == null)
+                    BuildUI();
+                else
                     statusBoard3D.Initialize(_huntMgr, explorationPort);
                 Refresh();
                 return;
@@ -89,38 +82,9 @@ namespace UI.Hunt
 
         private void BuildUI()
         {
-            if (huntVisualizer != null)
-            {
-                statusBoard3D = HuntStatusBoard3D.Create(huntVisualizer.transform);
-                statusBoard3D.Initialize(_huntMgr, explorationPort);
-                return;
-            }
-
-            FullStretch(gameObject);
-
-            // 顶部信息栏
-            var topGo = NewPanel("TopBar", new Vector2(0, 0.92f), new Vector2(1, 1));
-            topGo.GetComponent<Image>().color = new Color(0.08f, 0.1f, 0.14f, 0.9f);
-            _infoLabel = MakeText(topGo, "Info", "狩猎阶段", 15, TextAnchor.MiddleCenter);
-
-            // 猎人状态叠加（左下角）
-            var statusGo = NewPanel("HunterStatus", new Vector2(0, 0), new Vector2(0.28f, 0.35f));
-            statusGo.GetComponent<Image>().color = new Color(0.08f, 0.1f, 0.14f, 0.85f);
-            _statusOverlay = statusGo.AddComponent<HunterStatusOverlay>();
-
-            // 资源采集弹窗（居中，初始隐藏）
-            var harvestGo = NewPanel("HarvestPopup", new Vector2(0.25f, 0.2f), new Vector2(0.75f, 0.8f));
-            harvestGo.SetActive(false);
-            _harvestPopup = harvestGo.AddComponent<ResourceHarvestPopup>();
-            _harvestPopup.OnClose = () => harvestGo.SetActive(false);
-
-            // 狩猎事件弹窗（复用简化版，居中）
-            var evtGo = NewPanel("EventPopup", new Vector2(0.15f, 0.1f), new Vector2(0.85f, 0.9f));
-            evtGo.SetActive(false);
-            _eventPopupHunt = evtGo.AddComponent<EventPopupHunt>();
-            _eventPopupHunt.OnClose = () => evtGo.SetActive(false);
-
-            topGo.transform.SetAsLastSibling();
+            if (huntVisualizer == null || explorationPort == null) return;
+            statusBoard3D = HuntStatusBoard3D.Create(huntVisualizer.transform);
+            statusBoard3D.Initialize(_huntMgr, explorationPort);
         }
 
         // ─── 刷新 ────────────────────────────────────────────────
@@ -133,16 +97,6 @@ namespace UI.Hunt
                 statusBoard3D.Refresh();
                 return;
             }
-            _infoLabel.text = $"{PlayableHuntDestinationRuntime.ActiveDisplayName}  — 小队位置 {_huntMgr.SquadPosition}";
-            _statusOverlay?.Init(_huntMgr.ActiveHunters);
-        }
-
-        private void ShowHarvestPopup(ResourcePointInstance point, HunterInstance hunter)
-        {
-            if (_harvestPopup == null)
-                return;
-            _harvestPopup.gameObject.SetActive(true);
-            _harvestPopup.Show(point, hunter, _huntMgr);
         }
 
         private void ShowHarvestPresentation(HuntResourcePointPresentationRequest request)
@@ -181,42 +135,6 @@ namespace UI.Hunt
 
         // ─── uGUI 工厂 ────────────────────────────────────────────
 
-        private GameObject NewPanel(string name, Vector2 aMin, Vector2 aMax)
-            => NewPanel(name, transform, aMin, aMax);
-
-        private static GameObject NewPanel(string name, Transform parent,
-            Vector2 aMin, Vector2 aMax)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin = aMin; rt.anchorMax = aMax;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            go.AddComponent<Image>().color = new Color(0.1f, 0.1f, 0.15f, 0.8f);
-            return go;
-        }
-
-        internal static Text MakeText(GameObject parent, string name, string text,
-            int fontSize, TextAnchor anchor)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent.transform, false);
-            FullStretch(go);
-            var t = go.AddComponent<Text>();
-            t.text = text; t.fontSize = fontSize; t.alignment = anchor;
-            t.color = Color.white;
-            t.font  = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            t.horizontalOverflow = HorizontalWrapMode.Wrap;
-            return t;
-        }
-
-        internal static void FullStretch(GameObject go)
-        {
-            var rt = go.GetComponent<RectTransform>() ?? go.AddComponent<RectTransform>();
-            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-        }
-
         private void OnDestroy()
         {
             ReleaseBindings();
@@ -232,7 +150,6 @@ namespace UI.Hunt
         private void ClearResourcePresentationCallbacks()
         {
             if (_huntMgr == null) return;
-            if (_huntMgr.OnResourcePointClicked == ShowHarvestPopup) _huntMgr.OnResourcePointClicked = null;
             if (_huntMgr.OnResourcePointPresentationRequested == ShowHarvestPresentation) _huntMgr.OnResourcePointPresentationRequested = null;
         }
     }

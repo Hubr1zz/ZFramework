@@ -128,11 +128,6 @@ namespace HuntingInDarkness.Adapter.Tests
             var previousEquipment = new ItemInstance(ward);
             loaded.Hunters[0].Equipment.Add(previousEquipment);
             loaded.Hunters[0].Collectibles.Add(new ItemInstance(salt));
-            System.Action<EventData, HunterInstance> eventCallback = (_, _) => { };
-            System.Action completionCallback = () => { };
-            manager.Events.OnEventTriggered = eventCallback;
-            manager.Events.OnEventChainCompleted = completionCallback;
-
             bool injected = manager.TryInjectData(loaded, out string reason);
 
             Assert.That(injected, Is.True, reason);
@@ -141,8 +136,6 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(manager.Timeline, Is.Not.SameAs(previousTimeline));
             Assert.That(manager.Data.DeparturePreparationToken, Is.EqualTo("persisted-token"));
             Assert.That(manager.Data.RuntimeDeparturePreparationToken, Is.Empty);
-            Assert.That(manager.Events.OnEventTriggered, Is.SameAs(eventCallback));
-            Assert.That(manager.Events.OnEventChainCompleted, Is.SameAs(completionCallback));
             Assert.That(manager.Data.ItemIdentitySchemaVersion, Is.EqualTo(PlayableSettlementItemRegistry.CurrentIdentitySchemaVersion));
             Assert.That(manager.Data.TraitIdentitySchemaVersion, Is.EqualTo(PlayableTraitRegistry.CurrentIdentitySchemaVersion));
             Assert.That(manager.Data.InventionIdentitySchemaVersion, Is.EqualTo(PlayableSettlementInventionRegistry.CurrentIdentitySchemaVersion));

@@ -26,7 +26,6 @@ namespace Core
         private IPlayableSettlementRuntime actionSessionOwner;
         private SettlementTable3D settlementTable;
         private GameObject settlementRoot;
-        private SettlementUIManager settlementUI;
         private PlayableWorkshopCatalog workshopCatalog;
         private PlayableSettlementContentCatalog settlementContentCatalog;
         private Func<IPlayableEventInput> eventInputProvider;
@@ -39,7 +38,6 @@ namespace Core
         private SettlementEventRestoreProjection eventRunnerProjection;
         private long eventRunnerId;
         private bool presentationConfigured;
-        private bool missingUIWarningLogged;
         private bool disposed;
 
         internal PlayableSettlementActionSession CurrentSession => GetSession(currentRuntimeProvider());
@@ -56,7 +54,7 @@ namespace Core
             configuration = nextConfiguration ?? throw new ArgumentNullException(nameof(nextConfiguration));
         }
 
-        internal void ConfigurePresentation(SettlementTable3D table, GameObject root, SettlementUIManager ui, PlayableWorkshopCatalog workshop, PlayableSettlementContentCatalog settlementContent, Action<List<HunterInstance>> onDepartureRequested)
+        internal void ConfigurePresentation(SettlementTable3D table, GameObject root, PlayableWorkshopCatalog workshop, PlayableSettlementContentCatalog settlementContent, Action<List<HunterInstance>> onDepartureRequested)
         {
             ThrowIfDisposed();
             if (presentationConfigured)
@@ -64,7 +62,6 @@ namespace Core
             presentationConfigured = true;
             settlementTable = table;
             settlementRoot = root;
-            settlementUI = ui;
             workshopCatalog = workshop;
             settlementContentCatalog = settlementContent;
             departureRequested = onDepartureRequested;
@@ -155,10 +152,7 @@ namespace Core
                 settlementTable = tableObject.AddComponent<SettlementTable3D>();
             }
 
-            settlementTable.OnHunterClicked = hunter =>
-            {
-                if (IsCurrentManager(manager)) settlementUI?.ShowHunterDetail(hunter);
-            };
+            settlementTable.OnHunterClicked = null;
             settlementTable.OnEquipRequested = (hunterId, item) => Equip(manager, hunterId, item);
             settlementTable.OnUnequipRequested = (hunterId, equipmentInstanceId) => Unequip(manager, hunterId, equipmentInstanceId);
             settlementTable.OnConsumableRequested = (hunterId, item, bodyPart) => UseConsumable(manager, hunterId, item, bodyPart);
@@ -185,41 +179,25 @@ namespace Core
         {
             ThrowIfDisposed();
             if (!IsCurrentManager(manager)) return;
-            if (!ReferenceEquals(presentationManager, manager))
-            {
-                if (settlementUI == null)
-                {
-                    if (!missingUIWarningLogged)
-                    {
-                        missingUIWarningLogged = true;
-                        Debug.LogWarning("[SettlementPhase] 未配置 SettlementUIManager，将保留 3D 营地桌面与外部流程控件。");
-                    }
-                }
-                else
-                    settlementUI.Init(manager);
-                presentationManager = manager;
-            }
+            if (!ReferenceEquals(presentationManager, manager)) presentationManager = manager;
             EnsureTable(manager);
         }
 
         internal void Refresh()
         {
             if (!HasCurrentSession()) return;
-            settlementUI?.Refresh();
             settlementTable?.Refresh();
         }
 
         internal void RefreshCards()
         {
             if (!HasCurrentSession()) return;
-            settlementUI?.Refresh();
             settlementTable?.RefreshCards();
         }
 
         internal void RefreshCrafting()
         {
             if (!HasCurrentSession()) return;
-            settlementUI?.Refresh();
             settlementTable?.RefreshCrafting();
         }
 
@@ -264,7 +242,6 @@ namespace Core
             configuration = null;
             settlementTable = null;
             settlementRoot = null;
-            settlementUI = null;
             departureRequested = null;
             presentationManager = null;
             eventInputProvider = null;

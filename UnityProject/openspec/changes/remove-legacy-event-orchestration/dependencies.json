@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {
+      "id": "action-environment-lifecycle",
+      "label": "ActionQueue 全生命周期环境",
+      "category": "architecture",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/remove-legacy-event-orchestration/specs/action-environment-lifecycle/spec.md"
+    },
+    {
+      "id": "tabletop-event-interaction",
+      "label": "跨阶段桌面事件交互",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/remove-legacy-event-orchestration/specs/tabletop-event-interaction/spec.md"
+    },
+    {
+      "id": "hunt-tabletop-harvest",
+      "label": "狩猎桌面资源采集",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/remove-legacy-event-orchestration/specs/hunt-tabletop-harvest/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "tabletop-event-interaction--requires--action-environment-lifecycle",
+      "from": "tabletop-event-interaction",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "事件 3D 输入只返回意图，事件链由阶段 ActionEnvironment 唯一执行",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "hunt-tabletop-harvest--requires--action-environment-lifecycle",
+      "from": "hunt-tabletop-harvest",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "3D 采集面板只展示 Hunt ActionQueue 已提交步骤",
+      "gapId": "",
+      "blocksImplementation": false
+    }
+  ]
+}

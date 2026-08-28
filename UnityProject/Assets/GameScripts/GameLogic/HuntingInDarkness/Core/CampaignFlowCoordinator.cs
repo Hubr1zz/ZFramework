@@ -111,7 +111,7 @@ namespace Core
             => settlementPhase.ConfigureRuntime(this);
 
         internal void ConfigureSettlementPresentation()
-            => settlementPhase.ConfigurePresentation(bindings.SettlementTable, bindings.SettlementRoot, bindings.SettlementUI, bindings.WorkshopCatalog, bindings.SettlementContentCatalog, RequestHuntDepartureFromSettlement);
+            => settlementPhase.ConfigurePresentation(bindings.SettlementTable, bindings.SettlementRoot, bindings.WorkshopCatalog, bindings.SettlementContentCatalog, RequestHuntDepartureFromSettlement);
 
         private void RequestHuntDepartureFromSettlement(List<HunterInstance> squad)
             => RequestHuntDeparture(squad != null ? squad.Where(hunter => hunter != null).Select(hunter => hunter.InstanceId).ToList() : new List<int>());

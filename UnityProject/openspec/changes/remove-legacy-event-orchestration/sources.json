@@ -1,0 +1,16 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的采纳对账：删除事件共享队列和已无生产引用的 2D 兼容表现，保留 ActionQueue 内事件效果 adapter 与 3D 桌面主路。",
+  "sourceRoots": [
+    "openspec/specs",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness"
+  ],
+  "sourceReferences": [
+    "conversation::2026-08-28",
+    "formal::action-environment-lifecycle",
+    "formal::tabletop-event-interaction",
+    "formal::hunt-tabletop-harvest",
+    "formal::hunt-phase-orchestration",
+    "formal::tabletop-hunt-squad-status"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-tabletop-harvest",
+  "title": "狩猎桌面资源采集",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "Hunt presenter 只保留 3D 状态板与采集面板，无地图根时不再创建 screen-space popup。",
+    "codeEvidence": [
+      {
+        "guid": "9ecc7b5ba61f1a3469e8ce81fed5056e",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
+        "fileHash": "a25392ec43aa09abbbd16938660c7375bd55deb2c3b468caf0e23921203f6bbc",
+        "line": 12,
+        "feature": "Hunt 3D 状态与采集表现 owner",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:14:16-07:00"
+      }
+    ],
+    "evidence": [
+      "战役循环/3D 采集 PlayMode smoke 2/2。",
+      "EventPopupHunt、ResourceHarvestPopup 与 HunterStatusOverlay GUID 序列化零引用。"
+    ],
+    "differences": [
+      "正式 Spec 仍允许非世界 host 使用 screen-space 采集 popup。"
+    ],
+    "verifiedAt": "2026-08-28T07:14:16-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [
+    "hunt-tabletop-harvest--requires--action-environment-lifecycle"
+  ],
+  "sourceReferences": [
+    "formal::hunt-tabletop-harvest",
+    "formal::hunt-phase-orchestration",
+    "formal::tabletop-hunt-squad-status"
+  ],
+  "implementationOutline": [
+    "HuntUIManager 只创建 HuntStatusBoard3D 与 HuntHarvestPanel3D。",
+    "marker 位置不可用时使用地图交互锚点，不回退屏幕 UI。"
+  ],
+  "reviewIssues": []
+}

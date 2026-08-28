@@ -138,8 +138,6 @@ namespace HuntingInDarkness.Settlement
                 return false;
             }
             if (!TryPrepareCandidate(data, randomFactory, out SettlementManager candidate, out reason)) return false;
-            candidate.Events.OnEventTriggered = Events.OnEventTriggered;
-            candidate.Events.OnEventChainCompleted = Events.OnEventChainCompleted;
             if (!candidate.TryConsumePreparedCandidate(out reason)) return false;
             binding = candidate.binding;
             contentPlan = candidate.contentPlan;
