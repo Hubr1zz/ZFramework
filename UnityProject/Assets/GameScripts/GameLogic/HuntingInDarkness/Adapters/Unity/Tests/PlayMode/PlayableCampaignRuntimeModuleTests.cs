@@ -295,7 +295,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             object coordinator = phaseManager.GetType().GetProperty("Coordinator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(phaseManager);
             settlementPresentationRoot = new GameObject("Settlement Coordinator Test Root");
             SettlementTable3D table = settlementPresentationRoot.AddComponent<SettlementTable3D>();
-            InvokeInternal(coordinator, "ConfigurePresentation", table, settlementPresentationRoot, null, null, null, new Action<List<HunterInstance>>(_ => departureCount++));
+            InvokeInternal(coordinator, "ConfigurePresentation", table, settlementPresentationRoot, null, null, new Action<List<HunterInstance>>(_ => departureCount++));
             Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime first, out string prepareReason), Is.True, prepareReason);
             Assert.That(runtime.TrySwapSettlement(null, first, out string swapReason), Is.True, swapReason);
             Assert.That(first.TryActivateActionSession(out string activationReason), Is.True, activationReason);

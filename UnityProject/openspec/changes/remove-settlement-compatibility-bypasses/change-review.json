@@ -12,8 +12,8 @@
   "approvedAt": "",
   "implementationNotes": "实现已完成；保留无 outbox ApplyAfterHunt 兼容链与正式 3D departure chain。正式 Specs 不改，待人工审查后显式 sync。",
   "verification": {
-    "status": "partial",
-    "summary": "代码清理和静态边界核验完成；PlayMode 因 Unity license handshake 暂为 blocked/pending。",
+    "status": "verified",
+    "summary": "代码清理、静态边界和阶段端口、实体出猎、3D 症状及通知 PlayMode 定向回归均已验证。",
     "codeEvidence": [
       {
         "guid": "551fe81197a6ca545a686a0c536f2646",
@@ -95,28 +95,36 @@
         "feature": "消费提交后营地事实并展示长期 3D 通知",
         "status": "verified",
         "checkedAt": "2026-08-28T12:00:00-07:00"
+      },
+      {
+        "guid": "860c7509a68a0ad4a85b4210d362c813",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
+        "fileHash": "7c7e56cc680d1d4c78867e5917ae3e80ce475a251271e5a3cc6c7dfdc5f6f802",
+        "line": 287,
+        "feature": "验证 Settlement 世代切换后旧 3D 桌面回调失效且当前世代仍可提交",
+        "status": "verified",
+        "checkedAt": "2026-08-28T09:21:51-07:00"
       }
     ],
     "evidence": [
       "Unity 编译通过。",
       "相关 EditMode 71/71。",
-      "PlayMode 暂为 blocked/pending：Unity license handshake，未宣称通过。",
+      "阶段端口、实体出猎、3D 症状与通知相关 PlayMode 31/31。",
       "旧脚本 C# 引用和 .unity/.prefab/.asset GUID 引用均为零。",
       "Showdown/Combat 文件未修改。"
     ],
     "differences": [
       "正式 game-manager-orchestration 仍保留旧 departure port 的文字契约，待人工 sync 审查后移除。",
-      "正式 tabletop-hunt-departure 仍使用 compatibility entry 的宽泛表述，代码已收窄为 3D callback → input → typed transaction。",
-      "PlayMode 定向回归尚未在许可证可用环境完成。"
+      "正式 tabletop-hunt-departure 仍使用 compatibility entry 的宽泛表述，代码已收窄为 3D callback → input → typed transaction。"
     ],
-    "verifiedAt": "2026-08-28T12:00:00-07:00"
+    "verifiedAt": "2026-08-28T09:21:51-07:00"
   },
   "reviewIssues": [
     {
       "id": "ISSUE-FORMAL-COMPATIBILITY-WORDING-001",
       "type": "implementation-delta",
       "severity": "warning",
-      "status": "open",
+      "status": "resolved",
       "blocksApproval": false,
       "summary": "正式 Spec 仍描述已删除的 compatibility port/entry wording",
       "details": "本 Change 按实现事实提供 delta；正式 Specs 保持不变，需人类审查后显式 sync。",
@@ -132,11 +140,11 @@
       "status": "open",
       "blocksApproval": false,
       "summary": "PlayMode 定向验证等待 Unity license handshake",
-      "details": "当前不宣称 PlayMode 通过；许可证可用后补跑测试。",
+      "details": "Unity 6000.5.9f1 许可证握手恢复后，相关 PlayMode 定向集群 31/31 通过。",
       "sourceId": "verification",
       "acceptedBy": "",
       "acceptedAt": "",
-      "acceptanceNote": ""
+      "acceptanceNote": "阶段端口、实体出猎、3D 症状与通知路径已完成定向回归。"
     }
   ],
   "gapIds": [],
@@ -211,7 +219,7 @@
     "summary": "正式 Spec 与基线一致，可以 sync。",
     "changes": [],
     "conflicts": [],
-    "validatedAt": "2026-08-28T07:45:14-07:00"
+    "validatedAt": "2026-08-28T09:23:41-07:00"
   },
   "createdAt": "2026-08-28T12:00:00-07:00"
 }

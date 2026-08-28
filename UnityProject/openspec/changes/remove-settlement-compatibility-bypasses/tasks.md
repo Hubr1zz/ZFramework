@@ -15,4 +15,4 @@
 - [x] 3.1 核验删除脚本的 C# 引用和 Unity 序列化 GUID
 - [x] 3.2 核验 formal 3D table callback → destination input → typed transaction 未被移除
 - [x] 3.3 记录 Unity 编译通过和 EditMode 71/71
-- [ ] 3.4 在 Unity license handshake 可用后补跑 PlayMode 定向回归
+- [x] 3.4 在 Unity license handshake 可用后补跑 PlayMode 定向回归
