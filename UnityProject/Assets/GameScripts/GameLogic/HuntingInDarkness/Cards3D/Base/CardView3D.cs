@@ -237,11 +237,11 @@ namespace Cards3D
 
         private void HandlePointerDrag(Vector2 screenPosition, bool hasWorldPosition, Vector3 worldPosition)
         {
-            if (!EnableDrag) return;
             if (_dragReady && !_isDragging && Vector2.Distance(screenPosition, _mouseDownScreenPos) > dragThresholdPixels)
             {
                 _dragReady = false;
-                BeginDrag();
+                if (EnableDrag)
+                    BeginDrag();
             }
             if (!_isDragging || !hasWorldPosition) return;
             transform.position = new Vector3(worldPosition.x, transform.position.y, worldPosition.z);

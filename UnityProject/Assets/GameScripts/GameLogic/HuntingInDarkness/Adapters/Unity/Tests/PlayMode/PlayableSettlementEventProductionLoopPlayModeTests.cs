@@ -239,6 +239,37 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator OldMaidChoice_UsesProductionPhysicalCardsAndCommitsActionQueueOutcome()
+        {
+            var persistence = new MemoryCampaignPersistence { SnapshotToLoad = CreateOldMaidSettlementSnapshot() };
+            (GameManager manager, TabletopCardInteractionPresenter presenter) = CreateProductionManagerWithCards(persistence);
+            UniTask<CampaignStartupResult>.Awaiter continueAttempt = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(continueAttempt);
+            Assert.That(continueAttempt.GetResult().Succeeded, Is.True, continueAttempt.GetResult().Reason);
+
+            PlayableSettlementEventView eventView = managerObject.GetComponent<PlayableSettlementEventView>();
+            HunterInstance hunter = manager.SettlementData.GetAliveHunters().First();
+            int initialBlackSalt = manager.SettlementData.GetResource("black_salt");
+            yield return WaitForChoice(eventView, "让一名猎人从手牌中抽出一张");
+            ClickCard(FindChoice(eventView, "让一名猎人从手牌中抽出一张"));
+            yield return WaitForChoice(eventView, hunter.Name);
+            ClickCard(FindChoice(eventView, hunter.Name));
+            yield return WaitUntil(() => presenter.IsPresenting && UnityEngine.Object.FindObjectsByType<TabletopRandomCard3D>(FindObjectsSortMode.None).Length == 10, "等待生产抽鬼牌桌生成超时。");
+            TabletopRandomCard3D safeCard = UnityEngine.Object.FindObjectsByType<TabletopRandomCard3D>(FindObjectsSortMode.None).First(card => !card.IsOldMaid && card.IsSelectable);
+            ClickCard(safeCard);
+            yield return WaitForChoice(eventView, "接受结果");
+            ClickCard(FindChoice(eventView, "接受结果"));
+            yield return WaitForChoice(eventView, "继续");
+            ClickCard(FindChoice(eventView, "继续"));
+            yield return WaitForSettlementIdle(manager);
+
+            Assert.That(manager.SettlementData.GetResource("black_salt"), Is.EqualTo(initialBlackSalt + 1));
+            Assert.That(manager.SettlementData.Timeline.Single(entry => entry.EventId == "random_faceless_hand").IsCompleted, Is.True);
+            Assert.That(manager.SettlementData.EventMemories.Count(memory => memory.EventId == "random_faceless_hand"), Is.EqualTo(1));
+            Assert.That(persistence.SnapshotToLoad.Settlement.GetResource("black_salt"), Is.EqualTo(initialBlackSalt + 1));
+        }
+
+        [UnityTest]
         public IEnumerator WhisperSickness_PersistsAndUnlocksActorScopedHuntReward()
         {
             var presenter = new RecordingRandomPresenter(1);
@@ -447,6 +478,29 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             return manager;
         }
 
+        private (GameManager Manager, TabletopCardInteractionPresenter Presenter) CreateProductionManagerWithCards(MemoryCampaignPersistence persistence)
+        {
+            managerObject = new GameObject("Playable Physical Card Event Production Loop");
+            managerObject.SetActive(false);
+            TabletopCardInteractionPresenter presenter = managerObject.AddComponent<TabletopCardInteractionPresenter>();
+            typeof(TabletopCardInteractionPresenter).GetField("revealDuration", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(presenter, 0f);
+            typeof(TabletopCardInteractionPresenter).GetField("resultDisplayDuration", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(presenter, 0f);
+            GameManager manager = managerObject.AddComponent<GameManager>();
+            Assert.That(manager.ConfigureCampaign(new CampaignBootstrapRequest
+            {
+                BattleSetup = contentCandidate.DefaultBattleSetup,
+                CellSize = contentCandidate.CellSize,
+                SettlementContent = contentCandidate.SettlementContent,
+                WorkshopContent = contentCandidate.WorkshopContent,
+                WaitForEntrySelection = true,
+                TabletopInteraction = presenter,
+                Persistence = persistence
+            }), Is.True);
+            PlayableGameBootstrap.EnsureRequiredWorldSpacePorts(managerObject, manager, settings);
+            managerObject.SetActive(true);
+            return (manager, presenter);
+        }
+
         private CampaignSnapshot CreateSettlementSnapshot()
         {
             var source = new SettlementManager(17);
@@ -476,6 +530,17 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             source.Data.CurrentYear = 3;
             source.Data.CurrentSeasonIndex = 0;
             EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == "random_whispering_mortar");
+            source.Data.Timeline.Add(new AnnalEntry { Year = 3, EventId = gameEvent.ContentId, EventName = gameEvent.eventName, EntryType = TimelineEntryType.Random });
+            return new CampaignSnapshot { Settlement = source.Data, CampaignSchemaVersion = CampaignSnapshot.CurrentSchemaVersion };
+        }
+
+        private static CampaignSnapshot CreateOldMaidSettlementSnapshot()
+        {
+            var source = new SettlementManager(29);
+            source.EnsureStartingConditions();
+            source.Data.CurrentYear = 3;
+            source.Data.CurrentSeasonIndex = 0;
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().Single(item => item.ContentId == "random_faceless_hand");
             source.Data.Timeline.Add(new AnnalEntry { Year = 3, EventId = gameEvent.ContentId, EventName = gameEvent.eventName, EntryType = TimelineEntryType.Random });
             return new CampaignSnapshot { Settlement = source.Data, CampaignSchemaVersion = CampaignSnapshot.CurrentSchemaVersion };
         }

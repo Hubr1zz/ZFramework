@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "tabletop-random-interaction", "label": "桌游式随机交互", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/harden-tabletop-random-card-presentation/specs/tabletop-random-interaction/spec.md" }
+  ],
+  "edges": []
+}

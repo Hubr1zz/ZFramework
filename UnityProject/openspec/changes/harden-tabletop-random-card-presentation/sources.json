@@ -1,0 +1,6 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的采纳对账：让生产抽牌、翻牌与抽鬼牌复用 Cards3D 实体手势，并验证真实事件 ActionQueue 闭环。",
+  "sourceRoots": ["openspec/specs"],
+  "sourceReferences": ["conversation::2026-08-28", "formal::tabletop-random-interaction"]
+}

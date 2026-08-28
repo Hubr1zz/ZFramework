@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Cards3D;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Presentation;
 using TMPro;
@@ -17,10 +16,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             public string Id;
             public int Value;
             public bool IsOldMaid;
-            public GameObject GameObject;
-            public Collider Collider;
-            public Renderer Renderer;
-            public TextMeshPro Label;
+            public TabletopRandomCard3D View;
         }
 
         [SerializeField, Min(0.25f)] private float cardWidth = 0.62f;
@@ -37,6 +33,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
 
         private UniTaskCompletionSource<int> selectionSource;
         private IReadOnlyList<CardOption> activeCards = Array.Empty<CardOption>();
+        private CancellationTokenSource presentationCancellationSource;
         private bool isPresenting;
 
         public Func<TabletopRandomInteractionRequest, Vector3> AnchorResolver { private get; set; }
@@ -50,6 +47,9 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
 
             isPresenting = true;
+            CancellationTokenSource activeCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.GetCancellationTokenOnDestroy());
+            presentationCancellationSource = activeCancellationSource;
+            CancellationToken activeCancellationToken = activeCancellationSource.Token;
             GameObject interactionRoot = null;
             Material cardBackMaterial = null;
             Material cardFrontMaterial = null;
@@ -66,7 +66,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 tableMaterial = tableMaterialTemplate != null ? tableMaterialTemplate : CreateMaterial(new Color(0.10f, 0.07f, 0.055f));
                 BuildTable(interactionRoot.transform, tableMaterial);
                 BuildInstruction(interactionRoot.transform, request.Instruction);
-                List<CardOption> cards = BuildCards(request, interactionRoot.transform, cardBackMaterial);
+                List<CardOption> cards = BuildCards(request, interactionRoot.transform, cardBackMaterial, cardFrontMaterial);
                 activeCards = cards;
 
                 var selected = new HashSet<int>();
@@ -76,21 +76,21 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 {
                     ConfigureSelectableCards(request.Kind, cards, selected);
                     selectionSource = new UniTaskCompletionSource<int>();
-                    int cardIndex = await selectionSource.Task.AttachExternalCancellation(cancellationToken);
+                    int cardIndex = await selectionSource.Task.AttachExternalCancellation(activeCancellationToken);
                     selectionSource = null;
                     selected.Add(cardIndex);
                     CardOption card = cards[cardIndex];
                     values.Add(card.Value);
                     cardIds.Add(card.Id);
-                    RevealCard(card, cardFrontMaterial, request.Kind, selectionIndex, request.Count);
+                    RevealCard(card, selectionIndex, request.Count);
                     if (revealDuration > 0f)
-                        await UniTask.Delay(TimeSpan.FromSeconds(revealDuration), cancellationToken: cancellationToken);
+                        await UniTask.Delay(TimeSpan.FromSeconds(revealDuration), cancellationToken: activeCancellationToken);
                 }
 
                 DisableAll(cards);
                 BuildResultLabel(interactionRoot.transform, request.Kind, values, cardIds);
                 if (resultDisplayDuration > 0f)
-                    await UniTask.Delay(TimeSpan.FromSeconds(resultDisplayDuration), cancellationToken: cancellationToken);
+                    await UniTask.Delay(TimeSpan.FromSeconds(resultDisplayDuration), cancellationToken: activeCancellationToken);
                 LastCompletedResult = new TabletopRandomInteractionResult(request.InteractionId, values, cardIds);
                 return LastCompletedResult;
             }
@@ -98,6 +98,9 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             {
                 selectionSource = null;
                 activeCards = Array.Empty<CardOption>();
+                if (presentationCancellationSource == activeCancellationSource)
+                    presentationCancellationSource = null;
+                activeCancellationSource.Dispose();
                 if (interactionRoot != null) Destroy(interactionRoot);
                 if (cardBackMaterial != null && cardBackMaterial != cardBackMaterialTemplate) Destroy(cardBackMaterial);
                 if (cardFrontMaterial != null && cardFrontMaterial != cardFrontMaterialTemplate) Destroy(cardFrontMaterial);
@@ -116,25 +119,15 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             if (string.IsNullOrWhiteSpace(request.DeckId)) throw new InvalidOperationException("卡牌随机交互缺少稳定牌组 ID。");
         }
 
-        private List<CardOption> BuildCards(TabletopRandomInteractionRequest request, Transform parent, Material backMaterial)
+        private List<CardOption> BuildCards(TabletopRandomInteractionRequest request, Transform parent, Material backMaterial, Material frontMaterial)
         {
             List<CardOption> cards = CreateDeck(request);
             Shuffle(cards);
             for (int index = 0; index < cards.Count; index++)
             {
-                int cardIndex = index;
                 CardOption card = cards[index];
-                GameObject gameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                gameObject.name = $"Card_{card.Id}";
-                gameObject.transform.SetParent(parent, false);
-                gameObject.transform.localScale = new Vector3(cardWidth, cardThickness, cardHeight);
-                gameObject.transform.localPosition = ResolveCardPosition(request.Kind, index, cards.Count);
-                card.GameObject = gameObject;
-                card.Collider = gameObject.GetComponent<Collider>();
-                card.Renderer = gameObject.GetComponent<Renderer>();
-                card.Renderer.sharedMaterial = backMaterial;
-                gameObject.AddComponent<ClickProxy>().OnClick = () => SelectCard(cardIndex);
-                card.Label = BuildCardLabel(gameObject.transform);
+                card.View = TabletopRandomCard3D.Create(card.Id, index, card.Value, card.IsOldMaid, request.Kind == TabletopRandomInteractionKind.OldMaid, parent, ResolveCardPosition(request.Kind, index, cards.Count), new Vector3(cardWidth, cardThickness, cardHeight), backMaterial, frontMaterial, cardFont);
+                card.View.Selected = SelectCard;
             }
             return cards;
         }
@@ -177,24 +170,6 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             return new Vector3(rowOffset + column * spacing, row * cardThickness * 0.25f, 0.15f - row * cardHeight * 0.78f);
         }
 
-        private TextMeshPro BuildCardLabel(Transform parent)
-        {
-            var labelObject = new GameObject("FaceLabel");
-            labelObject.transform.SetParent(parent, false);
-            labelObject.transform.localPosition = new Vector3(0f, 0.58f, 0f);
-            labelObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            labelObject.transform.localScale = new Vector3(1f / cardWidth, 1f / cardHeight, 1f);
-            TextMeshPro label = labelObject.AddComponent<TextMeshPro>();
-            label.text = "?";
-            if (cardFont != null) label.font = cardFont;
-            label.fontSize = 0.18f;
-            label.fontStyle = FontStyles.Bold;
-            label.alignment = TextAlignmentOptions.Center;
-            label.color = new Color(0.92f, 0.82f, 0.62f);
-            label.rectTransform.sizeDelta = new Vector2(cardWidth * 0.72f, cardHeight * 0.62f);
-            return label;
-        }
-
         private void ConfigureSelectableCards(TabletopRandomInteractionKind kind, IReadOnlyList<CardOption> cards, ISet<int> selected)
         {
             DisableAll(cards);
@@ -203,35 +178,36 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 for (int index = cards.Count - 1; index >= 0; index--)
                     if (!selected.Contains(index))
                     {
-                        cards[index].Collider.enabled = true;
+                        cards[index].View.SetSelectable(true);
                         return;
                     }
                 return;
             }
             for (int index = 0; index < cards.Count; index++)
-                cards[index].Collider.enabled = !selected.Contains(index);
+                cards[index].View.SetSelectable(!selected.Contains(index));
         }
 
-        private void SelectCard(int index)
+        private void SelectCard(TabletopRandomCard3D selectedCard)
         {
-            if (selectionSource == null || index < 0 || index >= activeCards.Count || !activeCards[index].Collider.enabled) return;
+            if (selectionSource == null || selectedCard == null || !selectedCard.IsSelectable) return;
+            int index = selectedCard.CardIndex;
+            if (index < 0 || index >= activeCards.Count || activeCards[index].View != selectedCard) return;
             selectionSource.TrySetResult(index);
         }
 
-        private void RevealCard(CardOption card, Material frontMaterial, TabletopRandomInteractionKind kind, int selectionIndex, int selectionCount)
+        private void RevealCard(CardOption card, int selectionIndex, int selectionCount)
         {
-            card.Collider.enabled = false;
-            card.Renderer.sharedMaterial = frontMaterial;
-            card.Label.text = kind == TabletopRandomInteractionKind.OldMaid ? card.IsOldMaid ? "鬼牌" : "安全" : card.Value.ToString();
             float spacing = cardWidth * 1.05f;
-            card.GameObject.transform.localPosition = new Vector3(-(selectionCount - 1) * spacing * 0.5f + selectionIndex * spacing, 0.10f, -1.05f);
+            card.View.Reveal(new Vector3(-(selectionCount - 1) * spacing * 0.5f + selectionIndex * spacing, 0.10f, -1.05f));
         }
 
         private static void DisableAll(IReadOnlyList<CardOption> cards)
         {
             foreach (CardOption card in cards)
-                card.Collider.enabled = false;
+                card.View.SetSelectable(false);
         }
+
+        private void OnDisable() => presentationCancellationSource?.Cancel();
 
         private void BuildTable(Transform parent, Material material)
         {

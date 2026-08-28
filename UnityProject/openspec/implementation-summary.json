@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "8da7551298d8d9d9b8e459ec3230af4e63d7e75a32315097a24ca7855740e1e2",
-  "inputManifestDigest": "c1d0be5a76dc9a06bc90f5f3c7526e55a7909418692666c40ca7ff143d7fbc71",
-  "outputDigest": "b874dfb1cda381e781df33762985c0d604a7ee97979cd53c4d9e4130994f610e",
+  "inputDigest": "00187f75a69b8c963acdb35ae72af8371a2f97e23845174e9015701f174e59d0",
+  "inputManifestDigest": "f09e22094b79ca1e77d15793f2320af73d2cf2cbae90cd42878ec0d213bb80d4",
+  "outputDigest": "0571ff238854b924d11ae0b93a4622fa5a2138b980378b54a574988a28db2811",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -677,7 +677,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
-      "sha256": "192398aad9f73699b748d60bb24319a01a43121742888b3e097460f674739450",
+      "sha256": "2cd8d487742e6f0bb9e3a3a08e6808b939ff37f60df929c4cd27f8f149f7ddfa",
       "state": "current"
     },
     {
@@ -688,6 +688,11 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/ResourceZoneLayoutPlayModeTests.cs",
       "sha256": "809f2a5aff4a21d90a213684fed3eea377060d21775d98a3ef6ad6c4867a9813",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopCardInteractionPresenterPlayModeTests.cs",
+      "sha256": "6ef3dd3209be1283209bf5f1b5d3b91dcfbd0491850aae13add372bf33008413",
       "state": "current"
     },
     {
@@ -712,7 +717,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs",
-      "sha256": "16fbb40b98bc9c1fa59bb646ce6efa63f8add9138283be86f174b70dc52351ca",
+      "sha256": "db087fd0be9e0d48b7d5c8ec7feac463410a11a510a1b0a9aa8401e630408a8b",
       "state": "current"
     },
     {
@@ -1172,12 +1177,17 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCardInteractionPresenter.cs",
-      "sha256": "a53ac7cfb416f588155246d931e1184e73781c27a235bec9ccb4ad1f480fb5e8",
+      "sha256": "35594fdf09406ccf56532046a074490736caee4c4dab838ed37d1b5deaab75d6",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs",
       "sha256": "ab14d542c9debf4280d329322d748e84b3eae677a356cc1c8b1aee5d1ae9f3e8",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopRandomCard3D.cs",
+      "sha256": "8f6f8888d96d10c15634a10b61eae1de8cfb1ae85f9bcee793dacafdbb4a0ca0",
       "state": "current"
     },
     {
@@ -1747,7 +1757,7 @@
     },
     {
       "path": "openspec/specs/tabletop-random-interaction/implementation.json",
-      "sha256": "7a215b75f6e0f24c770059da4209e800c59b9305601e91596bcd4014df27a71b",
+      "sha256": "326e50ed5f3f2a234de84fa023c1e0c91705d260eea84170e6886f7d22f05dde",
       "state": "current"
     },
     {
@@ -2069,6 +2079,11 @@
     {
       "capability": "campaign-persistence",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableItemIdentityMigrationTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "campaign-persistence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
       "state": "stale"
     },
     {
@@ -3279,7 +3294,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -5359,7 +5374,7 @@
       "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "营地与狩猎 ActionQueue 通过统一请求协议等待物理骰子与卡牌交互；事件重投以显式事务同时提交一份意志成本和一份命运成长，普通意志成本不会误增命运。",
+      "summary": "营地与狩猎 ActionQueue 通过统一请求协议等待物理骰子与 Cards3D 实体卡牌交互；事件重投以显式事务同时提交一份意志成本和一份命运成长，普通意志成本不会误增命运。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-random-interaction/spec.md",
@@ -5377,6 +5392,18 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCardInteractionPresenter.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopRandomCard3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopCardInteractionPresenterPlayModeTests.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
           "state": "current"
         },
         {

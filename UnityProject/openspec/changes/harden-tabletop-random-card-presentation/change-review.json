@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 5,
+  "changeId": "harden-tabletop-random-card-presentation",
+  "title": "强化桌面随机实体卡牌表现",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现与定向验证已完成；正式 Spec 保持不变，等待人类在 Changes 中审查并显式同步。",
+  "verification": {
+    "status": "implemented",
+    "summary": "三类卡牌请求已复用 Cards3D 物理手势；取消清理、拖动门禁、牌堆顶与真实 Old Maid ActionQueue 闭环均通过。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity 6000.5.9f1 PlayMode 随机卡牌表现器 4/4。",
+      "Unity 6000.5.9f1 PlayMode 真实 Old Maid 生产闭环 1/1。",
+      "Unity 6000.5.9f1 PlayMode Cards3D 指针回归 5/5。"
+    ],
+    "differences": [
+      "正式 Spec 尚未明确非拖拽卡牌的移动阈值、表现器禁用清理和取消后复用语义。"
+    ],
+    "verifiedAt": "2026-08-28T02:24:00-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-TABLETOP-RANDOM-CARDS-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认 Cards3D 指针门禁和取消清理属于桌面随机交互的正式生产契约。",
+      "details": "批准后只同步 tabletop-random-interaction Delta，不改变牌组规则或 ActionQueue 权威边界。",
+      "sourceId": "conversation::2026-08-28",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": [
+    "tabletop-random-interaction"
+  ],
+  "syncTargets": [
+    {
+      "capability": "tabletop-random-interaction",
+      "title": "桌游式随机交互",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/harden-tabletop-random-card-presentation/specs/tabletop-random-interaction/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-random-interaction/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "d385623ddeaf72640896d76f73dbb28f2894e8503bb211812cc14d607d8e7d47",
+      "baseSnapshotPath": "openspec/changes/harden-tabletop-random-card-presentation/.sync-baseline/tabletop-random-interaction/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "正式 Spec 基线已记录。",
+    "conflicts": [],
+    "validatedAt": "2026-08-28T02:26:41-07:00"
+  },
+  "createdAt": "2026-08-28T02:24:00-07:00"
+}

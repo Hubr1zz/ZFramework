@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-random-interaction",
+  "title": "桌游式随机交互",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "生产随机卡牌已复用 Cards3D 物理指针，并在退出路径完整释放临时交互所有权。",
+    "codeEvidence": [
+      { "guid": "711d71c768fd78e46bf7d7de945b082b", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopRandomCard3D.cs", "fileHash": "8f6f8888d96d10c15634a10b61eae1de8cfb1ae85f9bcee793dacafdbb4a0ca0", "line": 9, "feature": "Cards3D 正反面、可选状态与稳定卡牌身份", "status": "verified", "checkedAt": "2026-08-28T02:24:00-07:00" },
+      { "guid": "b336b4bfea4a3204cb10ffec3f323626", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCardInteractionPresenter.cs", "fileHash": "35594fdf09406ccf56532046a074490736caee4c4dab838ed37d1b5deaab75d6", "line": 43, "feature": "卡牌请求串行选择、揭示、取消与清理", "status": "verified", "checkedAt": "2026-08-28T02:24:00-07:00" },
+      { "guid": "680c4dd3ef562024ebe38aa3a5bb7aa1", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs", "fileHash": "db087fd0be9e0d48b7d5c8ec7feac463410a11a510a1b0a9aa8401e630408a8b", "line": 238, "feature": "超过移动阈值时取消短按语义", "status": "verified", "checkedAt": "2026-08-28T02:24:00-07:00" },
+      { "guid": "861fe749dd016ee4d947c65e136b7fef", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopCardInteractionPresenterPlayModeTests.cs", "fileHash": "6ef3dd3209be1283209bf5f1b5d3b91dcfbd0491850aae13add372bf33008413", "line": 14, "feature": "物理卡牌选择、牌堆顶、拖动与取消复用验证", "status": "verified", "checkedAt": "2026-08-28T02:24:00-07:00" },
+      { "guid": "9f3f3c95db5b4a7cae536b57f22ea37d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs", "fileHash": "2cd8d487742e6f0bb9e3a3a08e6808b939ff37f60df929c4cd27f8f149f7ddfa", "line": 242, "feature": "真实 Old Maid 实体卡牌到 ActionQueue 与存档闭环", "status": "verified", "checkedAt": "2026-08-28T02:24:00-07:00" }
+    ],
+    "evidence": ["Unity PlayMode 定向测试 10/10。"],
+    "differences": ["正式 Spec 尚未明确拖动门禁、禁用清理和取消后复用。"],
+    "verifiedAt": "2026-08-28T02:24:00-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["使用 CardView3D 派生实体承载输入与正反面投影。", "Presenter 保持规则无关，只管理临时牌桌和结果 DTO。", "所有退出路径统一取消并释放输入租约。"],
+  "reviewIssues": [
+    { "id": "ISSUE-TABLETOP-RANDOM-CARDS-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认 Cards3D 指针门禁和取消清理属于桌面随机交互的正式生产契约。", "details": "同步后不改变牌组数值或 ActionQueue 权威边界。", "sourceId": "conversation::2026-08-28", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}
