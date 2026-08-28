@@ -8,7 +8,9 @@ using Core;
 using Cards3D;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
+using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.ActionFlow.Presentation;
+using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
@@ -20,6 +22,7 @@ using HuntingInDarkness.ViewLayer.Hunt;
 using HuntingInDarkness.ViewLayer.Settlement;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using NUnit.Framework;
+using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -32,6 +35,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         private GameObject managerObject;
         private PlayableBootstrapSettings settings;
         private PlayableCampaignContentCandidate contentCandidate;
+        private HexTileData patchedTileConfig;
+        private EventData originalPatchedTileRevealEvent;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -48,6 +53,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         [UnityTearDown]
         public IEnumerator TearDown()
         {
+            RestorePatchedTile();
             if (managerObject != null)
                 UnityEngine.Object.Destroy(managerObject);
             yield return null;
@@ -187,6 +193,111 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(manager.SettlementData.PendingEventChains, Is.Empty);
         }
 
+        [UnityTest]
+        public IEnumerator WhisperSickness_PersistsAndUnlocksActorScopedHuntReward()
+        {
+            var presenter = new RecordingRandomPresenter(1);
+            var persistence = new MemoryCampaignPersistence { SnapshotToLoad = CreateWhisperSettlementSnapshot() };
+            GameManager manager = CreateProductionManager(persistence, presenter);
+            UniTask<CampaignStartupResult>.Awaiter continueAttempt = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(continueAttempt);
+            CampaignStartupResult continueResult = continueAttempt.GetResult();
+            Assert.That(continueResult.Succeeded, Is.True, continueResult.Reason);
+
+            PlayableSettlementEventView eventView = managerObject.GetComponent<PlayableSettlementEventView>();
+            HunterInstance hunter = manager.SettlementData.GetAliveHunters().First();
+            int hunterId = hunter.InstanceId;
+            int initialStrength = hunter.Stats.strength;
+            yield return WaitForChoice(eventView, "从配方牌中翻出缺失的最后一张");
+            ClickCard(FindChoice(eventView, "从配方牌中翻出缺失的最后一张"));
+            yield return WaitForChoice(eventView, hunter.Name);
+            ClickCard(FindChoice(eventView, hunter.Name));
+            yield return WaitUntil(() => presenter.LastRequest.HasValue, "等待低语配方翻牌请求超时。");
+            Assert.That(presenter.LastRequest.Value.Kind, Is.EqualTo(TabletopRandomInteractionKind.FlipCards));
+            Assert.That(presenter.LastRequest.Value.ActorId, Is.EqualTo(hunterId.ToString()));
+            yield return WaitForChoice(eventView, "接受结果");
+            ClickCard(FindChoice(eventView, "接受结果"));
+            yield return WaitForChoice(eventView, "继续");
+            ClickCard(FindChoice(eventView, "继续"));
+            yield return WaitForSettlementIdle(manager);
+
+            HunterSymptomState acquiredState = HunterSymptomRules.Find(hunter, "symptom_whisper_sickness");
+            Assert.That(acquiredState, Is.Not.Null);
+            Assert.That(hunter.Stats.strength, Is.EqualTo(Mathf.Max(0, initialStrength - 1)));
+            Assert.That(hunter.Ailments, Does.Contain("低语症").And.Not.Contain("symptom_whisper_sickness"));
+            Assert.That(manager.SettlementData.Timeline.Single(entry => entry.EventId == "random_whispering_mortar").IsCompleted, Is.True);
+
+            HunterSymptomPanel3D symptomPanel = managerObject.GetComponentInChildren<HunterSymptomPanel3D>(true);
+            Assert.That(symptomPanel, Is.Not.Null);
+            symptomPanel.Open(hunter, manager.SettlementData, settings.Symptoms, null, Vector3.zero);
+            Assert.That(symptomPanel.GetComponentsInChildren<HunterSymptomCard3D>(true).Single(card => card.Definition?.Id == "symptom_whisper_sickness").DisplayName, Is.EqualTo("低语症"));
+            symptomPanel.Hide();
+
+            CampaignSnapshot symptomaticSnapshot = persistence.SnapshotToLoad;
+            UnityEngine.Object.Destroy(managerObject);
+            managerObject = null;
+            yield return null;
+            persistence.SnapshotToLoad = symptomaticSnapshot;
+            presenter = new RecordingRandomPresenter(10);
+            manager = CreateProductionManager(persistence, presenter);
+            UniTask<CampaignStartupResult>.Awaiter restoreAttempt = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(restoreAttempt);
+            CampaignStartupResult restoreResult = restoreAttempt.GetResult();
+            Assert.That(restoreResult.Succeeded, Is.True, restoreResult.Reason);
+            yield return WaitForSettlementIdle(manager);
+
+            eventView = managerObject.GetComponent<PlayableSettlementEventView>();
+            hunter = manager.SettlementData.GetHunter(hunterId);
+            Assert.That(HunterSymptomRules.Find(hunter, "symptom_whisper_sickness"), Is.Not.Null);
+            Assert.That(hunter.Ailments, Does.Contain("低语症"));
+            EventData rootPulse = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == "hunt_root_pulse");
+            EventOption symptomOption = rootPulse.options.First(option => option.conditions.Any(condition => condition.conditionKind == EventOptionConditionKind.HasAilment));
+            Assert.That(PlayableEventOptionAvailability.CanUse(symptomOption, hunter, manager.SettlementData, out string availableReason), Is.True, availableReason);
+            HunterInstance otherHunter = manager.SettlementData.GetAliveHunters().First(candidate => candidate.InstanceId != hunterId);
+            Assert.That(PlayableEventOptionAvailability.CanUse(symptomOption, otherHunter, manager.SettlementData, out _), Is.False);
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { hunterId }, contentCandidate.HuntDestinations.GetAvailable(3)[0]).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            SettlementDepartureCommandResult departureResult = departure.GetResult();
+            Assert.That(departureResult.Succeeded, Is.True, departureResult.Reason);
+            yield return WaitUntil(() => !PlayableHuntInputGuard.IsBlocked, "等待低语症猎人进入狩猎桌超时。");
+
+            HuntManager huntManager = manager.ActiveHuntRuntime.Manager;
+            Assert.That(huntManager.BoundRoute.TryResolveEvent("hunt_root_pulse", out rootPulse), Is.True);
+            HexTileInstance targetTile = huntManager.Map.Values.First(tile => tile.State == TileState.Interactable && !tile.HasBossEncounter && tile.Config != null);
+            HuntMapVisualizer visualizer = managerObject.GetComponentInChildren<HuntMapVisualizer>(true);
+            PlayableHexTileCard3D targetTileCard = visualizer.GetComponentsInChildren<PlayableHexTileCard3D>(true).First(card => card.gameObject.name == $"Tile_{targetTile.AxialCoord.x}_{targetTile.AxialCoord.y}");
+            patchedTileConfig = targetTile.Config;
+            originalPatchedTileRevealEvent = patchedTileConfig.tileRevealEvent;
+            patchedTileConfig.tileRevealEvent = rootPulse;
+            int initialRootCount = hunter.Collectibles.Where(item => item?.Data?.ContentId == "bulbous_root").Sum(item => item.Count);
+            int initialSettlementRootCount = manager.SettlementData.GetResource("bulbous_root");
+            targetTileCard.enabled = false;
+            Assert.That(manager.ActiveHuntExplorationPort.TryCreateSnapshot(targetTile.AxialCoord, -1, out HuntExplorationSnapshot exploration), Is.True);
+            UniTask<HuntTileCommandResult>.Awaiter reveal = manager.ActiveHuntExplorationPort.SubmitTileAsync(exploration).GetAwaiter();
+            yield return WaitForChoice(eventView, "让患有低语症的猎人指出脉搏间隙");
+            ClickCard(FindChoice(eventView, "让患有低语症的猎人指出脉搏间隙"));
+            yield return WaitForChoice(eventView, "继续");
+            ClickCard(FindChoice(eventView, "继续"));
+            yield return WaitForCompletion(reveal);
+            HuntTileCommandResult revealResult = reveal.GetResult();
+            Assert.That(revealResult.Succeeded, Is.True, revealResult.Reason);
+            Assert.That(hunter.Collectibles.Where(item => item?.Data?.ContentId == "bulbous_root").Sum(item => item.Count), Is.EqualTo(initialRootCount + 2));
+            RestorePatchedTile();
+
+            HuntRetreatPanel3D retreatPanel = manager.GetComponentInChildren<HuntRetreatPanel3D>(true);
+            ClickCard(retreatPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.DisplayName == "收队回营"));
+            ClickCard(retreatPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == "结算并回营"));
+            yield return ResolveSettlementEventsAfterReturn(manager, eventView);
+            yield return WaitForSettlementIdle(manager);
+
+            hunter = manager.SettlementData.GetHunter(hunterId);
+            Assert.That(manager.SettlementData.GetResource("bulbous_root"), Is.EqualTo(initialSettlementRootCount + 2));
+            Assert.That(HunterSymptomRules.Find(hunter, "symptom_whisper_sickness"), Is.Not.Null);
+            Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(3));
+            Assert.That(manager.SettlementData.CurrentSeasonIndex, Is.EqualTo(1));
+        }
+
         private GameManager CreateProductionManager(MemoryCampaignPersistence persistence, ITabletopRandomInteractionPresenter presenter)
         {
             managerObject = new GameObject("Playable Settlement Event Production Loop");
@@ -218,6 +329,25 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             source.Data.Timeline.Add(new AnnalEntry { Year = 3, EventId = gameEvent.ContentId, EventName = gameEvent.eventName, IsMilestone = true, EntryType = TimelineEntryType.Scheduled });
             source.Data.Timeline.Add(new AnnalEntry { Year = 3, EventId = "random_stone_vigil", EventName = "石缝里的盐光", IsCompleted = true, EntryType = TimelineEntryType.Random });
             Assert.That(source.Data.PendingHuntReturn, Is.Null);
+            return new CampaignSnapshot { Settlement = source.Data, CampaignSchemaVersion = CampaignSnapshot.CurrentSchemaVersion };
+        }
+
+        private void RestorePatchedTile()
+        {
+            if (patchedTileConfig == null) return;
+            patchedTileConfig.tileRevealEvent = originalPatchedTileRevealEvent;
+            patchedTileConfig = null;
+            originalPatchedTileRevealEvent = null;
+        }
+
+        private static CampaignSnapshot CreateWhisperSettlementSnapshot()
+        {
+            var source = new SettlementManager(19);
+            source.EnsureStartingConditions();
+            source.Data.CurrentYear = 3;
+            source.Data.CurrentSeasonIndex = 0;
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == "random_whispering_mortar");
+            source.Data.Timeline.Add(new AnnalEntry { Year = 3, EventId = gameEvent.ContentId, EventName = gameEvent.eventName, EntryType = TimelineEntryType.Random });
             return new CampaignSnapshot { Settlement = source.Data, CampaignSchemaVersion = CampaignSnapshot.CurrentSchemaVersion };
         }
 
@@ -329,7 +459,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             public UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
             {
                 LastRequest = request;
-                return UniTask.FromResult(new TabletopRandomInteractionResult(request.InteractionId, new[] { value }, Array.Empty<string>()));
+                IReadOnlyList<string> cardIds = request.Kind == TabletopRandomInteractionKind.PhysicalDice ? Array.Empty<string>() : new[] { $"{request.DeckId}:0" };
+                return UniTask.FromResult(new TabletopRandomInteractionResult(request.InteractionId, new[] { value }, cardIds));
             }
         }
 

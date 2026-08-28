@@ -35,6 +35,24 @@ namespace HuntingInDarkness.GameCore.Tests
         }
 
         [Test]
+        public void Evaluate_HasAilmentUsesActiveStableSymptomStateAndLegacyFallback()
+        {
+            var hunter = new HunterState();
+            var stableCondition = new EventOptionConditionDefinition(EventOptionConditionKind.HasAilment, "symptom_whisper_sickness", 0, false, "低语症");
+            hunter.SymptomStates.Add(new HunterSymptomState { SymptomId = "symptom_whisper_sickness" });
+
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { stableCondition }, hunter, null, null, out string reason), Is.True, reason);
+            hunter.SymptomStates[0].IsOvercome = true;
+            hunter.Ailments.Add("symptom_whisper_sickness");
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { stableCondition }, hunter, null, null, out reason), Is.False);
+            Assert.That(reason, Does.Contain("低语症").And.Not.Contain("symptom_whisper_sickness"));
+
+            hunter.Ailments.Add("legacy_ailment");
+            var legacyCondition = new EventOptionConditionDefinition(EventOptionConditionKind.HasAilment, "legacy_ailment", 0, false);
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { legacyCondition }, hunter, null, null, out reason), Is.True, reason);
+        }
+
+        [Test]
         public void Evaluate_HasKeywordUsesSharedRuleLanguage()
         {
             var conditions = new[] { new EventOptionConditionDefinition(EventOptionConditionKind.HasKeyword, "stone", 0, false) };

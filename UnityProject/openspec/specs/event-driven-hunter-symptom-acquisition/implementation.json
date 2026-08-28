@@ -8,17 +8,35 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "事件表只接受稳定症状 ID；旧显示名与别名在恢复时迁移为唯一症状状态，Settlement/Hunt 事件节点幂等写入并在提交检查点发布获得事实，3D 症状板读取同一权威状态。",
+    "summary": "事件表只接受稳定症状 ID，并以症状目录提供玩家显示名；条件检查优先读取未克服的稳定症状状态，Settlement 获得、存档恢复、3D 症状展示及 Hunt 角色专属分支共享同一权威状态。",
     "validatedAgainstSpecHash": "fe9446f2f6220e5b5af1c765d5bfc36b9069491bb6824eacbbf6ace9e64cc2b6",
     "evidence": [
       {
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
-        "line": 497,
-        "fileHash": "c6c4030bde7ccafc5b4cef940f32e8a9b1365230ecc53aa20473705a7fd0b897",
+        "line": 480,
+        "fileHash": "6f6e4fb6ea33c15f2890997bbc423f05bdd7606e0329df42d7f164481df75c56",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
-        "feature": "发布前以 PlayableSymptomCatalog 精确校验 AddAilment 的稳定 ID。"
+        "checkedAt": "2026-08-28T01:13:32-07:00",
+        "feature": "发布前以 PlayableSymptomCatalog 精确校验 AddAilment 与 HasAilment 的稳定 ID，并投影症状显示名。"
+      },
+      {
+        "guid": "7d08fa612005acb448957a59099ec9d8",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/EventOptionAvailabilityRules.cs",
+        "line": 135,
+        "fileHash": "b52f24418c91442c54ebc30474b87520662204f93b7c68ca931d233ebf3bb170",
+        "status": "verified",
+        "checkedAt": "2026-08-28T01:13:32-07:00",
+        "feature": "HasAilment 优先匹配稳定且未克服的 SymptomStates；无稳定状态时才兼容旧 Ailments token。"
+      },
+      {
+        "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+        "line": 197,
+        "fileHash": "c82ff65113df408bca1dae8e1a0a33bd95c5ec4602fcd5733cb5d8d9466d3eb2",
+        "status": "verified",
+        "checkedAt": "2026-08-28T01:13:32-07:00",
+        "feature": "验证 3D 营地事件获得低语症、存档继续及指定猎人在 Hunt 中解锁症状分支。"
       },
       {
         "guid": "ca1956f2d5908d74f92586c7cac6ecb2",
@@ -57,13 +75,18 @@
         "feature": "世界空间症状板从猎人稳定症状状态投影卡牌，不拥有第二份玩法数据。"
       }
     ],
-    "tests": ["PlayableEventSymptomAcquisitionTests: 11/11 passed"],
-    "verifiedAt": "2026-08-25T15:05:28-07:00"
+    "tests": [
+      "EventOptionAvailabilityRulesTests: 7/7 passed",
+      "PlayableConditionalEventOptionTests: 15/15 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 3/3 passed"
+    ],
+    "verifiedAt": "2026-08-28T01:19:12-07:00"
   },
   "implementationOutline": [
     "读表内容使用稳定症状 ID，显示名与 alias 仅用于旧存档迁移。",
     "EventSystem 校验权威营地猎人后调用 PlayableSymptomRuntime，重复获得不重复应用状态或修正值。",
-    "事件节点在 ActionQueue 检查点发布症状事实，3D 猎人症状板读取同一状态。"
+    "事件节点在 ActionQueue 检查点发布症状事实，3D 猎人症状板与 Hunt 条件分支读取同一稳定状态。",
+    "HasAilment 以稳定非克服状态为权威；旧 Ailments 稳定 token 仅作为无状态存档的兼容回退。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs:497",

@@ -8,16 +8,16 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "共享 Hunt 根事件从合并表目录装配到路线内容池，Triggered 子事件只通过稳定分支进入；锈蚀葬坑的翻牌加注链与路线专属事件都由 Hunt Runner 和同一 3D 随机交互端口结算。",
+    "summary": "共享 Hunt 根事件从合并表目录装配到路线内容池，Triggered 子事件只通过稳定分支进入；生产低语症分支按稳定症状状态限定实际出猎角色，并由 Hunt Runner 与 3D 交互提交奖励。",
     "validatedAgainstSpecHash": "34d0ec259212b8e6233de1d446f968c021c407bea2111d6460197dbf3632eca2",
     "evidence": [
       {
         "guid": "5aaad4b60ab84a34193791e0287c1542",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
         "line": 251,
-        "fileHash": "c6c4030bde7ccafc5b4cef940f32e8a9b1365230ecc53aa20473705a7fd0b897",
+        "fileHash": "6f6e4fb6ea33c15f2890997bbc423f05bdd7606e0329df42d7f164481df75c56",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "checkedAt": "2026-08-28T01:13:32-07:00",
         "feature": "合并 Hunt 内容，排除空白、错误类别和所有重复路线 ID，并以合法表事件按稳定 ID 覆盖。"
       },
       {
@@ -68,11 +68,20 @@
       {
         "guid": "2b17ff3d52628a04b81c7873108ecf6f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
-        "line": 143,
-        "fileHash": "83c7ffccb42f0900dc4e6df0769f2d341c61609374cd33e22df4740daf6644fe",
+        "line": 234,
+        "fileHash": "63a8d278f8f37ede6832316589b271b4fabc23357295fc5de2449bac092d9275",
         "status": "verified",
-        "checkedAt": "2026-08-25T18:29:21-07:00",
-        "feature": "验证骨锯、甲壳护臂关键词及低语症可通过权威条件检查开启对应狩猎分支。"
+        "checkedAt": "2026-08-28T01:13:32-07:00",
+        "feature": "验证骨锯、甲壳护臂关键词及通过 PlayableSymptomRuntime 获得的低语症开启对应角色分支。"
+      },
+      {
+        "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+        "line": 197,
+        "fileHash": "c82ff65113df408bca1dae8e1a0a33bd95c5ec4602fcd5733cb5d8d9466d3eb2",
+        "status": "verified",
+        "checkedAt": "2026-08-28T01:13:32-07:00",
+        "feature": "通过真实 3D 事件卡和 Hunt 探索端口验证低语症分支仅对指定出猎角色开放并提交两份资源。"
       },
       {
         "guid": "d0c7fcbce2a24d2c81f0fe24b60ec7d5",
@@ -116,9 +125,11 @@
       "PlayableHuntContentBundleTests: 12/12 passed",
       "PlayableHuntActionSessionTests: 21/21 passed",
       "ProductionHuntEventResourceEffects_UseResolvableStableItemIds: 1/1 passed",
-      "Unity CLI EditMode full suite: 763/763 passed"
+      "Unity CLI EditMode full suite: 763/763 passed",
+      "PlayableConditionalEventOptionTests: 15/15 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 3/3 passed"
     ],
-    "verifiedAt": "2026-08-26T12:50:00-07:00"
+    "verifiedAt": "2026-08-28T01:19:12-07:00"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 先发布稳定表事件世代，再与路线 Hunt 事件按稳定 ID 合并。",

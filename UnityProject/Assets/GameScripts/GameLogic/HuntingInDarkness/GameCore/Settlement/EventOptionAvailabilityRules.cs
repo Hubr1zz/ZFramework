@@ -94,7 +94,7 @@ namespace HuntingInDarkness.GameCore.Settlement
                 EventOptionConditionKind.MinimumLuck => $"命运至少 {condition.Value}",
                 EventOptionConditionKind.MaximumLuck => $"命运不高于 {condition.Value}",
                 EventOptionConditionKind.HasTrait => $"拥有特性“{condition.DisplayName}”",
-                EventOptionConditionKind.HasAilment => $"拥有症状“{condition.Key}”",
+                EventOptionConditionKind.HasAilment => $"拥有症状“{condition.DisplayName}”",
                 EventOptionConditionKind.MinimumResource => $"营地拥有 {condition.Key} ×{condition.Value}",
                 EventOptionConditionKind.HasEquippedItem => $"装备“{condition.Key}”",
                 EventOptionConditionKind.HasKeyword => $"拥有关键词“{KeywordRules.Normalize(condition.Key)}”",
@@ -133,7 +133,7 @@ namespace HuntingInDarkness.GameCore.Settlement
                 case EventOptionConditionKind.HasTrait:
                     return hunter?.Traits != null && hunter.Traits.Contains(condition.Key);
                 case EventOptionConditionKind.HasAilment:
-                    return hunter?.Ailments != null && hunter.Ailments.Contains(condition.Key);
+                    return HasAilment(hunter, condition.Key);
                 case EventOptionConditionKind.HasEquippedItem:
                     return Contains(equippedItems, condition.Key);
                 case EventOptionConditionKind.HasBloodline:
@@ -152,6 +152,21 @@ namespace HuntingInDarkness.GameCore.Settlement
                 if (string.Equals(value, expected, StringComparison.Ordinal))
                     return true;
             return false;
+        }
+
+        private static bool HasAilment(HunterState hunter, string symptomId)
+        {
+            if (hunter == null || string.IsNullOrWhiteSpace(symptomId)) return false;
+            bool hasStableState = false;
+            if (hunter.SymptomStates != null)
+                foreach (HunterSymptomState state in hunter.SymptomStates)
+                {
+                    if (state == null || !string.Equals(state.SymptomId, symptomId, StringComparison.Ordinal)) continue;
+                    hasStableState = true;
+                    if (!state.IsOvercome) return true;
+                }
+            if (hasStableState) return false;
+            return hunter.Ailments != null && hunter.Ailments.Contains(symptomId);
         }
     }
 }

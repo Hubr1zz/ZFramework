@@ -241,7 +241,8 @@ namespace HuntingInDarkness.Adapter.Tests
             hunter.Equipment.Add(new ItemInstance(bracer));
             hunter.EquippedItemIds.Add(blade.ContentId);
             hunter.EquippedItemIds.Add(bracer.ContentId);
-            hunter.Ailments.Add("symptom_whisper_sickness");
+            Assert.That(PlayableSymptomRuntime.TryAcquire(hunter, "symptom_whisper_sickness", out _, out bool added, out string acquireReason), Is.True, acquireReason);
+            Assert.That(added, Is.True);
             settlement.Hunters.Add(hunter);
 
             try
@@ -254,6 +255,11 @@ namespace HuntingInDarkness.Adapter.Tests
                     EventOption guardedOption = gameEvent.options.First(option => !option.alwaysAvailable);
                     Assert.That(PlayableEventOptionAvailability.CanUse(guardedOption, hunter, settlement, out string reason), Is.True, $"{eventId}: {reason}");
                 }
+                EventOption symptomOption = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == "hunt_root_pulse").options.First(option => !option.alwaysAvailable);
+                Assert.That(symptomOption.conditions.Single().displayName, Is.EqualTo("低语症"));
+                Assert.That(hunter.Ailments, Does.Contain("低语症").And.Not.Contain("symptom_whisper_sickness"));
+                Assert.That(PlayableEventOptionAvailability.CanUse(symptomOption, new HunterInstance(null, 9118), settlement, out string unavailableReason), Is.False);
+                Assert.That(unavailableReason, Does.Contain("低语症"));
             }
             finally
             {

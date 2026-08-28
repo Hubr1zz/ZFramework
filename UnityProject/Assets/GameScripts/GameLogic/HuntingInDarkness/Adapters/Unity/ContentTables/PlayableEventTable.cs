@@ -415,13 +415,13 @@ namespace HuntingInDarkness.ContentTables
             gameEvent.maxYear = record.maxYear;
             gameEvent.drawWeight = Mathf.Max(1, record.drawWeight);
             gameEvent.category = category;
-            gameEvent.options = ConvertOptions(record.options, record.id, bloodlineContent);
+            gameEvent.options = ConvertOptions(record.options, record.id, symptomCatalog, bloodlineContent);
             gameEvent.immediateEffects = ConvertEffects(record.immediateEffects, record.id);
             error = string.Empty;
             return true;
         }
 
-        private static List<EventOption> ConvertOptions(IReadOnlyList<EventOptionTableRecord> records, string eventId, IHunterBloodlineContent bloodlineContent)
+        private static List<EventOption> ConvertOptions(IReadOnlyList<EventOptionTableRecord> records, string eventId, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent)
         {
             var options = new List<EventOption>();
             if (records == null)
@@ -449,7 +449,7 @@ namespace HuntingInDarkness.ContentTables
                     failText = record.failText ?? string.Empty,
                     failEffects = ConvertEffects(record.failEffects, eventId),
                     alwaysAvailable = record.alwaysAvailable,
-                    conditions = ConvertConditions(record.conditions, bloodlineContent)
+                    conditions = ConvertConditions(record.conditions, symptomCatalog, bloodlineContent)
                 });
             }
             return options;
@@ -461,7 +461,7 @@ namespace HuntingInDarkness.ContentTables
                 return true;
             var optionIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (EventOptionTableRecord record in records)
-                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || (requireOptionIds && (string.IsNullOrWhiteSpace(record.optionId) || !optionIds.Add(record.optionId.Trim()))) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateEffects(record.failEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateConditions(record.alwaysAvailable, record.conditions, bloodlineContent, allowHuntWorldEffects) || !ValidateCarriedItemCosts(record, allowHuntWorldEffects))
+                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || (requireOptionIds && (string.IsNullOrWhiteSpace(record.optionId) || !optionIds.Add(record.optionId.Trim()))) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateEffects(record.failEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateConditions(record.alwaysAvailable, record.conditions, symptomCatalog, bloodlineContent, allowHuntWorldEffects) || !ValidateCarriedItemCosts(record, allowHuntWorldEffects))
                     return false;
             return true;
         }
@@ -477,7 +477,7 @@ namespace HuntingInDarkness.ContentTables
             return !string.IsNullOrWhiteSpace(record.checkDeckId);
         }
 
-        private static List<EventOptionCondition> ConvertConditions(IReadOnlyList<EventOptionConditionTableRecord> records, IHunterBloodlineContent bloodlineContent)
+        private static List<EventOptionCondition> ConvertConditions(IReadOnlyList<EventOptionConditionTableRecord> records, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent)
         {
             var conditions = new List<EventOptionCondition>();
             if (records == null) return conditions;
@@ -485,6 +485,8 @@ namespace HuntingInDarkness.ContentTables
             {
                 if (record == null || !TryParse(record.conditionKind, out EventOptionConditionKind conditionKind)) continue;
                 string displayName = string.IsNullOrWhiteSpace(record.displayName) ? record.key ?? string.Empty : record.displayName.Trim();
+                if (conditionKind == EventOptionConditionKind.HasAilment && symptomCatalog != null && symptomCatalog.TryGetById(record.key, out SymptomDefinition symptom))
+                    displayName = symptom.DisplayName;
                 if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && bloodlineContent != null && bloodlineContent.TryGet(record.key, out HunterBloodlineDefinition bloodline))
                     displayName = bloodline.DisplayName;
                 conditions.Add(new EventOptionCondition { conditionKind = conditionKind, key = record.key ?? string.Empty, displayName = displayName, value = Mathf.Max(0, record.value), inverted = record.inverted });
@@ -492,7 +494,7 @@ namespace HuntingInDarkness.ContentTables
             return conditions;
         }
 
-        private static bool ValidateConditions(bool alwaysAvailable, IReadOnlyList<EventOptionConditionTableRecord> records, IHunterBloodlineContent bloodlineContent, bool allowHuntItemConditions)
+        private static bool ValidateConditions(bool alwaysAvailable, IReadOnlyList<EventOptionConditionTableRecord> records, PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent, bool allowHuntItemConditions)
         {
             if (alwaysAvailable) return records == null || records.Count == 0;
             if (records == null || records.Count == 0) return false;
@@ -502,6 +504,7 @@ namespace HuntingInDarkness.ContentTables
                 bool requiresKey = conditionKind == EventOptionConditionKind.HasTrait || conditionKind == EventOptionConditionKind.HasAilment || conditionKind == EventOptionConditionKind.MinimumResource || conditionKind == EventOptionConditionKind.HasEquippedItem || conditionKind == EventOptionConditionKind.HasKeyword || conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline || conditionKind == EventOptionConditionKind.MinimumCarriedItem;
                 if (requiresKey && string.IsNullOrWhiteSpace(record.key)) return false;
                 if (conditionKind == EventOptionConditionKind.MinimumCarriedItem && (!allowHuntItemConditions || record.value <= 0)) return false;
+                if (conditionKind == EventOptionConditionKind.HasAilment && (symptomCatalog == null || !symptomCatalog.TryGetById(record.key, out _))) return false;
                 if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && (bloodlineContent == null || !bloodlineContent.TryGet(record.key, out _))) return false;
                 if (record.value < 0) return false;
             }
