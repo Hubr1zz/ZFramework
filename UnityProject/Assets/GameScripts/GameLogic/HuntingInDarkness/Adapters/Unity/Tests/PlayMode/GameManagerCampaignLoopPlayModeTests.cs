@@ -444,18 +444,22 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             int hunterId = manager.SettlementData.GetAliveHunters()[0].InstanceId;
             PlayableHuntDestination destination = GetDestination(year);
             SettlementNoticePresenter3D notice = managerObject.GetComponent<SettlementNoticePresenter3D>();
+            SettlementTable3D table = managerObject.GetComponentInChildren<SettlementTable3D>(true);
+            Assert.That(table, Is.Not.Null);
+            Assert.That(table.OnDepartureRequested, Is.Not.Null);
 
             UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { hunterId }, destination).GetAwaiter();
             yield return WaitForCompletion(departure);
-            Assert.That(departure.GetResult().Succeeded, Is.True);
+            Assert.That(departure.GetResult().Succeeded, Is.True, departure.GetResult().Reason);
             UniTask<HuntRetreatCommandResult>.Awaiter retreat = manager.RequestRetreatAsync().GetAwaiter();
             yield return WaitForCompletion(retreat);
-            Assert.That(retreat.GetResult().Succeeded, Is.True);
+            Assert.That(retreat.GetResult().Succeeded, Is.True, retreat.GetResult().Reason);
             yield return WaitForAppliedReturnSave(persistence);
             notice.ResetForCampaignChange();
 
-            manager.RequestHuntDeparture(new[] { hunterId });
-            manager.RequestHuntDeparture(new[] { hunterId });
+            HunterInstance hunter = manager.SettlementData.GetHunter(hunterId);
+            table.OnDepartureRequested(new List<HunterInstance> { hunter });
+            table.OnDepartureRequested(new List<HunterInstance> { hunter });
             yield return null;
             Assert.That(notice.ActiveNoticeTitle, Is.EqualTo("暂不能出猎"));
             Assert.That(notice.ActiveNoticeBody, Does.Contain("请先完成上一场远征的回营结算"));

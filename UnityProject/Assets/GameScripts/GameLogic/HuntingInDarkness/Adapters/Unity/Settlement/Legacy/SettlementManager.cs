@@ -38,11 +38,6 @@ namespace HuntingInDarkness.Settlement
         private bool candidateConsumed;
         internal IRandomSource RandomSource => binding.Random;
 
-        // ─── 组合根端口 ─────────────────────────────────────────
-
-        /// <summary>由战役组合根注入的权威出猎请求端口。</summary>
-        public ISettlementDepartureRequestPort DepartureRequestPort { get; set; }
-
         // ─── 构造 ────────────────────────────────────────────────
 
         public SettlementManager(int seed = 0)
@@ -79,23 +74,6 @@ namespace HuntingInDarkness.Settlement
         public void OnExit()
         {
             Debug.Log("[SettlementManager] 离开营地阶段");
-        }
-
-        // ─── 出发准备 ────────────────────────────────────────────
-
-        /// <summary>
-        /// 选定猎人列表，开始狩猎。
-        /// 最多4名猎人，必须选至少1名。
-        /// </summary>
-        public bool TryDepart(List<int> hunterIds)
-        {
-            if (DepartureRequestPort == null)
-            {
-                Debug.LogWarning("[SettlementManager] 出发失败：未配置权威出猎请求端口。");
-                return false;
-            }
-
-            return DepartureRequestPort.RequestDeparture(hunterIds);
         }
 
         // ─── 初始化辅助 ──────────────────────────────────────────

@@ -64,10 +64,10 @@
 - **类型**: 兼容代码 / 清理
 - **描述**: 正常启动路径已统一使用 `SettlementNoticePresenter3D`，三套旧 IMGUI Toast 不再创建。后续确认没有测试场景、Prefab 或外部程序集按类型挂载后，可一次删除旧脚本及其 meta，避免误配置造成 2D/3D 重复反馈。
 - **来源**: 2026-08-20 营地实体消息桌实现审查
-- **状态**: 待处理
+- **状态**: 已维护
 - **维护人**: codex
-- **维护时间**: 2026-08-20
-- **维护备注**: 当前保留只为序列化兼容；不要重新接入正式组合根。
+- **维护时间**: 2026-08-28
+- **维护备注**: 已确认无场景、Prefab、ScriptableObject 或生产动态挂载；三套 IMGUI Toast 已由 `SettlementNoticePresenter3D` 替代并删除。不要重新接入正式组合根。
 
 ### [优先级: 低] 移除旧六边形地块标签组件
 - **文件**: `Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileFactory.cs`

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-notices",
+  "title": "3D 营地消息记录兼容边界",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {"status": "partial", "summary": "三个旧 IMGUI Toast 已删除，SettlementNoticePresenter3D 保留为长期通知 presenter。", "codeEvidence": [{"guid": "49defc1c58ea64e44875f3a790412007", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs", "fileHash": "39d147cb28bee1471dff330e574328e0b31a40f2cf875012ccc6c558962f6982", "line": 1, "feature": "消费提交后事实并展示长期 3D 通知", "status": "verified", "checkedAt": "2026-08-28T12:00:00-07:00"}], "evidence": ["Unity 编译通过。", "EditMode 71/71。", "PlayMode blocked/pending：Unity license handshake。", "三个 Toast GUID 无序列化引用。"], "differences": ["正式 Spec 仍需显式记录旧 Toast 删除。"], "verifiedAt": "2026-08-28T12:00:00-07:00"},
+  "gapIds": [], "dependencyIds": ["tabletop-settlement-notices--requires--game-manager-orchestration"], "sourceReferences": ["formal::tabletop-settlement-notices"], "implementationOutline": ["SettlementNoticePresenter3D 只消费 after-commit facts；Toast 删除不改变游戏状态或 ActionQueue。"], "reviewIssues": []
+}

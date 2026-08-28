@@ -114,9 +114,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(gameManagerFields.Any(field => forbiddenFieldTypes.Contains(field.FieldType.FullName)), Is.False);
             Assert.That(gameManagerFields.Count(field => field.FieldType == flowType), Is.EqualTo(1));
             Assert.That(typeof(GameManager).GetInterfaces().Any(contract => contract.Name.StartsWith("ICampaign") && contract.Name.EndsWith("Host")), Is.False);
-            Assert.That(typeof(GameManager).GetInterfaces().Contains(typeof(ISettlementDepartureRequestPort)), Is.False);
             Assert.That(typeof(GameManager).GetInterfaces().Contains(typeof(IPlayableHuntRetreatInput)), Is.False);
-            Assert.That(typeof(ISettlementDepartureRequestPort).IsAssignableFrom(flowType), Is.True);
             Assert.That(typeof(IPlayableHuntRetreatInput).IsAssignableFrom(flowType), Is.True);
             Assert.That(flowFields.Count(field => typeof(IPlayableCampaignRuntime).IsAssignableFrom(field.FieldType)), Is.EqualTo(1));
             Assert.That(flowType.GetInterfaces().Count(contract => contract.Name.StartsWith("ICampaign") && contract.Name.EndsWith("Host")), Is.GreaterThanOrEqualTo(8));
@@ -127,6 +125,11 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(typeof(GameManager).GetProperty("CampaignReadModel", BindingFlags.Instance | BindingFlags.NonPublic).PropertyType, Is.EqualTo(campaignReadModel));
             Assert.That(typeof(GameManager).GetProperty("CampaignCommands", BindingFlags.Instance | BindingFlags.NonPublic).PropertyType, Is.EqualTo(campaignCommandPort));
             Assert.That(typeof(GameManager).GetProperty("CampaignDiagnostics", BindingFlags.Instance | BindingFlags.NonPublic).PropertyType, Is.EqualTo(campaignDiagnostics));
+            Assert.That(typeof(GameManager).GetMethod("SpendHunterGrowthAsync", BindingFlags.Instance | BindingFlags.Public), Is.Null);
+            Assert.That(typeof(GameManager).GetMethod("RequestHuntDeparture", BindingFlags.Instance | BindingFlags.Public), Is.Null);
+            Assert.That(typeof(GameManager).GetMethod("CanRequestHuntDeparture", BindingFlags.Instance | BindingFlags.Public), Is.Null);
+            Assert.That(typeof(GameManager).GetMethod("TryDepartForHunt", BindingFlags.Instance | BindingFlags.Public), Is.Null);
+            Assert.That(flowType.GetMethod("TryDepartForHunt", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic), Is.Null);
             Assert.That(campaignReadModel.GetProperties().Any(property => property.PropertyType.Name.Contains("Runtime") || property.PropertyType.Name.Contains("Session") || property.PropertyType.Name.Contains("Registry")), Is.False);
             Assert.That(campaignDiagnostics.IsNotPublic, Is.True);
             Assert.That(typeof(MonoBehaviour).IsAssignableFrom(campaignUnityBridge), Is.False);
@@ -147,16 +150,13 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             CampaignFlowCoordinator flow = new(new CampaignFlowBindings(), new SaveLoadSystemCampaignPersistenceAdapter(), true);
             try
             {
-                ISettlementDepartureRequestPort departure = flow;
                 IPlayableHuntRetreatInput retreat = flow;
 
-                Assert.That(departure.RequestDeparture(Array.Empty<int>()), Is.False);
                 Assert.That(retreat.GetRetreatPreview().Materials, Is.Empty);
                 Assert.That(retreat.IsReturnCheckpointLocked, Is.True);
 
                 flow.Dispose();
 
-                Assert.That(departure.RequestDeparture(Array.Empty<int>()), Is.False);
                 Assert.That(retreat.GetRetreatPreview().Materials, Is.Empty);
                 Assert.That(retreat.IsReturnCheckpointLocked, Is.True);
                 Assert.That(retreat.RequestRetreatAsync(HuntRetreatDecision.None).GetAwaiter().GetResult().Succeeded, Is.False);
@@ -261,7 +261,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         public void SettlementCoordinatorOwnsSessionAcrossResetWithoutStaleSession()
         {
             runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
-            ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null))));
+            ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null))));
             Assert.That(runtime.TryPrepareNewSettlement(out IPlayableSettlementRuntime first, out string prepareReason), Is.True, prepareReason);
             Assert.That(runtime.TrySwapSettlement(null, first, out string swapReason), Is.True, swapReason);
             Assert.That(first.TryActivateActionSession(out string activationReason), Is.True, activationReason);
@@ -288,7 +288,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         {
             int departureCount = 0;
             runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
-            ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null))));
+            ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null))));
             object phaseManagers = GetPhaseManagers(runtime);
             Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhasePortAccess", true);
             object phaseManager = accessType.GetProperty("SettlementPhase").GetValue(phaseManagers);
@@ -375,7 +375,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         {
             var input = new BlockingEventInput();
             runtime = GameModule.Campaign.AcquireRuntime(new RecordingHost(), null);
-            ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null), new EventSystem(manager.Data, new FirstRandom()), input)));
+            ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(manager => new PlayableSettlementActionSession(manager.Data, new PlayableWeaponTrainingContentAdapter(null), new EventSystem(manager.Data, new FirstRandom()), input)));
             object phaseManagers = GetPhaseManagers(runtime);
             Type accessType = phaseManagers.GetType().GetInterface("Core.IPlayableCampaignPhasePortAccess", true);
             object phaseManager = accessType.GetProperty("SettlementPhase").GetValue(phaseManagers);
@@ -542,7 +542,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.Throws<ObjectDisposedException>(() => detached.TryActivateActionSession(null, out _));
         }
 
-        private void ConfigureSettlementRuntime() => ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(new RecordingDeparturePort(), _ => null));
+        private void ConfigureSettlementRuntime() => ConfigureSettlementRuntime(new PlayableSettlementRuntimeConfiguration(_ => null));
 
         private void ConfigureSettlementRuntime(PlayableSettlementRuntimeConfiguration configuration)
         {
@@ -588,11 +588,6 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             public void Install(IActionEnvironment environment, ActionEnvironmentInstallation installation)
             {
             }
-        }
-
-        private sealed class RecordingDeparturePort : ISettlementDepartureRequestPort
-        {
-            public bool RequestDeparture(IReadOnlyList<int> hunterIds) => true;
         }
 
         private sealed class FirstRandom : IRandomSource

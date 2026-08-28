@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {"id": "game-manager-orchestration", "label": "GameManager 管理器", "category": "system", "readiness": "implemented", "specPath": "openspec/changes/remove-settlement-compatibility-bypasses/specs/game-manager-orchestration/spec.md"},
+    {"id": "tabletop-hunt-departure", "label": "3D 狩猎远征整备", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/remove-settlement-compatibility-bypasses/specs/tabletop-hunt-departure/spec.md"},
+    {"id": "tabletop-settlement-advancement-ledger", "label": "营地桌面成长训练与年鉴", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/remove-settlement-compatibility-bypasses/specs/tabletop-settlement-advancement-ledger/spec.md"},
+    {"id": "tabletop-settlement-symptoms", "label": "营地桌面症状成长", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/remove-settlement-compatibility-bypasses/specs/tabletop-settlement-symptoms/spec.md"},
+    {"id": "tabletop-settlement-notices", "label": "3D 营地消息记录", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/remove-settlement-compatibility-bypasses/specs/tabletop-settlement-notices/spec.md"}
+  ],
+  "edges": [
+    {"id": "tabletop-hunt-departure--requires--game-manager-orchestration", "from": "tabletop-hunt-departure", "to": "game-manager-orchestration", "type": "requires", "status": "defined", "reason": "3D 出猎入口依赖 Campaign typed transaction 与阶段生命周期", "gapId": "", "blocksImplementation": false},
+    {"id": "tabletop-settlement-advancement-ledger--requires--game-manager-orchestration", "from": "tabletop-settlement-advancement-ledger", "to": "game-manager-orchestration", "type": "requires", "status": "defined", "reason": "成长 Action 由 Settlement runtime 持有", "gapId": "", "blocksImplementation": false},
+    {"id": "tabletop-settlement-symptoms--requires--game-manager-orchestration", "from": "tabletop-settlement-symptoms", "to": "game-manager-orchestration", "type": "requires", "status": "defined", "reason": "症状 Action 由 Settlement runtime 持有", "gapId": "", "blocksImplementation": false},
+    {"id": "tabletop-settlement-notices--requires--game-manager-orchestration", "from": "tabletop-settlement-notices", "to": "game-manager-orchestration", "type": "requires", "status": "defined", "reason": "通知 presenter 依赖 Campaign/Settlement after-commit facts", "gapId": "", "blocksImplementation": false}
+  ]
+}

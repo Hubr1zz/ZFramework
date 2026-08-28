@@ -71,13 +71,6 @@ namespace HuntingInDarkness.Settlement
             return outcomes;
         }
 
-        public static bool TrySpendGrowth(HunterInstance hunter, HunterGrowthChoice choice)
-        {
-            if (!HunterAdvancementRules.TrySpendGrowth(hunter, choice)) return false;
-            PlayableGrowthMilestoneRuntime.SynchronizeHunter(hunter);
-            EventBus.Publish(new HunterGrowthSpentEvent { HunterId = hunter.InstanceId, Choice = choice });
-            return true;
-        }
     }
 
     public struct HunterAdvancedEvent

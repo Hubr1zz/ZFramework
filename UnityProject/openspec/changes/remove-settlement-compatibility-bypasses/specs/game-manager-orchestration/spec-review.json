@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 5,
+  "capability": "game-manager-orchestration",
+  "title": "GameManager 管理器兼容边界",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {"status": "partial", "summary": "GameManager facade 与 Settlement runtime compatibility port 已移除，正式 3D typed path 保留。", "codeEvidence": [{"guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "fileHash": "753c09a1861781eb598e6697204e73aa0468455179f502c32b0b71d1ad7109f9", "line": 454, "feature": "保留 3D 出猎输入注册与 typed departure command", "status": "verified", "checkedAt": "2026-08-28T12:00:00-07:00"}], "evidence": ["Unity 编译通过。", "EditMode 71/71。", "PlayMode blocked/pending：Unity license handshake。"], "differences": ["正式 Spec 原文仍需显式 sync 以移除 compatibility port wording。"], "verifiedAt": "2026-08-28T12:00:00-07:00"},
+  "gapIds": [], "dependencyIds": [], "sourceReferences": ["formal::game-manager-orchestration"], "implementationOutline": ["GameManager 只保留 Unity 组合与窄 3D 输入/typed command；CampaignFlowCoordinator 持有跨阶段事务。"], "reviewIssues": []
+}

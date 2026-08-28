@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-symptoms",
+  "title": "营地桌面症状成长兼容边界",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {"status": "partial", "summary": "旧症状 screen-space Service/View 已删除，3D symptom panel 保留。", "codeEvidence": [{"guid": "f7f201254cb1b2f478922ae7a3df818d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterSymptomPanel3D.cs", "fileHash": "4d8f0e0b35d88d466aec7224e5ac87637217d699a7565904ed0622851ed4ef7c", "line": 81, "feature": "从 3D 猎人桌提交症状选择", "status": "verified", "checkedAt": "2026-08-28T12:00:00-07:00"}], "evidence": ["Unity 编译通过。", "EditMode 71/71。", "PlayMode blocked/pending：Unity license handshake。", "旧 Service/View GUID 无序列化引用。"], "differences": ["正式 Spec 仍需显式记录旧源文件删除。"], "verifiedAt": "2026-08-28T12:00:00-07:00"},
+  "gapIds": [], "dependencyIds": ["tabletop-settlement-symptoms--requires--game-manager-orchestration"], "sourceReferences": ["formal::tabletop-settlement-symptoms"], "implementationOutline": ["3D symptom panel 提交稳定猎人/症状/选择；Settlement runner 持有唯一写状态。"], "reviewIssues": []
+}

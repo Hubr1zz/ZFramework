@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 5,
+  "changeId": "remove-settlement-compatibility-bypasses",
+  "title": "移除营地成长、症状与出猎兼容旁路",
+  "category": "architecture",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现已完成；保留无 outbox ApplyAfterHunt 兼容链与正式 3D departure chain。正式 Specs 不改，待人工审查后显式 sync。",
+  "verification": {
+    "status": "partial",
+    "summary": "代码清理和静态边界核验完成；PlayMode 因 Unity license handshake 暂为 blocked/pending。",
+    "codeEvidence": [
+      {
+        "guid": "551fe81197a6ca545a686a0c536f2646",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+        "fileHash": "753c09a1861781eb598e6697204e73aa0468455179f502c32b0b71d1ad7109f9",
+        "line": 454,
+        "feature": "保留 3D 出猎输入注册与 typed departure command",
+        "status": "verified",
+        "checkedAt": "2026-08-28T12:00:00-07:00"
+      },
+      {
+        "guid": "edd21ef2e5f546746ae399585e19662a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs",
+        "fileHash": "66d620faa0d4c75bcacaaf6b8bbf8f22f8c492314d9a7456b98e6281e11b527d",
+        "line": 362,
+        "feature": "把 3D Settlement callback 转发到正式出猎事务并保留 pending 门禁",
+        "status": "verified",
+        "checkedAt": "2026-08-28T12:00:00-07:00"
+      },
+      {
+        "guid": "a8c0150ffdb443a3908eef028ea39a7f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableSettlementRuntime.cs",
+        "fileHash": "7c410c5d553c6862b2da069dcee6b3592cf65ea09db04d6ade80f453f0ac416b",
+        "line": 12,
+        "feature": "收窄 Settlement runtime 配置并移除旧出猎端口注入",
+        "status": "verified",
+        "checkedAt": "2026-08-28T12:00:00-07:00"
+      },
+      {
+        "guid": "00a929577c7f64b4f9b31464ab10c5be",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableCampaignPhasePorts.cs",
+        "fileHash": "c5acf04ea4b5de90f6075d0e358f488e209e9eb9c505ea67a3bba7b64a6cd65a",
+        "line": 44,
+        "feature": "定义不携带 compatibility departure port 的 Settlement phase contract",
+        "status": "verified",
+        "checkedAt": "2026-08-28T12:00:00-07:00"
+      },
+      {
+        "guid": "07598d3de65b9b44797fa11c4d51e539",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableHunterAdvancementAdapter.cs",
+        "fileHash": "9415d788017b26b2c0246ed9883bbfa310730e3ed72a58e577f90d873fb66923",
+        "line": 13,
+        "feature": "保留回营成长应用与两类兼容 after-hunt 事实入口",
+        "status": "verified",
+        "checkedAt": "2026-08-28T12:00:00-07:00"
+      },
+      {
+        "guid": "93a36191e033ff6478260769df9c7a0c",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs",
+        "fileHash": "c40d3878088b5450310b9a314832622c0ade3c204d6dd4fbc3bc6bbfaf461711",
+        "line": 10,
+        "feature": "保留 3D Hunt departure input 窄端口并删除旧 compatibility port",
+        "status": "verified",
+        "checkedAt": "2026-08-28T12:00:00-07:00"
+      },
+      {
+        "guid": "a00f8e52699658140a5c2cd7defab427",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterAdvancementPanel3D.cs",
+        "fileHash": "20e93b6d08b93b507b3a14bb77d3c223912c90e36d841e09b6c631e718c84f05",
+        "line": 75,
+        "feature": "从 3D 猎人桌提交成长训练意图",
+        "status": "verified",
+        "checkedAt": "2026-08-28T12:00:00-07:00"
+      },
+      {
+        "guid": "f7f201254cb1b2f478922ae7a3df818d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterSymptomPanel3D.cs",
+        "fileHash": "4d8f0e0b35d88d466aec7224e5ac87637217d699a7565904ed0622851ed4ef7c",
+        "line": 81,
+        "feature": "从 3D 猎人桌提交症状选择",
+        "status": "verified",
+        "checkedAt": "2026-08-28T12:00:00-07:00"
+      },
+      {
+        "guid": "49defc1c58ea64e44875f3a790412007",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs",
+        "fileHash": "39d147cb28bee1471dff330e574328e0b31a40f2cf875012ccc6c558962f6982",
+        "line": 1,
+        "feature": "消费提交后营地事实并展示长期 3D 通知",
+        "status": "verified",
+        "checkedAt": "2026-08-28T12:00:00-07:00"
+      }
+    ],
+    "evidence": [
+      "Unity 编译通过。",
+      "相关 EditMode 71/71。",
+      "PlayMode 暂为 blocked/pending：Unity license handshake，未宣称通过。",
+      "旧脚本 C# 引用和 .unity/.prefab/.asset GUID 引用均为零。",
+      "Showdown/Combat 文件未修改。"
+    ],
+    "differences": [
+      "正式 game-manager-orchestration 仍保留旧 departure port 的文字契约，待人工 sync 审查后移除。",
+      "正式 tabletop-hunt-departure 仍使用 compatibility entry 的宽泛表述，代码已收窄为 3D callback → input → typed transaction。",
+      "PlayMode 定向回归尚未在许可证可用环境完成。"
+    ],
+    "verifiedAt": "2026-08-28T12:00:00-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-FORMAL-COMPATIBILITY-WORDING-001",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": false,
+      "summary": "正式 Spec 仍描述已删除的 compatibility port/entry wording",
+      "details": "本 Change 按实现事实提供 delta；正式 Specs 保持不变，需人类审查后显式 sync。",
+      "sourceId": "formal-spec-delta",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    },
+    {
+      "id": "ISSUE-PLAYMODE-LICENSE-001",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": false,
+      "summary": "PlayMode 定向验证等待 Unity license handshake",
+      "details": "当前不宣称 PlayMode 通过；许可证可用后补跑测试。",
+      "sourceId": "verification",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "tabletop-hunt-departure--requires--game-manager-orchestration",
+    "tabletop-settlement-advancement-ledger--requires--game-manager-orchestration",
+    "tabletop-settlement-symptoms--requires--game-manager-orchestration",
+    "tabletop-settlement-notices--requires--game-manager-orchestration"
+  ],
+  "capabilities": [
+    "game-manager-orchestration",
+    "tabletop-hunt-departure",
+    "tabletop-settlement-advancement-ledger",
+    "tabletop-settlement-symptoms",
+    "tabletop-settlement-notices"
+  ],
+  "syncTargets": [
+    {
+      "capability": "game-manager-orchestration",
+      "title": "GameManager 管理器兼容边界",
+      "category": "architecture",
+      "deltaSpecPath": "openspec/changes/remove-settlement-compatibility-bypasses/specs/game-manager-orchestration/spec.md",
+      "targetSpecPath": "openspec/specs/game-manager-orchestration/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "8371ba0644da8f17004bf7c7bb8ed2efaa5bee56c39d7c4bc982b96e9215ea8e",
+      "baseSnapshotPath": "openspec/changes/remove-settlement-compatibility-bypasses/.sync-baseline/game-manager-orchestration/spec.md"
+    },
+    {
+      "capability": "tabletop-hunt-departure",
+      "title": "3D 狩猎远征整备兼容边界",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/remove-settlement-compatibility-bypasses/specs/tabletop-hunt-departure/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-hunt-departure/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "62e387ec473ccd441383d177a4bd0aaaa81befb525da35a238e2e2be80605e93",
+      "baseSnapshotPath": "openspec/changes/remove-settlement-compatibility-bypasses/.sync-baseline/tabletop-hunt-departure/spec.md"
+    },
+    {
+      "capability": "tabletop-settlement-advancement-ledger",
+      "title": "营地桌面成长训练兼容边界",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/remove-settlement-compatibility-bypasses/specs/tabletop-settlement-advancement-ledger/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-settlement-advancement-ledger/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "59cac7848bccb22c4664a6f0647d0514905200cf27b269cfd891ad6447e0e0be",
+      "baseSnapshotPath": "openspec/changes/remove-settlement-compatibility-bypasses/.sync-baseline/tabletop-settlement-advancement-ledger/spec.md"
+    },
+    {
+      "capability": "tabletop-settlement-notices",
+      "title": "3D 营地消息记录兼容边界",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/remove-settlement-compatibility-bypasses/specs/tabletop-settlement-notices/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-settlement-notices/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "ebad9c376cd5d773109b8fc0211a405e104211e6d3802250de52324bceac7421",
+      "baseSnapshotPath": "openspec/changes/remove-settlement-compatibility-bypasses/.sync-baseline/tabletop-settlement-notices/spec.md"
+    },
+    {
+      "capability": "tabletop-settlement-symptoms",
+      "title": "营地桌面症状成长兼容边界",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/remove-settlement-compatibility-bypasses/specs/tabletop-settlement-symptoms/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-settlement-symptoms/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "f405f9b06f47c17cd1b3ce1edea772779fb419d9f013227234e95cc5e7231708",
+      "baseSnapshotPath": "openspec/changes/remove-settlement-compatibility-bypasses/.sync-baseline/tabletop-settlement-symptoms/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与基线一致，可以 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-28T07:45:14-07:00"
+  },
+  "createdAt": "2026-08-28T12:00:00-07:00"
+}

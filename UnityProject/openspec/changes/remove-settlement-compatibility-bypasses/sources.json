@@ -1,0 +1,13 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的采纳对账：移除 Settlement 成长/症状/出猎 compatibility bypass 与旧 IMGUI Toast，保留 3D ActionQueue 正式链。",
+  "sourceRoots": ["openspec/specs", "Assets/GameScripts/GameLogic/HuntingInDarkness"],
+  "sourceReferences": [
+    "conversation::2026-08-28",
+    "formal::game-manager-orchestration",
+    "formal::tabletop-hunt-departure",
+    "formal::tabletop-settlement-advancement-ledger",
+    "formal::tabletop-settlement-symptoms",
+    "formal::tabletop-settlement-notices"
+  ]
+}

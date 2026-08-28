@@ -23,7 +23,6 @@ using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using UI;
 using UI.Hunt;
-using UI.Settlement;
 using SO.Boss.ActionCard;
 using SO.Boss.HitLocation;
 using UnityEngine;
@@ -42,7 +41,7 @@ namespace Core
     {
         IPlayableSettlementRuntime Current { get; }
         PlayableSettlementActionSession CurrentSession { get; }
-        void ConfigureRuntime(ISettlementDepartureRequestPort departureRequestPort);
+        void ConfigureRuntime();
         void ConfigureGameplay(Func<IPlayableEventInput> inputProvider, ITabletopRandomInteractionPresenter tabletop, Func<IActionEnvironmentInstallerRegistry> installerProvider, Func<IPlayableCampaignPersistentEffectProjection> projectionProvider);
         void ConfigurePresentation(SettlementTable3D table, GameObject root, PlayableWorkshopCatalog workshop, PlayableSettlementContentCatalog settlementContent, Action<List<HunterInstance>> onDepartureRequested);
         bool ActivateCurrentActionSession(out string reason);

@@ -10,12 +10,6 @@ using HuntingInDarkness.GameCore.Settlement;
 
 namespace HuntingInDarkness.ActionFlow.Settlement
 {
-    /// <summary>营地兼容入口使用的出猎请求端口，由战役组合根注入。</summary>
-    public interface ISettlementDepartureRequestPort
-    {
-        bool RequestDeparture(IReadOnlyList<int> hunterIds);
-    }
-
     public interface IPlayableHuntDepartureInput
     {
         void RequestDeparture(IReadOnlyList<int> hunterIds);

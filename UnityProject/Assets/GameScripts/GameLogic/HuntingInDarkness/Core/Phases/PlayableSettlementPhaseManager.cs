@@ -11,7 +11,6 @@ using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using UI;
-using UI.Settlement;
 using UnityEngine;
 
 namespace Core
@@ -37,7 +36,7 @@ namespace Core
 
         IPlayableSettlementRuntime IPlayableSettlementPhasePort.Current => Current;
         PlayableSettlementActionSession IPlayableSettlementPhasePort.CurrentSession => coordinator.CurrentSession;
-        void IPlayableSettlementPhasePort.ConfigureRuntime(ISettlementDepartureRequestPort departureRequestPort) => Configure(new PlayableSettlementRuntimeConfiguration(departureRequestPort, coordinator.CreateActionSession));
+        void IPlayableSettlementPhasePort.ConfigureRuntime() => Configure(new PlayableSettlementRuntimeConfiguration(coordinator.CreateActionSession));
         void IPlayableSettlementPhasePort.ConfigureGameplay(Func<IPlayableEventInput> inputProvider, ITabletopRandomInteractionPresenter tabletop, Func<IActionEnvironmentInstallerRegistry> installerProvider, Func<IPlayableCampaignPersistentEffectProjection> projectionProvider) => coordinator.ConfigureGameplay(inputProvider, tabletop, installerProvider, projectionProvider);
         void IPlayableSettlementPhasePort.ConfigurePresentation(SettlementTable3D table, GameObject root, PlayableWorkshopCatalog workshop, PlayableSettlementContentCatalog settlementContent, Action<List<HunterInstance>> onDepartureRequested) => coordinator.ConfigurePresentation(table, root, workshop, settlementContent, onDepartureRequested);
         bool IPlayableSettlementPhasePort.ActivateCurrentActionSession(out string reason)

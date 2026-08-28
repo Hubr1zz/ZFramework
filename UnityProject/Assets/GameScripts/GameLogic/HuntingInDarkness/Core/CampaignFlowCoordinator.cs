@@ -28,7 +28,7 @@ namespace Core
     /// Campaign-owned flow coordinator. It owns all runtime leases and cross-stage transactions;
     /// Unity presentation/configuration is supplied by CampaignFlowBindings.
     /// </summary>
-    internal sealed class CampaignFlowCoordinator : ICampaignPhaseTransitionHost, ICampaignPhaseTransitionRequestHost, ICampaignRestartHost, ICampaignStartupTransactionHost, ICampaignHuntReturnHost, ICampaignHuntDepartureHost, ICampaignShowdownOutcomeHost, ICampaignEncounterHandoffHost, ISettlementDepartureRequestPort, IPlayableHuntRetreatInput
+    internal sealed class CampaignFlowCoordinator : ICampaignPhaseTransitionHost, ICampaignPhaseTransitionRequestHost, ICampaignRestartHost, ICampaignStartupTransactionHost, ICampaignHuntReturnHost, ICampaignHuntDepartureHost, ICampaignShowdownOutcomeHost, ICampaignEncounterHandoffHost, IPlayableHuntRetreatInput
     {
         private readonly CampaignFlowBindings bindings;
         private readonly ICampaignPersistencePort persistence;
@@ -108,7 +108,7 @@ namespace Core
         }
 
         internal void ConfigureSettlement()
-            => settlementPhase.ConfigureRuntime(this);
+            => settlementPhase.ConfigureRuntime();
 
         internal void ConfigureSettlementPresentation()
             => settlementPhase.ConfigurePresentation(bindings.SettlementTable, bindings.SettlementRoot, bindings.WorkshopCatalog, bindings.SettlementContentCatalog, RequestHuntDepartureFromSettlement);
@@ -204,23 +204,11 @@ namespace Core
             bindings.DeactivatePhaseRoots?.Invoke();
         }
 
-        internal bool CanRequestHuntDeparture(out string reason)
-            => huntDeparture.CanRequest(out reason);
-
-        internal bool TryRequestHuntDeparture(IReadOnlyList<int> hunterIds, CancellationToken cancellationToken)
-            => huntDeparture.TryRequest(hunterIds, cancellationToken);
-
         internal UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds, PlayableHuntDestination destination, CancellationToken cancellationToken)
             => huntDeparture.ExecuteAsync(hunterIds, destination, cancellationToken);
 
         internal UniTask<HuntRetreatCommandResult> RequestRetreatAsync(HuntRetreatDecision decision, CancellationToken cancellationToken)
             => huntReturn.PrepareRetreatAsync(decision, cancellationToken);
-
-        bool ISettlementDepartureRequestPort.RequestDeparture(IReadOnlyList<int> hunterIds)
-        {
-            if (disposed || !CampaignStarted || CurrentPhase != GamePhase.Settlement) return false;
-            return TryDepartForHunt(hunterIds);
-        }
 
         bool IPlayableHuntRetreatInput.IsReturnCheckpointLocked
             => disposed || !CampaignStarted || CurrentPhase != GamePhase.Hunt || IsReturnCheckpointLocked;
@@ -402,16 +390,6 @@ namespace Core
                 return SettlementDepartureCommandResult.Failed("请先完成上一场远征的回营结算，再重新发起出猎。");
             }
             return await huntDeparture.ExecuteAsync(hunterIds, destination, ResolveLifetimeToken());
-        }
-
-        internal bool TryDepartForHunt(IReadOnlyList<int> hunterIds)
-        {
-            if (SettlementData?.PendingHuntReturn != null)
-            {
-                if (huntReturn.IsRecoveryInFlight != true) RetryPendingHuntReturnAsync().Forget();
-                return false;
-            }
-            return huntDeparture.TryRequest(hunterIds, ResolveLifetimeToken());
         }
 
         internal void TransitionToPhase(GamePhase phase)

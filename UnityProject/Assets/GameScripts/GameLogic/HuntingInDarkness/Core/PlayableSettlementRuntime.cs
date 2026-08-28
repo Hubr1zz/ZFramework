@@ -7,12 +7,10 @@ namespace Core
 {
     public sealed class PlayableSettlementRuntimeConfiguration
     {
-        public ISettlementDepartureRequestPort DepartureRequestPort { get; }
         public Func<SettlementManager, PlayableSettlementActionSession> CreateActionSession { get; }
 
-        public PlayableSettlementRuntimeConfiguration(ISettlementDepartureRequestPort departureRequestPort, Func<SettlementManager, PlayableSettlementActionSession> createActionSession)
+        public PlayableSettlementRuntimeConfiguration(Func<SettlementManager, PlayableSettlementActionSession> createActionSession)
         {
-            DepartureRequestPort = departureRequestPort ?? throw new ArgumentNullException(nameof(departureRequestPort));
             CreateActionSession = createActionSession ?? throw new ArgumentNullException(nameof(createActionSession));
         }
     }
@@ -64,7 +62,6 @@ namespace Core
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
             this.coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
             this.preparedCandidatePending = preparedCandidatePending;
-            Manager.DepartureRequestPort = configuration.DepartureRequestPort;
         }
 
         public bool TryActivateActionSession(out string reason)

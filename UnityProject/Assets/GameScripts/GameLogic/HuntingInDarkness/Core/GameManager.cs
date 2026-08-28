@@ -27,7 +27,6 @@ using SO.Combat;
 using TMPro;
 using UI;
 using UI.Hunt;
-using UI.Settlement;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -472,26 +471,9 @@ namespace Core
             if (ReferenceEquals(preAwakeHuntDepartureInput, input)) preAwakeHuntDepartureInput = null;
         }
 
-        public void RequestHuntDeparture(IReadOnlyList<int> hunterIds)
-        {
-            campaignFlow?.RequestHuntDeparture(hunterIds);
-        }
-
-        public bool CanRequestHuntDeparture(out string reason)
-        {
-            if (campaignFlow != null) return campaignFlow.CanRequestHuntDeparture(out reason);
-            reason = "出猎事务尚未初始化。";
-            return false;
-        }
-
         public UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds) => DepartForHuntAsync(hunterIds, null);
 
         public UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds, PlayableHuntDestination destination) => CampaignCommands != null ? CampaignCommands.DepartForHuntAsync(hunterIds, destination) : UniTask.FromResult(SettlementDepartureCommandResult.Failed("出猎事务尚未初始化。"));
-
-        public bool TryDepartForHunt(IReadOnlyList<int> hunterIds)
-        {
-            return campaignFlow?.TryDepartForHunt(hunterIds) == true;
-        }
 
 
         public void SaveSettlementProgress()
@@ -601,13 +583,6 @@ namespace Core
             if (!IsCampaignRuntimeActive)
                 return UniTask.FromResult(RecoverHunterCommandResult.Failed("战役入口尚未完成。"));
             return SettlementGameplay.RecoverHunterAsync(hunterId, bodyPart);
-        }
-
-        public UniTask<HunterGrowthCommandResult> SpendHunterGrowthAsync(int hunterId, HunterGrowthChoice choice)
-        {
-            if (!IsCampaignRuntimeActive)
-                return UniTask.FromResult(HunterGrowthCommandResult.Failed("战役入口尚未完成。"));
-            return SettlementGameplay.SpendHunterGrowthAsync(hunterId, choice);
         }
 
         public void RetreatFromHunt()
