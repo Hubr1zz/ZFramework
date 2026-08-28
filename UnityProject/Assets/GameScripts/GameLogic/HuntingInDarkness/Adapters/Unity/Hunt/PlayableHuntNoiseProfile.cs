@@ -45,16 +45,32 @@ namespace HuntingInDarkness.Hunt
                 {
                     if (hunter?.IsAlive != true) continue;
                     livingHunterCount++;
-                    if (hunter.Equipment == null) continue;
-                    foreach (ItemInstance item in hunter.Equipment)
-                    {
-                        if (item?.Data == null) continue;
-                        int count = Math.Max(1, item.Count);
-                        equipmentNoiseValues.Add((int)Math.Max(int.MinValue, Math.Min(int.MaxValue, (long)item.Data.HuntNoise * count)));
-                    }
+                    equipmentNoiseValues.AddRange(GetEquipmentNoiseContributions(hunter));
                 }
             plan = HuntNoiseRules.CreatePlan(livingHunterCount, equipmentNoiseValues, new HuntNoiseDefinition(deckSize, baseNoisePerHunter, maxDangerCards));
             return plan.IsEnabled;
+        }
+
+        /// <summary>汇总单名猎人的装备噪音；供风险计划与只读整备投影共享。</summary>
+        public static int GetEquipmentNoiseContribution(HunterInstance hunter)
+        {
+            long total = 0;
+            foreach (int contribution in GetEquipmentNoiseContributions(hunter))
+                total += contribution;
+            return (int)Math.Max(int.MinValue, Math.Min(int.MaxValue, total));
+        }
+
+        private static IReadOnlyList<int> GetEquipmentNoiseContributions(HunterInstance hunter)
+        {
+            var contributions = new List<int>();
+            if (hunter?.Equipment == null) return contributions;
+            foreach (ItemInstance item in hunter.Equipment)
+            {
+                if (item?.Data == null) continue;
+                long contribution = (long)item.Data.HuntNoise * Math.Max(1, item.Count);
+                contributions.Add((int)Math.Max(int.MinValue, Math.Min(int.MaxValue, contribution)));
+            }
+            return contributions;
         }
 
         public IReadOnlyList<EventData> GetEligibleDangerEvents(int currentYear)

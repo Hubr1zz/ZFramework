@@ -17,6 +17,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         private readonly List<HunterInstance> squadHunters = new();
         private SlotGrid rosterGrid;
         private SlotGrid squadGrid;
+        private TabletopEventPrimaryCard3D squadPrimaryCard;
         private TabletopEventChoiceCard3D continueCard;
         private System.Action<IReadOnlyList<int>> squadConfirmed;
         private System.Action cancelled;
@@ -29,6 +30,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         public int SquadCount => GetSquadHunterIds().Count;
         public int DestinationCount => destinations.Count;
         public int SelectedDestinationIndex => selectedDestinationIndex;
+        public int InspectedHunterId { get; private set; }
 
         public static TabletopHuntDeparturePanel3D Create(Transform parent)
         {
@@ -48,9 +50,9 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             squadConfirmed = onConfirmed;
             cancelled = onCancelled;
 
-            TabletopEventPrimaryCard3D primary = TabletopEventPrimaryCard3D.Create(transform);
-            primary.MoveTo(new Vector3(0f, 0f, 2.30f));
-            primary.Present("组建狩猎小队", "把猎人卡拖入四个远征槽。\n卡槽顺序会成为小队展示顺序。", "1–4 名可用猎人", TabletopEventPrimaryTone.Narrative);
+            squadPrimaryCard = TabletopEventPrimaryCard3D.Create(transform);
+            squadPrimaryCard.MoveTo(new Vector3(0f, 0f, 2.30f));
+            ShowSquadInstructions();
 
             int hunterCount = availableHunters?.Count ?? 0;
             int rosterRows = Mathf.Max(1, Mathf.CeilToInt(Mathf.Max(1, hunterCount) / 4f));
@@ -66,6 +68,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                     HuntDepartureHunterCard3D card = HuntDepartureHunterCard3D.Create(hunter, transform);
                     card.ConfigureDropScope(HunterDropScope);
                     card.PlacementChanged = RefreshSquadActionCard;
+                    card.InspectionRequested = inspectedCard => ShowHunterDetails(inspectedCard.Hunter);
                     hunterCards.Add(card);
                     cardsByHunterId.Add(hunter.InstanceId, card);
                 }
@@ -136,6 +139,20 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             bool canDepart = DepartureRules.CanDepart(hunterIds, out string reason);
             string status = canDepart ? $"{hunterIds.Count}/4 · 点击选择目的地" : reason;
             continueCard.Present("选择路线", "确认远征名册并查看可用地区", canDepart, status, () => squadConfirmed?.Invoke(GetSquadHunterIds()));
+        }
+
+        private void ShowSquadInstructions()
+        {
+            InspectedHunterId = 0;
+            squadPrimaryCard?.Present("组建狩猎小队", "把猎人卡拖入四个远征槽。\n点击猎人卡可检查伤势、装备和噪音。\n卡槽顺序会成为小队展示顺序。", "1–4 名可用猎人", TabletopEventPrimaryTone.Narrative);
+        }
+
+        private void ShowHunterDetails(HunterInstance hunter)
+        {
+            if (squadPrimaryCard == null || hunter == null) return;
+            HuntDepartureHunterPresentation presentation = HuntDepartureHunterPresentation.Create(hunter);
+            InspectedHunterId = hunter.InstanceId;
+            squadPrimaryCard.Present(presentation.Title, presentation.Body, presentation.Footer, TabletopEventPrimaryTone.Check);
         }
 
         private List<int> GetSquadHunterIds()
@@ -212,7 +229,9 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             }
             rosterGrid = null;
             squadGrid = null;
+            squadPrimaryCard = null;
             continueCard = null;
+            InspectedHunterId = 0;
             hunterCards.Clear();
             destinations.Clear();
             squadHunters.Clear();

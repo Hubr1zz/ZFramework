@@ -15,6 +15,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
 
         public HunterInstance Hunter { get; private set; }
         public System.Action PlacementChanged;
+        public System.Action<HuntDepartureHunterCard3D> InspectionRequested;
         public override string DisplayName => Hunter?.Name ?? "未知猎人";
 
         public static HuntDepartureHunterCard3D Create(HunterInstance hunter, Transform parent)
@@ -38,6 +39,12 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         protected override bool CanDropInto(CardSlot slot) => slot != null && string.Equals(slot.DropScope, requiredDropScope, StringComparison.Ordinal) && base.CanDropInto(slot);
 
         protected override void OnPlacedInSlot(CardSlot slot) => PlacementChanged?.Invoke();
+
+        protected override void OnClickReleased()
+        {
+            InspectionRequested?.Invoke(this);
+            base.OnClickReleased();
+        }
 
         protected override void BuildTextFields()
         {

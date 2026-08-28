@@ -28,6 +28,21 @@ The departure world-space input port SHALL be installed whenever the playable se
 - **THEN** the world-space departure port and destination selection remain available
 - **AND** no screen-space HUD is required for the departure command
 
+### Requirement: Hunter cards expose read-only departure decisions
+The squad preparation table SHALL let the player click a hunter card without dragging to inspect that hunter's current hit locations, willpower, key attributes, bounded traits, bounded equipment summary, and signed equipment-noise contribution. Inspection SHALL reuse the existing 3D primary card and SHALL NOT open an equipment editor or mutate the staged squad.
+
+Dragging a hunter card SHALL only express placement intent and SHALL NOT open or replace the current inspection.
+
+#### Scenario: Player inspects a staged hunter
+- **WHEN** the player clicks a hunter card without starting a drag
+- **THEN** the 3D primary card SHALL show the selected hunter's departure-relevant details
+- **AND** the hunter's current slot and staged squad order SHALL remain unchanged
+
+#### Scenario: Player rearranges a hunter after inspection
+- **WHEN** the player drags a different hunter card after inspecting one hunter
+- **THEN** the drag SHALL complete or return to its origin according to the existing slot rules
+- **AND** no inspection intent, GameAction, or authoritative equipment change SHALL be produced
+
 ### Requirement: The View only submits player intent
 The departure View SHALL preserve squad and route choices while navigating its card pages, but SHALL NOT directly mutate the settlement roster, active hunt content, or game phase.
 

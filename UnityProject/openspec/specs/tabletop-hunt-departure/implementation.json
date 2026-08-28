@@ -2,29 +2,56 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "tabletop-hunt-departure",
-  "specHash": "b4f2b0e8bdcc483ee3ca1b2b5e20dcadbe84b40087bf2461ca7ae3d28a3d4d60",
+  "specHash": "017a77b9503c12f87e7404f0c059cde4c1f8fc1c352dd5a89ad1e5e7fb68925d",
   "title": "3D 狩猎远征整备",
   "codeReadiness": "implemented",
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；生产配置关闭旧屏幕 HUD 但保留世界空间端口，第 2 年路线以专属抽鬼牌事件扩展内容并复用相同的 View、Bundle 与 ActionQueue 边界。",
-    "validatedAgainstSpecHash": "b4f2b0e8bdcc483ee3ca1b2b5e20dcadbe84b40087bf2461ca7ae3d28a3d4d60",
+    "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；点击而非拖拽猎人卡可在 3D 主卡检查伤势、属性、特性、装备与共享规则计算的装备噪音，且不改变编队或玩法状态。",
+    "validatedAgainstSpecHash": "017a77b9503c12f87e7404f0c059cde4c1f8fc1c352dd5a89ad1e5e7fb68925d",
     "evidence": [
       {
         "guid": "c9df97dabae7cda47adf626ad609d66b",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs",
         "line": 1,
-        "fileHash": "ab2e85602b204a5cb1d5682fc34bf53524bbd40341ab749f4f425185bca767e3",
+        "fileHash": "ab14d542c9debf4280d329322d748e84b3eae677a356cc1c8b1aee5d1ae9f3e8",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:44:53-07:00",
-        "feature": "以实体卡展示四槽编队和地区选择，并按暂存 HunterId 顺序恢复玩家的卡槽安排。"
+        "checkedAt": "2026-08-27T21:03:36.1179569-07:00",
+        "feature": "以实体卡展示四槽编队和地区选择，按暂存 HunterId 顺序恢复卡槽，并把真实点击投影为只读整备详情。"
+      },
+      {
+        "guid": "84ceb07401a202345b698a801d60237b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/HuntDepartureHunterCard3D.cs",
+        "line": 12,
+        "fileHash": "7ca4248f6858d5a5209cd2a0942030034a671097985b80ea90847d193a8c86be",
+        "status": "verified",
+        "checkedAt": "2026-08-27T21:03:36.1179569-07:00",
+        "feature": "复用统一卡槽拖拽手势，并只在未形成拖拽的松手点击中提交检查意图。"
+      },
+      {
+        "guid": "cf74b6e375d87d34ea91ee3ea9f98a62",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/HuntDepartureHunterPresentation.cs",
+        "line": 9,
+        "fileHash": "b448abe82c29dbfd94d683420d37f70c159a3969aa6b8ca9841d0c3fc766d632",
+        "status": "verified",
+        "checkedAt": "2026-08-27T21:03:36.1179569-07:00",
+        "feature": "有界投影四部位伤势、关键属性、特性、装备摘要和带符号装备噪音，不持有玩法状态。"
+      },
+      {
+        "guid": "9e71694e151da1e46b76151a78867a1a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs",
+        "line": 37,
+        "fileHash": "3a95fb1512e5b509c7c2782ac496eb090f40d8d29440775abb99d763df3a356f",
+        "status": "verified",
+        "checkedAt": "2026-08-27T21:03:36.1179569-07:00",
+        "feature": "风险计划与出猎详情共用单名猎人的装备噪音贡献聚合，避免 View 复制风险规则。"
       },
       {
         "guid": "e9c005d288214754191355b57720008f",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs",
         "line": 1,
-        "fileHash": "883caeb13f0000f78c9c2457b716a0a16a0aa41d5e77c70e90e3b454022f8577",
+        "fileHash": "4f4cea89e8d881fe1e66726c5ac564d60fadfb7f519e9bdc26657226282884ff",
         "status": "verified",
         "checkedAt": "2026-08-25T11:44:53-07:00",
         "feature": "维护非权威编队与地区选择，隐藏底层营地桌并只向 GameManager 提交确认意图。"
@@ -33,7 +60,7 @@
         "guid": "93a36191e033ff6478260769df9c7a0c",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs",
         "line": 1,
-        "fileHash": "b997d4659b46766b4dea1d09d60a3c5315e679ace45f37f50472e8fd7ee6a3fd",
+        "fileHash": "63dcb7ae79fbaf35620e3f56a8abf925851e58f1663962c103c5a7e0aebd66bd",
         "status": "verified",
         "checkedAt": "2026-08-25T11:44:53-07:00",
         "feature": "在 Settlement runner 中重验一至四名唯一且可用的营地猎人，提交一次性出发名册令牌。"
@@ -51,16 +78,16 @@
         "guid": "f4a6088d2c8e4f13bc56e31b365b3758",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopHuntDeparturePanel3DTests.cs",
         "line": 1,
-        "fileHash": "db119e5ab74ba215f085577b5c650ee4aa98a9beca6070f69fd842ee8d7a8648",
+        "fileHash": "a2ca5a2342be9848b18dca7a926d7a22ca9ca3e6c8802cc2fb65d94d5631fba5",
         "status": "verified",
-        "checkedAt": "2026-08-25T11:44:53-07:00",
-        "feature": "实例化真实 3D 卡槽并验证返回编队时保留暂存猎人顺序。"
+        "checkedAt": "2026-08-27T21:03:36.1179569-07:00",
+        "feature": "实例化真实 3D 卡槽，验证暂存顺序、点击检查不移槽、拖拽不误检查及有界噪音摘要。"
       },
       {
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 49,
-        "fileHash": "661e2a38dc452594683cb2446f72a05caccb1ae9cf63e4f675bc7781f96c9e96",
+        "fileHash": "ff591e23487f46931129b70f685f5e076064eb84f52cb9e78695fda550b00f0a",
         "status": "verified",
         "checkedAt": "2026-08-25T11:44:53-07:00",
         "feature": "验证生产组合根中名册准备、地区上下文、Campaign 切换、一次性令牌消费及完整回营循环。"
@@ -112,24 +139,29 @@
       }
     ],
     "tests": [
-      "TabletopHuntDeparturePanel3DTests: 1/1 passed",
+      "TabletopHuntDeparturePanel3DTests: 4/4 passed",
+      "PlayableHuntNoiseActionTests + HuntNoiseRulesTests: 16/16 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 2/2 passed",
       "PlayableSettlementDepartureActionTests: 4/4 passed",
       "SettlementDepartureCompatibilityTests: 3/3 passed",
       "PlayableSettlementWorldSpacePortInstallerTests: 2/2 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed",
       "Hunt route content cluster: 44/44 passed"
     ],
-    "verifiedAt": "2026-08-25T19:48:01-07:00"
+    "verifiedAt": "2026-08-27T21:03:36.1179569-07:00"
   },
   "implementationOutline": [
     "组合根安装 PlayableHuntDestinationView，营地启动卡打开独占的世界空间整备桌并暂时隐藏底层营地卡牌。",
     "TabletopHuntDeparturePanel3D 只维护编队卡槽和地区卡选择；返回编队按暂存 HunterId 顺序恢复，不重排玩家选择。",
+    "未拖拽的猎人卡点击只更新世界空间主卡中的有界整备摘要；装备噪音贡献与风险计划共用同一适配器入口。",
     "确认后 Settlement runner 提交稳定名册令牌，GameManager 构造地区入场上下文并由 Campaign runner 切换阶段。",
     "生产和兼容入口共用同一请求边界，并在事件恢复、重复请求、无地区选择或无效猎人时保持权威状态不变。",
     "生产目录以纯数据方式在第 2 年增加回声断道和路线专属抽鬼牌事件，复用既有 3D 地区卡、内容 Bundle 和 Hunt runner。"
   ],
   "sourceReferences": [
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/HuntDepartureHunterPresentation.cs:1",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs:37",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs:1",
     "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs:1092",

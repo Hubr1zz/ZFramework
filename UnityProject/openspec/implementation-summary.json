@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "497ce5e90476e131b81b76046e860332c9a4857aaa4bc0737d53f387f8f8a983",
-  "inputManifestDigest": "945ae0ae5d8e4f3e355f34dea4c084c9f428df76e3d2a2de16f7989446fca374",
-  "outputDigest": "4ce42c798c8bd7600a3083844c4acc82cd9cce11c043db20bd9bada5857ea0e4",
+  "inputDigest": "26fc2aa4ff04c6f371a6371506616582d16b2928cba4c6fa11db3223b9c323aa",
+  "inputManifestDigest": "f758333f55826f9e60b2f564328a1cd4244c0b78354d13fcd700c3feb5271782",
+  "outputDigest": "6aec4e59b415328a5129927ba50dd3d14fc62223e4edd652a387f89a33241f4d",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -317,7 +317,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs",
-      "sha256": "1cb58a552a64ccf614da083873a373379f6b71ba03385ba91f42b798d2d5a14a",
+      "sha256": "3a95fb1512e5b509c7c2782ac496eb090f40d8d29440775abb99d763df3a356f",
       "state": "current"
     },
     {
@@ -702,7 +702,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopHuntDeparturePanel3DTests.cs",
-      "sha256": "db119e5ab74ba215f085577b5c650ee4aa98a9beca6070f69fd842ee8d7a8648",
+      "sha256": "a2ca5a2342be9848b18dca7a926d7a22ca9ca3e6c8802cc2fb65d94d5631fba5",
       "state": "current"
     },
     {
@@ -1151,6 +1151,16 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/HuntDepartureHunterCard3D.cs",
+      "sha256": "7ca4248f6858d5a5209cd2a0942030034a671097985b80ea90847d193a8c86be",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/HuntDepartureHunterPresentation.cs",
+      "sha256": "b448abe82c29dbfd94d683420d37f70c159a3969aa6b8ca9841d0c3fc766d632",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/PhysicalDiceTabletopPresenter.cs",
       "sha256": "89c3c561bfff4b4b463c2cd2c9ebd891844677fd854a5a3347abd87351351076",
       "state": "current"
@@ -1162,7 +1172,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs",
-      "sha256": "ab2e85602b204a5cb1d5682fc34bf53524bbd40341ab749f4f425185bca767e3",
+      "sha256": "ab14d542c9debf4280d329322d748e84b3eae677a356cc1c8b1aee5d1ae9f3e8",
       "state": "current"
     },
     {
@@ -1652,12 +1662,12 @@
     },
     {
       "path": "openspec/specs/tabletop-hunt-departure/implementation.json",
-      "sha256": "477dfc302c998741fe45341df3cee6559a9562274086a76797bcb410d3f76e72",
+      "sha256": "aa2b7ae005f4adaa5661b3050b74f296b925f8270e7d774d78f7703402c40c96",
       "state": "current"
     },
     {
       "path": "openspec/specs/tabletop-hunt-departure/spec.md",
-      "sha256": "b4f2b0e8bdcc483ee3ca1b2b5e20dcadbe84b40087bf2461ca7ae3d28a3d4d60",
+      "sha256": "017a77b9503c12f87e7404f0c059cde4c1f8fc1c352dd5a89ad1e5e7fb68925d",
       "state": "current"
     },
     {
@@ -1872,13 +1882,13 @@
     }
   ],
   "counts": {
-    "verified": 11,
+    "verified": 12,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
     "unknown": 2,
     "blocked": 0,
-    "stale": 54
+    "stale": 53
   },
   "attentionRequired": [
     "action-environment-lifecycle",
@@ -1921,7 +1931,6 @@
     "tabletop-chinese-font-fallback",
     "tabletop-event-interaction",
     "tabletop-game-over",
-    "tabletop-hunt-departure",
     "tabletop-hunt-map-intro",
     "tabletop-hunt-resource-markers",
     "tabletop-hunt-squad-pawn",
@@ -2263,6 +2272,11 @@
     {
       "capability": "hunt-noise-risk-deck",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-noise-risk-deck",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs",
       "state": "stale"
     },
     {
@@ -2633,21 +2647,6 @@
     {
       "capability": "tabletop-game-over",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "tabletop-hunt-departure",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "tabletop-hunt-departure",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "state": "stale"
-    },
-    {
-      "capability": "tabletop-hunt-departure",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs",
       "state": "stale"
     },
     {
@@ -3645,7 +3644,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -4806,10 +4805,10 @@
       "id": "tabletop-hunt-departure",
       "label": "3D 狩猎远征整备",
       "status": "verified",
-      "effectiveStatus": "stale",
+      "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；生产配置关闭旧屏幕 HUD 但保留世界空间端口，第 2 年路线以专属抽鬼牌事件扩展内容并复用相同的 View、Bundle 与 ActionQueue 边界。",
+      "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；点击而非拖拽猎人卡可在 3D 主卡检查伤势、属性、特性、装备与共享规则计算的装备噪音，且不改变编队或玩法状态。",
       "designSources": [],
       "sources": [
         "openspec/specs/tabletop-hunt-departure/spec.md",
@@ -4822,12 +4821,24 @@
           "state": "current"
         },
         {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/HuntDepartureHunterCard3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/HuntDepartureHunterPresentation.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs",
+          "state": "current"
+        },
+        {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableSettlementWorldSpacePortInstaller.cs",
@@ -4839,7 +4850,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "stale"
+          "state": "current"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/PlayableHuntDestinationCatalog.asset",
