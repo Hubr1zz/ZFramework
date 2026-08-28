@@ -98,6 +98,16 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
             Assert.That(manager.ActiveHuntHunters, Has.Count.EqualTo(1));
             Assert.That(manager.SettlementData.DepartingHunterIds, Is.Empty);
+            GameObject huntRoot = GetPrivateField<GameObject>(manager, "huntRoot");
+            HuntMapVisualizer visualizer = huntRoot.GetComponentInChildren<HuntMapVisualizer>(true);
+            HuntUIManager tabletopPresentation = huntRoot.GetComponentInChildren<HuntUIManager>(true);
+            Assert.That(visualizer, Is.Not.Null, "正式狩猎必须创建 3D 地图表现。");
+            Assert.That(huntRoot.GetComponentInChildren<HuntRetreatPanel3D>(true), Is.Not.Null, "正式狩猎必须提供实体回营入口。");
+            Assert.That(tabletopPresentation, Is.Not.Null);
+            Assert.That(tabletopPresentation.IsTabletopReady, Is.True);
+            Assert.That(tabletopPresentation.gameObject.name, Is.EqualTo("HuntTabletopPresentation"));
+            Assert.That(tabletopPresentation.GetComponent<RectTransform>(), Is.Null, "正式狩猎不得静默创建旧屏幕 UI 根节点。");
+            Assert.That(huntRoot.GetComponentsInChildren<Transform>(true).Any(child => child.name is "TopBar" or "HunterStatus" or "HarvestPopup" or "EventPopup"), Is.False);
             IPlayableHuntRetreatInput retreatInput = GetPrivateField<object>(manager, "campaignFlow") as IPlayableHuntRetreatInput;
             Assert.That(retreatInput, Is.Not.Null);
             HuntRetreatPreview firstPreview = retreatInput.GetRetreatPreview();
@@ -146,6 +156,28 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             SettlementDepartureCommandResult nextDepartureResult = nextDeparture.GetResult();
             Assert.That(nextDepartureResult.Succeeded, Is.True, nextDepartureResult.Reason);
             Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
+        }
+
+        [UnityTest]
+        public IEnumerator DepartureWithoutHuntWorldRoot_RollsBackBeforePlayableHuntCommits()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence);
+            yield return WaitForSettlementIdle(manager);
+            int year = manager.SettlementData.CurrentYear;
+            int hunterId = manager.SettlementData.GetAliveHunters()[0].InstanceId;
+            GameObject huntRoot = GetPrivateField<GameObject>(manager, "huntRoot");
+            UnityEngine.Object.DestroyImmediate(huntRoot);
+
+            UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { hunterId }, GetDestination(year)).GetAwaiter();
+            yield return WaitForCompletion(departure);
+            SettlementDepartureCommandResult result = departure.GetResult();
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(result.Reason, Does.Contain("3D 场景根节点"));
+            Assert.That(manager.CurrentGamePhase, Is.EqualTo(GamePhase.Settlement));
+            Assert.That(managerObject.GetComponentsInChildren<HuntMapVisualizer>(true), Is.Empty);
+            Assert.That(managerObject.GetComponentsInChildren<HuntRetreatPanel3D>(true), Is.Empty);
         }
 
         [UnityTest]

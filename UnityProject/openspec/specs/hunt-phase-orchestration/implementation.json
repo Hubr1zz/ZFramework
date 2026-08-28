@@ -2,23 +2,24 @@
   "schemaVersion": 1,
   "artifactRole": "formal-implementation-assertion",
   "capability": "hunt-phase-orchestration",
-  "specHash": "d851bb19a007a2e87166a1fc70833292596545d1ab56f33f2e652d3f445941d0",
+  "specHash": "4ae3d267441d287dcae155ae989659f40264dc9d1b9477bd3d778e1541bbeb2f",
   "codeReadiness": "implemented",
   "verification": {
     "status": "verified",
-    "summary": "HuntPhaseManager 拥有 Hunt generations 与 composition coordinator；CampaignFlowCoordinator 直接向 Hunt 表现提供回营端口，并持有出猎、回营和遭遇交接事务。",
-    "validatedAgainstSpecHash": "d851bb19a007a2e87166a1fc70833292596545d1ab56f33f2e652d3f445941d0",
+    "summary": "HuntPhaseManager 拥有 Hunt generations；composition coordinator 将当前 ActionSession、3D 地图、状态桌与实体回营入口作为原子启动边界，失败时交由战役事务回滚。",
+    "validatedAgainstSpecHash": "4ae3d267441d287dcae155ae989659f40264dc9d1b9477bd3d778e1541bbeb2f",
     "evidence": [
       { "guid": "863ce20b13126434f94c05222428eb5e", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseManager.cs", "line": 33, "fileHash": "638a0e7cc56641a25ab616a0bc6aa1b946d44942e82bf158cf8399e50245b62c", "status": "verified", "checkedAt": "2026-08-27T01:25:00-07:00", "feature": "拥有 Hunt runtime 候选、current、generation、配置与 coordinator 生命周期。" },
-      { "guid": "040c7587482dbdd439e8913b7911110b", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs", "line": 21, "fileHash": "080924c72041167dc6e0f9c21e72d407c90a2b898832619125e17c1f39126bb3", "status": "verified", "checkedAt": "2026-08-26T03:00:00-07:00", "feature": "拥有 visualizer、HuntUI、retreat panel 与 session callback，并拒绝 stale generation。" },
+      { "guid": "040c7587482dbdd439e8913b7911110b", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs", "line": 21, "fileHash": "ed52f188b4fefe5bca5c7fd3143bd6c066c92f26822558559c4ed867b69e455e", "status": "verified", "checkedAt": "2026-08-27T21:16:49-07:00", "feature": "把 visualizer、3D 状态桌、实体回营卡和当前 ActionSession 作为原子启动边界，并在失败时同步停用新会话。" },
+      { "guid": "9ecc7b5ba61f1a3469e8ce81fed5056e", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs", "line": 70, "fileHash": "38a3aba442f2bef1654983afabafe3e0e932763b17a6728f272719e0fd75b1d9", "status": "verified", "checkedAt": "2026-08-27T21:16:49-07:00", "feature": "提供严格的 tabletop 初始化与 readiness，生产协调器不再触发旧屏幕 UI fallback。" },
       { "guid": "551fe81197a6ca545a686a0c536f2646", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs", "line": 43, "fileHash": "6aa7758b986a25f474c815a7f4ec26f41b34182a870d0c5579f4a4a267468651", "status": "verified", "checkedAt": "2026-08-27T01:25:00-07:00", "feature": "组合根只保留 Hunt 兼容 facade 与场景绑定，不再实现回营端口或拥有跨阶段事务。" },
       { "guid": "5e4a9a28573d4a4bad6d719b6a74ba53", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs", "line": 32, "fileHash": "35023e27c6cf70d6186c1a5897d3a6af05ce2714a0734b01751dd524a84648ef", "status": "verified", "checkedAt": "2026-08-26T11:51:06-07:00", "feature": "协调营地出发准备、路线世代验证、Hunt 候选发布、权威入场与失败回滚。" },
       { "guid": "4bf6b5d22e83408cb939eadf6e81a0a7", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignEncounterHandoffTransaction.cs", "line": 31, "fileHash": "1dc3ed60d7853a291f12bac9e88f5fb32eefdc54956f16405352fdc1db2a3673", "status": "verified", "checkedAt": "2026-08-26T13:10:00-07:00", "feature": "Hunt 遭遇由单一事务 owner 先可靠保存 handoff checkpoint；失败或异常恢复旧载荷并释放来源锁。" }
     ],
-    "tests": ["Unity 6000.5.9f1 CLI GameManagerCampaignLoopPlayModeTests 25/25", "Unity 6000.5.9f1 CLI PlayableCampaignRuntimeModuleTests 20/20", "dotnet build GameLogic and PlayModeTests: 0 errors"],
-    "verifiedAt": "2026-08-27T01:25:00-07:00"
+    "tests": ["Unity 6000.5.9f1 CLI GameManagerCampaignLoopPlayModeTests 26/26", "dotnet build HuntingInDarkness.Adapter.PlayModeTests: 0 errors"],
+    "verifiedAt": "2026-08-27T21:16:49-07:00"
   },
-  "implementationOutline": ["HuntPhaseManager 管理候选与权威 generation。", "Hunt composition coordinator 管理 3D 表现和 ActionSession callback token。", "出猎、回营和遭遇交接分别由 CampaignFlowCoordinator 持有的 plain C# 事务协调跨 runner/FSM/persistence 原子边界。", "CampaignFlowCoordinator 直接提供回营窄端口；GameManager 仅保留兼容 facade。"],
-  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseManager.cs:8", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs:21", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs:32", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignEncounterHandoffTransaction.cs:31"],
+  "implementationOutline": ["HuntPhaseManager 管理候选与权威 generation。", "Hunt composition coordinator 原子启动 3D 地图、状态桌、实体回营卡和 ActionSession；任一必需项失败即停用会话并返回失败。", "出猎、回营和遭遇交接分别由 CampaignFlowCoordinator 持有的 plain C# 事务协调跨 runner/FSM/persistence 原子边界。", "旧屏幕 Hunt UI 只保留兼容代码，生产协调器不再触发其 fallback。"],
+  "sourceReferences": ["Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseManager.cs:8", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs:21", "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs:70", "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs:32"],
   "publishedBy": { "mode": "direct-authority-sync", "changeId": "" }
 }

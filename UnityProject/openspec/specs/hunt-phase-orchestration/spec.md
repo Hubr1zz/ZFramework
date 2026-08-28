@@ -20,6 +20,19 @@ The project SHALL enter Hunt through GameManager and activate the Hunt world and
 - **THEN** GameManager supplies the active hunter group through the Hunt phase boundary
 - **AND** HuntPhaseManager activates the current ActionSession and initializes or rebinds the Hunt presentation adapters
 
+### Requirement: Required tabletop presentation starts atomically
+The Hunt composition coordinator SHALL treat the Hunt map visualizer, 3D squad status board, physical retreat entry and current ActionSession as one required playable startup boundary. Production Hunt startup SHALL fail and deactivate the candidate ActionSession when the Hunt world root is unavailable or any required tabletop adapter cannot initialize. It SHALL NOT silently fall back to screen-space Hunt UI.
+
+#### Scenario: Required 3D presentation is ready
+- **WHEN** a Hunt runtime generation becomes playable
+- **THEN** the Hunt world contains a map visualizer, a tabletop squad status presentation and a physical retreat entry bound to that generation
+- **AND** the production coordinator does not create the legacy screen-space Hunt panels
+
+#### Scenario: Tabletop startup fails
+- **WHEN** the Hunt world root is unavailable or a required tabletop adapter fails to initialize
+- **THEN** the candidate Hunt ActionSession is deactivated
+- **AND** Hunt entry reports failure so the owning campaign transaction can roll back the candidate generation and phase transition
+
 ### Requirement: Hunt outcomes return to global orchestration
 HuntManager SHALL report Boss encounters, hunt completion and committed checkpoints through callbacks owned by the current Hunt composition coordinator. The coordinator SHALL forward only callbacks whose runtime generation, manager identity and ActionSession are still current to GameManager's cross-phase port.
 

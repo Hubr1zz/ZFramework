@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "26fc2aa4ff04c6f371a6371506616582d16b2928cba4c6fa11db3223b9c323aa",
-  "inputManifestDigest": "f758333f55826f9e60b2f564328a1cd4244c0b78354d13fcd700c3feb5271782",
-  "outputDigest": "6aec4e59b415328a5129927ba50dd3d14fc62223e4edd652a387f89a33241f4d",
+  "inputDigest": "485996433dbba72299b3b9659b077bf8505572bcf67c671ca891cf29eb38fca9",
+  "inputManifestDigest": "1387cff4d4b63cca806dab6498ac56f274f63e1451478ae5559ee6916cd8186e",
+  "outputDigest": "7eec73e60c924256e4406ac67a55c006fb4a253eae150cc04d969e77e7ba4202",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -642,7 +642,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "ff591e23487f46931129b70f685f5e076064eb84f52cb9e78695fda550b00f0a",
+      "sha256": "4a686782563e61cb2d0ad413c41d20c91c8afab5d1c4d9f57060deb93e839acd",
       "state": "current"
     },
     {
@@ -827,7 +827,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs",
-      "sha256": "080924c72041167dc6e0f9c21e72d407c90a2b898832619125e17c1f39126bb3",
+      "sha256": "ed52f188b4fefe5bca5c7fd3143bd6c066c92f26822558559c4ed867b69e455e",
       "state": "current"
     },
     {
@@ -1002,7 +1002,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
-      "sha256": "234abc37bc4c257135f17af6a99ce7c6642523497b0382d48118a91f08167e43",
+      "sha256": "38a3aba442f2bef1654983afabafe3e0e932763b17a6728f272719e0fd75b1d9",
       "state": "current"
     },
     {
@@ -1402,12 +1402,12 @@
     },
     {
       "path": "openspec/specs/hunt-phase-orchestration/implementation.json",
-      "sha256": "8753a745c36c2da89fbb2774ba70486c987c281a5c6d7fde196d498dc8c43f6d",
+      "sha256": "49ccb8ccc84432d412a1455d33cfb1b987a8627123512946425a3e78e5839fdd",
       "state": "current"
     },
     {
       "path": "openspec/specs/hunt-phase-orchestration/spec.md",
-      "sha256": "d851bb19a007a2e87166a1fc70833292596545d1ab56f33f2e652d3f445941d0",
+      "sha256": "4ae3d267441d287dcae155ae989659f40264dc9d1b9477bd3d778e1541bbeb2f",
       "state": "current"
     },
     {
@@ -1882,13 +1882,13 @@
     }
   ],
   "counts": {
-    "verified": 12,
+    "verified": 10,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
     "unknown": 2,
     "blocked": 0,
-    "stale": 53
+    "stale": 55
   },
   "attentionRequired": [
     "action-environment-lifecycle",
@@ -1931,8 +1931,10 @@
     "tabletop-chinese-font-fallback",
     "tabletop-event-interaction",
     "tabletop-game-over",
+    "tabletop-hunt-departure",
     "tabletop-hunt-map-intro",
     "tabletop-hunt-resource-markers",
+    "tabletop-hunt-retreat",
     "tabletop-hunt-squad-pawn",
     "tabletop-hunt-squad-status",
     "tabletop-hunt-tile-cards",
@@ -1967,6 +1969,11 @@
     {
       "capability": "active-hunt-persistence",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "active-hunt-persistence",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs",
       "state": "stale"
     },
     {
@@ -2650,6 +2657,11 @@
       "state": "stale"
     },
     {
+      "capability": "tabletop-hunt-departure",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "state": "stale"
+    },
+    {
       "capability": "tabletop-hunt-map-intro",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "state": "stale"
@@ -2667,6 +2679,11 @@
     {
       "capability": "tabletop-hunt-resource-markers",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-hunt-retreat",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
       "state": "stale"
     },
     {
@@ -2682,6 +2699,11 @@
     {
       "capability": "tabletop-hunt-squad-status",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-hunt-squad-status",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
       "state": "stale"
     },
     {
@@ -2921,7 +2943,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs",
@@ -3655,7 +3677,7 @@
       "effectiveStatus": "verified",
       "progress": 100,
       "verificationStatus": "verified",
-      "summary": "HuntPhaseManager 拥有 Hunt generations 与 composition coordinator；CampaignFlowCoordinator 直接向 Hunt 表现提供回营端口，并持有出猎、回营和遭遇交接事务。",
+      "summary": "HuntPhaseManager 拥有 Hunt generations；composition coordinator 将当前 ActionSession、3D 地图、状态桌与实体回营入口作为原子启动边界，失败时交由战役事务回滚。",
       "designSources": [],
       "sources": [
         "openspec/specs/hunt-phase-orchestration/spec.md",
@@ -3669,6 +3691,10 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
           "state": "current"
         },
         {
@@ -4805,7 +4831,7 @@
       "id": "tabletop-hunt-departure",
       "label": "3D 狩猎远征整备",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "营地以世界空间启动卡、可拖拽猎人卡、四槽小队和实体地区卡完成出猎整备；点击而非拖拽猎人卡可在 3D 主卡检查伤势、属性、特性、装备与共享规则计算的装备噪音，且不改变编队或玩法状态。",
@@ -4850,7 +4876,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/PlayableHuntDestinationCatalog.asset",
@@ -4946,7 +4972,7 @@
       "id": "tabletop-hunt-retreat",
       "label": "3D 狩猎回营结算",
       "status": "verified",
-      "effectiveStatus": "verified",
+      "effectiveStatus": "stale",
       "progress": 100,
       "verificationStatus": "verified",
       "summary": "地图边缘实体回营卡区分安全与紧急撤退，并从冻结的配置化日历只读预告目标年份、季节和年度事件门禁；非法日历会关闭确认，权威 Settlement root 仍在提交时重新校验。",
@@ -4979,7 +5005,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HuntRetreatCalendarPreviewPlayModeTests.cs",
@@ -5036,7 +5062,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntActorSelectionActions.cs",

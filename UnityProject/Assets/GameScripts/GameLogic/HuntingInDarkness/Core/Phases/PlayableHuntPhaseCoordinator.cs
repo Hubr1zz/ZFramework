@@ -24,7 +24,6 @@ namespace Core
         private Func<IActionEnvironmentInstallerRegistry> installerRegistryProvider;
         private ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private GameObject huntRoot;
-        private GameObject uiHunt;
         private IPlayableHuntRetreatInput retreatInput;
         private Action<CampaignEncounterRequest> encounterRequested;
         private Action<HuntRecord> huntCompleted;
@@ -45,7 +44,7 @@ namespace Core
             this.installerRegistryProvider = installerRegistryProvider ?? throw new ArgumentNullException(nameof(installerRegistryProvider));
             this.randomInteractionPresenter = randomInteractionPresenter;
             this.huntRoot = huntRoot;
-            this.uiHunt = uiHunt;
+            _ = uiHunt;
             this.retreatInput = retreatInput ?? throw new ArgumentNullException(nameof(retreatInput));
             this.encounterRequested = encounterRequested;
             this.huntCompleted = huntCompleted;
@@ -92,6 +91,11 @@ namespace Core
                 reason = "当前没有可启动的狩猎运行态。";
                 return false;
             }
+            if (huntRoot == null)
+            {
+                reason = "狩猎 3D 场景根节点不可用。";
+                return false;
+            }
             activeGenerationId = runtime.GenerationId;
             try
             {
@@ -101,24 +105,19 @@ namespace Core
                     activeGenerationId = 0;
                     return false;
                 }
-                visualizer?.Init(runtime.Manager, runtime.ExplorationPort);
+                visualizer.Init(runtime.Manager, runtime.ExplorationPort);
+                EnsureHuntRetreatPanel(runtime.Manager);
+                EnsureHuntUI(runtime.Manager, runtime.ExplorationPort);
+                if (!IsTabletopPresentationReady)
+                    throw new InvalidOperationException("狩猎必要 3D 交互未完整创建。");
             }
             catch (Exception exception)
             {
                 runtime.DeactivateActionSession();
-                activeGenerationId = 0;
-                reason = $"狩猎 ActionSession 初始化失败：{exception.Message}";
-                return false;
-            }
-            try
-            {
-                EnsureHuntRetreatPanel(runtime.Manager);
-                EnsureHuntUI(runtime.Manager, runtime.ExplorationPort);
-            }
-            catch (Exception exception)
-            {
                 Cleanup(false);
-                Debug.LogWarning($"[GameManager] 狩猎交互表现初始化失败，已保留 ActionSession：{exception.Message}");
+                activeGenerationId = 0;
+                reason = $"狩猎 3D 交互与 ActionSession 初始化失败：{exception.Message}";
+                return false;
             }
             reason = string.Empty;
             return true;
@@ -146,7 +145,10 @@ namespace Core
             if (retreatPanel != null)
                 UnityEngine.Object.Destroy(retreatPanel.gameObject);
             if (huntUI != null)
+            {
+                huntUI.ReleaseBindings();
                 UnityEngine.Object.Destroy(huntUI.gameObject);
+            }
             if (includeVisualizer && visualizer != null)
                 UnityEngine.Object.Destroy(visualizer.gameObject);
             retreatPanel = null;
@@ -158,34 +160,37 @@ namespace Core
         internal void EnsureHuntUI(HuntManager manager, IHuntExplorationPort port)
         {
             EnsureConfigured();
+            if (visualizer == null) throw new InvalidOperationException("狩猎地图表现尚未初始化。");
             if (huntUI != null)
             {
-                huntUI.Init(manager, visualizer, port);
+                huntUI.InitTabletop(manager, visualizer, port);
                 return;
             }
-            var uiParent = uiHunt != null ? uiHunt : huntRoot;
-            if (uiParent == null) return;
-            var uiGo = new GameObject("HuntUIManager", typeof(RectTransform));
-            uiGo.transform.SetParent(uiParent.transform, false);
-            huntUI = uiGo.AddComponent<HuntUIManager>();
-            huntUI.Init(manager, visualizer, port);
+            if (huntRoot == null) throw new InvalidOperationException("狩猎 3D 场景根节点不可用。");
+            var presentationObject = new GameObject("HuntTabletopPresentation");
+            presentationObject.transform.SetParent(huntRoot.transform, false);
+            huntUI = presentationObject.AddComponent<HuntUIManager>();
+            huntUI.InitTabletop(manager, visualizer, port);
         }
 
         internal void EnsureHuntRetreatPanel(HuntManager manager)
         {
             EnsureConfigured();
-            if (visualizer == null) return;
+            if (visualizer == null) throw new InvalidOperationException("狩猎地图表现尚未初始化。");
             retreatPanel ??= HuntRetreatPanel3D.Create(visualizer.transform);
             retreatPanel.Initialize(retreatInput, manager);
         }
 
         private void EnsureVisualizer()
         {
-            if (visualizer != null || huntRoot == null) return;
+            if (visualizer != null) return;
+            if (huntRoot == null) throw new InvalidOperationException("狩猎 3D 场景根节点不可用。");
             var visualizerObject = new GameObject("HuntMapVisualizer");
-            visualizerObject.transform.SetParent(huntRoot.transform);
+            visualizerObject.transform.SetParent(huntRoot.transform, false);
             visualizer = visualizerObject.AddComponent<HuntMapVisualizer>();
         }
+
+        private bool IsTabletopPresentationReady => visualizer != null && retreatPanel != null && huntUI?.IsTabletopReady == true;
 
         private bool IsCurrent(IPlayableHuntRuntime runtime, HuntManager manager)
         {

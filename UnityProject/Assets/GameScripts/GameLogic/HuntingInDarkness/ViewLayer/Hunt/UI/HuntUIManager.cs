@@ -28,6 +28,8 @@ namespace UI.Hunt
         // 顶部信息栏
         private Text _infoLabel;
 
+        public bool IsTabletopReady => huntVisualizer != null && explorationPort != null && statusBoard3D != null;
+
         // ─── 初始化 ──────────────────────────────────────────────
 
         public void Init(HuntManager huntMgr, HuntMapVisualizer visualizer = null)
@@ -63,6 +65,24 @@ namespace UI.Hunt
             EventBus.Subscribe<HuntEventNodeCommittedEvent>(OnHuntEventNodeCommitted);
             EventBus.Subscribe<HuntActorSelectionCommittedEvent>(OnHuntActorSelectionCommitted);
             _initialized = true;
+        }
+
+        public void InitTabletop(HuntManager huntMgr, HuntMapVisualizer visualizer, IHuntExplorationPort port)
+        {
+            if (visualizer == null) throw new System.ArgumentNullException(nameof(visualizer));
+            if (port == null) throw new System.ArgumentNullException(nameof(port));
+            Init(huntMgr, visualizer, port);
+            if (!IsTabletopReady) throw new System.InvalidOperationException("狩猎 3D 状态桌初始化失败。");
+        }
+
+        public void ReleaseBindings()
+        {
+            EventBus.Unsubscribe<GameEventTriggeredEvent>(OnGameEvent);
+            EventBus.Unsubscribe<HuntTileInteractionCommittedEvent>(OnTileInteractionCommitted);
+            EventBus.Unsubscribe<HarvestCommittedEvent>(OnHarvestCommitted);
+            EventBus.Unsubscribe<HuntEventNodeCommittedEvent>(OnHuntEventNodeCommitted);
+            EventBus.Unsubscribe<HuntActorSelectionCommittedEvent>(OnHuntActorSelectionCommitted);
+            ClearResourcePresentationCallbacks();
         }
 
         private void BuildUI()
@@ -191,12 +211,7 @@ namespace UI.Hunt
 
         private void OnDestroy()
         {
-            EventBus.Unsubscribe<GameEventTriggeredEvent>(OnGameEvent);
-            EventBus.Unsubscribe<HuntTileInteractionCommittedEvent>(OnTileInteractionCommitted);
-            EventBus.Unsubscribe<HarvestCommittedEvent>(OnHarvestCommitted);
-            EventBus.Unsubscribe<HuntEventNodeCommittedEvent>(OnHuntEventNodeCommitted);
-            EventBus.Unsubscribe<HuntActorSelectionCommittedEvent>(OnHuntActorSelectionCommitted);
-            ClearResourcePresentationCallbacks();
+            ReleaseBindings();
             if (statusBoard3D != null)
                 Destroy(statusBoard3D.gameObject);
             if (harvestPanel3D != null)
