@@ -27,7 +27,8 @@ namespace Core
     [Serializable]
     public sealed class ActiveHuntSnapshot
     {
-        public const int CurrentSchemaVersion = 2;
+        public const int LegacySchemaVersion = 2;
+        public const int CurrentSchemaVersion = 3;
         public const string RandomAlgorithm = "xorshift32-v1";
         public int SchemaVersion = CurrentSchemaVersion;
         public string ExpeditionId;
@@ -45,6 +46,7 @@ namespace Core
         public List<ActiveHuntTileSnapshot> Tiles = new();
         public List<ActiveHuntCollectibleSnapshot> Collectibles = new();
         public ActiveHuntEventStoreSnapshot EventStore = new();
+        public int RescuedPopulation;
     }
 
     [Serializable]
@@ -142,7 +144,8 @@ namespace Core
                 SelectedHunterId = manager.SelectedHunter?.InstanceId ?? 0,
                 SquadX = manager.SquadPosition.x,
                 SquadY = manager.SquadPosition.y,
-                RandomState = manager.CaptureRandomState().Value
+                RandomState = manager.CaptureRandomState().Value,
+                RescuedPopulation = manager.RescuedPopulation
             };
             var hunterIds = new HashSet<int>();
             foreach (HunterInstance hunter in manager.ActiveHunters)
@@ -240,7 +243,7 @@ namespace Core
                 reason = "战役或活动狩猎快照版本无效。";
                 return false;
             }
-            if (active.SchemaVersion != ActiveHuntSnapshot.CurrentSchemaVersion || active.Year != settlement.CurrentYear || string.IsNullOrWhiteSpace(active.ExpeditionId) || string.IsNullOrWhiteSpace(active.ContentBundleId) || active.RandomState == 0 || !string.Equals(active.RandomAlgorithmId, ActiveHuntSnapshot.RandomAlgorithm, StringComparison.Ordinal))
+            if (active.SchemaVersion < ActiveHuntSnapshot.LegacySchemaVersion || active.SchemaVersion > ActiveHuntSnapshot.CurrentSchemaVersion || active.Year != settlement.CurrentYear || string.IsNullOrWhiteSpace(active.ExpeditionId) || string.IsNullOrWhiteSpace(active.ContentBundleId) || active.RandomState == 0 || !string.Equals(active.RandomAlgorithmId, ActiveHuntSnapshot.RandomAlgorithm, StringComparison.Ordinal) || active.RescuedPopulation < 0 || active.SchemaVersion == ActiveHuntSnapshot.LegacySchemaVersion && active.RescuedPopulation != 0)
             {
                 reason = "活动狩猎快照的年份、身份或随机算法无效。";
                 return false;
@@ -363,7 +366,8 @@ namespace Core
                 SelectedHunterId = active.SelectedHunterId,
                 SquadPosition = squadPosition,
                 Map = map,
-                RandomState = new StatefulRandomState(active.RandomState)
+                RandomState = new StatefulRandomState(active.RandomState),
+                RescuedPopulation = active.SchemaVersion >= ActiveHuntSnapshot.CurrentSchemaVersion ? active.RescuedPopulation : 0
             };
             reason = string.Empty;
             return true;

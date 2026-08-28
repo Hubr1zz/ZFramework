@@ -20,6 +20,11 @@ namespace HuntingInDarkness.GameCore.Settlement
         }
 
         public HuntReturnInput(string recordId, int schemaVersion, int year, int huntersDeployed, int huntersLost, IReadOnlyList<int> participantHunterIds, IReadOnlyList<string> collectedResourceIds, IReadOnlyList<HuntLootStack> collectedItems)
+            : this(recordId, schemaVersion, year, huntersDeployed, huntersLost, participantHunterIds, collectedResourceIds, collectedItems, 0)
+        {
+        }
+
+        public HuntReturnInput(string recordId, int schemaVersion, int year, int huntersDeployed, int huntersLost, IReadOnlyList<int> participantHunterIds, IReadOnlyList<string> collectedResourceIds, IReadOnlyList<HuntLootStack> collectedItems, int rescuedPopulation)
         {
             RecordId = recordId ?? string.Empty;
             SchemaVersion = schemaVersion;
@@ -29,6 +34,7 @@ namespace HuntingInDarkness.GameCore.Settlement
             ParticipantHunterIds = participantHunterIds ?? Array.Empty<int>();
             CollectedResourceIds = collectedResourceIds ?? Array.Empty<string>();
             CollectedItems = collectedItems ?? Array.Empty<HuntLootStack>();
+            RescuedPopulation = rescuedPopulation;
         }
 
         public string RecordId { get; }
@@ -39,6 +45,7 @@ namespace HuntingInDarkness.GameCore.Settlement
         public IReadOnlyList<int> ParticipantHunterIds { get; }
         public IReadOnlyList<string> CollectedResourceIds { get; }
         public IReadOnlyList<HuntLootStack> CollectedItems { get; }
+        public int RescuedPopulation { get; }
     }
 
     public readonly struct HuntReturnParticipantState
@@ -138,7 +145,7 @@ namespace HuntingInDarkness.GameCore.Settlement
     /// <summary>已通过完整预检的归来提交计划。集合以只读包装暴露，避免执行阶段改变计划。</summary>
     public sealed class HuntReturnPlan
     {
-        internal HuntReturnPlan(string recordId, int year, bool legacy, bool alreadyApplied, int collectedResourceCount, int collectedItemCount, IReadOnlyList<HuntReturnItemGrant> itemGrants, IReadOnlyList<HuntReturnParticipantPlan> participantPlans)
+        internal HuntReturnPlan(string recordId, int year, bool legacy, bool alreadyApplied, int collectedResourceCount, int collectedItemCount, int rescuedPopulation, int previousPopulation, int newPopulation, IReadOnlyList<HuntReturnItemGrant> itemGrants, IReadOnlyList<HuntReturnParticipantPlan> participantPlans)
         {
             RecordId = recordId;
             Year = year;
@@ -146,6 +153,9 @@ namespace HuntingInDarkness.GameCore.Settlement
             IsAlreadyApplied = alreadyApplied;
             CollectedResourceCount = collectedResourceCount;
             CollectedItemCount = collectedItemCount;
+            RescuedPopulation = rescuedPopulation;
+            PreviousPopulation = previousPopulation;
+            NewPopulation = newPopulation;
             ItemGrants = new ReadOnlyCollection<HuntReturnItemGrant>(new List<HuntReturnItemGrant>(itemGrants));
             var resourceGrants = new List<HuntReturnResourceGrant>();
             foreach (HuntReturnItemGrant grant in itemGrants)
@@ -161,6 +171,9 @@ namespace HuntingInDarkness.GameCore.Settlement
         public bool IsAlreadyApplied { get; }
         public int CollectedResourceCount { get; }
         public int CollectedItemCount { get; }
+        public int RescuedPopulation { get; }
+        public int PreviousPopulation { get; }
+        public int NewPopulation { get; }
         public IReadOnlyList<HuntReturnItemGrant> ItemGrants { get; }
         public IReadOnlyList<HuntReturnResourceGrant> ResourceGrants { get; }
         public IReadOnlyList<HuntReturnParticipantPlan> ParticipantPlans { get; }
@@ -171,19 +184,32 @@ namespace HuntingInDarkness.GameCore.Settlement
     {
         public const int LegacySchemaVersion = 0;
         public const int ResourceOnlySchemaVersion = 1;
-        public const int CurrentSchemaVersion = 2;
+        public const int GenericLootSchemaVersion = 2;
+        public const int CurrentSchemaVersion = 3;
         public const int MaximumParticipants = 4;
 
         public static bool TryCreatePlan(HuntReturnInput input, int currentYear, IReadOnlyList<HuntReturnParticipantState> participants, IReadOnlyList<HuntReturnResourceState> resources, bool alreadyApplied, out HuntReturnPlan plan, out string reason)
         {
+            if (input.RescuedPopulation != 0)
+            {
+                plan = null;
+                return Fail("救援人口归来计划必须提供当前营地人口。", out reason);
+            }
             var items = new List<HuntReturnItemState>();
             if (resources != null)
                 foreach (HuntReturnResourceState resource in resources)
                     items.Add(new HuntReturnItemState(resource.ResourceId, HuntReturnItemKind.Resource, resource.CurrentAmount));
-            return TryCreateItemPlan(input, currentYear, participants, items, alreadyApplied, out plan, out reason);
+            return TryCreateItemPlan(input, currentYear, participants, items, 0, alreadyApplied, out plan, out reason);
         }
 
         public static bool TryCreateItemPlan(HuntReturnInput input, int currentYear, IReadOnlyList<HuntReturnParticipantState> participants, IReadOnlyList<HuntReturnItemState> items, bool alreadyApplied, out HuntReturnPlan plan, out string reason)
+        {
+            if (input.RescuedPopulation == 0) return TryCreateItemPlan(input, currentYear, participants, items, 0, alreadyApplied, out plan, out reason);
+            plan = null;
+            return Fail("救援人口归来计划必须提供当前营地人口。", out reason);
+        }
+
+        public static bool TryCreateItemPlan(HuntReturnInput input, int currentYear, IReadOnlyList<HuntReturnParticipantState> participants, IReadOnlyList<HuntReturnItemState> items, int currentPopulation, bool alreadyApplied, out HuntReturnPlan plan, out string reason)
         {
             plan = null;
             reason = string.Empty;
@@ -192,16 +218,20 @@ namespace HuntingInDarkness.GameCore.Settlement
             if (input.SchemaVersion < LegacySchemaVersion || input.SchemaVersion > CurrentSchemaVersion) return Fail("远征归来记录版本不受支持。", out reason);
             if (alreadyApplied)
             {
-                plan = new HuntReturnPlan(input.RecordId.Trim(), input.Year, input.SchemaVersion == LegacySchemaVersion, true, CountLegacyResources(input), CountItems(input), Array.Empty<HuntReturnItemGrant>(), Array.Empty<HuntReturnParticipantPlan>());
+                plan = new HuntReturnPlan(input.RecordId.Trim(), input.Year, input.SchemaVersion == LegacySchemaVersion, true, CountLegacyResources(input), CountItems(input), 0, currentPopulation, currentPopulation, Array.Empty<HuntReturnItemGrant>(), Array.Empty<HuntReturnParticipantPlan>());
                 return true;
             }
             if (currentYear < 1 || input.Year != currentYear) return Fail("远征归来年份与营地当前年份不一致。", out reason);
             if (input.HuntersDeployed < 0 || input.HuntersDeployed > MaximumParticipants || input.HuntersLost < 0 || input.HuntersLost > input.HuntersDeployed) return Fail("远征归来猎人数量不合法。", out reason);
             if (input.SchemaVersion == LegacySchemaVersion)
             {
-                plan = new HuntReturnPlan(input.RecordId.Trim(), input.Year, true, false, input.CollectedResourceIds.Count, input.CollectedResourceIds.Count, Array.Empty<HuntReturnItemGrant>(), Array.Empty<HuntReturnParticipantPlan>());
+                if (input.RescuedPopulation != 0) return Fail("旧版远征归来记录不得写入 v3 救援人口。", out reason);
+                plan = new HuntReturnPlan(input.RecordId.Trim(), input.Year, true, false, input.CollectedResourceIds.Count, input.CollectedResourceIds.Count, 0, currentPopulation, currentPopulation, Array.Empty<HuntReturnItemGrant>(), Array.Empty<HuntReturnParticipantPlan>());
                 return true;
             }
+
+            if (input.SchemaVersion < CurrentSchemaVersion && input.RescuedPopulation != 0) return Fail("旧版远征归来记录不得写入 v3 救援人口。", out reason);
+            if (input.RescuedPopulation < 0 || currentPopulation < 0 || currentPopulation > int.MaxValue - input.RescuedPopulation) return Fail("远征救援人口数量无效或溢出。", out reason);
 
             if (input.ParticipantHunterIds.Count != input.HuntersDeployed) return Fail("远征参与猎人数量与记录不一致。", out reason);
             if (!TryBuildParticipantPlans(input, participants, out List<HuntReturnParticipantPlan> participantPlans, out reason)) return false;
@@ -211,7 +241,7 @@ namespace HuntingInDarkness.GameCore.Settlement
             if (lostCount != input.HuntersLost) return Fail("远征死亡人数与参与猎人状态不一致。", out reason);
             if (!TryBuildItemGrants(input, items, out List<HuntReturnItemGrant> itemGrants, out int resourceCount, out int itemCount, out reason)) return false;
 
-            plan = new HuntReturnPlan(input.RecordId.Trim(), input.Year, false, false, resourceCount, itemCount, itemGrants, participantPlans);
+            plan = new HuntReturnPlan(input.RecordId.Trim(), input.Year, false, false, resourceCount, itemCount, input.RescuedPopulation, currentPopulation, currentPopulation + input.RescuedPopulation, itemGrants, participantPlans);
             return true;
         }
 
@@ -265,7 +295,7 @@ namespace HuntingInDarkness.GameCore.Settlement
             }
             else
             {
-                if (input.CollectedResourceIds.Count > 0) return Fail("v2 远征归来记录不得继续写入旧资源清单。", out reason);
+                if (input.CollectedResourceIds.Count > 0) return Fail("v2+ 远征归来记录不得继续写入旧资源清单。", out reason);
                 foreach (HuntLootStack stack in input.CollectedItems)
                 {
                     if (stack == null || stack.Count <= 0) return Fail("远征携带物数量无效。", out reason);

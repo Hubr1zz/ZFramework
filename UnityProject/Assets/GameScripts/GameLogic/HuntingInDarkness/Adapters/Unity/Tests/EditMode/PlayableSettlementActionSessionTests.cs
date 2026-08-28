@@ -223,7 +223,7 @@ namespace HuntingInDarkness.Adapter.Tests
             var hunter = new HunterInstance(null, 71) { Name = "回营猎人" };
             hunter.Collectibles.Add(new ItemInstance(item));
             hunter.Collectibles.Add(new ItemInstance(consumable));
-            var settlement = new SettlementInstance { CurrentYear = 2 };
+            var settlement = new SettlementInstance { CurrentYear = 2, Population = 2 };
             settlement.Hunters.Add(hunter);
             settlement.AddResource("resource.stone", 10);
             PlayableSettlementItemRegistry.Configure(new[] { item, consumable });
@@ -241,7 +241,8 @@ namespace HuntingInDarkness.Adapter.Tests
                     {
                         new("resource.stone", 1),
                         new("weathered_field_dressing", 1)
-                    }
+                    },
+                    RescuedPopulation = 1
                 };
                 using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), timeline: CreateTimeline(settlement));
 
@@ -253,6 +254,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(duplicate.Applied, Is.False);
                 Assert.That(settlement.GetResource("resource.stone"), Is.EqualTo(11));
                 Assert.That(settlement.GetStoredItem("weathered_field_dressing"), Is.EqualTo(1));
+                Assert.That(settlement.Population, Is.EqualTo(3));
                 Assert.That(settlement.HasDiscoveredMaterial("resource.stone"), Is.True);
                 Assert.That(hunter.Age, Is.EqualTo(2));
                 Assert.That(hunter.Collectibles, Is.Empty);

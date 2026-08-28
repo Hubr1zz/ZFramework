@@ -98,7 +98,7 @@ namespace HuntingInDarkness.ViewLayer.Hunt
                 : calendarAvailable ? "确认前仍可继续探索" : calendarUnavailableReason;
             TabletopEventPrimaryCard3D primary = TabletopEventPrimaryCard3D.Create(transform);
             primary.MoveTo(new Vector3(0f, 0f, 1.75f));
-            primary.Present("返回营地？", $"{mode}\n出发猎人 · {hunterCount}\n失去猎人 · {lostCount}\n携带物品 · {collectibleCount}\n{summary}\n\n{calendarSummary}", primaryStatus, string.IsNullOrWhiteSpace(status) && calendarAvailable ? TabletopEventPrimaryTone.Narrative : TabletopEventPrimaryTone.Failure);
+            primary.Present("返回营地？", $"{mode}\n出发猎人 · {hunterCount}\n失去猎人 · {lostCount}\n同行幸存者 · {preview.RescuedPopulation}\n携带物品 · {collectibleCount}\n{summary}\n\n{calendarSummary}", primaryStatus, string.IsNullOrWhiteSpace(status) && calendarAvailable ? TabletopEventPrimaryTone.Narrative : TabletopEventPrimaryTone.Failure);
 
             if (preview.RequiresAbandonment)
                 PresentLootChoices(preview.LootItems);

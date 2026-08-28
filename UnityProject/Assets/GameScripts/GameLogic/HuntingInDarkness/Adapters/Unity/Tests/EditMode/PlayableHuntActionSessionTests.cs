@@ -539,6 +539,52 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task HuntEventPopulationRescue_StagesHuntPopulationWithoutMutatingSettlement()
+        {
+            using var rig = new HuntRig();
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.RescuePopulation, value = 1 });
+            HuntPopulationRescuedEvent received = default;
+            int factCount = 0;
+            Action<HuntPopulationRescuedEvent> handler = evt =>
+            {
+                received = evt;
+                factCount++;
+            };
+            EventBus.Subscribe(handler);
+            try
+            {
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(result.FailedEffectCount, Is.Zero);
+                Assert.That(rig.Manager.RescuedPopulation, Is.EqualTo(1));
+                Assert.That(rig.Settlement.Population, Is.Zero);
+                Assert.That(factCount, Is.EqualTo(1));
+                Assert.That(received.ActorId, Is.EqualTo(rig.Hunter.InstanceId));
+                Assert.That(received.OldAmount, Is.Zero);
+                Assert.That(received.NewAmount, Is.EqualTo(1));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
+        public void HuntEventPopulationRescue_RejectsInvalidActorAndOverflowWithoutMutation()
+        {
+            using var rig = new HuntRig();
+            var command = new HuntEventPopulationCommand(rig.Manager);
+            var foreignActor = new HunterInstance(null, 9912) { IsAlive = true };
+
+            Assert.That(command.TryRescue(1, foreignActor, out _, out _), Is.False);
+            Assert.That(command.TryRescue(0, rig.Hunter, out _, out _), Is.False);
+            Assert.That(command.TryRescue(int.MaxValue, rig.Hunter, out _, out string firstReason), Is.True, firstReason);
+            Assert.That(command.TryRescue(1, rig.Hunter, out _, out _), Is.False);
+            Assert.That(rig.Manager.RescuedPopulation, Is.EqualTo(int.MaxValue));
+        }
+
+        [Test]
         public void HuntEventResourceReward_RejectsCountOverflowWithoutMutation()
         {
             using var rig = new HuntRig();

@@ -17,6 +17,7 @@ namespace HuntingInDarkness.Settlement
         private readonly IPlayableEventItemCommand itemCommand;
         private readonly IPlayableEventWorldCommand worldCommand;
         private readonly IPlayableEventSettlementCommand settlementCommand;
+        private readonly IPlayableEventPopulationCommand populationCommand;
         private EventResolutionResult committedResult;
         private IReadOnlyList<EventData> standaloneChain;
         private IReadOnlyList<string> standaloneEncounterIds;
@@ -36,7 +37,7 @@ namespace HuntingInDarkness.Settlement
         public bool IsCommitted { get; private set; }
         public bool CanReroll => RequiresCheck && !HasRerolled && !IsCommitted && actor != null && actor.Willpower > 0;
 
-        internal PlayableEventChoiceTransaction(EventSystem eventSystem, EventData gameEvent, int optionIndex, HunterInstance actor, int rollValue, int bonus, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand, IPlayableEventSettlementCommand settlementCommand, IPlayableEventItemCommand itemCommand)
+        internal PlayableEventChoiceTransaction(EventSystem eventSystem, EventData gameEvent, int optionIndex, HunterInstance actor, int rollValue, int bonus, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand, IPlayableEventSettlementCommand settlementCommand, IPlayableEventItemCommand itemCommand, IPlayableEventPopulationCommand populationCommand)
         {
             this.eventSystem = eventSystem;
             this.gameEvent = gameEvent;
@@ -46,6 +47,7 @@ namespace HuntingInDarkness.Settlement
             this.itemCommand = itemCommand;
             this.worldCommand = worldCommand;
             this.settlementCommand = settlementCommand;
+            this.populationCommand = populationCommand;
             option = gameEvent.options[optionIndex];
             RollValue = rollValue;
             Bonus = bonus;
@@ -70,7 +72,7 @@ namespace HuntingInDarkness.Settlement
             if (IsCommitted) return committedResult;
 
             IsCommitted = true;
-            committedResult = eventSystem.CommitPreparedChoice(gameEvent, optionIndex, actor, Success, RollValue, resourceCommand, worldCommand, settlementCommand, itemCommand);
+            committedResult = eventSystem.CommitPreparedChoice(gameEvent, optionIndex, actor, Success, RollValue, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand);
             return committedResult;
         }
 
@@ -80,7 +82,7 @@ namespace HuntingInDarkness.Settlement
             if (!IsCommitted)
             {
                 IsCommitted = true;
-                PlayableEventCommitResult result = eventSystem.CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, Success, RollValue, resourceCommand, worldCommand, settlementCommand, captureEncounterRequests, itemCommand);
+                PlayableEventCommitResult result = eventSystem.CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, Success, RollValue, resourceCommand, worldCommand, settlementCommand, captureEncounterRequests, itemCommand, populationCommand);
                 committedResult = result.Result;
                 standaloneChain = result.ChainedEvents;
                 standaloneEncounterIds = result.EncounterIds;
@@ -99,7 +101,7 @@ namespace HuntingInDarkness.Settlement
 
     public partial class EventSystem
     {
-        public PlayableEventChoiceTransaction PrepareChoice(EventData gameEvent, int optionIndex, HunterInstance actor = null, int? preparedRoll = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null, IPlayableEventItemCommand itemCommand = null)
+        public PlayableEventChoiceTransaction PrepareChoice(EventData gameEvent, int optionIndex, HunterInstance actor = null, int? preparedRoll = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null)
         {
             if (gameEvent?.options == null || optionIndex < 0 || optionIndex >= gameEvent.options.Count) return null;
             EventOption option = gameEvent.options[optionIndex];
@@ -112,12 +114,12 @@ namespace HuntingInDarkness.Settlement
             if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, resourceAvailability, out _)) return null;
             int rollValue = option.checkType == CheckType.None ? 0 : preparedRoll ?? RollDice(PlayableEventCheckRules.ResolveCount(option), PlayableEventCheckRules.ResolveSides(option));
             int bonus = GetCheckBonus(actor, option.checkType);
-            return new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, rollValue, bonus, resourceCommand, worldCommand, settlementCommand, itemCommand);
+            return new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, rollValue, bonus, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand);
         }
 
-        internal EventResolutionResult CommitPreparedChoice(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventItemCommand itemCommand = null)
+        internal EventResolutionResult CommitPreparedChoice(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null)
         {
-            PlayableEventCommitResult result = CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, success, rollValue, resourceCommand, worldCommand, settlementCommand, itemCommand: itemCommand);
+            PlayableEventCommitResult result = CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, success, rollValue, resourceCommand, worldCommand, settlementCommand, itemCommand: itemCommand, populationCommand: populationCommand);
             MarkEventCompleted(gameEvent);
             if (result.EncounterIds.Count > 0)
                 _pendingChain.Clear();
@@ -126,7 +128,7 @@ namespace HuntingInDarkness.Settlement
             return result.Result;
         }
 
-        internal PlayableEventCommitResult CommitPreparedChoiceStandalone(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, bool captureEncounterRequests = false, IPlayableEventItemCommand itemCommand = null)
+        internal PlayableEventCommitResult CommitPreparedChoiceStandalone(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, bool captureEncounterRequests = false, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null)
         {
             EventOption option = gameEvent.options[optionIndex];
             List<EventEffect> effects = success ? option.successEffects : option.failEffects;
@@ -150,7 +152,7 @@ namespace HuntingInDarkness.Settlement
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (effects != null)
                 for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
-                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, resourceCommand, worldCommand, settlementCommand, effectIndex, gameEvent.ContentId, itemCommand));
+                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, resourceCommand, worldCommand, settlementCommand, effectIndex, gameEvent.ContentId, itemCommand, populationCommand));
             if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             bool campaignEnded = _settlement.GetAliveHunters().Count == 0;

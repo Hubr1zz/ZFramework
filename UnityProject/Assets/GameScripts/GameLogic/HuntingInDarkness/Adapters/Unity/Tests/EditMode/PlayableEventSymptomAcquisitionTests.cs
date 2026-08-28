@@ -217,6 +217,10 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.ExhaustCurrentHuntTileResources), targetName = "x" }, true)), Is.False);
             Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.ExhaustCurrentHuntTileResources), bodyPart = "x" }, true)), Is.False);
             Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.ExhaustCurrentHuntTileResources), value = 1 }, true)), Is.False);
+            Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.RescuePopulation), value = 1 }, true)), Is.True);
+            Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.RescuePopulation), value = 1 }, false)), Is.False);
+            Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.RescuePopulation), targetName = "selected", value = 1 }, true)), Is.False);
+            Assert.That(validateEffects.Invoke(null, Arguments(new EventEffectTableRecord { effectType = nameof(EventEffectType.RescuePopulation), value = 0 }, true)), Is.False);
         }
 
         [Test]
@@ -287,6 +291,8 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That((int)EventEffectType.AddRecoverableWound, Is.EqualTo(16));
             Assert.That((int)EventEffectType.ExhaustCurrentHuntTileResources, Is.EqualTo(17));
             Assert.That((int)EventEffectType.CreateHuntNoiseLease, Is.EqualTo(18));
+            Assert.That((int)EventEffectType.AddItem, Is.EqualTo(19));
+            Assert.That((int)EventEffectType.RescuePopulation, Is.EqualTo(20));
         }
 
         [Test]

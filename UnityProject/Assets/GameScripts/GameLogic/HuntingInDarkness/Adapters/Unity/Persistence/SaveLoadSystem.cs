@@ -208,7 +208,7 @@ namespace Core
             if (snapshot.HasActiveHuntState)
             {
                 ActiveHuntSnapshot active = snapshot.ActiveHunt;
-                if (active == null || active.SchemaVersion != ActiveHuntSnapshot.CurrentSchemaVersion || string.IsNullOrWhiteSpace(active.ContentBundleId))
+                if (active == null || active.SchemaVersion < ActiveHuntSnapshot.LegacySchemaVersion || active.SchemaVersion > ActiveHuntSnapshot.CurrentSchemaVersion || string.IsNullOrWhiteSpace(active.ContentBundleId) || active.RescuedPopulation < 0 || active.SchemaVersion == ActiveHuntSnapshot.LegacySchemaVersion && active.RescuedPopulation != 0)
                 {
                     reason = "活动狩猎快照版本或内容 Bundle 身份无效。";
                     return false;

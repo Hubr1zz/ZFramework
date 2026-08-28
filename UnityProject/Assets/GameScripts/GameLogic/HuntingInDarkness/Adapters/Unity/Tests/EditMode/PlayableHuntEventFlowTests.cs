@@ -63,10 +63,13 @@ namespace HuntingInDarkness.Adapter.Tests
             EventEffect itemReward = cache.options[0].successEffects.Single(effect => effect.effectType == EventEffectType.AddItem);
             Assert.That(itemReward.targetName, Is.EqualTo("weathered_field_dressing"));
             Assert.That(PlayableItemTableRuntime.GetItems().Single(item => item.ContentId == itemReward.targetName).itemType, Is.EqualTo(ItemType.Consumable));
+            EventData rescue = events.Single(gameEvent => gameEvent.ContentId == "hunt_lost_survivor");
+            EventEffect populationReward = rescue.options[0].successEffects.Single(effect => effect.effectType == EventEffectType.RescuePopulation);
+            Assert.That(populationReward.value, Is.EqualTo(1));
             Assert.That(events.Select(gameEvent => gameEvent.ContentId), Is.SupersetOf(new[]
             {
                 "hunt_sap_suture", "hunt_carapace_cairn", "hunt_white_hair_lure",
-                "hunt_root_pulse", "hunt_rust_burial", "hunt_worm_rain"
+                "hunt_root_pulse", "hunt_rust_burial", "hunt_worm_rain", "hunt_lost_survivor"
             }));
         }
 
@@ -74,8 +77,8 @@ namespace HuntingInDarkness.Adapter.Tests
         public void HuntTable_RustBurialAddsTriggeredFollowUpContract()
         {
             IReadOnlyList<EventTableRecord> records = new JsonEventTableSource("HuntingInDarkness/Tables/hunt-events").Load();
-            Assert.That(records, Has.Count.EqualTo(15));
-            Assert.That(records.Count(record => record.category == "Hunt"), Is.EqualTo(14));
+            Assert.That(records, Has.Count.EqualTo(16));
+            Assert.That(records.Count(record => record.category == "Hunt"), Is.EqualTo(15));
             Assert.That(records.Count(record => record.category == "Triggered"), Is.EqualTo(1));
 
             EventTableRecord parentRecord = records.Single(record => record.id == "hunt_rust_burial");

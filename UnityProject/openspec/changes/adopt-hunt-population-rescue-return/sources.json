@@ -1,0 +1,11 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的收养对账：狩猎事件救援匿名人口，成功回营后成为既有 3D 招募供给。",
+  "sourceRoots": ["C:/Users/leonz/Desktop/GameDesignVault"],
+  "sourceReferences": [
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/Design Essentials & Challenges.md",
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md",
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/猎人 Hunter.md",
+    "conversation::2026-08-27"
+  ]
+}

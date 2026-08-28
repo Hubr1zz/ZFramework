@@ -37,6 +37,14 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         public static SettlementHuntReturnCommandResult Failed(string reason) => new(false, false, reason, Array.Empty<EventData>());
     }
 
+    public struct HuntPopulationReturnedEvent
+    {
+        public string RecordId;
+        public int RescuedPopulation;
+        public int PreviousPopulation;
+        public int CurrentPopulation;
+    }
+
     /// <summary>在 Settlement Runner 的单个 root 内提交远征记录、资源、猎人成长、日历和回营事件 Timeline。</summary>
     public sealed class ApplySettlementHuntReturnAction : CommandAction, ISourceAction, ITargetAction
     {
@@ -72,7 +80,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         {
             cancellationToken.ThrowIfCancellationRequested();
             bool alreadyApplied = timeline.HasAppliedHuntRecord(huntRecord);
-            if (!HuntReturnRules.TryCreateItemPlan(CreateInput(), timeline.CurrentYear, BuildParticipantStates(), BuildItemStates(), alreadyApplied, out HuntReturnPlan plan, out string reason))
+            int currentPopulation = settlement?.Population ?? 0;
+            if (!HuntReturnRules.TryCreateItemPlan(CreateInput(), timeline.CurrentYear, BuildParticipantStates(), BuildItemStates(), currentPopulation, alreadyApplied, out HuntReturnPlan plan, out string reason))
                 return Fail(reason);
             if (!plan.IsAlreadyApplied && !plan.IsLegacyCompatibility && (settlement == null || hunterManagement == null))
                 return Fail("当前远征归来缺少 Settlement 提交环境。");
@@ -88,6 +97,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             if (!plan.IsLegacyCompatibility)
             {
                 ApplyItemGrants(plan.ItemGrants);
+                settlement.Population = plan.NewPopulation;
                 ClearCollectibles();
                 PlayableHunterAdvancementAdapter.ApplyAfterHunt(ResolveParticipants(plan), hunterManagement, eventOutbox);
             }
@@ -128,6 +138,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 AdvancedToSeasonDisplayName = advancedSeason?.DisplayName ?? string.Empty,
                 CalendarId = timeline.Calendar.CalendarId
             });
+            if (plan.RescuedPopulation > 0)
+                eventOutbox.StageAfterCommit(new HuntPopulationReturnedEvent { RecordId = plan.RecordId, RescuedPopulation = plan.RescuedPopulation, PreviousPopulation = plan.PreviousPopulation, CurrentPopulation = plan.NewPopulation });
             if (committedPlan.YearAdvanced)
             {
                 eventOutbox.StageAfterCommit(new YearAdvancedEvent { NewYear = timeline.CurrentYear, NewSeasonIndex = timeline.CurrentSeasonIndex, CalendarId = timeline.Calendar.CalendarId });
@@ -145,7 +157,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             if (huntRecord.CollectedItems != null)
                 foreach (HuntLootStack stack in huntRecord.CollectedItems)
                     items.Add(stack == null ? null : new HuntLootStack(PlayableSettlementItemRegistry.ResolveContentId(stack.ItemId), stack.Count));
-            return new HuntReturnInput(huntRecord.RecordId, huntRecord.ReturnSchemaVersion, huntRecord.Year, huntRecord.HuntersDeployed, huntRecord.HuntersLost, huntRecord.ParticipantHunterIds, resourceIds, items);
+            return new HuntReturnInput(huntRecord.RecordId, huntRecord.ReturnSchemaVersion, huntRecord.Year, huntRecord.HuntersDeployed, huntRecord.HuntersLost, huntRecord.ParticipantHunterIds, resourceIds, items, huntRecord.RescuedPopulation);
         }
 
         private List<HuntReturnParticipantState> BuildParticipantStates()

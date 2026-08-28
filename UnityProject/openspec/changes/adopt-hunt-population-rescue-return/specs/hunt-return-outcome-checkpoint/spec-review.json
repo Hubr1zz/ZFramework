@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-return-outcome-checkpoint",
+  "title": "狩猎归来结果检查点",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "v3 救援人口与既有货物、成长、历史和日历共同预检并幂等提交。",
+    "codeEvidence": [
+      { "guid": "37059c04b6daeb0469902c0c4e2064fb", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HuntReturnRules.cs", "fileHash": "fece12e407c5b13f27f475979c7848f45bc062ae3c306b2fe6c1137cf89ef549", "line": 184, "feature": "v3 人口与通用回营计划预检", "status": "verified", "checkedAt": "2026-08-27T23:07:37-07:00" },
+      { "guid": "5cb50ad3443a70f45af1ce3608fd42be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs", "fileHash": "f9b2802c5ab89c4609d1615a4e26e8107b39ca0a6d8b17fd3597ed2a24e063ac", "line": 78, "feature": "同一 Settlement root 的人口幂等提交", "status": "verified", "checkedAt": "2026-08-27T23:07:37-07:00" }
+    ],
+    "evidence": ["纯规则、回营 Action、重复提交和 PlayMode 流程测试通过。"],
+    "differences": ["正式 Spec 未声明 v2 通用物品或 v3 救援人口；需按 Change 顺序同步。"],
+    "verifiedAt": "2026-08-27T23:07:37-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["active-hunt-persistence"],
+  "sourceReferences": ["conversation::2026-08-27"],
+  "implementationOutline": ["HuntRecord v3 冻结救援人口。", "GameCore 在任何写入前预检人口。", "Settlement root 使用 RecordId 恰好提交一次。"],
+  "reviewIssues": [
+    { "id": "ISSUE-HUNT-POPULATION-RESCUE-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认回营协议 v3 和同步顺序。", "details": "应先接纳 v2 通用物品协议，再把救援人口作为 v3 增量同步。", "sourceId": "conversation::2026-08-27", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

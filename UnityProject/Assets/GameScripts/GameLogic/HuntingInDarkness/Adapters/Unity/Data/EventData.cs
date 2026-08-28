@@ -181,6 +181,7 @@ namespace HuntingInDarkness.Data
         AddRecoverableWound = 16, // 添加可在营地休养的普通部位伤势
         ExhaustCurrentHuntTileResources = 17, // 耗尽当前狩猎事件地块的全部资源点
         CreateHuntNoiseLease = 18, // 营地事件为下一次狩猎创建一次性风险修正
-        AddItem = 19 // 狩猎事件向执行猎人的携带物加入非资源物品
+        AddItem = 19, // 狩猎事件向执行猎人的携带物加入非资源物品
+        RescuePopulation = 20 // 狩猎事件救援匿名人口；成功回营后进入营地人口池
     }
 }

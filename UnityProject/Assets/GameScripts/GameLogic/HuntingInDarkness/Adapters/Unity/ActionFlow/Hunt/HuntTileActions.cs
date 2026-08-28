@@ -340,7 +340,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             currentOccurrence = pendingOccurrences.Dequeue();
             HuntingInDarkness.Data.EventData nextEvent = currentOccurrence.Event;
             HunterInstance occurrenceActor = ResolveOccurrenceActor(currentOccurrence.Occurrence.ActorId);
-            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, occurrenceActor, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand, worldCommand, itemCommand: manager.EventItemCommand);
+            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, occurrenceActor, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand, worldCommand, itemCommand: manager.EventItemCommand, populationCommand: manager.EventPopulationCommand);
             return currentEntry;
         }
 

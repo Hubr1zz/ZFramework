@@ -113,5 +113,23 @@ namespace HuntingInDarkness.GameCore.Tests
             Assert.That(HuntReturnRules.TryCreateItemPlan(v2Mix, 3, participant, items, false, out _, out _), Is.False);
             Assert.That(HuntReturnRules.TryCreateItemPlan(overflow, 3, participant, items, false, out _, out _), Is.False);
         }
+
+        [Test]
+        public void TryCreateItemPlan_V3PreflightsPopulationAndKeepsV2AtZero()
+        {
+            var participant = new[] { new HuntReturnParticipantState(7, true, HunterAvailabilityState.Active, 2) };
+            var v3 = new HuntReturnInput("rescued", HuntReturnRules.CurrentSchemaVersion, 3, 1, 0, new[] { 7 }, Array.Empty<string>(), Array.Empty<HuntLootStack>(), 2);
+            var forgedV2 = new HuntReturnInput("forged-v2", HuntReturnRules.GenericLootSchemaVersion, 3, 1, 0, new[] { 7 }, Array.Empty<string>(), Array.Empty<HuntLootStack>(), 1);
+            var overflow = new HuntReturnInput("population-overflow", HuntReturnRules.CurrentSchemaVersion, 3, 1, 0, new[] { 7 }, Array.Empty<string>(), Array.Empty<HuntLootStack>(), 2);
+
+            Assert.That(HuntReturnRules.TryCreateItemPlan(v3, 3, participant, Array.Empty<HuntReturnItemState>(), 4, false, out HuntReturnPlan plan, out string reason), Is.True, reason);
+            Assert.That(plan.RescuedPopulation, Is.EqualTo(2));
+            Assert.That(plan.PreviousPopulation, Is.EqualTo(4));
+            Assert.That(plan.NewPopulation, Is.EqualTo(6));
+            Assert.That(HuntReturnRules.TryCreateItemPlan(v3, 3, participant, Array.Empty<HuntReturnItemState>(), false, out _, out string missingStateReason), Is.False);
+            Assert.That(missingStateReason, Does.Contain("当前营地人口"));
+            Assert.That(HuntReturnRules.TryCreateItemPlan(forgedV2, 3, participant, Array.Empty<HuntReturnItemState>(), 4, false, out _, out _), Is.False);
+            Assert.That(HuntReturnRules.TryCreateItemPlan(overflow, 3, participant, Array.Empty<HuntReturnItemState>(), int.MaxValue - 1, false, out _, out _), Is.False);
+        }
     }
 }

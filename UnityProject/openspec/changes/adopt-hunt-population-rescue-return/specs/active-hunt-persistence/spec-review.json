@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 5,
+  "capability": "active-hunt-persistence",
+  "title": "活动狩猎检查点与恢复",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "活动狩猎 v3 保存并恢复非负救援人口，v2 只迁移为零。",
+    "codeEvidence": [
+      { "guid": "e65f64d837aa4bc08338c1f0d4f1fa99", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs", "fileHash": "aaa080469f04f82a55802586b34292dddabba40fab22cc910c76bfc321a91aac", "line": 28, "feature": "v3 活动狩猎救援人口快照与 v2 迁移", "status": "verified", "checkedAt": "2026-08-27T23:07:37-07:00" }
+    ],
+    "evidence": ["活动狩猎 JSON 编解码、恢复和旧版本迁移用例通过。"],
+    "differences": ["正式 Spec 当前把 schema v2 定义为活动狩猎现行格式。"],
+    "verifiedAt": "2026-08-27T23:07:37-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["table-driven-hunt-events"],
+  "sourceReferences": ["conversation::2026-08-27"],
+  "implementationOutline": ["快照捕获救援计数。", "恢复候选先校验版本和值，再交给 HuntManager。"],
+  "reviewIssues": [
+    { "id": "ISSUE-HUNT-POPULATION-RESCUE-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认活动狩猎现行 schema 升级为 v3。", "details": "v2 只迁移救援人口 0，旧版本混写新字段失败关闭。", "sourceId": "conversation::2026-08-27", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

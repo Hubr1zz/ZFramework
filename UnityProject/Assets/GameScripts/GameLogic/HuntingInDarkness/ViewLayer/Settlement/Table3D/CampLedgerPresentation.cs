@@ -105,6 +105,7 @@ namespace UI
                 EventEffectType.ExhaustCurrentHuntTileResources => "耗尽地块资源",
                 EventEffectType.CreateHuntNoiseLease => "增加下次狩猎风险",
                 EventEffectType.AddItem => "获得物品",
+                EventEffectType.RescuePopulation => "救援人口",
                 _ => value
             };
         }

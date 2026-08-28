@@ -254,7 +254,7 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.True, reason);
                 PlayableHuntRoutePlan route = bundle.DefaultRoute;
-                Assert.That(route.HuntEvents.Count, Is.EqualTo(14));
+                Assert.That(route.HuntEvents.Count, Is.EqualTo(15));
                 Assert.That(route.HuntEvents.Contains(child), Is.False);
                 Assert.That(route.TryResolveEvent(parent.ContentId, out EventData resolvedParent), Is.True);
                 Assert.That(resolvedParent, Is.SameAs(parent));

@@ -48,11 +48,12 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
     public readonly struct HuntRetreatPreview
     {
-        private HuntRetreatPreview(bool isAtCamp, IReadOnlyList<HuntRetreatLootItem> lootItems, HuntReturnCalendarPreview calendar)
+        private HuntRetreatPreview(bool isAtCamp, IReadOnlyList<HuntRetreatLootItem> lootItems, HuntReturnCalendarPreview calendar, int rescuedPopulation = 0)
         {
             IsAtCamp = isAtCamp;
             LootItems = lootItems ?? Array.Empty<HuntRetreatLootItem>();
             Calendar = calendar;
+            RescuedPopulation = Math.Max(0, rescuedPopulation);
         }
 
         public bool IsAtCamp { get; }
@@ -60,6 +61,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public IReadOnlyList<HuntRetreatLootItem> LootItems { get; }
         public IReadOnlyList<HuntRetreatLootItem> Materials => LootItems;
         public HuntReturnCalendarPreview Calendar { get; }
+        public int RescuedPopulation { get; }
 
         public static HuntRetreatPreview Create(HuntManager manager)
         {
@@ -85,10 +87,10 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
             var lootItems = new List<HuntRetreatLootItem>(counts.Values);
             lootItems.Sort((left, right) => string.CompareOrdinal(left.ContentId, right.ContentId));
-            return new HuntRetreatPreview(manager.IsSquadAtCamp, lootItems.AsReadOnly(), HuntReturnCalendarPreview.Unavailable("回营时间预览尚未绑定。"));
+            return new HuntRetreatPreview(manager.IsSquadAtCamp, lootItems.AsReadOnly(), HuntReturnCalendarPreview.Unavailable("回营时间预览尚未绑定。"), manager.RescuedPopulation);
         }
 
-        public HuntRetreatPreview WithCalendar(HuntReturnCalendarPreview calendar) => new(IsAtCamp, Materials, calendar);
+        public HuntRetreatPreview WithCalendar(HuntReturnCalendarPreview calendar) => new(IsAtCamp, Materials, calendar, RescuedPopulation);
 
         public static HuntRetreatPreview Empty => new(false, Array.Empty<HuntRetreatLootItem>(), HuntReturnCalendarPreview.Unavailable("当前无法预览回营时间。"));
     }
@@ -155,6 +157,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public int HuntersDeployed;
         public int HuntersLost;
         public HuntLootStack[] CollectedItems;
+        public int RescuedPopulation;
     }
 
     /// <summary>在 Hunt Runner 内生成不可变更权威状态的回营快照；资源转移只在 Campaign 接受阶段切换后执行。</summary>
@@ -196,7 +199,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 Year = record.Year,
                 HuntersDeployed = record.HuntersDeployed,
                 HuntersLost = record.HuntersLost,
-                CollectedItems = CloneStacks(record.CollectedItems).ToArray()
+                CollectedItems = CloneStacks(record.CollectedItems).ToArray(),
+                RescuedPopulation = record.RescuedPopulation
             });
             return UniTask.FromResult(ActionOutcome.Success());
         }
@@ -266,7 +270,8 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 BossDefeated = source.BossDefeated,
                 ParticipantHunterIds = source.ParticipantHunterIds != null ? new List<int>(source.ParticipantHunterIds) : new List<int>(),
                 CollectedResources = source.CollectedResources != null ? new List<string>(source.CollectedResources) : new List<string>(),
-                CollectedItems = CloneStacks(source.CollectedItems)
+                CollectedItems = CloneStacks(source.CollectedItems),
+                RescuedPopulation = source.RescuedPopulation
             };
         }
 

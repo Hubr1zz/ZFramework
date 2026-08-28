@@ -32,6 +32,8 @@ namespace HuntingInDarkness.Adapter.Tests
             EventBus.Subscribe(handler);
             try
             {
+                var rescue = new HuntEventPopulationCommand(rig.Manager);
+                Assert.That(rescue.TryRescue(1, rig.Survivor, out _, out string rescueReason), Is.True, rescueReason);
                 HuntRetreatCommandResult result = await rig.Session.PrepareRetreatAsync(rig.Settlement.CurrentYear);
 
                 Assert.That(result.Succeeded, Is.True);
@@ -43,8 +45,10 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(result.Record.HuntersLost, Is.EqualTo(1));
                 Assert.That(result.Record.CollectedResources, Is.Empty);
                 Assert.That(result.Record.CollectedItems.Select(item => (item.ItemId, item.Count)), Is.EqualTo(new[] { ("暗石", 1) }));
+                Assert.That(result.Record.RescuedPopulation, Is.EqualTo(1));
                 Assert.That(receivedCount, Is.EqualTo(1));
                 Assert.That(received.HuntersDeployed, Is.EqualTo(2));
+                Assert.That(received.RescuedPopulation, Is.EqualTo(1));
                 Assert.That(rig.Settlement.GetResource("暗石"), Is.Zero);
                 Assert.That(rig.Survivor.Collectibles, Has.Count.EqualTo(1));
             }

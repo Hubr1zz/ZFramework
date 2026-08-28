@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "table-driven-hunt-events", "label": "读表狩猎事件内容", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-hunt-population-rescue-return/specs/table-driven-hunt-events/spec.md" },
+    { "id": "active-hunt-persistence", "label": "活动狩猎检查点与恢复", "category": "architecture", "readiness": "implemented", "specPath": "openspec/changes/adopt-hunt-population-rescue-return/specs/active-hunt-persistence/spec.md" },
+    { "id": "hunt-return-outcome-checkpoint", "label": "狩猎归来结果检查点", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-hunt-population-rescue-return/specs/hunt-return-outcome-checkpoint/spec.md" },
+    { "id": "tabletop-hunt-retreat", "label": "3D 狩猎回营结算", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-hunt-population-rescue-return/specs/tabletop-hunt-retreat/spec.md" },
+    { "id": "tabletop-settlement-recruitment", "label": "营地桌面猎人招募", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-hunt-population-rescue-return/specs/tabletop-settlement-recruitment/spec.md" }
+  ],
+  "edges": [
+    { "from": "table-driven-hunt-events", "to": "active-hunt-persistence", "type": "supports" },
+    { "from": "active-hunt-persistence", "to": "hunt-return-outcome-checkpoint", "type": "supports" },
+    { "from": "tabletop-hunt-retreat", "to": "hunt-return-outcome-checkpoint", "type": "supports" },
+    { "from": "hunt-return-outcome-checkpoint", "to": "tabletop-settlement-recruitment", "type": "supports" }
+  ]
+}

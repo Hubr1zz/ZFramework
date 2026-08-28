@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-recruitment",
+  "title": "营地桌面猎人招募",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "救援人口回营后进入既有 Population，并由原 3D 招募板按现有成本和命名规则消费。",
+    "codeEvidence": [
+      { "guid": "5cb50ad3443a70f45af1ce3608fd42be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs", "fileHash": "f9b2802c5ab89c4609d1615a4e26e8107b39ca0a6d8b17fd3597ed2a24e063ac", "line": 92, "feature": "救援人口进入既有营地人口池", "status": "verified", "checkedAt": "2026-08-27T23:07:37-07:00" }
+    ],
+    "evidence": ["生产 PlayMode 覆盖回营 Population 增加和 3D 招募消费。"],
+    "differences": ["正式 Spec 只明确设施值守人口支持招募。"],
+    "verifiedAt": "2026-08-27T23:07:37-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["hunt-return-outcome-checkpoint"],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/Design Essentials & Challenges.md", "conversation::2026-08-27"],
+  "implementationOutline": ["回营只增加匿名 Population。", "既有招募板继续负责模板、名字和成本。"],
+  "reviewIssues": [
+    { "id": "ISSUE-HUNT-POPULATION-RESCUE-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认狩猎救援人口可以作为常规招募供给。", "details": "Hunt 阶段不创建候选，回营后完全复用既有招募事务。", "sourceId": "conversation::2026-08-27", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

@@ -28,6 +28,7 @@ namespace HuntingInDarkness.Hunt
         internal EventSystem EventSystem => _eventSystem;
         internal IPlayableEventResourceCommand EventResourceCommand { get; }
         internal IPlayableEventItemCommand EventItemCommand { get; }
+        internal IPlayableEventPopulationCommand EventPopulationCommand { get; }
         public IPlayableEventInput EventInput { get; set; }
 
         // ─── 地图状态 ─────────────────────────────────────────────
@@ -85,6 +86,7 @@ namespace HuntingInDarkness.Hunt
         public string ContentBundleId => boundRoute?.ContentBundleId ?? string.Empty;
         public PlayableHuntNoiseResolution LastNoiseResolution { get; private set; }
         public int CurrentYear { get; private set; } = 1;
+        public int RescuedPopulation { get; private set; }
 
         private readonly StatefulRandomSource _rng;
 
@@ -130,6 +132,7 @@ namespace HuntingInDarkness.Hunt
             HuntEvents   = new HuntEventSystem(_rng);
             EventResourceCommand = new HuntEventResourceCommand(this);
             EventItemCommand = new HuntEventItemCommand(this);
+            EventPopulationCommand = new HuntEventPopulationCommand(this);
             if (bindInitialContent) PlayableHuntContentRuntime.ApplyTo(this);
         }
 
@@ -180,6 +183,7 @@ namespace HuntingInDarkness.Hunt
             SelectedHunter = PlayableHuntSquadAvailability.ResolveSelectedHunter(ActiveHunters, null);
             CurrentYear = Math.Max(1, currentYear);
             LastNoiseResolution = default;
+            RescuedPopulation = 0;
             _navigation.Reset();
             HuntEvents.ResetSession(CurrentYear);
 
@@ -196,7 +200,7 @@ namespace HuntingInDarkness.Hunt
 
         public bool TryRestore(PlayableHuntRuntimeState state, out string reason)
         {
-            if (state == null || state.Year <= 0 || state.Hunters == null || state.Hunters.Count == 0 || state.Map == null || state.Map.Count == 0)
+            if (state == null || state.Year <= 0 || state.Hunters == null || state.Hunters.Count == 0 || state.Map == null || state.Map.Count == 0 || state.RescuedPopulation < 0)
             {
                 reason = "活动狩猎恢复载荷不完整。";
                 return false;
@@ -213,6 +217,7 @@ namespace HuntingInDarkness.Hunt
             SelectedHunter = PlayableHuntSquadAvailability.ResolveSelectedHunter(ActiveHunters, SelectedHunter);
             CurrentYear = state.Year;
             LastNoiseResolution = default;
+            RescuedPopulation = state.RescuedPopulation;
             Map = state.Map;
             _navigation.Reset();
             _navigation.MoveTo(ToCore(state.SquadPosition));
@@ -443,6 +448,7 @@ namespace HuntingInDarkness.Hunt
             // 旧 Boss/战败路径已经在 OnExit 完成资源转移，本阶段只交给 Settlement 提交历史/年份。
             record.ReturnSchemaVersion = 0;
             record.ParticipantHunterIds.Clear();
+            record.RescuedPopulation = 0;
             OnHuntCompleted?.Invoke(record);
         }
 
@@ -496,8 +502,21 @@ namespace HuntingInDarkness.Hunt
                 HuntersLost      = huntersLost,
                 BossDefeated     = bossDefeated,
                 ParticipantHunterIds = participantIds,
-                CollectedItems = items
+                CollectedItems = items,
+                RescuedPopulation = RescuedPopulation
             };
+            return true;
+        }
+
+        internal bool TrySetRescuedPopulation(int amount, out string reason)
+        {
+            if (!runtimeStarted || amount < 0)
+            {
+                reason = "当前狩猎运行态无法写入救援人口。";
+                return false;
+            }
+            RescuedPopulation = amount;
+            reason = string.Empty;
             return true;
         }
 

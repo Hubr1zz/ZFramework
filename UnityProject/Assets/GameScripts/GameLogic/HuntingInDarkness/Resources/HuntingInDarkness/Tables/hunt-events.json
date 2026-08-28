@@ -764,6 +764,34 @@
       "maxYear": 0,
       "drawWeight": 2,
       "category": "Hunt"
+    },
+    {
+      "id": "hunt_lost_survivor",
+      "eventName": "迷路的幸存者",
+      "eventType": "Choice",
+      "displayText": "一张折断的求救牌压在石堆下。沿着牌角指向，你们找到一名仍能行走的幸存者。",
+      "hiddenText": "幸存者跟在队伍最后，只有成功回到营地后才会成为可供招募的人口。",
+      "options": [
+        {
+          "optionId": "escort_survivor_home",
+          "optionText": "带幸存者同行",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "你们把一张同行标记牌交给幸存者，并为归途留出位置。",
+          "successEffects": [
+            { "effectType": "RescuePopulation", "targetName": "", "value": 1, "description": "同行幸存者 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
     }
   ]
 }

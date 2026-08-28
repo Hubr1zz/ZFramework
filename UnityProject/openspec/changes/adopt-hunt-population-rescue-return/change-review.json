@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-hunt-population-rescue-return",
+  "title": "收养狩猎救援人口与回营招募闭环",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现、对抗审查和定向验证已完成；等待人类确认，并应在通用狩猎战利品 Change 同步后再同步本 Change。",
+  "verification": {
+    "status": "implemented",
+    "summary": "Unity 6000.5.9f1 编译通过；相关 EditMode 职责簇 133/133，核心 PlayMode 救援回营招募闭环 1/1。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity CLI 编译成功，返回码 0。",
+      "事件、活动存档、回营规则、回营 Action、3D 投影和内容装配测试 133/133。",
+      "生产 Campaign PlayMode 覆盖救援暂存、回营入人口池和 3D 招募消费，1/1。",
+      "对抗审查修复旧回营协议混写和缺失当前人口的规则重载。"
+    ],
+    "differences": [
+      "正式 Spec 尚未授权 Hunt 事件救援人口、活动快照 v3、回营 v3 或狩猎人口作为既有招募供给。",
+      "本 Change 的回营 v3 建立在 adopt-generic-hunt-loot-return 的 v2 通用物品协议之上。"
+    ],
+    "verifiedAt": "2026-08-27T23:07:37-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-HUNT-POPULATION-RESCUE-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认获救者首期是匿名人口，普通紧急撤退不丢失，并接受活动狩猎与回营协议 v3。",
+      "details": "批准后应先同步 adopt-generic-hunt-loot-return，再同步本 Change；若不接受，需要移除 RescuePopulation、v3 字段和对应 3D 投影。",
+      "sourceId": "conversation::2026-08-27",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": ["adopt-generic-hunt-loot-return"],
+  "capabilities": ["table-driven-hunt-events", "active-hunt-persistence", "hunt-return-outcome-checkpoint", "tabletop-hunt-retreat", "tabletop-settlement-recruitment"],
+  "syncTargets": [
+    { "capability": "table-driven-hunt-events", "title": "读表狩猎事件内容", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-hunt-population-rescue-return/specs/table-driven-hunt-events/spec.md", "targetSpecPath": "openspec/specs/table-driven-hunt-events/spec.md", "targetExisted": true, "baseFileHash": "1ca824b32d7833cec4758f740d029d634faa9a3ff4f5bf18b40d41607bf84df2", "baseSnapshotPath": "" },
+    { "capability": "active-hunt-persistence", "title": "活动狩猎检查点与恢复", "category": "architecture", "deltaSpecPath": "openspec/changes/adopt-hunt-population-rescue-return/specs/active-hunt-persistence/spec.md", "targetSpecPath": "openspec/specs/active-hunt-persistence/spec.md", "targetExisted": true, "baseFileHash": "80d4ab3c11178e23236417658ef72a8854d16dc7c38558ff5aff5f34d056debe", "baseSnapshotPath": "" },
+    { "capability": "hunt-return-outcome-checkpoint", "title": "狩猎归来结果检查点", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-hunt-population-rescue-return/specs/hunt-return-outcome-checkpoint/spec.md", "targetSpecPath": "openspec/specs/hunt-return-outcome-checkpoint/spec.md", "targetExisted": true, "baseFileHash": "7e5a8669d185ce3e99b5e4062325ec51c8789e637ade2ef1c9cac8a898ef1747", "baseSnapshotPath": "" },
+    { "capability": "tabletop-hunt-retreat", "title": "3D 狩猎回营结算", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-hunt-population-rescue-return/specs/tabletop-hunt-retreat/spec.md", "targetSpecPath": "openspec/specs/tabletop-hunt-retreat/spec.md", "targetExisted": true, "baseFileHash": "56efcb46317287d6bb1ea392fba147a85a29945089e58668a955f4eb637334db", "baseSnapshotPath": "" },
+    { "capability": "tabletop-settlement-recruitment", "title": "营地桌面猎人招募", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-hunt-population-rescue-return/specs/tabletop-settlement-recruitment/spec.md", "targetSpecPath": "openspec/specs/tabletop-settlement-recruitment/spec.md", "targetExisted": true, "baseFileHash": "bc489594ebc229d9c5da7f56274fd4032ec7dede696f78a5a13f5d963affbdce", "baseSnapshotPath": "" }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "五份正式 Spec 基线哈希已记录，尚未同步。",
+    "changes": [
+      "增加 Hunt-only 匿名人口救援。",
+      "活动狩猎和回营协议升级为严格 v3。",
+      "3D Hunt 桌展示同行幸存者。",
+      "成功回营人口复用既有 3D 招募流程。"
+    ],
+    "conflicts": ["回营协议 v3 依赖尚待人类同步的 v2 通用物品 Change。"],
+    "validatedAt": "2026-08-27T23:07:37-07:00"
+  },
+  "createdAt": "2026-08-27T23:07:37-07:00"
+}

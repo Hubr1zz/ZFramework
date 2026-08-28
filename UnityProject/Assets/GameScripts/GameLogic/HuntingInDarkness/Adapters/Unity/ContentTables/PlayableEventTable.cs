@@ -533,6 +533,8 @@ namespace HuntingInDarkness.ContentTables
                     return false;
                 if (effectType == EventEffectType.AddItem && (!allowHuntWorldEffects || string.IsNullOrWhiteSpace(record.targetName) || !string.IsNullOrWhiteSpace(record.bodyPart) || record.value <= 0))
                     return false;
+                if (effectType == EventEffectType.RescuePopulation && (!allowHuntWorldEffects || !string.IsNullOrWhiteSpace(record.targetName) || !string.IsNullOrWhiteSpace(record.bodyPart) || record.value <= 0))
+                    return false;
             }
             return true;
         }

@@ -122,9 +122,10 @@ namespace UI.Hunt
             if (lastNoise.IsResolved)
                 noiseSummary += lastNoise.IsDanger ? $"\n上次抽牌 · 危险（{lastNoise.EventDisplayName}）" : "\n上次抽牌 · 安静";
             string commandSummary = string.IsNullOrWhiteSpace(selectionStatus) ? string.Empty : $"\n\n{selectionStatus}";
+            string rescueSummary = manager.RescuedPopulation > 0 ? $"\n同行幸存者 · {manager.RescuedPopulation}" : string.Empty;
             summaryCard.Present(
                 PlayableHuntDestinationRuntime.ActiveDisplayName,
-                $"小队位置 · {manager.SquadPosition.x}, {manager.SquadPosition.y}\n已探索 · {revealedCount}/{tileCount}{noiseSummary}\n\n点击蓝色地块翻开地图。\n点击猎人卡指定事件与采集的行动者。{commandSummary}",
+                $"小队位置 · {manager.SquadPosition.x}, {manager.SquadPosition.y}\n已探索 · {revealedCount}/{tileCount}{noiseSummary}{rescueSummary}\n\n点击蓝色地块翻开地图。\n点击猎人卡指定事件与采集的行动者。{commandSummary}",
                 selectionPending ? "正在提交行动猎人……" : "地图左侧的实体回营卡可结束探索",
                 string.IsNullOrWhiteSpace(selectionStatus) ? TabletopEventPrimaryTone.Check : TabletopEventPrimaryTone.Failure);
         }

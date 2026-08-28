@@ -61,6 +61,8 @@ namespace HuntingInDarkness.Adapter.Tests
             HexTileData plain = CreateTile("plain", TileType.Plains);
             var source = CreateManager(settlement, starting, plain, 17);
             source.OnEnter(new List<HunterInstance> { hunter }, settlement.CurrentYear);
+            var rescue = new HuntEventPopulationCommand(source);
+            Assert.That(rescue.TryRescue(2, hunter, out _, out string rescueReason), Is.True, rescueReason);
             ItemData resource = PlayableSettlementItemRegistry.Items.First(item => item != null && item.itemType == ItemType.Resource);
             source.Map[source.SquadPosition].ResourcePoints.Add(new ResourcePointInstance
             {
@@ -87,6 +89,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(destination.Map.Count, Is.EqualTo(source.Map.Count));
             Assert.That(destination.SquadPosition, Is.EqualTo(source.SquadPosition));
             Assert.That(destination.CaptureRandomState().Value, Is.EqualTo(source.CaptureRandomState().Value));
+            Assert.That(destination.RescuedPopulation, Is.EqualTo(2));
             Assert.That(destination.Map[destination.SquadPosition].ResourcePoints, Has.Count.EqualTo(1));
             Assert.That(destination.Map[destination.SquadPosition].ResourcePoints[0].IsExhausted, Is.True);
             Assert.That(occurrences.HasPendingOccurrences, Is.False);
@@ -95,6 +98,11 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(saved.Settlement.PendingHuntNoiseLease, Is.Not.Null);
             Assert.That(saved.Settlement.PendingHuntNoiseLease.LeaseId, Is.EqualTo("hunt-noise:stone_vigil_risk"));
             Assert.That(saved.Settlement.PendingHuntNoiseLease.NoiseModifier, Is.EqualTo(2));
+
+            saved.ActiveHunt.SchemaVersion = ActiveHuntSnapshot.LegacySchemaVersion;
+            saved.ActiveHunt.RescuedPopulation = 0;
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(saved, destination, out PlayableHuntRuntimeState legacyRuntime, out _, out reason), Is.True, reason);
+            Assert.That(legacyRuntime.RescuedPopulation, Is.Zero);
 
             saved.ActiveHunt.EncounterHandoffPending = true;
             saved.ActiveHunt.EncounterId = "boss-handoff";

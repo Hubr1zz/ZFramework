@@ -14,5 +14,6 @@ namespace HuntingInDarkness.Hunt
         public Vector2Int SquadPosition { get; set; }
         public Dictionary<Vector2Int, HexTileInstance> Map { get; set; } = new();
         public StatefulRandomState RandomState { get; set; }
+        public int RescuedPopulation { get; set; }
     }
 }

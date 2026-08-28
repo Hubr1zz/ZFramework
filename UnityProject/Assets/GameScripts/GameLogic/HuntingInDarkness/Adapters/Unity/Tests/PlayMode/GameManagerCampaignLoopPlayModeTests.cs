@@ -210,11 +210,16 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             UniTask<SettlementDepartureCommandResult>.Awaiter departure = manager.DepartForHuntAsync(new[] { explorerId }, GetDestination(settlement.CurrentYear)).GetAwaiter();
             yield return WaitForCompletion(departure);
             Assert.That(departure.GetResult().Succeeded, Is.True, departure.GetResult().Reason);
+            HuntManager huntManager = manager.ActiveHuntRuntime.Manager;
+            HunterInstance explorer = manager.ActiveHuntHunters.Single(hunter => hunter.InstanceId == explorerId);
+            var rescue = new HuntEventPopulationCommand(huntManager);
+            Assert.That(rescue.TryRescue(1, explorer, out _, out string rescueReason), Is.True, rescueReason);
+            Assert.That(settlement.Population, Is.Zero, "获救人口不得在回营提交前进入营地。");
             UniTask<HuntRetreatCommandResult>.Awaiter retreat = manager.RequestRetreatAsync().GetAwaiter();
             yield return WaitForCompletion(retreat);
             Assert.That(retreat.GetResult().Succeeded, Is.True, retreat.GetResult().Reason);
             yield return WaitForSettlementIdle(manager);
-            Assert.That(settlement.Population, Is.Zero);
+            Assert.That(settlement.Population, Is.EqualTo(1));
             Assert.That(settlement.CurrentYear, Is.EqualTo(initialYear));
             Assert.That(settlement.CurrentSeasonIndex, Is.EqualTo(initialSeason + 1));
             Assert.That(settlement.HasDueFacilityDuty(settlement.CurrentYear, settlement.CurrentSeasonIndex), Is.True);
@@ -225,7 +230,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(resolve.GetResult().Succeeded, Is.True, resolve.GetResult().Reason);
             Assert.That(randomPresenter.RequestCount, Is.EqualTo(randomRequestCount + 1));
             Assert.That(randomPresenter.LastRequest?.Kind, Is.EqualTo(TabletopRandomInteractionKind.PhysicalDice));
-            Assert.That(settlement.Population, Is.EqualTo(1));
+            Assert.That(settlement.Population, Is.EqualTo(2));
             Assert.That(settlement.HasActiveFacilityDuty("shelter_watch"), Is.False);
 
             ItemData costItem = contentCandidate.SettlementContent.RecruitmentCostItem;
@@ -239,7 +244,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             RecruitHunterCommandResult recruitResult = recruit.GetResult();
             Assert.That(recruitResult.Succeeded, Is.True, recruitResult.Reason);
             Assert.That(recruitResult.Hunter, Is.Not.Null);
-            Assert.That(settlement.Population, Is.Zero);
+            Assert.That(settlement.Population, Is.EqualTo(1));
             Assert.That(settlement.GetResource(costItem), Is.EqualTo(resourceBeforeRecruitment - contentCandidate.SettlementContent.RecruitmentCost));
             Assert.That(settlement.GetAliveHunters(), Has.Count.EqualTo(rosterCount + 1));
 
