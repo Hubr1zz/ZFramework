@@ -7,6 +7,7 @@ using Core;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -25,7 +26,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Action<HuntRetreatPreparedEvent> handler = evt =>
             {
                 received = evt;
-                received.CollectedResources[0] = "被订阅者修改";
+                received.CollectedItems[0].ItemId = "被订阅者修改";
                 receivedCount++;
             };
             EventBus.Subscribe(handler);
@@ -40,7 +41,8 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(result.Record.ParticipantHunterIds, Is.EqualTo(new[] { 7101, 7102 }));
                 Assert.That(result.Record.HuntersDeployed, Is.EqualTo(2));
                 Assert.That(result.Record.HuntersLost, Is.EqualTo(1));
-                Assert.That(result.Record.CollectedResources, Is.EqualTo(new[] { "暗石" }));
+                Assert.That(result.Record.CollectedResources, Is.Empty);
+                Assert.That(result.Record.CollectedItems.Select(item => (item.ItemId, item.Count)), Is.EqualTo(new[] { ("暗石", 1) }));
                 Assert.That(receivedCount, Is.EqualTo(1));
                 Assert.That(received.HuntersDeployed, Is.EqualTo(2));
                 Assert.That(rig.Settlement.GetResource("暗石"), Is.Zero);
@@ -85,7 +87,7 @@ namespace HuntingInDarkness.Adapter.Tests
             HuntRetreatCommandResult result = await rig.Session.PrepareRetreatAsync(rig.Settlement.CurrentYear);
 
             Assert.That(result.Succeeded, Is.False);
-            Assert.That(result.Reason, Is.EqualTo("远离营地且携带素材时，必须选择放弃一份素材。"));
+            Assert.That(result.Reason, Is.EqualTo("远离营地且携带物品时，必须选择放弃一份物品。"));
             Assert.That(rig.Survivor.Collectibles, Has.Count.EqualTo(1));
             Assert.That(rig.Survivor.Collectibles[0].Count, Is.EqualTo(1));
         }
@@ -99,7 +101,7 @@ namespace HuntingInDarkness.Adapter.Tests
             HuntRetreatCommandResult result = await rig.Session.PrepareRetreatAsync(rig.Settlement.CurrentYear, new HuntRetreatDecision(rig.Resource.ContentId));
 
             Assert.That(result.Succeeded, Is.True, result.Reason);
-            Assert.That(result.Record.CollectedResources, Is.Empty);
+            Assert.That(result.Record.CollectedItems, Is.Empty);
             Assert.That(rig.Survivor.Collectibles, Has.Count.EqualTo(1));
             Assert.That(rig.Survivor.Collectibles[0].Data.ContentId, Is.EqualTo(rig.Resource.ContentId));
             Assert.That(rig.Survivor.Collectibles[0].Count, Is.EqualTo(1));
@@ -114,7 +116,7 @@ namespace HuntingInDarkness.Adapter.Tests
             HuntRetreatCommandResult result = await rig.Session.PrepareRetreatAsync(rig.Settlement.CurrentYear, new HuntRetreatDecision("forged.resource"));
 
             Assert.That(result.Succeeded, Is.False);
-            Assert.That(result.Reason, Is.EqualTo("选择的放弃素材已不在当前小队携带物中。"));
+            Assert.That(result.Reason, Is.EqualTo("选择的放弃物品已不在当前小队携带物中。"));
             Assert.That(rig.Survivor.Collectibles[0].Count, Is.EqualTo(1));
         }
 
@@ -128,7 +130,7 @@ namespace HuntingInDarkness.Adapter.Tests
             HuntRetreatCommandResult result = await rig.Session.PrepareRetreatAsync(rig.Settlement.CurrentYear);
 
             Assert.That(result.Succeeded, Is.True, result.Reason);
-            Assert.That(result.Record.CollectedResources, Is.Empty);
+            Assert.That(result.Record.CollectedItems, Is.Empty);
         }
 
         [Test]

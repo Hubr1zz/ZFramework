@@ -102,12 +102,12 @@ namespace HuntingInDarkness.Settlement
         }
 
         /// <summary>结算单个节点并捕获跨环境遭遇请求，避免 Action 流程依赖全局字符串事件。</summary>
-        public PlayableEventNodeCommitResult ResolveNarrativeNodeStandalone(EventData gameEvent, HunterInstance actor = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null)
+        public PlayableEventNodeCommitResult ResolveNarrativeNodeStandalone(EventData gameEvent, HunterInstance actor = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventItemCommand itemCommand = null)
         {
-            return ResolveNarrativeNode(gameEvent, actor, true, resourceCommand, worldCommand, settlementCommand);
+            return ResolveNarrativeNode(gameEvent, actor, true, resourceCommand, worldCommand, settlementCommand, itemCommand);
         }
 
-        private PlayableEventNodeCommitResult ResolveNarrativeNode(EventData gameEvent, HunterInstance actor, bool captureEncounterRequests, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null)
+        private PlayableEventNodeCommitResult ResolveNarrativeNode(EventData gameEvent, HunterInstance actor, bool captureEncounterRequests, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventItemCommand itemCommand = null)
         {
             if (gameEvent == null) return new PlayableEventNodeCommitResult(System.Array.Empty<EventData>(), System.Array.Empty<string>(), PlayableEventEffectBatchResult.Empty);
             var encounterIds = new List<string>();
@@ -116,7 +116,7 @@ namespace HuntingInDarkness.Settlement
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (gameEvent.immediateEffects != null)
                 for (int effectIndex = 0; effectIndex < gameEvent.immediateEffects.Count; effectIndex++)
-                    effectResults.Add(ApplyEffect(gameEvent.immediateEffects[effectIndex], actor, actor, encounterIds, resourceCommand, worldCommand, settlementCommand, effectIndex, gameEvent.ContentId));
+                    effectResults.Add(ApplyEffect(gameEvent.immediateEffects[effectIndex], actor, actor, encounterIds, resourceCommand, worldCommand, settlementCommand, effectIndex, gameEvent.ContentId, itemCommand));
             if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (!captureEncounterRequests)
@@ -250,7 +250,7 @@ namespace HuntingInDarkness.Settlement
             }
         }
 
-        private PlayableEventEffectResult ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, int effectIndex = -1, string eventId = "")
+        private PlayableEventEffectResult ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, int effectIndex = -1, string eventId = "", IPlayableEventItemCommand itemCommand = null)
         {
             if (effect == null) return FailedEffect(effectIndex, effect, "事件效果为空。", eventId);
             if (effect.effectType == EventEffectType.AdvanceYear)
@@ -322,6 +322,20 @@ namespace HuntingInDarkness.Settlement
                     return FailedEffect(effectIndex, effect, reason, eventId);
                 string bodyPartId = HunterRecoveryRules.GetBodyPartId(wound.BodyPart);
                 return SucceededEffect(effectIndex, effect, eventId, bodyPartId, actor.InstanceId, wound.Changed, wound.PreviousHealth, wound.CurrentHealth);
+            }
+
+            if (effect.effectType == EventEffectType.AddItem)
+            {
+                if (itemCommand == null)
+                    return FailedEffect(effectIndex, effect, "狩猎物品奖励端口尚未注入。", eventId);
+                string itemId = PlayableSettlementItemRegistry.ResolveContentId(effect.targetName);
+                if (!itemCommand.TryAdd(itemId, effect.value, eventActor ?? target, out PlayableEventItemChange change, out string reason))
+                    return FailedEffect(effectIndex, effect, reason, eventId);
+                if (change.Changed)
+                {
+                    EventBus.Publish(new PlayableEventItemChangedEvent { ItemId = change.ItemId, ActorId = change.ActorId, OldAmount = change.OldAmount, NewAmount = change.NewAmount });
+                }
+                return SucceededEffect(effectIndex, effect, eventId, change.ItemId, change.ActorId, change.Changed, change.OldAmount, change.NewAmount);
             }
 
             if (resourceCommand != null && (effect.effectType == EventEffectType.AddResource || effect.effectType == EventEffectType.RemoveResource))

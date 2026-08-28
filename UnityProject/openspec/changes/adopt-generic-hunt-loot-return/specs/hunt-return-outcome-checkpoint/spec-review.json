@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-return-outcome-checkpoint",
+  "title": "狩猎归来结果检查点",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "v2 通用物品栈、严格版本迁移、完整预检、分类入库与幂等提交均已实现。",
+    "codeEvidence": [
+      { "guid": "6dce6ba7b65af9c42821b85a0555ac17", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs", "fileHash": "208b99870e1378e217086c2bdf27e4865b9249343a2d56a8d0f461ba8e89c8b9", "line": 455, "feature": "按稳定物品 ID 聚合 v2 回营记录", "status": "verified", "checkedAt": "2026-08-27T22:42:55-07:00" },
+      { "guid": "37059c04b6daeb0469902c0c4e2064fb", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HuntReturnRules.cs", "fileHash": "9d498d2b889f42d4f4670325ea629bf0766e8a4cbd289337f5e33d875784f51d", "line": 186, "feature": "版本、类别、数量与溢出的纯规则预检", "status": "verified", "checkedAt": "2026-08-27T22:42:55-07:00" },
+      { "guid": "5cb50ad3443a70f45af1ce3608fd42be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs", "fileHash": "ad527d271fd1fd41e4f4ea940a36549e85e6b5118886d31a4991dd29a92178f1", "line": 41, "feature": "同一 Settlement root 分类提交库存", "status": "verified", "checkedAt": "2026-08-27T22:42:55-07:00" }
+    ],
+    "evidence": ["回营规则、回营 Action、旧档恢复与活动存档职责簇测试通过。"],
+    "differences": ["正式 Spec 仍把当前回营快照定义为资源 ContentId 清单。"],
+    "verifiedAt": "2026-08-27T22:42:55-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["table-driven-hunt-events", "tabletop-hunt-retreat"],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/物品 Items.md", "conversation::2026-08-27"],
+  "implementationOutline": ["HuntManager 创建 v2 聚合快照。", "GameCore 在任何写入前构造分类提交计划。", "Settlement root 分类入库并复用原有幂等、成长和日历事务。"],
+  "reviewIssues": [
+    { "id": "ISSUE-GENERIC-HUNT-LOOT-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认 v2 通用物品栈成为当前回营协议，v1 仅保留资源迁移。", "details": "v1/v2 字段混写会失败关闭，避免恢复时静默丢失。", "sourceId": "conversation::2026-08-27", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

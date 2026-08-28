@@ -341,6 +341,12 @@ namespace HuntingInDarkness.Settlement
                     }
                 }
             HashSet<string> itemAliases = BuildAliases(items, item => item.ContentId, item => item.itemName);
+            var itemByAlias = new Dictionary<string, ItemData>(StringComparer.Ordinal);
+            foreach (ItemData item in items)
+            {
+                itemByAlias[item.ContentId] = item;
+                itemByAlias[item.itemName] = item;
+            }
             HashSet<string> inventionAliases = BuildAliases(inventions, invention => invention.ContentId, invention => invention.inventionName, invention => invention.name);
             var itemReferences = new HashSet<ItemData>(items);
             var inventionReferences = new HashSet<InventionData>(inventions);
@@ -419,6 +425,11 @@ namespace HuntingInDarkness.Settlement
                     if ((effect?.effectType == EventEffectType.AddResource || effect?.effectType == EventEffectType.RemoveResource) && !itemAliases.Contains(target))
                     {
                         reason = $"事件 {gameEvent.ContentId} 引用了未知物品：{target}";
+                        return false;
+                    }
+                    if (effect?.effectType == EventEffectType.AddItem && (!itemByAlias.TryGetValue(target, out ItemData rewardItem) || rewardItem.itemType == ItemType.Resource))
+                    {
+                        reason = $"事件 {gameEvent.ContentId} 引用了未知或非物品奖励：{target}";
                         return false;
                     }
                     if (effect?.effectType == EventEffectType.UnlockInvention && !inventionAliases.Contains(target))

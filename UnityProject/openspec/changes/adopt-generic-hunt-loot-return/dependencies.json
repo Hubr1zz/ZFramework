@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "table-driven-hunt-events", "label": "读表狩猎事件内容", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-generic-hunt-loot-return/specs/table-driven-hunt-events/spec.md" },
+    { "id": "hunt-return-outcome-checkpoint", "label": "狩猎归来结果检查点", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-generic-hunt-loot-return/specs/hunt-return-outcome-checkpoint/spec.md" },
+    { "id": "tabletop-hunt-retreat", "label": "3D 狩猎回营结算", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-generic-hunt-loot-return/specs/tabletop-hunt-retreat/spec.md" },
+    { "id": "expedition-build-progression-loop", "label": "远征奖励与营地构筑闭环", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-generic-hunt-loot-return/specs/expedition-build-progression-loop/spec.md" }
+  ],
+  "edges": [
+    { "from": "table-driven-hunt-events", "to": "hunt-return-outcome-checkpoint", "type": "supports" },
+    { "from": "tabletop-hunt-retreat", "to": "hunt-return-outcome-checkpoint", "type": "supports" },
+    { "from": "hunt-return-outcome-checkpoint", "to": "expedition-build-progression-loop", "type": "supports" }
+  ]
+}

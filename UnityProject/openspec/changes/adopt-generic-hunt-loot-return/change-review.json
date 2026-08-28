@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-generic-hunt-loot-return",
+  "title": "收养通用狩猎战利品回营闭环",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现、对抗审查与定向验证已经完成；本 Change 等待人类确认后再同步正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "Unity 6000.5.9f1 编译通过；相关 EditMode 职责簇 120/120，通过审查修复后的纯规则回归 7/7；C# 派生索引 v7 覆盖 1053/1053。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity CLI 编译成功，返回码 0。",
+      "HuntReturnRules、事件、撤退、回营、内容装配与活动存档定向测试 120/120。",
+      "v1/v2 混写失败关闭加固后的 HuntReturnRulesTests 7/7。",
+      "C# 派生索引 engine=codebase-query-regex-binding-v7，覆盖 1053/1053。"
+    ],
+    "differences": [
+      "正式 Spec 当前仅授权资源奖励和资源专用回营记录，尚未授权 Hunt 事件直接获得非资源物品、v2 通用物品栈和通用紧急放弃。"
+    ],
+    "verifiedAt": "2026-08-27T22:42:55-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-GENERIC-HUNT-LOOT-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认狩猎事件可直接奖励非资源物品，并接受回营协议 v2 作为当前生产格式。",
+      "details": "批准后同步四份 Delta；若不接受，需要移除 AddItem、v2 通用回营栈及通用 3D 放弃选择，同时保留原资源专用流程。",
+      "sourceId": "conversation::2026-08-27",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": ["table-driven-hunt-events", "hunt-return-outcome-checkpoint", "tabletop-hunt-retreat", "expedition-build-progression-loop"],
+  "syncTargets": [
+    { "capability": "table-driven-hunt-events", "title": "读表狩猎事件内容", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-generic-hunt-loot-return/specs/table-driven-hunt-events/spec.md", "targetSpecPath": "openspec/specs/table-driven-hunt-events/spec.md", "targetExisted": true, "baseFileHash": "1ca824b32d7833cec4758f740d029d634faa9a3ff4f5bf18b40d41607bf84df2", "baseSnapshotPath": "" },
+    { "capability": "hunt-return-outcome-checkpoint", "title": "狩猎归来结果检查点", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-generic-hunt-loot-return/specs/hunt-return-outcome-checkpoint/spec.md", "targetSpecPath": "openspec/specs/hunt-return-outcome-checkpoint/spec.md", "targetExisted": true, "baseFileHash": "7e5a8669d185ce3e99b5e4062325ec51c8789e637ade2ef1c9cac8a898ef1747", "baseSnapshotPath": "" },
+    { "capability": "tabletop-hunt-retreat", "title": "3D 狩猎回营结算", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-generic-hunt-loot-return/specs/tabletop-hunt-retreat/spec.md", "targetSpecPath": "openspec/specs/tabletop-hunt-retreat/spec.md", "targetExisted": true, "baseFileHash": "56efcb46317287d6bb1ea392fba147a85a29945089e58668a955f4eb637334db", "baseSnapshotPath": "" },
+    { "capability": "expedition-build-progression-loop", "title": "远征奖励与营地构筑闭环", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-generic-hunt-loot-return/specs/expedition-build-progression-loop/spec.md", "targetSpecPath": "openspec/specs/expedition-build-progression-loop/spec.md", "targetExisted": true, "baseFileHash": "2553f3c1f4942115ae98b145c910bd31dce1beadd8fc8a042c9d645c0cfc046d", "baseSnapshotPath": "" }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "四份正式 Spec 基线哈希已记录，尚未同步。",
+    "changes": [
+      "增加 Hunt-only 非资源物品奖励。",
+      "回营协议升级为严格 v2 通用物品栈并兼容 v1 资源记录。",
+      "3D 紧急撤退支持从任意携带物放弃一份。",
+      "远征构筑闭环接纳直接带回的非资源物品。"
+    ],
+    "conflicts": [],
+    "validatedAt": "2026-08-27T22:42:55-07:00"
+  },
+  "createdAt": "2026-08-27T22:42:55-07:00"
+}

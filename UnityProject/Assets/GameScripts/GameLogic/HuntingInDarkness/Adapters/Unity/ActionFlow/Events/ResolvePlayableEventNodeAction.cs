@@ -96,11 +96,12 @@ namespace HuntingInDarkness.ActionFlow.Events
         private readonly Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly IPlayableEventResourceCommand resourceCommand;
+        private readonly IPlayableEventItemCommand itemCommand;
         private readonly IPlayableEventResourceAvailability resourceAvailability;
         private readonly IPlayableEventWorldCommand worldCommand;
         private readonly IPlayableEventSettlementCommand settlementCommand;
 
-        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null)
+        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null, IPlayableEventItemCommand itemCommand = null)
         {
             this.eventSystem = eventSystem ?? throw new ArgumentNullException(nameof(eventSystem));
             this.eventInput = eventInput;
@@ -111,6 +112,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             this.stageCommitCheckpoint = stageCommitCheckpoint;
             this.randomInteractionPresenter = randomInteractionPresenter;
             this.resourceCommand = resourceCommand;
+            this.itemCommand = itemCommand;
             this.resourceAvailability = resourceAvailability ?? (IPlayableEventResourceAvailability)resourceCommand ?? new SettlementEventResourceAvailability(eventSystem.Settlement);
             this.worldCommand = worldCommand;
             this.settlementCommand = settlementCommand;
@@ -153,7 +155,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             {
                 if (eventInput != null)
                     await eventInput.ConfirmNarrativeAsync(gameEvent, defaultActor, cancellationToken);
-                PlayableEventNodeCommitResult narrativeResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor, resourceCommand, worldCommand, settlementCommand);
+                PlayableEventNodeCommitResult narrativeResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor, resourceCommand, worldCommand, settlementCommand, itemCommand);
                 ChainedEvents = narrativeResult.ChainedEvents;
                 EncounterIds = narrativeResult.EncounterIds;
                 EffectResults = narrativeResult.EffectResults;
@@ -179,7 +181,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             }
             if (transaction == null)
             {
-                PlayableEventNodeCommitResult fallbackResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor, resourceCommand, worldCommand, settlementCommand);
+                PlayableEventNodeCommitResult fallbackResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor, resourceCommand, worldCommand, settlementCommand, itemCommand);
                 ChainedEvents = fallbackResult.ChainedEvents;
                 EncounterIds = fallbackResult.EncounterIds;
                 EffectResults = fallbackResult.EffectResults;
@@ -214,7 +216,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             EventOption option = gameEvent.options[selection.OptionIndex];
             if (!PlayableEventOptionAvailability.CanUse(option, selection.Actor, eventSystem.Settlement, resourceAvailability, out _)) return null;
             int? rollValue = option.checkType != CheckType.None && randomInteractionPresenter != null ? await ResolveTabletopCheckAsync(option, selection.Actor, "initial", cancellationToken) : null;
-            return eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor, rollValue, resourceCommand, worldCommand, settlementCommand, resourceAvailability);
+            return eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor, rollValue, resourceCommand, worldCommand, settlementCommand, resourceAvailability, itemCommand);
         }
 
         private async UniTask<int> ResolveTabletopCheckAsync(EventOption option, HunterInstance actor, string step, CancellationToken cancellationToken)

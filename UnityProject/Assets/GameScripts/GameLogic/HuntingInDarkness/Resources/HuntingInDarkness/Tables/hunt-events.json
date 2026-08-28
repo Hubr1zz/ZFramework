@@ -62,9 +62,10 @@
           "checkSides": 10,
           "checkDeckId": "hunt-route-omens",
           "checkInstruction": "从行囊旁的路线牌堆抽取一张牌",
-          "successText": "牌上的凹痕指向一块松动的石板，你们找到两份碎石。",
+          "successText": "牌上的凹痕指向一块松动的石板，你们找到碎石和一包尚可使用的旧式包扎布。",
           "successEffects": [
-            { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" }
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" },
+            { "effectType": "AddItem", "targetName": "weathered_field_dressing", "value": 1, "description": "旧式包扎布 +1" }
           ],
           "failText": "牌下只有一团仍在蠕动的黑灰。翻牌者立刻松手，却仍感到意志被削弱。",
           "failEffects": [

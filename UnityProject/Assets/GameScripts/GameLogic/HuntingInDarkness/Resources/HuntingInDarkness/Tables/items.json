@@ -284,6 +284,18 @@
       "huntNoise": 1
     },
     {
+      "id": "weathered_field_dressing",
+      "itemName": "旧式包扎布",
+      "itemType": "Consumable",
+      "description": "从遗落行囊中找到的基础急救用品，可用于恢复猎人的一个受伤部位。",
+      "tags": ["Cloth"],
+      "keywords": ["medicine"],
+      "stackLimit": 99,
+      "huntNoise": 0,
+      "consumableEffect": "RecoverBodyPart",
+      "consumableEffectAmount": 1
+    },
+    {
       "id": "mushroom_flesh_poultice",
       "itemName": "菌肉敷剂",
       "itemType": "Consumable",

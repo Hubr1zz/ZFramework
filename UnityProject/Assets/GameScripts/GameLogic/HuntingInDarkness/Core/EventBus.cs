@@ -198,6 +198,7 @@ namespace Core
         public int HuntersDeployed;
         public int HuntersLost;
         public int CollectedResourceCount;
+        public int CollectedItemCount;
         public bool BossDefeated;
         public int AdvancedToYear;
         public int AdvancedToSeasonIndex;

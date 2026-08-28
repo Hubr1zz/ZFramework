@@ -15,6 +15,7 @@ using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.ContentTables;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
@@ -214,12 +215,18 @@ namespace HuntingInDarkness.Adapter.Tests
             item.itemName = "石材";
             item.ConfigureContentId("resource.stone");
             item.stackLimit = 5;
+            var consumable = ScriptableObject.CreateInstance<ItemData>();
+            consumable.itemName = "旧式包扎布";
+            consumable.itemType = ItemType.Consumable;
+            consumable.ConfigureContentId("weathered_field_dressing");
+            consumable.ConfigureConsumableEffect(ConsumableEffectKind.RecoverBodyPart, 1);
             var hunter = new HunterInstance(null, 71) { Name = "回营猎人" };
             hunter.Collectibles.Add(new ItemInstance(item));
+            hunter.Collectibles.Add(new ItemInstance(consumable));
             var settlement = new SettlementInstance { CurrentYear = 2 };
             settlement.Hunters.Add(hunter);
             settlement.AddResource("resource.stone", 10);
-            PlayableSettlementItemRegistry.Configure(new[] { item });
+            PlayableSettlementItemRegistry.Configure(new[] { item, consumable });
             try
             {
                 var record = new HuntRecord
@@ -230,7 +237,11 @@ namespace HuntingInDarkness.Adapter.Tests
                     HuntersDeployed = 1,
                     HuntersLost = 0,
                     ParticipantHunterIds = new List<int> { hunter.InstanceId },
-                    CollectedResources = new List<string> { "resource.stone" }
+                    CollectedItems = new List<HuntLootStack>
+                    {
+                        new("resource.stone", 1),
+                        new("weathered_field_dressing", 1)
+                    }
                 };
                 using var session = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), timeline: CreateTimeline(settlement));
 
@@ -241,6 +252,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(duplicate.Succeeded, Is.True, duplicate.Reason);
                 Assert.That(duplicate.Applied, Is.False);
                 Assert.That(settlement.GetResource("resource.stone"), Is.EqualTo(11));
+                Assert.That(settlement.GetStoredItem("weathered_field_dressing"), Is.EqualTo(1));
                 Assert.That(settlement.HasDiscoveredMaterial("resource.stone"), Is.True);
                 Assert.That(hunter.Age, Is.EqualTo(2));
                 Assert.That(hunter.Collectibles, Is.Empty);
@@ -250,6 +262,7 @@ namespace HuntingInDarkness.Adapter.Tests
             finally
             {
                 PlayableSettlementItemRegistry.Configure(Array.Empty<ItemData>());
+                UnityEngine.Object.DestroyImmediate(consumable);
                 UnityEngine.Object.DestroyImmediate(item);
             }
         }
@@ -300,7 +313,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 var record = new HuntRecord
                 {
                     RecordId = "pending-return",
-                    ReturnSchemaVersion = HuntRecord.CurrentReturnSchemaVersion,
+                    ReturnSchemaVersion = HuntReturnRules.ResourceOnlySchemaVersion,
                     Year = 2,
                     HuntersDeployed = 1,
                     ParticipantHunterIds = new List<int> { hunter.InstanceId },

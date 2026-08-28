@@ -5,6 +5,7 @@ using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 
@@ -19,50 +20,53 @@ namespace HuntingInDarkness.ActionFlow.Hunt
 
     public readonly struct HuntRetreatDecision
     {
-        public HuntRetreatDecision(string abandonedResourceId)
+        public HuntRetreatDecision(string abandonedItemId)
         {
-            AbandonedResourceId = abandonedResourceId?.Trim() ?? string.Empty;
+            AbandonedItemId = abandonedItemId?.Trim() ?? string.Empty;
         }
 
-        public string AbandonedResourceId { get; }
-        public bool HasAbandonedResource => !string.IsNullOrWhiteSpace(AbandonedResourceId);
+        public string AbandonedItemId { get; }
+        public bool HasAbandonedItem => !string.IsNullOrWhiteSpace(AbandonedItemId);
         public static HuntRetreatDecision None => new(string.Empty);
     }
 
-    public readonly struct HuntRetreatMaterial
+    public readonly struct HuntRetreatLootItem
     {
-        public HuntRetreatMaterial(string contentId, string displayName, int count)
+        public HuntRetreatLootItem(string contentId, string displayName, ItemType itemType, int count)
         {
             ContentId = contentId ?? string.Empty;
             DisplayName = string.IsNullOrWhiteSpace(displayName) ? ContentId : displayName;
+            ItemType = itemType;
             Count = Math.Max(0, count);
         }
 
         public string ContentId { get; }
         public string DisplayName { get; }
+        public ItemType ItemType { get; }
         public int Count { get; }
     }
 
     public readonly struct HuntRetreatPreview
     {
-        private HuntRetreatPreview(bool isAtCamp, IReadOnlyList<HuntRetreatMaterial> materials, HuntReturnCalendarPreview calendar)
+        private HuntRetreatPreview(bool isAtCamp, IReadOnlyList<HuntRetreatLootItem> lootItems, HuntReturnCalendarPreview calendar)
         {
             IsAtCamp = isAtCamp;
-            Materials = materials ?? Array.Empty<HuntRetreatMaterial>();
+            LootItems = lootItems ?? Array.Empty<HuntRetreatLootItem>();
             Calendar = calendar;
         }
 
         public bool IsAtCamp { get; }
-        public bool RequiresAbandonment => !IsAtCamp && Materials.Count > 0;
-        public IReadOnlyList<HuntRetreatMaterial> Materials { get; }
+        public bool RequiresAbandonment => !IsAtCamp && LootItems.Count > 0;
+        public IReadOnlyList<HuntRetreatLootItem> LootItems { get; }
+        public IReadOnlyList<HuntRetreatLootItem> Materials => LootItems;
         public HuntReturnCalendarPreview Calendar { get; }
 
         public static HuntRetreatPreview Create(HuntManager manager)
         {
             if (manager == null)
-                return new HuntRetreatPreview(false, Array.Empty<HuntRetreatMaterial>(), HuntReturnCalendarPreview.Unavailable("狩猎运行时不可用。"));
+                return new HuntRetreatPreview(false, Array.Empty<HuntRetreatLootItem>(), HuntReturnCalendarPreview.Unavailable("狩猎运行时不可用。"));
 
-            var counts = new Dictionary<string, HuntRetreatMaterial>(StringComparer.Ordinal);
+            var counts = new Dictionary<string, HuntRetreatLootItem>(StringComparer.Ordinal);
             foreach (HunterInstance hunter in manager.ActiveHunters)
             {
                 if (hunter?.Collectibles == null) continue;
@@ -70,23 +74,23 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 {
                     string contentId = item?.Data?.ContentId;
                     if (string.IsNullOrWhiteSpace(contentId) || item.Count <= 0) continue;
-                    if (counts.TryGetValue(contentId, out HuntRetreatMaterial existing))
+                    if (counts.TryGetValue(contentId, out HuntRetreatLootItem existing))
                     {
-                        counts[contentId] = new HuntRetreatMaterial(existing.ContentId, existing.DisplayName, existing.Count + item.Count);
+                        counts[contentId] = new HuntRetreatLootItem(existing.ContentId, existing.DisplayName, existing.ItemType, existing.Count + item.Count);
                         continue;
                     }
-                    counts.Add(contentId, new HuntRetreatMaterial(contentId, item.Data.itemName, item.Count));
+                    counts.Add(contentId, new HuntRetreatLootItem(contentId, item.Data.itemName, item.Data.itemType, item.Count));
                 }
             }
 
-            var materials = new List<HuntRetreatMaterial>(counts.Values);
-            materials.Sort((left, right) => string.CompareOrdinal(left.ContentId, right.ContentId));
-            return new HuntRetreatPreview(manager.IsSquadAtCamp, materials.AsReadOnly(), HuntReturnCalendarPreview.Unavailable("回营时间预览尚未绑定。"));
+            var lootItems = new List<HuntRetreatLootItem>(counts.Values);
+            lootItems.Sort((left, right) => string.CompareOrdinal(left.ContentId, right.ContentId));
+            return new HuntRetreatPreview(manager.IsSquadAtCamp, lootItems.AsReadOnly(), HuntReturnCalendarPreview.Unavailable("回营时间预览尚未绑定。"));
         }
 
         public HuntRetreatPreview WithCalendar(HuntReturnCalendarPreview calendar) => new(IsAtCamp, Materials, calendar);
 
-        public static HuntRetreatPreview Empty => new(false, Array.Empty<HuntRetreatMaterial>(), HuntReturnCalendarPreview.Unavailable("当前无法预览回营时间。"));
+        public static HuntRetreatPreview Empty => new(false, Array.Empty<HuntRetreatLootItem>(), HuntReturnCalendarPreview.Unavailable("当前无法预览回营时间。"));
     }
 
     public readonly struct HuntReturnCalendarPreview
@@ -150,7 +154,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public int Year;
         public int HuntersDeployed;
         public int HuntersLost;
-        public string[] CollectedResources;
+        public HuntLootStack[] CollectedItems;
     }
 
     /// <summary>在 Hunt Runner 内生成不可变更权威状态的回营快照；资源转移只在 Campaign 接受阶段切换后执行。</summary>
@@ -181,8 +185,9 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             if (currentYear < 1)
                 return Fail("营地年份无效，无法结算本次狩猎。");
 
-            HuntRecord record = manager.CreateHuntRecord(false, currentYear);
-            if (!TryApplyAbandonment(record, out string reason))
+            if (!manager.TryCreateHuntRecord(false, currentYear, out HuntRecord record, out string reason))
+                return Fail(reason);
+            if (!TryApplyAbandonment(record, out reason))
                 return Fail(reason);
             HuntRecord resultRecord = CloneRecord(record);
             Result = HuntRetreatCommandResult.Success(resultRecord);
@@ -191,7 +196,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 Year = record.Year,
                 HuntersDeployed = record.HuntersDeployed,
                 HuntersLost = record.HuntersLost,
-                CollectedResources = record.CollectedResources.ToArray()
+                CollectedItems = CloneStacks(record.CollectedItems).ToArray()
             });
             return UniTask.FromResult(ActionOutcome.Success());
         }
@@ -207,24 +212,27 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             reason = string.Empty;
             if (manager.IsSquadAtCamp)
             {
-                if (decision.HasAbandonedResource)
-                    return FailAbandonment("小队已在营地，不能伪造放弃素材。", out reason);
+                if (decision.HasAbandonedItem)
+                    return FailAbandonment("小队已在营地，不能伪造放弃物品。", out reason);
                 return true;
             }
 
-            bool hasCollectibles = record.CollectedResources != null && record.CollectedResources.Count > 0;
+            bool hasCollectibles = record.CollectedItems != null && record.CollectedItems.Count > 0;
             if (!hasCollectibles)
             {
-                if (decision.HasAbandonedResource)
-                    return FailAbandonment("本次狩猎没有可放弃的携带素材。", out reason);
+                if (decision.HasAbandonedItem)
+                    return FailAbandonment("本次狩猎没有可放弃的携带物品。", out reason);
                 return true;
             }
-            if (!decision.HasAbandonedResource)
-                return FailAbandonment("远离营地且携带素材时，必须选择放弃一份素材。", out reason);
-            if (!HasLiveCollectible(decision.AbandonedResourceId))
-                return FailAbandonment("选择的放弃素材已不在当前小队携带物中。", out reason);
-            if (!record.CollectedResources.Remove(decision.AbandonedResourceId))
-                return FailAbandonment("选择的放弃素材不在本次回营快照中。", out reason);
+            if (!decision.HasAbandonedItem)
+                return FailAbandonment("远离营地且携带物品时，必须选择放弃一份物品。", out reason);
+            if (!HasLiveCollectible(decision.AbandonedItemId))
+                return FailAbandonment("选择的放弃物品已不在当前小队携带物中。", out reason);
+            HuntLootStack stack = record.CollectedItems.Find(item => item != null && string.Equals(item.ItemId, decision.AbandonedItemId, StringComparison.Ordinal));
+            if (stack == null || stack.Count <= 0)
+                return FailAbandonment("选择的放弃物品不在本次回营快照中。", out reason);
+            stack.Count--;
+            if (stack.Count == 0) record.CollectedItems.Remove(stack);
             return true;
         }
 
@@ -257,8 +265,19 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 HuntersLost = source.HuntersLost,
                 BossDefeated = source.BossDefeated,
                 ParticipantHunterIds = source.ParticipantHunterIds != null ? new List<int>(source.ParticipantHunterIds) : new List<int>(),
-                CollectedResources = source.CollectedResources != null ? new List<string>(source.CollectedResources) : new List<string>()
+                CollectedResources = source.CollectedResources != null ? new List<string>(source.CollectedResources) : new List<string>(),
+                CollectedItems = CloneStacks(source.CollectedItems)
             };
+        }
+
+        private static List<HuntLootStack> CloneStacks(IReadOnlyList<HuntLootStack> source)
+        {
+            var result = new List<HuntLootStack>();
+            if (source == null) return result;
+            foreach (HuntLootStack stack in source)
+                if (stack != null)
+                    result.Add(new HuntLootStack(stack.ItemId, stack.Count));
+            return result;
         }
     }
 }

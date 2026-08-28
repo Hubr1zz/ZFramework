@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 5,
+  "capability": "expedition-build-progression-loop",
+  "title": "远征奖励与营地构筑闭环",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "旧式包扎布已作为非资源代表案例完成事件获得、携带、回营入库和既有消耗品目录装配。",
+    "codeEvidence": [
+      { "guid": "5cb50ad3443a70f45af1ce3608fd42be", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs", "fileHash": "ad527d271fd1fd41e4f4ea940a36549e85e6b5118886d31a4991dd29a92178f1", "line": 204, "feature": "资源与非资源的分类入库", "status": "verified", "checkedAt": "2026-08-27T22:42:55-07:00" }
+    ],
+    "evidence": ["生产表装配和混合货物回营测试通过。"],
+    "differences": ["正式构筑闭环目前只把资源定义为远征奖励。"],
+    "verifiedAt": "2026-08-27T22:42:55-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["hunt-return-outcome-checkpoint"],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/物品 Items.md", "conversation::2026-08-27"],
+  "implementationOutline": ["事件奖励先进入猎人携带物。", "回营 root 将消耗品送入通用仓库。", "既有消耗品流程按同一稳定 ID 消费。"],
+  "reviewIssues": [
+    { "id": "ISSUE-GENERIC-HUNT-LOOT-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认构筑闭环应接纳直接带回的非资源物品。", "details": "本阶段只有一个代表性消耗品，不批量扩充内容。", "sourceId": "conversation::2026-08-27", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

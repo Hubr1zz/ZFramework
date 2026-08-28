@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 
@@ -24,6 +25,19 @@ namespace UI
             foreach (KeyValuePair<string, int> pair in counts)
                 labels.Add($"{pair.Key}×{pair.Value}");
             return string.Join("、", labels);
+        }
+
+        public static string FormatLoot(IReadOnlyList<HuntLootStack> items, IReadOnlyList<string> legacyResources)
+        {
+            if (items == null || items.Count == 0) return FormatResources(legacyResources);
+            var labels = new List<string>();
+            foreach (HuntLootStack item in items)
+            {
+                if (item == null || item.Count <= 0) continue;
+                string displayName = PlayableSettlementItemRegistry.GetDisplayName(item.ItemId);
+                if (!string.IsNullOrWhiteSpace(displayName)) labels.Add($"{displayName}×{item.Count}");
+            }
+            return labels.Count == 0 ? "无" : string.Join("、", labels);
         }
 
         public static string FormatEventMemory(SettlementEventMemory memory)
@@ -90,6 +104,7 @@ namespace UI
                 EventEffectType.AddRecoverableWound => "普通伤势",
                 EventEffectType.ExhaustCurrentHuntTileResources => "耗尽地块资源",
                 EventEffectType.CreateHuntNoiseLease => "增加下次狩猎风险",
+                EventEffectType.AddItem => "获得物品",
                 _ => value
             };
         }

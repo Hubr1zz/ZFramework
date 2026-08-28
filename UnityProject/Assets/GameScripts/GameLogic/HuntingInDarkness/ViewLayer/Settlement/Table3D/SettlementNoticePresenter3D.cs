@@ -203,7 +203,7 @@ namespace UI
             string advancedSeason = string.IsNullOrWhiteSpace(evt.AdvancedToSeasonDisplayName) ? $"第 {evt.AdvancedToSeasonIndex + 1} 季" : evt.AdvancedToSeasonDisplayName;
             string completedPeriod = $"第 {evt.CompletedYear} 年·{completedSeason}";
             string advancedPeriod = $"第 {evt.AdvancedToYear} 年·{advancedSeason}";
-            string body = $"{completedPeriod} · {outcome}\n远征已归档，营地进入 {advancedPeriod}\n\n出发 {evt.HuntersDeployed} · 损失 {evt.HuntersLost} · 带回 {evt.CollectedResourceCount} 项物资";
+            string body = $"{completedPeriod} · {outcome}\n远征已归档，营地进入 {advancedPeriod}\n\n出发 {evt.HuntersDeployed} · 损失 {evt.HuntersLost} · 带回 {evt.CollectedItemCount} 件物品";
             string footer = $"年鉴现有 {evt.TotalHunts} 条狩猎记录";
             TabletopEventPrimaryTone tone = evt.HuntersLost > 0 ? TabletopEventPrimaryTone.Failure : TabletopEventPrimaryTone.Success;
             string title = evt.CompletedYear == evt.AdvancedToYear ? "季节推进 · 回营" : "新年抵达 · 回营";

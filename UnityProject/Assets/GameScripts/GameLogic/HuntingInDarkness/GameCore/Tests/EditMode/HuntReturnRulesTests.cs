@@ -1,4 +1,5 @@
 using System;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.GameCore.Settlement;
 using NUnit.Framework;
 
@@ -73,6 +74,44 @@ namespace HuntingInDarkness.GameCore.Tests
 
             var alive = new[] { new HuntReturnParticipantState(7, true, HunterAvailabilityState.Active, 3) };
             Assert.That(HuntReturnRules.TryCreatePlan(input, 1, alive, null, false, out _, out _), Is.False);
+        }
+
+        [Test]
+        public void TryCreateItemPlan_V2ClassifiesMixedLootAndPreflightsEveryStack()
+        {
+            var input = new HuntReturnInput("mixed", 2, 3, 1, 0, new[] { 7 }, Array.Empty<string>(), new[]
+            {
+                new HuntLootStack("stone", 2),
+                new HuntLootStack("field_dressing", 1)
+            });
+            var participants = new[] { new HuntReturnParticipantState(7, true, HunterAvailabilityState.Active, 2) };
+            var items = new[]
+            {
+                new HuntReturnItemState("stone", HuntReturnItemKind.Resource, 4),
+                new HuntReturnItemState("field_dressing", HuntReturnItemKind.StoredItem, 1)
+            };
+
+            Assert.That(HuntReturnRules.TryCreateItemPlan(input, 3, participants, items, false, out HuntReturnPlan plan, out string reason), Is.True, reason);
+            Assert.That(plan.ItemGrants, Has.Count.EqualTo(2));
+            Assert.That(plan.CollectedResourceCount, Is.EqualTo(2));
+            Assert.That(plan.CollectedItemCount, Is.EqualTo(3));
+            Assert.That(plan.ItemGrants[1].Kind, Is.EqualTo(HuntReturnItemKind.StoredItem));
+        }
+
+        [Test]
+        public void TryCreateItemPlan_RejectsUnknownMixedSchemaAndOverflowBeforeCommit()
+        {
+            var participant = new[] { new HuntReturnParticipantState(7, true, HunterAvailabilityState.Active, 2) };
+            var items = new[] { new HuntReturnItemState("known", HuntReturnItemKind.StoredItem, int.MaxValue) };
+            var unknown = new HuntReturnInput("unknown", 2, 3, 1, 0, new[] { 7 }, Array.Empty<string>(), new[] { new HuntLootStack("missing", 1) });
+            var v1Mix = new HuntReturnInput("v1-mixed-protocol", 1, 3, 1, 0, new[] { 7 }, Array.Empty<string>(), new[] { new HuntLootStack("known", 1) });
+            var v2Mix = new HuntReturnInput("v2-mixed-protocol", 2, 3, 1, 0, new[] { 7 }, new[] { "known" }, new[] { new HuntLootStack("known", 1) });
+            var overflow = new HuntReturnInput("overflow", 2, 3, 1, 0, new[] { 7 }, Array.Empty<string>(), new[] { new HuntLootStack("known", 1) });
+
+            Assert.That(HuntReturnRules.TryCreateItemPlan(unknown, 3, participant, items, false, out _, out _), Is.False);
+            Assert.That(HuntReturnRules.TryCreateItemPlan(v1Mix, 3, participant, items, false, out _, out _), Is.False);
+            Assert.That(HuntReturnRules.TryCreateItemPlan(v2Mix, 3, participant, items, false, out _, out _), Is.False);
+            Assert.That(HuntReturnRules.TryCreateItemPlan(overflow, 3, participant, items, false, out _, out _), Is.False);
         }
     }
 }

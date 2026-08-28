@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 
@@ -213,7 +214,7 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class HuntRecord
     {
-        public const int CurrentReturnSchemaVersion = 1;
+        public const int CurrentReturnSchemaVersion = 2;
         [Tooltip("稳定的本次远征实例 ID；旧存档为空时保持兼容，不自动伪造身份。")]
         public string RecordId;
         [Tooltip("主动回营结果协议版本；0 表示旧流程已经转移资源/成长的兼容记录。")]
@@ -223,7 +224,10 @@ namespace HuntingInDarkness.Data
         public int  HuntersLost;
         public bool BossDefeated;
         public List<int> ParticipantHunterIds = new();
-        public List<string> CollectedResources = new(); // 稳定资源 ContentId 列表
+        [Tooltip("v1 兼容字段；只表示旧版资源 ContentId 列表。v2 生产记录改用 CollectedItems。")]
+        public List<string> CollectedResources = new();
+        [Tooltip("v2 权威携带物快照；资源、装备和消耗品统一保存稳定 ItemId 与聚合数量。")]
+        public List<HuntLootStack> CollectedItems = new();
     }
 
     // ─── 营地运行时状态 ──────────────────────────────────────────

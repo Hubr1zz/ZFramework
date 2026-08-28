@@ -1,0 +1,10 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的收养对账：狩猎事件可获得通用非资源物品，并通过稳定回营协议分类进入营地仓库。",
+  "sourceRoots": ["C:/Users/leonz/Desktop/GameDesignVault"],
+  "sourceReferences": [
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/物品 Items.md",
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md",
+    "conversation::2026-08-27"
+  ]
+}

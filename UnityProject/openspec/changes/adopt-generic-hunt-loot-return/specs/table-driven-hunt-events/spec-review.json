@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 5,
+  "capability": "table-driven-hunt-events",
+  "title": "读表狩猎事件内容",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "Hunt-only 物品命令、内容校验、ActionQueue 注入、效果事实和代表性生产内容均已实现。",
+    "codeEvidence": [
+      { "guid": "2d7e5da6e2294f2cb822e162871c01c4", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntEventItemCommand.cs", "fileHash": "2b56912118513b4d89a224267c49ee064522f108c69b527d2d910ce6f6ae1666", "line": 10, "feature": "当前小队执行者的非资源物品奖励命令", "status": "verified", "checkedAt": "2026-08-27T22:42:55-07:00" }
+    ],
+    "evidence": ["事件奖励、玩法事实与生产表定向用例通过。"],
+    "differences": ["正式 Spec 目前只声明资源奖励，未声明 AddItem。"],
+    "verifiedAt": "2026-08-27T22:42:55-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/物品 Items.md", "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md", "conversation::2026-08-27"],
+  "implementationOutline": ["共享事件事务接收可选 item command。", "Hunt 实现验证目录、类别、数量和执行者，再写入携带物。"],
+  "reviewIssues": [
+    { "id": "ISSUE-GENERIC-HUNT-LOOT-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认 AddItem 只奖励非资源物品且必须绑定当前存活执行者。", "details": "资源仍走 AddResource，避免两套资源语义。", "sourceId": "conversation::2026-08-27", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

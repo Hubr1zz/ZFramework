@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-hunt-retreat",
+  "title": "3D 狩猎回营结算",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "回营预览、物品类别显示、紧急放弃重验和 v2 深拷贝准备事实均已实现。",
+    "codeEvidence": [
+      { "guid": "8601354706c5d2243a2c3ad182a5a99a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs", "fileHash": "c29e77e7b23e40ba09ed2073d8f306b5d8a51a6f9d152d0dcd6e1251a1cde5e6", "line": 161, "feature": "通用携带物撤退快照与单份放弃", "status": "verified", "checkedAt": "2026-08-27T22:42:55-07:00" }
+    ],
+    "evidence": ["撤退深拷贝、营地/远程撤退和伪造选择用例通过。"],
+    "differences": ["正式 Spec 的 3D 回营卡和紧急放弃目前只描述资源。"],
+    "verifiedAt": "2026-08-27T22:42:55-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/物品 Items.md", "conversation::2026-08-27"],
+  "implementationOutline": ["View 聚合显示物品名称、类型和数量。", "Action 用稳定 ID 重验实时货物，只过滤返回快照而不改实时携带物。"],
+  "reviewIssues": [
+    { "id": "ISSUE-GENERIC-HUNT-LOOT-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认紧急撤退可从任意携带物放弃一份。", "details": "玩家仍只提交稳定 ID，View 不拥有玩法状态。", "sourceId": "conversation::2026-08-27", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

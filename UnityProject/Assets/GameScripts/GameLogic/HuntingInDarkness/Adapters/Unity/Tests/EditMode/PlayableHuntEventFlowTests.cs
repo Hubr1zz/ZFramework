@@ -59,6 +59,10 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(quarryWorldEffect.targetName, Is.Empty);
             Assert.That(quarryWorldEffect.bodyPart, Is.Empty);
             Assert.That(quarryWorldEffect.value, Is.Zero);
+            EventData cache = events.Single(gameEvent => gameEvent.ContentId == "hunt_buried_cache");
+            EventEffect itemReward = cache.options[0].successEffects.Single(effect => effect.effectType == EventEffectType.AddItem);
+            Assert.That(itemReward.targetName, Is.EqualTo("weathered_field_dressing"));
+            Assert.That(PlayableItemTableRuntime.GetItems().Single(item => item.ContentId == itemReward.targetName).itemType, Is.EqualTo(ItemType.Consumable));
             Assert.That(events.Select(gameEvent => gameEvent.ContentId), Is.SupersetOf(new[]
             {
                 "hunt_sap_suture", "hunt_carapace_cairn", "hunt_white_hair_lure",

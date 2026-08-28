@@ -27,6 +27,7 @@ namespace HuntingInDarkness.Hunt
         private readonly EventSystem _eventSystem;
         internal EventSystem EventSystem => _eventSystem;
         internal IPlayableEventResourceCommand EventResourceCommand { get; }
+        internal IPlayableEventItemCommand EventItemCommand { get; }
         public IPlayableEventInput EventInput { get; set; }
 
         // ─── 地图状态 ─────────────────────────────────────────────
@@ -128,6 +129,7 @@ namespace HuntingInDarkness.Hunt
             Resources    = new ResourceSystem(_rng);
             HuntEvents   = new HuntEventSystem(_rng);
             EventResourceCommand = new HuntEventResourceCommand(this);
+            EventItemCommand = new HuntEventItemCommand(this);
             if (bindInitialContent) PlayableHuntContentRuntime.ApplyTo(this);
         }
 
@@ -446,25 +448,46 @@ namespace HuntingInDarkness.Hunt
 
         public HuntRecord CreateHuntRecord(bool bossDefeated, int currentYear)
         {
-            var resourceList = new List<string>();
+            if (TryCreateHuntRecord(bossDefeated, currentYear, out HuntRecord record, out string reason)) return record;
+            throw new InvalidOperationException(reason);
+        }
+
+        public bool TryCreateHuntRecord(bool bossDefeated, int currentYear, out HuntRecord record, out string reason)
+        {
+            record = null;
+            reason = string.Empty;
+            var itemCounts = new Dictionary<string, int>(StringComparer.Ordinal);
             int huntersDeployed = 0;
             int huntersLost = 0;
             var participantIds = new List<int>();
-            foreach (var h in ActiveHunters)
+            foreach (HunterInstance hunter in ActiveHunters)
             {
-                if (h == null)
-                    continue;
+                if (hunter == null) continue;
                 huntersDeployed++;
-                if (!participantIds.Contains(h.InstanceId))
-                    participantIds.Add(h.InstanceId);
-                if (h.IsDead)
-                    huntersLost++;
-                foreach (var item in h.Collectibles)
-                    for (int count = 0; item?.Data != null && count < item.Count; count++)
-                        resourceList.Add(item.Data.ContentId);
+                if (!participantIds.Contains(hunter.InstanceId)) participantIds.Add(hunter.InstanceId);
+                if (hunter.IsDead) huntersLost++;
+                foreach (ItemInstance item in hunter.Collectibles ?? new List<ItemInstance>())
+                {
+                    string itemId = item?.Data?.ContentId?.Trim() ?? string.Empty;
+                    if (itemId.Length == 0 || item.Count <= 0)
+                    {
+                        reason = "狩猎携带物包含无效物品或数量。";
+                        return false;
+                    }
+                    int current = itemCounts.TryGetValue(itemId, out int count) ? count : 0;
+                    if (current > int.MaxValue - item.Count)
+                    {
+                        reason = "狩猎携带物数量溢出。";
+                        return false;
+                    }
+                    itemCounts[itemId] = current + item.Count;
+                }
             }
 
-            return new HuntRecord
+            var items = new List<HuntLootStack>();
+            foreach (KeyValuePair<string, int> item in itemCounts) items.Add(new HuntLootStack(item.Key, item.Value));
+            items.Sort((left, right) => string.Compare(left.ItemId, right.ItemId, StringComparison.Ordinal));
+            record = new HuntRecord
             {
                 RecordId         = Guid.NewGuid().ToString("N"),
                 ReturnSchemaVersion = HuntRecord.CurrentReturnSchemaVersion,
@@ -473,8 +496,9 @@ namespace HuntingInDarkness.Hunt
                 HuntersLost      = huntersLost,
                 BossDefeated     = bossDefeated,
                 ParticipantHunterIds = participantIds,
-                CollectedResources = resourceList
+                CollectedItems = items
             };
+            return true;
         }
 
         // ─── 工具 ─────────────────────────────────────────────────

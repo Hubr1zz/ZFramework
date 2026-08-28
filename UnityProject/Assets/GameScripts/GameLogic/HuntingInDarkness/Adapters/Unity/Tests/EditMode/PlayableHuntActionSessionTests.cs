@@ -14,6 +14,7 @@ using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
@@ -356,7 +357,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(lockedNeighbors.All(tile => tile.State == TileState.Interactable), Is.True);
             Assert.That(rig.Settlement.GetResource(rig.Resource), Is.Zero);
             Assert.That(rig.Hunter.Collectibles.Sum(item => item.Count), Is.EqualTo(2));
-            Assert.That(rig.Manager.CreateHuntRecord(false, 1).CollectedResources, Has.Count.EqualTo(2));
+            Assert.That(rig.Manager.CreateHuntRecord(false, 1).CollectedItems.Sum(item => item.Count), Is.EqualTo(2));
 
             rig.Manager.OnExit(rig.Settlement);
 
@@ -507,6 +508,37 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task HuntEventItemReward_AddsNonResourceToActorAndPublishesGameplayFact()
+        {
+            using var rig = new HuntRig();
+            rig.TileEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddItem, targetName = rig.RewardItem.ContentId, value = 1 });
+            PlayableEventItemChangedEvent received = default;
+            int factCount = 0;
+            Action<PlayableEventItemChangedEvent> handler = evt =>
+            {
+                received = evt;
+                factCount++;
+            };
+            EventBus.Subscribe(handler);
+            try
+            {
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(result.FailedEffectCount, Is.Zero);
+                Assert.That(rig.Hunter.Collectibles.Sum(item => item?.Data?.ContentId == rig.RewardItem.ContentId ? item.Count : 0), Is.EqualTo(1));
+                Assert.That(rig.Settlement.GetStoredItem(rig.RewardItem.ContentId), Is.Zero);
+                Assert.That(factCount, Is.EqualTo(1));
+                Assert.That(received.ItemId, Is.EqualTo(rig.RewardItem.ContentId));
+                Assert.That(received.ActorId, Is.EqualTo(rig.Hunter.InstanceId));
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
         public void HuntEventResourceReward_RejectsCountOverflowWithoutMutation()
         {
             using var rig = new HuntRig();
@@ -640,6 +672,7 @@ namespace HuntingInDarkness.Adapter.Tests
             private readonly HexTileData plainTile;
             private readonly HunterData hunterTemplate;
             private readonly ItemData resource;
+            private readonly ItemData rewardItem;
             private readonly List<ItemData> previousItems;
 
             public HuntRig(IHuntTileInteractionPresenter tileInteractionPresenter = null, bool includeSurvivor = false, IHunterDeathCommand hunterDeathCommand = null, bool includeResourcePoints = false)
@@ -650,7 +683,13 @@ namespace HuntingInDarkness.Adapter.Tests
                 resource.ConfigureContentId("test_hunt_resource");
                 resource.itemName = "测试资源";
                 resource.itemType = ItemType.Resource;
-                var configuredItems = new List<ItemData>(previousItems) { resource };
+                rewardItem = ScriptableObject.CreateInstance<ItemData>();
+                rewardItem.name = "test_hunt_reward_item";
+                rewardItem.ConfigureContentId("test_hunt_reward_item");
+                rewardItem.itemName = "测试包扎布";
+                rewardItem.itemType = ItemType.Consumable;
+                rewardItem.ConfigureConsumableEffect(ConsumableEffectKind.RecoverBodyPart, 1);
+                var configuredItems = new List<ItemData>(previousItems) { resource, rewardItem };
                 PlayableSettlementItemRegistry.Configure(configuredItems);
                 hunterTemplate = ScriptableObject.CreateInstance<HunterData>();
                 hunterTemplate.name = "TestHuntActor";
@@ -699,6 +738,7 @@ namespace HuntingInDarkness.Adapter.Tests
             public HunterInstance Hunter { get; }
             public HunterInstance Survivor { get; }
             public ItemData Resource => resource;
+            public ItemData RewardItem => rewardItem;
             public HuntManager Manager { get; }
             public PlayableHuntActionSession Session { get; }
             public HexTileInstance FirstInteractable => Manager.Map.Values.First(tile => tile.State == TileState.Interactable);
@@ -707,6 +747,7 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 Session.Dispose();
                 PlayableSettlementItemRegistry.Configure(previousItems);
+                UnityEngine.Object.DestroyImmediate(rewardItem);
                 UnityEngine.Object.DestroyImmediate(resource);
                 UnityEngine.Object.DestroyImmediate(hunterTemplate);
                 UnityEngine.Object.DestroyImmediate(plainTile);

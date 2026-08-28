@@ -118,7 +118,7 @@ namespace UI
                 {
                     if (record == null) continue;
                     string outcome = record.BossDefeated ? "讨伐成功" : "从黑暗中归来";
-                    entries.Add(new LedgerEntry(record.Year, outcome, $"狩猎 · 出发 {record.HuntersDeployed} · 损失 {record.HuntersLost} · 带回 {CampLedgerPresentation.FormatResources(record.CollectedResources)}", true));
+                    entries.Add(new LedgerEntry(record.Year, outcome, $"狩猎 · 出发 {record.HuntersDeployed} · 损失 {record.HuntersLost} · 带回 {CampLedgerPresentation.FormatLoot(record.CollectedItems, record.CollectedResources)}", true));
                 }
             }
             entries.Sort((left, right) =>

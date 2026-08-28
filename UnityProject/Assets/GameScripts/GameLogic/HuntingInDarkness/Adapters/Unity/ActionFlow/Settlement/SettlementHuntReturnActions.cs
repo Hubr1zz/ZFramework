@@ -5,6 +5,7 @@ using CardGame.ActionQueue;
 using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 
@@ -71,7 +72,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         {
             cancellationToken.ThrowIfCancellationRequested();
             bool alreadyApplied = timeline.HasAppliedHuntRecord(huntRecord);
-            if (!HuntReturnRules.TryCreatePlan(CreateInput(), timeline.CurrentYear, BuildParticipantStates(), BuildResourceStates(), alreadyApplied, out HuntReturnPlan plan, out string reason))
+            if (!HuntReturnRules.TryCreateItemPlan(CreateInput(), timeline.CurrentYear, BuildParticipantStates(), BuildItemStates(), alreadyApplied, out HuntReturnPlan plan, out string reason))
                 return Fail(reason);
             if (!plan.IsAlreadyApplied && !plan.IsLegacyCompatibility && (settlement == null || hunterManagement == null))
                 return Fail("当前远征归来缺少 Settlement 提交环境。");
@@ -80,13 +81,13 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             if (settlement != null && persistentEffectProjection != null && !persistentEffectProjection.TryClear(settlement, out reason))
                 return Fail(reason);
             if (plan.IsAlreadyApplied)
-                {
+            {
                 Result = new SettlementHuntReturnCommandResult(true, false, string.Empty, Array.Empty<EventData>());
                 return UniTask.FromResult(ActionOutcome.Success());
             }
             if (!plan.IsLegacyCompatibility)
             {
-                ApplyResourceGrants(plan.ResourceGrants);
+                ApplyItemGrants(plan.ItemGrants);
                 ClearCollectibles();
                 PlayableHunterAdvancementAdapter.ApplyAfterHunt(ResolveParticipants(plan), hunterManagement, eventOutbox);
             }
@@ -119,6 +120,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 HuntersDeployed = huntRecord.HuntersDeployed,
                 HuntersLost = huntRecord.HuntersLost,
                 CollectedResourceCount = plan.CollectedResourceCount,
+                CollectedItemCount = plan.CollectedItemCount,
                 BossDefeated = huntRecord.BossDefeated,
                 AdvancedToYear = timeline.CurrentYear,
                 AdvancedToSeasonIndex = timeline.CurrentSeasonIndex,
@@ -139,7 +141,11 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             if (huntRecord.CollectedResources != null)
                 foreach (string resourceId in huntRecord.CollectedResources)
                     resourceIds.Add(PlayableSettlementItemRegistry.ResolveContentId(resourceId));
-            return new HuntReturnInput(huntRecord.RecordId, huntRecord.ReturnSchemaVersion, huntRecord.Year, huntRecord.HuntersDeployed, huntRecord.HuntersLost, huntRecord.ParticipantHunterIds, resourceIds);
+            var items = new List<HuntLootStack>();
+            if (huntRecord.CollectedItems != null)
+                foreach (HuntLootStack stack in huntRecord.CollectedItems)
+                    items.Add(stack == null ? null : new HuntLootStack(PlayableSettlementItemRegistry.ResolveContentId(stack.ItemId), stack.Count));
+            return new HuntReturnInput(huntRecord.RecordId, huntRecord.ReturnSchemaVersion, huntRecord.Year, huntRecord.HuntersDeployed, huntRecord.HuntersLost, huntRecord.ParticipantHunterIds, resourceIds, items);
         }
 
         private List<HuntReturnParticipantState> BuildParticipantStates()
@@ -155,27 +161,28 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             return states;
         }
 
-        private List<HuntReturnResourceState> BuildResourceStates()
+        private List<HuntReturnItemState> BuildItemStates()
         {
-            var states = new List<HuntReturnResourceState>();
-            if (settlement == null || huntRecord.CollectedResources == null || huntRecord.CollectedResources.Count == 0) return states;
-            var collectedCounts = new Dictionary<string, int>(StringComparer.Ordinal);
-            foreach (string rawId in huntRecord.CollectedResources)
+            var states = new List<HuntReturnItemState>();
+            if (settlement == null) return states;
+            var itemIds = new HashSet<string>(StringComparer.Ordinal);
+            if (huntRecord.ReturnSchemaVersion == HuntReturnRules.ResourceOnlySchemaVersion)
             {
-                string resourceId = PlayableSettlementItemRegistry.ResolveContentId(rawId);
-                if (!PlayableSettlementItemRegistry.TryGet(resourceId, out ItemData item) || item == null || item.itemType != ItemType.Resource)
-                    continue;
-                collectedCounts[resourceId] = collectedCounts.TryGetValue(resourceId, out int count) ? count + 1 : 1;
+                foreach (string rawId in huntRecord.CollectedResources ?? new List<string>())
+                    itemIds.Add(PlayableSettlementItemRegistry.ResolveContentId(rawId));
             }
-            foreach (KeyValuePair<string, int> collected in collectedCounts)
+            else
             {
-                string resourceId = collected.Key;
-                if (!PlayableSettlementItemRegistry.TryGet(resourceId, out ItemData item) || item == null) continue;
-                bool alreadyAdded = false;
-                foreach (HuntReturnResourceState state in states)
-                    if (state.ResourceId == resourceId) { alreadyAdded = true; break; }
-                if (!alreadyAdded)
-                    states.Add(new HuntReturnResourceState(resourceId, settlement.GetResource(resourceId)));
+                foreach (HuntLootStack stack in huntRecord.CollectedItems ?? new List<HuntLootStack>())
+                    if (stack != null)
+                        itemIds.Add(PlayableSettlementItemRegistry.ResolveContentId(stack.ItemId));
+            }
+            foreach (string itemId in itemIds)
+            {
+                if (!PlayableSettlementItemRegistry.TryGet(itemId, out ItemData item) || item == null) continue;
+                HuntReturnItemKind kind = item.itemType == ItemType.Resource ? HuntReturnItemKind.Resource : HuntReturnItemKind.StoredItem;
+                int currentAmount = kind == HuntReturnItemKind.Resource ? settlement.GetResource(itemId) : settlement.GetStoredItem(itemId);
+                states.Add(new HuntReturnItemState(itemId, kind, currentAmount));
             }
             return states;
         }
@@ -194,14 +201,19 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             return hunters;
         }
 
-        private void ApplyResourceGrants(IReadOnlyList<HuntReturnResourceGrant> grants)
+        private void ApplyItemGrants(IReadOnlyList<HuntReturnItemGrant> grants)
         {
-            foreach (HuntReturnResourceGrant grant in grants)
+            foreach (HuntReturnItemGrant grant in grants)
             {
-                int oldAmount = settlement.GetResource(grant.ResourceId);
-                settlement.AddResource(grant.ResourceId, grant.Amount);
-                settlement.DiscoverMaterial(grant.ResourceId);
-                eventOutbox.Stage(new ResourceChangedEvent { ResourceName = grant.ResourceId, OldAmount = oldAmount, NewAmount = settlement.GetResource(grant.ResourceId) });
+                if (grant.Kind == HuntReturnItemKind.StoredItem)
+                {
+                    settlement.AddStoredItem(grant.ItemId, grant.Amount);
+                    continue;
+                }
+                int oldAmount = settlement.GetResource(grant.ItemId);
+                settlement.AddResource(grant.ItemId, grant.Amount);
+                settlement.DiscoverMaterial(grant.ItemId);
+                eventOutbox.Stage(new ResourceChangedEvent { ResourceName = grant.ItemId, OldAmount = oldAmount, NewAmount = settlement.GetResource(grant.ItemId) });
             }
         }
 
