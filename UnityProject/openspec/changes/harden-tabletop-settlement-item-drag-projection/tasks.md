@@ -14,3 +14,4 @@
 - [x] 3.1 增加 SlotGrid 清理、transient use target 与跨展示 pending 的窄 PlayMode 回归
 - [x] 3.2 增加正式 GameManager 组合根下装备和消耗品 3D 拖拽回归
 - [x] 3.3 运行定向 Unity CLI、编译、OpenSpec strict validation 与 diff 验证
+- [x] 3.4 让测试通过真实指针阈值与卡槽搜索路径，并验证 Collider/主相机射线投影

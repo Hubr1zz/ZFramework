@@ -33,16 +33,55 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             int clickCount = 0;
             card.OnClicked += _ => clickCount++;
 
-            card.SimulatePointerDown();
+            card.HandlePointerDown(Vector2.zero);
             Assert.That(clickCount, Is.Zero);
-            card.SimulatePointerUp();
+            card.HandlePointerDrag(Vector2.right * 4f, Vector3.right);
+            card.HandlePointerUp();
             Assert.That(clickCount, Is.EqualTo(1));
 
             card.EnableDrag = true;
-            card.SimulatePointerDown();
-            InvokeCardMethod(card, "BeginDrag");
-            card.SimulatePointerUp();
+            card.HandlePointerDown(Vector2.zero);
+            card.HandlePointerDrag(Vector2.right * 10f, Vector3.right);
+            card.HandlePointerUp();
             Assert.That(clickCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void PhysicalPointerProjection_HitsColliderAndMovesCardOnSharedDragPath()
+        {
+            var cameraObject = new GameObject("PointerProjectionCamera");
+            createdObjects.Add(cameraObject);
+            cameraObject.tag = "MainCamera";
+            Camera camera = cameraObject.AddComponent<Camera>();
+            camera.orthographic = true;
+            camera.orthographicSize = 5f;
+            cameraObject.transform.SetPositionAndRotation(Vector3.up * 10f, Quaternion.Euler(90f, 0f, 0f));
+
+            var cardObject = new GameObject("PhysicalPointerCard");
+            createdObjects.Add(cardObject);
+            TestSlotCard card = cardObject.AddComponent<TestSlotCard>();
+            card.Initialize(Vector3.zero);
+            card.EnableDrag = true;
+            int dragStartedCount = 0;
+            int dragEndedCount = 0;
+            card.DragStarted += _ => dragStartedCount++;
+            card.DragEnded += _ => dragEndedCount++;
+
+            Physics.SyncTransforms();
+            Vector2 pointerDown = camera.WorldToScreenPoint(card.transform.position);
+            Assert.That(Physics.Raycast(camera.ScreenPointToRay(pointerDown), out RaycastHit hit), Is.True);
+            Assert.That(hit.collider.GetComponentInParent<CardView3D>(), Is.SameAs(card));
+
+            Vector3 target = Vector3.right * 2f;
+            Vector2 pointerDrag = camera.WorldToScreenPoint(target);
+            Assert.That(Vector2.Distance(pointerDown, pointerDrag), Is.GreaterThan(5f));
+            card.HandlePointerDown(pointerDown);
+            card.HandlePointerDrag(pointerDrag);
+            card.HandlePointerUp();
+
+            Assert.That(dragStartedCount, Is.EqualTo(1));
+            Assert.That(dragEndedCount, Is.EqualTo(1));
+            Assert.That(card.transform.position.x, Is.EqualTo(target.x).Within(0.01f));
         }
 
         [Test]
@@ -57,14 +96,14 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             int dossierCount = 0;
             card.OnHunterClicked = _ => dossierCount++;
 
-            card.SimulatePointerDown();
-            card.SimulatePointerUp();
+            card.HandlePointerDown(Vector2.zero);
+            card.HandlePointerUp();
             Assert.That(dossierCount, Is.EqualTo(1));
 
             card.EnableDrag = true;
-            card.SimulatePointerDown();
-            InvokeCardMethod(card, "BeginDrag");
-            card.SimulatePointerUp();
+            card.HandlePointerDown(Vector2.zero);
+            card.HandlePointerDrag(Vector2.right * 10f, Vector3.right);
+            card.HandlePointerUp();
             Assert.That(dossierCount, Is.EqualTo(1));
         }
 
@@ -165,16 +204,11 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
         private sealed class TestSlotCard : SlotDraggableCardView3D
         {
-            public void SimulatePointerDown() => OnMouseDown();
-            public void SimulatePointerUp() => OnMouseUp();
+            public void Initialize(Vector3 localPosition) => InitView(localPosition);
             protected override void BuildTextFields() { }
             protected override void ApplyVisuals() { }
         }
 
-        private sealed class TestHunterCard : HunterCard3D
-        {
-            public void SimulatePointerDown() => OnMouseDown();
-            public void SimulatePointerUp() => OnMouseUp();
-        }
+        private sealed class TestHunterCard : HunterCard3D { }
     }
 }

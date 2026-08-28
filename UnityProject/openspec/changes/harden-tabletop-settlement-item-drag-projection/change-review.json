@@ -11,7 +11,7 @@
   "implementationNotes": "实现已通过定向编译与 Unity CLI 验证；Draft 仅供 Changes 人工审核，批准后再显式同步正式 Spec。",
   "verification": {
     "status": "implemented",
-    "summary": "营地 3D 仓库/装备卡具备 SlotGrid 双向投影，装备命令跨 presentation 生命周期保持唯一，消耗品使用槽保持 transient。",
+    "summary": "营地 3D 仓库/装备卡具备 SlotGrid 双向投影与共享物理指针拖拽路径，装备命令跨 presentation 生命周期保持唯一，消耗品使用槽保持 transient。",
     "codeEvidence": [
       {
         "guid": "aec121c9e9ab40f9a94917d816e762d2",
@@ -23,33 +23,50 @@
         "checkedAt": "2026-08-26T17:30:00Z"
       },
       {
+        "guid": "680c4dd3ef562024ebe38aa3a5bb7aa1",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs",
+        "fileHash": "16fbb40b98bc9c1fa59bb646ce6efa63f8add9138283be86f174b70dc52351ca",
+        "line": 190,
+        "feature": "将 Unity 鼠标与外部世界空间指针适配器收口到可配置阈值、相机投影和统一结束路径",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:25:40Z"
+      },
+      {
         "guid": "6d8b5d32f6a44a3e9f8e81382c98a4f1",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HunterEquipmentPanel3DPlayModeTests.cs",
-        "fileHash": "0a583c7dafc5b3806fef0150b842acd15d78df96b10aa4a76fcf05b0a996dad5",
+        "fileHash": "3ca647a69c9c55b1853084f672b9866fa1ade6cbc108b013c13b1acdd8fc5961",
         "line": 31,
-        "feature": "验证投影清理、临时使用槽与跨隐藏重绑 pending 门禁",
+        "feature": "经真实指针阈值与卡槽搜索验证投影清理、临时使用槽与跨隐藏重绑 pending 门禁",
         "status": "verified",
-        "checkedAt": "2026-08-26T17:30:00Z"
+        "checkedAt": "2026-08-28T07:25:40Z"
+      },
+      {
+        "guid": "87fba1edff8b05740886827849077a9f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HunterTabletopInteractionPlayModeTests.cs",
+        "fileHash": "535ac45d8c192ea189234040aaac0d3fdfe2acdc02e935f18e9c4d6f02c90d15",
+        "line": 50,
+        "feature": "验证短按与拖拽分流、物理 Collider 命中和主相机世界投影",
+        "status": "verified",
+        "checkedAt": "2026-08-28T07:25:40Z"
       },
       {
         "guid": "e9276d2cbb23419c8514e96956fed1cd",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-        "fileHash": "f2f1a0b72fe2f9cde3060ad34ba9492ecd2ef3b12f54ca4273114c9be84371ee",
-        "line": 335,
-        "feature": "验证正式 GameManager 根下装备与消耗品 3D 拖拽闭环",
+        "fileHash": "761806b85766681960536cfea87860f5500cc7745bbb25cc20d92df66a7cb02d",
+        "line": 1440,
+        "feature": "验证正式 GameManager 根下经生产指针与卡槽搜索完成装备和消耗品 3D 拖拽闭环",
         "status": "verified",
-        "checkedAt": "2026-08-26T17:30:00Z"
+        "checkedAt": "2026-08-28T07:25:40Z"
       }
     ],
     "evidence": [
-      "dotnet build ZFramework.sln: 0 warnings / 0 errors",
-      "HunterEquipmentPanel3D + GameManager item-loop PlayMode: 5/5 passed",
-      "SettlementTableInitializationTests EditMode: 5/5 passed",
+      "Card pointer + HunterEquipmentPanel3D PlayMode: 10/10 passed",
+      "GameManagerCampaignLoopPlayModeTests: 26/26 passed",
       "OpenSpec strict validation passed",
-      "git diff --check passed"
+      "targeted git diff --check passed"
     ],
     "differences": [],
-    "verifiedAt": "2026-08-26T17:30:00Z"
+    "verifiedAt": "2026-08-28T07:25:40Z"
   },
   "reviewIssues": [],
   "gapIds": [],

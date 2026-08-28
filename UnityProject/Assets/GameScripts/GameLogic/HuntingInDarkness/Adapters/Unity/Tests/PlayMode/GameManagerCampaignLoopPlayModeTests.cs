@@ -1439,13 +1439,10 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
         private static void BeginAndDrop(SettlementItemCard3D card, CardSlot target)
         {
-            MethodInfo beginDrag = typeof(CardView3D).GetMethod("BeginDrag", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.That(beginDrag, Is.Not.Null);
-            beginDrag.Invoke(card, null);
-            SetPrivateField(card, "hoverSlot", target);
-            MethodInfo endDrag = typeof(SlotDraggableCardView3D).GetMethod("OnEndDrag", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.That(endDrag, Is.Not.Null);
-            endDrag.Invoke(card, null);
+            Vector2 pointerDown = Vector2.zero;
+            card.HandlePointerDown(pointerDown);
+            card.HandlePointerDrag(pointerDown + Vector2.right * 10f, target.transform.position);
+            card.HandlePointerUp();
         }
 
         private static TabletopEventChoiceCard3D FindChoice(PlayableSettlementEventView view, string title) => view.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == title);

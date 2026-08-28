@@ -31,8 +31,9 @@ namespace Cards3D
         private bool _isHovered;
 
         // ─── 拖拽状态 ──────────────────────────────────────────────────────
+        [SerializeField, Min(0f)] private float dragThresholdPixels = 5f;
         private bool _dragReady;
-        private Vector3 _mouseDownScreenPos;
+        private Vector2 _mouseDownScreenPos;
         private bool _isDragging;
         protected Vector3 _preDragLocalPos;
         protected Transform _preDragParent;
@@ -186,31 +187,42 @@ namespace Cards3D
 
         protected virtual void OnMouseDown()
         {
-            _mouseDownScreenPos = Input.mousePosition;
-            _dragReady = true;
+            HandlePointerDown(Input.mousePosition);
         }
 
         private void OnMouseDrag()
         {
-            if (!EnableDrag) return;
-
-            // 移动超过 5px 才开始真正拖拽，与点击区分
-            if (_dragReady && !_isDragging)
-            {
-                if (Vector2.Distance(Input.mousePosition, _mouseDownScreenPos) > 5f)
-                {
-                    _dragReady = false;
-                    BeginDrag();
-                }
-            }
-            if (_isDragging)
-            {
-                DragMove();
-                OnDragFrame();
-            }
+            HandlePointerDrag(Input.mousePosition);
         }
 
         protected virtual void OnMouseUp()
+        {
+            HandlePointerUp();
+        }
+
+        /// <summary>接收世界空间输入适配器的按下位置；不产生玩法命令。</summary>
+        public void HandlePointerDown(Vector2 screenPosition)
+        {
+            if (_isDragging) return;
+            _mouseDownScreenPos = screenPosition;
+            _dragReady = true;
+        }
+
+        /// <summary>使用主相机把屏幕指针投影到当前卡牌平面，供 Unity 鼠标路径调用。</summary>
+        public void HandlePointerDrag(Vector2 screenPosition)
+        {
+            bool hasWorldPosition = TryResolveDragWorldPosition(screenPosition, out Vector3 worldPosition);
+            HandlePointerDrag(screenPosition, hasWorldPosition, worldPosition);
+        }
+
+        /// <summary>接收已由触摸、控制器或测试射线解析的世界落点。</summary>
+        public void HandlePointerDrag(Vector2 screenPosition, Vector3 worldPosition)
+        {
+            HandlePointerDrag(screenPosition, true, worldPosition);
+        }
+
+        /// <summary>结束当前指针手势；只有超过阈值的拖拽才进入卡槽命令入口。</summary>
+        public void HandlePointerUp()
         {
             bool shouldClick = _dragReady && !_isDragging;
             _dragReady = false;
@@ -221,6 +233,19 @@ namespace Cards3D
             }
             if (shouldClick)
                 OnClickReleased();
+        }
+
+        private void HandlePointerDrag(Vector2 screenPosition, bool hasWorldPosition, Vector3 worldPosition)
+        {
+            if (!EnableDrag) return;
+            if (_dragReady && !_isDragging && Vector2.Distance(screenPosition, _mouseDownScreenPos) > dragThresholdPixels)
+            {
+                _dragReady = false;
+                BeginDrag();
+            }
+            if (!_isDragging || !hasWorldPosition) return;
+            transform.position = new Vector3(worldPosition.x, transform.position.y, worldPosition.z);
+            OnDragFrame();
         }
 
         /// <summary>指针松开且未形成拖拽时调用。子类可扩展真实点击行为。</summary>
@@ -244,15 +269,16 @@ namespace Cards3D
             ApplyVisuals();
         }
 
-        private void DragMove()
+        private bool TryResolveDragWorldPosition(Vector2 screenPosition, out Vector3 worldPosition)
         {
-            var ray   = Camera.main.ScreenPointToRay(Input.mousePosition);
+            worldPosition = default;
+            Camera mainCamera = Camera.main;
+            if (mainCamera == null) return false;
+            Ray ray = mainCamera.ScreenPointToRay(screenPosition);
             var plane = new Plane(Vector3.up, new Vector3(0f, transform.position.y, 0f));
-            if (plane.Raycast(ray, out float dist))
-            {
-                var hit = ray.GetPoint(dist);
-                transform.position = new Vector3(hit.x, transform.position.y, hit.z);
-            }
+            if (!plane.Raycast(ray, out float distance)) return false;
+            worldPosition = ray.GetPoint(distance);
+            return true;
         }
 
         private void EndDrag()

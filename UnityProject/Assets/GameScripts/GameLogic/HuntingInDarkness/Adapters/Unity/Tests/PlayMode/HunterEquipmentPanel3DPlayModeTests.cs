@@ -242,13 +242,10 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
         private static void BeginAndDrop(SettlementItemCard3D card, CardSlot target)
         {
-            MethodInfo beginDrag = typeof(CardView3D).GetMethod("BeginDrag", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.That(beginDrag, Is.Not.Null);
-            beginDrag.Invoke(card, null);
-            SetPrivateField(card, "hoverSlot", target);
-            MethodInfo endDrag = typeof(SlotDraggableCardView3D).GetMethod("OnEndDrag", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.That(endDrag, Is.Not.Null);
-            endDrag.Invoke(card, null);
+            Vector2 pointerDown = Vector2.zero;
+            card.HandlePointerDown(pointerDown);
+            card.HandlePointerDrag(pointerDown + Vector2.right * 10f, target.transform.position);
+            card.HandlePointerUp();
         }
 
         private static T GetPrivateField<T>(object instance, string name)
@@ -258,13 +255,5 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             return (T)field.GetValue(instance);
         }
 
-        private static void SetPrivateField(object instance, string name, object value)
-        {
-            FieldInfo field = null;
-            for (System.Type type = instance.GetType(); type != null && field == null; type = type.BaseType)
-                field = type.GetField(name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
-            Assert.That(field, Is.Not.Null);
-            field.SetValue(instance, value);
-        }
     }
 }

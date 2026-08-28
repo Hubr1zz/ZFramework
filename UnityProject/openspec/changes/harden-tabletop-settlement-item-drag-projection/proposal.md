@@ -7,7 +7,8 @@
 - 仓库、装备与临时使用槽统一维护 CardSlot/CardView3D 双向关系，并在刷新前先解除槽位再销毁投影。
 - 装备/卸装命令等待期间锁定重复拖拽与翻页；面板隐藏或重绑不得提前释放 gameplay pending。
 - 消耗品使用槽仅表达命令意图，触发后立即恢复仓库卡，不持久占槽。
-- 增加窄 View 回归与正式 GameManager 组合根 3D 拖拽回归。
+- CardView3D 将 Unity 鼠标、触摸/控制器适配器和测试输入收口到同一可配置阈值拖拽生命周期；指针手势本身不进入 ActionQueue。
+- 增加 Collider/主相机射线、窄 View 与正式 GameManager 组合根 3D 拖拽回归。
 
 ## Capabilities
 
@@ -22,4 +23,4 @@
 
 ## Impact
 
-影响 `HunterEquipmentPanel3D` 及其 PlayMode 回归；复用既有物品内容、Settlement ActionSession/ActionQueue、猎人恢复面板与 GameManager 组合根。不改变物品规则、存档 schema、InteractionSystem、MonoBehaviour 权威或 Showdown 玩法。
+影响 `CardView3D`、`HunterEquipmentPanel3D` 及其 PlayMode 回归；复用既有物品内容、Settlement ActionSession/ActionQueue、猎人恢复面板与 GameManager 组合根。不改变物品规则、存档 schema、InteractionSystem、MonoBehaviour 权威或 Showdown 玩法。
