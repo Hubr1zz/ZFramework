@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 5,
+  "changeId": "show-locked-hunt-destinations",
+  "title": "显示锁定的狩猎目的地",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "锁定路线展示、选择门禁、失败重投影和无可用路线 fallback 已实现并完成 Unity 定向验证；等待在 Changes 中审查后显式同步。",
+  "verification": {
+    "status": "implemented",
+    "summary": "目的地目录投影全部有效路线及当前原因；3D 卡面板只允许可用路线选择与确认，并保留既有权威出发事务。",
+    "codeEvidence": [
+      {
+        "guid": "a11294226d6e3e34b9783cda133d88f2",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntDestinationCatalog.cs",
+        "fileHash": "002952c5361ad9130700bc3bbe41fe8f699a18f9d75a50a666a2686169f181c7",
+        "line": 79,
+        "feature": "投影目的地可用性并维护无显式路线时的 fallback 门禁",
+        "status": "verified",
+        "checkedAt": "2026-08-28T05:46:36-07:00"
+      },
+      {
+        "guid": "e9c005d288214754191355b57720008f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs",
+        "fileHash": "e52f3b0e5f548207b027d268d569d70578e847b4ef7015bf6f18b391529b8f45",
+        "line": 54,
+        "feature": "按战役年份构建路线页面并提交经过重验的出发意图",
+        "status": "verified",
+        "checkedAt": "2026-08-28T05:46:36-07:00"
+      },
+      {
+        "guid": "c9df97dabae7cda47adf626ad609d66b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs",
+        "fileHash": "ae64f2d2838fd71e2b15fcd41e86b8e7cbdac11d6f4633945cf8710bc9b38045",
+        "line": 107,
+        "feature": "展示可用与锁定的实体路线卡并阻止无效确认",
+        "status": "verified",
+        "checkedAt": "2026-08-28T05:46:36-07:00"
+      }
+    ],
+    "evidence": [
+      "Unity 6000.5.9f1 编译通过。",
+      "Unity 6000.5.9f1 EditMode PlayableHuntDestinationContentTests 13/13。",
+      "Unity 6000.5.9f1 PlayMode TabletopHuntDeparturePanel3DTests 6/6。"
+    ],
+    "differences": [
+      "正式 Spec 尚未要求第一年显示锁定的未来路线及其原因。",
+      "正式 Spec 的第二年场景仍暗示第一次狩猎归来后即进入第二年，与配置化多季节年度循环不一致。"
+    ],
+    "verifiedAt": "2026-08-28T05:46:36-07:00"
+  },
+  "reviewIssues": [],
+  "gapIds": [],
+  "dependencyIds": [
+    "tabletop-hunt-departure--requires--settlement-phase-orchestration",
+    "tabletop-hunt-departure--requires--hunt-phase-orchestration",
+    "tabletop-hunt-departure--requires--action-environment-lifecycle",
+    "tabletop-hunt-departure--integrates-with--campaign-year-loop"
+  ],
+  "capabilities": [
+    "tabletop-hunt-departure"
+  ],
+  "syncTargets": [
+    {
+      "capability": "tabletop-hunt-departure",
+      "title": "3D 狩猎远征整备",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/show-locked-hunt-destinations/specs/tabletop-hunt-departure/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-hunt-departure/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "62e387ec473ccd441383d177a4bd0aaaa81befb525da35a238e2e2be80605e93",
+      "baseSnapshotPath": "openspec/changes/show-locked-hunt-destinations/.sync-baseline/tabletop-hunt-departure/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与基线一致，可以 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-28T05:48:31-07:00"
+  },
+  "createdAt": "2026-08-28T05:46:36-07:00"
+}

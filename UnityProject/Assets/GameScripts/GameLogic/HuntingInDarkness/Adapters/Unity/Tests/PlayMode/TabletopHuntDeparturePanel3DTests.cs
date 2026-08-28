@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Cards3D;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.Hunt;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using NUnit.Framework;
 using UnityEngine;
@@ -124,6 +125,72 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             }
         }
 
+        [Test]
+        public void PresentDestinations_LockedFirstSelectsFirstAvailableAndRejectsLockedClick()
+        {
+            var root = new GameObject("LockedDestinationPanelTestRoot");
+            try
+            {
+                PlayableHuntDestination locked = CreateDestination("locked-route", "锁定路线");
+                PlayableHuntDestination available = CreateDestination("available-route", "可用路线");
+                PlayableHuntDestination confirmedDestination = null;
+                var projections = new[]
+                {
+                    new PlayableHuntDestinationAvailability(locked, false, "第 2 年后才能前往。"),
+                    new PlayableHuntDestinationAvailability(available, true, string.Empty)
+                };
+                TabletopHuntDeparturePanel3D panel = TabletopHuntDeparturePanel3D.Create(root.transform);
+                panel.PresentDestinationProjections(Vector3.zero, projections, null, 0, string.Empty, destination => confirmedDestination = destination, () => { }, () => { });
+
+                Assert.That(panel.SelectedDestinationIndex, Is.EqualTo(1));
+                Assert.That(panel.AvailableDestinationCount, Is.EqualTo(1));
+                TabletopEventChoiceCard3D lockedCard = FindDestinationCard(panel, "锁定路线");
+                TabletopEventChoiceCard3D availableCard = FindDestinationCard(panel, "可用路线");
+                Assert.That(lockedCard.IsInteractable, Is.False);
+                Assert.That(availableCard.IsInteractable, Is.True);
+
+                lockedCard.Clicked?.Invoke();
+                Assert.That(panel.SelectedDestinationIndex, Is.EqualTo(1));
+                Assert.That(confirmedDestination, Is.Null);
+
+                FindDestinationCard(panel, "确认出发").Clicked?.Invoke();
+                Assert.That(confirmedDestination, Is.SameAs(available));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void PresentDestinations_AllLockedDisablesConfirmation()
+        {
+            var root = new GameObject("AllLockedDestinationPanelTestRoot");
+            try
+            {
+                var projections = new[]
+                {
+                    new PlayableHuntDestinationAvailability(CreateDestination("locked-a", "锁定甲"), false, "第 2 年后才能前往。"),
+                    new PlayableHuntDestinationAvailability(CreateDestination("locked-b", "锁定乙"), false, "第 3 年后才能前往。")
+                };
+                bool confirmed = false;
+                TabletopHuntDeparturePanel3D panel = TabletopHuntDeparturePanel3D.Create(root.transform);
+                panel.PresentDestinationProjections(Vector3.zero, projections, null, 0, string.Empty, _ => confirmed = true, () => { }, () => { });
+
+                Assert.That(panel.SelectedDestinationIndex, Is.EqualTo(-1));
+                Assert.That(panel.AvailableDestinationCount, Is.Zero);
+                Assert.That(FindDestinationCard(panel, "锁定甲").IsInteractable, Is.False);
+                TabletopEventChoiceCard3D confirmCard = FindDestinationCard(panel, "确认出发");
+                Assert.That(confirmCard.IsInteractable, Is.False);
+                confirmCard.Clicked?.Invoke();
+                Assert.That(confirmed, Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
+
         private static HunterInstance CreateHunter(int instanceId, string hunterName) => new(null, instanceId) { Name = hunterName };
 
         private static ItemData CreateItem(string itemName, int huntNoise, ICollection<ItemData> createdItems)
@@ -142,6 +209,33 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(field, Is.Not.Null);
             var cards = (List<HuntDepartureHunterCard3D>)field.GetValue(panel);
             return cards.Find(card => card != null && card.Hunter?.InstanceId == hunterId);
+        }
+
+        private static TabletopEventChoiceCard3D FindDestinationCard(TabletopHuntDeparturePanel3D panel, string title)
+        {
+            foreach (TabletopEventChoiceCard3D card in panel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true))
+                if (card.DisplayName == title)
+                    return card;
+            Assert.Fail($"找不到目的地卡：{title}");
+            return null;
+        }
+
+        private static PlayableHuntDestination CreateDestination(string destinationId, string displayName)
+        {
+            var destination = new PlayableHuntDestination();
+            SetPrivateField(destination, "destinationId", destinationId);
+            SetPrivateField(destination, "displayName", displayName);
+            SetPrivateField(destination, "description", "测试路线");
+            SetPrivateField(destination, "resourceHint", "测试资源");
+            SetPrivateField(destination, "dangerHint", "测试风险");
+            return destination;
+        }
+
+        private static void SetPrivateField(object target, string fieldName, object value)
+        {
+            FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null, fieldName);
+            field.SetValue(target, value);
         }
 
         private static List<int> GetSquadIds(TabletopHuntDeparturePanel3D panel)

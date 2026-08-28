@@ -34,6 +34,45 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Catalog_ProjectsConfiguredLockedRouteWithUnlockReason()
+        {
+            PlayableHuntDestinationCatalog catalog = AssetDatabase.LoadAssetAtPath<PlayableHuntDestinationCatalog>(CatalogPath);
+
+            List<PlayableHuntDestinationAvailability> firstYear = catalog.GetAvailability(1);
+            PlayableHuntDestinationAvailability locked = firstYear.Find(projection => projection.Destination.DestinationId == "echoing-broken-road");
+
+            Assert.That(firstYear, Has.Count.EqualTo(3));
+            Assert.That(firstYear.Count(projection => projection.IsAvailable), Is.EqualTo(2));
+            Assert.That(locked.Destination, Is.Not.Null);
+            Assert.That(locked.IsAvailable, Is.False);
+            Assert.That(locked.Reason, Is.EqualTo("第 2 年后才能前往。"));
+
+            PlayableHuntDestinationAvailability unlocked = catalog.GetAvailability(2).Find(projection => projection.Destination.DestinationId == "echoing-broken-road");
+            Assert.That(unlocked.IsAvailable, Is.True, unlocked.Reason);
+        }
+
+        [Test]
+        public void ResolveAvailableIndex_PrefersStableIdThenFirstAvailable()
+        {
+            PlayableHuntDestination locked = new();
+            PlayableHuntDestination preferred = new();
+            PlayableHuntDestination firstAvailable = new();
+            var availability = new[]
+            {
+                new PlayableHuntDestinationAvailability(locked, false, "locked"),
+                new PlayableHuntDestinationAvailability(preferred, true, string.Empty),
+                new PlayableHuntDestinationAvailability(firstAvailable, true, string.Empty)
+            };
+            SetPrivateField(locked, "destinationId", "locked-route");
+            SetPrivateField(preferred, "destinationId", "preferred-route");
+            SetPrivateField(firstAvailable, "destinationId", "first-route");
+
+            Assert.That(PlayableHuntDestinationCatalog.ResolveAvailableIndex(availability, "preferred-route"), Is.EqualTo(1));
+            Assert.That(PlayableHuntDestinationCatalog.ResolveAvailableIndex(availability, "missing-route"), Is.EqualTo(1));
+            Assert.That(PlayableHuntDestinationCatalog.ResolveAvailableIndex(new[] { availability[0] }, "preferred-route"), Is.EqualTo(-1));
+        }
+
+        [Test]
         public void EchoingBrokenRoad_ProvidesHigherNoiseAndMixedLateRouteContent()
         {
             PlayableHuntDestinationCatalog catalog = AssetDatabase.LoadAssetAtPath<PlayableHuntDestinationCatalog>(CatalogPath);

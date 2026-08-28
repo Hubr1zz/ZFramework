@@ -1,0 +1,12 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的采纳对账：让生产目的地卡展示未来锁定路线，并与配置化年度循环保持一致。",
+  "sourceRoots": [
+    "openspec/specs"
+  ],
+  "sourceReferences": [
+    "conversation::2026-08-28",
+    "formal::tabletop-hunt-departure",
+    "formal::campaign-year-loop"
+  ]
+}

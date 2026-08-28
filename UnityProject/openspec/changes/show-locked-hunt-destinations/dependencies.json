@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {
+      "id": "tabletop-hunt-departure",
+      "label": "3D 狩猎远征整备",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/show-locked-hunt-destinations/specs/tabletop-hunt-departure/spec.md"
+    },
+    {
+      "id": "settlement-phase-orchestration",
+      "label": "营地阶段编排",
+      "category": "system",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/settlement-phase-orchestration/spec.md"
+    },
+    {
+      "id": "hunt-phase-orchestration",
+      "label": "狩猎阶段编排",
+      "category": "system",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/hunt-phase-orchestration/spec.md"
+    },
+    {
+      "id": "action-environment-lifecycle",
+      "label": "ActionQueue 全生命周期环境",
+      "category": "system",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/action-environment-lifecycle/spec.md"
+    },
+    {
+      "id": "campaign-year-loop",
+      "label": "配置化战役季节与年度循环",
+      "category": "system",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-year-loop/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "tabletop-hunt-departure--requires--settlement-phase-orchestration",
+      "from": "tabletop-hunt-departure",
+      "to": "settlement-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "远征名册由营地阶段 Runner 验证并提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-departure--requires--hunt-phase-orchestration",
+      "from": "tabletop-hunt-departure",
+      "to": "hunt-phase-orchestration",
+      "type": "requires",
+      "status": "defined",
+      "reason": "确认后的路线内容与小队交由狩猎阶段初始化",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-departure--requires--action-environment-lifecycle",
+      "from": "tabletop-hunt-departure",
+      "to": "action-environment-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "最终出发确认继续通过 Settlement 与 Campaign 游戏性队列提交",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-hunt-departure--integrates-with--campaign-year-loop",
+      "from": "tabletop-hunt-departure",
+      "to": "campaign-year-loop",
+      "type": "integrates-with",
+      "status": "defined",
+      "reason": "路线卡按配置化战役年份投影锁定状态",
+      "gapId": "",
+      "blocksImplementation": false
+    }
+  ]
+}

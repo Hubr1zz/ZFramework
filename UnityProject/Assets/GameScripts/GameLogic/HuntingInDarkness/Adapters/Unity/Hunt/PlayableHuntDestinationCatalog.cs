@@ -27,6 +27,8 @@ namespace HuntingInDarkness.Hunt
 
         public bool IsAvailable(int currentYear, out string reason)
         {
+            if (!HuntDestinationRules.CanSelect(destinationId, displayName, currentYear, MinimumYear, out reason))
+                return false;
             if (huntContent == null)
             {
                 reason = "这个目的地尚未准备好。";
@@ -37,8 +39,24 @@ namespace HuntingInDarkness.Hunt
                 return false;
             }
 
-            return HuntDestinationRules.CanSelect(destinationId, displayName, currentYear, MinimumYear, out reason);
+            reason = string.Empty;
+            return true;
         }
+    }
+
+    /// <summary>目的地在指定年份的只读展示投影，不拥有路线选择或运行时状态。</summary>
+    public readonly struct PlayableHuntDestinationAvailability
+    {
+        public PlayableHuntDestinationAvailability(PlayableHuntDestination destination, bool isAvailable, string reason)
+        {
+            Destination = destination;
+            IsAvailable = isAvailable;
+            Reason = reason ?? string.Empty;
+        }
+
+        public PlayableHuntDestination Destination { get; }
+        public bool IsAvailable { get; }
+        public string Reason { get; }
     }
 
     [CreateAssetMenu(fileName = "PlayableHuntDestinationCatalog", menuName = "Hunting in Darkness/Hunt Destination Catalog")]
@@ -56,6 +74,33 @@ namespace HuntingInDarkness.Hunt
                 if (destination != null && destination.IsAvailable(currentYear, out _))
                     result.Add(destination);
             return result;
+        }
+
+        public List<PlayableHuntDestinationAvailability> GetAvailability(int currentYear)
+        {
+            var result = new List<PlayableHuntDestinationAvailability>();
+            foreach (PlayableHuntDestination destination in destinations)
+            {
+                if (destination == null || !destination.IsConfigured)
+                    continue;
+                bool isAvailable = destination.IsAvailable(currentYear, out string reason);
+                result.Add(new PlayableHuntDestinationAvailability(destination, isAvailable, reason));
+            }
+            return result;
+        }
+
+        public static int ResolveAvailableIndex(IReadOnlyList<PlayableHuntDestinationAvailability> availability, string preferredDestinationId)
+        {
+            string normalizedId = preferredDestinationId?.Trim() ?? string.Empty;
+            int count = availability?.Count ?? 0;
+            if (normalizedId.Length > 0)
+                for (int index = 0; index < count; index++)
+                    if (availability[index].IsAvailable && string.Equals(availability[index].Destination?.DestinationId, normalizedId, StringComparison.Ordinal))
+                        return index;
+            for (int index = 0; index < count; index++)
+                if (availability[index].IsAvailable)
+                    return index;
+            return -1;
         }
 
         public bool TryGetById(string destinationId, out PlayableHuntDestination result)
@@ -192,7 +237,12 @@ namespace HuntingInDarkness.Hunt
             if (destination != null) return CanSelect(destination, currentYear, out reason);
             if (contentBundle != null)
             {
-                if (contentBundle.HasSelectableDestinations)
+                if (catalog != null && catalog.GetAvailability(currentYear).Exists(projection => projection.IsAvailable))
+                {
+                    reason = "请选择狩猎目的地。";
+                    return false;
+                }
+                if (catalog == null && contentBundle.HasSelectableDestinations)
                 {
                     reason = "请选择狩猎目的地。";
                     return false;

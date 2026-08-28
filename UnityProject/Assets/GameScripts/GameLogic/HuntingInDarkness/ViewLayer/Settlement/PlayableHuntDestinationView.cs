@@ -14,7 +14,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
     public sealed class PlayableHuntDestinationView : MonoBehaviour, IPlayableHuntDepartureInput
     {
         private readonly List<int> pendingHunterIds = new();
-        private readonly List<PlayableHuntDestination> availableDestinations = new();
+        private readonly List<PlayableHuntDestinationAvailability> destinationAvailability = new();
         private GameManager manager;
         private PlayableHuntDestinationCatalog catalog;
         private TabletopHuntDeparturePanel3D panel;
@@ -23,6 +23,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private bool hidesSettlementTable;
         private bool settlementTableWasActive;
         private int selectedDestinationIndex;
+        private string attemptedDestinationId = string.Empty;
 
         public bool IsPresenting => panel != null && panel.IsOpen;
         public TabletopHuntDeparturePanel3D ActivePanel => panel;
@@ -55,26 +56,30 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             pendingHunterIds.Clear();
             if (hunterIds != null)
                 pendingHunterIds.AddRange(hunterIds);
-            availableDestinations.Clear();
+            destinationAvailability.Clear();
             if (catalog != null)
-                availableDestinations.AddRange(catalog.GetAvailable(manager.SettlementData.CurrentYear));
-            if (availableDestinations.Count == 0)
+                destinationAvailability.AddRange(catalog.GetAvailability(manager.SettlementData.CurrentYear));
+            if (destinationAvailability.Count == 0 || !destinationAvailability.Exists(projection => projection.IsAvailable))
             {
                 ConfirmDepartureAsync(null).Forget();
                 return;
             }
 
             PlayableHuntDestination active = PlayableHuntDestinationRuntime.ActiveDestination;
-            int activeIndex = availableDestinations.IndexOf(active);
-            selectedDestinationIndex = activeIndex >= 0 ? activeIndex : 0;
-            panel.PresentDestinations(GetPanelAnchor(), availableDestinations, ResolvePendingHunters(), selectedDestinationIndex, string.Empty, ConfirmDeparture, ReturnToSquad, Close);
+            attemptedDestinationId = string.Empty;
+            selectedDestinationIndex = PlayableHuntDestinationCatalog.ResolveAvailableIndex(destinationAvailability, active?.DestinationId);
+            panel.PresentDestinationProjections(GetPanelAnchor(), destinationAvailability, ResolvePendingHunters(), selectedDestinationIndex, string.Empty, ConfirmDeparture, ReturnToSquad, Close);
         }
 
         private void ConfirmDeparture(PlayableHuntDestination destination)
         {
-            if (requestInFlight)
+            if (requestInFlight || destination == null)
                 return;
-            selectedDestinationIndex = availableDestinations.IndexOf(destination);
+            int resolvedIndex = PlayableHuntDestinationCatalog.ResolveAvailableIndex(destinationAvailability, destination.DestinationId);
+            if (resolvedIndex < 0 || !ReferenceEquals(destinationAvailability[resolvedIndex].Destination, destination) || !destinationAvailability[resolvedIndex].IsAvailable)
+                return;
+            selectedDestinationIndex = resolvedIndex;
+            attemptedDestinationId = destination.DestinationId;
             ConfirmDepartureAsync(destination).Forget();
         }
 
@@ -101,12 +106,16 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         {
             if (manager == null || manager.CurrentGamePhase != GamePhase.Settlement)
                 return;
-            if (availableDestinations.Count == 0)
+            destinationAvailability.Clear();
+            if (catalog != null)
+                destinationAvailability.AddRange(catalog.GetAvailability(manager.SettlementData.CurrentYear));
+            if (destinationAvailability.Count == 0 || !destinationAvailability.Exists(projection => projection.IsAvailable))
             {
                 ReturnToSquad();
                 return;
             }
-            panel.PresentDestinations(GetPanelAnchor(), availableDestinations, ResolvePendingHunters(), selectedDestinationIndex, reason, ConfirmDeparture, ReturnToSquad, Close);
+            selectedDestinationIndex = PlayableHuntDestinationCatalog.ResolveAvailableIndex(destinationAvailability, attemptedDestinationId);
+            panel.PresentDestinationProjections(GetPanelAnchor(), destinationAvailability, ResolvePendingHunters(), selectedDestinationIndex, reason, ConfirmDeparture, ReturnToSquad, Close);
         }
 
         private void ReturnToSquad()
@@ -150,8 +159,9 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             panel?.Close();
             RestoreSettlementTable();
             pendingHunterIds.Clear();
-            availableDestinations.Clear();
+            destinationAvailability.Clear();
             selectedDestinationIndex = 0;
+            attemptedDestinationId = string.Empty;
         }
 
         private void HideSettlementTable()

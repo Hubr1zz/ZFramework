@@ -13,7 +13,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
     {
         private const string HunterDropScope = "hunt-departure-squad";
         private readonly List<HuntDepartureHunterCard3D> hunterCards = new();
-        private readonly List<PlayableHuntDestination> destinations = new();
+        private readonly List<PlayableHuntDestinationAvailability> destinationAvailability = new();
         private readonly List<HunterInstance> squadHunters = new();
         private SlotGrid rosterGrid;
         private SlotGrid squadGrid;
@@ -28,7 +28,8 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
 
         public bool IsOpen => gameObject.activeSelf;
         public int SquadCount => GetSquadHunterIds().Count;
-        public int DestinationCount => destinations.Count;
+        public int DestinationCount => destinationAvailability.Count;
+        public int AvailableDestinationCount => CountAvailableDestinations();
         public int SelectedDestinationIndex => selectedDestinationIndex;
         public int InspectedHunterId { get; private set; }
 
@@ -95,6 +96,16 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
 
         public void PresentDestinations(Vector3 worldPosition, IReadOnlyList<PlayableHuntDestination> availableDestinations, IReadOnlyList<HunterInstance> selectedHunters, int selectedIndex, string status, System.Action<PlayableHuntDestination> onConfirmed, System.Action onBack, System.Action onCancelled)
         {
+            var projections = new List<PlayableHuntDestinationAvailability>();
+            if (availableDestinations != null)
+                foreach (PlayableHuntDestination destination in availableDestinations)
+                    if (destination != null)
+                        projections.Add(new PlayableHuntDestinationAvailability(destination, true, string.Empty));
+            PresentDestinationProjections(worldPosition, projections, selectedHunters, selectedIndex, status, onConfirmed, onBack, onCancelled);
+        }
+
+        public void PresentDestinationProjections(Vector3 worldPosition, IReadOnlyList<PlayableHuntDestinationAvailability> projections, IReadOnlyList<HunterInstance> selectedHunters, int selectedIndex, string status, System.Action<PlayableHuntDestination> onConfirmed, System.Action onBack, System.Action onCancelled)
+        {
             ClearContent();
             transform.position = worldPosition;
             transform.rotation = Quaternion.identity;
@@ -103,15 +114,15 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             destinationBack = onBack;
             cancelled = onCancelled;
             destinationStatus = status ?? string.Empty;
-            if (availableDestinations != null)
-                foreach (PlayableHuntDestination destination in availableDestinations)
-                    if (destination != null)
-                        destinations.Add(destination);
+            if (projections != null)
+                foreach (PlayableHuntDestinationAvailability projection in projections)
+                    if (projection.Destination != null)
+                        destinationAvailability.Add(projection);
             if (selectedHunters != null)
                 foreach (HunterInstance hunter in selectedHunters)
                     if (hunter != null)
                         squadHunters.Add(hunter);
-            selectedDestinationIndex = destinations.Count == 0 ? -1 : Mathf.Clamp(selectedIndex, 0, destinations.Count - 1);
+            selectedDestinationIndex = ResolveSelectedDestination(selectedIndex);
             BuildDestinationCards();
         }
 
@@ -175,22 +186,28 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             }
 
             TabletopEventPrimaryCard3D primary = TabletopEventPrimaryCard3D.Create(transform);
-            primary.Present("选择狩猎地区", "地区决定这次生成的地块、事件与常见资源。\n确认前可以返回重新编队。", string.IsNullOrWhiteSpace(destinationStatus) ? "路线情报" : destinationStatus, TabletopEventPrimaryTone.Check);
+            string primaryFooter = string.IsNullOrWhiteSpace(destinationStatus) ? (CountAvailableDestinations() == 0 && destinationAvailability.Count > 0 ? "当前年份没有可出发地区" : "路线情报") : destinationStatus;
+            primary.Present("选择狩猎地区", "地区决定这次生成的地块、事件与常见资源。\n确认前可以返回重新编队。", primaryFooter, TabletopEventPrimaryTone.Check);
 
             var cards = new List<TabletopEventChoicePresentation>();
-            for (int index = 0; index < destinations.Count; index++)
+            for (int index = 0; index < destinationAvailability.Count; index++)
             {
                 int destinationIndex = index;
-                PlayableHuntDestination destination = destinations[index];
+                PlayableHuntDestinationAvailability projection = destinationAvailability[index];
+                PlayableHuntDestination destination = projection.Destination;
+                bool available = projection.IsAvailable;
                 bool selected = index == selectedDestinationIndex;
                 string body = $"{destination.Description}\n\n常见收获 · {destination.ResourceHint}\n风险 · {destination.DangerHint}";
                 PlayableHuntNoiseProfile noiseProfile = destination.HuntContent != null ? destination.HuntContent.NoiseProfile : null;
                 if (noiseProfile != null && noiseProfile.TryCreatePlan(squadHunters, out NoiseCheckPlan plan))
                     body += $"\n预计基础风险 · {plan.DangerCardCount}/{plan.DeckSize} 张危险牌（噪音 {plan.NoiseScore}；效果在抽牌前结算）";
-                cards.Add(new TabletopEventChoicePresentation(destination.DisplayName, body, true, selected ? "◆ 已选择" : "◇ 点击选择", () => SelectDestination(destinationIndex)));
+                string status = available ? (selected ? "◆ 已选择" : "◇ 点击选择") : $"🔒 {projection.Reason}";
+                if (!available)
+                    body += $"\n\n解锁条件 · {projection.Reason}";
+                cards.Add(new TabletopEventChoicePresentation(destination.DisplayName, body, available, status, () => SelectDestination(destinationIndex)));
             }
 
-            bool hasSelection = selectedDestinationIndex >= 0 && selectedDestinationIndex < destinations.Count;
+            bool hasSelection = selectedDestinationIndex >= 0 && selectedDestinationIndex < destinationAvailability.Count && destinationAvailability[selectedDestinationIndex].IsAvailable;
             cards.Add(new TabletopEventChoicePresentation("确认出发", "提交名册并进入所选地区", hasSelection, hasSelection ? "点击启程" : "没有可用地区", ConfirmDestination));
             cards.Add(new TabletopEventChoicePresentation("重新编队", "返回猎人卡槽", true, string.Empty, () => destinationBack?.Invoke()));
             cards.Add(new TabletopEventChoicePresentation("取消远征", "返回营地桌面", true, string.Empty, () => cancelled?.Invoke()));
@@ -206,7 +223,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
 
         private void SelectDestination(int index)
         {
-            if (index < 0 || index >= destinations.Count || index == selectedDestinationIndex)
+            if (index < 0 || index >= destinationAvailability.Count || !destinationAvailability[index].IsAvailable || index == selectedDestinationIndex)
                 return;
             selectedDestinationIndex = index;
             destinationStatus = string.Empty;
@@ -215,9 +232,33 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
 
         private void ConfirmDestination()
         {
-            if (selectedDestinationIndex < 0 || selectedDestinationIndex >= destinations.Count)
+            if (selectedDestinationIndex < 0 || selectedDestinationIndex >= destinationAvailability.Count || !destinationAvailability[selectedDestinationIndex].IsAvailable)
                 return;
-            destinationConfirmed?.Invoke(destinations[selectedDestinationIndex]);
+            destinationConfirmed?.Invoke(destinationAvailability[selectedDestinationIndex].Destination);
+        }
+
+        private int ResolveSelectedDestination(int selectedIndex)
+        {
+            if (selectedIndex >= 0 && selectedIndex < destinationAvailability.Count && destinationAvailability[selectedIndex].IsAvailable)
+                return selectedIndex;
+            return FindFirstAvailableDestination();
+        }
+
+        private int FindFirstAvailableDestination()
+        {
+            for (int index = 0; index < destinationAvailability.Count; index++)
+                if (destinationAvailability[index].IsAvailable)
+                    return index;
+            return -1;
+        }
+
+        private int CountAvailableDestinations()
+        {
+            int count = 0;
+            foreach (PlayableHuntDestinationAvailability projection in destinationAvailability)
+                if (projection.IsAvailable)
+                    count++;
+            return count;
         }
 
         private void ClearContent()
@@ -233,7 +274,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             continueCard = null;
             InspectedHunterId = 0;
             hunterCards.Clear();
-            destinations.Clear();
+            destinationAvailability.Clear();
             squadHunters.Clear();
             squadConfirmed = null;
             destinationConfirmed = null;
@@ -244,7 +285,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         private void OnDestroy()
         {
             hunterCards.Clear();
-            destinations.Clear();
+            destinationAvailability.Clear();
             squadHunters.Clear();
         }
     }
