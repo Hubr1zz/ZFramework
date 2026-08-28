@@ -156,6 +156,13 @@
       "specPath": "openspec/specs/tabletop-settlement-equipment/spec.md"
     },
     {
+      "id": "tabletop-settlement-hunters",
+      "label": "营地桌面猎人卡交互",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/tabletop-settlement-hunters/spec.md"
+    },
+    {
       "id": "tabletop-settlement-resources",
       "label": "营地桌面资源卡布局",
       "category": "feature",
@@ -1768,6 +1775,16 @@
       "type": "requires",
       "status": "defined",
       "reason": "制造资源提交通过稳定的 3D 营地资源卡增量投影反馈，且不重排玩家桌面布局",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "tabletop-settlement-equipment--requires--tabletop-settlement-hunters",
+      "from": "tabletop-settlement-equipment",
+      "to": "tabletop-settlement-hunters",
+      "type": "requires",
+      "status": "defined",
+      "reason": "装备桌由稳定且能区分点击与拖拽的营地猎人卡查看意图打开",
       "gapId": "",
       "blocksImplementation": false
     }

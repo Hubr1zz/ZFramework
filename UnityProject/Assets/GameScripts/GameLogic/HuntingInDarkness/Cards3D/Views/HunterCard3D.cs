@@ -8,7 +8,7 @@ namespace Cards3D
     /// 猎人卡。显示猎人姓名、意志点和关键属性。
     /// 活着：蓝灰色；死亡：暗红。点击调用 OnHunterClicked（由 SettlementTable3D 注入）。
     /// </summary>
-    public class HunterCard3D : CardView3D
+    public class HunterCard3D : SlotDraggableCardView3D
     {
         static readonly Color ColAlive      = new(0.22f, 0.30f, 0.42f);
         static readonly Color ColDead       = new(0.28f, 0.10f, 0.10f);
@@ -113,10 +113,10 @@ namespace Cards3D
             }
         }
 
-        protected override void OnMouseDown()
+        protected override void OnClickReleased()
         {
             OnHunterClicked?.Invoke(this);
-            base.OnMouseDown();
+            base.OnClickReleased();
         }
 
         public void Refresh(HunterInstance hunter)

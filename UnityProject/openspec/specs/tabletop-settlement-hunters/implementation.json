@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "artifactRole": "formal-implementation-assertion",
+  "capability": "tabletop-settlement-hunters",
+  "specHash": "6340cb3d4aec8ecdfabda54394e686e72bdde6b85883390a99db3694bfb88816",
+  "title": "营地桌面猎人卡交互",
+  "codeReadiness": "implemented",
+  "progress": 100,
+  "verification": {
+    "status": "verified",
+    "summary": "营地 3D 猎人卡在松手时区分查看点击与卡槽拖拽，并按猎人稳定 InstanceId 增量刷新；保留卡牌与当前槽位，拖拽期间只应用最后一份权威快照。",
+    "validatedAgainstSpecHash": "6340cb3d4aec8ecdfabda54394e686e72bdde6b85883390a99db3694bfb88816",
+    "evidence": [
+      {
+        "guid": "680c4dd3ef562024ebe38aa3a5bb7aa1",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs",
+        "line": 186,
+        "fileHash": "fb28c7c29b62b66de11d19eecfc634c5124a2b23a3aa4ab0ad0144d376443efd",
+        "status": "verified",
+        "checkedAt": "2026-08-27T20:52:00.7650754-07:00",
+        "feature": "指针按下只武装手势，松手且未开始拖拽时才发出点击；拖拽结束不会补发点击。"
+      },
+      {
+        "guid": "708e86251b0427e4dbed4e6f8ba3a2fd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/HunterCard3D.cs",
+        "line": 11,
+        "fileHash": "6bbc5867cd57c1c8656c479d3c791220e0c806b00f04a0c10ed0a5f6c95c59cb",
+        "status": "verified",
+        "checkedAt": "2026-08-27T20:52:00.7650754-07:00",
+        "feature": "猎人卡复用统一卡槽拖拽基类，并仅在真实点击释放钩子中提交档案查看意图。"
+      },
+      {
+        "guid": "9407465cd0f3df847832a4926b1a8190",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterZone.cs",
+        "line": 26,
+        "fileHash": "f0d0f2848ef71f7d166f2cb73b799fc9ffc811cfa00e6040144aba0f1466a011",
+        "status": "verified",
+        "checkedAt": "2026-08-27T20:52:00.7650754-07:00",
+        "feature": "按 InstanceId 复用猎人卡和 CurrentSlot，只处理加入与离开差异，并延后拖拽期间的结构刷新。"
+      },
+      {
+        "guid": "87fba1edff8b05740886827849077a9f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HunterTabletopInteractionPlayModeTests.cs",
+        "line": 13,
+        "fileHash": "db210d29d8b4334d73c147517d6f9cdaaf740f8d99a44829948ed384592d7de3",
+        "status": "verified",
+        "checkedAt": "2026-08-27T20:52:00.7650754-07:00",
+        "feature": "覆盖点击与拖拽互斥、猎人档案单次打开、外部编队槽保留与清理，以及拖拽期间最后快照同步。"
+      }
+    ],
+    "tests": [
+      "HunterTabletopInteractionPlayModeTests: 4/4 passed",
+      "ResourceZoneLayoutPlayModeTests + TabletopHuntDeparturePanel3DTests + HunterEquipmentPanel3DPlayModeTests: 8/8 passed",
+      "SlotDraggableCardView3DTests: 2/2 passed",
+      "Unity 6000.5.9f1 CLI compile: passed"
+    ],
+    "verifiedAt": "2026-08-27T20:52:00.7650754-07:00"
+  },
+  "implementationOutline": [
+    "CardView3D 统一在指针释放时确认点击，已形成拖拽时只走拖放结束路径。",
+    "HunterCard3D 使用 SlotDraggableCardView3D，并把查看猎人作为真实点击钩子。",
+    "HunterZone 以稳定猎人身份增量投影卡牌，保留当前 View 槽位且不写存档或 ActionQueue。"
+  ],
+  "sourceReferences": [
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs:186",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/HunterCard3D.cs:11",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterZone.cs:26"
+  ],
+  "publishedBy": {
+    "mode": "direct-implementation-reconciliation",
+    "changeId": ""
+  }
+}

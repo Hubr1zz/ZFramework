@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "6704c52ed0b56429f1130642beeaf4c9856272bdf8116c70347e90998be6c8cc",
-  "inputManifestDigest": "f0a172b77cfea8cc4d7d54167bb3176b08202a1f2013ed7e123dab1429bfb379",
-  "outputDigest": "c5e59b06706447d458907a0bfa62238055ba77c8c538837273a81a3809b8c90e",
+  "inputDigest": "497ce5e90476e131b81b76046e860332c9a4857aaa4bc0737d53f387f8f8a983",
+  "inputManifestDigest": "945ae0ae5d8e4f3e355f34dea4c084c9f428df76e3d2a2de16f7989446fca374",
+  "outputDigest": "4ce42c798c8bd7600a3083844c4acc82cd9cce11c043db20bd9bada5857ea0e4",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -666,6 +666,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HunterTabletopInteractionPlayModeTests.cs",
+      "sha256": "db210d29d8b4334d73c147517d6f9cdaaf740f8d99a44829948ed384592d7de3",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableCampaignRuntimeModuleTests.cs",
       "sha256": "85979bcf52f7ff4c07bdad12e923fb444b6ddc0f84a8cb96cc1973a5c69e0d21",
       "state": "current"
@@ -708,6 +713,16 @@
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableSettlementWorldSpacePortInstaller.cs",
       "sha256": "2961c6863b1eddb3b7de4e677742a780e63c5aa16c980e3b0e6e537f8b8beb4a",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs",
+      "sha256": "fb28c7c29b62b66de11d19eecfc634c5124a2b23a3aa4ab0ad0144d376443efd",
+      "state": "current"
+    },
+    {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/HunterCard3D.cs",
+      "sha256": "6bbc5867cd57c1c8656c479d3c791220e0c806b00f04a0c10ed0a5f6c95c59cb",
       "state": "current"
     },
     {
@@ -1086,6 +1101,11 @@
       "state": "current"
     },
     {
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterZone.cs",
+      "sha256": "f0d0f2848ef71f7d166f2cb73b799fc9ffc811cfa00e6040144aba0f1466a011",
+      "state": "current"
+    },
+    {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionActiveEffectPanel3D.cs",
       "sha256": "39c14446d6a9fb8322b67b60ba0bcb87dcb617f464c955f9a24bb24cfc45dd47",
       "state": "current"
@@ -1167,7 +1187,7 @@
     },
     {
       "path": "openspec/spec-metadata/dependencies.json",
-      "sha256": "257c78dd885e9cd182ee9d4781cc347ff683eefaf804f2a9f04371b9bed86e4d",
+      "sha256": "72a9c1fd076c3602075635cfb5196cc96c23f252cb3460ae41a8f8a8596b8509",
       "state": "current"
     },
     {
@@ -1741,6 +1761,16 @@
       "state": "current"
     },
     {
+      "path": "openspec/specs/tabletop-settlement-hunters/implementation.json",
+      "sha256": "602affb0c9ddc16eb487d8559b312d900ebe2c28a5f32e64303a4df6af0c50b0",
+      "state": "current"
+    },
+    {
+      "path": "openspec/specs/tabletop-settlement-hunters/spec.md",
+      "sha256": "6340cb3d4aec8ecdfabda54394e686e72bdde6b85883390a99db3694bfb88816",
+      "state": "current"
+    },
+    {
       "path": "openspec/specs/tabletop-settlement-invention/implementation.json",
       "sha256": "5fde455ce67aca7a08035931494d3b4a59bb346aa69be2ef39c4c0328fdb956f",
       "state": "current"
@@ -1842,7 +1872,7 @@
     }
   ],
   "counts": {
-    "verified": 10,
+    "verified": 11,
     "implemented": 0,
     "partial": 0,
     "planned": 0,
@@ -5247,6 +5277,39 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HunterEquipmentPanel3DPlayModeTests.cs",
+          "state": "current"
+        }
+      ]
+    },
+    {
+      "id": "tabletop-settlement-hunters",
+      "label": "营地桌面猎人卡交互",
+      "status": "verified",
+      "effectiveStatus": "verified",
+      "progress": 100,
+      "verificationStatus": "verified",
+      "summary": "营地 3D 猎人卡在松手时区分查看点击与卡槽拖拽，并按猎人稳定 InstanceId 增量刷新；保留卡牌与当前槽位，拖拽期间只应用最后一份权威快照。",
+      "designSources": [],
+      "sources": [
+        "openspec/specs/tabletop-settlement-hunters/spec.md",
+        "openspec/specs/tabletop-settlement-hunters/implementation.json",
+        "openspec/spec-metadata/dependencies.json"
+      ],
+      "evidence": [
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/HunterCard3D.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterZone.cs",
+          "state": "current"
+        },
+        {
+          "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/HunterTabletopInteractionPlayModeTests.cs",
           "state": "current"
         }
       ]

@@ -186,12 +186,8 @@ namespace Cards3D
 
         protected virtual void OnMouseDown()
         {
-            OnClicked?.Invoke(this);
-            if (EnableDrag)
-            {
-                _mouseDownScreenPos = Input.mousePosition;
-                _dragReady = true;
-            }
+            _mouseDownScreenPos = Input.mousePosition;
+            _dragReady = true;
         }
 
         private void OnMouseDrag()
@@ -214,11 +210,21 @@ namespace Cards3D
             }
         }
 
-        private void OnMouseUp()
+        protected virtual void OnMouseUp()
         {
+            bool shouldClick = _dragReady && !_isDragging;
             _dragReady = false;
-            if (_isDragging) EndDrag();
+            if (_isDragging)
+            {
+                EndDrag();
+                return;
+            }
+            if (shouldClick)
+                OnClickReleased();
         }
+
+        /// <summary>指针松开且未形成拖拽时调用。子类可扩展真实点击行为。</summary>
+        protected virtual void OnClickReleased() => OnClicked?.Invoke(this);
 
         // ─── 拖拽核心（私有实现） ──────────────────────────────────────────
 
