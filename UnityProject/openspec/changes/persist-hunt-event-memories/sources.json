@@ -1,0 +1,12 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的采纳对账：把已提交的 Hunt 事件结果沿活动狩猎、回营记录和 3D 营地年鉴持久化。",
+  "sourceRoots": ["openspec/specs", "C:/Users/leonz/Desktop/GameDesignVault"],
+  "sourceReferences": [
+    "conversation::2026-08-28",
+    "formal::active-hunt-persistence",
+    "formal::hunt-return-outcome-checkpoint",
+    "formal::hunt-session-event-occurrence-recovery",
+    "formal::tabletop-settlement-advancement-ledger"
+  ]
+}

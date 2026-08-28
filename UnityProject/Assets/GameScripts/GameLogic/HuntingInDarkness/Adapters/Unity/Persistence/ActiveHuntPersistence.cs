@@ -28,7 +28,9 @@ namespace Core
     public sealed class ActiveHuntSnapshot
     {
         public const int LegacySchemaVersion = 2;
-        public const int CurrentSchemaVersion = 3;
+        public const int CurrentSchemaVersion = 4;
+        public const int CurrentPopulationSchemaVersion = 3;
+        public const int CurrentEventMemorySchemaVersion = 4;
         public const string RandomAlgorithm = "xorshift32-v1";
         public int SchemaVersion = CurrentSchemaVersion;
         public string ExpeditionId;
@@ -47,6 +49,8 @@ namespace Core
         public List<ActiveHuntCollectibleSnapshot> Collectibles = new();
         public ActiveHuntEventStoreSnapshot EventStore = new();
         public int RescuedPopulation;
+        public int PopulationSchemaVersion = ActiveHuntSnapshot.CurrentPopulationSchemaVersion;
+        public int EventMemorySchemaVersion = ActiveHuntSnapshot.CurrentEventMemorySchemaVersion;
     }
 
     [Serializable]
@@ -92,6 +96,8 @@ namespace Core
         public int NextRootSequence = -1;
         public List<int> CommittedSequences = new();
         public List<ActiveHuntEventOccurrenceSnapshot> PendingOccurrences = new();
+        public List<EventResolutionMemory> Memories = new();
+        public int EventMemorySchemaVersion = ActiveHuntSnapshot.CurrentEventMemorySchemaVersion;
         public string Diagnostic;
     }
 
@@ -249,6 +255,26 @@ namespace Core
                 reason = "活动狩猎快照的年份、身份或随机算法无效。";
                 return false;
             }
+            if (active.PopulationSchemaVersion > ActiveHuntSnapshot.CurrentPopulationSchemaVersion || active.EventMemorySchemaVersion > ActiveHuntSnapshot.CurrentEventMemorySchemaVersion)
+            {
+                reason = "活动狩猎快照包含未来 schema。";
+                return false;
+            }
+            if (active.SchemaVersion >= ActiveHuntSnapshot.CurrentSchemaVersion && (active.PopulationSchemaVersion != ActiveHuntSnapshot.CurrentPopulationSchemaVersion || active.EventMemorySchemaVersion != ActiveHuntSnapshot.CurrentEventMemorySchemaVersion))
+            {
+                reason = "活动狩猎快照的记忆或人口 schema 无效。";
+                return false;
+            }
+            if (active.SchemaVersion < ActiveHuntSnapshot.CurrentSchemaVersion && (active.EventStore?.Memories?.Count ?? 0) > 0)
+            {
+                reason = "v2/v3 活动狩猎快照不得包含事件结果记忆。";
+                return false;
+            }
+            if (active.SchemaVersion >= ActiveHuntSnapshot.CurrentSchemaVersion && (active.EventStore == null || active.EventStore.EventMemorySchemaVersion != ActiveHuntSnapshot.CurrentEventMemorySchemaVersion))
+            {
+                reason = "活动狩猎事件检查点 schema 无效。";
+                return false;
+            }
             PlayableHuntRoutePlan boundRoute = manager?.BoundRoute;
             if (boundRoute?.IsUsable != true || !ReferenceEquals(boundRoute.Owner, PlayableHuntContentRuntime.CurrentBundle) || !string.Equals(active.DestinationId, boundRoute.DestinationId, StringComparison.Ordinal) || !string.Equals(active.ContentBundleId, boundRoute.ContentBundleId, StringComparison.Ordinal))
             {
@@ -357,7 +383,7 @@ namespace Core
                 reason = "活动狩猎小队位置不是已揭示地块。";
                 return false;
             }
-            if (!TryRestoreEventStore(active.EventStore, boundRoute, out occurrenceStore, out reason)) return false;
+            if (!TryRestoreEventStore(active.EventStore, boundRoute, active.ExpeditionId, out occurrenceStore, out reason)) return false;
             if (!TryRestoreCollectibles(active, hunters, boundRoute, out reason)) return false;
 
             runtimeState = new PlayableHuntRuntimeState
@@ -368,7 +394,7 @@ namespace Core
                 SquadPosition = squadPosition,
                 Map = map,
                 RandomState = new StatefulRandomState(active.RandomState),
-                RescuedPopulation = active.SchemaVersion >= ActiveHuntSnapshot.CurrentSchemaVersion ? active.RescuedPopulation : 0
+                RescuedPopulation = active.SchemaVersion >= ActiveHuntSnapshot.CurrentPopulationSchemaVersion ? active.RescuedPopulation : 0
             };
             reason = string.Empty;
             return true;
@@ -385,6 +411,9 @@ namespace Core
             target.NextRootSequence = state.NextRootSequence;
             target.Diagnostic = state.Diagnostic;
             target.CommittedSequences.AddRange(state.CommittedSequences);
+            foreach (EventResolutionMemory memory in state.Memories ?? Array.Empty<EventResolutionMemory>())
+                if (memory != null) target.Memories.Add(EventResolutionMemoryRules.Clone(memory));
+            target.EventMemorySchemaVersion = ActiveHuntSnapshot.CurrentEventMemorySchemaVersion;
             foreach (PlayableHuntEventOccurrenceRecord record in state.PendingOccurrences ?? Array.Empty<PlayableHuntEventOccurrenceRecord>())
             {
                 PlayableEventChainOccurrence occurrence = record.Occurrence;
@@ -490,7 +519,7 @@ namespace Core
             return true;
         }
 
-        private static bool TryRestoreEventStore(ActiveHuntEventStoreSnapshot saved, PlayableHuntRoutePlan boundRoute, out PlayableHuntEventOccurrenceStore store, out string reason)
+        private static bool TryRestoreEventStore(ActiveHuntEventStoreSnapshot saved, PlayableHuntRoutePlan boundRoute, string expeditionId, out PlayableHuntEventOccurrenceStore store, out string reason)
         {
             saved ??= new ActiveHuntEventStoreSnapshot();
             if (boundRoute?.IsUsable != true)
@@ -504,6 +533,12 @@ namespace Core
             {
                 store = null;
                 reason = "活动狩猎事件检查点列表无效。";
+                return false;
+            }
+            if (saved.EventMemorySchemaVersion > ActiveHuntSnapshot.CurrentEventMemorySchemaVersion || saved.EventMemorySchemaVersion < ActiveHuntSnapshot.CurrentEventMemorySchemaVersion && (saved.Memories?.Count ?? 0) > 0)
+            {
+                store = null;
+                reason = "活动狩猎事件结果记忆 schema 无效。";
                 return false;
             }
             foreach (ActiveHuntEventOccurrenceSnapshot occurrence in saved.PendingOccurrences)
@@ -531,9 +566,10 @@ namespace Core
                 var core = new PlayableEventChainOccurrence(occurrence.Sequence, occurrence.EventId, occurrence.EventName, occurrence.Year, occurrence.ActorId, occurrence.AncestorEventIds, checkpoint);
                 pending.Add(new PlayableHuntEventOccurrenceRecord(core, new Vector2Int(occurrence.X, occurrence.Y), occurrence.AncestorEventIds));
             }
-            var state = new PlayableHuntEventOccurrenceStoreState { NextSequence = saved.NextSequence, NextRootSequence = saved.NextRootSequence, CommittedSequences = saved.CommittedSequences, PendingOccurrences = pending, Diagnostic = saved.Diagnostic };
-            return PlayableHuntEventOccurrenceStore.TryRestore(state, eventId => boundRoute.TryResolveEvent(eventId, out EventData gameEvent) ? gameEvent : null, out store, out reason);
+            var state = new PlayableHuntEventOccurrenceStoreState { NextSequence = saved.NextSequence, NextRootSequence = saved.NextRootSequence, CommittedSequences = saved.CommittedSequences, PendingOccurrences = pending, Memories = saved.Memories, Diagnostic = saved.Diagnostic };
+            return PlayableHuntEventOccurrenceStore.TryRestore(state, eventId => boundRoute.TryResolveEvent(eventId, out EventData gameEvent) ? gameEvent : null, out store, out reason, expeditionId);
         }
+
 
         private static HuntTileDefinition CreateDefinition(HexTileData data) => new(data.ContentId, data.spawnWeight, data.spawnInGroup, data.groupSize, data.bossEncounterWeight, data.mustBeAdjacent);
     }

@@ -167,12 +167,16 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly int currentYear;
         private readonly ActionEventOutbox eventOutbox;
         private readonly HuntRetreatDecision decision;
+        private readonly IReadOnlyList<EventResolutionMemory> memories;
+        private readonly string expeditionId;
 
-        public PrepareHuntRetreatAction(HuntManager manager, int currentYear, HuntRetreatDecision decision, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+        public PrepareHuntRetreatAction(HuntManager manager, int currentYear, HuntRetreatDecision decision, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, IReadOnlyList<EventResolutionMemory> memories = null, string expeditionId = "")
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.currentYear = currentYear;
             this.decision = decision;
+            this.memories = memories ?? Array.Empty<EventResolutionMemory>();
+            this.expeditionId = expeditionId?.Trim() ?? string.Empty;
             this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
@@ -192,6 +196,12 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 return Fail(reason);
             if (!TryApplyAbandonment(record, out reason))
                 return Fail(reason);
+            if (memories.Count > 0 && string.IsNullOrWhiteSpace(expeditionId)) return Fail("带有事件结果记忆的远征缺少稳定 ExpeditionId。");
+            record.RecordId = string.IsNullOrWhiteSpace(expeditionId) ? record.RecordId : expeditionId;
+            record.PopulationSchemaVersion = HuntRecord.CurrentPopulationSchemaVersion;
+            record.EventMemorySchemaVersion = HuntRecord.CurrentEventMemorySchemaVersion;
+            record.Memories = EventResolutionMemoryRules.CloneList(memories);
+            if (!EventResolutionMemoryRules.TryValidateHuntRecord(record, out reason)) return Fail(reason);
             HuntRecord resultRecord = CloneRecord(record);
             Result = HuntRetreatCommandResult.Success(resultRecord);
             eventOutbox.StageAfterCommit(new HuntRetreatPreparedEvent
@@ -271,7 +281,10 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 ParticipantHunterIds = source.ParticipantHunterIds != null ? new List<int>(source.ParticipantHunterIds) : new List<int>(),
                 CollectedResources = source.CollectedResources != null ? new List<string>(source.CollectedResources) : new List<string>(),
                 CollectedItems = CloneStacks(source.CollectedItems),
-                RescuedPopulation = source.RescuedPopulation
+                RescuedPopulation = source.RescuedPopulation,
+                PopulationSchemaVersion = source.PopulationSchemaVersion,
+                EventMemorySchemaVersion = source.EventMemorySchemaVersion,
+                Memories = EventResolutionMemoryRules.CloneList(source.Memories)
             };
         }
 
@@ -284,5 +297,6 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                     result.Add(new HuntLootStack(stack.ItemId, stack.Count));
             return result;
         }
+
     }
 }

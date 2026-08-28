@@ -49,6 +49,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public int NextRootSequence { get; set; } = -1;
         public IReadOnlyList<int> CommittedSequences { get; set; } = Array.Empty<int>();
         public IReadOnlyList<PlayableHuntEventOccurrenceRecord> PendingOccurrences { get; set; } = Array.Empty<PlayableHuntEventOccurrenceRecord>();
+        public IReadOnlyList<EventResolutionMemory> Memories { get; set; } = Array.Empty<EventResolutionMemory>();
         public string Diagnostic { get; set; } = string.Empty;
     }
 
@@ -79,20 +80,25 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private const int MaxPendingOccurrences = 64;
         private readonly PlayableEventChainOccurrenceQueue queue;
         private readonly Dictionary<int, PlayableHuntEventOccurrence> occurrences = new();
+        private readonly List<EventResolutionMemory> memories = new();
+        public string ExpeditionId { get; }
 
-        public PlayableHuntEventOccurrenceStore()
+        public PlayableHuntEventOccurrenceStore(string expeditionId = "")
         {
             queue = new PlayableEventChainOccurrenceQueue(MaxPendingOccurrences);
+            ExpeditionId = expeditionId?.Trim() ?? string.Empty;
         }
 
-        private PlayableHuntEventOccurrenceStore(PlayableEventChainOccurrenceQueue queue)
+        private PlayableHuntEventOccurrenceStore(PlayableEventChainOccurrenceQueue queue, string expeditionId)
         {
             this.queue = queue ?? throw new ArgumentNullException(nameof(queue));
+            ExpeditionId = expeditionId?.Trim() ?? string.Empty;
         }
 
         public bool HasPendingOccurrences => queue.HasPendingOccurrences;
         public IReadOnlyList<PlayableEventChainOccurrence> PendingSequences => queue.PendingOccurrences;
         public string Diagnostic => queue.Diagnostic;
+        public IReadOnlyList<EventResolutionMemory> Memories => memories;
         public bool ContainsPendingSequence(int sequence)
         {
             foreach (PlayableEventChainOccurrence occurrence in queue.PendingOccurrences)
@@ -130,11 +136,12 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 NextRootSequence = queue.NextRootSequence,
                 CommittedSequences = new List<int>(queue.CommittedSequences),
                 PendingOccurrences = pending,
+                Memories = EventResolutionMemoryRules.CloneList(memories),
                 Diagnostic = queue.Diagnostic
             };
         }
 
-        public static bool TryRestore(PlayableHuntEventOccurrenceStoreState state, Func<string, EventData> resolveEvent, out PlayableHuntEventOccurrenceStore store, out string reason)
+        public static bool TryRestore(PlayableHuntEventOccurrenceStoreState state, Func<string, EventData> resolveEvent, out PlayableHuntEventOccurrenceStore store, out string reason, string expeditionId = "")
         {
             store = null;
             if (state == null || resolveEvent == null)
@@ -244,7 +251,13 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 reason = "狩猎事件检查点恢复后 occurrence 数量不一致。";
                 return false;
             }
-            store = new PlayableHuntEventOccurrenceStore(queue);
+            store = new PlayableHuntEventOccurrenceStore(queue, expeditionId);
+            if (!EventResolutionMemoryRules.TryValidateHuntList(state.Memories, expeditionId, committedSequences, out reason))
+            {
+                store = null;
+                return false;
+            }
+            store.memories.AddRange(EventResolutionMemoryRules.CloneList(state.Memories));
             foreach ((PlayableHuntEventOccurrenceRecord record, EventData gameEvent) in resolved)
                 store.AddOccurrence(record.Occurrence, gameEvent, record.Coordinate, new List<string>(record.AncestorContentIds ?? Array.Empty<string>()));
             if (store.occurrences.Count != pendingRecords.Count)
@@ -254,6 +267,35 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 return false;
             }
             reason = string.Empty;
+            return true;
+        }
+
+        public bool CanRecordMemory(EventResolutionMemory memory, out string reason)
+        {
+            reason = string.Empty;
+            if (!EventResolutionMemoryRules.TryValidate(memory, out reason)) return false;
+            EventResolutionMemory existing = memories.Find(candidate => candidate != null && string.Equals(candidate.MemoryId, memory.MemoryId, StringComparison.Ordinal));
+            if (existing == null || EventResolutionMemoryRules.Equivalent(existing, memory)) return true;
+            reason = $"狩猎事件结果记忆 {memory.MemoryId} 已存在但事实不一致。";
+            return false;
+        }
+
+        public bool TryCommitResolution(PlayableHuntEventOccurrence parent, EventResolutionMemory memory, IReadOnlyList<EventData> chainedEvents, int year, int actorId, out PlayableHuntEventOccurrenceCommitResult result)
+        {
+            result = default;
+            if (!CanRecordMemory(memory, out string reason))
+            {
+                result = new PlayableHuntEventOccurrenceCommitResult(false, Array.Empty<PlayableHuntEventOccurrence>(), Array.Empty<string>(), 0, reason);
+                return false;
+            }
+            if (!memories.Exists(candidate => candidate != null && string.Equals(candidate.MemoryId, memory.MemoryId, StringComparison.Ordinal)) && memories.Count >= EventResolutionMemoryRules.MaximumMemories)
+            {
+                result = new PlayableHuntEventOccurrenceCommitResult(false, Array.Empty<PlayableHuntEventOccurrence>(), Array.Empty<string>(), 0, $"狩猎事件结果记忆数量超过上限 {EventResolutionMemoryRules.MaximumMemories}。");
+                return false;
+            }
+            result = Commit(parent, chainedEvents, year, actorId);
+            if (!result.Succeeded) return false;
+            if (!memories.Exists(candidate => candidate != null && string.Equals(candidate.MemoryId, memory.MemoryId, StringComparison.Ordinal))) memories.Add(EventResolutionMemoryRules.Clone(memory));
             return true;
         }
 
@@ -329,5 +371,6 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 if (string.Equals(ancestor, eventId, StringComparison.Ordinal)) return true;
             return false;
         }
+
     }
 }

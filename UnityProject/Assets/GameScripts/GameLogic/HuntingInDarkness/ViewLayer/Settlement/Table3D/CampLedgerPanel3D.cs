@@ -97,34 +97,44 @@ namespace UI
                     string eventName = string.IsNullOrWhiteSpace(entry.EventName) ? entry.EventId : entry.EventName;
                     string state = entry.IsCompleted ? "已发生" : "将发生";
                     string category = entry.EntryType == TimelineEntryType.Invention ? "发明 · 已掌握" : $"时间线 · {state}";
-                    SettlementEventMemory memory = settlement.EventMemories?.Find(candidate => candidate != null && string.Equals(candidate.MemoryId, entry.ResolutionMemoryId, StringComparison.Ordinal));
+                    EventResolutionMemory memory = settlement.EventMemories?.Find(candidate => candidate != null && string.Equals(candidate.MemoryId, entry.ResolutionMemoryId, StringComparison.Ordinal));
                     if (memory != null)
                     {
                         linkedMemoryIds.Add(memory.MemoryId);
                         category += $"\n{CampLedgerPresentation.FormatEventMemory(memory)}";
                     }
-                    entries.Add(new LedgerEntry(entry.Year, entry.IsMilestone ? $"★ {eventName}" : eventName, category, entry.IsCompleted));
+                    entries.Add(new LedgerEntry(entry.Year, entry.IsMilestone ? $"★ {eventName}" : eventName, category, entry.IsCompleted, 0, entries.Count));
                 }
             }
             if (settlement.EventMemories != null)
-                foreach (SettlementEventMemory memory in settlement.EventMemories)
+                foreach (EventResolutionMemory memory in settlement.EventMemories)
                 {
                     if (memory == null || linkedMemoryIds.Contains(memory.MemoryId)) continue;
-                    entries.Add(new LedgerEntry(memory.Year, string.IsNullOrWhiteSpace(memory.EventName) ? memory.EventId : memory.EventName, $"事件余波\n{CampLedgerPresentation.FormatEventMemory(memory)}", true));
+                    entries.Add(new LedgerEntry(memory.Year, string.IsNullOrWhiteSpace(memory.EventName) ? memory.EventId : memory.EventName, $"事件余波\n{CampLedgerPresentation.FormatEventMemory(memory)}", true, 1, entries.Count));
                 }
             if (settlement.HuntHistory != null)
             {
-                foreach (HuntRecord record in settlement.HuntHistory)
+                for (int huntIndex = 0; huntIndex < settlement.HuntHistory.Count; huntIndex++)
                 {
+                    HuntRecord record = settlement.HuntHistory[huntIndex];
                     if (record == null) continue;
+                    int groupOrder = 1000 + huntIndex;
                     string outcome = record.BossDefeated ? "讨伐成功" : "从黑暗中归来";
-                    entries.Add(new LedgerEntry(record.Year, outcome, $"狩猎 · 出发 {record.HuntersDeployed} · 损失 {record.HuntersLost} · 带回 {CampLedgerPresentation.FormatLoot(record.CollectedItems, record.CollectedResources)}", true));
+                    entries.Add(new LedgerEntry(record.Year, outcome, $"狩猎 · 出发 {record.HuntersDeployed} · 损失 {record.HuntersLost} · 带回 {CampLedgerPresentation.FormatLoot(record.CollectedItems, record.CollectedResources)}", true, groupOrder, 0));
+                    for (int memoryIndex = 0; memoryIndex < (record.Memories?.Count ?? 0); memoryIndex++)
+                    {
+                        EventResolutionMemory memory = record.Memories[memoryIndex];
+                        if (memory != null)
+                            entries.Add(new LedgerEntry(record.Year, $"└ {memory.EventName}", $"远征事件 · {CampLedgerPresentation.FormatEventMemory(memory)}", true, groupOrder, memoryIndex + 1));
+                    }
                 }
             }
             entries.Sort((left, right) =>
             {
                 int yearComparison = right.Year.CompareTo(left.Year);
-                return yearComparison != 0 ? yearComparison : string.Compare(left.Title, right.Title, StringComparison.Ordinal);
+                if (yearComparison != 0) return yearComparison;
+                int groupComparison = left.GroupOrder.CompareTo(right.GroupOrder);
+                return groupComparison != 0 ? groupComparison : left.EntryOrder.CompareTo(right.EntryOrder);
             });
         }
 
@@ -230,13 +240,17 @@ namespace UI
             public string Title { get; }
             public string Detail { get; }
             public bool Completed { get; }
+            public int GroupOrder { get; }
+            public int EntryOrder { get; }
 
-            public LedgerEntry(int year, string title, string detail, bool completed)
+            public LedgerEntry(int year, string title, string detail, bool completed, int groupOrder, int entryOrder)
             {
                 Year = year;
                 Title = title ?? string.Empty;
                 Detail = detail ?? string.Empty;
                 Completed = completed;
+                GroupOrder = groupOrder;
+                EntryOrder = entryOrder;
             }
         }
     }

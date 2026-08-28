@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-session-event-occurrence-recovery",
+  "title": "狩猎会话事件链恢复",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "事件记忆与 Resolution occurrence 同提交，父已提交/子 pending 恢复不重放父结果。",
+    "codeEvidence": [
+      { "guid": "9c726607d6f6843489ac06114f3cc299", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs", "fileHash": "0c3f6330b2d137d4e534f73515d0837c96530ebb5480de56789e1a4d7ba1ecda", "line": 380, "feature": "Resolution checkpoint 原子提交 occurrence 与 memory", "status": "verified", "checkedAt": "2026-08-28T05:13:14-07:00" },
+      { "guid": "e159b3c1d6bfcce4082b45e63fc28083", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs", "fileHash": "a85d8541d80169a2e1f0a7803f6616498c23b1878e7742afb4ac05c68d0cbf42", "line": 139, "feature": "通用事件结果与 FatalInjury 事实 DTO", "status": "verified", "checkedAt": "2026-08-28T05:13:14-07:00" }
+    ],
+    "evidence": ["Unity EditMode PlayableHunt 63/63。"],
+    "differences": ["正式 Spec 尚未声明 occurrence 结果记忆提交边界。"],
+    "verifiedAt": "2026-08-28T05:13:14-07:00"
+  },
+  "gapIds": [], "dependencyIds": [], "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["只在 Resolution checkpoint 记录。", "等价 MemoryId 幂等，冲突事实 fail closed。"],
+  "reviewIssues": []
+}

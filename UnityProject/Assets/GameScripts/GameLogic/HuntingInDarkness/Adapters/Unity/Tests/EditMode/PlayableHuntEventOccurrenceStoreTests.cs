@@ -126,6 +126,29 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void CaptureAndRestore_PreservesEventResolutionMemoryAndRejectsConflict()
+        {
+            var source = new PlayableHuntEventOccurrenceStore("expedition-memory");
+            EventData root = CreateEvent("memory-root");
+            EventData child = CreateEvent("memory-child");
+            Assert.That(source.TryScheduleRoot(root, Vector2Int.zero, 4, 101, out PlayableHuntEventOccurrence occurrence), Is.True);
+            var memory = new EventResolutionMemory { MemoryId = "hunt-event-memory:expedition-memory:-1:memory-root", EventId = root.ContentId, EventName = root.eventName, Year = 4, ActorId = 101, Success = true, ResultText = "完成", SourceContextId = "expedition-memory", OccurrenceSequence = -1 };
+            Assert.That(source.TryCommitResolution(occurrence, memory, new[] { child }, 4, 101, out PlayableHuntEventOccurrenceCommitResult commit), Is.True, commit.Diagnostic);
+            Assert.That(source.Memories, Has.Count.EqualTo(1));
+            Assert.That(source.CaptureState().CommittedSequences, Does.Contain(occurrence.Sequence));
+            Assert.That(source.HasPendingOccurrences, Is.True);
+
+            EventResolutionMemory conflicting = new EventResolutionMemory { MemoryId = memory.MemoryId, EventId = root.ContentId, EventName = "冲突", Year = 4, ActorId = 101, Success = true };
+            Assert.That(source.CanRecordMemory(conflicting, out _), Is.False);
+            PlayableHuntEventOccurrenceStoreState state = source.CaptureState();
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(state, id => id == root.ContentId ? root : id == child.ContentId ? child : null, out PlayableHuntEventOccurrenceStore restored, out string reason, "expedition-memory"), Is.True, reason);
+            Assert.That(restored.Memories, Has.Count.EqualTo(1));
+            Assert.That(restored.Memories[0].MemoryId, Is.EqualTo(memory.MemoryId));
+            Assert.That(restored.Memories[0].ResultText, Is.EqualTo("完成"));
+            Assert.That(restored.HasPendingOccurrences, Is.True);
+        }
+
+        [Test]
         public void CaptureAndRestore_PreservesRerollCheckpointOnExactOccurrence()
         {
             var source = new PlayableHuntEventOccurrenceStore();

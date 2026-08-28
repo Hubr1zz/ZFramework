@@ -190,7 +190,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             }
             if (checkpoint.Kind == PlayableEventCommitKind.Resolution)
             {
-                SettlementEventMemory memory = CreateEventMemory(checkpoint, work);
+                EventResolutionMemory memory = CreateEventMemory(checkpoint, work);
                 string memoryReason = string.Empty;
                 if (memory == null || !eventSystem.Settlement.CanRecordEventMemory(memory, out memoryReason))
                 {
@@ -241,10 +241,10 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             });
         }
 
-        private SettlementEventMemory CreateEventMemory(PlayableEventCommitCheckpoint checkpoint, PendingEventWork work)
+        private EventResolutionMemory CreateEventMemory(PlayableEventCommitCheckpoint checkpoint, PendingEventWork work)
         {
             if (!checkpoint.ResolutionFact.IsValid) return null;
-            var memory = new SettlementEventMemory
+            var memory = new EventResolutionMemory
             {
                 MemoryId = $"settlement-event-memory:{chainId}:{work.PersistenceSequence}:{checkpoint.EventId}",
                 EventId = checkpoint.ResolutionFact.EventId,
@@ -263,10 +263,12 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                 Total = checkpoint.ResolutionFact.Total,
                 Target = checkpoint.ResolutionFact.Target,
                 WasRerolled = checkpoint.ResolutionFact.WasRerolled,
-                ResultText = checkpoint.ResolutionFact.ResultText
+                ResultText = checkpoint.ResolutionFact.ResultText,
+                OccurrenceSequence = work.PersistenceSequence,
+                SourceContextId = chainId
             };
             foreach (PlayableEventEffectResult effect in checkpoint.ResolutionFact.EffectResults)
-                memory.Effects.Add(new SettlementEventMemoryEffect
+                memory.Effects.Add(new EventResolutionMemoryEffect
                 {
                     EffectIndex = effect.EffectIndex,
                     EffectType = effect.EffectType?.ToString() ?? string.Empty,
@@ -277,7 +279,13 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                     TargetActorId = effect.TargetActorId,
                     StateChanged = effect.StateChanged,
                     PreviousValue = effect.PreviousValue,
-                    CurrentValue = effect.CurrentValue
+                    CurrentValue = effect.CurrentValue,
+                    HasDeathCard = effect.DeathCard.HasValue,
+                    DeathCard = effect.DeathCard ?? default,
+                    PermanentInjuryId = effect.PermanentInjuryId,
+                    HunterDied = effect.HunterDied,
+                    DeathDeckId = effect.DeathDeckId,
+                    FacedownPosition = effect.FacedownPosition
                 });
             return memory;
         }

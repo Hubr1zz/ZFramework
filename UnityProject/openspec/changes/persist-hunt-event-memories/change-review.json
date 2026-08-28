@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 5,
+  "changeId": "persist-hunt-event-memories",
+  "title": "采纳狩猎事件长期记忆",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "狩猎事件结果已沿活动狩猎 v4、回营 v4 与 3D 年鉴连通并完成定向验证；等待人类在 Changes 中审查后显式同步。",
+  "verification": {
+    "status": "implemented",
+    "summary": "已提交的 Hunt occurrence 结果以稳定远征身份持久化，父提交/子恢复不重放，回营后按远征分组显示玩家可读事件与致命伤结果。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity 6000.5.9f1 EditMode PlayableHunt 63/63。",
+      "Unity 6000.5.9f1 EditMode ActiveHuntPersistence 13/13。",
+      "Unity 6000.5.9f1 EditMode PlayableSettlementActionSession 40/40。",
+      "Unity 6000.5.9f1 EditMode SettlementTimelineJournal 9/9。"
+    ],
+    "differences": [
+      "正式 Spec 尚未定义 Hunt 事件结果记忆、active/return v4 边界和远征年鉴子条目。"
+    ],
+    "verifiedAt": "2026-08-28T05:13:14-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-HUNT-EVENT-MEMORY-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认狩猎事件长期记忆及 v4 存档边界属于正式战役契约。",
+      "details": "批准后只同步四个 Delta；不改变 Combat、Showdown、GameManager 生命周期或 UI Action 边界。",
+      "sourceId": "conversation::2026-08-28",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": [
+    "active-hunt-persistence",
+    "hunt-return-outcome-checkpoint",
+    "hunt-session-event-occurrence-recovery",
+    "tabletop-settlement-advancement-ledger"
+  ],
+  "syncTargets": [
+    {
+      "capability": "active-hunt-persistence",
+      "title": "活动狩猎检查点与恢复",
+      "category": "architecture",
+      "deltaSpecPath": "openspec/changes/persist-hunt-event-memories/specs/active-hunt-persistence/spec.md",
+      "targetSpecPath": "openspec/specs/active-hunt-persistence/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "80d4ab3c11178e23236417658ef72a8854d16dc7c38558ff5aff5f34d056debe",
+      "baseSnapshotPath": "openspec/changes/persist-hunt-event-memories/.sync-baseline/active-hunt-persistence/spec.md"
+    },
+    {
+      "capability": "hunt-return-outcome-checkpoint",
+      "title": "狩猎归来结果检查点",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/persist-hunt-event-memories/specs/hunt-return-outcome-checkpoint/spec.md",
+      "targetSpecPath": "openspec/specs/hunt-return-outcome-checkpoint/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "7e5a8669d185ce3e99b5e4062325ec51c8789e637ade2ef1c9cac8a898ef1747",
+      "baseSnapshotPath": "openspec/changes/persist-hunt-event-memories/.sync-baseline/hunt-return-outcome-checkpoint/spec.md"
+    },
+    {
+      "capability": "hunt-session-event-occurrence-recovery",
+      "title": "狩猎会话事件链恢复",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/persist-hunt-event-memories/specs/hunt-session-event-occurrence-recovery/spec.md",
+      "targetSpecPath": "openspec/specs/hunt-session-event-occurrence-recovery/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "37606084b77ce7e2e66c17bb72a7f1cbdb52628d5afbffa9951878b52f172bf1",
+      "baseSnapshotPath": "openspec/changes/persist-hunt-event-memories/.sync-baseline/hunt-session-event-occurrence-recovery/spec.md"
+    },
+    {
+      "capability": "tabletop-settlement-advancement-ledger",
+      "title": "营地桌面成长训练与年鉴",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/persist-hunt-event-memories/specs/tabletop-settlement-advancement-ledger/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-settlement-advancement-ledger/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "59cac7848bccb22c4664a6f0647d0514905200cf27b269cfd891ad6447e0e0be",
+      "baseSnapshotPath": "openspec/changes/persist-hunt-event-memories/.sync-baseline/tabletop-settlement-advancement-ledger/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "createdAt": "2026-08-28T05:13:14-07:00",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与基线一致，可以 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-28T05:14:37-07:00"
+  }
+}

@@ -1066,7 +1066,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(presenter.Requests, Has.Count.EqualTo(1));
             Assert.That(presenter.Requests[0].Kind, Is.EqualTo(TabletopRandomInteractionKind.PhysicalDice));
             Assert.That(presenter.Requests[0].Sides, Is.EqualTo(10));
-            SettlementEventMemory successMemory = settlement.EventMemories.Single(memory => memory.EventId == "main_face_echo");
+            EventResolutionMemory successMemory = settlement.EventMemories.Single(memory => memory.EventId == "main_face_echo");
             Assert.That(successMemory.OptionId, Is.EqualTo("read_stone_pattern"));
             Assert.That(successMemory.SelectionMode, Is.EqualTo(EventResolutionSelectionMode.Player));
             Assert.That(successMemory.HasCheck, Is.True);
@@ -1089,7 +1089,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(hunter.Understanding, Is.Zero);
             Assert.That(hunter.HP.arms, Is.EqualTo(hunter.MaxHP.arms - 1));
             Assert.That(settlement.GetResource("broken_stone"), Is.Zero);
-            SettlementEventMemory failureMemory = settlement.EventMemories.Single(memory => memory.EventId == "main_face_echo");
+            EventResolutionMemory failureMemory = settlement.EventMemories.Single(memory => memory.EventId == "main_face_echo");
             Assert.That(failureMemory.OptionId, Is.EqualTo("read_stone_pattern"));
             Assert.That(failureMemory.SelectionMode, Is.EqualTo(EventResolutionSelectionMode.Player));
             Assert.That(failureMemory.Success, Is.False);
@@ -1107,7 +1107,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(result.Succeeded, Is.True, result.Reason);
             Assert.That(settlement.GetResource("broken_stone"), Is.EqualTo(2));
-            SettlementEventMemory safeMemory = settlement.EventMemories.Single(memory => memory.EventId == "main_face_echo");
+            EventResolutionMemory safeMemory = settlement.EventMemories.Single(memory => memory.EventId == "main_face_echo");
             Assert.That(safeMemory.OptionId, Is.EqualTo("carry_stone_home"));
             Assert.That(safeMemory.SelectionMode, Is.EqualTo(EventResolutionSelectionMode.Player));
         }

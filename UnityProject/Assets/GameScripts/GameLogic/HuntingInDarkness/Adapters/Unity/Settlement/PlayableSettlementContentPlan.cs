@@ -212,7 +212,7 @@ namespace HuntingInDarkness.Settlement
 
         private static void MigrateEventMemories(SettlementInstance settlement)
         {
-            settlement.EventMemories ??= new List<SettlementEventMemory>();
+            settlement.EventMemories ??= new List<EventResolutionMemory>();
             if (settlement.EventMemorySchemaVersion < SettlementInstance.CurrentEventMemorySchemaVersion)
             {
                 settlement.EventMemorySchemaVersion = SettlementInstance.CurrentEventMemorySchemaVersion;

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-settlement-advancement-ledger",
+  "title": "营地桌面成长训练与年鉴",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "3D 年鉴把 Hunt event memory 作为远征子条目有序展示，并投影玩家可读的 FatalInjury 结果。",
+    "codeEvidence": [
+      { "guid": "b078e9c3adef30e4b91de4eb86eaa250", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/CampLedgerPanel3D.cs", "fileHash": "4da96f51954bf7e51fd10fd43789d79b2341f46aac907b5683cee74dbd5688fc", "line": 115, "feature": "同年远征分组与 occurrence 子条目排序", "status": "verified", "checkedAt": "2026-08-28T05:13:14-07:00" }
+    ],
+    "evidence": ["Unity EditMode SettlementTimelineJournal 9/9。"],
+    "differences": ["正式 Spec 尚未声明 Hunt 事件子条目和致命伤文案。"],
+    "verifiedAt": "2026-08-28T05:13:14-07:00"
+  },
+  "gapIds": [], "dependencyIds": [], "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["年鉴按非展示 group/order 键保持远征邻接。", "FatalInjury 只显示玩家可读结果，不显示技术身份。"],
+  "reviewIssues": []
+}

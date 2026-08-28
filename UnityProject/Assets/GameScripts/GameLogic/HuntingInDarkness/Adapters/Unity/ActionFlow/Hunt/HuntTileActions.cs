@@ -380,7 +380,16 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             }
             if (checkpoint.Kind == PlayableEventCommitKind.Resolution)
             {
-                PlayableHuntEventOccurrenceCommitResult commitResult = occurrenceStore.Commit(currentOccurrence, checkpoint.ChainedEvents, manager.CurrentYear, checkpoint.ActorId);
+                EventResolutionMemory memory = string.IsNullOrWhiteSpace(occurrenceStore.ExpeditionId) ? null : HuntEventResolutionMemoryFactory.Create(checkpoint, occurrenceStore.ExpeditionId, currentOccurrence.Sequence);
+                PlayableHuntEventOccurrenceCommitResult commitResult;
+                if (memory == null)
+                    commitResult = occurrenceStore.Commit(currentOccurrence, checkpoint.ChainedEvents, manager.CurrentYear, checkpoint.ActorId);
+                else if (!occurrenceStore.TryCommitResolution(currentOccurrence, memory, checkpoint.ChainedEvents, manager.CurrentYear, checkpoint.ActorId, out commitResult))
+                {
+                    failure = true;
+                    failureReason = commitResult.Diagnostic;
+                    return;
+                }
                 foreach (string preventedEventId in commitResult.PreventedEventIds)
                     eventOutbox.Stage(new PlayableEventDuplicatePreventedEvent { EventId = preventedEventId });
                 if (!commitResult.Succeeded)

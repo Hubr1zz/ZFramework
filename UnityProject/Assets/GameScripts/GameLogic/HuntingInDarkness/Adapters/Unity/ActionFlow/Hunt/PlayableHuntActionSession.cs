@@ -36,7 +36,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private bool gameplayLocked;
         private bool resourceSelectionInFlight;
 
-        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, IActionEnvironmentInstallerRegistry installerRegistry = null, PlayableHuntEventOccurrenceStore restoredOccurrenceStore = null, Action checkpointCommitted = null, IHuntConsumableContent consumableContent = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null)
+        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, IActionEnvironmentInstallerRegistry installerRegistry = null, PlayableHuntEventOccurrenceStore restoredOccurrenceStore = null, Action checkpointCommitted = null, IHuntConsumableContent consumableContent = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null, string expeditionId = "")
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.defaultEncounterId = string.IsNullOrWhiteSpace(defaultEncounterId) ? "default" : defaultEncounterId.Trim();
@@ -44,7 +44,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             this.randomInteractionPresenter = randomInteractionPresenter;
             this.tileInteractionPresenter = tileInteractionPresenter;
             this.fatalInjuryCommand = fatalInjuryCommand ?? new PlayableHuntFatalInjuryCommand(manager.EventSystem.Settlement, new SystemRandomSource(), new SystemRandomSource(), manager.EventSystem.HunterDeathCommand);
-            occurrenceStore = restoredOccurrenceStore ?? new PlayableHuntEventOccurrenceStore();
+            occurrenceStore = restoredOccurrenceStore ?? new PlayableHuntEventOccurrenceStore(expeditionId);
             this.consumableContent = consumableContent ?? new PlayableHuntConsumableContentAdapter(manager);
             this.checkpointCommitted = checkpointCommitted;
             SessionId = Guid.NewGuid();
@@ -235,7 +235,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             var outbox = new ActionEventOutbox();
             ReactorEntityHandle squad = environment.EntityHandles.GetOrCreate("hunt-squad", "active", "狩猎小队");
             ReactorEntityHandle settlement = environment.EntityHandles.GetOrCreate("settlement", "return-target", "营地");
-            var action = new PrepareHuntRetreatAction(manager, currentYear, decision, outbox, squad, settlement);
+            var action = new PrepareHuntRetreatAction(manager, currentYear, decision, outbox, squad, settlement, occurrenceStore.Memories, occurrenceStore.ExpeditionId);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
             if (outcome.IsSuccess)
                 return action.Result;

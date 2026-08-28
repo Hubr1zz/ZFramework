@@ -403,3 +403,42 @@ namespace HuntingInDarkness.ActionFlow.Events
         }
     }
 }
+
+namespace HuntingInDarkness.ActionFlow.Events
+{
+    internal static class HuntEventResolutionMemoryFactory
+    {
+        public static EventResolutionMemory Create(PlayableEventCommitCheckpoint checkpoint, string expeditionId, int occurrenceSequence)
+        {
+            if (string.IsNullOrWhiteSpace(expeditionId)) return null;
+            PlayableEventResolutionFact fact = checkpoint.ResolutionFact;
+            string prefix = expeditionId.Trim();
+            var memory = new EventResolutionMemory
+            {
+                MemoryId = $"hunt-event-memory:{prefix}:{occurrenceSequence}:{fact.EventId}",
+                EventId = fact.EventId,
+                EventName = fact.EventName,
+                ResolutionMode = fact.ResolutionMode,
+                SelectionMode = fact.SelectionMode,
+                OptionId = fact.OptionId,
+                OptionText = fact.OptionText,
+                Year = fact.Year,
+                ActorId = fact.ActorId,
+                CheckType = fact.CheckType,
+                HasCheck = fact.HasCheck,
+                Success = fact.Success,
+                RollValue = fact.RollValue,
+                Bonus = fact.Bonus,
+                Total = fact.Total,
+                Target = fact.Target,
+                WasRerolled = fact.WasRerolled,
+                ResultText = fact.ResultText,
+                OccurrenceSequence = occurrenceSequence,
+                SourceContextId = expeditionId
+            };
+            foreach (PlayableEventEffectResult effect in fact.EffectResults ?? Array.Empty<PlayableEventEffectResult>())
+                memory.Effects.Add(new EventResolutionMemoryEffect { EffectIndex = effect.EffectIndex, EffectType = effect.EffectType?.ToString() ?? string.Empty, TargetName = effect.TargetName, ResolvedTargetId = effect.ResolvedTargetId, Applied = effect.Succeeded, Reason = effect.Reason, TargetActorId = effect.TargetActorId, StateChanged = effect.StateChanged, PreviousValue = effect.PreviousValue, CurrentValue = effect.CurrentValue, HasDeathCard = effect.DeathCard.HasValue, DeathCard = effect.DeathCard ?? default, PermanentInjuryId = effect.PermanentInjuryId, HunterDied = effect.HunterDied, DeathDeckId = effect.DeathDeckId, FacedownPosition = effect.FacedownPosition });
+            return memory;
+        }
+    }
+}

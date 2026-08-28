@@ -291,7 +291,7 @@ namespace Core
                         hunter.OriginTemplateId = hunter.OriginTemplateId?.Trim() ?? string.Empty;
             if (data?.Settlement != null && data.Settlement.EventMemorySchemaVersion == 0)
             {
-                data.Settlement.EventMemories ??= new List<SettlementEventMemory>();
+                data.Settlement.EventMemories ??= new List<EventResolutionMemory>();
                 data.Settlement.EventMemorySchemaVersion = SettlementInstance.CurrentEventMemorySchemaVersion;
                 data.Settlement.EventMemoryMigrationDiagnostic = string.Empty;
             }

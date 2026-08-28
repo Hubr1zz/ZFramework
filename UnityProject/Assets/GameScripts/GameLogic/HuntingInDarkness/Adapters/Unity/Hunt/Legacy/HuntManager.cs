@@ -503,7 +503,9 @@ namespace HuntingInDarkness.Hunt
                 BossDefeated     = bossDefeated,
                 ParticipantHunterIds = participantIds,
                 CollectedItems = items,
-                RescuedPopulation = RescuedPopulation
+                RescuedPopulation = RescuedPopulation,
+                PopulationSchemaVersion = HuntRecord.CurrentPopulationSchemaVersion,
+                EventMemorySchemaVersion = HuntRecord.CurrentEventMemorySchemaVersion
             };
             return true;
         }

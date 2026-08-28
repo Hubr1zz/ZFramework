@@ -185,7 +185,8 @@ namespace HuntingInDarkness.GameCore.Settlement
         public const int LegacySchemaVersion = 0;
         public const int ResourceOnlySchemaVersion = 1;
         public const int GenericLootSchemaVersion = 2;
-        public const int CurrentSchemaVersion = 3;
+        public const int PopulationSchemaVersion = 3;
+        public const int CurrentSchemaVersion = 4;
         public const int MaximumParticipants = 4;
 
         public static bool TryCreatePlan(HuntReturnInput input, int currentYear, IReadOnlyList<HuntReturnParticipantState> participants, IReadOnlyList<HuntReturnResourceState> resources, bool alreadyApplied, out HuntReturnPlan plan, out string reason)
@@ -230,7 +231,7 @@ namespace HuntingInDarkness.GameCore.Settlement
                 return true;
             }
 
-            if (input.SchemaVersion < CurrentSchemaVersion && input.RescuedPopulation != 0) return Fail("旧版远征归来记录不得写入 v3 救援人口。", out reason);
+            if (input.SchemaVersion < PopulationSchemaVersion && input.RescuedPopulation != 0) return Fail("旧版远征归来记录不得写入 v3 救援人口。", out reason);
             if (input.RescuedPopulation < 0 || currentPopulation < 0 || currentPopulation > int.MaxValue - input.RescuedPopulation) return Fail("远征救援人口数量无效或溢出。", out reason);
 
             if (input.ParticipantHunterIds.Count != input.HuntersDeployed) return Fail("远征参与猎人数量与记录不一致。", out reason);

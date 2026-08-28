@@ -309,6 +309,8 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(rig.Hunter.SurvivalCards, Is.EqualTo(1));
             Assert.That(rig.Hunter.DeathCards, Is.EqualTo(1));
             Assert.That(result.EffectResults.Effects.Single(effect => effect.EffectType == EventEffectType.FatalInjury).DeathCard, Is.EqualTo(DeathCardType.Survive));
+            Assert.That(rig.Session.CaptureOccurrenceState().Memories, Has.Count.EqualTo(1));
+            Assert.That(rig.Session.CaptureOccurrenceState().Memories[0].EventId, Is.EqualTo(rig.TileEvent.ContentId));
         }
 
         [Test]
@@ -1204,7 +1206,7 @@ namespace HuntingInDarkness.Adapter.Tests
                     TilePool = { plainTile }
                 };
                 Manager.OnEnter(includeSurvivor ? new List<HunterInstance> { Hunter, Survivor } : new List<HunterInstance> { Hunter });
-                Session = new PlayableHuntActionSession(Manager, "default-boss", "test-destination", randomInteractionPresenter: randomInteractionPresenter, tileInteractionPresenter: tileInteractionPresenter, fatalInjuryCommand: fatalInjuryCommandFactory?.Invoke(Settlement));
+                Session = new PlayableHuntActionSession(Manager, "default-boss", "test-destination", randomInteractionPresenter: randomInteractionPresenter, tileInteractionPresenter: tileInteractionPresenter, fatalInjuryCommand: fatalInjuryCommandFactory?.Invoke(Settlement), expeditionId: "test-expedition");
             }
 
             public EventSystem EventSystem { get; }

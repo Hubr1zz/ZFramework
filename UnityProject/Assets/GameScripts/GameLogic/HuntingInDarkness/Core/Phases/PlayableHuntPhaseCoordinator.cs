@@ -79,7 +79,7 @@ namespace Core
             return new PlayableHuntActionSession(manager, PlayableEncounterRuntime.DefaultEncounterId, manager.BoundRoute?.DestinationId ?? string.Empty, randomInteractionPresenter, visualizer, installerRegistryProvider(), restoredOccurrences, () =>
             {
                 if (IsCurrent(source, manager)) checkpointCommitted?.Invoke(source);
-            });
+            }, expeditionId: source.ExpeditionId);
         }
 
         internal bool TryStartPresentationAndSession(PlayableHuntEventOccurrenceStore restoredOccurrences, out string reason)

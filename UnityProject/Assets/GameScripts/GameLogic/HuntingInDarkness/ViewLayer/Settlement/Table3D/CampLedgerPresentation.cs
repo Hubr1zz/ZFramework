@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunt;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 
@@ -40,7 +41,7 @@ namespace UI
             return labels.Count == 0 ? "无" : string.Join("、", labels);
         }
 
-        public static string FormatEventMemory(SettlementEventMemory memory)
+        public static string FormatEventMemory(EventResolutionMemory memory)
         {
             if (memory == null) return "无事件结果记录";
             var parts = new List<string>();
@@ -49,9 +50,14 @@ namespace UI
             else parts.Add(memory.Success ? "结果：完成" : "结果：未完成");
             if (!string.IsNullOrWhiteSpace(memory.ResultText)) parts.Add(memory.ResultText);
             var effects = new List<string>();
-            foreach (SettlementEventMemoryEffect effect in memory.Effects ?? new List<SettlementEventMemoryEffect>())
+            foreach (EventResolutionMemoryEffect effect in memory.Effects ?? new List<EventResolutionMemoryEffect>())
             {
                 if (effect == null) continue;
+                if (effect.EffectType == EventEffectType.FatalInjury.ToString())
+                {
+                    effects.Add(FormatFatalInjury(effect));
+                    continue;
+                }
                 string label = FormatEffectType(effect.EffectType);
                 string targetId = string.IsNullOrWhiteSpace(effect.ResolvedTargetId) ? effect.TargetName : effect.ResolvedTargetId;
                 string targetName = FormatTarget(targetId);
@@ -108,6 +114,23 @@ namespace UI
                 EventEffectType.RescuePopulation => "救援人口",
                 _ => value
             };
+        }
+
+        private static string FormatFatalInjury(EventResolutionMemoryEffect effect)
+        {
+            string card = "死亡牌：未抽取";
+            if (effect.HasDeathCard)
+                card = effect.DeathCard == DeathCardType.Survive ? "死亡牌：存活" : "死亡牌：死亡";
+            string bodyPart = FormatTarget(effect.ResolvedTargetId ?? effect.TargetName);
+            string health = effect.StateChanged ? $"剩余生命 {effect.CurrentValue}" : string.Empty;
+            string injury = string.IsNullOrWhiteSpace(effect.PermanentInjuryId) ? string.Empty : $"永久损伤：{FormatTarget(effect.PermanentInjuryId)}";
+            string outcome = effect.HunterDied ? "猎人死亡" : "猎人存活";
+            var parts = new List<string> { card };
+            if (!string.IsNullOrWhiteSpace(bodyPart)) parts.Add($"部位 {bodyPart}");
+            if (!string.IsNullOrWhiteSpace(health)) parts.Add(health);
+            if (!string.IsNullOrWhiteSpace(injury)) parts.Add(injury);
+            parts.Add(outcome);
+            return string.Join(" · ", parts);
         }
 
         private static string FormatTarget(string value)

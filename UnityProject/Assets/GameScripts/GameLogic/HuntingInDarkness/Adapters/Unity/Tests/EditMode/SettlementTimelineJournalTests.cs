@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunters;
+using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 using UI;
@@ -106,7 +108,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Total = 8,
                 Target = 7,
                 ResultText = "你看懂了。",
-                Effects = new List<SettlementEventMemoryEffect> { new() { EffectType = "AddResource", TargetName = "broken_stone", Applied = true } }
+                Effects = new List<EventResolutionMemoryEffect> { new() { EffectType = "AddResource", TargetName = "broken_stone", Applied = true } }
             };
 
             Assert.That(settlement.TryRecordEventMemory(memory, out string reason), Is.True, reason);
@@ -123,7 +125,7 @@ namespace HuntingInDarkness.Adapter.Tests
             var settlement = new SettlementInstance
             {
                 EventMemorySchemaVersion = SettlementInstance.CurrentEventMemorySchemaVersion,
-                EventMemories = new List<SettlementEventMemory> { new() { MemoryId = "memory:1", EventId = "event-1", Success = false, RollValue = 4 } }
+                EventMemories = new List<EventResolutionMemory> { new() { MemoryId = "memory:1", EventId = "event-1", Success = false, RollValue = 4 } }
             };
             SettlementInstance restored = JsonUtility.FromJson<SettlementInstance>(JsonUtility.ToJson(settlement));
             Assert.That(restored.EventMemories, Has.Count.EqualTo(1));
@@ -154,7 +156,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Target = 7,
                 Success = true,
                 ResultText = "你看懂了。",
-                Effects = new List<SettlementEventMemoryEffect> { new() { EffectType = "AddResource", TargetName = "broken_stone", Applied = true } }
+                Effects = new List<EventResolutionMemoryEffect> { new() { EffectType = "AddResource", TargetName = "broken_stone", Applied = true } }
             });
 
             Assert.That(text, Does.Contain("选择：观察"));
@@ -163,6 +165,97 @@ namespace HuntingInDarkness.Adapter.Tests
 
             text = CampLedgerPresentation.FormatEventMemory(new SettlementEventMemory { SelectionMode = EventResolutionSelectionMode.Automatic, OptionText = "直接带回" });
             Assert.That(text, Does.Contain("自动结算：直接带回"));
+        }
+
+        [Test]
+        public void FatalInjuryMemory_RoundTripsAllFieldsAndFormatsOnlyPlayerFacingDetails()
+        {
+            var source = new EventResolutionMemory
+            {
+                MemoryId = "hunt-event-memory:expedition-1:1:hunt_crushing_slab",
+                EventId = "hunt_crushing_slab",
+                EventName = "塌方",
+                SourceContextId = "expedition-1",
+                OccurrenceSequence = 1,
+                Success = true,
+                Effects = new List<EventResolutionMemoryEffect>
+                {
+                    new()
+                    {
+                        EffectIndex = 0,
+                        EffectType = EventEffectType.FatalInjury.ToString(),
+                        ResolvedTargetId = "arms",
+                        StateChanged = true,
+                        PreviousValue = 4,
+                        CurrentValue = 1,
+                        HasDeathCard = true,
+                        DeathCard = DeathCardType.Survive,
+                        PermanentInjuryId = "broken-arm",
+                        DeathDeckId = "technical-deck-id",
+                        FacedownPosition = 7,
+                        HunterDied = false,
+                        Applied = true
+                    }
+                }
+            };
+
+            EventResolutionMemory restored = JsonUtility.FromJson<EventResolutionMemory>(JsonUtility.ToJson(source));
+            Assert.That(restored.SourceContextId, Is.EqualTo("expedition-1"));
+            Assert.That(restored.OccurrenceSequence, Is.EqualTo(1));
+            Assert.That(restored.Effects[0].DeathCard, Is.EqualTo(DeathCardType.Survive));
+            Assert.That(restored.Effects[0].PermanentInjuryId, Is.EqualTo("broken-arm"));
+            string text = CampLedgerPresentation.FormatEventMemory(restored);
+            Assert.That(text, Does.Contain("死亡牌：存活"));
+            Assert.That(text, Does.Contain("部位 arms"));
+            Assert.That(text, Does.Contain("剩余生命 1"));
+            Assert.That(text, Does.Contain("永久损伤：broken-arm"));
+            Assert.That(text, Does.Contain("猎人存活"));
+            Assert.That(text, Does.Not.Contain("technical-deck-id"));
+            Assert.That(text, Does.Not.Contain("7"));
+        }
+
+        [Test]
+        public void HuntRecordMemoryRules_RejectLegacyCrossContextForgedSequenceAndOverflow()
+        {
+            var legacy = new HuntRecord
+            {
+                RecordId = "expedition-legacy",
+                ReturnSchemaVersion = 3,
+                EventMemorySchemaVersion = 3,
+                Memories = new List<EventResolutionMemory> { CreateHuntMemory("expedition-legacy", 1, "root") }
+            };
+            Assert.That(EventResolutionMemoryRules.TryValidateHuntRecord(legacy, out _), Is.False);
+
+            HuntRecord valid = new()
+            {
+                RecordId = "expedition-1",
+                ReturnSchemaVersion = HuntRecord.CurrentReturnSchemaVersion,
+                EventMemorySchemaVersion = HuntRecord.CurrentEventMemorySchemaVersion,
+                Memories = new List<EventResolutionMemory> { CreateHuntMemory("expedition-1", 1, "root") }
+            };
+            Assert.That(EventResolutionMemoryRules.TryValidateHuntRecord(valid, out string reason), Is.True, reason);
+            valid.Memories[0].SourceContextId = "expedition-other";
+            Assert.That(EventResolutionMemoryRules.TryValidateHuntRecord(valid, out _), Is.False);
+            valid.Memories[0].SourceContextId = valid.RecordId;
+            valid.Memories[0].MemoryId = "hunt-event-memory:expedition-1:99:root";
+            Assert.That(EventResolutionMemoryRules.TryValidateHuntRecord(valid, out _), Is.False);
+
+            valid.Memories = new List<EventResolutionMemory>();
+            for (int index = 0; index < EventResolutionMemoryRules.MaximumMemories + 1; index++)
+                valid.Memories.Add(CreateHuntMemory(valid.RecordId, index + 1, $"event-{index}"));
+            Assert.That(EventResolutionMemoryRules.TryValidateHuntRecord(valid, out _), Is.False);
+        }
+
+        private static EventResolutionMemory CreateHuntMemory(string expeditionId, int sequence, string eventId)
+        {
+            return new EventResolutionMemory
+            {
+                MemoryId = $"hunt-event-memory:{expeditionId}:{sequence}:{eventId}",
+                EventId = eventId,
+                SourceContextId = expeditionId,
+                OccurrenceSequence = sequence,
+                Success = true
+            };
         }
     }
 }

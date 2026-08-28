@@ -79,6 +79,8 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (!EventResolutionMemoryRules.TryValidateHuntRecord(huntRecord, out string memoryReason))
+                return Fail(memoryReason);
             bool alreadyApplied = timeline.HasAppliedHuntRecord(huntRecord);
             int currentPopulation = settlement?.Population ?? 0;
             if (!HuntReturnRules.TryCreateItemPlan(CreateInput(), timeline.CurrentYear, BuildParticipantStates(), BuildItemStates(), currentPopulation, alreadyApplied, out HuntReturnPlan plan, out string reason))

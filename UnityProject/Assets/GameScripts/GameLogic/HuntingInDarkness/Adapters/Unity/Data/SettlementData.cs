@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HuntingInDarkness.GameCore.Hunt;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 
@@ -138,7 +139,7 @@ namespace HuntingInDarkness.Data
     }
 
     [System.Serializable]
-    public sealed class SettlementEventMemoryEffect
+    public class EventResolutionMemoryEffect
     {
         public int EffectIndex;
         public string EffectType;
@@ -150,10 +151,16 @@ namespace HuntingInDarkness.Data
         public bool StateChanged;
         public int PreviousValue;
         public int CurrentValue;
+        public bool HasDeathCard;
+        public DeathCardType DeathCard;
+        public string PermanentInjuryId;
+        public bool HunterDied;
+        public string DeathDeckId;
+        public int FacedownPosition;
     }
 
     [System.Serializable]
-    public sealed class SettlementEventMemory
+    public class EventResolutionMemory
     {
         public string MemoryId;
         public string EventId;
@@ -173,7 +180,20 @@ namespace HuntingInDarkness.Data
         public int Target;
         public bool WasRerolled;
         public string ResultText;
-        public List<SettlementEventMemoryEffect> Effects = new();
+        public int OccurrenceSequence;
+        public string SourceContextId;
+        public List<EventResolutionMemoryEffect> Effects = new();
+    }
+
+    /// <summary>旧存档与源码兼容别名；实际结构由 EventResolutionMemory 提供。</summary>
+    [System.Serializable]
+    public sealed class SettlementEventMemoryEffect : EventResolutionMemoryEffect
+    {
+    }
+
+    [System.Serializable]
+    public sealed class SettlementEventMemory : EventResolutionMemory
+    {
     }
 
     /// <summary>
@@ -230,7 +250,9 @@ namespace HuntingInDarkness.Data
     [System.Serializable]
     public class HuntRecord
     {
-        public const int CurrentReturnSchemaVersion = 3;
+        public const int CurrentReturnSchemaVersion = 4;
+        public const int CurrentPopulationSchemaVersion = 3;
+        public const int CurrentEventMemorySchemaVersion = 4;
         [Tooltip("稳定的本次远征实例 ID；旧存档为空时保持兼容，不自动伪造身份。")]
         public string RecordId;
         [Tooltip("主动回营结果协议版本；0 表示旧流程已经转移资源/成长的兼容记录。")]
@@ -246,6 +268,9 @@ namespace HuntingInDarkness.Data
         public List<HuntLootStack> CollectedItems = new();
         [Tooltip("v3 权威救援人口；回营提交成功前不进入营地人口池。")]
         public int RescuedPopulation;
+        public int PopulationSchemaVersion;
+        public int EventMemorySchemaVersion;
+        public List<EventResolutionMemory> Memories = new();
     }
 
     // ─── 营地运行时状态 ──────────────────────────────────────────
@@ -270,7 +295,7 @@ namespace HuntingInDarkness.Data
         public string TimelineEventIdentityMigrationDiagnostic;
         public int SettlementModifierSchemaVersion;
         public int MaterialDiscoverySchemaVersion;
-        public const int CurrentEventMemorySchemaVersion = 1;
+        public const int CurrentEventMemorySchemaVersion = 4;
         public const int CurrentFacilityDutySchemaVersion = 1;
         public int EventMemorySchemaVersion;
         public string EventMemoryMigrationDiagnostic;
@@ -320,7 +345,7 @@ namespace HuntingInDarkness.Data
 
         [Header("Timeline")]
         public List<AnnalEntry> Timeline = new();
-        public List<SettlementEventMemory> EventMemories = new();
+        public List<EventResolutionMemory> EventMemories = new();
         public List<HuntRecord>    HuntHistory = new();
         [Header("待完成的远征归来结算")]
         public HuntRecord PendingHuntReturn;
@@ -505,88 +530,34 @@ namespace HuntingInDarkness.Data
 
         public bool HasPendingEventChainOccurrences => PendingEventChains != null && PendingEventChains.Exists(chain => chain != null && chain.PendingOccurrences != null && chain.PendingOccurrences.Count > 0);
 
-        public bool CanRecordEventMemory(SettlementEventMemory memory, out string reason)
+        public bool CanRecordEventMemory(EventResolutionMemory memory, out string reason)
         {
-            reason = string.Empty;
-            if (memory == null || string.IsNullOrWhiteSpace(memory.MemoryId) || string.IsNullOrWhiteSpace(memory.EventId))
-            {
-                reason = "事件记忆缺少稳定身份。";
-                return false;
-            }
+            if (!EventResolutionMemoryRules.TryValidate(memory, out reason)) return false;
             if (EventMemorySchemaVersion > CurrentEventMemorySchemaVersion)
             {
                 reason = $"事件记忆 schema {EventMemorySchemaVersion} 高于当前版本 {CurrentEventMemorySchemaVersion}。";
                 return false;
             }
-            SettlementEventMemory existing = EventMemories?.Find(candidate => candidate != null && string.Equals(candidate.MemoryId, memory.MemoryId, System.StringComparison.Ordinal));
+            EventResolutionMemory existing = EventMemories?.Find(candidate => candidate != null && string.Equals(candidate.MemoryId, memory.MemoryId, System.StringComparison.Ordinal));
             if (existing == null) return true;
-            if (AreEventMemoriesEquivalent(existing, memory)) return true;
+            if (EventResolutionMemoryRules.Equivalent(existing, memory)) return true;
             reason = $"事件记忆 {memory.MemoryId} 已存在但事实不一致。";
             return false;
         }
 
-        public bool TryRecordEventMemory(SettlementEventMemory memory, out string reason)
+        public bool TryRecordEventMemory(EventResolutionMemory memory, out string reason)
         {
             if (!CanRecordEventMemory(memory, out reason)) return false;
-            EventMemories ??= new List<SettlementEventMemory>();
+            EventMemories ??= new List<EventResolutionMemory>();
             if (EventMemories.Exists(candidate => candidate != null && string.Equals(candidate.MemoryId, memory.MemoryId, System.StringComparison.Ordinal))) return true;
-            EventMemories.Add(CloneEventMemory(memory));
+            if (EventMemories.Count >= EventResolutionMemoryRules.MaximumMemories)
+            {
+                reason = $"事件记忆数量超过上限 {EventResolutionMemoryRules.MaximumMemories}。";
+                return false;
+            }
+            EventMemories.Add(EventResolutionMemoryRules.Clone(memory));
             EventMemorySchemaVersion = CurrentEventMemorySchemaVersion;
             EventMemoryMigrationDiagnostic = string.Empty;
-            return true;
-        }
-
-        private static SettlementEventMemory CloneEventMemory(SettlementEventMemory source)
-        {
-            var clone = new SettlementEventMemory
-            {
-                MemoryId = source.MemoryId,
-                EventId = source.EventId,
-                EventName = source.EventName,
-                ResolutionMode = source.ResolutionMode,
-                SelectionMode = source.SelectionMode,
-                OptionId = source.OptionId,
-                OptionText = source.OptionText,
-                Year = source.Year,
-                ActorId = source.ActorId,
-                CheckType = source.CheckType,
-                HasCheck = source.HasCheck,
-                Success = source.Success,
-                RollValue = source.RollValue,
-                Bonus = source.Bonus,
-                Total = source.Total,
-                Target = source.Target,
-                WasRerolled = source.WasRerolled,
-                ResultText = source.ResultText
-            };
-            foreach (SettlementEventMemoryEffect effect in source.Effects ?? new List<SettlementEventMemoryEffect>())
-                if (effect != null)
-                    clone.Effects.Add(new SettlementEventMemoryEffect
-                    {
-                        EffectIndex = effect.EffectIndex,
-                        EffectType = effect.EffectType,
-                        TargetName = effect.TargetName,
-                        ResolvedTargetId = effect.ResolvedTargetId,
-                        Applied = effect.Applied,
-                        Reason = effect.Reason,
-                        TargetActorId = effect.TargetActorId,
-                        StateChanged = effect.StateChanged,
-                        PreviousValue = effect.PreviousValue,
-                        CurrentValue = effect.CurrentValue
-                    });
-            return clone;
-        }
-
-        private static bool AreEventMemoriesEquivalent(SettlementEventMemory left, SettlementEventMemory right)
-        {
-            if (left == null || right == null || !string.Equals(left.EventId, right.EventId, System.StringComparison.Ordinal) || !string.Equals(left.EventName, right.EventName, System.StringComparison.Ordinal) || !string.Equals(left.ResolutionMode, right.ResolutionMode, System.StringComparison.Ordinal) || left.SelectionMode != right.SelectionMode || !string.Equals(left.OptionId, right.OptionId, System.StringComparison.Ordinal) || !string.Equals(left.OptionText, right.OptionText, System.StringComparison.Ordinal) || left.Year != right.Year || left.ActorId != right.ActorId || !string.Equals(left.CheckType, right.CheckType, System.StringComparison.Ordinal) || left.HasCheck != right.HasCheck || left.Success != right.Success || left.RollValue != right.RollValue || left.Bonus != right.Bonus || left.Total != right.Total || left.Target != right.Target || left.WasRerolled != right.WasRerolled || !string.Equals(left.ResultText, right.ResultText, System.StringComparison.Ordinal)) return false;
-            if ((left.Effects?.Count ?? 0) != (right.Effects?.Count ?? 0)) return false;
-            for (int index = 0; index < (left.Effects?.Count ?? 0); index++)
-            {
-                SettlementEventMemoryEffect a = left.Effects[index];
-                SettlementEventMemoryEffect b = right.Effects[index];
-                if (a == null || b == null || a.EffectIndex != b.EffectIndex || !string.Equals(a.EffectType, b.EffectType, System.StringComparison.Ordinal) || !string.Equals(a.TargetName, b.TargetName, System.StringComparison.Ordinal) || !string.Equals(a.ResolvedTargetId, b.ResolvedTargetId, System.StringComparison.Ordinal) || a.Applied != b.Applied || !string.Equals(a.Reason, b.Reason, System.StringComparison.Ordinal) || a.TargetActorId != b.TargetActorId || a.StateChanged != b.StateChanged || a.PreviousValue != b.PreviousValue || a.CurrentValue != b.CurrentValue) return false;
-            }
             return true;
         }
 
@@ -672,4 +643,109 @@ namespace HuntingInDarkness.Data
 
     [System.Serializable]
     public class StringBoolEntry : NamedFlag { }
+}
+
+namespace HuntingInDarkness.Data
+{
+    public static class EventResolutionMemoryRules
+    {
+        public const int CurrentSchemaVersion = 4;
+        public const int MaximumMemories = 256;
+        public const int MaximumEffects = 64;
+        public const int MaximumStableIdLength = 256;
+        public const int MaximumShortTextLength = 512;
+        public const int MaximumPlayerTextLength = 4096;
+
+        public static bool TryValidate(EventResolutionMemory memory, out string reason)
+        {
+            reason = string.Empty;
+            if (memory == null || !HasStableId(memory.MemoryId) || !HasStableId(memory.EventId)) return Fail("事件结果记忆缺少稳定 ID。", out reason);
+            if (!HasLength(memory.EventName, MaximumShortTextLength) || !HasLength(memory.ResolutionMode, MaximumShortTextLength) || !HasLength(memory.OptionId, MaximumStableIdLength) || !HasLength(memory.OptionText, MaximumPlayerTextLength) || !HasLength(memory.CheckType, MaximumShortTextLength) || !HasLength(memory.ResultText, MaximumPlayerTextLength) || !HasLength(memory.SourceContextId, MaximumStableIdLength)) return Fail("事件结果记忆包含过长字段。", out reason);
+            if (memory.Effects == null || memory.Effects.Count > MaximumEffects) return Fail("事件结果记忆效果数量超限。", out reason);
+            for (int index = 0; index < memory.Effects.Count; index++)
+            {
+                EventResolutionMemoryEffect effect = memory.Effects[index];
+                if (effect == null || effect.EffectIndex < 0 || !HasLength(effect.EffectType, MaximumShortTextLength) || !HasLength(effect.TargetName, MaximumStableIdLength) || !HasLength(effect.ResolvedTargetId, MaximumStableIdLength) || !HasLength(effect.Reason, MaximumPlayerTextLength) || !HasLength(effect.PermanentInjuryId, MaximumStableIdLength) || !HasLength(effect.DeathDeckId, MaximumStableIdLength) || effect.FacedownPosition < -1) return Fail("事件结果记忆包含无效效果。", out reason);
+            }
+            return true;
+        }
+
+        public static bool TryValidateHuntList(IReadOnlyList<EventResolutionMemory> memories, string expeditionId, IReadOnlyList<int> committedSequences, out string reason)
+        {
+            reason = string.Empty;
+            if (memories == null || memories.Count == 0) return true;
+            if (!HasStableId(expeditionId) || memories.Count > MaximumMemories || memories.Count > (committedSequences?.Count ?? 0)) return Fail("狩猎事件结果记忆数量与远征检查点不一致。", out reason);
+            var seenSequences = new HashSet<int>();
+            var committed = new HashSet<int>(committedSequences);
+            foreach (EventResolutionMemory memory in memories)
+            {
+                if (!TryValidate(memory, out reason) || memory.SourceContextId != expeditionId || memory.OccurrenceSequence == 0 || !committed.Contains(memory.OccurrenceSequence) || !seenSequences.Add(memory.OccurrenceSequence) || memory.MemoryId != $"hunt-event-memory:{expeditionId}:{memory.OccurrenceSequence}:{memory.EventId}") return Fail(string.IsNullOrWhiteSpace(reason) ? "狩猎事件结果记忆身份无效。" : reason, out reason);
+            }
+            return true;
+        }
+
+        public static bool TryValidateHuntRecord(HuntRecord record, out string reason)
+        {
+            reason = string.Empty;
+            IReadOnlyList<EventResolutionMemory> memories = record?.Memories;
+            if (record == null) return Fail("远征记录为空。", out reason);
+            if (record.ReturnSchemaVersion < 0 || record.ReturnSchemaVersion > HuntRecord.CurrentReturnSchemaVersion || record.EventMemorySchemaVersion < 0 || record.EventMemorySchemaVersion > HuntRecord.CurrentEventMemorySchemaVersion || record.PopulationSchemaVersion < 0 || record.PopulationSchemaVersion > HuntRecord.CurrentPopulationSchemaVersion) return Fail("远征记录 schema 无效或高于当前版本。", out reason);
+            if (memories == null || memories.Count == 0) return true;
+            if (record.ReturnSchemaVersion < HuntRecord.CurrentEventMemorySchemaVersion || record.EventMemorySchemaVersion != HuntRecord.CurrentEventMemorySchemaVersion || string.IsNullOrWhiteSpace(record.RecordId)) return Fail("旧版远征记录不能包含事件结果记忆。", out reason);
+            if (memories.Count > MaximumMemories) return Fail("远征记录事件结果记忆数量超限。", out reason);
+            var seen = new HashSet<int>();
+            foreach (EventResolutionMemory memory in memories)
+            {
+                if (!TryValidate(memory, out reason) || memory.SourceContextId != record.RecordId || memory.OccurrenceSequence == 0 || !seen.Add(memory.OccurrenceSequence) || memory.MemoryId != $"hunt-event-memory:{record.RecordId}:{memory.OccurrenceSequence}:{memory.EventId}") return Fail(string.IsNullOrWhiteSpace(reason) ? "远征记录事件结果记忆身份无效。" : reason, out reason);
+            }
+            return true;
+        }
+
+        public static EventResolutionMemory Clone(EventResolutionMemory source)
+        {
+            if (source == null) return null;
+            var clone = new EventResolutionMemory
+            {
+                MemoryId = source.MemoryId, EventId = source.EventId, EventName = source.EventName, ResolutionMode = source.ResolutionMode, SelectionMode = source.SelectionMode, OptionId = source.OptionId, OptionText = source.OptionText, Year = source.Year, ActorId = source.ActorId, CheckType = source.CheckType, HasCheck = source.HasCheck, Success = source.Success, RollValue = source.RollValue, Bonus = source.Bonus, Total = source.Total, Target = source.Target, WasRerolled = source.WasRerolled, ResultText = source.ResultText, OccurrenceSequence = source.OccurrenceSequence, SourceContextId = source.SourceContextId
+            };
+            foreach (EventResolutionMemoryEffect effect in source.Effects ?? new List<EventResolutionMemoryEffect>())
+                if (effect != null) clone.Effects.Add(Clone(effect));
+            return clone;
+        }
+
+        public static List<EventResolutionMemory> CloneList(IReadOnlyList<EventResolutionMemory> source)
+        {
+            var result = new List<EventResolutionMemory>(source?.Count ?? 0);
+            foreach (EventResolutionMemory memory in source ?? new List<EventResolutionMemory>())
+                if (memory != null) result.Add(Clone(memory));
+            return result;
+        }
+
+        public static EventResolutionMemoryEffect Clone(EventResolutionMemoryEffect source)
+        {
+            if (source == null) return null;
+            return new EventResolutionMemoryEffect { EffectIndex = source.EffectIndex, EffectType = source.EffectType, TargetName = source.TargetName, ResolvedTargetId = source.ResolvedTargetId, Applied = source.Applied, Reason = source.Reason, TargetActorId = source.TargetActorId, StateChanged = source.StateChanged, PreviousValue = source.PreviousValue, CurrentValue = source.CurrentValue, HasDeathCard = source.HasDeathCard, DeathCard = source.DeathCard, PermanentInjuryId = source.PermanentInjuryId, HunterDied = source.HunterDied, DeathDeckId = source.DeathDeckId, FacedownPosition = source.FacedownPosition };
+        }
+
+        public static bool Equivalent(EventResolutionMemory left, EventResolutionMemory right)
+        {
+            if (left == null || right == null || left.MemoryId != right.MemoryId || left.EventId != right.EventId || left.EventName != right.EventName || left.ResolutionMode != right.ResolutionMode || left.SelectionMode != right.SelectionMode || left.OptionId != right.OptionId || left.OptionText != right.OptionText || left.Year != right.Year || left.ActorId != right.ActorId || left.CheckType != right.CheckType || left.HasCheck != right.HasCheck || left.Success != right.Success || left.RollValue != right.RollValue || left.Bonus != right.Bonus || left.Total != right.Total || left.Target != right.Target || left.WasRerolled != right.WasRerolled || left.ResultText != right.ResultText || left.OccurrenceSequence != right.OccurrenceSequence || left.SourceContextId != right.SourceContextId || (left.Effects?.Count ?? 0) != (right.Effects?.Count ?? 0)) return false;
+            for (int index = 0; index < (left.Effects?.Count ?? 0); index++)
+                if (!Equivalent(left.Effects[index], right.Effects[index])) return false;
+            return true;
+        }
+
+        private static bool Equivalent(EventResolutionMemoryEffect left, EventResolutionMemoryEffect right)
+        {
+            return left != null && right != null && left.EffectIndex == right.EffectIndex && left.EffectType == right.EffectType && left.TargetName == right.TargetName && left.ResolvedTargetId == right.ResolvedTargetId && left.Applied == right.Applied && left.Reason == right.Reason && left.TargetActorId == right.TargetActorId && left.StateChanged == right.StateChanged && left.PreviousValue == right.PreviousValue && left.CurrentValue == right.CurrentValue && left.HasDeathCard == right.HasDeathCard && left.DeathCard == right.DeathCard && left.PermanentInjuryId == right.PermanentInjuryId && left.HunterDied == right.HunterDied && left.DeathDeckId == right.DeathDeckId && left.FacedownPosition == right.FacedownPosition;
+        }
+
+        private static bool HasStableId(string value) => !string.IsNullOrWhiteSpace(value) && value.Trim().Length <= MaximumStableIdLength;
+        private static bool HasLength(string value, int maximum) => string.IsNullOrEmpty(value) || value.Length <= maximum;
+        private static bool Fail(string message, out string reason)
+        {
+            reason = message;
+            return false;
+        }
+    }
 }

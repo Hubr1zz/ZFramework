@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-return-outcome-checkpoint",
+  "title": "狩猎归来结果检查点",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "回营 v4 复用 ExpeditionId，深拷贝并在 Settlement 变更前验证远征事件记忆。",
+    "codeEvidence": [
+      { "guid": "8601354706c5d2243a2c3ad182a5a99a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs", "fileHash": "bf4bef86a50cf67be00c9f0f086b6fedcacb2ff866b991724c8d3701cb1f7852", "line": 196, "feature": "v4 回营记录身份与 memory 深拷贝", "status": "verified", "checkedAt": "2026-08-28T05:13:14-07:00" },
+      { "guid": "e159b3c1d6bfcce4082b45e63fc28083", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs", "fileHash": "a85d8541d80169a2e1f0a7803f6616498c23b1878e7742afb4ac05c68d0cbf42", "line": 687, "feature": "HuntRecord v4 记忆协议预检", "status": "verified", "checkedAt": "2026-08-28T05:13:14-07:00" }
+    ],
+    "evidence": ["Unity EditMode PlayableSettlementActionSession 40/40。"],
+    "differences": ["正式 Spec 尚未声明 v4 回营事件历史。"],
+    "verifiedAt": "2026-08-28T05:13:14-07:00"
+  },
+  "gapIds": [], "dependencyIds": [], "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["生产 RecordId 使用 ExpeditionId。", "Settlement root 变更前验证 v4 memory 契约。"],
+  "reviewIssues": []
+}

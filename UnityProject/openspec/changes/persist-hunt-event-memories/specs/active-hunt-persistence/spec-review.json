@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 5,
+  "capability": "active-hunt-persistence",
+  "title": "活动狩猎检查点与恢复",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "活动狩猎 v4 保存有界事件记忆，并按版本、远征身份和 committed occurrence fail closed 恢复。",
+    "codeEvidence": [
+      { "guid": "e65f64d837aa4bc08338c1f0d4f1fa99", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs", "fileHash": "80b20a82757dda20acd31a000b64f99e35fc5398ba5db4003a72698f5ab0aede", "line": 28, "feature": "ActiveHunt v4 事件记忆捕获与恢复门禁", "status": "verified", "checkedAt": "2026-08-28T05:13:14-07:00" },
+      { "guid": "e159b3c1d6bfcce4082b45e63fc28083", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs", "fileHash": "a85d8541d80169a2e1f0a7803f6616498c23b1878e7742afb4ac05c68d0cbf42", "line": 650, "feature": "记忆数量、字段、身份与序号统一验证", "status": "verified", "checkedAt": "2026-08-28T05:13:14-07:00" }
+    ],
+    "evidence": ["Unity EditMode ActiveHuntPersistence 13/13。"],
+    "differences": ["正式 Spec 尚未声明 v4 event memory schema。"],
+    "verifiedAt": "2026-08-28T05:13:14-07:00"
+  },
+  "gapIds": [], "dependencyIds": [], "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["Resolution memory 随 occurrence store 冻结。", "v2/v3 禁止夹带记忆，v4 校验远征身份和 committed sequence。"],
+  "reviewIssues": []
+}

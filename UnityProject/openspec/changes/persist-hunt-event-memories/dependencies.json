@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "hunt-session-event-occurrence-recovery", "label": "狩猎会话事件链恢复", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/persist-hunt-event-memories/specs/hunt-session-event-occurrence-recovery/spec.md" },
+    { "id": "active-hunt-persistence", "label": "活动狩猎检查点与恢复", "category": "architecture", "readiness": "implemented", "specPath": "openspec/changes/persist-hunt-event-memories/specs/active-hunt-persistence/spec.md" },
+    { "id": "hunt-return-outcome-checkpoint", "label": "狩猎归来结果检查点", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/persist-hunt-event-memories/specs/hunt-return-outcome-checkpoint/spec.md" },
+    { "id": "tabletop-settlement-advancement-ledger", "label": "营地桌面成长训练与年鉴", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/persist-hunt-event-memories/specs/tabletop-settlement-advancement-ledger/spec.md" }
+  ],
+  "edges": [
+    { "from": "hunt-session-event-occurrence-recovery", "to": "active-hunt-persistence", "type": "persists-through" },
+    { "from": "active-hunt-persistence", "to": "hunt-return-outcome-checkpoint", "type": "hands-off-to" },
+    { "from": "hunt-return-outcome-checkpoint", "to": "tabletop-settlement-advancement-ledger", "type": "presents-in" }
+  ]
+}
