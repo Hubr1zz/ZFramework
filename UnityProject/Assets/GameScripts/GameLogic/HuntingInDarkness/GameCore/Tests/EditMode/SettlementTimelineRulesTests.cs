@@ -19,6 +19,29 @@ namespace HuntingInDarkness.GameCore.Tests
         }
 
         [Test]
+        public void HunterSuppression_ClassifiesConfiguredBandsAndClampsValues()
+        {
+            Assert.That(HunterSuppressionRules.Clamp(-1), Is.EqualTo(HunterSuppressionRules.Minimum));
+            Assert.That(HunterSuppressionRules.Clamp(int.MinValue), Is.EqualTo(HunterSuppressionRules.Minimum));
+            Assert.That(HunterSuppressionRules.Clamp(int.MaxValue), Is.EqualTo(HunterSuppressionRules.Maximum));
+            Assert.That(HunterSuppressionRules.Classify(0), Is.EqualTo(HunterSuppressionState.Mad));
+            Assert.That(HunterSuppressionRules.Classify(2), Is.EqualTo(HunterSuppressionState.Mad));
+            Assert.That(HunterSuppressionRules.Classify(3), Is.EqualTo(HunterSuppressionState.Normal));
+            Assert.That(HunterSuppressionRules.Classify(5), Is.EqualTo(HunterSuppressionState.Normal));
+            Assert.That(HunterSuppressionRules.Classify(6), Is.EqualTo(HunterSuppressionState.Passive));
+            Assert.That(HunterSuppressionRules.GetDisplayName(8), Is.EqualTo("消极"));
+        }
+
+        [Test]
+        public void HunterSuppression_AddAcceptsOnlyPositiveValuesAndSaturates()
+        {
+            int saturated = HunterSuppressionRules.Increase(7, int.MaxValue);
+            Assert.That(saturated, Is.EqualTo(HunterSuppressionRules.Maximum));
+            int unchanged = HunterSuppressionRules.Increase(4, 0);
+            Assert.That(unchanged, Is.EqualTo(4));
+        }
+
+        [Test]
         public void AddResourceEffect_ReportsBeforeAndAfterAmounts()
         {
             int amount = 1;
@@ -51,6 +74,21 @@ namespace HuntingInDarkness.GameCore.Tests
 
             Assert.That(outcome.Handled, Is.False);
             Assert.That(outcome.Reason, Does.Contain("未找到效果目标"));
+        }
+
+        [Test]
+        public void AddInsanity_RejectsNonPositiveAndSaturatesAtMaximum()
+        {
+            var hunter = new HunterState { Insanity = 7 };
+            SettlementEffectOutcome rejected = SettlementEffectRules.Apply(SettlementEffectKind.AddInsanity, "selected", 0, hunter, hunter, new[] { hunter }, _ => 0, (_, _) => { }, (_, _) => false, _ => { });
+
+            Assert.That(rejected.Handled, Is.False);
+            Assert.That(hunter.Insanity, Is.EqualTo(7));
+
+            SettlementEffectOutcome applied = SettlementEffectRules.Apply(SettlementEffectKind.AddInsanity, "selected", int.MaxValue, hunter, hunter, new[] { hunter }, _ => 0, (_, _) => { }, (_, _) => false, _ => { });
+
+            Assert.That(applied.Handled, Is.True);
+            Assert.That(hunter.Insanity, Is.EqualTo(HunterSuppressionRules.Maximum));
         }
 
         [Test]

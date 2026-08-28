@@ -1,4 +1,5 @@
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Settlement;
 using TMPro;
 using UnityEngine;
 
@@ -98,7 +99,7 @@ namespace Cards3D
                     : new Color(0.85f, 0.40f, 0.35f);
 
                 var s = _hunter.Stats;
-                _statsText.text  = $"力{s.strength}  敏{s.evasion}  速{s.speed}";
+                _statsText.text  = $"力{s.strength}  敏{s.evasion}  速{s.speed}\n压抑 {_hunter.Insanity} · {HunterSuppressionRules.GetDisplayName(_hunter.Insanity)}";
                 _statsText.color = new Color(0.60f, 0.68f, 0.78f);
 
                 _stateText.text  = string.IsNullOrWhiteSpace(_hunter.BloodlineName) ? "点击查看" : $"{_hunter.BloodlineName} · 查看";

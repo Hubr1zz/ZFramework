@@ -4,6 +4,7 @@ using System.Reflection;
 using Cards3D;
 using HuntingInDarkness.Data;
 using NUnit.Framework;
+using TMPro;
 using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -105,6 +106,22 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             card.HandlePointerDrag(Vector2.right * 10f, Vector3.right);
             card.HandlePointerUp();
             Assert.That(dossierCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void HunterCard_DisplaysSuppressionValueAndClassification()
+        {
+            var root = new GameObject("HunterSuppressionCardTest");
+            createdObjects.Add(root);
+            HunterData template = CreateTemplate("suppression_hunter", "压抑猎人");
+            var hunter = new HunterInstance(template, 702) { Insanity = 1 };
+            TestHunterCard card = root.AddComponent<TestHunterCard>();
+            card.Init(hunter);
+
+            FieldInfo field = typeof(HunterCard3D).GetField("_statsText", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null);
+            TextMeshPro statsText = (TextMeshPro)field.GetValue(card);
+            Assert.That(statsText.text, Does.Contain("压抑 1 · 疯狂"));
         }
 
         [UnityTest]

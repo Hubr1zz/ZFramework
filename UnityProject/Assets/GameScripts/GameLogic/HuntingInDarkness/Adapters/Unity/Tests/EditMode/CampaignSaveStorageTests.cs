@@ -165,6 +165,19 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void LegacySettlement_NormalizesHunterSuppressionIntoSupportedRange()
+        {
+            const string legacyPayload = "{\"CurrentYear\":1,\"Hunters\":[{\"InstanceId\":7,\"Name\":\"低值\",\"Insanity\":-2},{\"InstanceId\":8,\"Name\":\"高值\",\"Insanity\":12}]}";
+
+            Assert.That(CampaignSaveRecovery.TryRestore(new CampaignSaveCandidates(CampaignSaveCodec.Encode(legacyPayload), null), out CampaignSnapshot restored, out _, out string reason), Is.True, reason);
+
+            Assert.That(restored.Settlement.Hunters[0].Insanity, Is.EqualTo(HunterSuppressionRules.Minimum));
+            Assert.That(restored.Settlement.Hunters[1].Insanity, Is.EqualTo(HunterSuppressionRules.Maximum));
+            Assert.That(restored.Settlement.Hunters[0].Name, Is.EqualTo("低值"));
+            Assert.That(restored.Settlement.Hunters[1].Name, Is.EqualTo("高值"));
+        }
+
+        [Test]
         public void FileStore_SecondWriteKeepsPreviousSnapshotAsBackup()
         {
             Assert.That(CampaignSaveFileStore.TryWrite(savePath, "first", out string reason), Is.True, reason);

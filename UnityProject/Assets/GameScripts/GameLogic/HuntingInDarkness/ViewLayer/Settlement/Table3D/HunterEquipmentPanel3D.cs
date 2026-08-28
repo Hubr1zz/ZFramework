@@ -558,7 +558,7 @@ namespace UI
         private static string BuildStats(HunterInstance hunter)
         {
             string bloodline = string.IsNullOrWhiteSpace(hunter.BloodlineName) ? "未知血脉" : $"{hunter.BloodlineName} · {(hunter.IsBloodlineActivated ? "已激活" : "未激活")}";
-            return $"年龄 {hunter.Age}  意志 {hunter.Willpower}/{hunter.WillpowerMax}  命运 {hunter.Luck}  压抑 {hunter.Insanity}    力 {hunter.Stats.strength}  准 {hunter.Stats.accuracy}  敏 {hunter.Stats.evasion}  移 {hunter.Stats.movement}  速 {hunter.Stats.speed}\n胆识 {hunter.Courage}  知识 {hunter.Understanding}  特性 {BuildTraitSummary(hunter.Traits)}\n血脉 {bloodline}    装备 {hunter.Equipment?.Count ?? 0}/{EquipmentRules.MaximumEquipmentCount}";
+            return $"年龄 {hunter.Age}  意志 {hunter.Willpower}/{hunter.WillpowerMax}  命运 {hunter.Luck}  压抑 {hunter.Insanity} · {HunterSuppressionRules.GetDisplayName(hunter.Insanity)}    力 {hunter.Stats.strength}  准 {hunter.Stats.accuracy}  敏 {hunter.Stats.evasion}  移 {hunter.Stats.movement}  速 {hunter.Stats.speed}\n胆识 {hunter.Courage}  知识 {hunter.Understanding}  特性 {BuildTraitSummary(hunter.Traits)}\n血脉 {bloodline}    装备 {hunter.Equipment?.Count ?? 0}/{EquipmentRules.MaximumEquipmentCount}";
         }
 
         private static string BuildTraitSummary(IReadOnlyList<string> traits)

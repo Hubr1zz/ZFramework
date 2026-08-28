@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunter-suppression-state-foundation",
+  "title": "猎人压抑状态底座",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "纯规则、事件饱和、表校验、旧档兼容和既有 3D 只读投影已实现并通过定向验证。",
+    "codeEvidence": [],
+    "evidence": ["GameCore targeted EditMode: 10/10 passed", "Adapter focused EditMode: 21/21 passed", "Event table fixture + GameCore combined EditMode: 24/24 passed", "3D projection PlayMode: 2/2 passed", "HuntingInDarkness.Adapter EditMode/PlayMode projects: 0 errors", "对抗审查确认整数极值、分类边界、ActionQueue 与 View 边界无阻断问题"],
+    "differences": ["现有正式 Spec 尚未定义猎人压抑值的统一范围、分类、旧档兼容和 3D 展示契约。"],
+    "verifiedAt": "2026-08-28T10:13:35-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["tabletop-random-interaction", "campaign-persistence", "tabletop-settlement-hunters", "tabletop-settlement-equipment"],
+  "sourceReferences": ["conversation::2026-08-28", "primary::猎人 Hunter.md", "primary::压抑值.md"],
+  "implementationOutline": ["HunterSuppressionRules 提供有界增长和三档分类。", "事件与内容表保持 gameplay transaction 与 fail-closed 校验。", "存档恢复归一历史值，既有 3D View 只读投影。"],
+  "reviewIssues": []
+}

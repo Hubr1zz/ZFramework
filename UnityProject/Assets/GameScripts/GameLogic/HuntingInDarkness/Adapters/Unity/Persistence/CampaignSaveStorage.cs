@@ -4,6 +4,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 
 namespace Core
@@ -288,7 +289,10 @@ namespace Core
             if (data?.Settlement?.Hunters != null)
                 foreach (HunterInstance hunter in data.Settlement.Hunters)
                     if (hunter != null)
+                    {
                         hunter.OriginTemplateId = hunter.OriginTemplateId?.Trim() ?? string.Empty;
+                        hunter.Insanity = HunterSuppressionRules.Clamp(hunter.Insanity);
+                    }
             if (data?.Settlement != null && data.Settlement.EventMemorySchemaVersion == 0)
             {
                 data.Settlement.EventMemories ??= new List<EventResolutionMemory>();

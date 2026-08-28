@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-hunter-suppression-state-foundation",
+  "title": "收养猎人压抑状态底座",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现、定向验证与对抗审查已完成；等待人类审核后再显式同步为正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "Unity 6000.5.9f1；边界规则、事件提交、表校验、旧档恢复和 3D 文本均通过聚焦验证。",
+    "codeEvidence": [
+      {
+        "guid": "4bdf4d45233f71445837612b3a1a4b7b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterSuppressionRules.cs",
+        "fileHash": "6a8a24b0de7211c21f6d0beeba87191a31728cfd628534836372e2ba8372253b",
+        "line": 10,
+        "feature": "定义 0–8、有界增长和疯狂／正常／消极分类",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:13:35-07:00"
+      },
+      {
+        "guid": "8b25c0de20260714000000000000000a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/SettlementRules.cs",
+        "fileHash": "e88de322465a3357bacdec33469655b1fc76fe47bc83adab88daa5fdbbcb6952",
+        "line": 383,
+        "feature": "既有事件玩法事务拒绝非正增量并饱和提交",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:13:35-07:00"
+      },
+      {
+        "guid": "4a52335e5f26e2d46ab8f4192d6da186",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs",
+        "fileHash": "b7555f0f77cb6d1b9f860778be17c8d409109f7c6fd2b796d442e1ee48ba89c5",
+        "line": 294,
+        "feature": "恢复 canonical snapshot 时兼容归一历史越界值",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:13:35-07:00"
+      },
+      {
+        "guid": "e2fd62e7b7b24abfa6589b154bf8c584",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableHunterTemplateTable.cs",
+        "fileHash": "4abd3fd45258851fb616d5205d8ca90981ddc8b76efaf871d508e9c506e73a92",
+        "line": 181,
+        "feature": "作者模板的压抑值越界配置 fail closed",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:13:35-07:00"
+      },
+      {
+        "guid": "708e86251b0427e4dbed4e6f8ba3a2fd",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/HunterCard3D.cs",
+        "fileHash": "94ad6c7f0d1b838e17537565774b8fc20f08422e7fdfb6bcd94c905e54aaf543",
+        "line": 102,
+        "feature": "既有世界空间猎人卡只读显示数值与分类",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:13:35-07:00"
+      },
+      {
+        "guid": "6164cb9c44536394a8c69eb2962be1d9",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/SettlementTimelineRulesTests.cs",
+        "fileHash": "460557c0520a640eaaba2b1fa28475d400ce9f69dcf4a892a82b3c2224c786f6",
+        "line": 22,
+        "feature": "验证范围、三档边界、整数极值与事件饱和",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:13:35-07:00"
+      },
+      {
+        "guid": "627185649739029449961cf4b1059fc5",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/CampaignSaveStorageTests.cs",
+        "fileHash": "ad4e8b2fe960be884ddde6c7f941965d4d938124e80d73e964b351c62ac60017",
+        "line": 168,
+        "feature": "验证旧档上下越界归一且保留其他猎人字段",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:13:35-07:00"
+      }
+    ],
+    "evidence": [
+      "GameCore targeted EditMode: 10/10 passed",
+      "Adapter focused EditMode: 21/21 passed",
+      "Event table fixture + GameCore combined EditMode: 24/24 passed",
+      "3D projection PlayMode: 2/2 passed",
+      "HuntingInDarkness.Adapter EditMode/PlayMode projects: 0 errors",
+      "targeted git diff --check passed",
+      "对抗审查修正文案和增长 API，并补齐内容源测试夹具顺序依赖"
+    ],
+    "differences": [
+      "正式 Spec 尚未定义本能力；该 Change 只收养设计文档明确的数值、分类和必要兼容语义。"
+    ],
+    "verifiedAt": "2026-08-28T10:13:35-07:00"
+  },
+  "reviewIssues": [],
+  "gapIds": [],
+  "dependencyIds": [
+    "tabletop-random-interaction",
+    "campaign-persistence",
+    "tabletop-settlement-hunters",
+    "tabletop-settlement-equipment"
+  ],
+  "capabilities": [
+    "hunter-suppression-state-foundation"
+  ],
+  "syncTargets": [
+    {
+      "capability": "hunter-suppression-state-foundation",
+      "title": "猎人压抑状态底座",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-hunter-suppression-state-foundation/specs/hunter-suppression-state-foundation/spec.md",
+      "targetSpecPath": "openspec/specs/hunter-suppression-state-foundation/spec.md",
+      "targetExisted": false,
+      "baseFileHash": "",
+      "baseSnapshotPath": ""
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与基线一致，可以 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-28T10:18:19-07:00"
+  },
+  "createdAt": "2026-08-28T10:13:35-07:00"
+}

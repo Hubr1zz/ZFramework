@@ -381,7 +381,9 @@ namespace HuntingInDarkness.GameCore.Settlement
                         return MissingTarget(targetName);
                     return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.AddInsanity:
-                    if (!ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Insanity += value))
+                    if (value <= 0)
+                        return new SettlementEffectOutcome(false, reason: "压抑增加值必须为正数。");
+                    if (!ApplyToTargets(targetName, selectedHunter, hunters, hunter => hunter.Insanity = HunterSuppressionRules.Increase(hunter.Insanity, value)))
                         return MissingTarget(targetName);
                     return new SettlementEffectOutcome(true);
                 case SettlementEffectKind.AddCourage:

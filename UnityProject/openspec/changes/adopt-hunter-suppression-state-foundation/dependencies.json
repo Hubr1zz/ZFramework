@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "hunter-suppression-state-foundation", "label": "猎人压抑状态底座", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-hunter-suppression-state-foundation/specs/hunter-suppression-state-foundation/spec.md" },
+    { "id": "tabletop-random-interaction", "label": "桌面随机交互", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-random-interaction/spec.md" },
+    { "id": "campaign-persistence", "label": "战役持久化", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/campaign-persistence/spec.md" },
+    { "id": "tabletop-settlement-hunters", "label": "桌面营地猎人", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-settlement-hunters/spec.md" },
+    { "id": "tabletop-settlement-equipment", "label": "桌面营地装备", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-settlement-equipment/spec.md" }
+  ],
+  "edges": [
+    { "from": "tabletop-random-interaction", "to": "hunter-suppression-state-foundation", "type": "supports" },
+    { "from": "campaign-persistence", "to": "hunter-suppression-state-foundation", "type": "supports" },
+    { "from": "hunter-suppression-state-foundation", "to": "tabletop-settlement-hunters", "type": "supports" },
+    { "from": "hunter-suppression-state-foundation", "to": "tabletop-settlement-equipment", "type": "supports" }
+  ]
+}

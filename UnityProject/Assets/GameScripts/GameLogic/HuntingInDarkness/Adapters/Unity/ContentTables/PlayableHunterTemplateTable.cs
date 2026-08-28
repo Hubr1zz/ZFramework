@@ -178,9 +178,9 @@ namespace HuntingInDarkness.ContentTables
                 return false;
             }
             if (!TryBuildStats(record, out HunterCombatStats stats, out error)) return false;
-            if (record.willpower < 0 || record.luck < 0 || record.insanity < 0)
+            if (record.willpower < 0 || record.luck < 0 || record.insanity < HunterSuppressionRules.Minimum || record.insanity > HunterSuppressionRules.Maximum)
             {
-                error = $"猎人模板 {record.id} 的意志、命运或压抑值不能为负数。";
+                error = $"猎人模板 {record.id} 的意志、命运或压抑值超出有效范围。";
                 return false;
             }
             if (!TryResolveEquipment(record, itemById, out List<ItemData> equipment, out error)) return false;

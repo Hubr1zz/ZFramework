@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Settlement;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -21,6 +22,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 recruitable = true,
                 stats = new HunterStatsTableRecord { strength = 1, movement = 6, armorBody = 1 },
                 willpower = 3,
+                insanity = 5,
                 startingEquipmentIds = new List<string> { "salt_ward" },
                 traits = new List<string> { " trait_keeper_of_flame ", "trait_keeper_of_flame" }
             };
@@ -32,9 +34,11 @@ namespace HuntingInDarkness.Adapter.Tests
                 HunterData template = entries[0].Template;
                 Assert.That(template.ContentId, Is.EqualTo("ember_keeper"));
                 Assert.That(template.initialStats.movement, Is.EqualTo(6));
+                Assert.That(template.initialInsanity, Is.EqualTo(5));
                 Assert.That(template.startingTraits, Is.EqualTo(new[] { "trait_keeper_of_flame" }));
                 var hunter = new HunterInstance(template, 201);
                 Assert.That(hunter.OriginTemplateId, Is.EqualTo("ember_keeper"));
+                Assert.That(hunter.Insanity, Is.EqualTo(5));
                 Assert.That(hunter.EquippedItemIds, Is.EqualTo(new[] { "salt_ward" }));
                 Assert.That(hunter.Equipment, Has.Count.EqualTo(1));
                 Assert.That(hunter.Stats.armorBody, Is.EqualTo(1));
@@ -62,6 +66,23 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(entries, Is.Empty);
             Assert.That(errors, Has.Some.Contains("重复"));
             Assert.That(errors, Has.Some.Contains("missing"));
+        }
+
+        [Test]
+        public void Build_RejectsInsanityOutsideAuthoredRange()
+        {
+            var records = new[]
+            {
+                new HunterTemplateTableRecord { id = "too_low", displayName = "过低", recruitable = true, insanity = -1 },
+                new HunterTemplateTableRecord { id = "too_high", displayName = "过高", recruitable = true, insanity = HunterSuppressionRules.Maximum + 1 }
+            };
+            var errors = new List<string>();
+
+            List<HunterTemplateTableEntry> entries = PlayableHunterTemplateTableRuntime.Build(records, new ItemData[0], errors.Add);
+
+            Assert.That(entries, Is.Empty);
+            Assert.That(errors, Has.Count.EqualTo(2));
+            Assert.That(errors, Has.All.Contains("压抑值"));
         }
 
         [Test]

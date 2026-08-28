@@ -529,6 +529,8 @@ namespace HuntingInDarkness.ContentTables
                     return false;
                 if (effectType == EventEffectType.AddAilment && (symptomCatalog == null || !symptomCatalog.TryGetById(record.targetName, out _)))
                     return false;
+                if (effectType == EventEffectType.AddInsanity && record.value <= 0)
+                    return false;
                 if (effectType == EventEffectType.AddRecoverableWound && (!allowSelectedHunterEffects || !string.Equals(record.targetName?.Trim(), "selected", StringComparison.OrdinalIgnoreCase) || record.value <= 0 || !HunterRecoveryRules.TryParseBodyPart(record.bodyPart, out _)))
                     return false;
                 if (effectType == EventEffectType.KillHunter && (!allowSelectedHunterEffects || !IsValidHunterDeathCauseId(record.targetName)))

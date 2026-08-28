@@ -26,7 +26,7 @@ namespace HuntingInDarkness.Data
         [Header("初始意志/命运")]
         public int initialWillpower  = 2; // 意志点上限
         public int initialLuck       = 0; // 命运值
-        public int initialInsanity   = 0; // 压抑值
+        public int initialInsanity   = HunterSuppressionRules.Default; // 压抑值
 
         [Header("初始装备")]
         public List<ItemData> startingEquipment = new();

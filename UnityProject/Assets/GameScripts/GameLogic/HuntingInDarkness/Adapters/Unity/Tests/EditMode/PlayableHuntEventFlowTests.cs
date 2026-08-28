@@ -26,12 +26,16 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             PlayableSymptomRuntime.Configure(AssetDatabase.LoadAssetAtPath<PlayableSymptomCatalog>(SymptomCatalogPath));
             PlayableEventTableRuntime.ClearCache();
+            var sourceBundle = PlayableContentSourceTestAssets.LoadBundle();
+            PlayableBloodlineRuntime.Configure(new PlayableBloodlineTable(sourceBundle.BloodlinesTable));
+            Assert.That(PlayableEventTableRuntime.Rebuild(sourceBundle), Is.Not.Empty);
         }
 
         [TearDown]
         public void TearDown()
         {
             PlayableEventTableRuntime.ClearCache();
+            PlayableBloodlineRuntime.Configure(null);
             PlayableSymptomRuntime.Configure(null);
         }
 
@@ -107,6 +111,19 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(validateEffects.Invoke(null, new object[] { valid, true, PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, true, false }), Is.True);
             Assert.That(validateEffects.Invoke(null, new object[] { combined, true, PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, true, false }), Is.False);
+        }
+
+        [Test]
+        public void AddInsanityTableEffectRequiresPositiveValue()
+        {
+            MethodInfo validateEffects = typeof(PlayableEventTableRuntime).GetMethod("ValidateEffects", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(validateEffects, Is.Not.Null);
+            EventEffectTableRecord effect = new() { effectType = nameof(EventEffectType.AddInsanity), targetName = "selected", value = 0 };
+            object[] arguments = { new List<EventEffectTableRecord> { effect }, true, PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, true, false };
+
+            Assert.That(validateEffects.Invoke(null, arguments), Is.False);
+            effect.value = 1;
+            Assert.That(validateEffects.Invoke(null, arguments), Is.True);
         }
 
         [Test]
