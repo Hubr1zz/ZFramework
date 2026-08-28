@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "d3dd1e0f9ae225c0a3b624e173f3394d66e5b007a023f413299e0f9e542c7360",
-  "inputManifestDigest": "4cec2ac2fb4cc44de13892dbf9617a5be63ad001e05468f4afe4842bcfbce0c5",
-  "outputDigest": "d7011abad76c82e5348adf4032c820aa74b54e02c8d6b314a329bc74ae63afc2",
+  "inputDigest": "d5921d4c29b97e8614b38441ca8cd84e4ab3de8fafc691f94cf198c33210941f",
+  "inputManifestDigest": "971226ad923b2436a96e63af6ba0bcfe3c430c1ef76b10227828b059d9687ada",
+  "outputDigest": "de2b337c891faf0a531ec06cbca2f9b859eb734e40046df7556d3ac6b980385c",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -637,7 +637,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "6e30330239db5fd1c2c271600ff39124779da3ac16ebd0412e3336c2e0d6388f",
+      "sha256": "d4dfbbb88c5f4563bec70f9dd7126be97907213834c394c6c058a583c0843dfa",
       "state": "current"
     },
     {
@@ -1277,7 +1277,7 @@
     },
     {
       "path": "openspec/specs/campaign-year-loop/implementation.json",
-      "sha256": "7173fb3721878827d95da58595facdb77e7aba06db23241d3b069b370b284041",
+      "sha256": "400462d686659364deb483afac36466c3db475a0bcd1c0678f8c4a5dbfa67a89",
       "state": "current"
     },
     {
@@ -1357,7 +1357,7 @@
     },
     {
       "path": "openspec/specs/game-manager-orchestration/implementation.json",
-      "sha256": "925fdee08be2984afb41569095d399a40fe51e59603a5282409346a062ce0c32",
+      "sha256": "302f576d3380b0505d50b40aed3f8542c782c6776b116e80bb1586e0c625cac8",
       "state": "current"
     },
     {
@@ -2174,11 +2174,6 @@
       "state": "stale"
     },
     {
-      "capability": "campaign-year-loop",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "state": "stale"
-    },
-    {
       "capability": "csharp-derived-index",
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
       "state": "unverified"
@@ -2327,11 +2322,6 @@
       "capability": "expedition-build-progression-loop",
       "path": "openspec/specs/expedition-build-progression-loop/implementation.json",
       "state": "spec-binding-invalid"
-    },
-    {
-      "capability": "game-manager-orchestration",
-      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "state": "stale"
     },
     {
       "capability": "game-manager-orchestration",
@@ -3775,7 +3765,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "stale"
+          "state": "current"
         }
       ]
     },
@@ -4086,7 +4076,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-          "state": "stale"
+          "state": "current"
         }
       ]
     },

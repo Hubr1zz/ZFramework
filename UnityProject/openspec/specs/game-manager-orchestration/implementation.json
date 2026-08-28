@@ -68,7 +68,7 @@
       {
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 37,
-        "fileHash": "d9105fcd66dacd398a8d2ec511ee46d7abed7c9ae9a6ce865843eb5d4cfac968",
+        "fileHash": "d4dfbbb88c5f4563bec70f9dd7126be97907213834c394c6c058a583c0843dfa",
         "status": "verified",
         "checkedAt": "2026-08-27T22:10:00-07:00",
         "feature": "覆盖统一启动配置、战役闭环、恢复、遭遇与销毁边界。"
@@ -76,11 +76,11 @@
     ],
     "tests": [
       "Unity 6000.5.9f1 CLI PlayableCampaignRuntimeModuleTests 20/20",
-      "Unity 6000.5.9f1 CLI GameManagerCampaignLoopPlayModeTests 26/26",
+      "Unity 6000.5.9f1 CLI GameManagerCampaignLoopPlayModeTests 30/30",
       "Unity 6000.5.9f1 CLI PlayableSettlementEventProductionLoopPlayModeTests 2/2",
       "dotnet build HuntingInDarkness.Adapter.PlayModeTests: 0 errors"
     ],
-    "verifiedAt": "2026-08-27T22:10:00-07:00"
+    "verifiedAt": "2026-08-28T11:41:24-07:00"
   },
   "implementationOutline": [
     "GameManager 负责 MonoBehaviour 生命周期、serialized composition、场景根/相机和有界兼容入口。",

@@ -32,15 +32,15 @@
       {
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
         "line": 37,
-        "fileHash": "220616905ec766677f32afe23487a5495e85838200ed501c967abb28c32289f9",
-        "feature": "用公开命令验证正式出发、回营、事件恢复、检查点清理和再次出发。"
+        "fileHash": "d4dfbbb88c5f4563bec70f9dd7126be97907213834c394c6c058a583c0843dfa",
+        "feature": "用实体 3D 入口验证正式出发、回营、销毁重建、Continue 恢复、跨年事件结算和再次出发。"
       }
     ],
     "tests": [
       "Targeted Unity EditMode: 71/71 passed",
-      "GameManagerCampaignLoopPlayModeTests: 26/26 passed"
+      "GameManagerCampaignLoopPlayModeTests: 30/30 passed"
     ],
-    "verifiedAt": "2026-08-27T21:30:00-07:00"
+    "verifiedAt": "2026-08-28T11:41:24-07:00"
   },
   "implementationOutline": [
     "日历季节数与顺序来自冻结配置，流程代码不写死一年出猎次数。",

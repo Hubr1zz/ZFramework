@@ -138,6 +138,108 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator PhysicalContinueAcrossManagerLifetime_PreservesCalendarAndNextDeparture()
+        {
+            var persistence = new MemoryCampaignPersistence();
+            GameManager manager = CreateProductionManager(persistence, true);
+            PlayableBootstrapSettings settings = PlayableContentSourcePlayModeAssets.LoadBundle()?.Settings;
+            Assert.That(settings, Is.Not.Null);
+
+            PlayableOpeningSequence3D opening = managerObject.AddComponent<PlayableOpeningSequence3D>();
+            opening.Initialize(manager, settings);
+            TabletopEventPanel3D openingPanel = opening.GetComponentInChildren<TabletopEventPanel3D>(true);
+            yield return WaitUntil(() => openingPanel != null && openingPanel.IsOpen && openingPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Any(card => card.IsInteractable && card.DisplayName == "开始新战役"), "开场菜单未打开。");
+            ClickCard(openingPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == "开始新战役"));
+            if (settings.ShowFlowGuide && settings.ShowOpeningNarrative)
+            {
+                yield return WaitUntil(() => openingPanel.IsOpen && openingPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Any(card => card.IsInteractable && card.DisplayName == "踏入黑暗"), "开场叙事未打开。");
+                ClickCard(openingPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == "踏入黑暗"));
+            }
+            else
+                yield return WaitUntil(() => !opening.IsOpen, "开场流程未关闭。");
+            Assert.That(opening.IsOpen, Is.False);
+            yield return WaitForSettlementIdle(manager);
+            Assert.That(manager.CampaignStartupState, Is.EqualTo(CampaignStartupState.Active));
+            Assert.That(manager.TabletopPresentationRoot.gameObject.activeSelf, Is.True);
+
+            PlayableGameBootstrap.EnsureRequiredWorldSpacePorts(managerObject, manager, settings);
+            manager.SetPlayableEventInput(new ImmediateEventInput(() => manager.SettlementData));
+            EnsureMainCamera();
+            int initialYear = manager.SettlementData.CurrentYear;
+            yield return DepartThrough3D(manager);
+            yield return ExploreOneSafeTileAndReturn(manager, persistence);
+
+            CampaignSnapshot payloadSnapshot = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+            Assert.That(payloadSnapshot?.HasActiveHunt, Is.False);
+            Assert.That(payloadSnapshot.Settlement.CurrentYear, Is.EqualTo(initialYear));
+            Assert.That(payloadSnapshot.Settlement.CurrentSeasonIndex, Is.EqualTo(1));
+            Assert.That(payloadSnapshot.Settlement.CampaignCalendarId, Is.Not.Null.And.Not.Empty);
+            Assert.That(payloadSnapshot.Settlement.PendingHuntReturn, Is.Not.Null);
+            Assert.That(payloadSnapshot.Settlement.PendingHuntReturn.RecordId, Is.Null.Or.Empty);
+            CampaignSnapshot firstReturned = persistence.Snapshots.LastOrDefault(snapshot => snapshot?.Settlement != null && (snapshot.Settlement.PendingHuntReturn == null || string.IsNullOrWhiteSpace(snapshot.Settlement.PendingHuntReturn.RecordId)) && !snapshot.HasActiveHunt);
+            Assert.That(firstReturned, Is.Not.Null, $"缺少清除回营检查点后的稳定持久化快照：{persistence.DescribeSnapshots()}");
+            Assert.That(firstReturned.Settlement.CurrentYear, Is.EqualTo(initialYear));
+            Assert.That(firstReturned.Settlement.CurrentSeasonIndex, Is.EqualTo(1));
+            Assert.That(firstReturned.Settlement.PendingEventChains, Is.Empty);
+            Assert.That(firstReturned.Settlement.HuntHistory, Has.Count.EqualTo(1));
+            Assert.That(manager.SettlementData.PendingHuntReturn, Is.Null);
+            string calendarId = firstReturned.Settlement.CampaignCalendarId;
+            Assert.That(payloadSnapshot.Settlement.CampaignCalendarId, Is.EqualTo(calendarId));
+            List<string> firstTimelineIds = firstReturned.Settlement.Timeline.Select(entry => entry.EventId).ToList();
+            SettlementInstance firstSettlementData = manager.SettlementData;
+
+            GameObject firstManagerObject = managerObject;
+            UnityEngine.Object.Destroy(firstManagerObject);
+            managerObject = null;
+            yield return null;
+            Assert.That(firstManagerObject == null, Is.True, "第一实例的 GameManager 根节点未在生命周期切换时销毁。");
+
+            GameManager restoredManager = CreateProductionManager(persistence, true);
+            PlayableGameBootstrap.EnsureRequiredWorldSpacePorts(managerObject, restoredManager, settings);
+            restoredManager.SetPlayableEventInput(new ImmediateEventInput(() => restoredManager.SettlementData));
+            EnsureMainCamera();
+            int loadCountBeforeRestore = persistence.LoadCount;
+            UniTask<CampaignStartupResult>.Awaiter restore = restoredManager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(restore);
+            CampaignStartupResult restoreResult = restore.GetResult();
+            Assert.That(restoreResult.Succeeded, Is.True, restoreResult.Reason);
+            Assert.That(persistence.LoadCount, Is.EqualTo(loadCountBeforeRestore + 1));
+            yield return WaitForSettlementIdle(restoredManager);
+            Assert.That(restoredManager.CampaignStartupState, Is.EqualTo(CampaignStartupState.Active));
+            Assert.That(restoredManager.SettlementData.CurrentYear, Is.EqualTo(initialYear));
+            Assert.That(restoredManager.SettlementData.CurrentSeasonIndex, Is.EqualTo(1));
+            Assert.That(restoredManager.SettlementData.CampaignCalendarId, Is.EqualTo(calendarId));
+            Assert.That(restoredManager.SettlementData, Is.Not.SameAs(firstSettlementData));
+            Assert.That(restoredManager.SettlementData.HuntHistory, Has.Count.EqualTo(1));
+            Assert.That(restoredManager.SettlementData.PendingHuntReturn, Is.Null);
+            Assert.That(restoredManager.SettlementData.PendingEventChains, Is.Empty);
+            Assert.That(restoredManager.SettlementData.Timeline.Select(entry => entry.EventId), Is.EqualTo(firstTimelineIds));
+
+            yield return DepartThrough3D(restoredManager);
+            yield return ReturnFromHuntStart(restoredManager, persistence);
+
+            CampaignSnapshot secondReturned = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+            Assert.That(secondReturned?.HasActiveHunt, Is.False);
+            Assert.That(secondReturned.Settlement.CurrentYear, Is.EqualTo(initialYear + 1));
+            Assert.That(secondReturned.Settlement.CurrentSeasonIndex, Is.Zero);
+            Assert.That(secondReturned.Settlement.PendingEventChains, Is.Empty);
+            Assert.That(secondReturned.Settlement.CampaignCalendarId, Is.EqualTo(calendarId));
+            Assert.That(secondReturned.Settlement.HuntHistory, Has.Count.EqualTo(2));
+            Assert.That(restoredManager.SettlementData.PendingHuntReturn, Is.Null);
+            HuntRecord firstReturnRecord = secondReturned.Settlement.HuntHistory[0];
+            HuntRecord secondReturnRecord = secondReturned.Settlement.HuntHistory[1];
+            List<AnnalEntry> firstReturnRandomEntries = secondReturned.Settlement.Timeline.Where(entry => entry.EntryType == TimelineEntryType.Random && entry.SourceHuntRecordId == firstReturnRecord.RecordId).ToList();
+            List<AnnalEntry> secondReturnRandomEntries = secondReturned.Settlement.Timeline.Where(entry => entry.EntryType == TimelineEntryType.Random && entry.SourceHuntRecordId == secondReturnRecord.RecordId).ToList();
+            Assert.That(firstReturnRandomEntries, Is.Empty, "首季未跨年时不应生成年度回营随机事件。");
+            Assert.That(secondReturnRandomEntries, Has.Count.EqualTo(1), "跨年回营应为该远征稳定 ID 生成唯一随机事件。");
+            Assert.That(secondReturnRandomEntries[0].IsCompleted, Is.True, "ImmediateEventInput 应结算跨年回营随机事件。");
+
+            yield return DepartThrough3D(restoredManager);
+            Assert.That(restoredManager.CurrentGamePhase, Is.EqualTo(GamePhase.Hunt));
+            Assert.That(restoredManager.IsHuntActionSessionActive, Is.True);
+        }
+
+        [UnityTest]
         public IEnumerator PublicCommands_CompleteTwoSeasonLoopAndAllowNextDeparture()
         {
             var persistence = new MemoryCampaignPersistence();
@@ -2080,7 +2182,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 cancellationToken.ThrowIfCancellationRequested();
                 CampaignSnapshot snapshot = JsonUtility.FromJson<CampaignSnapshot>(payload);
                 Snapshots.Add(snapshot);
-                bool hasPendingReturn = payload.Contains("\"PendingHuntReturn\": {");
+                bool hasPendingReturn = snapshot?.Settlement?.PendingHuntReturn != null && !string.IsNullOrWhiteSpace(snapshot.Settlement.PendingHuntReturn.RecordId);
                 pendingReturnFlags.Add(hasPendingReturn);
                 if (RejectPendingReturn && hasPendingReturn)
                     return UniTask.FromResult(false);
@@ -2107,8 +2209,11 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 LoadCount++;
                 if (!DelayLoad)
                 {
-                    NormalizeLoadedSnapshot(SnapshotToLoad);
-                    return UniTask.FromResult(SnapshotToLoad);
+                    CampaignSnapshot snapshot = SnapshotToLoad;
+                    if (snapshot == null && !string.IsNullOrWhiteSpace(Payload))
+                        snapshot = JsonUtility.FromJson<CampaignSnapshot>(Payload);
+                    NormalizeLoadedSnapshot(snapshot);
+                    return UniTask.FromResult(snapshot);
                 }
                 loadCompletion = new UniTaskCompletionSource<CampaignSnapshot>();
                 return loadCompletion.Task;
@@ -2170,7 +2275,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 for (int index = 0; index < Snapshots.Count; index++)
                 {
                     CampaignSnapshot snapshot = Snapshots[index];
-                    descriptions.Add($"year={snapshot?.Settlement?.CurrentYear},pending={pendingReturnFlags[index]},history={snapshot?.Settlement?.HuntHistory?.Count}");
+                    descriptions.Add($"year={snapshot?.Settlement?.CurrentYear},season={snapshot?.Settlement?.CurrentSeasonIndex},active={snapshot?.HasActiveHunt},pendingObject={snapshot?.Settlement?.PendingHuntReturn != null},pendingValid={pendingReturnFlags[index]},history={snapshot?.Settlement?.HuntHistory?.Count}");
                 }
                 return string.Join(";", descriptions);
             }
