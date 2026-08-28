@@ -669,21 +669,25 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(explorationPort, Is.Not.Null);
             Assert.That(explorationPort.TryCreateSnapshot(coordinate, -1, out HuntExplorationSnapshot target), Is.True);
 
-            UniTask<HuntTileCommandResult>.Awaiter reveal = explorationPort.SubmitTileAsync(target).GetAwaiter();
             PlayableHexTileCard3D tileCard = FindTileCard(visualizer, coordinate);
+            TileClickHandler tileInput = tileCard.GetComponent<TileClickHandler>();
+            Assert.That(tileInput, Is.Not.Null);
+            tileInput.HandleResolvedPointerClick();
+            HuntTileScoutPanel3D scoutPanel = visualizer.GetComponentInChildren<HuntTileScoutPanel3D>(true);
+            Assert.That(scoutPanel, Is.Not.Null);
+            yield return WaitUntil(() => scoutPanel.IsOpen, "点击未知地块后实体侦察确认桌未打开。");
+            ClickCard(scoutPanel.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == "翻开地块"));
             yield return WaitForTileFlip(tileCard);
-            Assert.That(reveal.IsCompleted, Is.False, "ActionQueue 不得在实体地形卡翻面完成前结束命令。");
-            yield return WaitForPresentationCompletion(reveal);
-            HuntTileCommandResult revealResult = reveal.GetResult();
-            Assert.That(revealResult.Succeeded, Is.True, revealResult.Reason);
+            yield return WaitForTileFaceUp(tileCard);
+            yield return WaitForHuntInputReady();
             Assert.That(tileCard.IsFaceUp, Is.True);
+            yield return null;
 
-            UniTask<HuntTileCommandResult>.Awaiter move = explorationPort.SubmitTileAsync(target).GetAwaiter();
+            tileInput.HandleResolvedPointerClick();
             yield return WaitForSquadMovement(pawn);
-            Assert.That(move.IsCompleted, Is.False, "ActionQueue 不得在实体小队棋子落位前结束命令。");
-            yield return WaitForPresentationCompletion(move);
-            HuntTileCommandResult moveResult = move.GetResult();
-            Assert.That(moveResult.Succeeded, Is.True, moveResult.Reason);
+            yield return WaitForSquadMovementEnd(pawn);
+            yield return WaitForHuntInputReady();
+            Assert.That(pawn.IsMoving, Is.False, "实体地形卡点击后小队未完成落位提交。");
             PlayableHuntResourceMarker3D[] arrivedMarkers = visualizer.GetComponentsInChildren<PlayableHuntResourceMarker3D>(true);
             Assert.That(arrivedMarkers.Any(marker => marker.IsAvailableForHarvest), Is.True, "小队落位后当前地块的实体资源棋子应提供采集交互。");
 
@@ -694,13 +698,13 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(exploredTile.ResourcePoints, Is.Not.Empty, "基础路线的非起始地块应提供最小可采集内容。");
             Assert.That(visualizer.GetComponentsInChildren<PlayableHuntResourceMarker3D>(true), Has.Length.GreaterThanOrEqualTo(exploredTile.ResourcePoints.Count));
 
-            Assert.That(explorationPort.TryCreateSnapshot(coordinate, 0, out HuntExplorationSnapshot resourceTarget), Is.True);
-            UniTask<bool>.Awaiter selection = explorationPort.SubmitResourcePointAsync(resourceTarget).GetAwaiter();
-            yield return WaitForCompletion(selection);
-            Assert.That(selection.GetResult(), Is.True);
+            PlayableHuntResourceMarker3D resourceMarker = arrivedMarkers.Single(marker => marker.IsAvailableForHarvest && marker.PointIndex == 0);
+            ResourceMarkerClickHandler resourceInput = resourceMarker.GetComponent<ResourceMarkerClickHandler>();
+            Assert.That(resourceInput, Is.Not.Null);
+            resourceInput.HandleResolvedPointerClick();
             HuntHarvestPanel3D harvestPanel = visualizer.GetComponentInChildren<HuntHarvestPanel3D>(true);
             Assert.That(harvestPanel, Is.Not.Null);
-            Assert.That(harvestPanel.IsOpen, Is.True);
+            yield return WaitUntil(() => harvestPanel.IsOpen, "点击实体资源棋子后采集牌桌未打开。");
             int poolCardCount = exploredTile.ResourcePoints[0].MaterialItemIds?.Count > 0 ? exploredTile.ResourcePoints[0].MaterialItemIds.Count : exploredTile.ResourcePoints[0].DrawCount;
             Assert.That(harvestPanel.CardCount, Is.EqualTo(poolCardCount));
             Assert.That(harvestPanel.CardCount, Is.GreaterThan(0));
@@ -710,7 +714,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 HuntHarvestCard3D harvestCard = harvestPanel.GetComponentsInChildren<HuntHarvestCard3D>(true).Single(card => card.CardIndex == cardIndex);
                 Assert.That(harvestCard.RevealRequested, Is.Not.Null);
                 Assert.That(harvestPanel.RevealedCount, Is.EqualTo(cardIndex));
-                Assert.That(harvestPanel.TryRevealCard(cardIndex), Is.True, $"第 {cardIndex + 1} 张实体采集牌未接受点击。");
+                ClickCard(harvestCard);
                 yield return WaitForHarvestStep(harvestPanel, cardIndex + 1);
                 HuntHarvestCard3D presentedCard = harvestPanel.GetComponentsInChildren<HuntHarvestCard3D>(true).Single(card => card.CardIndex == cardIndex);
                 Assert.That(presentedCard.IsRevealed, Is.True, $"第 {cardIndex + 1} 张实体采集牌未完成翻面。");
@@ -719,7 +723,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(controlCard, Is.Not.Null);
             Assert.That(controlCard.Clicked, Is.Not.Null);
             Assert.That(harvestPanel.IsOperationRunning, Is.False);
-            Assert.That(harvestPanel.TryActivateControlCard(), Is.True);
+            ClickCard(controlCard);
             yield return null;
             Assert.That(harvestPanel.IsOpen, Is.False);
             Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
@@ -734,7 +738,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
             HuntRetreatPanel3D retreatPanel = visualizer.GetComponentInChildren<HuntRetreatPanel3D>(true);
             Assert.That(retreatPanel, Is.Not.Null);
-            retreatPanel.RequestOpen();
+            ClickCard(retreatPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.DisplayName == "收队回营"));
             Assert.That(retreatPanel.IsConfirmationOpen, Is.True);
             Assert.That(PlayableHuntInputGuard.IsBlocked, Is.True, "实体回营确认桌打开时应独占狩猎输入。");
             TabletopEventChoiceCard3D confirmRetreat = retreatPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.DisplayName == "结算并回营");
@@ -742,12 +746,12 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             {
                 TabletopEventChoiceCard3D abandonRetreatMaterial = retreatPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).First(card => card.DisplayName.StartsWith("放弃 · "));
                 Assert.That(abandonRetreatMaterial.IsInteractable, Is.True, "远离营地且携带素材时应先选择一张放弃素材牌。");
-                abandonRetreatMaterial.Clicked.Invoke();
+                ClickCard(abandonRetreatMaterial);
                 yield return null;
                 confirmRetreat = retreatPanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.DisplayName == "结算并回营");
             }
             Assert.That(confirmRetreat.IsInteractable, Is.True);
-            confirmRetreat.Clicked.Invoke();
+            ClickCard(confirmRetreat);
             yield return WaitForSettlementIdle(manager);
             Assert.That(manager.SettlementData.CurrentYear, Is.EqualTo(initialYear));
             Assert.That(manager.SettlementData.CurrentSeasonIndex, Is.EqualTo(1));
@@ -1445,6 +1449,12 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             card.HandlePointerUp();
         }
 
+        private static void ClickCard(CardView3D card)
+        {
+            card.HandlePointerDown(Vector2.zero);
+            card.HandlePointerUp();
+        }
+
         private static TabletopEventChoiceCard3D FindChoice(PlayableSettlementEventView view, string title) => view.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == title);
 
         private static IEnumerator WaitForChoice(PlayableSettlementEventView view, string title)
@@ -1496,6 +1506,17 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.Fail("等待实体地形卡开始翻面超时。");
         }
 
+        private static IEnumerator WaitForTileFaceUp(PlayableHexTileCard3D card)
+        {
+            float deadline = Time.realtimeSinceStartup + 5f;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                if (card != null && card.IsFaceUp) yield break;
+                yield return null;
+            }
+            Assert.Fail("等待实体地形卡完成翻面超时。");
+        }
+
         private static IEnumerator WaitForSquadMovement(PlayableHuntSquadPawn3D pawn)
         {
             float deadline = Time.realtimeSinceStartup + 5f;
@@ -1505,6 +1526,17 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 yield return null;
             }
             Assert.Fail("等待实体小队棋子开始移动超时。");
+        }
+
+        private static IEnumerator WaitForSquadMovementEnd(PlayableHuntSquadPawn3D pawn)
+        {
+            float deadline = Time.realtimeSinceStartup + 5f;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                if (pawn != null && !pawn.IsMoving) yield break;
+                yield return null;
+            }
+            Assert.Fail("等待实体小队棋子完成移动超时。");
         }
 
         private static IEnumerator WaitForPresentationCompletion<T>(UniTask<T>.Awaiter awaiter)

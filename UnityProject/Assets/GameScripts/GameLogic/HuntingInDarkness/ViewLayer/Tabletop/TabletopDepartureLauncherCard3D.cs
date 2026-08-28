@@ -44,6 +44,10 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             bodyText.color = new Color(0.82f, 0.80f, 0.72f);
         }
 
-        protected override void OnMouseDown() => Clicked?.Invoke();
+        protected override void OnClickReleased()
+        {
+            Clicked?.Invoke();
+            base.OnClickReleased();
+        }
     }
 }

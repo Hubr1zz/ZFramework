@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "871b32916d6da49e5fd186b2368b76b68106490c59189d7a0f69b18b01162cd6",
-  "inputManifestDigest": "e985f03c27023f5522a0979cae84ce9f63cf3255645673abe8cfa6ce0a4861ef",
+  "inputDigest": "262d193cb7f1c305aaaa8091d524441dbb824c7e9809d3b10871261d45ade432",
+  "inputManifestDigest": "e68245c23175071417be8a6e63305930c78668d08017bfaa51653b819ccf11e8",
   "outputDigest": "eaff99b686b816e02f5bb5fa99c3535fab7861635f040d541cbbaf9a8260fca2",
   "inputManifest": [
     {
@@ -637,7 +637,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs",
-      "sha256": "761806b85766681960536cfea87860f5500cc7745bbb25cc20d92df66a7cb02d",
+      "sha256": "65ca7d3c68dcaae824f96a9d80f9ddf7e44153a9e442a91bdcfe4806e84f81a0",
       "state": "current"
     },
     {
@@ -677,7 +677,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
-      "sha256": "c8f0c4319ff1e34f908a0c9a149bac3b9086fa3dc945b7ab4ed4347a18ebcdd5",
+      "sha256": "d58269f75911abe9068cd8fdf7d251321221a794a684a4c4f58b3d47ff474a13",
       "state": "current"
     },
     {

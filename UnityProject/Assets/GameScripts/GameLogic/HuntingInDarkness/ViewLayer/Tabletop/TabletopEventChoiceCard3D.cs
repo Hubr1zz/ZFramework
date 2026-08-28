@@ -67,10 +67,11 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             statusText.color = isInteractable ? new Color(0.66f, 0.74f, 0.78f) : new Color(0.62f, 0.40f, 0.38f);
         }
 
-        protected override void OnMouseDown()
+        protected override void OnClickReleased()
         {
             if (!isInteractable) return;
             Clicked?.Invoke();
+            base.OnClickReleased();
         }
     }
 }

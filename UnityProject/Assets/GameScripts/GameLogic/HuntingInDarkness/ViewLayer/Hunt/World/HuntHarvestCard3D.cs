@@ -101,10 +101,11 @@ namespace UI.Hunt
             resultText.color = Color.white;
         }
 
-        protected override void OnMouseDown()
+        protected override void OnClickReleased()
         {
             if (!isActive || isFlipping || isRevealed) return;
             RevealRequested?.Invoke(cardIndex);
+            base.OnClickReleased();
         }
     }
 }

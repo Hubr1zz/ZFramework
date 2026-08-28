@@ -11,8 +11,13 @@ namespace HuntingInDarkness.Hunt
 
         private void OnMouseDown()
         {
-            // 不穿透 UI
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+            HandleResolvedPointerClick();
+        }
+
+        /// <summary>统一接收鼠标、触摸或控制器对实体地块的点击；只转发玩法意图。</summary>
+        public void HandleResolvedPointerClick()
+        {
             Visualizer?.HandleTileClicked(Coord);
         }
     }

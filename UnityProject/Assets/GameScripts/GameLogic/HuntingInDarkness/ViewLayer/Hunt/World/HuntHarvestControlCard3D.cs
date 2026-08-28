@@ -51,10 +51,11 @@ namespace UI.Hunt
             labelText.color = isInteractable ? Color.white : new Color(0.55f, 0.55f, 0.55f);
         }
 
-        protected override void OnMouseDown()
+        protected override void OnClickReleased()
         {
             if (!isInteractable) return;
             Clicked?.Invoke();
+            base.OnClickReleased();
         }
     }
 }

@@ -1,0 +1,11 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的收养对账：以统一 3D 世界空间输入完成一次非战斗战役循环。",
+  "sourceRoots": ["C:/Users/leonz/Desktop/GameDesignVault"],
+  "sourceReferences": [
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md",
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/狩猎阶段 Hunt Phase/地图 Map.md",
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/营地阶段 Settlement Phase/Timeline.md",
+    "conversation::2026-08-28"
+  ]
+}

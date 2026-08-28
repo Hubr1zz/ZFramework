@@ -34,8 +34,14 @@ namespace HuntingInDarkness.Hunt
 
         private void OnMouseDown()
         {
-            if (explorationPort == null) return;
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+            HandleResolvedPointerClick();
+        }
+
+        /// <summary>统一接收鼠标、触摸或控制器对实体资源棋子的点击；提交仍由狩猎端口串行处理。</summary>
+        public void HandleResolvedPointerClick()
+        {
+            if (explorationPort == null) return;
             if (GetComponentInParent<PlayableHexTileCard3D>()?.IsFlipping == true) return;
 
             if (!explorationPort.TryCreateSnapshot(tileCoordinate, pointIndex, out HuntExplorationSnapshot snapshot)) return;

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "physical-tabletop-campaign-loop", "label": "3D 桌面战役循环", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-physical-tabletop-campaign-loop/specs/physical-tabletop-campaign-loop/spec.md" },
+    { "id": "tabletop-event-interaction", "label": "桌面事件交互", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-event-interaction/spec.md" },
+    { "id": "tabletop-hunt-departure", "label": "桌面出猎", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-hunt-departure/spec.md" },
+    { "id": "hunt-tabletop-harvest", "label": "狩猎桌面采集", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/hunt-tabletop-harvest/spec.md" },
+    { "id": "tabletop-hunt-retreat", "label": "桌面回营", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-hunt-retreat/spec.md" },
+    { "id": "campaign-year-loop", "label": "战役年度循环", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/campaign-year-loop/spec.md" },
+    { "id": "tabletop-random-interaction", "label": "桌面随机交互", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/tabletop-random-interaction/spec.md" }
+  ],
+  "edges": [
+    { "from": "tabletop-event-interaction", "to": "physical-tabletop-campaign-loop", "type": "supports" },
+    { "from": "tabletop-hunt-departure", "to": "physical-tabletop-campaign-loop", "type": "supports" },
+    { "from": "hunt-tabletop-harvest", "to": "physical-tabletop-campaign-loop", "type": "supports" },
+    { "from": "tabletop-hunt-retreat", "to": "physical-tabletop-campaign-loop", "type": "supports" },
+    { "from": "campaign-year-loop", "to": "physical-tabletop-campaign-loop", "type": "constrains" },
+    { "from": "tabletop-random-interaction", "to": "physical-tabletop-campaign-loop", "type": "supports" }
+  ]
+}

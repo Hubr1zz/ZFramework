@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 5,
+  "capability": "physical-tabletop-campaign-loop",
+  "title": "3D 桌面战役循环",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "正式组合根已通过共享实体输入完成营地事件、出猎、狩猎交互、回营事件、季节提交与 Continue 恢复。",
+    "codeEvidence": [],
+    "evidence": ["Physical campaign loop PlayMode cluster: 32/32 passed", "OpenSpec strict validation passed", "对抗审查修复非鼠标 UI 误拦截与演出等待竞态"],
+    "differences": ["现有正式能力分别描述各阶段，但尚无端到端 3D 输入集成契约。"],
+    "verifiedAt": "2026-08-28T07:47:10Z"
+  },
+  "gapIds": [],
+  "dependencyIds": ["tabletop-event-interaction", "tabletop-hunt-departure", "hunt-tabletop-harvest", "tabletop-hunt-retreat", "campaign-year-loop", "tabletop-random-interaction"],
+  "sourceReferences": ["conversation::2026-08-28", "primary::事件 Events.md", "primary::地图 Map.md", "primary::Timeline.md"],
+  "implementationOutline": ["CardView3D 及实体卡统一短按释放路径。", "地块与资源棋子区分鼠标 UI 检查和已解析世界指针。", "生产组合根回归验证随机事件、季节与 Continue 幂等。"],
+  "reviewIssues": []
+}
