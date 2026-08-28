@@ -65,6 +65,17 @@ namespace HuntingInDarkness.Adapter.Tests
             var rescue = new HuntEventPopulationCommand(source);
             Assert.That(rescue.TryRescue(2, hunter, out _, out string rescueReason), Is.True, rescueReason);
             ItemData resource = PlayableSettlementItemRegistry.Items.First(item => item != null && item.itemType == ItemType.Resource);
+            HexTileData canonicalStarting = source.Map[source.SquadPosition].Config;
+            canonicalStarting.maxResourcePoints = 1;
+            canonicalStarting.resourcePoints.Add(new ResourcePointConfig
+            {
+                resourcePointId = "persistence-point",
+                displayName = "persistence point",
+                resource = resource,
+                spawnWeight = 1,
+                drawCount = 1,
+                maxPerTile = 1
+            });
             source.Map[source.SquadPosition].ResourcePoints.Add(new ResourcePointInstance
             {
                 ResourcePointId = "persistence-point",
@@ -105,6 +116,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(saved.Settlement.PendingHuntNoiseLease.LeaseId, Is.EqualTo("hunt-noise:stone_vigil_risk"));
             Assert.That(saved.Settlement.PendingHuntNoiseLease.NoiseModifier, Is.EqualTo(2));
 
+            saved.ActiveHunt.EventStore.Memories.Clear();
             saved.ActiveHunt.SchemaVersion = ActiveHuntSnapshot.LegacySchemaVersion;
             saved.ActiveHunt.RescuedPopulation = 0;
             Assert.That(ActiveHuntSnapshotAdapter.TryRestore(saved, destination, out PlayableHuntRuntimeState legacyRuntime, out _, out reason), Is.True, reason);
@@ -114,6 +126,88 @@ namespace HuntingInDarkness.Adapter.Tests
             saved.ActiveHunt.EncounterId = "boss-handoff";
             Assert.That(ActiveHuntSnapshotAdapter.TryRestore(saved, destination, out _, out _, out reason), Is.False);
             Assert.That(reason, Does.Contain("遭遇交接"));
+        }
+
+        [Test]
+        public void Restore_ValidatesResourcePointsAgainstCanonicalTileConfiguration()
+        {
+            HunterData template = CreateAsset<HunterData>("hunter-template-resource-validation");
+            var hunter = new HunterInstance(template, 102);
+            var settlement = new SettlementInstance { CurrentYear = 3 };
+            settlement.Hunters.Add(hunter);
+            HuntManager source = CreateManager(settlement, null, null, 18);
+            source.OnEnter(new List<HunterInstance> { hunter }, settlement.CurrentYear);
+            ItemData resource = PlayableSettlementItemRegistry.Items.First(item => item != null && item.itemType == ItemType.Resource);
+            HexTileData canonicalStarting = source.Map[source.SquadPosition].Config;
+            canonicalStarting.maxResourcePoints = 2;
+            canonicalStarting.resourcePoints.Add(new ResourcePointConfig
+            {
+                resourcePointId = "resource-validation-point",
+                displayName = "canonical resource point",
+                resource = resource,
+                spawnWeight = 1,
+                drawCount = 1,
+                maxPerTile = 2
+            });
+            for (int index = 0; index < 2; index++)
+                source.Map[source.SquadPosition].ResourcePoints.Add(new ResourcePointInstance
+                {
+                    ResourcePointId = "resource-validation-point",
+                    ResourceName = "stale display name",
+                    Resource = resource,
+                    MaterialPool = new List<ItemData> { resource },
+                    DrawCount = 1,
+                    IsExhausted = index == 1
+                });
+            using var session = new PlayableHuntActionSession(source, "encounter", source.BoundRoute.DestinationId);
+            Assert.That(ActiveHuntSnapshotAdapter.TryCapture(settlement, source, session, "expedition-resource-validation", out CampaignSnapshot captured, out string reason), Is.True, reason);
+            HuntManager destination = CreateManager(settlement, null, null, 19);
+
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(captured, destination, out PlayableHuntRuntimeState runtime, out _, out reason), Is.True, reason);
+            Assert.That(runtime.Map[runtime.SquadPosition].ResourcePoints, Has.Count.EqualTo(2));
+            Assert.That(runtime.Map[runtime.SquadPosition].ResourcePoints[0].ResourceName, Is.EqualTo("canonical resource point"));
+
+            ActiveHuntTileSnapshot savedTile = captured.ActiveHunt.Tiles.Single(tile => tile.X == source.SquadPosition.x && tile.Y == source.SquadPosition.y);
+            ActiveHuntResourcePointSnapshot savedPoint = savedTile.ResourcePoints[0];
+            captured.ActiveHunt.EventStore.Memories.Clear();
+            captured.ActiveHunt.SchemaVersion = 3;
+            captured.ActiveHunt.RescuedPopulation = 0;
+            savedPoint.MaterialItemIds = null;
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(captured, destination, out PlayableHuntRuntimeState v3Runtime, out _, out reason), Is.True, reason);
+            Assert.That(v3Runtime.Map[v3Runtime.SquadPosition].ResourcePoints[0].ResourceName, Is.EqualTo("canonical resource point"));
+            captured.ActiveHunt.SchemaVersion = 2;
+            savedPoint.ResourcePointId = string.Empty;
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(captured, destination, out PlayableHuntRuntimeState v2Runtime, out _, out reason), Is.True, reason);
+            Assert.That(v2Runtime.Map[v2Runtime.SquadPosition].ResourcePoints[0].ResourceName, Is.EqualTo("canonical resource point"));
+            captured.ActiveHunt.SchemaVersion = ActiveHuntSnapshot.CurrentSchemaVersion;
+            savedPoint.ResourcePointId = "resource-validation-point";
+            savedPoint.MaterialItemIds = new List<string> { resource.ContentId };
+            canonicalStarting.maxResourcePoints = 3;
+            savedTile.ResourcePoints.Add(new ActiveHuntResourcePointSnapshot
+            {
+                ResourcePointId = savedPoint.ResourcePointId,
+                ItemId = savedPoint.ItemId,
+                MaterialItemIds = new List<string>(savedPoint.MaterialItemIds),
+                DrawCount = savedPoint.DrawCount
+            });
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(captured, destination, out _, out _, out reason), Is.False);
+            Assert.That(reason, Does.Contain("同类上限"));
+            savedTile.ResourcePoints.RemoveAt(savedTile.ResourcePoints.Count - 1);
+            canonicalStarting.maxResourcePoints = 1;
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(captured, destination, out _, out _, out reason), Is.False);
+            Assert.That(reason, Does.Contain("资源点"));
+            canonicalStarting.maxResourcePoints = 2;
+            savedPoint.ResourcePointId = "unknown-resource-point";
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(captured, destination, out _, out _, out reason), Is.False);
+            Assert.That(reason, Does.Contain("不属于当前地块"));
+            savedPoint.ResourcePointId = "resource-validation-point";
+            savedPoint.DrawCount = 2;
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(captured, destination, out _, out _, out reason), Is.False);
+            Assert.That(reason, Does.Contain("允许翻牌数"));
+            savedPoint.DrawCount = 1;
+            savedPoint.MaterialItemIds[0] = "unknown-resource";
+            Assert.That(ActiveHuntSnapshotAdapter.TryRestore(captured, destination, out _, out _, out reason), Is.False);
+            Assert.That(reason, Does.Contain("素材池"));
         }
 
         [Test]

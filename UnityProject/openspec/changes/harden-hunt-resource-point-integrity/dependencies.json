@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {
+      "id": "hunt-map-generation",
+      "label": "狩猎地图生成",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/harden-hunt-resource-point-integrity/specs/hunt-map-generation/spec.md"
+    },
+    {
+      "id": "hunt-content-bundle-lifecycle",
+      "label": "狩猎内容 Bundle 生命周期",
+      "category": "system",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/harden-hunt-resource-point-integrity/specs/hunt-content-bundle-lifecycle/spec.md"
+    },
+    {
+      "id": "active-hunt-persistence",
+      "label": "活动狩猎检查点与恢复",
+      "category": "system",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/harden-hunt-resource-point-integrity/specs/active-hunt-persistence/spec.md"
+    },
+    {
+      "id": "campaign-persistence",
+      "label": "战役持久化与恢复",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/specs/campaign-persistence/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "hunt-map-generation--requires--hunt-content-bundle-lifecycle",
+      "from": "hunt-map-generation",
+      "to": "hunt-content-bundle-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "资源点生成消费同一 RoutePlan 冻结的地块配置",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "active-hunt-persistence--requires--hunt-content-bundle-lifecycle",
+      "from": "active-hunt-persistence",
+      "to": "hunt-content-bundle-lifecycle",
+      "type": "requires",
+      "status": "defined",
+      "reason": "恢复从同一冻结 RoutePlan 校验资源点定义和物品身份",
+      "gapId": "",
+      "blocksImplementation": false
+    },
+    {
+      "id": "active-hunt-persistence--requires--campaign-persistence",
+      "from": "active-hunt-persistence",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "活动狩猎快照沿用战役存档封套与原子恢复边界",
+      "gapId": "",
+      "blocksImplementation": false
+    }
+  ]
+}

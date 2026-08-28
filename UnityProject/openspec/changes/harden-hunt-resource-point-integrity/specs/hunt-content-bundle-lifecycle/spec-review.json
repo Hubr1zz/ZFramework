@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-content-bundle-lifecycle",
+  "title": "狩猎内容 Bundle 生命周期",
+  "category": "system",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "Bundle 冻结单个地块时拒绝重复资源点配置稳定 ID。",
+    "codeEvidence": [
+      {
+        "guid": "3a91d14f82d74f08b0ebd4b4da7ac7ed",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
+        "fileHash": "4e4919ba6c3747053dc5d8052a9296240378c7ccd632eae817e9f2165acd8abd",
+        "line": 296,
+        "feature": "冻结地块资源点配置并拒绝稳定 ID 歧义",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:18:37-07:00"
+      }
+    ],
+    "evidence": [
+      "PlayableHuntContentBundle EditMode 15/15。"
+    ],
+    "differences": [
+      "正式 Spec 尚未明确单地块资源点配置 ID 唯一性。"
+    ],
+    "verifiedAt": "2026-08-28T06:18:37-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": [
+    "formal::hunt-content-bundle-lifecycle"
+  ],
+  "implementationOutline": [
+    "冻结资源点配置并解析 canonical 稳定 ID。",
+    "同一地块出现重复配置 ID 时拒绝整个候选 Bundle。",
+    "成功时保留 maxPerTile 供运行态同类型实例计数。"
+  ],
+  "reviewIssues": []
+}

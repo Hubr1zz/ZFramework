@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 5,
+  "capability": "active-hunt-persistence",
+  "title": "活动狩猎检查点与恢复",
+  "category": "system",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "活动狩猎恢复按冻结地块定义严格校验资源点，并为 v2/v3 保留受限单素材迁移。",
+    "codeEvidence": [
+      {
+        "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
+        "fileHash": "7f5095634a6980f587c1d67c8d948d732efeb063b8d3f5d0213aae4a10c292b1",
+        "line": 249,
+        "feature": "按冻结路线校验并原子恢复资源点运行态",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:18:37-07:00"
+      }
+    ],
+    "evidence": [
+      "ActiveHuntPersistence EditMode 14/14。"
+    ],
+    "differences": [
+      "正式 Spec 尚未记录资源点总量、同类上限、翻牌数、素材池和旧 schema 迁移细则。"
+    ],
+    "verifiedAt": "2026-08-28T06:18:37-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [
+    "active-hunt-persistence--requires--hunt-content-bundle-lifecycle",
+    "active-hunt-persistence--requires--campaign-persistence"
+  ],
+  "sourceReferences": [
+    "formal::active-hunt-persistence",
+    "formal::hunt-content-bundle-lifecycle"
+  ],
+  "implementationOutline": [
+    "从 BoundRoute 冻结地块配置建立 canonical 资源点定义。",
+    "先验证总量、同类上限、翻牌数和素材 ID 多重集合，再构建局部地图。",
+    "v2/v3 仅在单素材可解析且归属唯一时迁移；v4 缺完整素材池即拒绝。"
+  ],
+  "reviewIssues": []
+}

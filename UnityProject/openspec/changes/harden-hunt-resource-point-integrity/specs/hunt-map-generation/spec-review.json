@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-map-generation",
+  "title": "狩猎地图生成",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "资源点生成只从未达到同类上限的有效定义中按权重选择，并在候选耗尽时终止。",
+    "codeEvidence": [
+      {
+        "guid": "8b25c0de202607140000000000000007",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntResourceRules.cs",
+        "fileHash": "5ffd63b7f66059897b1b5a65838a38b8c2f7d1e25fbc3f2c958a93093441801c",
+        "line": 10,
+        "feature": "按权重与同类上限生成合法资源点集合",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:18:37-07:00"
+      }
+    ],
+    "evidence": [
+      "HuntResourceRules EditMode 6/6。"
+    ],
+    "differences": [
+      "正式 Spec 尚未记录资源点候选收敛行为。"
+    ],
+    "verifiedAt": "2026-08-28T06:18:37-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [
+    "hunt-map-generation--requires--hunt-content-bundle-lifecycle"
+  ],
+  "sourceReferences": [
+    "design::设计文档/狩猎阶段 Hunt Phase/地图 Map.md",
+    "formal::hunt-map-generation"
+  ],
+  "implementationOutline": [
+    "过滤空稳定 ID 与已达到同类上限的资源点定义。",
+    "从剩余候选按 spawnWeight 选择一个并累计同类计数。",
+    "达到地块容量或候选为空时结束。"
+  ],
+  "reviewIssues": []
+}

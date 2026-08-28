@@ -317,11 +317,19 @@ namespace HuntingInDarkness.Hunt
             clone.bossEncounterWeight = source.bossEncounterWeight;
             clone.bossEncounterId = source.bossEncounterId;
             clone.resourcePoints = new List<ResourcePointConfig>();
+            var resourcePointIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (ResourcePointConfig point in source.resourcePoints ?? new List<ResourcePointConfig>())
             {
                 if (!TryCloneResourcePoint(point, out ResourcePointConfig clonedPoint, out reason))
                 {
                     reason = $"狩猎地块 {source.ContentId} 的资源点无效：{reason}";
+                    DestroyOwnedObject(clone);
+                    clone = null;
+                    return false;
+                }
+                if (!resourcePointIds.Add(clonedPoint.resourcePointId))
+                {
+                    reason = $"狩猎地块 {source.ContentId} 的资源点稳定 ID 重复：{clonedPoint.resourcePointId}";
                     DestroyOwnedObject(clone);
                     clone = null;
                     return false;

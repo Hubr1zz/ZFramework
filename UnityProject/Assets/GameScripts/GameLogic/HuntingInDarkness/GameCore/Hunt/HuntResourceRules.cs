@@ -16,20 +16,26 @@ namespace HuntingInDarkness.GameCore.Hunt
             if (pool == null || pool.Count == 0) return result;
             var placed = new Dictionary<string, int>();
 
-            for (int attempt = 0;
-                 attempt < maximumPoints * 3 && result.Count < maximumPoints;
-                 attempt++)
+            int targetCount = Math.Max(0, maximumPoints);
+            while (result.Count < targetCount)
             {
+                var eligible = new List<ResourcePointDefinition>();
+                foreach (ResourcePointDefinition candidate in pool)
+                {
+                    if (candidate == null || string.IsNullOrWhiteSpace(candidate.ResourceId)) continue;
+                    placed.TryGetValue(candidate.ResourceId, out int existing);
+                    if (candidate.MaxPerTile > 0 && existing >= candidate.MaxPerTile) continue;
+                    eligible.Add(candidate);
+                }
+                if (eligible.Count == 0) break;
+
                 List<ResourcePointDefinition> draw = WeightedSelection.DrawWithoutReplacement(
-                    pool, 1, item => Math.Max(1, item?.SpawnWeight ?? 0), random);
-                if (draw.Count == 0 || draw[0] == null || string.IsNullOrEmpty(draw[0].ResourceId))
-                    continue;
+                    eligible, 1, item => Math.Max(1, item?.SpawnWeight ?? 0), random);
+                if (draw.Count == 0 || draw[0] == null || string.IsNullOrWhiteSpace(draw[0].ResourceId)) break;
                 ResourcePointDefinition point = draw[0];
-                placed.TryGetValue(point.ResourceId, out int existing);
-                if (point.MaxPerTile > 0 && existing >= point.MaxPerTile)
-                    continue;
+                placed.TryGetValue(point.ResourceId, out int selectedCount);
                 result.Add(point);
-                placed[point.ResourceId] = existing + 1;
+                placed[point.ResourceId] = selectedCount + 1;
             }
             return result;
         }

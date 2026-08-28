@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 5,
+  "changeId": "harden-hunt-resource-point-integrity",
+  "title": "加固狩猎资源点生成与恢复一致性",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "生成、Bundle 预检、活动恢复与 v2/v3 兼容已实现并完成定向验证；等待在 Changes 中审查后显式同步。",
+  "verification": {
+    "status": "implemented",
+    "summary": "资源点首次生成与活动狩猎恢复现在共同遵守冻结地块配置的稳定 ID、容量、同类上限、翻牌数和素材池约束。",
+    "codeEvidence": [
+      {
+        "guid": "8b25c0de202607140000000000000007",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Hunt/HuntResourceRules.cs",
+        "fileHash": "5ffd63b7f66059897b1b5a65838a38b8c2f7d1e25fbc3f2c958a93093441801c",
+        "line": 10,
+        "feature": "按权重与同类上限生成合法资源点集合",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:18:37-07:00"
+      },
+      {
+        "guid": "3a91d14f82d74f08b0ebd4b4da7ac7ed",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs",
+        "fileHash": "4e4919ba6c3747053dc5d8052a9296240378c7ccd632eae817e9f2165acd8abd",
+        "line": 296,
+        "feature": "冻结地块资源点配置并拒绝稳定 ID 歧义",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:18:37-07:00"
+      },
+      {
+        "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
+        "fileHash": "7f5095634a6980f587c1d67c8d948d732efeb063b8d3f5d0213aae4a10c292b1",
+        "line": 249,
+        "feature": "按冻结路线校验并原子恢复资源点运行态",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:18:37-07:00"
+      }
+    ],
+    "evidence": [
+      "Unity 6000.5.9f1 编译通过。",
+      "HuntResourceRules 6/6、PlayableHuntContentBundle 15/15、ActiveHuntPersistence 14/14。"
+    ],
+    "differences": [
+      "正式 Spec 尚未定义资源点生成在类型上限后的候选收敛。",
+      "正式 Spec 尚未明确恢复时的资源点配置一致性和 v2/v3 单素材迁移。"
+    ],
+    "verifiedAt": "2026-08-28T06:18:37-07:00"
+  },
+  "reviewIssues": [],
+  "gapIds": [],
+  "dependencyIds": [
+    "hunt-map-generation--requires--hunt-content-bundle-lifecycle",
+    "active-hunt-persistence--requires--hunt-content-bundle-lifecycle",
+    "active-hunt-persistence--requires--campaign-persistence"
+  ],
+  "capabilities": [
+    "hunt-map-generation",
+    "hunt-content-bundle-lifecycle",
+    "active-hunt-persistence"
+  ],
+  "syncTargets": [
+    {
+      "capability": "active-hunt-persistence",
+      "title": "活动狩猎检查点与恢复",
+      "category": "system",
+      "deltaSpecPath": "openspec/changes/harden-hunt-resource-point-integrity/specs/active-hunt-persistence/spec.md",
+      "targetSpecPath": "openspec/specs/active-hunt-persistence/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "80d4ab3c11178e23236417658ef72a8854d16dc7c38558ff5aff5f34d056debe",
+      "baseSnapshotPath": "openspec/changes/harden-hunt-resource-point-integrity/.sync-baseline/active-hunt-persistence/spec.md"
+    },
+    {
+      "capability": "hunt-content-bundle-lifecycle",
+      "title": "狩猎内容 Bundle 生命周期",
+      "category": "system",
+      "deltaSpecPath": "openspec/changes/harden-hunt-resource-point-integrity/specs/hunt-content-bundle-lifecycle/spec.md",
+      "targetSpecPath": "openspec/specs/hunt-content-bundle-lifecycle/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "0945d09814a14c37b361719906580515a9c6d9d7ee66205367ae75332305a0b0",
+      "baseSnapshotPath": "openspec/changes/harden-hunt-resource-point-integrity/.sync-baseline/hunt-content-bundle-lifecycle/spec.md"
+    },
+    {
+      "capability": "hunt-map-generation",
+      "title": "狩猎地图生成",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/harden-hunt-resource-point-integrity/specs/hunt-map-generation/spec.md",
+      "targetSpecPath": "openspec/specs/hunt-map-generation/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "44332c6993a03c67cfd30ba3ac0f26ba4b9dd0f79450b1c74863fd7cfbbdd295",
+      "baseSnapshotPath": "openspec/changes/harden-hunt-resource-point-integrity/.sync-baseline/hunt-map-generation/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与基线一致，可以 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-28T06:21:26-07:00"
+  },
+  "createdAt": "2026-08-28T06:18:37-07:00"
+}

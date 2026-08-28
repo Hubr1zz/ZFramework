@@ -1,0 +1,16 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的采纳对账：统一首次翻图与活动狩猎恢复的资源点配置不变量。",
+  "sourceRoots": [
+    "openspec/specs",
+    "C:/Users/leonz/Desktop/GameDesignVault"
+  ],
+  "sourceReferences": [
+    "conversation::2026-08-28",
+    "design::设计文档/狩猎阶段 Hunt Phase/地图 Map.md",
+    "design::内容设计案例/石森林资源点 案例.md",
+    "formal::hunt-map-generation",
+    "formal::hunt-content-bundle-lifecycle",
+    "formal::active-hunt-persistence"
+  ]
+}

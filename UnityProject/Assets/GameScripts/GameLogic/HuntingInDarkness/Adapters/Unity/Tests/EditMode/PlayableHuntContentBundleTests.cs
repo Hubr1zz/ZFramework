@@ -151,6 +151,24 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Bundle_RejectsDuplicateResourcePointIdsOnOneTile()
+        {
+            EventData dangerEvent = CreateHuntEvent("hunt:duplicate-resource-point");
+            ItemData resource = Own(ScriptableObject.CreateInstance<ItemData>());
+            resource.ConfigureContentId("item:duplicate-resource");
+            resource.itemName = "duplicate resource";
+            resource.itemType = ItemType.Resource;
+            ConfigureItems(resource);
+            HexTileData resourceTile = CreateTile("tile:duplicate-resource", TileType.Forest, 1);
+            resourceTile.resourcePoints.Add(new ResourcePointConfig { resourcePointId = "point:duplicate", resource = resource, spawnWeight = 1, drawCount = 1, maxPerTile = 1 });
+            resourceTile.resourcePoints.Add(new ResourcePointConfig { resourcePointId = "point:duplicate", resource = resource, spawnWeight = 1, drawCount = 1, maxPerTile = 1 });
+            PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:duplicate-start", TileType.Starting, 1), new List<HexTileData> { resourceTile }, new List<EventData> { dangerEvent }, CreateNoiseProfile(dangerEvent));
+
+            Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.False);
+            Assert.That(reason, Does.Contain("资源点稳定 ID 重复"));
+        }
+
+        [Test]
         public void Bundle_RejectsUnknownTableMaterialId()
         {
             EventData dangerEvent = CreateHuntEvent("hunt:danger");

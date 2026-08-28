@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.GameCore.Hunt;
 using NUnit.Framework;
@@ -34,6 +35,47 @@ namespace HuntingInDarkness.GameCore.Tests
             List<ResourcePointDefinition> spawned = HuntResourceRules.SpawnPoints(new ResourcePointDefinition[0], 2, new SequenceRandom(0.1));
 
             Assert.That(spawned, Is.Empty);
+        }
+
+        [Test]
+        public void SpawnPoints_FillsCapacityAfterHighWeightDefinitionReachesLimit()
+        {
+            var pool = new[]
+            {
+                new ResourcePointDefinition("HighWeight", 100, 1, 1),
+                new ResourcePointDefinition("LegalFallback", 1, 1, 1)
+            };
+
+            List<ResourcePointDefinition> spawned = HuntResourceRules.SpawnPoints(pool, 3, new SequenceRandom(0.1));
+
+            Assert.That(spawned.Select(point => point.ResourceId), Is.EqualTo(new[] { "HighWeight", "LegalFallback" }));
+        }
+
+        [Test]
+        public void SpawnPoints_AllowsRepeatedDefinitionUntilItsPerTileLimit()
+        {
+            var pool = new[] { new ResourcePointDefinition("Repeatable", 1, 1, 2) };
+
+            List<ResourcePointDefinition> spawned = HuntResourceRules.SpawnPoints(pool, 3, new SequenceRandom(0.1));
+
+            Assert.That(spawned, Has.Count.EqualTo(2));
+            Assert.That(spawned.All(point => point.ResourceId == "Repeatable"), Is.True);
+        }
+
+        [Test]
+        public void SpawnPoints_ExcludesBlankAndInvalidIdsWithoutRetryLoop()
+        {
+            var pool = new ResourcePointDefinition[]
+            {
+                null,
+                new ResourcePointDefinition(" ", 100, 1, 0),
+                new ResourcePointDefinition("Valid", 1, 1, 1)
+            };
+
+            List<ResourcePointDefinition> spawned = HuntResourceRules.SpawnPoints(pool, 3, new SequenceRandom(0.1));
+
+            Assert.That(spawned, Has.Count.EqualTo(1));
+            Assert.That(spawned[0].ResourceId, Is.EqualTo("Valid"));
         }
 
         private sealed class SequenceRandom : IRandomSource

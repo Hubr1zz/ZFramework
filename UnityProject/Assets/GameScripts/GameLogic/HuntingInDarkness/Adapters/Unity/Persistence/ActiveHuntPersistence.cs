@@ -117,6 +117,13 @@ namespace Core
 
     public static class ActiveHuntSnapshotAdapter
     {
+        private sealed class ResourcePointPersistenceDefinition
+        {
+            public string Id;
+            public ResourcePointConfig Config;
+            public List<string> MaterialIds = new();
+        }
+
         public static bool TryCapture(SettlementInstance settlement, HuntManager manager, PlayableHuntActionSession session, string expeditionId, out CampaignSnapshot campaign, out string reason, bool allowRunningSession = false)
         {
             campaign = null;
@@ -335,8 +342,8 @@ namespace Core
                     reason = $"无法恢复活动狩猎地块：{savedTile.TileId}";
                     return false;
                 }
-                HuntTileDefinition definition = CreateDefinition(config);
-                var domainState = new HuntTileState(new GridPosition(coordinate.x, coordinate.y), definition) { Visibility = (HuntTileVisibility)savedTile.State, HasBossEncounter = savedTile.HasBossEncounter };
+                HuntTileDefinition tileDefinition = CreateDefinition(config);
+                var domainState = new HuntTileState(new GridPosition(coordinate.x, coordinate.y), tileDefinition) { Visibility = (HuntTileVisibility)savedTile.State, HasBossEncounter = savedTile.HasBossEncounter };
                 var tile = new HexTileInstance { AxialCoord = coordinate, Config = config, ConfigId = config.ContentId, ConfigName = config.name };
                 tile.AttachDomainState(domainState);
                 if (savedTile.ResourcePoints == null)
@@ -344,6 +351,14 @@ namespace Core
                     reason = $"地块 {savedTile.TileId} 的资源点列表无效。";
                     return false;
                 }
+                if (savedTile.ResourcePoints.Count > config.maxResourcePoints)
+                {
+                    reason = $"地块 {coordinate} 的资源点总数超过当前配置上限。";
+                    return false;
+                }
+                if (!TryBuildResourcePointDefinitions(config, boundRoute, out List<ResourcePointPersistenceDefinition> definitions, out Dictionary<string, ResourcePointPersistenceDefinition> definitionsById, out reason))
+                    return false;
+                var restoredCounts = new Dictionary<string, int>(StringComparer.Ordinal);
                 foreach (ActiveHuntResourcePointSnapshot savedPoint in savedTile.ResourcePoints)
                 {
                     if (savedPoint == null || savedPoint.DrawCount < 0)
@@ -351,9 +366,23 @@ namespace Core
                         reason = $"无法恢复地块资源：{savedPoint?.ItemId}";
                         return false;
                     }
-                    var materials = new List<ItemData>();
-                    IReadOnlyList<string> materialIds = savedPoint.MaterialItemIds != null && savedPoint.MaterialItemIds.Count > 0 ? savedPoint.MaterialItemIds : new[] { savedPoint.ItemId };
-                    foreach (string materialId in materialIds)
+                    bool allowLegacySingleMaterial = active.SchemaVersion >= ActiveHuntSnapshot.LegacySchemaVersion && active.SchemaVersion < ActiveHuntSnapshot.CurrentSchemaVersion;
+                    if (!TryResolveResourcePointDefinition(savedPoint, definitions, definitionsById, boundRoute, allowLegacySingleMaterial, out ResourcePointPersistenceDefinition definition, out List<string> restoredMaterialIds, out reason))
+                        return false;
+                    restoredCounts.TryGetValue(definition.Id, out int restoredCount);
+                    if (definition.Config.maxPerTile > 0 && restoredCount >= definition.Config.maxPerTile)
+                    {
+                        reason = $"地块 {coordinate} 的资源点超过 {definition.Id} 的同类上限。";
+                        return false;
+                    }
+                    restoredCounts[definition.Id] = restoredCount + 1;
+                    if (savedPoint.DrawCount != definition.Config.drawCount)
+                    {
+                        reason = $"地块 {coordinate} 的资源点 {definition.Id} 允许翻牌数与当前配置不一致。";
+                        return false;
+                    }
+                    var materials = new List<ItemData>(restoredMaterialIds.Count);
+                    foreach (string materialId in restoredMaterialIds)
                     {
                         if (!boundRoute.TryResolveItem(materialId, out ItemData material) || material == null || material.itemType != ItemType.Resource)
                         {
@@ -362,17 +391,9 @@ namespace Core
                         }
                         materials.Add(material);
                     }
-                    if (savedPoint.MaterialItemIds == null || savedPoint.MaterialItemIds.Count == 0)
-                        while (materials.Count < savedPoint.DrawCount) materials.Add(materials[0]);
-                    if (materials.Count == 0 || savedPoint.DrawCount > materials.Count)
-                    {
-                        reason = $"地块 {coordinate} 的资源点牌池小于允许翻牌数。";
-                        return false;
-                    }
                     ItemData primary = materials[0];
-                    string pointId = string.IsNullOrWhiteSpace(savedPoint.ResourcePointId) ? primary.ContentId : savedPoint.ResourcePointId;
-                    string displayName = string.IsNullOrWhiteSpace(savedPoint.DisplayName) ? primary.itemName : savedPoint.DisplayName;
-                    tile.ResourcePoints.Add(new ResourcePointInstance { ResourcePointId = pointId, ResourceName = displayName, Resource = primary, MaterialPool = materials, DrawCount = savedPoint.DrawCount, IsExhausted = savedPoint.IsExhausted });
+                    string displayName = string.IsNullOrWhiteSpace(definition.Config.displayName) ? primary.itemName : definition.Config.displayName.Trim();
+                    tile.ResourcePoints.Add(new ResourcePointInstance { ResourcePointId = definition.Id, ResourceName = displayName, Resource = primary, MaterialPool = materials, DrawCount = definition.Config.drawCount, IsExhausted = savedPoint.IsExhausted });
                 }
                 map.Add(coordinate, tile);
             }
@@ -398,6 +419,198 @@ namespace Core
             };
             reason = string.Empty;
             return true;
+        }
+
+        private static bool TryBuildResourcePointDefinitions(HexTileData tile, PlayableHuntRoutePlan route, out List<ResourcePointPersistenceDefinition> definitions, out Dictionary<string, ResourcePointPersistenceDefinition> definitionsById, out string reason)
+        {
+            definitions = new List<ResourcePointPersistenceDefinition>();
+            definitionsById = new Dictionary<string, ResourcePointPersistenceDefinition>(StringComparer.Ordinal);
+            foreach (ResourcePointConfig config in tile?.resourcePoints ?? new List<ResourcePointConfig>())
+            {
+                if (config == null || config.drawCount <= 0 || config.drawCount > HarvestDrawPlan.MaximumCardCount || config.maxPerTile < 0 || !TryResolveResourcePointId(config, out string pointId))
+                {
+                    reason = $"地块 {tile?.ContentId} 的资源点配置无效。";
+                    return false;
+                }
+                if (definitionsById.ContainsKey(pointId))
+                {
+                    reason = $"地块 {tile.ContentId} 的资源点稳定 ID 重复：{pointId}";
+                    return false;
+                }
+                if (!TryBuildExpectedMaterialIds(config, route, out List<string> materialIds, out reason))
+                    return false;
+                var definition = new ResourcePointPersistenceDefinition { Id = pointId, Config = config, MaterialIds = materialIds };
+                definitions.Add(definition);
+                definitionsById.Add(pointId, definition);
+            }
+            reason = string.Empty;
+            return true;
+        }
+
+        private static bool TryResolveResourcePointDefinition(ActiveHuntResourcePointSnapshot savedPoint, IReadOnlyList<ResourcePointPersistenceDefinition> definitions, IReadOnlyDictionary<string, ResourcePointPersistenceDefinition> definitionsById, PlayableHuntRoutePlan route, bool allowLegacySingleMaterial, out ResourcePointPersistenceDefinition definition, out List<string> restoredMaterialIds, out string reason)
+        {
+            definition = null;
+            restoredMaterialIds = null;
+            reason = string.Empty;
+            string savedId = savedPoint?.ResourcePointId?.Trim() ?? string.Empty;
+            if (savedId.Length > 0)
+            {
+                if (!definitionsById.TryGetValue(savedId, out definition))
+                {
+                    reason = $"存档资源点不属于当前地块：{savedId}";
+                    return false;
+                }
+                if (allowLegacySingleMaterial && (savedPoint?.MaterialItemIds == null || savedPoint.MaterialItemIds.Count == 0))
+                    return TryBuildLegacyMaterialIds(savedPoint, definition, route, out restoredMaterialIds, out reason);
+            }
+            else
+            {
+                if (savedPoint?.MaterialItemIds == null || savedPoint.MaterialItemIds.Count == 0)
+                {
+                    if (!allowLegacySingleMaterial || !TryResolveLegacyResourcePointByItem(savedPoint, definitions, route, out definition, out restoredMaterialIds, out reason))
+                    {
+                        reason = string.IsNullOrEmpty(reason) ? "历史资源点缺少稳定 ID，且没有完整素材池用于唯一迁移。" : reason;
+                        return false;
+                    }
+                    return true;
+                }
+                int matchCount = 0;
+                foreach (ResourcePointPersistenceDefinition candidate in definitions)
+                    if (AreMaterialMultisetsEqual(savedPoint.MaterialItemIds, candidate.MaterialIds))
+                    {
+                        definition = candidate;
+                        matchCount++;
+                    }
+                if (matchCount != 1)
+                {
+                    reason = "历史资源点缺少稳定 ID，素材池无法唯一匹配当前配置。";
+                    definition = null;
+                    return false;
+                }
+            }
+            if (!AreMaterialMultisetsEqual(savedPoint.MaterialItemIds, definition.MaterialIds))
+            {
+                reason = $"存档资源点 {definition.Id} 的素材池与当前配置不一致。";
+                definition = null;
+                return false;
+            }
+            restoredMaterialIds = new List<string>(definition.MaterialIds);
+            reason = string.Empty;
+            return true;
+        }
+
+        private static bool TryResolveLegacyResourcePointByItem(ActiveHuntResourcePointSnapshot savedPoint, IReadOnlyList<ResourcePointPersistenceDefinition> definitions, PlayableHuntRoutePlan route, out ResourcePointPersistenceDefinition definition, out List<string> restoredMaterialIds, out string reason)
+        {
+            definition = null;
+            restoredMaterialIds = null;
+            if (savedPoint == null || string.IsNullOrWhiteSpace(savedPoint.ItemId) || !route.TryResolveItem(savedPoint.ItemId.Trim(), out ItemData item) || item == null || item.itemType != ItemType.Resource)
+            {
+                reason = "历史资源点缺少可解析的单素材 ID。";
+                return false;
+            }
+            int matchCount = 0;
+            foreach (ResourcePointPersistenceDefinition candidate in definitions)
+                if (ContainsMaterialId(candidate.MaterialIds, item.ContentId))
+                {
+                    definition = candidate;
+                    matchCount++;
+                }
+            if (matchCount != 1)
+            {
+                definition = null;
+                reason = "历史资源点的单素材 ID 无法唯一匹配当前配置。";
+                return false;
+            }
+            return TryBuildLegacyMaterialIds(savedPoint, definition, route, out restoredMaterialIds, out reason);
+        }
+
+        private static bool TryBuildLegacyMaterialIds(ActiveHuntResourcePointSnapshot savedPoint, ResourcePointPersistenceDefinition definition, PlayableHuntRoutePlan route, out List<string> restoredMaterialIds, out string reason)
+        {
+            restoredMaterialIds = null;
+            if (savedPoint == null || definition == null || string.IsNullOrWhiteSpace(savedPoint.ItemId) || !route.TryResolveItem(savedPoint.ItemId.Trim(), out ItemData item) || item == null || item.itemType != ItemType.Resource || !ContainsMaterialId(definition.MaterialIds, item.ContentId))
+            {
+                reason = "历史资源点的单素材 ID 不属于当前资源点配置。";
+                return false;
+            }
+            restoredMaterialIds = new List<string>();
+            for (int index = 0; index < savedPoint.DrawCount; index++)
+                restoredMaterialIds.Add(item.ContentId);
+            reason = string.Empty;
+            return true;
+        }
+
+        private static bool ContainsMaterialId(IReadOnlyList<string> materialIds, string itemId)
+        {
+            if (materialIds == null || string.IsNullOrWhiteSpace(itemId)) return false;
+            foreach (string materialId in materialIds)
+                if (string.Equals(materialId, itemId, StringComparison.Ordinal)) return true;
+            return false;
+        }
+
+        private static bool TryResolveResourcePointId(ResourcePointConfig config, out string pointId)
+        {
+            pointId = config?.resourcePointId?.Trim() ?? string.Empty;
+            if (pointId.Length > 0) return true;
+            pointId = config?.resource?.ContentId?.Trim() ?? string.Empty;
+            if (pointId.Length > 0) return true;
+            foreach (ResourceMaterialConfig material in config?.materialPool ?? new List<ResourceMaterialConfig>())
+            {
+                pointId = material?.materialId?.Trim() ?? material?.material?.ContentId?.Trim() ?? string.Empty;
+                if (pointId.Length > 0) return true;
+            }
+            return false;
+        }
+
+        private static bool TryBuildExpectedMaterialIds(ResourcePointConfig config, PlayableHuntRoutePlan route, out List<string> materialIds, out string reason)
+        {
+            materialIds = new List<string>();
+            if (config.materialPool != null && config.materialPool.Count > 0)
+            {
+                foreach (ResourceMaterialConfig material in config.materialPool)
+                {
+                    string materialId = material?.materialId?.Trim() ?? material?.material?.ContentId?.Trim() ?? string.Empty;
+                    if (material == null || material.copies <= 0 || material.copies > HarvestDrawPlan.MaximumCardCount - materialIds.Count || materialId.Length == 0 || !route.TryResolveItem(materialId, out ItemData resolved) || resolved == null || resolved.itemType != ItemType.Resource)
+                    {
+                        reason = "当前资源点配置包含无效素材。";
+                        return false;
+                    }
+                    for (int index = 0; index < material.copies; index++)
+                        materialIds.Add(resolved.ContentId);
+                }
+            }
+            else if (config.resource != null && route.TryResolveItem(config.resource.ContentId, out ItemData resolved) && resolved != null && resolved.itemType == ItemType.Resource)
+            {
+                for (int index = 0; index < config.drawCount; index++)
+                    materialIds.Add(resolved.ContentId);
+            }
+            if (materialIds.Count == 0 || config.drawCount > materialIds.Count)
+            {
+                reason = "当前资源点素材池小于允许翻牌数。";
+                return false;
+            }
+            reason = string.Empty;
+            return true;
+        }
+
+        private static bool AreMaterialMultisetsEqual(IReadOnlyList<string> left, IReadOnlyList<string> right)
+        {
+            if (left == null || right == null || left.Count != right.Count) return false;
+            var counts = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (string value in left)
+            {
+                string id = value?.Trim() ?? string.Empty;
+                if (id.Length == 0) return false;
+                counts.TryGetValue(id, out int count);
+                counts[id] = count + 1;
+            }
+            foreach (string value in right)
+            {
+                string id = value?.Trim() ?? string.Empty;
+                if (id.Length == 0 || !counts.TryGetValue(id, out int count)) return false;
+                if (count == 1) counts.Remove(id);
+                else counts[id] = count - 1;
+            }
+            return counts.Count == 0;
         }
 
         private static bool CaptureEventStore(PlayableHuntEventOccurrenceStoreState state, PlayableHuntRoutePlan boundRoute, ActiveHuntEventStoreSnapshot target, out string reason)
