@@ -259,6 +259,11 @@ namespace Core
         internal UniTask<bool> SaveCampaignAsync(bool includeActiveHunt, CancellationToken cancellationToken)
             => persistenceCoordinator.TrySaveAsync(includeActiveHunt, cancellationToken);
 
+        internal CampaignSaveStatus SaveStatus => persistenceCoordinator.Status;
+
+        internal UniTask<bool> RetryPendingSaveAsync(CancellationToken cancellationToken)
+            => persistenceCoordinator.RetryPendingSaveAsync(CurrentPhase == GamePhase.Hunt, cancellationToken);
+
         internal bool TrySaveImmediate(string payload) => persistenceCoordinator.TrySaveImmediate(payload);
 
         internal void Adopt(string payload) => persistenceCoordinator.Adopt(payload);

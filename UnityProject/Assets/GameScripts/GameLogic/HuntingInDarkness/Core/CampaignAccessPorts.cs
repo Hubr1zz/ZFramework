@@ -27,6 +27,7 @@ namespace Core
         bool IsSettlementActionRunning { get; }
         bool IsSettlementEventRestoreReady { get; }
         bool IsHuntReturnInFlight { get; }
+        CampaignSaveStatus SaveStatus { get; }
     }
 
     /// <summary>面向表现层的顶层战役命令；阶段内玩法继续使用各自的窄 gameplay port。</summary>
@@ -40,6 +41,7 @@ namespace Core
         UniTask<CampaignStartupResult> ContinueAsync(CancellationToken cancellationToken = default);
         UniTask<CampaignRestartResult> RestartAsync(CancellationToken cancellationToken = default);
         UniTask SaveAsync(bool includeActiveHunt, CancellationToken cancellationToken = default);
+        UniTask<bool> RetryPendingSaveAsync(CancellationToken cancellationToken = default);
         UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds, PlayableHuntDestination destination);
         UniTask<HuntRetreatCommandResult> RetreatAsync(HuntRetreatDecision decision, CancellationToken cancellationToken = default);
         UniTask<CampaignPhaseTransitionResult> TransitionAsync(CampaignPhaseTransitionRequest request, CancellationToken cancellationToken = default);
@@ -78,6 +80,7 @@ namespace Core
         bool ICampaignReadModel.IsSettlementActionRunning => flow.IsSettlementActionSessionRunning;
         bool ICampaignReadModel.IsSettlementEventRestoreReady => flow.IsSettlementEventRestoreReady;
         bool ICampaignReadModel.IsHuntReturnInFlight => flow.IsHuntReturnRecoveryInFlight;
+        CampaignSaveStatus ICampaignReadModel.SaveStatus => flow.SaveStatus;
 
         IPlayableSettlementGameplayPort ICampaignCommandPort.SettlementGameplay => flow.SettlementGameplay;
         IHuntExplorationPort ICampaignCommandPort.HuntExploration => flow.ActiveHuntExplorationPort;
@@ -87,6 +90,7 @@ namespace Core
         UniTask<CampaignStartupResult> ICampaignCommandPort.ContinueAsync(CancellationToken cancellationToken) => flow.ContinueAsync(cancellationToken);
         UniTask<CampaignRestartResult> ICampaignCommandPort.RestartAsync(CancellationToken cancellationToken) => flow.RestartCampaignAsync(cancellationToken);
         UniTask ICampaignCommandPort.SaveAsync(bool includeActiveHunt, CancellationToken cancellationToken) => flow.SaveCampaignAsync(includeActiveHunt, cancellationToken);
+        UniTask<bool> ICampaignCommandPort.RetryPendingSaveAsync(CancellationToken cancellationToken) => flow.RetryPendingSaveAsync(cancellationToken);
         UniTask<SettlementDepartureCommandResult> ICampaignCommandPort.DepartForHuntAsync(IReadOnlyList<int> hunterIds, PlayableHuntDestination destination) => flow.DepartForHuntAsyncGuarded(hunterIds, destination);
         UniTask<HuntRetreatCommandResult> ICampaignCommandPort.RetreatAsync(HuntRetreatDecision decision, CancellationToken cancellationToken) => flow.RequestRetreatAsync(decision, cancellationToken);
         UniTask<CampaignPhaseTransitionResult> ICampaignCommandPort.TransitionAsync(CampaignPhaseTransitionRequest request, CancellationToken cancellationToken) => flow.TransitionToPhaseAsync(request, cancellationToken);

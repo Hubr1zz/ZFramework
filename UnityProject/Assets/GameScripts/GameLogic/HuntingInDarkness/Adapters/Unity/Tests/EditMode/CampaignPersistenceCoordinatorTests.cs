@@ -45,7 +45,8 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(await save, Is.False);
             Assert.That(coordinator.StablePayload, Is.Null);
             Assert.That(persistence.InvalidationCount, Is.EqualTo(1));
-            Assert.That(coordinator.LastFailureReason, Does.Contain("世代已变化"));
+            Assert.That(coordinator.Status.State, Is.EqualTo(CampaignSaveState.Idle));
+            Assert.That(coordinator.LastFailureReason, Is.Empty);
         }
 
         [Test]
@@ -57,6 +58,120 @@ namespace HuntingInDarkness.Adapter.Tests
 
             Assert.That(coordinator.TrySaveImmediate("candidate-payload"), Is.False);
             Assert.That(coordinator.StablePayload, Is.EqualTo("stable-payload"));
+        }
+
+        [Test]
+        public async Task OlderSuccessfulSave_ReturnsTrueButCannotReplaceNewerFailedStatus()
+        {
+            var persistence = new DeferredPersistence();
+            var coordinator = new CampaignPersistenceCoordinator(persistence, CaptureSettlement);
+
+            UniTask<bool> older = coordinator.TrySaveAsync(false, CancellationToken.None);
+            UniTask<bool> newer = coordinator.TrySaveAsync(false, CancellationToken.None);
+            persistence.CompleteSave(false, 1);
+
+            Assert.That(await newer, Is.False);
+            persistence.CompleteSave(true, 0);
+
+            Assert.That(await older, Is.True);
+            Assert.That(coordinator.Status.State, Is.EqualTo(CampaignSaveState.Failed));
+            Assert.That(coordinator.Status.Reason, Does.Contain("异步保存"));
+        }
+
+        [Test]
+        public async Task CancelledRetry_RestoresPriorFailure()
+        {
+            var persistence = new DeferredPersistence();
+            var coordinator = new CampaignPersistenceCoordinator(persistence, CaptureSettlement);
+            UniTask<bool> initial = coordinator.TrySaveAsync(false, CancellationToken.None);
+            persistence.CompleteSave(false);
+            Assert.That(await initial, Is.False);
+            string reason = coordinator.Status.Reason;
+            using var cancellation = new CancellationTokenSource();
+
+            UniTask<bool> retry = coordinator.RetryPendingSaveAsync(false, cancellation.Token);
+            cancellation.Cancel();
+            persistence.CompleteSave(false, 1);
+
+            Assert.That(await retry, Is.False);
+            Assert.That(coordinator.Status.State, Is.EqualTo(CampaignSaveState.Failed));
+            Assert.That(coordinator.Status.Reason, Is.EqualTo(reason));
+        }
+
+        [Test]
+        public async Task ResetDetachesOldRetryAndAllowsNewOwner()
+        {
+            var persistence = new DeferredPersistence();
+            var coordinator = new CampaignPersistenceCoordinator(persistence, CaptureSettlement);
+            UniTask<bool> initial = coordinator.TrySaveAsync(false, CancellationToken.None);
+            persistence.CompleteSave(false);
+            Assert.That(await initial, Is.False);
+
+            UniTask<bool> oldRetry = coordinator.RetryPendingSaveAsync(false, CancellationToken.None);
+            coordinator.Reset();
+            Assert.That(await oldRetry, Is.False);
+
+            UniTask<bool> newSave = coordinator.TrySaveAsync(false, CancellationToken.None);
+            persistence.CompleteSave(false, 2);
+            Assert.That(await newSave, Is.False);
+            UniTask<bool> newRetry = coordinator.RetryPendingSaveAsync(false, CancellationToken.None);
+            persistence.CompleteSave(true, 1);
+            Assert.That(persistence.RequestCount, Is.EqualTo(4));
+            UniTask<bool> duplicate = coordinator.RetryPendingSaveAsync(false, CancellationToken.None);
+            Assert.That(persistence.RequestCount, Is.EqualTo(4));
+            persistence.CompleteSave(false, 3);
+
+            Assert.That(await newRetry, Is.False);
+            Assert.That(await duplicate, Is.False);
+        }
+
+        [Test]
+        public async Task RetryRecapturesLatestPayload()
+        {
+            int currentYear = 1;
+            var persistence = new DeferredPersistence();
+            var coordinator = new CampaignPersistenceCoordinator(persistence, CaptureSettlementWithYear);
+
+            UniTask<bool> initial = coordinator.TrySaveAsync(false, CancellationToken.None);
+            persistence.CompleteSave(false);
+            Assert.That(await initial, Is.False);
+            currentYear = 7;
+
+            UniTask<bool> retry = coordinator.RetryPendingSaveAsync(false, CancellationToken.None);
+            persistence.CompleteSave(true, 1);
+
+            Assert.That(await retry, Is.True);
+            CampaignSnapshot snapshot = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payloads[1]);
+            Assert.That(snapshot.Settlement.CurrentYear, Is.EqualTo(7));
+
+            bool CaptureSettlementWithYear(bool includeActiveHunt, out CampaignSnapshot snapshot, out string reason)
+            {
+                snapshot = new CampaignSnapshot
+                {
+                    CampaignSchemaVersion = CampaignSnapshot.CurrentSchemaVersion,
+                    Settlement = new SettlementInstance { CurrentYear = currentYear }
+                };
+                reason = string.Empty;
+                return true;
+            }
+        }
+
+        [Test]
+        public async Task DuplicateRetry_UsesSingleStorageCall()
+        {
+            var persistence = new DeferredPersistence();
+            var coordinator = new CampaignPersistenceCoordinator(persistence, CaptureSettlement);
+            UniTask<bool> initial = coordinator.TrySaveAsync(false, CancellationToken.None);
+            persistence.CompleteSave(false);
+            Assert.That(await initial, Is.False);
+
+            UniTask<bool> first = coordinator.RetryPendingSaveAsync(false, CancellationToken.None);
+            UniTask<bool> second = coordinator.RetryPendingSaveAsync(false, CancellationToken.None);
+            Assert.That(persistence.RequestCount, Is.EqualTo(2));
+            persistence.CompleteSave(true, 1);
+
+            Assert.That(await first, Is.True);
+            Assert.That(await second, Is.True);
         }
 
         [Test]
@@ -118,19 +233,27 @@ namespace HuntingInDarkness.Adapter.Tests
 
         private sealed class DeferredPersistence : ICampaignPersistencePort
         {
-            private readonly UniTaskCompletionSource<bool> saveCompletion = new();
+            private readonly List<UniTaskCompletionSource<bool>> saveCompletions = new();
 
             internal bool ImmediateSaveResult { get; set; } = true;
             internal int InvalidationCount { get; private set; }
+            internal List<string> Payloads { get; } = new();
+            internal int RequestCount => Payloads.Count;
 
             public void InvalidatePendingWrites() => InvalidationCount++;
-            public UniTask<bool> TrySavePayloadAsync(string payload, CancellationToken cancellationToken = default) => saveCompletion.Task;
+            public UniTask<bool> TrySavePayloadAsync(string payload, CancellationToken cancellationToken = default)
+            {
+                Payloads.Add(payload);
+                var completion = new UniTaskCompletionSource<bool>();
+                saveCompletions.Add(completion);
+                return completion.Task;
+            }
             public bool TrySavePayloadImmediate(string payload) => ImmediateSaveResult;
             public UniTask<bool> HasSaveAsync(CancellationToken cancellationToken = default) => UniTask.FromResult(false);
             public UniTask<CampaignSnapshot> LoadAsync(CancellationToken cancellationToken = default) => UniTask.FromResult<CampaignSnapshot>(null);
             public UniTask<bool> TryDeleteAsync(CancellationToken cancellationToken = default) => UniTask.FromResult(true);
 
-            internal void CompleteSave(bool result) => saveCompletion.TrySetResult(result);
+            internal void CompleteSave(bool result, int index = 0) => saveCompletions[index].TrySetResult(result);
         }
 
         private sealed class DeferredEncounterHost : ICampaignEncounterHandoffHost

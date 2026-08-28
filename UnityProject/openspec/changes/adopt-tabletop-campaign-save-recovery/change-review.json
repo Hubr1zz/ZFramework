@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-tabletop-campaign-save-recovery",
+  "title": "接入桌面战役存档失败恢复",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "保存状态、最新快照重试、跨阶段 3D 提示和定向验证已完成；等待在 Changes 中审查后显式同步。",
+  "verification": {
+    "status": "implemented",
+    "summary": "普通后台保存失败现在可在营地/狩猎桌面观察并重试；关键事务仍以自己的保存结果和检查点门禁为权威。",
+    "codeEvidence": [
+      {
+        "guid": "2ef55a7b51d14c5b94b2829e2f6e3301",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignPersistenceCoordinator.cs",
+        "fileHash": "3f3bf710955d79369ef6ab6d8d6afcd464a60d8f0ff77755d50b19fffee931a1",
+        "line": 10,
+        "feature": "管理保存状态、请求代次、取消恢复与最新快照单飞重试",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:50:04-07:00"
+      },
+      {
+        "guid": "dc74e52256326aa4180dd012a460392e",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/CampaignSaveStatusPresenter3D.cs",
+        "fileHash": "0da977673c73d39a1988223ab2f931b58ea2b3c361e17a466a8bad7c5c25385f",
+        "line": 11,
+        "feature": "在当前营地或狩猎根节点显示持久失败卡与重试入口",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:50:04-07:00"
+      },
+      {
+        "guid": "8762abcd4daf4bb195b7530c56a5ca0a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GlobalTabletopPresentation.cs",
+        "fileHash": "16dda73b486e062a1db4dc5ad462ecc6d40d19fa4963d40251b6c2604073daf0",
+        "line": 18,
+        "feature": "通过窄 Campaign 端口装配跨阶段存档状态表现",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:50:04-07:00"
+      }
+    ],
+    "evidence": [
+      "Unity 6000.5.9f1 编译通过。",
+      "CampaignPersistenceCoordinator EditMode 10/10。",
+      "CampaignSaveStatusPresenter3D PlayMode 2/2。"
+    ],
+    "differences": [
+      "正式 Spec 尚未描述普通保存失败的跨阶段 3D 重试入口。",
+      "campaign-persistence 仍保留与配置化季节相冲突的旧配额跨年迁移描述。"
+    ],
+    "verifiedAt": "2026-08-28T06:50:04-07:00"
+  },
+  "reviewIssues": [],
+  "gapIds": [],
+  "dependencyIds": [
+    "tabletop-campaign-save-recovery--requires--campaign-persistence"
+  ],
+  "capabilities": [
+    "tabletop-campaign-save-recovery",
+    "campaign-persistence"
+  ],
+  "syncTargets": [
+    {
+      "capability": "campaign-persistence",
+      "title": "战役持久化与恢复",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-tabletop-campaign-save-recovery/specs/campaign-persistence/spec.md",
+      "targetSpecPath": "openspec/specs/campaign-persistence/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "fb3cb2408e150b0c347b4a3caea726caef2196ce871cef6c814a35e5dc0a35f3",
+      "baseSnapshotPath": "openspec/changes/adopt-tabletop-campaign-save-recovery/.sync-baseline/campaign-persistence/spec.md"
+    },
+    {
+      "capability": "tabletop-campaign-save-recovery",
+      "title": "桌面战役存档失败恢复",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-tabletop-campaign-save-recovery/specs/tabletop-campaign-save-recovery/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-campaign-save-recovery/spec.md",
+      "targetExisted": false,
+      "baseFileHash": "",
+      "baseSnapshotPath": ""
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与基线一致，可以 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-28T06:53:20-07:00"
+  },
+  "createdAt": "2026-08-28T06:50:04-07:00"
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 5,
+  "capability": "campaign-persistence",
+  "title": "战役持久化与恢复",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "文件层原子保存与关键事务门禁保持不变；旧配额只按冻结季节日历保守迁移。",
+    "codeEvidence": [
+      {
+        "guid": "2ef55a7b51d14c5b94b2829e2f6e3301",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignPersistenceCoordinator.cs",
+        "fileHash": "3f3bf710955d79369ef6ab6d8d6afcd464a60d8f0ff77755d50b19fffee931a1",
+        "line": 10,
+        "feature": "保留关键保存调用结果并隔离旧异步完成",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:50:04-07:00"
+      }
+    ],
+    "evidence": [
+      "CampaignPersistenceCoordinator EditMode 10/10。",
+      "既有 campaign-year-loop 已验证配置化季节迁移。"
+    ],
+    "differences": [
+      "正式 migration requirement 仍错误描述为每个旧完成次数推进额外年份。"
+    ],
+    "verifiedAt": "2026-08-28T06:50:04-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": [
+    "formal::campaign-persistence",
+    "formal::campaign-year-loop"
+  ],
+  "implementationOutline": [
+    "schema 0 仅在旧配额与冻结季节数一致时映射季节索引。",
+    "schema 1 保留年份并从第一季开始。",
+    "无效旧进度保守归一化并保留诊断，不创建年度事件。"
+  ],
+  "reviewIssues": []
+}

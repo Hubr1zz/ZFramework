@@ -1,0 +1,14 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的采纳对账：补齐普通后台保存失败的可见重试闭环，并纠正持久化正式 Spec 中陈旧的年度配额迁移描述。",
+  "sourceRoots": [
+    "openspec/specs",
+    "Assets/GameScripts/GameLogic/HuntingInDarkness/Documentation~"
+  ],
+  "sourceReferences": [
+    "conversation::2026-08-28",
+    "formal::campaign-persistence",
+    "formal::campaign-year-loop",
+    "project::GameManagerRefactorPlan"
+  ]
+}

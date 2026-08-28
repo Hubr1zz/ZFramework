@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-campaign-save-recovery",
+  "title": "桌面战役存档失败恢复",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "最新保存状态与重试通过窄 Campaign 端口投影到当前阶段的世界空间卡牌。",
+    "codeEvidence": [
+      {
+        "guid": "2ef55a7b51d14c5b94b2829e2f6e3301",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignPersistenceCoordinator.cs",
+        "fileHash": "3f3bf710955d79369ef6ab6d8d6afcd464a60d8f0ff77755d50b19fffee931a1",
+        "line": 10,
+        "feature": "保存状态与最新快照重试",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:50:04-07:00"
+      },
+      {
+        "guid": "dc74e52256326aa4180dd012a460392e",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/CampaignSaveStatusPresenter3D.cs",
+        "fileHash": "0da977673c73d39a1988223ab2f931b58ea2b3c361e17a466a8bad7c5c25385f",
+        "line": 11,
+        "feature": "跨阶段 3D 失败与重试卡",
+        "status": "verified",
+        "checkedAt": "2026-08-28T06:50:04-07:00"
+      }
+    ],
+    "evidence": [
+      "CampaignPersistenceCoordinator EditMode 10/10。",
+      "CampaignSaveStatusPresenter3D PlayMode 2/2。"
+    ],
+    "differences": [
+      "该能力尚不存在正式 Spec。"
+    ],
+    "verifiedAt": "2026-08-28T06:50:04-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [
+    "tabletop-campaign-save-recovery--requires--campaign-persistence"
+  ],
+  "sourceReferences": [
+    "formal::campaign-persistence",
+    "project::GameManagerRefactorPlan"
+  ],
+  "implementationOutline": [
+    "协调器以 revision 控制可见状态，以 generation 隔离战役生命周期。",
+    "重试单飞并重新冻结当前权威快照。",
+    "世界空间 View 轮询只读状态并向 Campaign command port 提交重试。"
+  ],
+  "reviewIssues": []
+}

@@ -26,6 +26,7 @@ namespace Core
         private readonly Func<Transform> huntInteractionAnchor;
         private readonly Func<CancellationToken> lifetimeToken;
         private SettlementNoticePresenter3D noticePresenter;
+        private CampaignSaveStatusPresenter3D saveStatusPresenter;
         private TabletopGameOverView3D gameOverView;
 
         internal GlobalTabletopPresentation(GameObject ownerObject, ICampaignReadModel readModel, ICampaignCommandPort commandPort, GameObject settlementRoot, GameObject huntRoot, Vector3 randomAnchorOffset, Func<Transform> huntInteractionAnchor, Func<CancellationToken> lifetimeToken)
@@ -40,6 +41,8 @@ namespace Core
             this.lifetimeToken = lifetimeToken ?? throw new ArgumentNullException(nameof(lifetimeToken));
             noticePresenter = ownerObject.GetComponent<SettlementNoticePresenter3D>() ?? ownerObject.AddComponent<SettlementNoticePresenter3D>();
             noticePresenter.Initialize(() => readModel.CurrentPhase, ResolveTabletopPresentationRoot);
+            saveStatusPresenter = ownerObject.GetComponent<CampaignSaveStatusPresenter3D>() ?? ownerObject.AddComponent<CampaignSaveStatusPresenter3D>();
+            saveStatusPresenter.Initialize(() => readModel.SaveStatus, () => commandPort.RetryPendingSaveAsync(lifetimeToken()), () => readModel.CurrentPhase, ResolveTabletopPresentationRoot);
         }
 
         internal Vector3 ResolveRandomAnchor(TabletopRandomInteractionRequest request)
@@ -73,7 +76,9 @@ namespace Core
         {
             if (gameOverView != null) gameOverView.RestartCommand = null;
             gameOverView = null;
+            saveStatusPresenter?.Disconnect();
             noticePresenter = null;
+            saveStatusPresenter = null;
         }
 
         private Vector3 ResolveEventAnchor(int hunterId)

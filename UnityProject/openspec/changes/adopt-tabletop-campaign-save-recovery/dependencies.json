@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {
+      "id": "tabletop-campaign-save-recovery",
+      "label": "桌面战役存档失败恢复",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/adopt-tabletop-campaign-save-recovery/specs/tabletop-campaign-save-recovery/spec.md"
+    },
+    {
+      "id": "campaign-persistence",
+      "label": "战役持久化与恢复",
+      "category": "feature",
+      "readiness": "implemented",
+      "specPath": "openspec/changes/adopt-tabletop-campaign-save-recovery/specs/campaign-persistence/spec.md"
+    }
+  ],
+  "edges": [
+    {
+      "id": "tabletop-campaign-save-recovery--requires--campaign-persistence",
+      "from": "tabletop-campaign-save-recovery",
+      "to": "campaign-persistence",
+      "type": "requires",
+      "status": "defined",
+      "reason": "3D 恢复入口只投影 Campaign 持久化协调器的状态与重试命令",
+      "gapId": "",
+      "blocksImplementation": false
+    }
+  ]
+}
