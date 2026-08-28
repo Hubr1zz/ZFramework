@@ -114,7 +114,8 @@ namespace HuntingInDarkness.ActionFlow.Events
             this.randomInteractionPresenter = randomInteractionPresenter;
             this.resourceCommand = resourceCommand;
             this.itemCommand = itemCommand;
-            this.resourceAvailability = resourceAvailability ?? (IPlayableEventResourceAvailability)resourceCommand ?? new SettlementEventResourceAvailability(eventSystem.Settlement);
+            IPlayableEventResourceAvailability phaseResourceAvailability = resourceAvailability ?? (IPlayableEventResourceAvailability)resourceCommand ?? new SettlementEventResourceAvailability(eventSystem.Settlement);
+            this.resourceAvailability = PlayableEventAvailabilityScope.Compose(phaseResourceAvailability, itemCommand);
             this.worldCommand = worldCommand;
             this.settlementCommand = settlementCommand;
             this.populationCommand = populationCommand;

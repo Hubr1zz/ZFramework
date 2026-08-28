@@ -1,0 +1,10 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的收养对账：表驱动狩猎事件检查并消耗执行猎人的携带物。",
+  "sourceRoots": ["C:/Users/leonz/Desktop/GameDesignVault"],
+  "sourceReferences": [
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md",
+    "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/物品 Items.md",
+    "conversation::2026-08-28"
+  ]
+}

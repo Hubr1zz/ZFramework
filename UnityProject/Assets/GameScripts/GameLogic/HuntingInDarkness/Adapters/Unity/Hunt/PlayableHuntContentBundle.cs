@@ -8,6 +8,7 @@ using System.Text;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunt;
+using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using UnityEngine;
 
@@ -444,18 +445,19 @@ namespace HuntingInDarkness.Hunt
                     return false;
                 }
             foreach (EventData gameEvent in canonicalEvents.Values)
-                if (!TryValidateEventReferences(gameEvent.chainedEvents, canonicalEvents, out reason))
+            {
+                if (!TryValidateEventReferences(gameEvent.chainedEvents, canonicalEvents, out reason) || !TryValidateEventItemReferences(gameEvent, out reason))
                 {
                     events = null;
                     return false;
                 }
-                else
-                    foreach (EventOption option in gameEvent.options ?? new List<EventOption>())
-                        if (!TryValidateEventReferences(option?.successChain, canonicalEvents, out reason) || !TryValidateEventReferences(option?.failChain, canonicalEvents, out reason))
-                        {
-                            events = null;
-                            return false;
-                        }
+                foreach (EventOption option in gameEvent.options ?? new List<EventOption>())
+                    if (!TryValidateEventReferences(option?.successChain, canonicalEvents, out reason) || !TryValidateEventReferences(option?.failChain, canonicalEvents, out reason))
+                    {
+                        events = null;
+                        return false;
+                    }
+            }
             events = new List<EventData>(canonicalEvents.Values);
             events.Sort((left, right) => string.Compare(left.ContentId, right.ContentId, StringComparison.Ordinal));
             reason = string.Empty;
@@ -492,6 +494,48 @@ namespace HuntingInDarkness.Hunt
                 }
             reason = string.Empty;
             return true;
+        }
+
+        private bool TryValidateEventItemReferences(EventData gameEvent, out string reason)
+        {
+            if (!TryValidateEventItemEffects(gameEvent.immediateEffects, gameEvent.ContentId, out reason)) return false;
+            foreach (EventOption option in gameEvent.options ?? new List<EventOption>())
+            {
+                foreach (EventOptionCondition condition in option?.conditions ?? new List<EventOptionCondition>())
+                {
+                    if (condition?.conditionKind != EventOptionConditionKind.MinimumCarriedItem) continue;
+                    if (!TryResolveCanonicalNonResourceItem(condition.key, out _))
+                    {
+                        reason = $"事件 {gameEvent.ContentId} 的携带物条件引用了未知、非稳定或资源物品：{condition.key}";
+                        return false;
+                    }
+                }
+                if (!TryValidateEventItemEffects(option?.successEffects, gameEvent.ContentId, out reason) || !TryValidateEventItemEffects(option?.failEffects, gameEvent.ContentId, out reason)) return false;
+            }
+            reason = string.Empty;
+            return true;
+        }
+
+        private bool TryValidateEventItemEffects(IReadOnlyList<EventEffect> effects, string eventId, out string reason)
+        {
+            foreach (EventEffect effect in effects ?? Array.Empty<EventEffect>())
+            {
+                if (effect?.effectType != EventEffectType.AddItem && effect?.effectType != EventEffectType.RemoveItem) continue;
+                if (!TryResolveCanonicalNonResourceItem(effect.targetName, out _))
+                {
+                    reason = $"事件 {eventId} 的物品效果引用了未知、非稳定或资源物品：{effect.targetName}";
+                    return false;
+                }
+            }
+            reason = string.Empty;
+            return true;
+        }
+
+        private bool TryResolveCanonicalNonResourceItem(string itemId, out ItemData item)
+        {
+            item = null;
+            string canonicalId = itemId?.Trim() ?? string.Empty;
+            return canonicalId.Length > 0 && RegistryBundle.TryGetItem(canonicalId, out item) && item != null && item.itemType != ItemType.Resource && string.Equals(item.ContentId, canonicalId, StringComparison.Ordinal);
         }
 
         private string BuildManifestId(IReadOnlyList<EventData> canonicalEvents)

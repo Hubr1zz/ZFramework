@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HuntingInDarkness.Data;
 
 namespace HuntingInDarkness.ActionFlow.Events
@@ -35,6 +36,7 @@ namespace HuntingInDarkness.ActionFlow.Events
     /// <summary>由阶段 Runner 注入的资源写入端口，避免共享事件系统越过阶段权威状态。</summary>
     public interface IPlayableEventResourceCommand : IPlayableEventResourceAvailability
     {
+        bool CanApplyBatch(IReadOnlyList<EventEffect> effects, HunterInstance actor, out int rejectedEffectIndex, out string reason);
         bool TryApply(EventEffectType effectType, string resourceId, int amount, HunterInstance actor, out PlayableEventResourceChange change, out string reason);
     }
 

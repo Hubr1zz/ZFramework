@@ -131,6 +131,38 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void HuntCarriedItemOption_UsesSelectedHuntersOwnInventory()
+        {
+            ItemData dressing = PlayableItemTableRuntime.GetItems().First(item => item.ContentId == "weathered_field_dressing");
+            var settlement = new SettlementInstance();
+            var carrier = new HunterInstance(null, 9116) { Name = "携带者" };
+            var companion = new HunterInstance(null, 9117) { Name = "同伴" };
+            carrier.Collectibles.Add(new ItemInstance(dressing, 1));
+            settlement.Hunters.Add(carrier);
+            settlement.Hunters.Add(companion);
+            var manager = new HuntManager(new EventSystem(settlement, new FirstRandom()), bindInitialContent: false);
+            manager.OnEnter(new List<HunterInstance> { carrier, companion });
+            try
+            {
+                PlayableSettlementItemRegistry.Configure(PlayableItemTableRuntime.GetItems());
+                EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == "hunt_worm_rain");
+                EventOption option = gameEvent.options.First(item => item.successEffects.Any(effect => effect.effectType == EventEffectType.RemoveItem));
+                var itemCommand = new HuntEventItemCommand(manager);
+                IPlayableEventResourceAvailability availability = PlayableEventAvailabilityScope.Compose(new HuntEventResourceCommand(manager), itemCommand);
+
+                Assert.That(option.conditions.Single().conditionKind, Is.EqualTo(EventOptionConditionKind.MinimumCarriedItem));
+                Assert.That(PlayableEventOptionAvailability.GetRequirements(option, availability), Does.Contain("旧式包扎布 ×1"));
+                Assert.That(PlayableEventOptionAvailability.CanUse(option, carrier, settlement, availability, out string reason), Is.True, reason);
+                Assert.That(PlayableEventOptionAvailability.CanUse(option, companion, settlement, availability, out reason), Is.False);
+                Assert.That(reason, Does.Contain("旧式包扎布"));
+            }
+            finally
+            {
+                PlayableSettlementItemRegistry.Configure(null);
+            }
+        }
+
+        [Test]
         public void StoneEquipment_UnlocksKeywordEventOption()
         {
             var settlement = new SettlementInstance();

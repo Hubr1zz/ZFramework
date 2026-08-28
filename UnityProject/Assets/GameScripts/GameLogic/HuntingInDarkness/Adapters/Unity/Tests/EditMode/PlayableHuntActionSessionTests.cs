@@ -236,6 +236,95 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task InteractTileAsync_CarriedItemOptionConsumesOnlyActorItemAndPublishesChange()
+        {
+            using var rig = new HuntRig(includeSurvivor: true);
+            rig.Hunter.Collectibles.Add(new ItemInstance(rig.RewardItem, 1));
+            rig.Survivor.Collectibles.Add(new ItemInstance(rig.RewardItem, 3));
+            rig.TileEvent.eventType = GameEventType.Choice;
+            rig.TileEvent.options.Add(new EventOption
+            {
+                optionText = "使用包扎布",
+                alwaysAvailable = false,
+                conditions = new List<EventOptionCondition>
+                {
+                    new() { conditionKind = EventOptionConditionKind.MinimumCarriedItem, key = rig.RewardItem.ContentId, displayName = rig.RewardItem.itemName, value = 1 }
+                },
+                successEffects = new List<EventEffect>
+                {
+                    new() { effectType = EventEffectType.RemoveItem, targetName = rig.RewardItem.ContentId, value = 1 },
+                    new() { effectType = EventEffectType.AddResource, targetName = rig.Resource.ContentId, value = 2 }
+                }
+            });
+            rig.TileEvent.options.Add(new EventOption { optionText = "放弃", alwaysAvailable = true });
+            rig.Manager.EventInput = new ExplicitChoiceInput(0);
+            int changeCount = 0;
+            PlayableEventItemChangedEvent received = default;
+            Action<PlayableEventItemChangedEvent> handler = evt =>
+            {
+                changeCount++;
+                received = evt;
+            };
+            EventBus.Subscribe(handler);
+            try
+            {
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(rig.Hunter.Collectibles.Any(item => item.Data == rig.RewardItem), Is.False);
+                Assert.That(rig.Survivor.Collectibles.Single(item => item.Data == rig.RewardItem).Count, Is.EqualTo(3));
+                Assert.That(rig.Hunter.Collectibles.Single(item => item.Data == rig.Resource).Count, Is.EqualTo(2));
+                Assert.That(rig.Settlement.GetStoredItem(rig.RewardItem.ContentId), Is.Zero);
+                Assert.That(changeCount, Is.EqualTo(1));
+                Assert.That(received.ActorId, Is.EqualTo(rig.Hunter.InstanceId));
+                Assert.That(received.OldAmount, Is.EqualTo(1));
+                Assert.That(received.NewAmount, Is.Zero);
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+            }
+        }
+
+        [Test]
+        public void EventChoice_ItemCostPreflightRejectsAggregatedShortageBeforeEarlierRewards()
+        {
+            using var rig = new HuntRig(includeSurvivor: true);
+            rig.Hunter.Collectibles.Add(new ItemInstance(rig.RewardItem, 1));
+            var gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.ConfigureContentId("test_item_cost_preflight");
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption
+            {
+                optionText = "尝试支付两次",
+                alwaysAvailable = true,
+                successEffects = new List<EventEffect>
+                {
+                    new() { effectType = EventEffectType.AddResource, targetName = rig.Resource.ContentId, value = 4 },
+                    new() { effectType = EventEffectType.RemoveItem, targetName = rig.RewardItem.ContentId, value = 1 },
+                    new() { effectType = EventEffectType.RemoveItem, targetName = rig.RewardItem.ContentId, value = 1 }
+                }
+            });
+            try
+            {
+                var resourceCommand = new HuntEventResourceCommand(rig.Manager);
+                var itemCommand = new HuntEventItemCommand(rig.Manager);
+                PlayableEventChoiceTransaction transaction = rig.EventSystem.PrepareChoice(gameEvent, 0, rig.Hunter, resourceCommand: resourceCommand, itemCommand: itemCommand);
+
+                Assert.That(transaction, Is.Not.Null);
+                PlayableEventCommitResult result = transaction.CommitStandalone();
+
+                Assert.That(result.EffectResults.HasFailures, Is.True);
+                Assert.That(rig.Hunter.Collectibles.Single(item => item.Data == rig.RewardItem).Count, Is.EqualTo(1));
+                Assert.That(resourceCommand.GetAvailableAmount(rig.Resource.ContentId), Is.Zero);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
         public async Task InteractTileAsync_RevealThenMoveUsesTwoCommittedCommands()
         {
             using var rig = new HuntRig();
@@ -505,6 +594,49 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 EventBus.Unsubscribe(huntHandler);
                 EventBus.Unsubscribe(settlementHandler);
+            }
+        }
+
+        [Test]
+        public void EventChoice_ItemCostPreflightRejectsLaterResourceOverflowWithoutPartialCommit()
+        {
+            using var rig = new HuntRig(includeSurvivor: true);
+            rig.Hunter.Collectibles.Add(new ItemInstance(rig.RewardItem, 1));
+            rig.Hunter.Collectibles.Add(new ItemInstance(rig.Resource, int.MaxValue - 1));
+            var gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.ConfigureContentId("test_item_cost_resource_overflow");
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption
+            {
+                optionText = "支付后获得过量资源",
+                alwaysAvailable = true,
+                successEffects = new List<EventEffect>
+                {
+                    new() { effectType = EventEffectType.RemoveItem, targetName = rig.RewardItem.ContentId, value = 1 },
+                    new() { effectType = EventEffectType.AddResource, targetName = rig.Resource.ContentId, value = 2 }
+                }
+            });
+            int changeCount = 0;
+            Action<PlayableEventItemChangedEvent> handler = _ => changeCount++;
+            EventBus.Subscribe(handler);
+            try
+            {
+                var resourceCommand = new HuntEventResourceCommand(rig.Manager);
+                var itemCommand = new HuntEventItemCommand(rig.Manager);
+                PlayableEventChoiceTransaction transaction = rig.EventSystem.PrepareChoice(gameEvent, 0, rig.Hunter, resourceCommand: resourceCommand, itemCommand: itemCommand);
+
+                Assert.That(transaction, Is.Not.Null);
+                PlayableEventCommitResult result = transaction.CommitStandalone();
+
+                Assert.That(result.EffectResults.HasFailures, Is.True);
+                Assert.That(rig.Hunter.Collectibles.Single(item => item.Data == rig.RewardItem).Count, Is.EqualTo(1));
+                Assert.That(resourceCommand.GetAvailableAmount(rig.Resource.ContentId), Is.EqualTo(int.MaxValue - 1));
+                Assert.That(changeCount, Is.Zero);
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+                UnityEngine.Object.DestroyImmediate(gameEvent);
             }
         }
 

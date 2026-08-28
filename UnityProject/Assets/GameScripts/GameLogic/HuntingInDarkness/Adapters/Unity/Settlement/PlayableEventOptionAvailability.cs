@@ -72,6 +72,7 @@ namespace HuntingInDarkness.Settlement
                     case EventEffectType.AddRecoverableWound:
                     case EventEffectType.KillHunter:
                     case EventEffectType.ActivateBloodline:
+                    case EventEffectType.RemoveItem:
                         return true;
                 }
             }
@@ -106,7 +107,9 @@ namespace HuntingInDarkness.Settlement
             Func<string, int> resourceResolver = resourceAvailability != null
                 ? resourceAvailability.GetAvailableAmount
                 : key => settlement != null ? settlement.GetResource(PlayableSettlementItemRegistry.ResolveContentId(key)) : 0;
-            return EventOptionAvailabilityRules.Evaluate(definitions, hunter, resourceResolver, equippedItems, keywords, out reason);
+            IPlayableEventItemAvailability itemAvailability = resourceAvailability as IPlayableEventItemAvailability;
+            Func<string, int> carriedItemResolver = itemAvailability != null ? key => itemAvailability.GetAvailableAmount(key, hunter) : null;
+            return EventOptionAvailabilityRules.Evaluate(definitions, hunter, resourceResolver, equippedItems, keywords, carriedItemResolver, out reason);
         }
 
         public static string GetRequirements(EventOption option)
@@ -128,6 +131,12 @@ namespace HuntingInDarkness.Settlement
                         string owner = resourceAvailability.Scope == PlayableEventResourceScope.HuntCollectibles ? "小队携带" : "营地拥有";
                         string resourceName = PlayableSettlementItemRegistry.TryGet(PlayableSettlementItemRegistry.ResolveContentId(definition.Key), out ItemData item) && item != null && !string.IsNullOrWhiteSpace(item.itemName) ? item.itemName : definition.DisplayName;
                         requirements.Add($"需要{owner} {resourceName} ×{definition.Value}");
+                        continue;
+                    }
+                    if (definition.Kind == EventOptionConditionKind.MinimumCarriedItem)
+                    {
+                        string itemName = PlayableSettlementItemRegistry.TryGet(PlayableSettlementItemRegistry.ResolveContentId(definition.Key), out ItemData item) && item != null && !string.IsNullOrWhiteSpace(item.itemName) ? item.itemName : definition.DisplayName;
+                        requirements.Add($"需要该猎人携带 {itemName} ×{definition.Value}");
                         continue;
                     }
                     requirements.Add(EventOptionAvailabilityRules.Describe(definition));

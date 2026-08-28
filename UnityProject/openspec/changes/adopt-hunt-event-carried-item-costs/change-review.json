@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-hunt-event-carried-item-costs",
+  "title": "收养狩猎事件携带物成本",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现、对抗审查和定向验证已完成；等待人类确认 actor-scoped 成本边界后同步为正式 Spec。",
+  "verification": {
+    "status": "implemented",
+    "summary": "Unity 6000.5.9f1；事件条件、事务、Hunt session 与内容包 EditMode 65/65，世界空间事件选项 PlayMode 2/2。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity CLI 使用项目声明的 6000.5.9f1 完成编译与定向测试。",
+      "事件条件、事务、Hunt ActionSession 与内容包 EditMode 65/65。",
+      "世界空间事件选项状态与 actor 选择 PlayMode 2/2。",
+      "对抗审查修复成本成功但资源奖励溢出导致的半提交，并确认交换在任何效果前失败关闭。"
+    ],
+    "differences": ["正式 Spec 尚未定义事件按执行猎人检查并消耗携带物。"],
+    "verifiedAt": "2026-08-28T00:00:42-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-HUNT-EVENT-ITEM-COST-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认首期事件物品成本只能由当前执行猎人自己的非资源携带物支付。",
+      "details": "批准后创建新的正式能力；跨猎人代付、仓库支付、装备成本、转移和 Showdown 使用仍不在本能力范围。",
+      "sourceId": "conversation::2026-08-28",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": ["table-driven-hunt-events", "event-effect-resolution-reporting", "hunt-session-event-occurrence-recovery", "active-hunt-persistence", "tabletop-hunt-consumables"],
+  "capabilities": ["hunt-event-carried-item-costs"],
+  "syncTargets": [
+    { "capability": "hunt-event-carried-item-costs", "title": "狩猎事件携带物成本", "category": "feature", "deltaSpecPath": "openspec/changes/adopt-hunt-event-carried-item-costs/specs/hunt-event-carried-item-costs/spec.md", "targetSpecPath": "openspec/specs/hunt-event-carried-item-costs/spec.md", "targetExisted": false, "baseFileHash": "", "baseSnapshotPath": "" }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "正式目标尚不存在，Delta 只等待人工确认。",
+    "changes": ["增加狩猎事件携带物成本能力。"],
+    "conflicts": [],
+    "validatedAt": "2026-08-28T00:00:42-07:00"
+  },
+  "createdAt": "2026-08-28T00:00:42-07:00"
+}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "hunt-event-carried-item-costs", "label": "狩猎事件携带物成本", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-hunt-event-carried-item-costs/specs/hunt-event-carried-item-costs/spec.md" },
+    { "id": "table-driven-hunt-events", "label": "表驱动狩猎事件", "category": "feature", "readiness": "implemented", "specPath": "openspec/specs/table-driven-hunt-events/spec.md" },
+    { "id": "event-effect-resolution-reporting", "label": "事件效果结算报告", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/event-effect-resolution-reporting/spec.md" },
+    { "id": "hunt-session-event-occurrence-recovery", "label": "狩猎会话事件发生恢复", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/hunt-session-event-occurrence-recovery/spec.md" },
+    { "id": "active-hunt-persistence", "label": "活动狩猎检查点与恢复", "category": "architecture", "readiness": "implemented", "specPath": "openspec/specs/active-hunt-persistence/spec.md" },
+    { "id": "tabletop-hunt-consumables", "label": "狩猎桌面消耗品", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-tabletop-hunt-consumables/specs/tabletop-hunt-consumables/spec.md" }
+  ],
+  "edges": [
+    { "from": "table-driven-hunt-events", "to": "hunt-event-carried-item-costs", "type": "supports" },
+    { "from": "event-effect-resolution-reporting", "to": "hunt-event-carried-item-costs", "type": "supports" },
+    { "from": "hunt-session-event-occurrence-recovery", "to": "hunt-event-carried-item-costs", "type": "constrains" },
+    { "from": "tabletop-hunt-consumables", "to": "hunt-event-carried-item-costs", "type": "supports" },
+    { "from": "hunt-event-carried-item-costs", "to": "active-hunt-persistence", "type": "uses" }
+  ]
+}

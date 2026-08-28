@@ -73,5 +73,17 @@ namespace HuntingInDarkness.GameCore.Tests
             Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { minimum }, hunter, null, null, out reason), Is.False);
             Assert.That(reason, Does.Contain("命运至少 3"));
         }
+
+        [Test]
+        public void Evaluate_CarriedItemUsesActorScopedResolver()
+        {
+            var hunter = new HunterState();
+            var condition = new EventOptionConditionDefinition(EventOptionConditionKind.MinimumCarriedItem, "field_dressing", 2, false, "包扎布");
+
+            Assert.That(EventOptionAvailabilityRules.RequiresHunter(condition), Is.True);
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { condition }, hunter, null, null, null, itemId => itemId == "field_dressing" ? 2 : 0, out string reason), Is.True, reason);
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { condition }, hunter, null, null, null, _ => 1, out reason), Is.False);
+            Assert.That(reason, Does.Contain("包扎布"));
+        }
     }
 }

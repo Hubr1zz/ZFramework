@@ -26,6 +26,57 @@ namespace HuntingInDarkness.Hunt
             return TryCountCollectibles(manager.ActiveHunters, resolvedId, out int amount) ? amount : 0;
         }
 
+        public bool CanApplyBatch(IReadOnlyList<EventEffect> effects, HunterInstance actor, out int rejectedEffectIndex, out string reason)
+        {
+            rejectedEffectIndex = -1;
+            reason = string.Empty;
+            if (effects == null) return true;
+            var simulatedAmounts = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+            {
+                EventEffect effect = effects[effectIndex];
+                if (effect?.effectType != EventEffectType.AddResource && effect?.effectType != EventEffectType.RemoveResource) continue;
+                rejectedEffectIndex = effectIndex;
+                if (effect.value <= 0)
+                {
+                    reason = "狩猎事件资源变化无效。";
+                    return false;
+                }
+                string resourceId = PlayableSettlementItemRegistry.ResolveContentId(effect.targetName);
+                if (!PlayableSettlementItemRegistry.TryGet(resourceId, out ItemData item) || item == null || item.itemType != ItemType.Resource)
+                {
+                    reason = $"找不到狩猎资源内容：{effect.targetName}";
+                    return false;
+                }
+                if (ResolveReceiver(manager.ActiveHunters, actor) == null)
+                {
+                    reason = "狩猎事件没有可携带资源的猎人。";
+                    return false;
+                }
+                if (!simulatedAmounts.TryGetValue(resourceId, out int currentAmount))
+                {
+                    if (!TryCountCollectibles(manager.ActiveHunters, resourceId, out currentAmount))
+                    {
+                        reason = "狩猎小队携带物数量超过可结算范围。";
+                        return false;
+                    }
+                }
+                if (effect.effectType == EventEffectType.AddResource && effect.value > int.MaxValue - currentAmount)
+                {
+                    reason = "狩猎事件资源奖励超过可携带数量范围。";
+                    return false;
+                }
+                if (effect.effectType == EventEffectType.RemoveResource && currentAmount < effect.value)
+                {
+                    reason = $"狩猎小队携带的 {item.itemName} 不足。";
+                    return false;
+                }
+                simulatedAmounts[resourceId] = effect.effectType == EventEffectType.AddResource ? currentAmount + effect.value : currentAmount - effect.value;
+            }
+            rejectedEffectIndex = -1;
+            return true;
+        }
+
         public bool TryApply(EventEffectType effectType, string resourceId, int amount, HunterInstance actor, out PlayableEventResourceChange change, out string reason)
         {
             change = default;

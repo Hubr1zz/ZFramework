@@ -9,6 +9,7 @@ using HuntingInDarkness.ActionFlow.Campaign;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
+using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -29,6 +30,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             PlayableSymptomRuntime.Configure(AssetDatabase.LoadAssetAtPath<PlayableSymptomCatalog>(SymptomCatalogPath));
             PlayableEventTableRuntime.ClearCache();
+            ConfigureItems();
         }
 
         [TearDown]
@@ -112,7 +114,7 @@ namespace HuntingInDarkness.Adapter.Tests
             weapon.ConfigureContentId("item:weapon");
             weapon.itemName = "weapon";
             weapon.itemType = ItemType.Weapon;
-            PlayableSettlementItemRegistry.Configure(new[] { weapon });
+            ConfigureItems(weapon);
             HexTileData resourceTile = CreateTile("tile:resource", TileType.Forest, 1);
             resourceTile.resourcePoints.Add(new ResourcePointConfig { resource = weapon, spawnWeight = 1, drawCount = 1, maxPerTile = 1 });
             PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:start", TileType.Starting, 1), new List<HexTileData> { resourceTile }, new List<EventData> { dangerEvent }, CreateNoiseProfile(dangerEvent));
@@ -129,7 +131,7 @@ namespace HuntingInDarkness.Adapter.Tests
             resource.ConfigureContentId("item:table-herb");
             resource.itemName = "table herb";
             resource.itemType = ItemType.Resource;
-            PlayableSettlementItemRegistry.Configure(new[] { resource });
+            ConfigureItems(resource);
             HexTileData resourceTile = CreateTile("tile:resource", TileType.Forest, 1);
             resourceTile.resourcePoints.Add(new ResourcePointConfig
             {
@@ -168,6 +170,34 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void Bundle_RejectsUnknownOrAliasCarriedItemReferences()
+        {
+            ItemData dressing = Own(ScriptableObject.CreateInstance<ItemData>());
+            dressing.ConfigureContentId("item:field-dressing");
+            dressing.itemName = "field dressing";
+            dressing.itemType = ItemType.Consumable;
+            ConfigureItems(dressing);
+            EventData dangerEvent = CreateHuntEvent("hunt:item-cost");
+            dangerEvent.eventType = GameEventType.Choice;
+            var condition = new EventOptionCondition { conditionKind = EventOptionConditionKind.MinimumCarriedItem, key = "missing-item", value = 1 };
+            var effect = new EventEffect { effectType = EventEffectType.RemoveItem, targetName = "missing-item", value = 1 };
+            dangerEvent.options.Add(new EventOption { alwaysAvailable = false, conditions = new List<EventOptionCondition> { condition }, successEffects = new List<EventEffect> { effect } });
+            PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:item-start", TileType.Starting, 1), new List<HexTileData> { CreateTile("tile:item-plain", TileType.Plains, 1) }, new List<EventData> { dangerEvent }, CreateNoiseProfile(dangerEvent));
+
+            Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.False);
+            Assert.That(reason, Does.Contain("未知、非稳定或资源物品"));
+
+            condition.key = dressing.itemName;
+            effect.targetName = dressing.itemName;
+            Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out reason), Is.False);
+            Assert.That(reason, Does.Contain("未知、非稳定或资源物品"));
+
+            condition.key = dressing.ContentId;
+            effect.targetName = dressing.ContentId;
+            Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out reason), Is.True, reason);
+        }
+
+        [Test]
         public void BundleId_IsDeterministicAndTracksOrderedNestedRules()
         {
             EventData dangerEvent = CreateHuntEvent("hunt:danger");
@@ -180,7 +210,7 @@ namespace HuntingInDarkness.Adapter.Tests
             unreferencedItem.itemName = "unreferenced";
             unreferencedItem.itemType = ItemType.Resource;
             unreferencedItem.stackLimit = 1;
-            PlayableSettlementItemRegistry.Configure(new[] { resource, unreferencedItem });
+            ConfigureItems(resource, unreferencedItem);
             InventionData invention = Own(ScriptableObject.CreateInstance<InventionData>());
             invention.ConfigureContentId("invention:harvest");
             invention.inventionName = "harvest";
@@ -390,6 +420,13 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         private static EventData ResolveTableEvent(string id) => PlayableEventTableRuntime.GetEvents().Single(gameEvent => gameEvent.ContentId == id);
+
+        private static void ConfigureItems(params ItemData[] additionalItems)
+        {
+            var items = new List<ItemData>(PlayableItemTableRuntime.GetItems());
+            items.AddRange(additionalItems ?? System.Array.Empty<ItemData>());
+            PlayableSettlementItemRegistry.Configure(items);
+        }
 
         private PlayableHuntContentCatalog CreateCatalog(HexTileData startingTile, List<HexTileData> tiles, List<EventData> events, PlayableHuntNoiseProfile profile)
         {

@@ -461,7 +461,7 @@ namespace HuntingInDarkness.ContentTables
                 return true;
             var optionIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (EventOptionTableRecord record in records)
-                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || (requireOptionIds && (string.IsNullOrWhiteSpace(record.optionId) || !optionIds.Add(record.optionId.Trim()))) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateEffects(record.failEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateConditions(record.alwaysAvailable, record.conditions, bloodlineContent))
+                if (record == null || string.IsNullOrWhiteSpace(record.optionText) || (requireOptionIds && (string.IsNullOrWhiteSpace(record.optionId) || !optionIds.Add(record.optionId.Trim()))) || !TryParse(record.checkType, out CheckType checkType) || !TryParseCheckPresentation(record.checkPresentation, out EventCheckPresentationKind checkPresentation) || !ValidateCheckPresentation(record, checkType, checkPresentation) || !ValidateEffects(record.successEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateEffects(record.failEffects, true, symptomCatalog, bloodlineContent, allowHuntWorldEffects, allowSettlementEventEffects) || !ValidateConditions(record.alwaysAvailable, record.conditions, bloodlineContent, allowHuntWorldEffects) || !ValidateCarriedItemCosts(record, allowHuntWorldEffects))
                     return false;
             return true;
         }
@@ -492,15 +492,16 @@ namespace HuntingInDarkness.ContentTables
             return conditions;
         }
 
-        private static bool ValidateConditions(bool alwaysAvailable, IReadOnlyList<EventOptionConditionTableRecord> records, IHunterBloodlineContent bloodlineContent)
+        private static bool ValidateConditions(bool alwaysAvailable, IReadOnlyList<EventOptionConditionTableRecord> records, IHunterBloodlineContent bloodlineContent, bool allowHuntItemConditions)
         {
             if (alwaysAvailable) return records == null || records.Count == 0;
             if (records == null || records.Count == 0) return false;
             foreach (EventOptionConditionTableRecord record in records)
             {
                 if (record == null || !TryParse(record.conditionKind, out EventOptionConditionKind conditionKind)) return false;
-                bool requiresKey = conditionKind == EventOptionConditionKind.HasTrait || conditionKind == EventOptionConditionKind.HasAilment || conditionKind == EventOptionConditionKind.MinimumResource || conditionKind == EventOptionConditionKind.HasEquippedItem || conditionKind == EventOptionConditionKind.HasKeyword || conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline;
+                bool requiresKey = conditionKind == EventOptionConditionKind.HasTrait || conditionKind == EventOptionConditionKind.HasAilment || conditionKind == EventOptionConditionKind.MinimumResource || conditionKind == EventOptionConditionKind.HasEquippedItem || conditionKind == EventOptionConditionKind.HasKeyword || conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline || conditionKind == EventOptionConditionKind.MinimumCarriedItem;
                 if (requiresKey && string.IsNullOrWhiteSpace(record.key)) return false;
+                if (conditionKind == EventOptionConditionKind.MinimumCarriedItem && (!allowHuntItemConditions || record.value <= 0)) return false;
                 if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && (bloodlineContent == null || !bloodlineContent.TryGet(record.key, out _))) return false;
                 if (record.value < 0) return false;
             }
@@ -511,6 +512,8 @@ namespace HuntingInDarkness.ContentTables
         {
             if (records == null)
                 return true;
+            bool removesItem = false;
+            bool killsHunter = false;
             foreach (EventEffectTableRecord record in records)
             {
                 if (record == null || !TryParse(record.effectType, out EventEffectType effectType))
@@ -527,15 +530,61 @@ namespace HuntingInDarkness.ContentTables
                     return false;
                 if (effectType == EventEffectType.KillHunter && (!allowSelectedHunterEffects || !IsValidHunterDeathCauseId(record.targetName)))
                     return false;
+                if (effectType == EventEffectType.KillHunter)
+                    killsHunter = true;
                 if (effectType == EventEffectType.ExhaustCurrentHuntTileResources && (!allowHuntWorldEffects || !string.IsNullOrWhiteSpace(record.targetName) || !string.IsNullOrWhiteSpace(record.bodyPart) || record.value != 0))
                     return false;
                 if (effectType == EventEffectType.CreateHuntNoiseLease && (!allowSettlementEventEffects || string.IsNullOrWhiteSpace(record.targetName) || !string.IsNullOrWhiteSpace(record.bodyPart) || record.value < 1 || record.value > 10))
                     return false;
                 if (effectType == EventEffectType.AddItem && (!allowHuntWorldEffects || string.IsNullOrWhiteSpace(record.targetName) || !string.IsNullOrWhiteSpace(record.bodyPart) || record.value <= 0))
                     return false;
+                if (effectType == EventEffectType.RemoveItem && (!allowHuntWorldEffects || !allowSelectedHunterEffects || string.IsNullOrWhiteSpace(record.targetName) || !string.IsNullOrWhiteSpace(record.bodyPart) || record.value <= 0))
+                    return false;
+                if (effectType == EventEffectType.RemoveItem)
+                    removesItem = true;
                 if (effectType == EventEffectType.RescuePopulation && (!allowHuntWorldEffects || !string.IsNullOrWhiteSpace(record.targetName) || !string.IsNullOrWhiteSpace(record.bodyPart) || record.value <= 0))
                     return false;
             }
+            return !removesItem || !killsHunter;
+        }
+
+        private static bool ValidateCarriedItemCosts(EventOptionTableRecord record, bool allowHuntItemCosts)
+        {
+            if (!TryCollectItemCosts(record.successEffects, out Dictionary<string, int> successCosts) || !TryCollectItemCosts(record.failEffects, out Dictionary<string, int> failCosts)) return false;
+            if (successCosts.Count == 0 && failCosts.Count == 0) return true;
+            if (!allowHuntItemCosts || record.conditions == null) return false;
+            var thresholds = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (EventOptionConditionTableRecord condition in record.conditions)
+            {
+                if (condition == null || condition.inverted || !TryParse(condition.conditionKind, out EventOptionConditionKind kind) || kind != EventOptionConditionKind.MinimumCarriedItem) continue;
+                string itemId = condition.key?.Trim() ?? string.Empty;
+                if (itemId.Length == 0) continue;
+                int oldThreshold = thresholds.TryGetValue(itemId, out int value) ? value : 0;
+                if (condition.value > oldThreshold) thresholds[itemId] = condition.value;
+            }
+            return CoversItemCosts(successCosts, thresholds) && CoversItemCosts(failCosts, thresholds);
+        }
+
+        private static bool TryCollectItemCosts(IReadOnlyList<EventEffectTableRecord> effects, out Dictionary<string, int> costs)
+        {
+            costs = new Dictionary<string, int>(StringComparer.Ordinal);
+            if (effects == null) return true;
+            foreach (EventEffectTableRecord effect in effects)
+            {
+                if (effect == null || !TryParse(effect.effectType, out EventEffectType effectType) || effectType != EventEffectType.RemoveItem) continue;
+                string itemId = effect.targetName?.Trim() ?? string.Empty;
+                int oldCost = costs.TryGetValue(itemId, out int value) ? value : 0;
+                if (effect.value <= 0 || oldCost > int.MaxValue - effect.value) return false;
+                costs[itemId] = oldCost + effect.value;
+            }
+            return true;
+        }
+
+        private static bool CoversItemCosts(IReadOnlyDictionary<string, int> costs, IReadOnlyDictionary<string, int> thresholds)
+        {
+            foreach (KeyValuePair<string, int> cost in costs)
+                if (!thresholds.TryGetValue(cost.Key, out int threshold) || threshold < cost.Value)
+                    return false;
             return true;
         }
 

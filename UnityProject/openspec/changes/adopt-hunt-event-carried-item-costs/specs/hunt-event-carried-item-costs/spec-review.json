@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-event-carried-item-costs",
+  "title": "狩猎事件携带物成本",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "actor-scoped 条件、物品与资源交换预检、Hunt 权威扣除、稳定内容引用和世界空间可用性均已实现并通过定向验证。",
+    "codeEvidence": [
+      { "guid": "b53d54014d826bd4fb6897de7a6c4c83", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs", "fileHash": "15f579f19749ab5204a63c8682b63873518497021485795b373d87ae6a3197e8", "line": 181, "feature": "在任何事件效果前聚合物品成本并预检同分支资源变化", "status": "verified", "checkedAt": "2026-08-28T00:00:42-07:00" },
+      { "guid": "de5813d39d5b6a345899708ac1487dfe", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntEventResourceCommand.cs", "fileHash": "862acdb3fea63a9e3ed30461c39e99502713029cd97dd523aa0a445c1815cb00", "line": 29, "feature": "按效果顺序模拟 Hunt 资源变化并在溢出前失败关闭", "status": "verified", "checkedAt": "2026-08-28T00:00:42-07:00" },
+      { "guid": "2d7e5da6e2294f2cb822e162871c01c4", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntEventItemCommand.cs", "fileHash": "68cff7c0241e8acfae9a39095d0a0840d478341e599bc0a0ec70cbdd0ba18fc4", "line": 25, "feature": "只查询并扣除当前事件执行猎人的非资源携带物", "status": "verified", "checkedAt": "2026-08-28T00:00:42-07:00" },
+      { "guid": "3a91d14f82d74f08b0ebd4b4da7ac7ed", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs", "fileHash": "65565a2f49e6e52da9db1e3148c807056d0ec7fde3369c9edb2cd1616632bea5", "line": 499, "feature": "绑定 Hunt 内容时校验事件跨表 canonical 物品引用", "status": "verified", "checkedAt": "2026-08-28T00:00:42-07:00" },
+      { "guid": "6a052d984b59f624f9a084bb3ee4204f", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json", "fileHash": "582ac7f5e35f9e41d2c696b43ed5f9db9feecb330c4cc27d08ec019d0406dc0d", "line": 720, "feature": "虫雨事件的包扎布成本生产案例", "status": "verified", "checkedAt": "2026-08-28T00:00:42-07:00" }
+    ],
+    "evidence": [
+      "Unity 6000.5.9f1 定向 EditMode 65/65。",
+      "PlayableSettlementEventViewPlayModeTests 2/2。",
+      "生产虫雨选项完成一次包扎布换取蚯蚓的事件流程。"
+    ],
+    "differences": ["该能力尚无正式 Spec；当前 Delta 完整描述已实现行为。"],
+    "verifiedAt": "2026-08-28T00:00:42-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["table-driven-hunt-events", "event-effect-resolution-reporting", "hunt-session-event-occurrence-recovery", "active-hunt-persistence", "tabletop-hunt-consumables"],
+  "sourceReferences": ["C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/事件 Events.md", "C:/Users/leonz/Desktop/GameDesignVault/设计文档/通用/物品 Items.md", "conversation::2026-08-28"],
+  "implementationOutline": [
+    "事件选项以 actor-scoped 只读端口检查携带物。",
+    "结果事务在任何效果前聚合物品成本，并预检同分支资源变化。",
+    "Hunt item command 只修改执行猎人的 Collectibles。",
+    "Hunt Bundle 在启动时校验跨表稳定物品引用。"
+  ],
+  "reviewIssues": [
+    { "id": "ISSUE-HUNT-EVENT-ITEM-COST-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认当前执行猎人自付是首期正式边界。", "details": "当前不支持跨猎人代付、仓库支付、装备成本、转移或 Showdown 使用。", "sourceId": "conversation::2026-08-28", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

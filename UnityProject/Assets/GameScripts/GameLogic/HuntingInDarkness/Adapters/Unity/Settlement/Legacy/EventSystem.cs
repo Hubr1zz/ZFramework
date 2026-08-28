@@ -324,12 +324,18 @@ namespace HuntingInDarkness.Settlement
                 return SucceededEffect(effectIndex, effect, eventId, bodyPartId, actor.InstanceId, wound.Changed, wound.PreviousHealth, wound.CurrentHealth);
             }
 
-            if (effect.effectType == EventEffectType.AddItem)
+            if (effect.effectType == EventEffectType.AddItem || effect.effectType == EventEffectType.RemoveItem)
             {
                 if (itemCommand == null)
-                    return FailedEffect(effectIndex, effect, "狩猎物品奖励端口尚未注入。", eventId);
+                    return FailedEffect(effectIndex, effect, "狩猎物品变化端口尚未注入。", eventId);
                 string itemId = PlayableSettlementItemRegistry.ResolveContentId(effect.targetName);
-                if (!itemCommand.TryAdd(itemId, effect.value, eventActor ?? target, out PlayableEventItemChange change, out string reason))
+                HunterInstance actor = eventActor ?? target;
+                PlayableEventItemChange change;
+                string reason;
+                bool applied = effect.effectType == EventEffectType.AddItem
+                    ? itemCommand.TryAdd(itemId, effect.value, actor, out change, out reason)
+                    : itemCommand.TryRemove(itemId, effect.value, actor, out change, out reason);
+                if (!applied)
                     return FailedEffect(effectIndex, effect, reason, eventId);
                 if (change.Changed)
                 {

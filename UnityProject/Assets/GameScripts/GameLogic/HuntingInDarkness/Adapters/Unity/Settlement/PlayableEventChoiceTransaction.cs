@@ -111,6 +111,7 @@ namespace HuntingInDarkness.Settlement
             if (requiresHunter && (actor == null || !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))) return null;
             if (PlayableEventOptionAvailability.HasHunterDeathEffect(option) && hunterDeathCommand == null) return null;
             resourceAvailability ??= (IPlayableEventResourceAvailability)resourceCommand ?? new SettlementEventResourceAvailability(_settlement);
+            resourceAvailability = PlayableEventAvailabilityScope.Compose(resourceAvailability, itemCommand);
             if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, resourceAvailability, out _)) return null;
             int rollValue = option.checkType == CheckType.None ? 0 : preparedRoll ?? RollDice(PlayableEventCheckRules.ResolveCount(option), PlayableEventCheckRules.ResolveSides(option));
             int bonus = GetCheckBonus(actor, option.checkType);
@@ -134,20 +135,12 @@ namespace HuntingInDarkness.Settlement
             List<EventEffect> effects = success ? option.successEffects : option.failEffects;
             var encounterIds = new List<string>();
             var effectResults = new List<PlayableEventEffectResult>();
+            if (!TryPreflightItemRemovals(effects, actor, resourceCommand, itemCommand, out int rejectedEffectIndex, out string rejectedReason))
+                return RejectChoice(option, success, rollValue, effects[rejectedEffectIndex], rejectedEffectIndex, rejectedReason, gameEvent.ContentId);
             if (effects != null && settlementCommand != null)
                 for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
                     if (effects[effectIndex]?.effectType == EventEffectType.CreateHuntNoiseLease && !settlementCommand.CanApply(effects[effectIndex], out string reason))
-                    {
-                        effectResults.Add(new PlayableEventEffectResult(effectIndex, effects[effectIndex], PlayableEventEffectStatus.Failed, reason, gameEvent.ContentId));
-                        var rejected = new EventResolutionResult
-                        {
-                            Success = success,
-                            RollValue = rollValue,
-                            ResultText = success ? option.successText : option.failText,
-                            EffectResults = new PlayableEventEffectBatchResult(effectResults)
-                        };
-                        return new PlayableEventCommitResult(rejected, System.Array.Empty<EventData>(), System.Array.Empty<string>(), rejected.EffectResults);
-                    }
+                        return RejectChoice(option, success, rollValue, effects[effectIndex], effectIndex, reason, gameEvent.ContentId);
             if (gameEvent.eventType == GameEventType.Combat && !string.IsNullOrWhiteSpace(gameEvent.combatEncounterId))
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (effects != null)
@@ -183,6 +176,85 @@ namespace HuntingInDarkness.Settlement
                 chain = resolvedChain;
             }
             return new PlayableEventCommitResult(result, chain, encounterIds, result.EffectResults);
+        }
+
+        private static bool TryPreflightItemRemovals(IReadOnlyList<EventEffect> effects, HunterInstance actor, IPlayableEventResourceCommand resourceCommand, IPlayableEventItemCommand itemCommand, out int rejectedEffectIndex, out string reason)
+        {
+            rejectedEffectIndex = -1;
+            reason = string.Empty;
+            if (effects == null) return true;
+            var totals = new Dictionary<string, int>(System.StringComparer.Ordinal);
+            var firstIndices = new Dictionary<string, int>(System.StringComparer.Ordinal);
+            bool killsActor = false;
+            for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+            {
+                EventEffect effect = effects[effectIndex];
+                if (effect?.effectType == EventEffectType.KillHunter) killsActor = true;
+                if (effect?.effectType != EventEffectType.RemoveItem) continue;
+                if (itemCommand == null)
+                    return FailPreflight(effectIndex, "狩猎物品消耗端口尚未注入。", out rejectedEffectIndex, out reason);
+                if (effect.value <= 0)
+                    return FailPreflight(effectIndex, "事件消耗物品数量无效。", out rejectedEffectIndex, out reason);
+                string itemId = PlayableSettlementItemRegistry.ResolveContentId(effect.targetName);
+                if (string.IsNullOrWhiteSpace(itemId))
+                    return FailPreflight(effectIndex, "事件消耗物品 ID 无效。", out rejectedEffectIndex, out reason);
+                int oldTotal = totals.TryGetValue(itemId, out int value) ? value : 0;
+                if (oldTotal > int.MaxValue - effect.value)
+                    return FailPreflight(effectIndex, "事件消耗物品数量溢出。", out rejectedEffectIndex, out reason);
+                totals[itemId] = oldTotal + effect.value;
+                firstIndices.TryAdd(itemId, effectIndex);
+            }
+            if (totals.Count == 0) return true;
+            if (killsActor)
+            {
+                int firstEffectIndex = int.MaxValue;
+                foreach (int effectIndex in firstIndices.Values)
+                    if (effectIndex < firstEffectIndex) firstEffectIndex = effectIndex;
+                return FailPreflight(firstEffectIndex, "同一事件结果不能同时消耗携带物并永久杀死执行猎人。", out rejectedEffectIndex, out reason);
+            }
+            if (!TryPreflightItemCostResources(effects, actor, resourceCommand, out rejectedEffectIndex, out reason)) return false;
+            foreach (KeyValuePair<string, int> total in totals)
+                if (!itemCommand.CanRemove(total.Key, total.Value, actor, out reason))
+                {
+                    rejectedEffectIndex = firstIndices[total.Key];
+                    return false;
+                }
+            return true;
+        }
+
+        private static bool TryPreflightItemCostResources(IReadOnlyList<EventEffect> effects, HunterInstance actor, IPlayableEventResourceCommand resourceCommand, out int rejectedEffectIndex, out string reason)
+        {
+            rejectedEffectIndex = -1;
+            reason = string.Empty;
+            for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+            {
+                EventEffect effect = effects[effectIndex];
+                if (effect?.effectType != EventEffectType.AddResource && effect?.effectType != EventEffectType.RemoveResource) continue;
+                if (resourceCommand == null)
+                    return FailPreflight(effectIndex, "带物品成本的事件资源变化端口尚未注入。", out rejectedEffectIndex, out reason);
+                return resourceCommand.CanApplyBatch(effects, actor, out rejectedEffectIndex, out reason);
+            }
+            return true;
+        }
+
+        private static bool FailPreflight(int effectIndex, string message, out int rejectedEffectIndex, out string reason)
+        {
+            rejectedEffectIndex = effectIndex;
+            reason = message;
+            return false;
+        }
+
+        private static PlayableEventCommitResult RejectChoice(EventOption option, bool success, int rollValue, EventEffect effect, int effectIndex, string reason, string eventId)
+        {
+            var effectResults = new[] { new PlayableEventEffectResult(effectIndex, effect, PlayableEventEffectStatus.Failed, reason, eventId) };
+            var rejected = new EventResolutionResult
+            {
+                Success = success,
+                RollValue = rollValue,
+                ResultText = success ? option.successText : option.failText,
+                EffectResults = new PlayableEventEffectBatchResult(effectResults)
+            };
+            return new PlayableEventCommitResult(rejected, System.Array.Empty<EventData>(), System.Array.Empty<string>(), rejected.EffectResults);
         }
 
         internal void ContinuePreparedChoice() => ProcessNextInChain();

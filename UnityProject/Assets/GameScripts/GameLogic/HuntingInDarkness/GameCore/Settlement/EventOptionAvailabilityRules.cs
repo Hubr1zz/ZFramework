@@ -20,7 +20,8 @@ namespace HuntingInDarkness.GameCore.Settlement
         HasKeyword,
         HasBloodline,
         HasActiveBloodline,
-        MinimumLuck
+        MinimumLuck,
+        MinimumCarriedItem
     }
 
     public readonly struct EventOptionConditionDefinition
@@ -50,10 +51,15 @@ namespace HuntingInDarkness.GameCore.Settlement
 
         public static bool Evaluate(IReadOnlyList<EventOptionConditionDefinition> conditions, HunterState hunter, Func<string, int> resourceResolver, IReadOnlyCollection<string> equippedItems, out string reason)
         {
-            return Evaluate(conditions, hunter, resourceResolver, equippedItems, null, out reason);
+            return Evaluate(conditions, hunter, resourceResolver, equippedItems, null, null, out reason);
         }
 
         public static bool Evaluate(IReadOnlyList<EventOptionConditionDefinition> conditions, HunterState hunter, Func<string, int> resourceResolver, IReadOnlyCollection<string> equippedItems, IReadOnlyCollection<string> keywords, out string reason)
+        {
+            return Evaluate(conditions, hunter, resourceResolver, equippedItems, keywords, null, out reason);
+        }
+
+        public static bool Evaluate(IReadOnlyList<EventOptionConditionDefinition> conditions, HunterState hunter, Func<string, int> resourceResolver, IReadOnlyCollection<string> equippedItems, IReadOnlyCollection<string> keywords, Func<string, int> carriedItemResolver, out string reason)
         {
             if (conditions == null || conditions.Count == 0)
             {
@@ -63,7 +69,7 @@ namespace HuntingInDarkness.GameCore.Settlement
 
             foreach (EventOptionConditionDefinition condition in conditions)
             {
-                bool passed = Evaluate(condition, hunter, resourceResolver, equippedItems);
+                bool passed = Evaluate(condition, hunter, resourceResolver, equippedItems, carriedItemResolver);
                 if (condition.Kind == EventOptionConditionKind.HasKeyword)
                     passed = KeywordRules.Contains(keywords, condition.Key);
                 if (condition.Inverted) passed = !passed;
@@ -94,17 +100,20 @@ namespace HuntingInDarkness.GameCore.Settlement
                 EventOptionConditionKind.HasKeyword => $"拥有关键词“{KeywordRules.Normalize(condition.Key)}”",
                 EventOptionConditionKind.HasBloodline => $"拥有血脉“{condition.DisplayName}”",
                 EventOptionConditionKind.HasActiveBloodline => $"血脉“{condition.DisplayName}”已激活",
+                EventOptionConditionKind.MinimumCarriedItem => $"该猎人携带“{condition.DisplayName}”×{condition.Value}",
                 _ => "满足未知条件"
             };
             return condition.Inverted ? $"不可满足：{requirement}" : $"需要{requirement}";
         }
 
-        private static bool Evaluate(EventOptionConditionDefinition condition, HunterState hunter, Func<string, int> resourceResolver, IReadOnlyCollection<string> equippedItems)
+        private static bool Evaluate(EventOptionConditionDefinition condition, HunterState hunter, Func<string, int> resourceResolver, IReadOnlyCollection<string> equippedItems, Func<string, int> carriedItemResolver)
         {
             switch (condition.Kind)
             {
                 case EventOptionConditionKind.MinimumResource:
                     return !string.IsNullOrWhiteSpace(condition.Key) && resourceResolver != null && resourceResolver(condition.Key) >= condition.Value;
+                case EventOptionConditionKind.MinimumCarriedItem:
+                    return hunter != null && !string.IsNullOrWhiteSpace(condition.Key) && carriedItemResolver != null && carriedItemResolver(condition.Key) >= condition.Value;
                 case EventOptionConditionKind.MinimumCourage:
                     return hunter != null && hunter.Courage >= condition.Value;
                 case EventOptionConditionKind.MinimumUnderstanding:

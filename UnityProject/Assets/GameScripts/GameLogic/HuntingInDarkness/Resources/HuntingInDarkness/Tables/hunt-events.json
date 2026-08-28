@@ -739,6 +739,22 @@
           ]
         },
         {
+          "optionText": "撕开旧式包扎布遮住裸露皮肤",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "包扎布挡住了第一波虫群。猎人在它彻底破碎前收集到两份蚯蚓。",
+          "successEffects": [
+            { "effectType": "RemoveItem", "targetName": "weathered_field_dressing", "value": 1, "description": "旧式包扎布 -1" },
+            { "effectType": "AddResource", "targetName": "earthworm", "value": 2, "description": "蚯蚓 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "MinimumCarriedItem", "key": "weathered_field_dressing", "displayName": "旧式包扎布", "value": 1, "inverted": false }
+          ]
+        },
+        {
           "optionText": "在虫雨中快速收集样本",
           "checkType": "Evasion",
           "checkTarget": 6,
