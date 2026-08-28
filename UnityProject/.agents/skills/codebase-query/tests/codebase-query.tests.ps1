@@ -274,12 +274,45 @@ finally {
     }
 }
 
+$nestedRepositoryRoot = Join-Path $localRoot ("codebase-query-nested-repository-" + [Guid]::NewGuid().ToString('N'))
+try {
+    $nestedProjectRoot = Join-Path $nestedRepositoryRoot 'Unity Project'
+    $nestedAssetsRoot = Join-Path $nestedProjectRoot 'Assets/Game Runtime'
+    $outsideAssetsRoot = Join-Path $nestedRepositoryRoot 'SharedCode'
+    New-Item -ItemType Directory -Path $nestedAssetsRoot -Force | Out-Null
+    New-Item -ItemType Directory -Path $outsideAssetsRoot -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $nestedProjectRoot 'ProjectSettings') -Force | Out-Null
+    'namespace NestedFixture { public sealed class NestedService { } }' |
+        Set-Content -LiteralPath (Join-Path $nestedAssetsRoot 'Nested Service.cs') -Encoding utf8
+    'namespace OutsideFixture { public sealed class OutsideService { } }' |
+        Set-Content -LiteralPath (Join-Path $outsideAssetsRoot 'OutsideService.cs') -Encoding utf8
+
+    & git -C $nestedRepositoryRoot init --quiet
+    if ($LASTEXITCODE -ne 0) { throw 'git init failed for the nested-project fixture.' }
+    & $queryScript build -Root $nestedProjectRoot 2>$null | Out-Null
+    $nestedChangedResult = & $queryScript changed -Root $nestedProjectRoot -Limit 50 | ConvertFrom-Json
+    Assert-True (@($nestedChangedResult.changedCSharpFiles) -contains 'Assets/Game Runtime/Nested Service.cs') `
+        'changed should map repository-root paths into a nested Unity project root.'
+    Assert-True (@($nestedChangedResult.changedCSharpFiles) -notcontains 'SharedCode/OutsideService.cs') `
+        'changed should ignore repository changes outside the nested Unity project root.'
+}
+finally {
+    if (Test-Path -LiteralPath $nestedRepositoryRoot) {
+        $resolvedNestedRepositoryRoot = [System.IO.Path]::GetFullPath($nestedRepositoryRoot)
+        $relativeCleanupPath = [System.IO.Path]::GetRelativePath($localRoot, $resolvedNestedRepositoryRoot).Replace('\', '/')
+        if ($relativeCleanupPath -eq '..' -or $relativeCleanupPath.StartsWith('../', [StringComparison]::Ordinal)) {
+            throw 'Refusing to clean a nested repository fixture outside the local cache root.'
+        }
+        Remove-Item -LiteralPath $resolvedNestedRepositoryRoot -Recurse -Force
+    }
+}
+
 [pscustomobject]@{
     passed = $true
     schemaVersion = 7
     targetFileCount = $build.fileCount
     qualifiedTypeCount = $build.qualifiedTypeCount
     resolvedCallCount = $build.resolvedCallCount
-    assertions = 32
+    assertions = 34
 } | ConvertTo-Json -Compress
 

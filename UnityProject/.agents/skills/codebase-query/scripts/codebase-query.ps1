@@ -94,6 +94,37 @@ function Convert-ToPortablePath {
     return $value.TrimStart('/')
 }
 
+function Get-GitProjectPrefix {
+    param([string]$ProjectRoot)
+
+    $repositoryRoot = @(& git -C $ProjectRoot rev-parse --show-toplevel 2>$null | Select-Object -First 1)
+    if ($LASTEXITCODE -ne 0 -or $repositoryRoot.Count -ne 1) { throw 'Cannot resolve the Git repository root.' }
+
+    $resolvedRepositoryRoot = [System.IO.Path]::GetFullPath($repositoryRoot[0]).TrimEnd('\', '/')
+    $resolvedProjectRoot = [System.IO.Path]::GetFullPath($ProjectRoot).TrimEnd('\', '/')
+    if (-not (Test-PathInsideProject -ProjectRoot $resolvedRepositoryRoot -CandidatePath $resolvedProjectRoot)) {
+        throw "Project root is outside the resolved Git repository: $resolvedRepositoryRoot"
+    }
+
+    $projectPrefix = Convert-ToRelativePath -BasePath $resolvedRepositoryRoot -TargetPath $resolvedProjectRoot
+    if ($projectPrefix -eq '.') { $projectPrefix = '' }
+    return (Convert-ToPortablePath -Path $projectPrefix).TrimEnd('/')
+}
+
+function Convert-FromGitRepositoryPath {
+    param(
+        [string]$RepositoryPath,
+        [string]$ProjectPrefix
+    )
+
+    $portablePath = Convert-ToPortablePath -Path $RepositoryPath
+    if ([string]::IsNullOrWhiteSpace($ProjectPrefix)) { return $portablePath }
+
+    $prefix = $ProjectPrefix.TrimEnd('/') + '/'
+    if (-not $portablePath.StartsWith($prefix, $script:PathComparison)) { return $null }
+    return $portablePath.Substring($prefix.Length)
+}
+
 function Test-PathInsideProject {
     param(
         [string]$ProjectRoot,
@@ -798,16 +829,17 @@ switch ($Command) {
         })
     }
     'changed' {
-        $statusLines = @(& git -c core.quotepath=false -C $projectRoot status --porcelain=v1 --untracked-files=all)
+        $gitProjectPrefix = Get-GitProjectPrefix -ProjectRoot $projectRoot
+        $statusLines = @(& git -c core.quotepath=false -C $projectRoot status --porcelain=v1 --untracked-files=all --no-renames)
         if ($LASTEXITCODE -ne 0) { throw 'git status failed.' }
         $indexedPathSet = [System.Collections.Generic.HashSet[string]]::new($script:PathComparer)
         foreach ($indexedFile in @($index.files)) { $null = $indexedPathSet.Add($indexedFile.path) }
         $changedPaths = @($statusLines | ForEach-Object {
             if ($_.Length -lt 4) { return }
             $value = $_.Substring(3).Trim('"')
-            if ($value -match ' -> ') { $value = ($value -split ' -> ')[-1] }
-            Convert-ToPortablePath -Path $value
-        } | Where-Object { $_.EndsWith('.cs', [StringComparison]::OrdinalIgnoreCase) -and
+            Convert-FromGitRepositoryPath -RepositoryPath $value -ProjectPrefix $gitProjectPrefix
+        } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and
+            $_.EndsWith('.cs', [StringComparison]::OrdinalIgnoreCase) -and
             $indexedPathSet.Contains($_) } | Sort-Object -Unique)
 
         $allCandidates = [System.Collections.Generic.List[object]]::new()
