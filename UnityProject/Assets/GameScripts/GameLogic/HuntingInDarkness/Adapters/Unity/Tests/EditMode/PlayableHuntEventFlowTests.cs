@@ -75,6 +75,7 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(fatalInjury.targetName, Is.EqualTo("selected"));
             Assert.That(fatalInjury.bodyPart, Is.EqualTo("arms"));
             Assert.That(fatalInjury.fatalDeckId, Is.EqualTo("hunter-death"));
+            Assert.That(fatalInjury.survivalEventId, Is.EqualTo("hunt_fatal_injury_survivor"));
             Assert.That(fatalInjury.value, Is.EqualTo(4));
             var healthyHunter = new HunterInstance(null, 9901);
             var combatStats = new CharacterCombatStats();
@@ -109,16 +110,60 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void FatalInjurySurvivalReference_RequiresExistingTriggeredNonSelfTarget()
+        {
+            MethodInfo validate = typeof(PlayableEventTableRuntime).GetMethod("ValidateFatalSurvivalReferences", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(validate, Is.Not.Null);
+            EventEffectTableRecord fatal = new()
+            {
+                effectType = nameof(EventEffectType.FatalInjury),
+                survivalEventId = "hunt-fatal-survivor"
+            };
+            EventTableRecord source = new() { id = "hunt-fatal", category = nameof(EventCategory.Hunt) };
+            EventTableRecord survivor = new() { id = fatal.survivalEventId, category = nameof(EventCategory.Triggered) };
+            var targets = new Dictionary<string, EventTableRecord>
+            {
+                [source.id] = source,
+                [survivor.id] = survivor
+            };
+
+            object[] arguments = { source.id, new[] { fatal }, targets, null };
+            Assert.That((bool)validate.Invoke(null, arguments), Is.True, arguments[3] as string);
+
+            fatal.survivalEventId = string.Empty;
+            arguments[3] = null;
+            Assert.That((bool)validate.Invoke(null, arguments), Is.False);
+            fatal.survivalEventId = survivor.id;
+            survivor.category = nameof(EventCategory.Hunt);
+            arguments[3] = null;
+            Assert.That((bool)validate.Invoke(null, arguments), Is.False);
+            survivor.category = nameof(EventCategory.Triggered);
+            fatal.survivalEventId = source.id;
+            arguments[3] = null;
+            Assert.That((bool)validate.Invoke(null, arguments), Is.False);
+        }
+
+        [Test]
         public void HuntTable_RustBurialAddsTriggeredFollowUpContract()
         {
             IReadOnlyList<EventTableRecord> records = new JsonEventTableSource("HuntingInDarkness/Tables/hunt-events").Load();
-            Assert.That(records, Has.Count.EqualTo(17));
+            Assert.That(records, Has.Count.EqualTo(18));
             Assert.That(records.Count(record => record.category == "Hunt"), Is.EqualTo(16));
-            Assert.That(records.Count(record => record.category == "Triggered"), Is.EqualTo(1));
+            Assert.That(records.Count(record => record.category == "Triggered"), Is.EqualTo(2));
 
             EventTableRecord fatalRecord = records.Single(record => record.id == "hunt_crushing_slab");
             Assert.That(fatalRecord.options.Single().successEffects.Single().effectType, Is.EqualTo("FatalInjury"));
             Assert.That(fatalRecord.options.Single().successEffects.Single().fatalDeckId, Is.EqualTo("hunter-death"));
+            Assert.That(fatalRecord.options.Single().successEffects.Single().survivalEventId, Is.EqualTo("hunt_fatal_injury_survivor"));
+
+            EventTableRecord survivorRecord = records.Single(record => record.id == "hunt_fatal_injury_survivor");
+            Assert.That(survivorRecord.category, Is.EqualTo("Triggered"));
+            Assert.That(survivorRecord.eventType, Is.EqualTo("Narrative"));
+            Assert.That(survivorRecord.options, Is.Empty);
+            Assert.That(survivorRecord.immediateEffects, Has.Count.EqualTo(1));
+            Assert.That(survivorRecord.immediateEffects[0].effectType, Is.EqualTo("AddLuck"));
+            Assert.That(survivorRecord.immediateEffects[0].targetName, Is.EqualTo("selected"));
+            Assert.That(survivorRecord.immediateEffects[0].value, Is.EqualTo(1));
 
             EventTableRecord parentRecord = records.Single(record => record.id == "hunt_rust_burial");
             EventTableRecord childRecord = records.Single(record => record.id == "hunt_rust_burial_open_eyes");
@@ -162,6 +207,11 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(child.category, Is.EqualTo(EventCategory.Triggered));
             Assert.That(child.options[0].successEffects.Single().targetName, Is.EqualTo("ancient_stone_chip"));
             Assert.That(child.options[0].failEffects.Single().bodyPart, Is.EqualTo("arms"));
+
+            EventData generatedSurvivor = PlayableEventTableRuntime.GetEvents().Single(gameEvent => gameEvent.ContentId == survivorRecord.id);
+            EventData generatedFatal = PlayableEventTableRuntime.GetEvents().Single(gameEvent => gameEvent.ContentId == fatalRecord.id);
+            EventEffect boundFatalEffect = generatedFatal.options[0].successEffects.Single(effect => effect.effectType == EventEffectType.FatalInjury);
+            Assert.That(boundFatalEffect.SurvivalEvent, Is.SameAs(generatedSurvivor));
         }
 
         [Test]

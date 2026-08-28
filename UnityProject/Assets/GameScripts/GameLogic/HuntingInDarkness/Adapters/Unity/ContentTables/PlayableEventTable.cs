@@ -17,6 +17,7 @@ namespace HuntingInDarkness.ContentTables
         public string targetName;
         public string bodyPart;
         public string fatalDeckId;
+        public string survivalEventId;
         public int value = 1;
         public string description;
     }
@@ -662,6 +663,8 @@ namespace HuntingInDarkness.ContentTables
             }
             if (!ValidateChainReferences(source.id, "事件结束", source.chainedEventIds, targetRecords, out error))
                 return false;
+            if (!ValidateFatalSurvivalReferences(source.id, EnumerateEffects(source), targetRecords, out error))
+                return false;
             if (source.options == null)
                 return true;
             for (int optionIndex = 0; optionIndex < source.options.Count; optionIndex++)
@@ -690,14 +693,45 @@ namespace HuntingInDarkness.ContentTables
             return true;
         }
 
+        private static bool ValidateFatalSurvivalReferences(string sourceId, IEnumerable<EventEffectTableRecord> effects, IReadOnlyDictionary<string, EventTableRecord> targetRecords, out string error)
+        {
+            foreach (EventEffectTableRecord effect in effects)
+            {
+                if (effect == null || !TryParse(effect.effectType, out EventEffectType effectType) || effectType != EventEffectType.FatalInjury) continue;
+                string survivalEventId = effect.survivalEventId?.Trim() ?? string.Empty;
+                if (survivalEventId.Length == 0 || string.Equals(sourceId, survivalEventId, StringComparison.Ordinal) || !targetRecords.TryGetValue(survivalEventId, out EventTableRecord target) || !TryParse(target.category, out EventCategory category) || category != EventCategory.Triggered)
+                {
+                    error = $"事件 {sourceId} 的致命伤存活事件引用缺失、重复、自引用或不是 Triggered 类别：{effect.survivalEventId}";
+                    return false;
+                }
+            }
+            error = string.Empty;
+            return true;
+        }
+
         private static void BindEventChains(EventData gameEvent, EventTableRecord record, IReadOnlyDictionary<string, EventData> eventsById)
         {
             gameEvent.chainedEvents = ResolveEventChain(record.chainedEventIds, eventsById);
+            BindFatalSurvivalEvents(gameEvent.immediateEffects, record.immediateEffects, eventsById);
             for (int optionIndex = 0; optionIndex < gameEvent.options.Count; optionIndex++)
             {
                 EventOptionTableRecord optionRecord = record.options[optionIndex];
                 gameEvent.options[optionIndex].successChain = ResolveEventChain(optionRecord.successChainIds, eventsById);
                 gameEvent.options[optionIndex].failChain = ResolveEventChain(optionRecord.failChainIds, eventsById);
+                BindFatalSurvivalEvents(gameEvent.options[optionIndex].successEffects, optionRecord.successEffects, eventsById);
+                BindFatalSurvivalEvents(gameEvent.options[optionIndex].failEffects, optionRecord.failEffects, eventsById);
+            }
+        }
+
+        private static void BindFatalSurvivalEvents(IReadOnlyList<EventEffect> effects, IReadOnlyList<EventEffectTableRecord> records, IReadOnlyDictionary<string, EventData> eventsById)
+        {
+            for (int index = 0; index < (effects?.Count ?? 0) && index < (records?.Count ?? 0); index++)
+            {
+                EventEffect effect = effects[index];
+                EventEffectTableRecord record = records[index];
+                if (effect?.effectType != EventEffectType.FatalInjury || string.IsNullOrWhiteSpace(record?.survivalEventId)) continue;
+                if (eventsById.TryGetValue(record.survivalEventId.Trim(), out EventData survivalEvent))
+                    effect.SurvivalEvent = survivalEvent;
             }
         }
 
@@ -742,7 +776,7 @@ namespace HuntingInDarkness.ContentTables
                     Debug.LogError($"[ContentTable] 事件 {eventId} 含无效效果类型。 ");
                     continue;
                 }
-                effects.Add(new EventEffect { effectType = effectType, targetName = record.targetName ?? string.Empty, bodyPart = record.bodyPart ?? string.Empty, fatalDeckId = record.fatalDeckId ?? string.Empty, value = record.value, description = record.description ?? string.Empty });
+                effects.Add(new EventEffect { effectType = effectType, targetName = record.targetName ?? string.Empty, bodyPart = record.bodyPart ?? string.Empty, fatalDeckId = record.fatalDeckId ?? string.Empty, survivalEventId = record.survivalEventId ?? string.Empty, value = record.value, description = record.description ?? string.Empty });
             }
             return effects;
         }

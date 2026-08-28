@@ -428,6 +428,22 @@ namespace HuntingInDarkness.Adapter.Tests
             PlayableSettlementItemRegistry.Configure(items);
         }
 
+        [Test]
+        public void Route_ResolvesFatalInjurySurvivalTriggeredChildWithoutAddingRoots()
+        {
+            EventData parent = ResolveTableEvent("hunt_crushing_slab");
+            EventData danger = ResolveTableEvent("hunt_echoing_tracks");
+            PlayableHuntContentCatalog catalog = CreateCatalog(CreateTile("tile:fatal-survival-start", TileType.Starting, 1), new List<HexTileData> { CreateTile("tile:fatal-survival-plain", TileType.Plains, 1) }, new List<EventData> { parent }, CreateNoiseProfile(danger));
+
+            Assert.That(TryCreateBundle(catalog, new List<PlayableHuntDestination>(), out string reason), Is.True, reason);
+            PlayableHuntRoutePlan route = bundle.DefaultRoute;
+            EventData survival = ResolveTableEvent("hunt_fatal_injury_survivor");
+            Assert.That(route.HuntEvents.Contains(survival), Is.False);
+            Assert.That(route.TryResolveEvent(survival.ContentId, out EventData resolved), Is.True);
+            Assert.That(resolved, Is.SameAs(survival));
+            Assert.That(resolved.category, Is.EqualTo(EventCategory.Triggered));
+        }
+
         private PlayableHuntContentCatalog CreateCatalog(HexTileData startingTile, List<HexTileData> tiles, List<EventData> events, PlayableHuntNoiseProfile profile)
         {
             PlayableHuntContentCatalog catalog = Own(ScriptableObject.CreateInstance<PlayableHuntContentCatalog>());

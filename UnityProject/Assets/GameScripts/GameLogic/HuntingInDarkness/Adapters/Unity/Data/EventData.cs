@@ -157,6 +157,8 @@ namespace HuntingInDarkness.Data
         public string          targetName = ""; // 兼容字段；AddAilment 等跨内容引用保存稳定 ContentId，显示名仅用于旧内容迁移
         public string          bodyPart   = ""; // 普通伤势使用稳定部位 ID：head/torso/arms/legs
         public string          fatalDeckId = ""; // 致命伤使用稳定死亡牌堆 ID
+        public string          survivalEventId = ""; // 致命伤抽到存活牌后排入的 Triggered 事件稳定 ID
+        public EventData       SurvivalEvent { get; internal set; }
         public int             value      = 1;
         [TextArea] public string description = "";
     }

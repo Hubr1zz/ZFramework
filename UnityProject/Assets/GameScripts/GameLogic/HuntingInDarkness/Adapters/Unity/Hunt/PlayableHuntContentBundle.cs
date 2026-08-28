@@ -275,7 +275,13 @@ namespace HuntingInDarkness.Hunt
                 {
                     foreach (EventData child in option?.successChain ?? new List<EventData>()) pending.Push(child);
                     foreach (EventData child in option?.failChain ?? new List<EventData>()) pending.Push(child);
+                    foreach (EventEffect effect in option?.successEffects ?? new List<EventEffect>())
+                        if (effect?.SurvivalEvent != null) pending.Push(effect.SurvivalEvent);
+                    foreach (EventEffect effect in option?.failEffects ?? new List<EventEffect>())
+                        if (effect?.SurvivalEvent != null) pending.Push(effect.SurvivalEvent);
                 }
+                foreach (EventEffect effect in gameEvent.immediateEffects ?? new List<EventEffect>())
+                    if (effect?.SurvivalEvent != null) pending.Push(effect.SurvivalEvent);
             }
             return true;
         }
@@ -735,6 +741,9 @@ namespace HuntingInDarkness.Hunt
             {
                 AppendToken(manifest, effect?.effectType ?? default);
                 AppendToken(manifest, effect?.targetName);
+                AppendToken(manifest, effect?.bodyPart);
+                AppendToken(manifest, effect?.fatalDeckId);
+                AppendToken(manifest, effect?.survivalEventId);
                 AppendToken(manifest, effect?.value ?? 0);
                 AppendToken(manifest, effect?.description);
             }

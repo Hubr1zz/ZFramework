@@ -795,7 +795,7 @@
           "checkTarget": 0,
           "successText": "石板终于滑过，猎人松开双臂；这次伤势的命运交给死亡牌堆。",
           "successEffects": [
-            { "effectType": "FatalInjury", "targetName": "selected", "bodyPart": "arms", "fatalDeckId": "hunter-death", "value": 4, "description": "撑住塌落石板时遭受致命伤" }
+            { "effectType": "FatalInjury", "targetName": "selected", "bodyPart": "arms", "fatalDeckId": "hunter-death", "survivalEventId": "hunt_fatal_injury_survivor", "value": 4, "description": "撑住塌落石板时遭受致命伤" }
           ],
           "failText": "",
           "failEffects": [],
@@ -808,6 +808,21 @@
       "maxYear": 0,
       "drawWeight": 1,
       "category": "Hunt"
+    },
+    {
+      "id": "hunt_fatal_injury_survivor",
+      "eventName": "幸运儿",
+      "eventType": "Narrative",
+      "displayText": "死亡牌翻开时，牌面上的裂纹停在猎人的指尖前。",
+      "hiddenText": "这一次，命运留下了一点余地。",
+      "options": [],
+      "immediateEffects": [
+        { "effectType": "AddLuck", "targetName": "selected", "value": 1, "description": "命运值 +1" }
+      ],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Triggered"
     },
     {
       "id": "hunt_lost_survivor",

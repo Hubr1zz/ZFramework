@@ -344,6 +344,12 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             currentOccurrence = pendingOccurrences.Dequeue();
             HuntingInDarkness.Data.EventData nextEvent = currentOccurrence.Event;
             HunterInstance occurrenceActor = ResolveOccurrenceActor(currentOccurrence.Occurrence.ActorId);
+            if (currentOccurrence.Occurrence.ActorId > 0 && occurrenceActor == null)
+            {
+                failure = true;
+                failureReason = "狩猎事件执行猎人已经失效，待处理事件保留。";
+                return null;
+            }
             currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, occurrenceActor, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand, worldCommand, itemCommand: manager.EventItemCommand, populationCommand: manager.EventPopulationCommand, rerollCheckpoint: currentOccurrence.Occurrence.RerollCheckpoint, fatalInjuryCommand: fatalInjuryCommand);
             return currentEntry;
         }
@@ -404,9 +410,12 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private HunterInstance ResolveOccurrenceActor(int actorId)
         {
             if (actorId > 0)
+            {
                 foreach (HunterInstance hunter in manager.ActiveHunters)
                     if (hunter != null && hunter.InstanceId == actorId && hunter.IsAlive)
                         return hunter;
+                return null;
+            }
             return manager.EnsureSelectedHunterAvailable();
         }
     }

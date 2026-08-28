@@ -7,7 +7,8 @@
 - 新增表驱动 `FatalInjury` 效果，限定 Hunt、选中猎人、稳定死亡牌堆 ID 且独占效果事务。
 - 复用 `DeathDeck` 的准备/提交规则，在 3D Cards3D 中展示牌堆构成、背面稳定选位与真实存活/死亡牌面。
 - 只有选牌完成后才提交伤势、追加死亡牌或调用唯一猎人死亡事务；取消、阻止和无效结果不修改权威状态。
-- 增加代表事件“塌落的石板”，并保留无头环境的确定性位置回退。
+- 存活结果按稳定 ID 排入专属 `Triggered` 后续事件，并通过独立 occurrence 继承原执行猎人；死亡、非致命伤和阻止路径不排入。
+- 增加代表事件“塌落的石板”及存活事件“幸运儿”，并保留无头环境的确定性位置回退。
 
 ## Capabilities
 
@@ -24,4 +25,4 @@
 
 ## Impact
 
-影响事件数据/读表、Hunt 事件 ActionQueue、死亡牌纯规则适配、既有卡牌 Presenter、一个代表内容和定向测试。不修改 GameManager、ZFramework 阶段生命周期、`KillHunter`、Combat 或 Showdown。
+影响事件数据/读表、Hunt 事件 ActionQueue、事件 occurrence、死亡牌纯规则适配、既有卡牌 Presenter、两个关联代表内容和定向测试。不修改 GameManager、ZFramework 阶段生命周期、`KillHunter`、Combat 或 Showdown。

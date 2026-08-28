@@ -312,6 +312,70 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task InteractTileAsync_FatalInjurySurvivalQueuesTriggeredEventAndInheritsActor()
+        {
+            var presenter = new FixedDeathDeckPresenter(0);
+            EventData survivalEvent = ScriptableObject.CreateInstance<EventData>();
+            survivalEvent.name = "FatalInjurySurvivalEvent";
+            survivalEvent.ConfigureContentId("hunt_fatal_injury_survivor_test");
+            survivalEvent.category = EventCategory.Triggered;
+            survivalEvent.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddLuck, targetName = "selected", value = 1 });
+            using var rig = new HuntRig(includeSurvivor: true, hunterDeathCommand: new DirectHunterDeathCommand(), randomInteractionPresenter: presenter);
+            rig.Hunter.HP.arms = 0;
+            rig.Hunter.SurvivalCards = 1;
+            rig.Hunter.DeathCards = 0;
+            rig.TileEvent.eventType = GameEventType.Choice;
+            EventOption option = CreateFatalInjuryOption();
+            EventEffect fatalEffect = option.successEffects.Single();
+            fatalEffect.survivalEventId = survivalEvent.ContentId;
+            fatalEffect.SurvivalEvent = survivalEvent;
+            rig.TileEvent.options.Add(option);
+            rig.Manager.EventInput = new ExplicitChoiceInput(0);
+
+            try
+            {
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(rig.Hunter.IsAlive, Is.True);
+                Assert.That(rig.Hunter.Luck, Is.EqualTo(1));
+                Assert.That(result.EffectResults.Effects.Any(effect => effect.EffectType == EventEffectType.AddLuck), Is.True);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(survivalEvent);
+            }
+        }
+
+        [Test]
+        public async Task ResumePendingEvent_InvalidExplicitActorFailsClosedWithoutTransferringLuck()
+        {
+            using var rig = new HuntRig(includeSurvivor: true);
+            EventData child = ScriptableObject.CreateInstance<EventData>();
+            child.name = "InvalidActorSurvivalChild";
+            child.ConfigureContentId("invalid-actor-survival-child");
+            child.category = EventCategory.Triggered;
+            child.immediateEffects.Add(new EventEffect { effectType = EventEffectType.AddLuck, targetName = "selected", value = 1 });
+            var store = new PlayableHuntEventOccurrenceStore();
+            Assert.That(store.TryScheduleRoot(child, rig.FirstInteractable.AxialCoord, 1, rig.Hunter.InstanceId, out _), Is.True);
+            rig.Hunter.IsAlive = false;
+            using var restoredSession = new PlayableHuntActionSession(rig.Manager, restoredOccurrenceStore: store);
+
+            try
+            {
+                HuntTileCommandResult result = await restoredSession.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.False);
+                Assert.That(store.HasPendingOccurrences, Is.True);
+                Assert.That(rig.Survivor.Luck, Is.Zero);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(child);
+            }
+        }
+
+        [Test]
         public async Task InteractTileAsync_FatalInjuryDeathUsesHunterDeathCommand()
         {
             var presenter = new FixedDeathDeckPresenter(0);

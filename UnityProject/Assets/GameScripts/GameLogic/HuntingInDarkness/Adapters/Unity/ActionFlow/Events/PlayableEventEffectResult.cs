@@ -31,6 +31,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             HunterDied = hunterDied;
             DeathDeckId = deathDeckId ?? string.Empty;
             FacedownPosition = facedownPosition;
+            SurvivalEvent = effect?.SurvivalEvent;
         }
 
         public string EventId { get; }
@@ -49,6 +50,7 @@ namespace HuntingInDarkness.ActionFlow.Events
         public bool HunterDied { get; }
         public string DeathDeckId { get; }
         public int FacedownPosition { get; }
+        public EventData SurvivalEvent { get; }
         public bool Succeeded => Status == PlayableEventEffectStatus.Applied;
     }
 

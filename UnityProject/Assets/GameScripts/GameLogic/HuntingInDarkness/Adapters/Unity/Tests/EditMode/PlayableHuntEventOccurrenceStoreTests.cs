@@ -355,7 +355,7 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public async Task ResumePendingEvent_FallsBackWhenFrozenActorIsDead()
+        public async Task ResumePendingEvent_DoesNotRetargetWhenFrozenActorIsDead()
         {
             var input = new RetryInput(false);
             using var rig = new SessionRig(input);
@@ -365,8 +365,9 @@ namespace HuntingInDarkness.Adapter.Tests
             HuntRetreatCommandResult retreat = await rig.Session.PrepareRetreatAsync(1);
 
             Assert.That(first.Succeeded, Is.False);
-            Assert.That(retreat.Succeeded, Is.True, retreat.Reason);
-            Assert.That(input.NarrativeActorIds, Is.EqualTo(new[] { rig.SecondHunter.InstanceId }));
+            Assert.That(retreat.Succeeded, Is.False);
+            Assert.That(rig.Session.HasPendingEventOccurrences, Is.True);
+            Assert.That(input.NarrativeActorIds, Is.Empty);
         }
 
         private EventData CreateEvent(string id)

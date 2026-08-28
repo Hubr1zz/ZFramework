@@ -251,7 +251,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                 return ActionOutcome.Failure("致命伤事务提交失败。");
             }
             bool campaignEnded = eventSystem.Settlement.GetAliveHunters().Count == 0;
-            ChainedEvents = campaignEnded ? System.Array.Empty<EventData>() : result.ChainedEvents;
+            ChainedEvents = campaignEnded ? System.Array.Empty<EventData>() : AppendFatalSurvivalEvents(result.ChainedEvents, result.EffectResults.Effects);
             EncounterIds = campaignEnded ? System.Array.Empty<string>() : result.EncounterIds;
             EffectResults = result.EffectResults;
             EventOption selectedOption = transaction.Option;
@@ -259,6 +259,24 @@ namespace HuntingInDarkness.ActionFlow.Events
             if (eventInput != null && !campaignEnded)
                 await eventInput.ConfirmResultAsync(gameEvent, result.Result, cancellationToken);
             return ActionOutcome.Success();
+        }
+
+        private List<EventData> AppendFatalSurvivalEvents(IReadOnlyList<EventData> chainedEvents, IReadOnlyList<PlayableEventEffectResult> effects)
+        {
+            var result = new List<EventData>(chainedEvents ?? System.Array.Empty<EventData>());
+            foreach (PlayableEventEffectResult effect in effects ?? System.Array.Empty<PlayableEventEffectResult>())
+            {
+                if (!effect.Succeeded || effect.EffectType != EventEffectType.FatalInjury || effect.DeathCard != DeathCardType.Survive || effect.SurvivalEvent == null || effect.SurvivalEvent.category != EventCategory.Triggered) continue;
+                bool alreadyQueued = false;
+                foreach (EventData chainedEvent in result)
+                    if (string.Equals(chainedEvent?.ContentId, effect.SurvivalEvent.ContentId, System.StringComparison.Ordinal))
+                    {
+                        alreadyQueued = true;
+                        break;
+                    }
+                if (!alreadyQueued) result.Add(effect.SurvivalEvent);
+            }
+            return result;
         }
 
         private async UniTask<PlayableEventChoiceTransaction> PrepareChoiceAsync(PlayableEventChoiceSelection selection, CancellationToken cancellationToken)

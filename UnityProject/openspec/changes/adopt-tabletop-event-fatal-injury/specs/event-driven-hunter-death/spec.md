@@ -20,3 +20,18 @@ Hunt 致命伤 SHALL 在表现前从猎人持久伤势与死亡牌构成准备�
 - **WHEN** 玩家选择映射为死亡的稳定背面位置
 - **THEN** 唯一死亡事务 SHALL 提交一次完整后果
 - **AND** 最后一名猎人死亡 SHALL 截断子事件并交给既有战役失败流程
+
+### Requirement: Ordinary survival creates one dedicated survival event
+
+Hunt 致命伤抽到普通存活牌后 SHALL 恰好排入配置的专属存活事件；死亡牌、未触发死亡抽牌、Reactor prevent 或提交前取消 SHALL NOT 排入该事件。代表内容“幸运儿” SHALL 由既有事件效果为同一猎人增加 1 点命运值。
+
+#### Scenario: The survivor receives the follow-up
+
+- **WHEN** “塌落的石板”的执行猎人抽到存活牌
+- **THEN** “幸运儿” SHALL 作为后续游戏性事件由 Hunt ActionQueue 执行
+- **AND** 1 点命运值 SHALL 给予该执行猎人
+
+#### Scenario: Death does not create a survival event
+
+- **WHEN** 致命伤抽到死亡牌或没有进入死亡牌抽取
+- **THEN** 专属存活事件 SHALL NOT 被排入
