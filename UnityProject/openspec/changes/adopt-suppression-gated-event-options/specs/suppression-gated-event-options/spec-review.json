@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 5,
+  "capability": "suppression-gated-event-options",
+  "title": "压抑状态门控事件选项",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "压抑状态条件、严格表转换与 fail-closed 评估已实现并通过定向验证。",
+    "codeEvidence": [],
+    "evidence": ["GameCore/Adapter csproj：0 errors", "Unity EditMode：31/31 passed"],
+    "differences": ["正式 Spec 未修改；生产事件案例等待人类内容规则。"],
+    "verifiedAt": "2026-08-28T10:50:31-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["conversation::2026-08-28", "primary::猎人 Hunter.md", "primary::压抑值.md"],
+  "implementationOutline": ["事件条件通过 HunterSuppressionRules.Classify 精确匹配 mad|normal|passive。", "合法输入先校验再应用 Inverted；缺失猎人或非法键始终 fail-closed。", "PlayableEventTable 仅规范化 suppression 键并拒绝非零附加值。"],
+  "reviewIssues": [
+    { "id": "ISSUE-CONTENT-CASE-DEFERRED-001", "type": "implementation-delta", "severity": "info", "status": "open", "blocksApproval": false, "summary": "尚无生产事件案例", "details": "待人类内容规则确认。", "sourceId": "conversation::2026-08-28", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

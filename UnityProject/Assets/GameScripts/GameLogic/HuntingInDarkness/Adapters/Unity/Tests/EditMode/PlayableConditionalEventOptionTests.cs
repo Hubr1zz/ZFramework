@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
@@ -21,6 +23,9 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             PlayableSymptomRuntime.Configure(AssetDatabase.LoadAssetAtPath<PlayableSymptomCatalog>(SymptomCatalogPath));
             PlayableEventTableRuntime.ClearCache();
+            PlayableContentSourceBundle sourceBundle = PlayableContentSourceTestAssets.LoadBundle();
+            PlayableBloodlineRuntime.Configure(new PlayableBloodlineTable(sourceBundle.BloodlinesTable));
+            PlayableEventTableRuntime.Rebuild(sourceBundle);
         }
 
         [TearDown]
@@ -28,6 +33,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             PlayableEventTableRuntime.ClearCache();
             PlayableSymptomRuntime.Configure(null);
+            PlayableBloodlineRuntime.Configure(null);
         }
 
         [Test]
@@ -42,6 +48,29 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(option.conditions[0].displayName, Is.EqualTo("守望者"));
             Assert.That(option.successChain.Select(item => item.name), Is.EqualTo(new[] { "triggered_face_safe_path" }));
             Assert.That(option.successChain.Single().category, Is.EqualTo(EventCategory.Triggered));
+        }
+
+        [Test]
+        public void TableValidation_NormalizesAndRejectsSuppressionStateKeys()
+        {
+            MethodInfo convertMethod = typeof(PlayableEventTableRuntime).GetMethod("ConvertConditions", BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo validateMethod = typeof(PlayableEventTableRuntime).GetMethod("ValidateConditions", BindingFlags.Static | BindingFlags.NonPublic);
+            var canonicalInput = new List<EventOptionConditionTableRecord>
+            {
+                new() { conditionKind = "SuppressionState", key = " MAD ", value = 0 }
+            };
+            var invalidInput = new List<EventOptionConditionTableRecord>
+            {
+                new() { conditionKind = "SuppressionState", key = "calm", value = 0 }
+            };
+
+            var converted = (List<EventOptionCondition>)convertMethod.Invoke(null, new object[] { canonicalInput, null, null });
+            bool valid = (bool)validateMethod.Invoke(null, new object[] { false, canonicalInput, null, null, true });
+            bool invalid = (bool)validateMethod.Invoke(null, new object[] { false, invalidInput, null, null, true });
+
+            Assert.That(valid, Is.True);
+            Assert.That(converted.Single().key, Is.EqualTo("mad"));
+            Assert.That(invalid, Is.False);
         }
 
         [Test]

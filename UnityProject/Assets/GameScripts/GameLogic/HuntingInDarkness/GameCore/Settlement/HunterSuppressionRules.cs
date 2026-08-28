@@ -44,6 +44,45 @@ namespace HuntingInDarkness.GameCore.Settlement
             return HunterSuppressionState.Normal;
         }
 
+        public static bool TryParseStateKey(string value, out HunterSuppressionState state)
+        {
+            string normalized = value?.Trim().ToLowerInvariant();
+            switch (normalized)
+            {
+                case "mad":
+                    state = HunterSuppressionState.Mad;
+                    return true;
+                case "normal":
+                    state = HunterSuppressionState.Normal;
+                    return true;
+                case "passive":
+                    state = HunterSuppressionState.Passive;
+                    return true;
+                default:
+                    state = default;
+                    return false;
+            }
+        }
+
+        public static string GetStateKey(HunterSuppressionState state) => state switch
+        {
+            HunterSuppressionState.Mad => "mad",
+            HunterSuppressionState.Normal => "normal",
+            HunterSuppressionState.Passive => "passive",
+            _ => string.Empty
+        };
+
+        public static bool TryNormalizeStateKey(string value, out string normalizedKey)
+        {
+            if (!TryParseStateKey(value, out HunterSuppressionState state))
+            {
+                normalizedKey = string.Empty;
+                return false;
+            }
+            normalizedKey = GetStateKey(state);
+            return true;
+        }
+
         public static string GetDisplayName(HunterSuppressionState state) => state switch
         {
             HunterSuppressionState.Mad => "疯狂",

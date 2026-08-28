@@ -489,7 +489,10 @@ namespace HuntingInDarkness.ContentTables
                     displayName = symptom.DisplayName;
                 if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && bloodlineContent != null && bloodlineContent.TryGet(record.key, out HunterBloodlineDefinition bloodline))
                     displayName = bloodline.DisplayName;
-                conditions.Add(new EventOptionCondition { conditionKind = conditionKind, key = record.key ?? string.Empty, displayName = displayName, value = Mathf.Max(0, record.value), inverted = record.inverted });
+                string key = record.key ?? string.Empty;
+                if (conditionKind == EventOptionConditionKind.SuppressionState && HunterSuppressionRules.TryNormalizeStateKey(key, out string normalizedSuppressionKey))
+                    key = normalizedSuppressionKey;
+                conditions.Add(new EventOptionCondition { conditionKind = conditionKind, key = key, displayName = displayName, value = Mathf.Max(0, record.value), inverted = record.inverted });
             }
             return conditions;
         }
@@ -501,9 +504,10 @@ namespace HuntingInDarkness.ContentTables
             foreach (EventOptionConditionTableRecord record in records)
             {
                 if (record == null || !TryParse(record.conditionKind, out EventOptionConditionKind conditionKind)) return false;
-                bool requiresKey = conditionKind == EventOptionConditionKind.HasTrait || conditionKind == EventOptionConditionKind.HasAilment || conditionKind == EventOptionConditionKind.MinimumResource || conditionKind == EventOptionConditionKind.HasEquippedItem || conditionKind == EventOptionConditionKind.HasKeyword || conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline || conditionKind == EventOptionConditionKind.MinimumCarriedItem;
+                bool requiresKey = conditionKind == EventOptionConditionKind.HasTrait || conditionKind == EventOptionConditionKind.HasAilment || conditionKind == EventOptionConditionKind.MinimumResource || conditionKind == EventOptionConditionKind.HasEquippedItem || conditionKind == EventOptionConditionKind.HasKeyword || conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline || conditionKind == EventOptionConditionKind.MinimumCarriedItem || conditionKind == EventOptionConditionKind.SuppressionState;
                 if (requiresKey && string.IsNullOrWhiteSpace(record.key)) return false;
                 if (conditionKind == EventOptionConditionKind.MinimumCarriedItem && (!allowHuntItemConditions || record.value <= 0)) return false;
+                if (conditionKind == EventOptionConditionKind.SuppressionState && (record.value != 0 || !HunterSuppressionRules.TryParseStateKey(record.key, out _))) return false;
                 if (conditionKind == EventOptionConditionKind.HasAilment && (symptomCatalog == null || !symptomCatalog.TryGetById(record.key, out _))) return false;
                 if ((conditionKind == EventOptionConditionKind.HasBloodline || conditionKind == EventOptionConditionKind.HasActiveBloodline) && (bloodlineContent == null || !bloodlineContent.TryGet(record.key, out _))) return false;
                 if (record.value < 0) return false;

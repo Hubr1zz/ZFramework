@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "suppression-gated-event-options", "label": "压抑状态门控事件选项", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-suppression-gated-event-options/specs/suppression-gated-event-options/spec.md" }
+  ],
+  "edges": []
+}

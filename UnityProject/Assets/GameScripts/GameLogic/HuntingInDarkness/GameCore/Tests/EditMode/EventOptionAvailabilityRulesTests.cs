@@ -103,5 +103,44 @@ namespace HuntingInDarkness.GameCore.Tests
             Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { condition }, hunter, null, null, null, _ => 1, out reason), Is.False);
             Assert.That(reason, Does.Contain("包扎布"));
         }
+
+        [TestCase(0, "mad")]
+        [TestCase(2, "mad")]
+        [TestCase(3, "normal")]
+        [TestCase(5, "normal")]
+        [TestCase(6, "passive")]
+        [TestCase(8, "passive")]
+        public void Evaluate_SuppressionStateUsesInclusiveBands(int insanity, string stateKey)
+        {
+            var hunter = new HunterState { Insanity = insanity };
+            var condition = new EventOptionConditionDefinition(EventOptionConditionKind.SuppressionState, stateKey, 0, false);
+
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { condition }, hunter, null, null, out string reason), Is.True, reason);
+        }
+
+        [Test]
+        public void Evaluate_SuppressionStateSupportsInversionAndRejectsMissingOrUnknownValues()
+        {
+            var hunter = new HunterState { Insanity = 6 };
+            var inverted = new EventOptionConditionDefinition(EventOptionConditionKind.SuppressionState, "passive", 0, true);
+            var unknown = new EventOptionConditionDefinition(EventOptionConditionKind.SuppressionState, "unstable", 0, false);
+            var invertedUnknown = new EventOptionConditionDefinition(EventOptionConditionKind.SuppressionState, "unstable", 0, true);
+            var invertedMissingHunter = new EventOptionConditionDefinition(EventOptionConditionKind.SuppressionState, "passive", 0, true);
+
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { inverted }, hunter, null, null, out string reason), Is.False);
+            Assert.That(reason, Does.Contain("不可满足").And.Contain("消极"));
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { unknown }, hunter, null, null, out reason), Is.False);
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { unknown }, null, null, null, out reason), Is.False);
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { invertedUnknown }, hunter, null, null, out reason), Is.False);
+            Assert.That(EventOptionAvailabilityRules.Evaluate(new[] { invertedMissingHunter }, null, null, null, out reason), Is.False);
+        }
+
+        [Test]
+        public void SuppressionStateKeysAreStrictAndCanonical()
+        {
+            Assert.That(HunterSuppressionRules.TryNormalizeStateKey(" MAD ", out string normalized), Is.True);
+            Assert.That(normalized, Is.EqualTo("mad"));
+            Assert.That(HunterSuppressionRules.TryNormalizeStateKey("calm", out _), Is.False);
+        }
     }
 }

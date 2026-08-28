@@ -21,7 +21,8 @@ namespace HuntingInDarkness.GameCore.Settlement
         HasBloodline,
         HasActiveBloodline,
         MinimumLuck,
-        MinimumCarriedItem
+        MinimumCarriedItem,
+        SuppressionState
     }
 
     public readonly struct EventOptionConditionDefinition
@@ -69,6 +70,11 @@ namespace HuntingInDarkness.GameCore.Settlement
 
             foreach (EventOptionConditionDefinition condition in conditions)
             {
+                if (condition.Kind == EventOptionConditionKind.SuppressionState && (hunter == null || !HunterSuppressionRules.TryParseStateKey(condition.Key, out _)))
+                {
+                    reason = Describe(condition);
+                    return false;
+                }
                 bool passed = Evaluate(condition, hunter, resourceResolver, equippedItems, carriedItemResolver);
                 if (condition.Kind == EventOptionConditionKind.HasKeyword)
                     passed = KeywordRules.Contains(keywords, condition.Key);
@@ -101,6 +107,7 @@ namespace HuntingInDarkness.GameCore.Settlement
                 EventOptionConditionKind.HasBloodline => $"拥有血脉“{condition.DisplayName}”",
                 EventOptionConditionKind.HasActiveBloodline => $"血脉“{condition.DisplayName}”已激活",
                 EventOptionConditionKind.MinimumCarriedItem => $"该猎人携带“{condition.DisplayName}”×{condition.Value}",
+                EventOptionConditionKind.SuppressionState => $"处于“{HunterSuppressionRules.GetDisplayName(ParseSuppressionState(condition.Key))}”状态",
                 _ => "满足未知条件"
             };
             return condition.Inverted ? $"不可满足：{requirement}" : $"需要{requirement}";
@@ -140,9 +147,16 @@ namespace HuntingInDarkness.GameCore.Settlement
                     return hunter != null && string.Equals(hunter.BloodlineId, condition.Key, StringComparison.Ordinal);
                 case EventOptionConditionKind.HasActiveBloodline:
                     return hunter != null && hunter.IsBloodlineActivated && string.Equals(hunter.BloodlineId, condition.Key, StringComparison.Ordinal);
+                case EventOptionConditionKind.SuppressionState:
+                    return hunter != null && HunterSuppressionRules.TryParseStateKey(condition.Key, out HunterSuppressionState requiredState) && HunterSuppressionRules.Classify(hunter.Insanity) == requiredState;
                 default:
                     return false;
             }
+        }
+
+        private static HunterSuppressionState ParseSuppressionState(string key)
+        {
+            return HunterSuppressionRules.TryParseStateKey(key, out HunterSuppressionState state) ? state : (HunterSuppressionState)(-1);
         }
 
         private static bool Contains(IReadOnlyCollection<string> values, string expected)

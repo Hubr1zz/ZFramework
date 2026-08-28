@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-suppression-gated-event-options",
+  "title": "收养压抑状态门控事件选项",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "已完成直接实现与定向验证；正式 Spec 未修改，等待人类内容规则确认后再决定是否同步。",
+  "verification": {
+    "status": "implemented",
+    "summary": "GameCore 与 Adapter 定向构建通过；Unity EditMode 组合测试 31/31 通过。",
+    "codeEvidence": [
+      {
+        "guid": "4bdf4d45233f71445837612b3a1a4b7b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/HunterSuppressionRules.cs",
+        "fileHash": "4a3bf898cc12eb0315c6c54d381605dee26dbd2f1dbbd33cb3ac5e98fdad2870",
+        "line": 10,
+        "feature": "解析并规范化三种猎人压抑状态键",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:50:31-07:00"
+      },
+      {
+        "guid": "7d08fa612005acb448957a59099ec9d8",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/EventOptionAvailabilityRules.cs",
+        "fileHash": "24c18cf23c09e7b879a2567c2ff9ed87858e962c74828831ec1c528e49cca9f9",
+        "line": 18,
+        "feature": "按猎人压抑分类严格评估事件选项",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:50:31-07:00"
+      },
+      {
+        "guid": "5aaad4b60ab84a34193791e0287c1542",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+        "fileHash": "6afc2e3044a2529a0d2220b55d8140cc3a63d481079d3f513be4c84ceadb1149",
+        "line": 110,
+        "feature": "严格转换并验证内容表状态条件",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:50:31-07:00"
+      },
+      {
+        "guid": "44ed4e78f8f953e46bca08cb371b551a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/EventOptionAvailabilityRulesTests.cs",
+        "fileHash": "2f662cf16e2037ce9389c5ac0719bf7cac85b60ff0abfa76ec6bdbf3c3e9b76a",
+        "line": 12,
+        "feature": "验证分类边界、反向和 fail-closed 行为",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:50:31-07:00"
+      },
+      {
+        "guid": "2b17ff3d52628a04b81c7873108ecf6f",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
+        "fileHash": "d38129347f705b74afebe4d6a2fa291325c73952f8e06f7395eb48f6415d664f",
+        "line": 20,
+        "feature": "验证表记录规范化与非法键拒绝",
+        "status": "verified",
+        "checkedAt": "2026-08-28T10:50:31-07:00"
+      }
+    ],
+    "evidence": [
+      "HuntingInDarkness.GameCore.EditModeTests.csproj：0 errors",
+      "HuntingInDarkness.Adapter.EditModeTests.csproj：0 errors",
+      "Unity EditMode 定向组合测试：31/31 passed，0 failed"
+    ],
+    "differences": [
+      "正式 Spec 未修改；尚未添加生产事件案例，等待人类内容规则确认。"
+    ],
+    "verifiedAt": "2026-08-28T10:50:31-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-CONTENT-CASE-DEFERRED-001",
+      "type": "implementation-delta",
+      "severity": "info",
+      "status": "open",
+      "blocksApproval": false,
+      "summary": "尚无生产事件案例",
+      "details": "现有候选可能未经授权改变风险平衡；待人类内容规则确认后另行添加。",
+      "sourceId": "conversation::2026-08-28",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": [
+    "suppression-gated-event-options"
+  ],
+  "syncTargets": [
+    {
+      "capability": "suppression-gated-event-options",
+      "title": "压抑状态门控事件选项",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-suppression-gated-event-options/specs/suppression-gated-event-options/spec.md",
+      "targetSpecPath": "openspec/specs/suppression-gated-event-options/spec.md",
+      "targetExisted": false,
+      "baseFileHash": "",
+      "baseSnapshotPath": ""
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与基线一致，可以 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-28T10:52:11-07:00"
+  },
+  "createdAt": "2026-08-28T10:50:31-07:00"
+}

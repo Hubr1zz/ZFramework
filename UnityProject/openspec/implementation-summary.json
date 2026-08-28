@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "466c28afda008fd3a968a473bc1d0b294388e88edab00e7e50db8f09516535ad",
-  "inputManifestDigest": "f2e9b30a163b9e2897e20a46e0b98b83d45c6782b8c986cbf1da7981bdd0b6a8",
-  "outputDigest": "734134a7e25c8f912aabc7bb0dd7e7228fcf33511d7d8e4cddc7d86d8e739a1c",
+  "inputDigest": "d3dd1e0f9ae225c0a3b624e173f3394d66e5b007a023f413299e0f9e542c7360",
+  "inputManifestDigest": "4cec2ac2fb4cc44de13892dbf9617a5be63ad001e05468f4afe4842bcfbce0c5",
+  "outputDigest": "d7011abad76c82e5348adf4032c820aa74b54e02c8d6b314a329bc74ae63afc2",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -207,7 +207,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
-      "sha256": "a582439ab7c19433a875efebdee6da60eb4d75af13efce0c0bba2cd38e6763be",
+      "sha256": "e11abdd5aa9a8551605fb176b22828124cb4020d0e286d04bea56a581f29bca0",
       "state": "current"
     },
     {
@@ -457,7 +457,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
-      "sha256": "2a8f5e1d9b40dfd6ef4e06275f2fa0337d2d3cbb649557fb26429acc0ae21506",
+      "sha256": "5f50221f0a3718bb9acce2ffaffc76dc018f4bf77ec339825c0ec87697567799",
       "state": "current"
     },
     {
@@ -887,7 +887,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/EventOptionAvailabilityRules.cs",
-      "sha256": "b52f24418c91442c54ebc30474b87520662204f93b7c68ca931d233ebf3bb170",
+      "sha256": "2bae88f049c15fbb81a79bf54fba57b53e1847f011ac092c805ac14b377c4cde",
       "state": "current"
     },
     {
@@ -932,7 +932,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Tests/EditMode/EventOptionAvailabilityRulesTests.cs",
-      "sha256": "03f676409370bbd3f06c9e055087d4e30ba9787c6d70589420c3478b5dd49b43",
+      "sha256": "7f470aea036ab26932a7fa27a650fbddd0f11c3a4218d01e99bbf8f57bd043f2",
       "state": "current"
     },
     {
@@ -2231,6 +2231,11 @@
     {
       "capability": "event-driven-hunter-symptom-acquisition",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "event-driven-hunter-symptom-acquisition",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/EventOptionAvailabilityRules.cs",
       "state": "stale"
     },
     {
@@ -3857,7 +3862,7 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/EventOptionAvailabilityRules.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
