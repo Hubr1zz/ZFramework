@@ -10,10 +10,10 @@
   "approvalStatus": "draft",
   "approvedBy": "",
   "approvedAt": "",
-  "implementationNotes": "实现已完成；正式 Specs 不改，待人工审查后显式 sync。发布前仍需补 Windows Player 启动烟雾。",
+  "implementationNotes": "实现与 Windows Player 启动烟雾均已完成；正式 Specs 不改，待人工审查后显式 sync。",
   "verification": {
-    "status": "partial",
-    "summary": "Unity 编译、内容源生命周期、内容事务和相关内容表验证通过；Player 构建烟雾待发布阶段补跑。",
+    "status": "verified",
+    "summary": "Unity 编译、内容源生命周期、内容事务、相关内容表及 Windows Player 实际图形启动均验证通过。",
     "codeEvidence": [
       {
         "guid": "62121fa43bc144049bf4a15006dba945",
@@ -67,27 +67,28 @@
       "Campaign 内容装配事务 EditMode 18/18。",
       "事件、物品、配方、猎人和特性相关 EditMode 45/45。",
       "GameLogic.csproj 构建 0 error；一条既有 CS4014 warning。",
-      "生产 HuntingInDarkness C# 中无 Resources.Load/LoadAll，Manifest 12 个引用均可解析。"
+      "生产 HuntingInDarkness C# 中无 Resources.Load/LoadAll，Manifest 12 个引用均可解析。",
+      "Unity 6000.5.9f1 成功构建 102 MB Windows Player 与 YooAsset DefaultPackage 2026-08-28-536。",
+      "Windows Player 在 Direct3D 11 图形设备上完成资源包初始化、GameApp.Entrance、三阶段根装配、PlayableGameBootstrap，并进入正式开场等待状态；日志无启动异常。"
     ],
     "differences": [
-      "正式 Specs 尚未记录启动期显式 Manifest/Bundle，待人工审查后 sync。",
-      "本阶段未执行 Windows Player 构建与实际图形启动烟雾。"
+      "正式 Specs 尚未记录启动期显式 Manifest/Bundle，待人工审查后 sync。"
     ],
-    "verifiedAt": "2026-08-28T08:42:36-07:00"
+    "verifiedAt": "2026-08-28T08:59:26-07:00"
   },
   "reviewIssues": [
     {
       "id": "ISSUE-PLAYER-SMOKE-PENDING-001",
       "type": "implementation-delta",
       "severity": "warning",
-      "status": "open",
+      "status": "resolved",
       "blocksApproval": false,
       "summary": "Player 构建内容源启动烟雾待发布阶段补跑",
-      "details": "当前数据和 Editor 生命周期验证已通过，但尚未重新构建 Windows Player 验证 YooAsset 收集闭包。",
+      "details": "Unity 6000.5.9f1 已重新构建 Windows Player，并在实际图形设备上验证 YooAsset 内容包、ZFramework 入口、可游玩 Bootstrap 和正式开场等待状态。",
       "sourceId": "verification",
       "acceptedBy": "",
       "acceptedAt": "",
-      "acceptanceNote": ""
+      "acceptanceNote": "启动验证通过；隐藏窗口无法接收正常关闭消息，资源释放顺序继续由既有生命周期测试覆盖。"
     }
   ],
   "gapIds": [],
@@ -150,7 +151,7 @@
     "summary": "正式 Spec 与基线一致，可以 sync。",
     "changes": [],
     "conflicts": [],
-    "validatedAt": "2026-08-28T08:49:19-07:00"
+    "validatedAt": "2026-08-28T09:00:59-07:00"
   },
   "createdAt": "2026-08-28T08:42:36-07:00"
 }
