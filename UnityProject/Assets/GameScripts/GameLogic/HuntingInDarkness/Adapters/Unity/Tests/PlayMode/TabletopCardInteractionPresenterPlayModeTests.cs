@@ -89,6 +89,42 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator DeathDeck_SingleCardRevealsTheStableCardFaceLabel()
+        {
+            TabletopCardInteractionPresenter presenter = CreatePresenter();
+            var request = new TabletopRandomInteractionRequest("death-single", TabletopRandomInteractionKind.DeathDeck, "hunter-1", "event", sides: 1, deckId: "hunter-death", instruction: "牌堆构成：0存活/1死亡；翻面后选择", cardFaceLabels: new[] { "死亡" });
+            UniTask<TabletopRandomInteractionResult>.Awaiter awaiter = presenter.PresentAsync(request, default).GetAwaiter();
+            yield return WaitUntil(() => FindCards().Length == 1 && FindCards()[0].IsSelectable, "单卡死亡牌堆没有生成可选择的实体牌。");
+
+            TabletopRandomCard3D card = FindCards()[0];
+            Assert.That(card.CardId, Is.EqualTo("hunter-death:position-0"));
+            Click(card);
+            yield return WaitUntil(() => awaiter.IsCompleted, "单卡死亡牌堆选择后交互没有完成。");
+
+            Assert.That(awaiter.GetResult().CardIds, Is.EqualTo(new[] { "hunter-death:position-0" }));
+            Assert.That(card.IsFaceUp, Is.True);
+            Assert.That(card.DisplayName, Is.EqualTo("死亡"));
+        }
+
+        [UnityTest]
+        public IEnumerator DeathDeck_MultipleCardsPreserveStablePositionsAndRevealTrueFace()
+        {
+            TabletopCardInteractionPresenter presenter = CreatePresenter();
+            var request = new TabletopRandomInteractionRequest("death-multi", TabletopRandomInteractionKind.DeathDeck, "hunter-1", "event", sides: 3, deckId: "hunter-death", instruction: "牌堆构成：2存活/1死亡；翻面后选择", cardFaceLabels: new[] { "存活", "死亡", "存活" });
+            UniTask<TabletopRandomInteractionResult>.Awaiter awaiter = presenter.PresentAsync(request, default).GetAwaiter();
+            yield return WaitUntil(() => FindCards().Length == 3 && FindCards().All(card => card.IsSelectable), "多卡死亡牌堆没有生成完整可选择牌组。");
+
+            TabletopRandomCard3D selected = FindCards().Single(card => card.CardId == "hunter-death:position-1");
+            Click(selected);
+            yield return WaitUntil(() => awaiter.IsCompleted, "多卡死亡牌堆选择后交互没有完成。");
+
+            TabletopRandomInteractionResult result = awaiter.GetResult();
+            Assert.That(result.CardIds, Is.EqualTo(new[] { "hunter-death:position-1" }));
+            Assert.That(selected.IsFaceUp, Is.True);
+            Assert.That(selected.DisplayName, Is.EqualTo("死亡"));
+        }
+
+        [UnityTest]
         public IEnumerator Disable_CancelsAndCleansInteractionBeforeAReusableNextRequest()
         {
             var background = GameObject.CreatePrimitive(PrimitiveType.Cube);

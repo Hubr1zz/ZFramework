@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-tabletop-event-fatal-injury",
+  "title": "采纳 Hunt 事件实体死亡牌堆",
+  "category": "feature",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现与定向验证已完成；正式 Spec 保持不变，等待人类在 Changes 中审查并显式同步。",
+  "verification": {
+    "status": "implemented",
+    "summary": "Hunt 致命伤已通过实体死亡牌堆提交存活或唯一永久死亡后果；取消、无头、非法配置、重复提交和最后猎人边界均已验证。",
+    "codeEvidence": [],
+    "evidence": [
+      "Unity 6000.5.9f1 EditMode GameCore、Hunt session、事件表与真实死亡后果 69/69。",
+      "Unity 6000.5.9f1 PlayMode Cards3D 死亡牌堆与现有随机卡牌回归 6/6。"
+    ],
+    "differences": [
+      "正式 Spec 尚未定义 FatalInjury 表约束、死亡牌稳定位置、真实牌面和 occurrence 提交边界。"
+    ],
+    "verifiedAt": "2026-08-28T04:00:00-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-EVENT-FATAL-INJURY-001",
+      "type": "authority-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": true,
+      "summary": "确认非决战致命伤死亡牌堆属于正式 Hunt 事件契约。",
+      "details": "批准后只同步四个 Delta；不改变 KillHunter、Combat、Showdown 或阶段生命周期。",
+      "sourceId": "conversation::2026-08-28",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [],
+  "capabilities": [
+    "table-driven-hunt-events",
+    "event-driven-hunter-death",
+    "tabletop-random-interaction",
+    "hunt-session-event-occurrence-recovery"
+  ],
+  "syncTargets": [
+    {
+      "capability": "event-driven-hunter-death",
+      "title": "事件驱动猎人永久死亡",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-tabletop-event-fatal-injury/specs/event-driven-hunter-death/spec.md",
+      "targetSpecPath": "openspec/specs/event-driven-hunter-death/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "95457cfad8e6b5d98a65766509059fd9b1a54b594e51439fcfe90c065b9fe0a7",
+      "baseSnapshotPath": "openspec/changes/adopt-tabletop-event-fatal-injury/.sync-baseline/event-driven-hunter-death/spec.md"
+    },
+    {
+      "capability": "hunt-session-event-occurrence-recovery",
+      "title": "狩猎会话事件链恢复",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-tabletop-event-fatal-injury/specs/hunt-session-event-occurrence-recovery/spec.md",
+      "targetSpecPath": "openspec/specs/hunt-session-event-occurrence-recovery/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "37606084b77ce7e2e66c17bb72a7f1cbdb52628d5afbffa9951878b52f172bf1",
+      "baseSnapshotPath": "openspec/changes/adopt-tabletop-event-fatal-injury/.sync-baseline/hunt-session-event-occurrence-recovery/spec.md"
+    },
+    {
+      "capability": "table-driven-hunt-events",
+      "title": "读表狩猎事件内容",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-tabletop-event-fatal-injury/specs/table-driven-hunt-events/spec.md",
+      "targetSpecPath": "openspec/specs/table-driven-hunt-events/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "1ca824b32d7833cec4758f740d029d634faa9a3ff4f5bf18b40d41607bf84df2",
+      "baseSnapshotPath": "openspec/changes/adopt-tabletop-event-fatal-injury/.sync-baseline/table-driven-hunt-events/spec.md"
+    },
+    {
+      "capability": "tabletop-random-interaction",
+      "title": "桌游式随机交互",
+      "category": "feature",
+      "deltaSpecPath": "openspec/changes/adopt-tabletop-event-fatal-injury/specs/tabletop-random-interaction/spec.md",
+      "targetSpecPath": "openspec/specs/tabletop-random-interaction/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "d385623ddeaf72640896d76f73dbb28f2894e8503bb211812cc14d607d8e7d47",
+      "baseSnapshotPath": "openspec/changes/adopt-tabletop-event-fatal-injury/.sync-baseline/tabletop-random-interaction/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "baseline-captured",
+    "summary": "正式 Spec 基线已记录。",
+    "conflicts": [],
+    "validatedAt": "2026-08-28T03:59:25-07:00"
+  },
+  "createdAt": "2026-08-28T04:00:00-07:00"
+}

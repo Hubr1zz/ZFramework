@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-random-interaction",
+  "title": "桌游式随机交互",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "既有 Cards3D Presenter 支持死亡牌构成、不可区分卡背、稳定选位、真实牌面与无头回退。",
+    "codeEvidence": [
+      { "guid": "b336b4bfea4a3204cb10ffec3f323626", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCardInteractionPresenter.cs", "fileHash": "741b7b04588f202787d73b404fa3b7e4a4c55520669712c7bce4c68914de620e", "line": 140, "feature": "死亡牌实体生成、真实牌面与稳定位置返回", "status": "verified", "checkedAt": "2026-08-28T04:00:00-07:00" },
+      { "guid": "861fe749dd016ee4d947c65e136b7fef", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopCardInteractionPresenterPlayModeTests.cs", "fileHash": "cdd7a9488e8cc3c04eb8bb6558be22d1486a84f107e2f68b6b427f176a68db98", "line": 14, "feature": "单卡、多卡、稳定选位与真实牌面 PlayMode 验证", "status": "verified", "checkedAt": "2026-08-28T04:00:00-07:00" }
+    ],
+    "evidence": ["Unity PlayMode 卡牌 Presenter 6/6。"],
+    "differences": ["正式 Spec 尚未列出 DeathDeck 类型和牌面标签。"],
+    "verifiedAt": "2026-08-28T04:00:00-07:00"
+  },
+  "gapIds": [], "dependencyIds": [], "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["请求携带只读稳定牌面标签。", "View 只返回位置，不解析后果。", "无头模式复用洗牌后位置 0。"],
+  "reviewIssues": []
+}

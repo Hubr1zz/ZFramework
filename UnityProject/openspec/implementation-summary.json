@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "role": "derived-routing-index",
-  "inputDigest": "f16ac513985a8ddf4575376f0f293ed1e3980e4a40dabedb0aa1bc4aee8316fb",
-  "inputManifestDigest": "bc770eab9ceda89aa55ff7e2380cd3d02ebf1ea3c29b8f639cd0c3c8d9cb3010",
-  "outputDigest": "141317ad3ea7295fcd912ce3ba93f125787686790d45a52a9ccc9521decd8b5c",
+  "inputDigest": "f982238354f5b5cd08de75a8d156b80313f1167ee1b63c91cf361141bec3a112",
+  "inputManifestDigest": "e09ea48e756af6bbfb31816620ddf9e1f3647ff9f4981364172e25a65b0be328",
+  "outputDigest": "348b5de6cdb94895a0ac566b8e9df057b20311b60e38ccb6e85ff42770f0eb83",
   "inputManifest": [
     {
       "path": "Assets/Editor/zWorkFlow/AgentWorkbenchWindow.CodeIndex.cs",
@@ -47,7 +47,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventEffectResult.cs",
-      "sha256": "b9d2b14672fad808e8b7b8f817e5f16d404010c934734db3bb97b91e4ee5b248",
+      "sha256": "8c0d5dcdc48f313e3dd2255ab2760f8eff560e06cd5b0b221396f84e5bc23ee0",
       "state": "current"
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
-      "sha256": "dce62dda9aa8c0db9d1c29c1b24b6c30fc4b719cb70850b8cbdae083881de224",
+      "sha256": "f1f456e9963a17517988d324e07291352450cab1865e0a9dd52d56ed1fddadf5",
       "state": "current"
     },
     {
@@ -82,12 +82,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
-      "sha256": "d40e5ca65a672f23994869c5e38f77eb2e3a105dc38b8a24efe82fcd72f905b9",
+      "sha256": "050fdc8724c710ce5e067f24d9dc4fb036f1641867037d2e88fdce2739ecd208",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs",
-      "sha256": "cf1bfa76e0fc70189ee6728acfdfe5a15d3bfad31b298aa88c2456c38d46e8c0",
+      "sha256": "537423449a9888336db8aa2eb413cd43740e8d91b011dd844cc50d9d35bbad87",
       "state": "current"
     },
     {
@@ -107,7 +107,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Presentation/TabletopRandomInteraction.cs",
-      "sha256": "3e7f30fd8e0343731b8e4cd615bf73703e71e1cd11a00a14107fd1eb22f04690",
+      "sha256": "0b2d5f313daa4cde32ecfe9ddb7288521339ec9f258d82791562c81a35b1c2b0",
       "state": "current"
     },
     {
@@ -207,7 +207,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
-      "sha256": "6f6e4fb6ea33c15f2890997bbc423f05bdd7606e0329df42d7f164481df75c56",
+      "sha256": "523e6e739aeee14f368cf1f4503410a88aa2ef39d862b8ee51be5d0df9f6ad20",
       "state": "current"
     },
     {
@@ -347,7 +347,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
-      "sha256": "ede28076071dc73ddda5ac985922ab8f7c7682dc21fa96dc4cae98437488efea",
+      "sha256": "45ca1c3f0ea3b13a0d6824cf4e0eeb2ed5316eb150b79f76198b6b827129740c",
       "state": "current"
     },
     {
@@ -372,12 +372,12 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
-      "sha256": "10a5adf5483a165ef1139b0c91ebe1a2e7d18cec3f058e6b235eb5e07bb3b057",
+      "sha256": "55457bdb34ee9e58b7f97576c57a1bb3bf411fd7421976ff54d4570fb4abfbf5",
       "state": "current"
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventOptionAvailability.cs",
-      "sha256": "5b0127a5260a88819ab2c261634d25cd68ca837369727bd8a515a6ef5413275a",
+      "sha256": "335bcefc6d8bc96cf742a40e302fa167387b7973e13fa9994a70f38316f5f4bf",
       "state": "current"
     },
     {
@@ -492,7 +492,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs",
-      "sha256": "d5ffe6e37ad5ae92a43efc56a87ee649bf10ae527139d917f074e4d2d6f4b85b",
+      "sha256": "94483a6b5dd55014cdad9fad82f3b3c9ae20407fc681c49fd610099088a044a1",
       "state": "current"
     },
     {
@@ -502,7 +502,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntContentBundleTests.cs",
-      "sha256": "270aa49ace0f17db6388067c7492a5d62ef7dc14441415f1439df0c0cba984c0",
+      "sha256": "1cfed72a449be93d45d4caaa8025c28bef6ab2d5119fafc3e1fd274e95fb0d97",
       "state": "current"
     },
     {
@@ -512,7 +512,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventFlowTests.cs",
-      "sha256": "4bd83fe57e39e77bedcce1b8f0a905e9bec49000e08c51848ac878378d71ee7b",
+      "sha256": "4f25f0d0a6294ae4405be43fb642748ccfb420a00d295a1359ee537df2fcce5b",
       "state": "current"
     },
     {
@@ -692,7 +692,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopCardInteractionPresenterPlayModeTests.cs",
-      "sha256": "6ef3dd3209be1283209bf5f1b5d3b91dcfbd0491850aae13add372bf33008413",
+      "sha256": "cdd7a9488e8cc3c04eb8bb6558be22d1486a84f107e2f68b6b427f176a68db98",
       "state": "current"
     },
     {
@@ -972,7 +972,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/Tables/hunt-events.json",
-      "sha256": "90aaabb630d29ab8ccaffaf8a1b35e217cfd60c84c8bbfc351f6d547025edbb8",
+      "sha256": "676c054adf747b81b5bc22d189b2ffb9c1cf35cd5d5a722bfa72c9fa187f7bbf",
       "state": "current"
     },
     {
@@ -1177,7 +1177,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCardInteractionPresenter.cs",
-      "sha256": "35594fdf09406ccf56532046a074490736caee4c4dab838ed37d1b5deaab75d6",
+      "sha256": "741b7b04588f202787d73b404fa3b7e4a4c55520669712c7bce4c68914de620e",
       "state": "current"
     },
     {
@@ -1187,7 +1187,7 @@
     },
     {
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopRandomCard3D.cs",
-      "sha256": "8f6f8888d96d10c15634a10b61eae1de8cfb1ae85f9bcee793dacafdbb4a0ca0",
+      "sha256": "188d36e71cd353bb5cbf69429a4be3f0cc66cb1b9848f9617517d832035260d5",
       "state": "current"
     },
     {
@@ -2183,12 +2183,22 @@
     },
     {
       "capability": "event-driven-hunter-symptom-acquisition",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "event-driven-hunter-symptom-acquisition",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
       "state": "stale"
     },
     {
       "capability": "event-driven-hunter-symptom-acquisition",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "event-effect-resolution-reporting",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventEffectResult.cs",
       "state": "stale"
     },
     {
@@ -2374,6 +2384,16 @@
     {
       "capability": "hunt-route-entry-context",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-session-event-occurrence-recovery",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "hunt-session-event-occurrence-recovery",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
       "state": "stale"
     },
     {
@@ -2609,6 +2629,11 @@
     {
       "capability": "table-driven-hunt-events",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "table-driven-hunt-events",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
       "state": "stale"
     },
     {
@@ -2923,6 +2948,16 @@
     },
     {
       "capability": "tabletop-random-interaction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-random-interaction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Presentation/TabletopRandomInteraction.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-random-interaction",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
       "state": "stale"
     },
@@ -2933,7 +2968,17 @@
     },
     {
       "capability": "tabletop-random-interaction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-random-interaction",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableConditionalEventOptionTests.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-random-interaction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopCardInteractionPresenterPlayModeTests.cs",
       "state": "stale"
     },
     {
@@ -2954,6 +2999,16 @@
     {
       "capability": "tabletop-random-interaction",
       "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-random-interaction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCardInteractionPresenter.cs",
+      "state": "stale"
+    },
+    {
+      "capability": "tabletop-random-interaction",
+      "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopRandomCard3D.cs",
       "state": "stale"
     },
     {
@@ -3471,7 +3526,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/GameCore/Settlement/EventOptionAvailabilityRules.cs",
@@ -3516,7 +3571,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventEffectResult.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",
@@ -4002,11 +4057,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
-          "state": "current"
+          "state": "stale"
         }
       ]
     },
@@ -4557,7 +4612,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentCatalog.cs",
@@ -5384,7 +5439,7 @@
       "evidence": [
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Presentation/TabletopRandomInteraction.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/PhysicalDiceTabletopPresenter.cs",
@@ -5392,15 +5447,15 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCardInteractionPresenter.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopRandomCard3D.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/TabletopCardInteractionPresenterPlayModeTests.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
@@ -5408,11 +5463,11 @@
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
-          "state": "current"
+          "state": "stale"
         },
         {
           "path": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs",

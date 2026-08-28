@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-session-event-occurrence-recovery",
+  "title": "狩猎会话事件链恢复",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "致命伤保持既有 occurrence 门禁；选择前失败零提交并保留 root，最后猎人死亡截断 children。",
+    "codeEvidence": [
+      { "guid": "d94d370a430db9b41b025aedfeb3a471", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs", "fileHash": "f1f456e9963a17517988d324e07291352450cab1865e0a9dd52d56ed1fddadf5", "line": 216, "feature": "致命伤 presentation-before-commit 与 occurrence 提交事实", "status": "verified", "checkedAt": "2026-08-28T04:00:00-07:00" },
+      { "guid": "85f60544b7e9b004d9def05c16cdabd1", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs", "fileHash": "94483a6b5dd55014cdad9fad82f3b3c9ae20407fc681c49fd610099088a044a1", "line": 332, "feature": "取消保留、随机隔离、最后猎人子链截断与无头回退", "status": "verified", "checkedAt": "2026-08-28T04:00:00-07:00" }
+    ],
+    "evidence": ["Unity EditMode Hunt ActionSession 37/37。"],
+    "differences": ["正式 Spec 尚未明确死亡牌 presentation-before-commit。"],
+    "verifiedAt": "2026-08-28T04:00:00-07:00"
+  },
+  "gapIds": [], "dependencyIds": [], "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["选择前不调用 Commit。", "失败保持 occurrence。", "提交后复用既有 checkpoint 与 child 截断。"],
+  "reviewIssues": []
+}

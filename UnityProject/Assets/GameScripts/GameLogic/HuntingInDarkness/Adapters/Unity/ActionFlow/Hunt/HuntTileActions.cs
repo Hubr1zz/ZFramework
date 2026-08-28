@@ -75,6 +75,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly IHuntTileInteractionPresenter tileInteractionPresenter;
         private readonly PlayableHuntEventOccurrenceStore occurrenceStore;
         private readonly Action lockEncounterHandoff;
+        private readonly IPlayableEventFatalInjuryCommand fatalInjuryCommand;
         private readonly Guid huntSessionId;
         private readonly string destinationId;
         private PrepareHuntNoiseAction noiseAction;
@@ -86,7 +87,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private bool eventFailed;
         private string eventFailureReason;
 
-        public InteractHuntTileAction(HuntManager manager, Vector2Int coordinate, HuntTileInteractionKind intendedKind, Guid huntSessionId, string defaultEncounterId, string destinationId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, PlayableHuntEventOccurrenceStore occurrenceStore = null, Action lockEncounterHandoff = null)
+        public InteractHuntTileAction(HuntManager manager, Vector2Int coordinate, HuntTileInteractionKind intendedKind, Guid huntSessionId, string defaultEncounterId, string destinationId, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, PlayableHuntEventOccurrenceStore occurrenceStore = null, Action lockEncounterHandoff = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null)
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.coordinate = coordinate;
@@ -97,6 +98,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             this.tileInteractionPresenter = tileInteractionPresenter;
             this.occurrenceStore = occurrenceStore ?? new PlayableHuntEventOccurrenceStore();
             this.lockEncounterHandoff = lockEncounterHandoff;
+            this.fatalInjuryCommand = fatalInjuryCommand;
             this.huntSessionId = huntSessionId;
             this.destinationId = destinationId ?? string.Empty;
             encounterAccumulator = new HuntEncounterAccumulator(huntSessionId, defaultEncounterId, destinationId);
@@ -126,7 +128,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             if (!eventScheduled)
             {
                 eventScheduled = true;
-                eventAction = new ResolveHuntTileEventAction(manager, commitAction.Commit, noiseAction.Resolution, eventOutbox, encounterAccumulator, Source, Target, resolveEventEntity, randomInteractionPresenter, occurrenceStore, lockEncounterHandoff: lockEncounterHandoff);
+                eventAction = new ResolveHuntTileEventAction(manager, commitAction.Commit, noiseAction.Resolution, eventOutbox, encounterAccumulator, Source, Target, resolveEventEntity, randomInteractionPresenter, occurrenceStore, lockEncounterHandoff: lockEncounterHandoff, fatalInjuryCommand: fatalInjuryCommand);
                 return eventAction;
             }
             if (!finalizeScheduled && eventAction != null && !context.LastOutcome.IsSuccess)
@@ -268,9 +270,10 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         public bool HasCommittedCheckpoint { get; private set; }
         private readonly bool stageEncounterAfterCommit;
         private readonly Action lockEncounterHandoff;
+        private readonly IPlayableEventFatalInjuryCommand fatalInjuryCommand;
         private readonly List<PlayableEventEffectResult> effectResults = new();
 
-        internal ResolveHuntTileEventAction(HuntManager manager, HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, PlayableHuntEventOccurrenceStore occurrenceStore = null, PlayableHuntEventOccurrence initialOccurrence = null, bool stageEncounterAfterCommit = false, Action lockEncounterHandoff = null)
+        internal ResolveHuntTileEventAction(HuntManager manager, HuntTileInteractionCommit commit, PlayableHuntNoiseResolution noiseResolution, ActionEventOutbox eventOutbox, HuntEncounterAccumulator encounterAccumulator, IReactorEntity source, IReactorEntity target, Func<HuntingInDarkness.Data.EventData, IReactorEntity> resolveEventEntity, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, PlayableHuntEventOccurrenceStore occurrenceStore = null, PlayableHuntEventOccurrence initialOccurrence = null, bool stageEncounterAfterCommit = false, Action lockEncounterHandoff = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null)
         {
             this.manager = manager;
             this.commit = commit;
@@ -283,6 +286,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             worldCommand = new HuntTileEventWorldCommand(manager, commit);
             this.stageEncounterAfterCommit = stageEncounterAfterCommit;
             this.lockEncounterHandoff = lockEncounterHandoff;
+            this.fatalInjuryCommand = fatalInjuryCommand;
             Source = source;
             Target = target;
             if (initialOccurrence != null)
@@ -340,7 +344,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             currentOccurrence = pendingOccurrences.Dequeue();
             HuntingInDarkness.Data.EventData nextEvent = currentOccurrence.Event;
             HunterInstance occurrenceActor = ResolveOccurrenceActor(currentOccurrence.Occurrence.ActorId);
-            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, occurrenceActor, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand, worldCommand, itemCommand: manager.EventItemCommand, populationCommand: manager.EventPopulationCommand, rerollCheckpoint: currentOccurrence.Occurrence.RerollCheckpoint);
+            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, occurrenceActor, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand, worldCommand, itemCommand: manager.EventItemCommand, populationCommand: manager.EventPopulationCommand, rerollCheckpoint: currentOccurrence.Occurrence.RerollCheckpoint, fatalInjuryCommand: fatalInjuryCommand);
             return currentEntry;
         }
 

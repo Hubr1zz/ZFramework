@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "table-driven-hunt-events", "label": "读表狩猎事件内容", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-tabletop-event-fatal-injury/specs/table-driven-hunt-events/spec.md" },
+    { "id": "event-driven-hunter-death", "label": "事件驱动猎人永久死亡", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-tabletop-event-fatal-injury/specs/event-driven-hunter-death/spec.md" },
+    { "id": "tabletop-random-interaction", "label": "桌游式随机交互", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-tabletop-event-fatal-injury/specs/tabletop-random-interaction/spec.md" },
+    { "id": "hunt-session-event-occurrence-recovery", "label": "狩猎会话事件链恢复", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/adopt-tabletop-event-fatal-injury/specs/hunt-session-event-occurrence-recovery/spec.md" }
+  ],
+  "edges": [
+    { "from": "table-driven-hunt-events", "to": "tabletop-random-interaction", "type": "presents" },
+    { "from": "table-driven-hunt-events", "to": "event-driven-hunter-death", "type": "commits" },
+    { "from": "table-driven-hunt-events", "to": "hunt-session-event-occurrence-recovery", "type": "recovers-through" }
+  ]
+}

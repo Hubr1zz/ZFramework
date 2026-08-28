@@ -28,6 +28,8 @@ namespace HuntingInDarkness.Settlement
         /// <summary>当事件结束（包含子事件链全部处理完）后调用</summary>
         public System.Action OnEventChainCompleted;
         internal SettlementInstance Settlement => _settlement;
+        internal IRandomSource RandomSource => _rng;
+        internal IHunterDeathCommand HunterDeathCommand => hunterDeathCommand;
 
         // 当前处理中的事件队列（子事件链用）
         private readonly Queue<EventData> _pendingChain = new();
@@ -250,7 +252,7 @@ namespace HuntingInDarkness.Settlement
             }
         }
 
-        private PlayableEventEffectResult ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, int effectIndex = -1, string eventId = "", IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null)
+        private PlayableEventEffectResult ApplyEffect(EventEffect effect, HunterInstance target, HunterInstance eventActor, List<string> encounterIds = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, int effectIndex = -1, string eventId = "", IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null, IReadOnlyDictionary<int, PlayableEventFatalInjuryPreparation> fatalInjuryPreparations = null)
         {
             if (effect == null) return FailedEffect(effectIndex, effect, "事件效果为空。", eventId);
             if (effect.effectType == EventEffectType.AdvanceYear)
@@ -301,6 +303,14 @@ namespace HuntingInDarkness.Settlement
                 if (!hunterDeathCommand.TryKill(actor, effect.targetName, effect.description, out string reason))
                     return FailedEffect(effectIndex, effect, reason, eventId);
                 return SucceededEffect(effectIndex, effect, eventId);
+            }
+            if (effect.effectType == EventEffectType.FatalInjury)
+            {
+                if (fatalInjuryCommand == null || fatalInjuryPreparations == null || !fatalInjuryPreparations.TryGetValue(effectIndex, out PlayableEventFatalInjuryPreparation preparation))
+                    return FailedEffect(effectIndex, effect, "致命伤效果必须由 Hunt ActionQueue 在桌面表现后提交。", eventId);
+                return fatalInjuryCommand.TryCommit(preparation, preparation.SelectedPosition, eventId, effectIndex, out PlayableEventEffectResult result, out string reason)
+                    ? result
+                    : FailedEffect(effectIndex, effect, reason, eventId);
             }
             if (effect.effectType == EventEffectType.AddAilment)
             {

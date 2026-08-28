@@ -1,8 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using GameplayBase.CombatSystem;
+using HuntingInDarkness.Combat;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
@@ -66,20 +70,55 @@ namespace HuntingInDarkness.Adapter.Tests
             EventData rescue = events.Single(gameEvent => gameEvent.ContentId == "hunt_lost_survivor");
             EventEffect populationReward = rescue.options[0].successEffects.Single(effect => effect.effectType == EventEffectType.RescuePopulation);
             Assert.That(populationReward.value, Is.EqualTo(1));
+            EventData crushingSlab = events.Single(gameEvent => gameEvent.ContentId == "hunt_crushing_slab");
+            EventEffect fatalInjury = crushingSlab.options[0].successEffects.Single(effect => effect.effectType == EventEffectType.FatalInjury);
+            Assert.That(fatalInjury.targetName, Is.EqualTo("selected"));
+            Assert.That(fatalInjury.bodyPart, Is.EqualTo("arms"));
+            Assert.That(fatalInjury.fatalDeckId, Is.EqualTo("hunter-death"));
+            Assert.That(fatalInjury.value, Is.EqualTo(4));
+            var healthyHunter = new HunterInstance(null, 9901);
+            var combatStats = new CharacterCombatStats();
+            PlayableHunterInjuryAdapter.Apply(healthyHunter, combatStats);
+            Assert.That(EventFatalInjuryRules.TryPrepare(combatStats.InjuryState, HunterBodyPart.Arms, fatalInjury.value, new FirstRandom(), out EventFatalInjuryPlan plan, out string planReason), Is.True, planReason);
+            Assert.That(plan.RequiresDeathDraw, Is.True);
             Assert.That(events.Select(gameEvent => gameEvent.ContentId), Is.SupersetOf(new[]
             {
-                "hunt_sap_suture", "hunt_carapace_cairn", "hunt_white_hair_lure",
+                "hunt_sap_suture", "hunt_carapace_cairn", "hunt_white_hair_lure", "hunt_crushing_slab",
                 "hunt_root_pulse", "hunt_rust_burial", "hunt_worm_rain", "hunt_lost_survivor"
             }));
+        }
+
+        [Test]
+        public void FatalInjuryTableEffectMustBeTheOnlyOutcomeEffect()
+        {
+            MethodInfo validateEffects = typeof(PlayableEventTableRuntime).GetMethod("ValidateEffects", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(validateEffects, Is.Not.Null);
+            EventEffectTableRecord fatal = new()
+            {
+                effectType = nameof(EventEffectType.FatalInjury),
+                targetName = "selected",
+                bodyPart = "arms",
+                fatalDeckId = EventFatalInjuryRules.HunterDeathDeckId,
+                value = 4
+            };
+            var valid = new List<EventEffectTableRecord> { fatal };
+            var combined = new List<EventEffectTableRecord> { fatal, new() { effectType = nameof(EventEffectType.AddWillpower), targetName = "selected", value = 1 } };
+
+            Assert.That(validateEffects.Invoke(null, new object[] { valid, true, PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, true, false }), Is.True);
+            Assert.That(validateEffects.Invoke(null, new object[] { combined, true, PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, true, false }), Is.False);
         }
 
         [Test]
         public void HuntTable_RustBurialAddsTriggeredFollowUpContract()
         {
             IReadOnlyList<EventTableRecord> records = new JsonEventTableSource("HuntingInDarkness/Tables/hunt-events").Load();
-            Assert.That(records, Has.Count.EqualTo(16));
-            Assert.That(records.Count(record => record.category == "Hunt"), Is.EqualTo(15));
+            Assert.That(records, Has.Count.EqualTo(17));
+            Assert.That(records.Count(record => record.category == "Hunt"), Is.EqualTo(16));
             Assert.That(records.Count(record => record.category == "Triggered"), Is.EqualTo(1));
+
+            EventTableRecord fatalRecord = records.Single(record => record.id == "hunt_crushing_slab");
+            Assert.That(fatalRecord.options.Single().successEffects.Single().effectType, Is.EqualTo("FatalInjury"));
+            Assert.That(fatalRecord.options.Single().successEffects.Single().fatalDeckId, Is.EqualTo("hunter-death"));
 
             EventTableRecord parentRecord = records.Single(record => record.id == "hunt_rust_burial");
             EventTableRecord childRecord = records.Single(record => record.id == "hunt_rust_burial_open_eyes");

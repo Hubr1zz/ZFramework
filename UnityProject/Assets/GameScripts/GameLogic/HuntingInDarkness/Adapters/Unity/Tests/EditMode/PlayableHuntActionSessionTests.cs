@@ -287,6 +287,172 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public async Task InteractTileAsync_FatalInjurySurvivalCommitsDeckAfterStableSelection()
+        {
+            var presenter = new FixedDeathDeckPresenter(0);
+            using var rig = new HuntRig(includeSurvivor: true, hunterDeathCommand: new DirectHunterDeathCommand(), randomInteractionPresenter: presenter);
+            rig.Hunter.HP.arms = 0;
+            rig.Hunter.SurvivalCards = 1;
+            rig.Hunter.DeathCards = 0;
+            rig.TileEvent.eventType = GameEventType.Choice;
+            rig.TileEvent.options.Add(CreateFatalInjuryOption());
+            rig.Manager.EventInput = new ExplicitChoiceInput(0);
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(presenter.Requests, Has.Count.EqualTo(1));
+            Assert.That(presenter.Requests[0].Kind, Is.EqualTo(TabletopRandomInteractionKind.DeathDeck));
+            Assert.That(presenter.Requests[0].Instruction, Is.EqualTo("牌堆构成：1存活/0死亡；翻面后选择"));
+            Assert.That(presenter.Requests[0].CardFaceLabels, Is.EqualTo(new[] { "存活" }));
+            Assert.That(rig.Hunter.IsAlive, Is.True);
+            Assert.That(rig.Hunter.SurvivalCards, Is.EqualTo(1));
+            Assert.That(rig.Hunter.DeathCards, Is.EqualTo(1));
+            Assert.That(result.EffectResults.Effects.Single(effect => effect.EffectType == EventEffectType.FatalInjury).DeathCard, Is.EqualTo(DeathCardType.Survive));
+        }
+
+        [Test]
+        public async Task InteractTileAsync_FatalInjuryDeathUsesHunterDeathCommand()
+        {
+            var presenter = new FixedDeathDeckPresenter(0);
+            using var rig = new HuntRig(includeSurvivor: true, hunterDeathCommand: new DirectHunterDeathCommand(), randomInteractionPresenter: presenter);
+            rig.Hunter.HP.arms = 0;
+            rig.Hunter.SurvivalCards = 0;
+            rig.Hunter.DeathCards = 1;
+            rig.TileEvent.eventType = GameEventType.Choice;
+            rig.TileEvent.options.Add(CreateFatalInjuryOption());
+            rig.Manager.EventInput = new ExplicitChoiceInput(0);
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(rig.Hunter.IsAlive, Is.False);
+            Assert.That(presenter.Requests[0].Instruction, Is.EqualTo("牌堆构成：0存活/1死亡；翻面后选择"));
+            Assert.That(presenter.Requests[0].CardFaceLabels, Is.EqualTo(new[] { "死亡" }));
+            Assert.That(result.EffectResults.Effects.Single(effect => effect.EffectType == EventEffectType.FatalInjury).HunterDied, Is.True);
+        }
+
+        [Test]
+        public async Task InteractTileAsync_FatalInjuryWithoutPresenterUsesPreparedPosition()
+        {
+            var effectRandom = new CountingRandom();
+            var shuffleRandom = new CountingRandom();
+            using var rig = new HuntRig(includeSurvivor: true, hunterDeathCommand: new DirectHunterDeathCommand(), fatalInjuryCommandFactory: settlement => new PlayableHuntFatalInjuryCommand(settlement, effectRandom, shuffleRandom, new DirectHunterDeathCommand()));
+            rig.Hunter.HP.arms = 0;
+            rig.Hunter.SurvivalCards = 1;
+            rig.Hunter.DeathCards = 1;
+            rig.TileEvent.eventType = GameEventType.Choice;
+            rig.TileEvent.options.Add(CreateFatalInjuryOption());
+            rig.Manager.EventInput = new ExplicitChoiceInput(0);
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+            Assert.That(result.Succeeded, Is.True, result.Reason);
+            Assert.That(rig.Hunter.IsAlive, Is.False, "First prepared face-down position is Death with the injected shuffle source");
+            Assert.That(result.EffectResults.Effects.Single(effect => effect.EffectType == EventEffectType.FatalInjury).DeathCard, Is.EqualTo(DeathCardType.Death));
+            Assert.That(effectRandom.Calls, Is.Zero, "headless position selection must not consume effectRandom");
+            Assert.That(shuffleRandom.Calls, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public async Task InteractTileAsync_LastHunterFatalInjuryTruncatesChildrenAsCampaignEnded()
+        {
+            var presenter = new FixedDeathDeckPresenter(0);
+            using var rig = new HuntRig(includeSurvivor: true, hunterDeathCommand: new DirectHunterDeathCommand(), randomInteractionPresenter: presenter);
+            rig.Survivor.IsAlive = false;
+            rig.Hunter.HP.arms = 0;
+            rig.Hunter.SurvivalCards = 0;
+            rig.Hunter.DeathCards = 1;
+            rig.TileEvent.eventType = GameEventType.Choice;
+            EventOption fatalOption = CreateFatalInjuryOption();
+            rig.TileEvent.options.Add(fatalOption);
+            EventData child = ScriptableObject.CreateInstance<EventData>();
+            child.name = "FatalChildMustNotRun";
+            child.ConfigureContentId("fatal-child-must-not-run");
+            child.eventType = GameEventType.Choice;
+            child.options.Add(new EventOption { optionText = "不应执行", alwaysAvailable = true });
+            fatalOption.successChain.Add(child);
+            rig.Manager.EventInput = new ExplicitChoiceInput(0);
+            HuntEventChainTruncatedEvent truncated = default;
+            int truncatedCount = 0;
+            Action<HuntEventChainTruncatedEvent> handler = evt =>
+            {
+                truncated = evt;
+                truncatedCount++;
+            };
+            EventBus.Subscribe(handler);
+
+            try
+            {
+                HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(rig.Hunter.IsAlive, Is.False);
+                Assert.That(rig.Session.HasPendingEventOccurrences, Is.False);
+                Assert.That(result.EffectResults.Effects.Single(effect => effect.EffectType == EventEffectType.FatalInjury).HunterDied, Is.True);
+                Assert.That(truncatedCount, Is.Zero, "campaign-ended 路径应在 occurrence 提交前丢弃子事件，不应继续排队");
+                Assert.That(truncated.PreventedChildCount, Is.Zero);
+            }
+            finally
+            {
+                EventBus.Unsubscribe(handler);
+                UnityEngine.Object.DestroyImmediate(child);
+            }
+        }
+
+        [Test]
+        public async Task InteractTileAsync_FatalInjuryCancellationLeavesPersistentStateUntouched()
+        {
+            var presenter = new FixedDeathDeckPresenter(cancelled: true);
+            using var rig = new HuntRig(includeSurvivor: true, hunterDeathCommand: new DirectHunterDeathCommand(), randomInteractionPresenter: presenter);
+            rig.Hunter.HP.arms = 0;
+            int initialSurvivalCards = rig.Hunter.SurvivalCards;
+            int initialDeathCards = rig.Hunter.DeathCards;
+            rig.TileEvent.eventType = GameEventType.Choice;
+            rig.TileEvent.options.Add(CreateFatalInjuryOption());
+            rig.Manager.EventInput = new ExplicitChoiceInput(0);
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(rig.Hunter.IsAlive, Is.True);
+            Assert.That(rig.Hunter.HP.arms, Is.Zero);
+            Assert.That(rig.Hunter.SurvivalCards, Is.EqualTo(initialSurvivalCards));
+            Assert.That(rig.Hunter.DeathCards, Is.EqualTo(initialDeathCards));
+            Assert.That(rig.Session.HasPendingEventOccurrences, Is.True);
+        }
+
+        [Test]
+        public async Task InteractTileAsync_FatalInjuryCancellationDoesNotConsumeAnyCommitRandom()
+        {
+            var effectRandom = new CountingRandom();
+            var shuffleRandom = new CountingRandom();
+            var eventRandom = new CountingRandom();
+            var presenter = new FixedDeathDeckPresenter(cancelled: true);
+            using var rig = new HuntRig(includeSurvivor: true, hunterDeathCommand: new DirectHunterDeathCommand(), randomInteractionPresenter: presenter, eventRandom: eventRandom, fatalInjuryCommandFactory: settlement => new PlayableHuntFatalInjuryCommand(settlement, effectRandom, shuffleRandom, new DirectHunterDeathCommand()));
+            rig.Hunter.HP.arms = 0;
+            rig.Hunter.SurvivalCards = 1;
+            rig.Hunter.DeathCards = 1;
+            rig.TileEvent.eventType = GameEventType.Choice;
+            rig.TileEvent.options.Add(CreateFatalInjuryOption());
+            rig.Manager.EventInput = new ExplicitChoiceInput(0);
+
+            HuntTileCommandResult result = await rig.Session.InteractTileAsync(rig.FirstInteractable.AxialCoord);
+
+            Assert.That(result.Succeeded, Is.False);
+            Assert.That(effectRandom.Calls, Is.EqualTo(0));
+            Assert.That(shuffleRandom.Calls, Is.GreaterThan(0));
+            Assert.That(eventRandom.Calls, Is.EqualTo(0));
+        }
+
+        private static EventOption CreateFatalInjuryOption()
+        {
+            var option = new EventOption { optionId = "fatal", optionText = "撑住石板", alwaysAvailable = true };
+            option.successEffects.Add(new EventEffect { effectType = EventEffectType.FatalInjury, targetName = "selected", bodyPart = "arms", fatalDeckId = EventFatalInjuryRules.HunterDeathDeckId, value = 1, description = "测试致命伤" });
+            return option;
+        }
+
+        [Test]
         public void EventChoice_ItemCostPreflightRejectsAggregatedShortageBeforeEarlierRewards()
         {
             using var rig = new HuntRig(includeSurvivor: true);
@@ -920,7 +1086,7 @@ namespace HuntingInDarkness.Adapter.Tests
             private readonly ItemData rewardItem;
             private readonly List<ItemData> previousItems;
 
-            public HuntRig(IHuntTileInteractionPresenter tileInteractionPresenter = null, bool includeSurvivor = false, IHunterDeathCommand hunterDeathCommand = null, bool includeResourcePoints = false)
+            public HuntRig(IHuntTileInteractionPresenter tileInteractionPresenter = null, bool includeSurvivor = false, IHunterDeathCommand hunterDeathCommand = null, bool includeResourcePoints = false, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IRandomSource eventRandom = null, Func<SettlementInstance, IPlayableEventFatalInjuryCommand> fatalInjuryCommandFactory = null)
             {
                 previousItems = PlayableSettlementItemRegistry.Items.ToList();
                 resource = ScriptableObject.CreateInstance<ItemData>();
@@ -967,14 +1133,14 @@ namespace HuntingInDarkness.Adapter.Tests
                     Settlement.Hunters.Add(Hunter);
                     Settlement.Hunters.Add(Survivor);
                 }
-                EventSystem = new EventSystem(Settlement, new FirstRandom(), hunterDeathCommand: hunterDeathCommand);
+                EventSystem = new EventSystem(Settlement, eventRandom ?? new FirstRandom(), hunterDeathCommand: hunterDeathCommand);
                 Manager = new HuntManager(EventSystem, seed: 17)
                 {
                     StartingTileConfig = startingTile,
                     TilePool = { plainTile }
                 };
                 Manager.OnEnter(includeSurvivor ? new List<HunterInstance> { Hunter, Survivor } : new List<HunterInstance> { Hunter });
-                Session = new PlayableHuntActionSession(Manager, "default-boss", "test-destination", tileInteractionPresenter: tileInteractionPresenter);
+                Session = new PlayableHuntActionSession(Manager, "default-boss", "test-destination", randomInteractionPresenter: randomInteractionPresenter, tileInteractionPresenter: tileInteractionPresenter, fatalInjuryCommand: fatalInjuryCommandFactory?.Invoke(Settlement));
             }
 
             public EventSystem EventSystem { get; }
@@ -1090,6 +1256,44 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             public int Next(int minInclusive, int maxExclusive) => minInclusive;
             public double NextDouble() => 0d;
+        }
+
+        private sealed class CountingRandom : IRandomSource
+        {
+            public int Calls { get; private set; }
+
+            public int Next(int minInclusive, int maxExclusive)
+            {
+                Calls++;
+                return minInclusive;
+            }
+
+            public double NextDouble()
+            {
+                Calls++;
+                return 0d;
+            }
+        }
+
+        private sealed class FixedDeathDeckPresenter : ITabletopRandomInteractionPresenter
+        {
+            private readonly int selectedPosition;
+            private readonly bool cancelled;
+
+            public FixedDeathDeckPresenter(int selectedPosition = 0, bool cancelled = false)
+            {
+                this.selectedPosition = selectedPosition;
+                this.cancelled = cancelled;
+            }
+
+            public List<TabletopRandomInteractionRequest> Requests { get; } = new();
+
+            public UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
+            {
+                Requests.Add(request);
+                var cardIds = cancelled ? Array.Empty<string>() : new[] { $"{request.DeckId}:position-{selectedPosition}" };
+                return UniTask.FromResult(new TabletopRandomInteractionResult(request.InteractionId, Array.Empty<int>(), cardIds, cancelled));
+            }
         }
 
         private sealed class DirectHunterDeathCommand : IHunterDeathCommand

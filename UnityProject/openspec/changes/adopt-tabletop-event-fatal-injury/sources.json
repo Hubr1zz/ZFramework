@@ -1,0 +1,6 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的采纳对账：把非决战 Hunt 致命伤接入实体死亡牌堆、唯一死亡后果与 occurrence 恢复。",
+  "sourceRoots": ["openspec/specs", "C:/Users/leonz/Desktop/GameDesignVault/设计文档"],
+  "sourceReferences": ["conversation::2026-08-28", "design::通用/猎人 Hunter.md", "formal::table-driven-hunt-events", "formal::event-driven-hunter-death", "formal::tabletop-random-interaction", "formal::hunt-session-event-occurrence-recovery"]
+}

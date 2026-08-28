@@ -13,6 +13,8 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         private int value;
         private bool isOldMaid;
         private bool isOldMaidDeck;
+        private bool isDeathDeck;
+        private string deathFaceLabel;
         private bool isFaceUp;
         private bool isSelectable;
         private float width;
@@ -37,7 +39,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         public override float Depth => depth;
         public override string DisplayName => isFaceUp ? GetFaceText() : "背面朝上的牌";
 
-        public static TabletopRandomCard3D Create(string id, int index, int cardValue, bool oldMaid, bool oldMaidDeck, Transform parent, Vector3 localPosition, Vector3 size, Material back, Material front, TMP_FontAsset cardFont)
+        public static TabletopRandomCard3D Create(string id, int index, int cardValue, bool oldMaid, bool oldMaidDeck, bool deathDeck, string deathFaceLabel, Transform parent, Vector3 localPosition, Vector3 size, Material back, Material front, TMP_FontAsset cardFont)
         {
             var gameObject = new GameObject($"Card_{id}");
             gameObject.transform.SetParent(parent, false);
@@ -47,6 +49,8 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             card.value = cardValue;
             card.isOldMaid = oldMaid;
             card.isOldMaidDeck = oldMaidDeck;
+            card.isDeathDeck = deathDeck;
+            card.deathFaceLabel = deathFaceLabel ?? string.Empty;
             card.width = Mathf.Max(0.01f, size.x);
             card.depth = Mathf.Max(0.001f, size.y);
             card.height = Mathf.Max(0.01f, size.z);
@@ -116,6 +120,15 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 Destroy(ownedMaterial);
         }
 
-        private string GetFaceText() => isOldMaid ? "鬼牌" : isOldMaidDeck ? "安全" : value.ToString();
+        private string GetFaceText()
+        {
+            if (isDeathDeck)
+                return string.IsNullOrWhiteSpace(deathFaceLabel) ? "死亡判定牌" : deathFaceLabel;
+            if (isOldMaid)
+                return "鬼牌";
+            if (isOldMaidDeck)
+                return "安全";
+            return value.ToString();
+        }
     }
 }

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 5,
+  "capability": "table-driven-hunt-events",
+  "title": "读表狩猎事件内容",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "FatalInjury 已配置化、Hunt-only、selected-actor、独占且 fail-closed；代表事件保证默认健康猎人进入牌堆。",
+    "codeEvidence": [
+      { "guid": "5aaad4b60ab84a34193791e0287c1542", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs", "fileHash": "523e6e739aeee14f368cf1f4503410a88aa2ef39d862b8ee51be5d0df9f6ad20", "line": 537, "feature": "致命伤表校验、独占门禁与转换", "status": "verified", "checkedAt": "2026-08-28T04:00:00-07:00" },
+      { "guid": "85f60544b7e9b004d9def05c16cdabd1", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntActionSessionTests.cs", "fileHash": "94483a6b5dd55014cdad9fad82f3b3c9ae20407fc681c49fd610099088a044a1", "line": 290, "feature": "正式致命伤 ActionQueue 生还、死亡、取消、无头与最后猎人验证", "status": "verified", "checkedAt": "2026-08-28T04:00:00-07:00" }
+    ],
+    "evidence": ["Unity EditMode Hunt 内容与事件流 25/25。"],
+    "differences": ["正式 Spec 尚未列出 FatalInjury 内容约束。"],
+    "verifiedAt": "2026-08-28T04:00:00-07:00"
+  },
+  "gapIds": [], "dependencyIds": [], "sourceReferences": ["conversation::2026-08-28", "design::通用/猎人 Hunter.md"],
+  "implementationOutline": ["用独立枚举值和稳定牌堆 ID 读表。", "在构建内容池前拒绝越权或混合事务。", "提供一个保证触发牌堆的代表事件。"],
+  "reviewIssues": []
+}

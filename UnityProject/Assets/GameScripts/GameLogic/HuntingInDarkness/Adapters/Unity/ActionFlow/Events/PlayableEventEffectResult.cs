@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunters;
 
 namespace HuntingInDarkness.ActionFlow.Events
 {
@@ -12,7 +13,7 @@ namespace HuntingInDarkness.ActionFlow.Events
 
     public readonly struct PlayableEventEffectResult
     {
-        public PlayableEventEffectResult(int effectIndex, EventEffect effect, PlayableEventEffectStatus status, string reason, string eventId = "", string resolvedTargetId = "", int targetActorId = 0, bool stateChanged = false, int previousValue = 0, int currentValue = 0)
+        public PlayableEventEffectResult(int effectIndex, EventEffect effect, PlayableEventEffectStatus status, string reason, string eventId = "", string resolvedTargetId = "", int targetActorId = 0, bool stateChanged = false, int previousValue = 0, int currentValue = 0, DeathCardType? deathCard = null, string permanentInjuryId = "", bool hunterDied = false, string deathDeckId = "", int facedownPosition = -1)
         {
             EventId = eventId ?? string.Empty;
             EffectIndex = effectIndex;
@@ -25,6 +26,11 @@ namespace HuntingInDarkness.ActionFlow.Events
             StateChanged = stateChanged;
             PreviousValue = previousValue;
             CurrentValue = currentValue;
+            DeathCard = deathCard;
+            PermanentInjuryId = permanentInjuryId ?? string.Empty;
+            HunterDied = hunterDied;
+            DeathDeckId = deathDeckId ?? string.Empty;
+            FacedownPosition = facedownPosition;
         }
 
         public string EventId { get; }
@@ -38,6 +44,11 @@ namespace HuntingInDarkness.ActionFlow.Events
         public bool StateChanged { get; }
         public int PreviousValue { get; }
         public int CurrentValue { get; }
+        public DeathCardType? DeathCard { get; }
+        public string PermanentInjuryId { get; }
+        public bool HunterDied { get; }
+        public string DeathDeckId { get; }
+        public int FacedownPosition { get; }
         public bool Succeeded => Status == PlayableEventEffectStatus.Applied;
     }
 

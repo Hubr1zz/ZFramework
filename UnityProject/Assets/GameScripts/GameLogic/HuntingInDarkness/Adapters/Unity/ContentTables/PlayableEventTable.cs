@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Content;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
@@ -15,6 +16,7 @@ namespace HuntingInDarkness.ContentTables
         public string effectType;
         public string targetName;
         public string bodyPart;
+        public string fatalDeckId;
         public int value = 1;
         public string description;
     }
@@ -535,6 +537,10 @@ namespace HuntingInDarkness.ContentTables
                     return false;
                 if (effectType == EventEffectType.KillHunter)
                     killsHunter = true;
+                if (effectType == EventEffectType.FatalInjury && (!allowHuntWorldEffects || !allowSelectedHunterEffects || !string.Equals(record.targetName?.Trim(), "selected", StringComparison.OrdinalIgnoreCase) || record.value <= 0 || !HunterRecoveryRules.TryParseBodyPart(record.bodyPart, out _) || !EventFatalInjuryRules.IsValidDeckId(record.fatalDeckId)))
+                    return false;
+                if (effectType == EventEffectType.FatalInjury && records.Count != 1)
+                    return false;
                 if (effectType == EventEffectType.ExhaustCurrentHuntTileResources && (!allowHuntWorldEffects || !string.IsNullOrWhiteSpace(record.targetName) || !string.IsNullOrWhiteSpace(record.bodyPart) || record.value != 0))
                     return false;
                 if (effectType == EventEffectType.CreateHuntNoiseLease && (!allowSettlementEventEffects || string.IsNullOrWhiteSpace(record.targetName) || !string.IsNullOrWhiteSpace(record.bodyPart) || record.value < 1 || record.value > 10))
@@ -736,7 +742,7 @@ namespace HuntingInDarkness.ContentTables
                     Debug.LogError($"[ContentTable] 事件 {eventId} 含无效效果类型。 ");
                     continue;
                 }
-                effects.Add(new EventEffect { effectType = effectType, targetName = record.targetName ?? string.Empty, bodyPart = record.bodyPart ?? string.Empty, value = record.value, description = record.description ?? string.Empty });
+                effects.Add(new EventEffect { effectType = effectType, targetName = record.targetName ?? string.Empty, bodyPart = record.bodyPart ?? string.Empty, fatalDeckId = record.fatalDeckId ?? string.Empty, value = record.value, description = record.description ?? string.Empty });
             }
             return effects;
         }

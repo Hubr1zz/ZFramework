@@ -16,6 +16,8 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             public string Id;
             public int Value;
             public bool IsOldMaid;
+            public bool IsDeathDeck;
+            public string FaceLabel;
             public TabletopRandomCard3D View;
         }
 
@@ -126,10 +128,21 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             for (int index = 0; index < cards.Count; index++)
             {
                 CardOption card = cards[index];
-                card.View = TabletopRandomCard3D.Create(card.Id, index, card.Value, card.IsOldMaid, request.Kind == TabletopRandomInteractionKind.OldMaid, parent, ResolveCardPosition(request.Kind, index, cards.Count), new Vector3(cardWidth, cardThickness, cardHeight), backMaterial, frontMaterial, cardFont);
+                card.FaceLabel = ResolveFaceLabel(request, card.Id);
+                card.View = TabletopRandomCard3D.Create(card.Id, index, card.Value, card.IsOldMaid, request.Kind == TabletopRandomInteractionKind.OldMaid, card.IsDeathDeck, card.FaceLabel, parent, ResolveCardPosition(request.Kind, index, cards.Count), new Vector3(cardWidth, cardThickness, cardHeight), backMaterial, frontMaterial, cardFont);
                 card.View.Selected = SelectCard;
             }
             return cards;
+        }
+
+        private static string ResolveFaceLabel(TabletopRandomInteractionRequest request, string cardId)
+        {
+            if (request.Kind != TabletopRandomInteractionKind.DeathDeck)
+                return string.Empty;
+            string prefix = $"{request.DeckId.Trim()}:position-";
+            if (!string.IsNullOrWhiteSpace(cardId) && cardId.StartsWith(prefix, StringComparison.Ordinal) && int.TryParse(cardId.Substring(prefix.Length), out int position) && position >= 0 && position < request.CardFaceLabels.Count && !string.IsNullOrWhiteSpace(request.CardFaceLabels[position]))
+                return request.CardFaceLabels[position];
+            return "死亡判定牌";
         }
 
         private static List<CardOption> CreateDeck(TabletopRandomInteractionRequest request)
@@ -141,6 +154,13 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 cards.Add(new CardOption { Id = $"{deckId}:old-maid", Value = 1, IsOldMaid = true });
                 for (int index = 1; index < request.Sides; index++)
                     cards.Add(new CardOption { Id = $"{deckId}:safe-{index}", Value = request.Sides });
+                return cards;
+            }
+
+            if (request.Kind == TabletopRandomInteractionKind.DeathDeck)
+            {
+                for (int index = 0; index < request.Sides; index++)
+                    cards.Add(new CardOption { Id = $"{deckId}:position-{index}", Value = 1, IsDeathDeck = true });
                 return cards;
             }
 
@@ -253,7 +273,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             labelObject.transform.localPosition = new Vector3(0f, 0.05f, -1.52f);
             labelObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             TextMeshPro label = labelObject.AddComponent<TextMeshPro>();
-            label.text = kind == TabletopRandomInteractionKind.OldMaid ? drewOldMaid ? "抽中了鬼牌" : "避开了鬼牌" : values.Count == 1 ? $"牌面  {total}" : $"牌面  {string.Join(" + ", values)} = {total}";
+            label.text = kind == TabletopRandomInteractionKind.OldMaid ? drewOldMaid ? "抽中了鬼牌" : "避开了鬼牌" : kind == TabletopRandomInteractionKind.DeathDeck ? "已选择死亡判定牌" : values.Count == 1 ? $"牌面  {total}" : $"牌面  {string.Join(" + ", values)} = {total}";
             if (cardFont != null) label.font = cardFont;
             label.fontSize = 0.15f;
             label.fontStyle = FontStyles.Bold;

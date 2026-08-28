@@ -11,22 +11,32 @@ namespace HuntingInDarkness.ActionFlow.Presentation
         PhysicalDice,
         DrawCards,
         FlipCards,
-        OldMaid
+        OldMaid,
+        DeathDeck
     }
 
     /// <summary>数据层发给表现层的随机交互请求，不持有场景 Transform。</summary>
     public readonly struct TabletopRandomInteractionRequest
     {
-        public TabletopRandomInteractionRequest(string interactionId, TabletopRandomInteractionKind kind, string actorId, string targetId, int count = 1, int sides = 6, string deckId = null, string instruction = null)
+        public TabletopRandomInteractionRequest(string interactionId, TabletopRandomInteractionKind kind, string actorId, string targetId, int count = 1, int sides = 6, string deckId = null, string instruction = null, IReadOnlyList<string> cardFaceLabels = null)
         {
             InteractionId = string.IsNullOrWhiteSpace(interactionId) ? Guid.NewGuid().ToString("N") : interactionId;
             Kind = kind;
             ActorId = actorId ?? string.Empty;
             TargetId = targetId ?? string.Empty;
             Count = Math.Max(1, count);
-            Sides = Math.Max(2, sides);
+            Sides = kind == TabletopRandomInteractionKind.DeathDeck ? Math.Max(1, sides) : Math.Max(2, sides);
             DeckId = deckId ?? string.Empty;
             Instruction = instruction ?? string.Empty;
+            if (cardFaceLabels == null || cardFaceLabels.Count == 0)
+                CardFaceLabels = Array.Empty<string>();
+            else
+            {
+                var labels = new string[cardFaceLabels.Count];
+                for (int index = 0; index < labels.Length; index++)
+                    labels[index] = cardFaceLabels[index] ?? string.Empty;
+                CardFaceLabels = Array.AsReadOnly(labels);
+            }
         }
 
         public string InteractionId { get; }
@@ -37,6 +47,7 @@ namespace HuntingInDarkness.ActionFlow.Presentation
         public int Sides { get; }
         public string DeckId { get; }
         public string Instruction { get; }
+        public IReadOnlyList<string> CardFaceLabels { get; }
     }
 
     /// <summary>物理骰子稳定或卡牌操作完成后回传给 ActionQueue 的权威结果。</summary>
@@ -64,6 +75,17 @@ namespace HuntingInDarkness.ActionFlow.Presentation
 
     public static class TabletopRandomInteractionResultValidator
     {
+        public static bool TryGetSelectedPosition(TabletopRandomInteractionRequest request, TabletopRandomInteractionResult result, out int position)
+        {
+            position = -1;
+            if (request.Kind != TabletopRandomInteractionKind.DeathDeck || result.Cancelled || !string.Equals(request.InteractionId, result.InteractionId, StringComparison.Ordinal) || result.CardIds == null || result.CardIds.Count != 1) return false;
+            string prefix = $"{request.DeckId.Trim()}:position-";
+            string cardId = result.CardIds[0];
+            if (string.IsNullOrWhiteSpace(request.DeckId) || string.IsNullOrWhiteSpace(cardId) || !cardId.StartsWith(prefix, StringComparison.Ordinal)) return false;
+            if (!int.TryParse(cardId.Substring(prefix.Length), out position) || position < 0 || position >= request.Sides) return false;
+            return true;
+        }
+
         public static bool TryGetCheckTotal(TabletopRandomInteractionRequest request, TabletopRandomInteractionResult result, out int total)
         {
             if (request.Kind == TabletopRandomInteractionKind.PhysicalDice)

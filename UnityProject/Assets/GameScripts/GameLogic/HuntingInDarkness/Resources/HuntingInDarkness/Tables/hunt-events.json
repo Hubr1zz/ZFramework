@@ -782,6 +782,34 @@
       "category": "Hunt"
     },
     {
+      "id": "hunt_crushing_slab",
+      "eventName": "塌落的石板",
+      "eventType": "Choice",
+      "displayText": "一块悬空石板突然塌落，唯一的通路被压在阴影下。",
+      "hiddenText": "猎人撑住石板让队伍通过，伤势的后果只能在牌面翻开后确认。",
+      "options": [
+        {
+          "optionId": "hold_slab",
+          "optionText": "让选中的猎人撑住石板",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "石板终于滑过，猎人松开双臂；这次伤势的命运交给死亡牌堆。",
+          "successEffects": [
+            { "effectType": "FatalInjury", "targetName": "selected", "bodyPart": "arms", "fatalDeckId": "hunter-death", "value": 4, "description": "撑住塌落石板时遭受致命伤" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
       "id": "hunt_lost_survivor",
       "eventName": "迷路的幸存者",
       "eventType": "Choice",

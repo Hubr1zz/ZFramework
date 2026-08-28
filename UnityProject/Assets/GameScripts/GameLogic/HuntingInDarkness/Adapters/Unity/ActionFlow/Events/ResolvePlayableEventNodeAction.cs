@@ -6,6 +6,7 @@ using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 
@@ -103,9 +104,10 @@ namespace HuntingInDarkness.ActionFlow.Events
         private readonly IPlayableEventWorldCommand worldCommand;
         private readonly IPlayableEventSettlementCommand settlementCommand;
         private readonly IPlayableEventPopulationCommand populationCommand;
+        private readonly IPlayableEventFatalInjuryCommand fatalInjuryCommand;
         private readonly PlayableEventRerollCheckpoint rerollCheckpoint;
 
-        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null, PlayableEventRerollCheckpoint rerollCheckpoint = null)
+        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null, PlayableEventRerollCheckpoint rerollCheckpoint = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null)
         {
             this.eventSystem = eventSystem ?? throw new ArgumentNullException(nameof(eventSystem));
             this.eventInput = eventInput;
@@ -122,6 +124,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             this.worldCommand = worldCommand;
             this.settlementCommand = settlementCommand;
             this.populationCommand = populationCommand;
+            this.fatalInjuryCommand = fatalInjuryCommand;
             this.rerollCheckpoint = rerollCheckpoint;
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
@@ -176,7 +179,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             if (rerollCheckpoint != null)
             {
                 HunterInstance restoredActor = ResolveCheckpointActor(rerollCheckpoint.ActorId);
-                if (!eventSystem.TryRestoreRerolledChoice(gameEvent, rerollCheckpoint, restoredActor, out transaction, out string restoreReason, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand))
+                if (!eventSystem.TryRestoreRerolledChoice(gameEvent, rerollCheckpoint, restoredActor, out transaction, out string restoreReason, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand, fatalInjuryCommand))
                     return ActionOutcome.Failure(restoreReason);
             }
             else
@@ -213,7 +216,40 @@ namespace HuntingInDarkness.ActionFlow.Events
                 if (!transaction.TryReroll(rerollValue)) break;
                 PublishCommitCheckpoint(PlayableEventCommitKind.Reroll, transaction.Actor, rerollCheckpoint: transaction.CreateRerollCheckpoint());
             }
+            if (!transaction.TryPrepareFatalInjuries(out IReadOnlyList<PlayableEventFatalInjuryPreparation> fatalPreparations, out string fatalReason))
+                return ActionOutcome.Failure(fatalReason);
+            foreach (PlayableEventFatalInjuryPreparation preparation in fatalPreparations)
+            {
+                if (!preparation.RequiresDeathDraw) continue;
+                int selectedPosition = 0;
+                if (randomInteractionPresenter != null)
+                {
+                    var cardFaceLabels = new List<string>(preparation.FacedownCardTypes.Count);
+                    int survivalCount = 0;
+                    int deathCount = 0;
+                    foreach (DeathCardType cardType in preparation.FacedownCardTypes)
+                    {
+                        bool survived = cardType == DeathCardType.Survive;
+                        cardFaceLabels.Add(survived ? "存活" : "死亡");
+                        if (survived) survivalCount++;
+                        else deathCount++;
+                    }
+                    string instruction = $"牌堆构成：{survivalCount}存活/{deathCount}死亡；翻面后选择";
+                    var request = new TabletopRandomInteractionRequest($"event:{gameEvent.ContentId}:{transaction.Actor?.InstanceId ?? 0}:fatal:{Guid.NewGuid():N}", TabletopRandomInteractionKind.DeathDeck, transaction.Actor?.InstanceId.ToString() ?? string.Empty, gameEvent.ContentId, 1, preparation.DeckSize, preparation.DeckId, instruction, cardFaceLabels);
+                    TabletopRandomInteractionResult drawResult = await randomInteractionPresenter.PresentAsync(request, cancellationToken);
+                    if (!TabletopRandomInteractionResultValidator.TryGetSelectedPosition(request, drawResult, out selectedPosition))
+                        return ActionOutcome.Failure("死亡牌堆没有返回有效的稳定选位。");
+                }
+                preparation.SetSelectedPosition(selectedPosition);
+            }
             PlayableEventCommitResult result = transaction.CommitStandalone(true);
+            if (fatalPreparations.Count > 0 && result.EffectResults.HasFailures)
+            {
+                foreach (PlayableEventEffectResult effect in result.EffectResults.Effects)
+                    if (effect.EffectType == EventEffectType.FatalInjury)
+                        return ActionOutcome.Failure(effect.Reason);
+                return ActionOutcome.Failure("致命伤事务提交失败。");
+            }
             bool campaignEnded = eventSystem.Settlement.GetAliveHunters().Count == 0;
             ChainedEvents = campaignEnded ? System.Array.Empty<EventData>() : result.ChainedEvents;
             EncounterIds = campaignEnded ? System.Array.Empty<string>() : result.EncounterIds;
@@ -231,7 +267,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             EventOption option = gameEvent.options[selection.OptionIndex];
             if (!PlayableEventOptionAvailability.CanUse(option, selection.Actor, eventSystem.Settlement, resourceAvailability, out _)) return null;
             int? rollValue = option.checkType != CheckType.None && randomInteractionPresenter != null ? await ResolveTabletopCheckAsync(option, selection.Actor, "initial", cancellationToken) : null;
-            return eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor, rollValue, resourceCommand, worldCommand, settlementCommand, resourceAvailability, itemCommand, populationCommand);
+            return eventSystem.PrepareChoice(gameEvent, selection.OptionIndex, selection.Actor, rollValue, resourceCommand, worldCommand, settlementCommand, resourceAvailability, itemCommand, populationCommand, fatalInjuryCommand);
         }
 
         private async UniTask<int> ResolveTabletopCheckAsync(EventOption option, HunterInstance actor, string step, CancellationToken cancellationToken)
@@ -331,6 +367,20 @@ namespace HuntingInDarkness.ActionFlow.Events
                     eventOutbox.Stage(new HunterWoundedEvent { SourceEventId = effect.EventId, EffectIndex = effect.EffectIndex, HunterId = effect.TargetActorId, BodyPartId = effect.ResolvedTargetId, PreviousHealth = effect.PreviousValue, CurrentHealth = effect.CurrentValue });
                 if (effect.EffectType == EventEffectType.RescuePopulation)
                     eventOutbox.Stage(new HuntPopulationRescuedEvent { SourceEventId = effect.EventId, EffectIndex = effect.EffectIndex, ActorId = effect.TargetActorId, OldAmount = effect.PreviousValue, NewAmount = effect.CurrentValue });
+                if (effect.EffectType == EventEffectType.FatalInjury)
+                    eventOutbox.Stage(new HuntFatalInjuryResolvedEvent
+                    {
+                        EventId = effect.EventId,
+                        EffectIndex = effect.EffectIndex,
+                        HunterId = effect.TargetActorId,
+                        BodyPartId = effect.ResolvedTargetId,
+                        DeathDeckId = effect.DeathDeckId,
+                        FacedownPosition = effect.FacedownPosition,
+                        FatalInjuryTriggered = effect.DeathCard.HasValue,
+                        Survived = !effect.DeathCard.HasValue || effect.DeathCard.Value == DeathCardType.Survive,
+                        HunterDied = effect.HunterDied,
+                        PermanentInjuryId = effect.PermanentInjuryId
+                    });
             }
         }
     }

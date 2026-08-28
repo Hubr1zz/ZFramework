@@ -7,6 +7,7 @@ using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunters;
+using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Hunt;
 using UnityEngine;
 
@@ -21,6 +22,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private readonly string destinationId;
         private readonly ITabletopRandomInteractionPresenter randomInteractionPresenter;
         private readonly IHuntTileInteractionPresenter tileInteractionPresenter;
+        private readonly IPlayableEventFatalInjuryCommand fatalInjuryCommand;
         private readonly Func<Vector2Int, UniTask> requestHandler;
         private readonly Func<ResourcePointInstance, UniTask<PlayableHarvestTransaction>> prepareHarvestHandler;
         private readonly Func<PlayableHarvestTransaction, UniTask<PlayableHarvestStepResult>> advanceHarvestHandler;
@@ -34,13 +36,14 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         private bool gameplayLocked;
         private bool resourceSelectionInFlight;
 
-        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, IActionEnvironmentInstallerRegistry installerRegistry = null, PlayableHuntEventOccurrenceStore restoredOccurrenceStore = null, Action checkpointCommitted = null, IHuntConsumableContent consumableContent = null)
+        public PlayableHuntActionSession(HuntManager manager, string defaultEncounterId = "default", string destinationId = "", ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IHuntTileInteractionPresenter tileInteractionPresenter = null, IActionEnvironmentInstallerRegistry installerRegistry = null, PlayableHuntEventOccurrenceStore restoredOccurrenceStore = null, Action checkpointCommitted = null, IHuntConsumableContent consumableContent = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null)
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
             this.defaultEncounterId = string.IsNullOrWhiteSpace(defaultEncounterId) ? "default" : defaultEncounterId.Trim();
             this.destinationId = destinationId ?? string.Empty;
             this.randomInteractionPresenter = randomInteractionPresenter;
             this.tileInteractionPresenter = tileInteractionPresenter;
+            this.fatalInjuryCommand = fatalInjuryCommand ?? new PlayableHuntFatalInjuryCommand(manager.EventSystem.Settlement, new SystemRandomSource(), new SystemRandomSource(), manager.EventSystem.HunterDeathCommand);
             occurrenceStore = restoredOccurrenceStore ?? new PlayableHuntEventOccurrenceStore();
             this.consumableContent = consumableContent ?? new PlayableHuntConsumableContentAdapter(manager);
             this.checkpointCommitted = checkpointCommitted;
@@ -91,7 +94,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             ReactorEntityHandle squad = environment.EntityHandles.GetOrCreate("hunt-squad", "active", "狩猎小队");
             ReactorEntityHandle tile = environment.EntityHandles.GetOrCreate("hunt-tile", $"{coordinate.x},{coordinate.y}", $"地块 {coordinate.x},{coordinate.y}");
             IReactorEntity ResolveEventEntity(EventData gameEvent) => environment.EntityHandles.GetOrCreate("hunt-event", gameEvent != null ? gameEvent.ContentId : "unknown", gameEvent != null ? gameEvent.eventName : "狩猎事件");
-            var action = new InteractHuntTileAction(manager, coordinate, intendedKind, SessionId, defaultEncounterId, destinationId, outbox, squad, tile, ResolveEventEntity, randomInteractionPresenter, tileInteractionPresenter, occurrenceStore, LockEncounterHandoff);
+            var action = new InteractHuntTileAction(manager, coordinate, intendedKind, SessionId, defaultEncounterId, destinationId, outbox, squad, tile, ResolveEventEntity, randomInteractionPresenter, tileInteractionPresenter, occurrenceStore, LockEncounterHandoff, fatalInjuryCommand);
             ActionOutcome outcome = await environment.ExecuteAsync(action, outbox);
             if (action.Result.Commit.IsCommitted)
                 await NotifyCheckpointWhenIdleAsync();
@@ -270,7 +273,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
                 if (!manager.Map.TryGetValue(pending.Coordinate, out HexTileInstance pendingTile) || pendingTile == null)
                     return false;
                 var syntheticCommit = new HuntTileInteractionCommit(HuntTileInteractionKind.Move, pending.Coordinate, pendingTile, null);
-                var action = new ResolveHuntTileEventAction(manager, syntheticCommit, default, outbox, encounterAccumulator, squad, tile, ResolveEventEntity, randomInteractionPresenter, occurrenceStore, pending, true, LockEncounterHandoff);
+                var action = new ResolveHuntTileEventAction(manager, syntheticCommit, default, outbox, encounterAccumulator, squad, tile, ResolveEventEntity, randomInteractionPresenter, occurrenceStore, pending, true, LockEncounterHandoff, fatalInjuryCommand);
                 ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
                 bool pendingConsumed = !occurrenceStore.ContainsPendingSequence(pending.Sequence);
                 if (action.HasCommittedCheckpoint || pendingConsumed)

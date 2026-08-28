@@ -71,6 +71,7 @@ namespace HuntingInDarkness.Settlement
                     case EventEffectType.AddAilment:
                     case EventEffectType.AddRecoverableWound:
                     case EventEffectType.KillHunter:
+                    case EventEffectType.FatalInjury:
                     case EventEffectType.ActivateBloodline:
                     case EventEffectType.RemoveItem:
                         return true;

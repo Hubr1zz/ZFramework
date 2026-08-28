@@ -156,6 +156,7 @@ namespace HuntingInDarkness.Data
         public EventEffectType effectType = EventEffectType.AddResource;
         public string          targetName = ""; // 兼容字段；AddAilment 等跨内容引用保存稳定 ContentId，显示名仅用于旧内容迁移
         public string          bodyPart   = ""; // 普通伤势使用稳定部位 ID：head/torso/arms/legs
+        public string          fatalDeckId = ""; // 致命伤使用稳定死亡牌堆 ID
         public int             value      = 1;
         [TextArea] public string description = "";
     }
@@ -183,6 +184,7 @@ namespace HuntingInDarkness.Data
         CreateHuntNoiseLease = 18, // 营地事件为下一次狩猎创建一次性风险修正
         AddItem = 19, // 狩猎事件向执行猎人的携带物加入非资源物品
         RescuePopulation = 20, // 狩猎事件救援匿名人口；成功回营后进入营地人口池
-        RemoveItem = 21 // 狩猎事件消耗执行猎人携带的非资源物品
+        RemoveItem = 21, // 狩猎事件消耗执行猎人携带的非资源物品
+        FatalInjury = 22 // 狩猎事件对选中猎人造成部位伤害，归零时进入死亡牌堆
     }
 }

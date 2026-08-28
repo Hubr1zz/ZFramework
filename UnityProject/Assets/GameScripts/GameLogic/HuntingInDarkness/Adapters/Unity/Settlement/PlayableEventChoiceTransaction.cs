@@ -18,11 +18,13 @@ namespace HuntingInDarkness.Settlement
         private readonly IPlayableEventWorldCommand worldCommand;
         private readonly IPlayableEventSettlementCommand settlementCommand;
         private readonly IPlayableEventPopulationCommand populationCommand;
+        private readonly IPlayableEventFatalInjuryCommand fatalInjuryCommand;
         private EventResolutionResult committedResult;
         private IReadOnlyList<EventData> standaloneChain;
         private IReadOnlyList<string> standaloneEncounterIds;
         private PlayableEventEffectBatchResult standaloneEffectResults;
         private bool continued;
+        private Dictionary<int, PlayableEventFatalInjuryPreparation> fatalInjuryPreparations = new();
 
         public EventData GameEvent => gameEvent;
         public EventOption Option => option;
@@ -37,7 +39,43 @@ namespace HuntingInDarkness.Settlement
         public bool IsCommitted { get; private set; }
         public bool CanReroll => RequiresCheck && !HasRerolled && !IsCommitted && actor != null && actor.Willpower > 0;
 
-        internal PlayableEventChoiceTransaction(EventSystem eventSystem, EventData gameEvent, int optionIndex, HunterInstance actor, int rollValue, int bonus, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand, IPlayableEventSettlementCommand settlementCommand, IPlayableEventItemCommand itemCommand, IPlayableEventPopulationCommand populationCommand, bool hasRerolled = false)
+        public bool TryPrepareFatalInjuries(out IReadOnlyList<PlayableEventFatalInjuryPreparation> preparations, out string reason)
+        {
+            preparations = System.Array.Empty<PlayableEventFatalInjuryPreparation>();
+            reason = string.Empty;
+            if (IsCommitted)
+            {
+                reason = "事件结果已经提交。";
+                return false;
+            }
+
+            IReadOnlyList<EventEffect> effects = Success ? option.successEffects : option.failEffects;
+            fatalInjuryPreparations = new Dictionary<int, PlayableEventFatalInjuryPreparation>();
+            if (effects == null) return true;
+            var prepared = new List<PlayableEventFatalInjuryPreparation>();
+            for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+            {
+                EventEffect effect = effects[effectIndex];
+                if (effect?.effectType != EventEffectType.FatalInjury) continue;
+                if (effects.Count != 1)
+                {
+                    reason = "致命伤结果必须独占事件效果事务。";
+                    return false;
+                }
+                if (fatalInjuryCommand == null)
+                {
+                    reason = "Hunt 致命伤端口尚未注入。";
+                    return false;
+                }
+                if (!fatalInjuryCommand.TryPrepare(effect, actor, out PlayableEventFatalInjuryPreparation preparation, out reason)) return false;
+                fatalInjuryPreparations.Add(effectIndex, preparation);
+                prepared.Add(preparation);
+            }
+            preparations = prepared;
+            return true;
+        }
+
+        internal PlayableEventChoiceTransaction(EventSystem eventSystem, EventData gameEvent, int optionIndex, HunterInstance actor, int rollValue, int bonus, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand, IPlayableEventSettlementCommand settlementCommand, IPlayableEventItemCommand itemCommand, IPlayableEventPopulationCommand populationCommand, IPlayableEventFatalInjuryCommand fatalInjuryCommand, bool hasRerolled = false)
         {
             this.eventSystem = eventSystem;
             this.gameEvent = gameEvent;
@@ -48,6 +86,7 @@ namespace HuntingInDarkness.Settlement
             this.worldCommand = worldCommand;
             this.settlementCommand = settlementCommand;
             this.populationCommand = populationCommand;
+            this.fatalInjuryCommand = fatalInjuryCommand;
             option = gameEvent.options[optionIndex];
             RollValue = rollValue;
             Bonus = bonus;
@@ -89,7 +128,7 @@ namespace HuntingInDarkness.Settlement
             if (!IsCommitted)
             {
                 IsCommitted = true;
-                PlayableEventCommitResult result = eventSystem.CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, Success, RollValue, resourceCommand, worldCommand, settlementCommand, captureEncounterRequests, itemCommand, populationCommand);
+                PlayableEventCommitResult result = eventSystem.CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, Success, RollValue, resourceCommand, worldCommand, settlementCommand, captureEncounterRequests, itemCommand, populationCommand, fatalInjuryCommand, fatalInjuryPreparations);
                 committedResult = result.Result;
                 standaloneChain = result.ChainedEvents;
                 standaloneEncounterIds = result.EncounterIds;
@@ -108,7 +147,7 @@ namespace HuntingInDarkness.Settlement
 
     public partial class EventSystem
     {
-        public PlayableEventChoiceTransaction PrepareChoice(EventData gameEvent, int optionIndex, HunterInstance actor = null, int? preparedRoll = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null)
+        public PlayableEventChoiceTransaction PrepareChoice(EventData gameEvent, int optionIndex, HunterInstance actor = null, int? preparedRoll = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null)
         {
             if (gameEvent?.options == null || optionIndex < 0 || optionIndex >= gameEvent.options.Count) return null;
             EventOption option = gameEvent.options[optionIndex];
@@ -122,10 +161,10 @@ namespace HuntingInDarkness.Settlement
             if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, resourceAvailability, out _)) return null;
             int rollValue = option.checkType == CheckType.None ? 0 : preparedRoll ?? RollDice(PlayableEventCheckRules.ResolveCount(option), PlayableEventCheckRules.ResolveSides(option));
             int bonus = GetCheckBonus(actor, option.checkType);
-            return new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, rollValue, bonus, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand);
+            return new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, rollValue, bonus, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand, fatalInjuryCommand);
         }
 
-        public bool TryRestoreRerolledChoice(EventData gameEvent, PlayableEventRerollCheckpoint checkpoint, HunterInstance actor, out PlayableEventChoiceTransaction transaction, out string reason, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null)
+        public bool TryRestoreRerolledChoice(EventData gameEvent, PlayableEventRerollCheckpoint checkpoint, HunterInstance actor, out PlayableEventChoiceTransaction transaction, out string reason, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null)
         {
             transaction = null;
             if (gameEvent == null || checkpoint == null || !checkpoint.HasValue || checkpoint.SchemaVersion != PlayableEventRerollCheckpoint.CurrentSchemaVersion)
@@ -150,7 +189,7 @@ namespace HuntingInDarkness.Settlement
                 reason = "事件重投检查点的判定值无效。";
                 return false;
             }
-            transaction = new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, checkpoint.RollValue, checkpoint.Bonus, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand, true);
+            transaction = new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, checkpoint.RollValue, checkpoint.Bonus, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand, fatalInjuryCommand, true);
             reason = string.Empty;
             return true;
         }
@@ -166,7 +205,7 @@ namespace HuntingInDarkness.Settlement
             return result.Result;
         }
 
-        internal PlayableEventCommitResult CommitPreparedChoiceStandalone(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, bool captureEncounterRequests = false, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null)
+        internal PlayableEventCommitResult CommitPreparedChoiceStandalone(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, bool captureEncounterRequests = false, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null, IReadOnlyDictionary<int, PlayableEventFatalInjuryPreparation> fatalInjuryPreparations = null)
         {
             EventOption option = gameEvent.options[optionIndex];
             List<EventEffect> effects = success ? option.successEffects : option.failEffects;
@@ -182,7 +221,7 @@ namespace HuntingInDarkness.Settlement
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             if (effects != null)
                 for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
-                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, resourceCommand, worldCommand, settlementCommand, effectIndex, gameEvent.ContentId, itemCommand, populationCommand));
+                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, resourceCommand, worldCommand, settlementCommand, effectIndex, gameEvent.ContentId, itemCommand, populationCommand, fatalInjuryCommand, fatalInjuryPreparations));
             if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
                 RecordEncounter(gameEvent.combatEncounterId, encounterIds);
             bool campaignEnded = _settlement.GetAliveHunters().Count == 0;

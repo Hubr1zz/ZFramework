@@ -46,6 +46,18 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void DeathDeckValidator_AcceptsSingleCardAndStablePositionOnly()
+        {
+            var request = new TabletopRandomInteractionRequest("death-1", TabletopRandomInteractionKind.DeathDeck, "7", "event", sides: 1, deckId: "hunter-death");
+
+            Assert.That(request.Sides, Is.EqualTo(1));
+            Assert.That(TabletopRandomInteractionResultValidator.TryGetSelectedPosition(request, new TabletopRandomInteractionResult("death-1", null, new[] { "hunter-death:position-0" }), out int position), Is.True);
+            Assert.That(position, Is.Zero);
+            Assert.That(TabletopRandomInteractionResultValidator.TryGetSelectedPosition(request, new TabletopRandomInteractionResult("death-1", null, new[] { "hunter-death:position-1" }), out _), Is.False);
+            Assert.That(TabletopRandomInteractionResultValidator.TryGetSelectedPosition(request, new TabletopRandomInteractionResult("death-1", null, new[] { "hunter-death:card-1" }), out _), Is.False);
+        }
+
+        [Test]
         public async Task Router_DispatchesDiceAndCardsToDedicatedPresenters()
         {
             var dice = new RecordingPresenter();
