@@ -30,33 +30,35 @@ namespace HuntingInDarkness.ContentTables
         bool TryGet(string bloodlineId, out HunterBloodlineDefinition definition);
     }
 
-    /// <summary>从 Resources JSON 读取血脉，向规则层暴露稳定、只读定义。</summary>
+    /// <summary>从显式 JSON 内容源读取血脉，向规则层暴露稳定、只读定义。</summary>
     public sealed class PlayableBloodlineTable : IHunterBloodlineContent
     {
-        private const string TablePath = "HuntingInDarkness/Tables/bloodlines";
         private readonly List<HunterBloodlineDefinition> definitions = new();
+        private bool hasErrors;
 
-        public PlayableBloodlineTable(TextAsset source = null)
+        public PlayableBloodlineTable(TextAsset source)
         {
-            TextAsset table = source != null ? source : Resources.Load<TextAsset>(TablePath);
-            if (table == null)
+            if (source == null)
             {
-                Debug.LogError($"[ContentTable] 找不到血脉表：Resources/{TablePath}.json");
+                hasErrors = true;
+                Debug.LogError("[ContentTable] 缺少血脉表内容源。");
                 return;
             }
 
             BloodlineTableDocument document;
             try
             {
-                document = JsonUtility.FromJson<BloodlineTableDocument>(table.text);
+                document = JsonUtility.FromJson<BloodlineTableDocument>(source.text);
             }
             catch (Exception exception)
             {
+                hasErrors = true;
                 Debug.LogError($"[ContentTable] 血脉表无法解析：{exception.Message}");
                 return;
             }
             if (document?.bloodlines == null)
             {
+                hasErrors = true;
                 Debug.LogError("[ContentTable] 血脉表缺少 bloodlines 数组。");
                 return;
             }
@@ -79,10 +81,12 @@ namespace HuntingInDarkness.ContentTables
                 {
                     if (reportedDuplicateIds.Add(id))
                         Debug.LogError($"[ContentTable] 血脉表存在重复 id，全部同名条目已拒绝：{id}");
+                    hasErrors = true;
                     continue;
                 }
                 if (record == null || id.Length == 0 || string.IsNullOrWhiteSpace(record.displayName) || record.drawWeight <= 0)
                 {
+                    hasErrors = true;
                     Debug.LogError($"[ContentTable] 血脉表包含空白或非正权重条目：{record?.id}");
                     continue;
                 }
@@ -91,6 +95,7 @@ namespace HuntingInDarkness.ContentTables
         }
 
         public IReadOnlyList<HunterBloodlineDefinition> Definitions => definitions;
+        public bool IsValid => !hasErrors && definitions.Count > 0;
 
         public bool TryGet(string bloodlineId, out HunterBloodlineDefinition definition)
         {
@@ -106,7 +111,7 @@ namespace HuntingInDarkness.ContentTables
         private static IHunterBloodlineContent content;
         private static IRandomSource random;
 
-        public static IHunterBloodlineContent Content => content ??= new PlayableBloodlineTable();
+        public static IHunterBloodlineContent Content => content ??= EmptyBloodlineContent.Instance;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
@@ -119,6 +124,17 @@ namespace HuntingInDarkness.ContentTables
         {
             content = configuredContent;
             random = randomSource;
+        }
+
+        private sealed class EmptyBloodlineContent : IHunterBloodlineContent
+        {
+            public static readonly EmptyBloodlineContent Instance = new();
+            public IReadOnlyList<HunterBloodlineDefinition> Definitions { get; } = Array.Empty<HunterBloodlineDefinition>();
+            public bool TryGet(string bloodlineId, out HunterBloodlineDefinition definition)
+            {
+                definition = null;
+                return false;
+            }
         }
 
         public static bool TryAssign(HunterInstance hunter, out string reason)

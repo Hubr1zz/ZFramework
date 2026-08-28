@@ -42,10 +42,10 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         public IEnumerator SetUp()
         {
             ResetContentAssembly();
-            settings = Resources.Load<PlayableBootstrapSettings>("HuntingInDarkness/PlayableBootstrapSettings");
+            settings = PlayableContentSourcePlayModeAssets.LoadBundle()?.Settings;
             Assert.That(settings, Is.Not.Null);
             PlayableSymptomRuntime.Configure(settings.Symptoms);
-            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out contentCandidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourcePlayModeAssets.LoadBundle(), out contentCandidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
             Assert.That(PlayableCampaignContentAssembler.Install(contentCandidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
             yield return null;
         }

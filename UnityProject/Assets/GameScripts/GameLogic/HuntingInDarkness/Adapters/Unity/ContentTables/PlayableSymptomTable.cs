@@ -41,15 +41,13 @@ namespace HuntingInDarkness.ContentTables
 
     public static class PlayableSymptomTable
     {
-        private const string TablePath = "HuntingInDarkness/Tables/symptoms";
-
         public static bool TryLoad(TextAsset tableAsset, out IReadOnlyList<PlayableSymptomDefinition> definitions, out string reason)
         {
             definitions = null;
-            TextAsset source = tableAsset != null ? tableAsset : Resources.Load<TextAsset>(TablePath);
+            TextAsset source = tableAsset;
             if (source == null)
             {
-                reason = $"未找到症状表 Resources/{TablePath}.json";
+                reason = "缺少症状表内容源。";
                 return false;
             }
             SymptomTableDocument document;

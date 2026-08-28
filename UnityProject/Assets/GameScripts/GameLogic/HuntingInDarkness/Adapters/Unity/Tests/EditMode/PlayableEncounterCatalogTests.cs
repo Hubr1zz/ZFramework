@@ -9,7 +9,7 @@ namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableEncounterCatalogTests
     {
-        private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
+        private const string SettingsPath = "Assets/AssetRaw/Configs/HuntingInDarkness/PlayableBootstrapSettings.asset";
 
         [Test]
         public void ConfiguredCatalog_ResolvesDefaultEncounterAndAllBossTilesReferenceIt()

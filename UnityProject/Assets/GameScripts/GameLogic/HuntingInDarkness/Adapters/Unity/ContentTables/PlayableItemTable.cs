@@ -54,26 +54,23 @@ namespace HuntingInDarkness.ContentTables
 
     public sealed class JsonItemTableSource : IContentTableSource<ItemTableRecord>
     {
-        private readonly string resourcePath;
+        private readonly TextAsset tableAsset;
+        private readonly string sourceName;
 
-        public JsonItemTableSource(string resourcePath)
+        public JsonItemTableSource(TextAsset tableAsset, string sourceName = "items")
         {
-            this.resourcePath = resourcePath;
+            this.tableAsset = tableAsset;
+            this.sourceName = sourceName ?? string.Empty;
         }
 
         public IReadOnlyList<ItemTableRecord> Load()
         {
-            TextAsset tableAsset = Resources.Load<TextAsset>(resourcePath);
-            if (tableAsset == null)
-            {
-                Debug.LogWarning($"[ContentTable] 未找到物品表 Resources/{resourcePath}.json");
-                return Array.Empty<ItemTableRecord>();
-            }
+            if (tableAsset == null) return Array.Empty<ItemTableRecord>();
 
             ItemTableDocument document = JsonUtility.FromJson<ItemTableDocument>(tableAsset.text);
             if (document?.items == null)
             {
-                Debug.LogError($"[ContentTable] 物品表格式无效：{resourcePath}");
+                Debug.LogError($"[ContentTable] 物品表格式无效：{sourceName}");
                 return Array.Empty<ItemTableRecord>();
             }
             if (document.version != 1)
@@ -85,7 +82,6 @@ namespace HuntingInDarkness.ContentTables
     /// <summary>把稳定表记录映射为现有 ItemData，使装备 View 与 Action 契约不依赖表实现。</summary>
     public static class PlayableItemTableRuntime
     {
-        private const string TablePath = "HuntingInDarkness/Tables/items";
         private static List<ItemData> cachedItems;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -94,14 +90,16 @@ namespace HuntingInDarkness.ContentTables
             cachedItems = null;
         }
 
-        public static IReadOnlyList<ItemData> GetItems()
+        public static IReadOnlyList<ItemData> GetItems(TextAsset tableAsset)
         {
             if (cachedItems != null && cachedItems.TrueForAll(item => item != null)) return cachedItems;
-            cachedItems = Build(new JsonItemTableSource(TablePath).Load(), message => Debug.LogError($"[ContentTable] {message}"));
+            cachedItems = Build(new JsonItemTableSource(tableAsset).Load(), message => Debug.LogError($"[ContentTable] {message}"));
             return cachedItems;
         }
 
-        internal static List<ItemData> BuildTable(Action<string> reportError) => Build(new JsonItemTableSource(TablePath).Load(), reportError);
+        public static IReadOnlyList<ItemData> GetItems() => cachedItems != null ? cachedItems : (IReadOnlyList<ItemData>)Array.Empty<ItemData>();
+
+        internal static List<ItemData> BuildTable(TextAsset tableAsset, Action<string> reportError) => Build(new JsonItemTableSource(tableAsset).Load(), reportError);
 
         public static List<ItemData> Build(IReadOnlyList<ItemTableRecord> records, Action<string> reportError = null)
         {

@@ -16,7 +16,7 @@ namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableCampaignContentAssemblerTests
     {
-        private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
+        private const string SettingsPath = "Assets/AssetRaw/Configs/HuntingInDarkness/PlayableBootstrapSettings.asset";
         private static readonly FieldInfo installationFailureProbeField = typeof(PlayableCampaignContentAssembler).GetField("installationFailureProbe", BindingFlags.Static | BindingFlags.NonPublic);
         private static readonly MethodInfo resetAssemblerMethod = typeof(PlayableCampaignContentAssembler).GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
         private static readonly MethodInfo resetSettlementContentRuntimeMethod = typeof(PlayableSettlementContentRuntime).GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
@@ -61,8 +61,8 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
 
-            bool firstBuilt = PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate first, out PlayableContentDiagnosticReport firstReport);
-            bool secondBuilt = PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate second, out PlayableContentDiagnosticReport secondReport);
+            bool firstBuilt = PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate first, out PlayableContentDiagnosticReport firstReport);
+            bool secondBuilt = PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate second, out PlayableContentDiagnosticReport secondReport);
 
             Assert.That(firstBuilt, Is.True, firstReport.ToString());
             Assert.That(secondBuilt, Is.True, secondReport.ToString());
@@ -96,7 +96,7 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 SetPrivateField(clone, "facilityDutyTable", null);
 
-                bool prepared = clone.TryPreparePlan(null, out _, out string reason);
+                bool prepared = clone.TryPreparePlan(null, PlayableContentSourceTestAssets.LoadBundle(settings), out _, out string reason);
 
                 Assert.That(prepared, Is.False);
                 Assert.That(reason, Does.Contain("设施值守表未配置"));
@@ -163,7 +163,7 @@ namespace HuntingInDarkness.Adapter.Tests
             PlayableBootstrapSettings settings = Object.Instantiate(source);
             try
             {
-                Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport report), Is.True, report.ToString());
+                Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport report), Is.True, report.ToString());
                 PlayableSettlementContentCatalog settlementContent = candidate.SettlementContent;
                 PlayableHuntContentCatalog huntContent = candidate.DefaultHuntContent;
 
@@ -193,7 +193,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 SetPrivateField(destinationCatalog, "destinations", new List<PlayableHuntDestination> { first, second });
                 SetPrivateField(settings, "huntDestinations", destinationCatalog);
 
-                bool built = PlayableCampaignContentAssembler.TryBuild(settings, out _, out PlayableContentDiagnosticReport report);
+                bool built = PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out _, out PlayableContentDiagnosticReport report);
 
                 Assert.That(built, Is.False);
                 Assert.That(report.Diagnostics, Has.Some.Matches<PlayableContentDiagnostic>(diagnostic => diagnostic.Code == "hunt.destination.id.duplicate"));
@@ -274,13 +274,14 @@ namespace HuntingInDarkness.Adapter.Tests
             try
             {
                 PlayableSymptomRuntime.Configure(settings.Symptoms);
-                IReadOnlyList<EventData> previousEvents = PlayableEventTableRuntime.Rebuild();
+                PlayableContentSourceBundle sourceBundle = PlayableContentSourceTestAssets.LoadBundle(settings);
+                IReadOnlyList<EventData> previousEvents = PlayableEventTableRuntime.Rebuild(sourceBundle);
                 EventData previousEvent = previousEvents[0];
                 PlayableHuntContentRuntime.Configure(sentinelHuntContent);
                 PlayableSettlementItemRegistry.Configure(null);
                 PlayableSettlementInventionRegistry.Configure(null);
                 PlayableSettlementEventRegistry.Configure(null);
-                Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+                Assert.That(PlayableCampaignContentAssembler.TryBuild(sourceBundle, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
                 installationFailureProbeField.SetValue(null, new System.Func<string, bool>(stage =>
                 {
                     if (stage != "after-settlement-projection") return false;
@@ -324,7 +325,7 @@ namespace HuntingInDarkness.Adapter.Tests
             HunterData generatedHunter = null;
             HunterData externalHunter = settings.SettlementContent.RecruitmentTemplates[0];
             PlayableSymptomRuntime.Configure(settings.Symptoms);
-            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
             installationFailureProbeField.SetValue(null, new System.Func<string, bool>(stage =>
             {
                 if (stage != "after-settlement-prepare") return false;
@@ -353,7 +354,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
             PlayableSymptomRuntime.Configure(settings.Symptoms);
-            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
 
             bool installed = PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport);
 
@@ -400,7 +401,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
             PlayableSymptomRuntime.Configure(settings.Symptoms);
-            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
             Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
             var manager = new SettlementManager(303);
             manager.Data.CurrentYear = 7;
@@ -420,7 +421,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
             PlayableSymptomRuntime.Configure(settings.Symptoms);
-            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
             Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
             var manager = new SettlementManager(304);
             manager.Data.CurrentYear = 9;
@@ -441,7 +442,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
             PlayableSymptomRuntime.Configure(settings.Symptoms);
-            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
             Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
             IReadOnlyList<ItemData> items = PlayableSettlementContentRuntime.Items;
             IReadOnlyList<InventionData> inventions = PlayableSettlementContentRuntime.Inventions;
@@ -470,7 +471,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
             PlayableSymptomRuntime.Configure(settings.Symptoms);
-            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
             Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
             IReadOnlyList<EventData> leasedEvents = PlayableEventTableRuntime.GetEvents();
             EventData leasedEvent = leasedEvents[0];

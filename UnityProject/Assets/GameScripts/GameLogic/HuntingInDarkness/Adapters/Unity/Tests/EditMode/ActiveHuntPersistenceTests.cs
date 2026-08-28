@@ -23,7 +23,7 @@ namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class ActiveHuntPersistenceTests
     {
-        private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
+        private const string SettingsPath = "Assets/AssetRaw/Configs/HuntingInDarkness/PlayableBootstrapSettings.asset";
         private readonly List<UnityEngine.Object> createdAssets = new();
         private PlayableHuntDestination selectedDestination;
 
@@ -33,7 +33,7 @@ namespace HuntingInDarkness.Adapter.Tests
             ResetContentAssembly();
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
             PlayableSymptomRuntime.Configure(settings.Symptoms);
-            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
             Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
             selectedDestination = settings.HuntDestinations.GetAvailable(3)[0];
             Assert.That(PlayableHuntDestinationRuntime.TrySelect(selectedDestination, 3, out string reason), Is.True, reason);

@@ -4,10 +4,12 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Settlement;
+using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace HuntingInDarkness.Adapter.Tests
@@ -17,8 +19,9 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public void WorkshopCatalog_ProvidesBuildableArmorAndMedicalWorkshopsAndGatedRecipes()
         {
-            PlayableWorkshopCatalog catalog = Resources.Load<PlayableWorkshopCatalog>("HuntingInDarkness/PlayableWorkshopCatalog");
-            PlayableSettlementContentExtension[] extensions = Resources.LoadAll<PlayableSettlementContentExtension>("HuntingInDarkness/SettlementExtensions");
+            PlayableContentSourceManifest manifest = AssetDatabase.LoadAssetAtPath<PlayableContentSourceManifest>("Assets/AssetRaw/Configs/HuntingInDarkness/HuntingInDarknessContentSources.asset");
+            PlayableWorkshopCatalog catalog = manifest?.Settings?.WorkshopContent;
+            PlayableSettlementContentExtension[] extensions = manifest?.SettlementExtensions?.ToArray() ?? Array.Empty<PlayableSettlementContentExtension>();
 
             Assert.That(catalog, Is.Not.Null);
             PlayableWorkshopDefinition armorWorkshop = catalog.Workshops.Single(workshop => workshop.WorkshopId == "armor_workshop");
@@ -51,8 +54,9 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public async Task MedicalWorkshop_CraftRequiresConstructionAndConsumesSoftOrgan()
         {
-            PlayableWorkshopCatalog catalog = Resources.Load<PlayableWorkshopCatalog>("HuntingInDarkness/PlayableWorkshopCatalog");
-            PlayableSettlementContentExtension extension = Resources.LoadAll<PlayableSettlementContentExtension>("HuntingInDarkness/SettlementExtensions").Single(item => item.name == "BasicMedicine");
+            PlayableContentSourceManifest manifest = AssetDatabase.LoadAssetAtPath<PlayableContentSourceManifest>("Assets/AssetRaw/Configs/HuntingInDarkness/HuntingInDarknessContentSources.asset");
+            PlayableWorkshopCatalog catalog = manifest?.Settings?.WorkshopContent;
+            PlayableSettlementContentExtension extension = manifest?.SettlementExtensions?.Single(item => item.name == "BasicMedicine");
             PlayableWorkshopDefinition workshopDefinition = catalog.Workshops.Single(workshop => workshop.WorkshopId == "medical_workshop");
             CraftRecipe recipe = extension.Recipes.Single(item => item.recipeName == "培制药用菌肉");
             SettlementInstance settlement = new();

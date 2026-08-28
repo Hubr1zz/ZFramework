@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using UnityEditor;
 using TMPro;
 using UnityEngine;
 
@@ -6,12 +7,12 @@ namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableChineseFontContentTests
     {
-        private const string FontResourcePath = "HuntingInDarkness/Fonts/NotoSansSC-Regular";
+        private const string FontAssetPath = "Assets/AssetRaw/Fonts/HuntingInDarkness/NotoSansSC-Regular.otf";
 
         [Test]
         public void BundledFont_CoversCoreTabletopChineseText()
         {
-            Font sourceFont = Resources.Load<Font>(FontResourcePath);
+            Font sourceFont = AssetDatabase.LoadAssetAtPath<Font>(FontAssetPath);
             Assert.That(sourceFont, Is.Not.Null);
 
             TMP_FontAsset fontAsset = TMP_FontAsset.CreateFontAsset(sourceFont);

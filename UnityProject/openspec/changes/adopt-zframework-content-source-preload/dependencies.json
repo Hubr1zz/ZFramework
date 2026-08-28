@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    {"id": "zframework-startup-lifecycle", "label": "ZFramework 启动生命周期", "category": "system", "readiness": "implemented", "specPath": "openspec/changes/adopt-zframework-content-source-preload/specs/zframework-startup-lifecycle/spec.md"},
+    {"id": "campaign-content-preflight-assembly", "label": "战役内容启动预检装配", "category": "architecture", "readiness": "implemented", "specPath": "openspec/changes/adopt-zframework-content-source-preload/specs/campaign-content-preflight-assembly/spec.md"},
+    {"id": "settlement-content-plan-lifecycle", "label": "营地内容计划生命周期", "category": "architecture", "readiness": "implemented", "specPath": "openspec/changes/adopt-zframework-content-source-preload/specs/settlement-content-plan-lifecycle/spec.md"},
+    {"id": "player-build-bootstrap", "label": "Player 构建启动入口", "category": "architecture", "readiness": "partial", "specPath": "openspec/changes/adopt-zframework-content-source-preload/specs/player-build-bootstrap/spec.md"}
+  ],
+  "edges": [
+    {"id": "campaign-content-preflight-assembly--requires--zframework-startup-lifecycle", "from": "campaign-content-preflight-assembly", "to": "zframework-startup-lifecycle", "type": "requires", "status": "defined", "reason": "战役候选依赖启动期已准备的内容源 Bundle", "gapId": "", "blocksImplementation": false},
+    {"id": "settlement-content-plan-lifecycle--requires--campaign-content-preflight-assembly", "from": "settlement-content-plan-lifecycle", "to": "campaign-content-preflight-assembly", "type": "requires", "status": "defined", "reason": "营地 Plan 由 Campaign Candidate 传递同一 Bundle", "gapId": "", "blocksImplementation": false},
+    {"id": "player-build-bootstrap--requires--zframework-startup-lifecycle", "from": "player-build-bootstrap", "to": "zframework-startup-lifecycle", "type": "requires", "status": "defined", "reason": "Player 启动依赖 YooAsset Manifest 预载", "gapId": "", "blocksImplementation": false}
+  ]
+}

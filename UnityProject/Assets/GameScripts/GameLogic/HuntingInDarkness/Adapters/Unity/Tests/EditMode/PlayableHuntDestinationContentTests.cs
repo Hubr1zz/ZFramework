@@ -14,7 +14,7 @@ namespace HuntingInDarkness.Adapter.Tests
     public sealed class PlayableHuntDestinationContentTests
     {
         private const string CatalogPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Hunt/Destinations/PlayableHuntDestinationCatalog.asset";
-        private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
+        private const string SettingsPath = "Assets/AssetRaw/Configs/HuntingInDarkness/PlayableBootstrapSettings.asset";
 
         [TearDown]
         public void TearDown() => PlayableHuntDestinationRuntime.Configure(null, null);

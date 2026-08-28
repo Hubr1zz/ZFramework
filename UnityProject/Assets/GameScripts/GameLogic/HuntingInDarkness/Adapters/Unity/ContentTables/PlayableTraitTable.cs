@@ -42,7 +42,6 @@ namespace HuntingInDarkness.ContentTables
 
     public sealed class PlayableTraitCatalog
     {
-        private const string TablePath = "HuntingInDarkness/Tables/traits";
         private readonly Dictionary<string, PlayableTraitDefinition> byIdentifier;
         private readonly HashSet<string> canonicalIds;
 
@@ -86,10 +85,10 @@ namespace HuntingInDarkness.ContentTables
         public static bool TryLoad(TextAsset tableAsset, out PlayableTraitCatalog catalog, out string reason)
         {
             catalog = null;
-            TextAsset source = tableAsset != null ? tableAsset : Resources.Load<TextAsset>(TablePath);
+            TextAsset source = tableAsset;
             if (source == null)
             {
-                reason = $"未找到特性表 Resources/{TablePath}.json";
+                reason = "缺少特性表内容源。";
                 return false;
             }
             TraitTableDocument document;

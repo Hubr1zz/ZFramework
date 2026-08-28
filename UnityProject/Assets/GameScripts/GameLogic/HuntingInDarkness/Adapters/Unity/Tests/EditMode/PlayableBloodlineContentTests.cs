@@ -12,7 +12,7 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public void ResourcesTable_ProvidesUniquePlayableBloodlines()
         {
-            var table = new PlayableBloodlineTable();
+            var table = new PlayableBloodlineTable(PlayableContentSourceTestAssets.LoadBundle().BloodlinesTable);
             var ids = new HashSet<string>();
 
             Assert.That(table.Definitions, Has.Count.GreaterThanOrEqualTo(3));

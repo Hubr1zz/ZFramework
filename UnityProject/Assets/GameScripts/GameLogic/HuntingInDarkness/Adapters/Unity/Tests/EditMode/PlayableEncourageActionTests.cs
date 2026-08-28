@@ -11,7 +11,7 @@ namespace HuntingInDarkness.Adapter.Tests
     public sealed class PlayableEncourageActionTests
     {
         private const string CardPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Content/Combat/PlayableCards/PlayableEncourage.asset";
-        private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
+        private const string SettingsPath = "Assets/AssetRaw/Configs/HuntingInDarkness/PlayableBootstrapSettings.asset";
 
         [Test]
         public void RelieveOvertimeCharacter_RestoresTimeWithoutSpendingWillpower()

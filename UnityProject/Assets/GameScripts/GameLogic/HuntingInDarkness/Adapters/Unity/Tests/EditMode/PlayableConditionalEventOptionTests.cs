@@ -130,7 +130,7 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public void HuntCarriedItemOption_UsesSelectedHuntersOwnInventory()
         {
-            ItemData dressing = PlayableItemTableRuntime.GetItems().First(item => item.ContentId == "weathered_field_dressing");
+            ItemData dressing = PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable).First(item => item.ContentId == "weathered_field_dressing");
             var settlement = new SettlementInstance();
             var carrier = new HunterInstance(null, 9116) { Name = "携带者" };
             var companion = new HunterInstance(null, 9117) { Name = "同伴" };
@@ -141,7 +141,7 @@ namespace HuntingInDarkness.Adapter.Tests
             manager.OnEnter(new List<HunterInstance> { carrier, companion });
             try
             {
-                PlayableSettlementItemRegistry.Configure(PlayableItemTableRuntime.GetItems());
+                PlayableSettlementItemRegistry.Configure(PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable));
                 EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == "hunt_worm_rain");
                 EventOption option = gameEvent.options.First(item => item.successEffects.Any(effect => effect.effectType == EventEffectType.RemoveItem));
                 var itemCommand = new HuntEventItemCommand(manager);
@@ -195,8 +195,8 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public void EchoContent_ConnectsEquipmentKeywordsToSettlementAndHuntRewards()
         {
-            ItemData echoWeapon = PlayableItemTableRuntime.GetItems().First(item => item.ContentId == "echo_hook_spear");
-            ItemData quietArmor = PlayableItemTableRuntime.GetItems().First(item => item.ContentId == "stonewatch_mantle");
+            ItemData echoWeapon = PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable).First(item => item.ContentId == "echo_hook_spear");
+            ItemData quietArmor = PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable).First(item => item.ContentId == "stonewatch_mantle");
             var settlement = new SettlementInstance();
             var hunter = new HunterInstance(null, 9112) { Name = "回声猎人" };
             hunter.Equipment.Add(new ItemInstance(echoWeapon));
@@ -207,7 +207,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
             try
             {
-                PlayableSettlementItemRegistry.Configure(PlayableItemTableRuntime.GetItems());
+                PlayableSettlementItemRegistry.Configure(PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable));
                 EventData settlementEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "random_echo_knot");
                 EventOption echoOption = settlementEvent.options.First(option => !option.alwaysAvailable);
                 EventData huntEvent = PlayableEventTableRuntime.GetEvents().First(item => item.name == "hunt_singing_sinew");
@@ -230,8 +230,8 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public void StoneForestGearAndAilment_UnlockHuntEventBranches()
         {
-            ItemData blade = PlayableItemTableRuntime.GetItems().First(item => item.ContentId == "bone_saw_blade");
-            ItemData bracer = PlayableItemTableRuntime.GetItems().First(item => item.ContentId == "carapace_bracer");
+            ItemData blade = PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable).First(item => item.ContentId == "bone_saw_blade");
+            ItemData bracer = PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable).First(item => item.ContentId == "carapace_bracer");
             var settlement = new SettlementInstance();
             var hunter = new HunterInstance(null, 9115) { Name = "荒原采集者" };
             hunter.Equipment.Add(new ItemInstance(blade));
@@ -244,7 +244,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
             try
             {
-                PlayableSettlementItemRegistry.Configure(PlayableItemTableRuntime.GetItems());
+                PlayableSettlementItemRegistry.Configure(PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable));
                 string[] eventIds = { "hunt_sap_suture", "hunt_carapace_cairn", "hunt_white_hair_lure", "hunt_root_pulse", "hunt_worm_rain" };
                 foreach (string eventId in eventIds)
                 {

@@ -130,7 +130,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             List<ItemData> items = CreateRuntimeRecipeItems();
             InventionData tools = CreateInvention("tools", "工具");
-            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(PlayableContentSourceTestAssets.LoadBundle().RecipesTable, items, new[] { tools });
             CraftRecipe recipe = FindRecipe(recipes, "刻制盐纹护符");
             var settlement = new SettlementInstance();
             settlement.AddResource(recipe.ingredients[0].item, 1);
@@ -152,7 +152,7 @@ namespace HuntingInDarkness.Adapter.Tests
             ItemData sap = items.Find(item => item.ContentId == "viscous_sap");
             ItemData organ = items.Find(item => item.ContentId == "soft_organ");
             InventionData tools = CreateInvention("tools", "工具");
-            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(PlayableContentSourceTestAssets.LoadBundle().RecipesTable, items, new[] { tools });
             CraftRecipe recipe = FindRecipe(recipes, "编制菌绒裹衣");
             var settlement = new SettlementInstance();
             settlement.AddResource(mushroom, 1);
@@ -179,7 +179,7 @@ namespace HuntingInDarkness.Adapter.Tests
             ItemData dustMite = items.Find(item => item.ContentId == "dust_mite");
             ItemData sap = items.Find(item => item.ContentId == "viscous_sap");
             InventionData tools = CreateInvention("tools", "工具");
-            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(PlayableContentSourceTestAssets.LoadBundle().RecipesTable, items, new[] { tools });
             CraftRecipe recipe = FindRecipe(recipes, "缝制尘螨静息兜帽");
             var settlement = new SettlementInstance();
             settlement.AddResource(whiteHair, 1);
@@ -209,7 +209,7 @@ namespace HuntingInDarkness.Adapter.Tests
             ItemData sinew = items.Find(item => item.ContentId == "echo_sinew");
             ItemData stone = items.Find(item => item.ContentId == "broken_stone");
             InventionData tools = CreateInvention("tools", "工具");
-            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(PlayableContentSourceTestAssets.LoadBundle().RecipesTable, items, new[] { tools });
             CraftRecipe recipe = FindRecipe(recipes, "绑制回声钩矛");
             var settlement = new SettlementInstance();
             settlement.AddResource(sinew, 1);
@@ -233,7 +233,7 @@ namespace HuntingInDarkness.Adapter.Tests
             ItemData salt = items.Find(item => item.ContentId == "black_salt");
             ItemData knife = items.Find(item => item.ContentId == "stone_knife");
             InventionData tools = CreateInvention("tools", "工具");
-            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(PlayableContentSourceTestAssets.LoadBundle().RecipesTable, items, new[] { tools });
             CraftRecipe recipe = recipes.Single(candidate => candidate.ContentId == "shape_salt_crystal_edge");
             var settlement = new SettlementInstance();
             settlement.AddResource(salt, 1);
@@ -256,7 +256,7 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             List<ItemData> items = CreateRuntimeRecipeItems();
             InventionData tools = CreateInvention("tools", "工具");
-            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(items, new[] { tools });
+            IReadOnlyList<CraftRecipe> recipes = PlayableCraftRecipeTableRuntime.GetRecipes(PlayableContentSourceTestAssets.LoadBundle().RecipesTable, items, new[] { tools });
             CraftRecipe recipe = FindRecipe(recipes, "培制菌肉敷剂");
 
             Assert.That(recipe, Is.Not.Null);
@@ -268,7 +268,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
         private List<ItemData> CreateRuntimeRecipeItems()
         {
-            var items = new List<ItemData>(PlayableItemTableRuntime.GetItems())
+            var items = new List<ItemData>(PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable))
             {
                 CreateItem("broken_stone", "碎石", ItemType.Resource),
                 CreateItem("mushroom_flesh", "蘑菇肉", ItemType.Resource),

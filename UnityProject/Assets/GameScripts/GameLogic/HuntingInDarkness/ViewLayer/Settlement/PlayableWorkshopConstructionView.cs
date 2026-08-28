@@ -9,7 +9,6 @@ namespace HuntingInDarkness.ViewLayer.Settlement
     public sealed class PlayableWorkshopConstructionView : MonoBehaviour
     {
         private const int WindowId = 68025;
-        private const string CatalogPath = "HuntingInDarkness/PlayableWorkshopCatalog";
         private GameManager manager;
         private PlayableWorkshopCatalog catalog;
         private PlayableWorkshopConstructionService service;
@@ -22,10 +21,10 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private GUIStyle statusStyle;
         private Texture2D windowTexture;
 
-        public void Initialize(GameManager gameManager)
+        public void Initialize(GameManager gameManager, PlayableWorkshopCatalog workshopCatalog)
         {
             manager = gameManager;
-            catalog = Resources.Load<PlayableWorkshopCatalog>(CatalogPath);
+            catalog = workshopCatalog;
             service = new PlayableWorkshopConstructionService(() => manager?.SettlementData);
         }
 

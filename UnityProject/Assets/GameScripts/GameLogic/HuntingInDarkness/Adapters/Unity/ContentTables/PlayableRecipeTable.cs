@@ -37,26 +37,23 @@ namespace HuntingInDarkness.ContentTables
 
     public sealed class JsonCraftRecipeTableSource : IContentTableSource<CraftRecipeTableRecord>
     {
-        private readonly string resourcePath;
+        private readonly TextAsset tableAsset;
+        private readonly string sourceName;
 
-        public JsonCraftRecipeTableSource(string resourcePath)
+        public JsonCraftRecipeTableSource(TextAsset tableAsset, string sourceName = "recipes")
         {
-            this.resourcePath = resourcePath;
+            this.tableAsset = tableAsset;
+            this.sourceName = sourceName ?? string.Empty;
         }
 
         public IReadOnlyList<CraftRecipeTableRecord> Load()
         {
-            TextAsset tableAsset = Resources.Load<TextAsset>(resourcePath);
-            if (tableAsset == null)
-            {
-                Debug.LogWarning($"[ContentTable] 未找到配方表 Resources/{resourcePath}.json");
-                return Array.Empty<CraftRecipeTableRecord>();
-            }
+            if (tableAsset == null) return Array.Empty<CraftRecipeTableRecord>();
 
             CraftRecipeTableDocument document = JsonUtility.FromJson<CraftRecipeTableDocument>(tableAsset.text);
             if (document?.recipes == null)
             {
-                Debug.LogError($"[ContentTable] 配方表格式无效：{resourcePath}");
+                Debug.LogError($"[ContentTable] 配方表格式无效：{sourceName}");
                 return Array.Empty<CraftRecipeTableRecord>();
             }
             if (document.version != 1)
@@ -68,14 +65,12 @@ namespace HuntingInDarkness.ContentTables
     /// <summary>通过稳定物品资产 ID 解析配方，产出仍复用现有 CraftRecipe 与 Settlement ActionQueue。</summary>
     public static class PlayableCraftRecipeTableRuntime
     {
-        private const string TablePath = "HuntingInDarkness/Tables/recipes";
-
-        public static IReadOnlyList<CraftRecipe> GetRecipes(IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> inventions)
+        public static IReadOnlyList<CraftRecipe> GetRecipes(TextAsset tableAsset, IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> inventions)
         {
-            return Build(new JsonCraftRecipeTableSource(TablePath).Load(), items, inventions, message => Debug.LogError($"[ContentTable] {message}"));
+            return Build(new JsonCraftRecipeTableSource(tableAsset).Load(), items, inventions, message => Debug.LogError($"[ContentTable] {message}"));
         }
 
-        internal static List<CraftRecipe> BuildTable(IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> inventions, Action<string> reportError) => Build(new JsonCraftRecipeTableSource(TablePath).Load(), items, inventions, reportError);
+        internal static List<CraftRecipe> BuildTable(TextAsset tableAsset, IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> inventions, Action<string> reportError) => Build(new JsonCraftRecipeTableSource(tableAsset).Load(), items, inventions, reportError);
 
         public static List<CraftRecipe> Build(IReadOnlyList<CraftRecipeTableRecord> records, IReadOnlyList<ItemData> items, IReadOnlyList<InventionData> inventions = null, Action<string> reportError = null)
         {

@@ -18,8 +18,11 @@ namespace HuntingInDarkness.Bootstrap
         internal PlayableSettlementContentPlan SettlementPlan { get; private set; }
         internal PlayableHuntContentBundle HuntBundle { get; private set; }
 
-        internal PlayableCampaignContentCandidate(PlayableBootstrapSettings settings)
+        internal PlayableCampaignContentCandidate(PlayableContentSourceBundle sourceBundle, IHunterBloodlineContent bloodlineContent)
         {
+            PlayableBootstrapSettings settings = sourceBundle?.Settings;
+            SourceBundle = sourceBundle;
+            BloodlineContent = bloodlineContent;
             DefaultBattleSetup = settings.CreateBattleSetup();
             InitialPhase = settings.InitialPhase;
             CellSize = settings.CellSize;
@@ -54,6 +57,8 @@ namespace HuntingInDarkness.Bootstrap
         public PlayableWeaponMasteryCatalog WeaponMastery { get; }
         public PlayableEncounterCatalog EncounterCatalog { get; }
         public string DefaultEncounterId { get; }
+        internal PlayableContentSourceBundle SourceBundle { get; }
+        internal IHunterBloodlineContent BloodlineContent { get; }
 
         internal bool TryInstallBindings(out string reason)
         {
@@ -75,6 +80,7 @@ namespace HuntingInDarkness.Bootstrap
 
             PlayableHuntContentRuntime.ConfigureForInstallation(DefaultHuntContent);
             PlayableSettlementContentRuntime.ConfigureForInstallation(SettlementContent);
+            PlayableBloodlineRuntime.Configure(BloodlineContent);
             PlayableHunterCombatAdapter.Configure(CombatEquipment);
             PlayableSurvivalEventRuntime.Configure(SurvivalEvents);
             PlayablePermanentInjuryRuntime.Configure(PermanentInjuries);
@@ -98,7 +104,7 @@ namespace HuntingInDarkness.Bootstrap
                 reason = "营地内容候选已经准备或安装。";
                 return false;
             }
-            bool prepared = SettlementContent.TryPreparePlan(eventGeneration, out PlayableSettlementContentPlan plan, out reason);
+            bool prepared = SettlementContent.TryPreparePlan(eventGeneration, SourceBundle, out PlayableSettlementContentPlan plan, out reason);
             SettlementPlan = plan;
             return prepared;
         }

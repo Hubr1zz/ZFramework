@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 5,
+  "changeId": "adopt-zframework-content-source-preload",
+  "title": "通过 ZFramework 预载战役内容源",
+  "category": "architecture",
+  "sourceKind": "direct-implementation-adoption",
+  "sourceRunId": "",
+  "readiness": "implemented",
+  "codeReadiness": "implemented",
+  "approvalStatus": "draft",
+  "approvedBy": "",
+  "approvedAt": "",
+  "implementationNotes": "实现已完成；正式 Specs 不改，待人工审查后显式 sync。发布前仍需补 Windows Player 启动烟雾。",
+  "verification": {
+    "status": "partial",
+    "summary": "Unity 编译、内容源生命周期、内容事务和相关内容表验证通过；Player 构建烟雾待发布阶段补跑。",
+    "codeEvidence": [
+      {
+        "guid": "62121fa43bc144049bf4a15006dba945",
+        "displayPath": "Assets/GameScripts/Procedure/ProcedureStartGame.cs",
+        "fileHash": "65f57524a3becfccdfd5f85ede021de8e1a191708e5c7f663bba5f2cda896eb4",
+        "line": 13,
+        "feature": "在进入 GameApp 前等待内容源准备并按进入结果隐藏 Launcher",
+        "status": "verified",
+        "checkedAt": "2026-08-28T08:42:36-07:00"
+      },
+      {
+        "guid": "4f1b76f4f2044e1ea1bca51c1848f4b3",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableContentSourceSystem.cs",
+        "fileHash": "150ff1907021d75ae991ec895c3aa8ee45e3916f4ac44bb2e056b808ed6e9bf4",
+        "line": 29,
+        "feature": "持有单一 YooAsset Manifest 租约并协调并发准备与释放",
+        "status": "verified",
+        "checkedAt": "2026-08-28T08:42:36-07:00"
+      },
+      {
+        "guid": "55ba345218bd9de46ae2a1fda1716941",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableContentSourceManifest.cs",
+        "fileHash": "f78ee183bab82ba617cd5093155ab5311fd0224d9e28fe350c29852d6ae0c3b8",
+        "line": 9,
+        "feature": "聚合并校验战役启动所需的显式内容源闭包",
+        "status": "verified",
+        "checkedAt": "2026-08-28T08:42:36-07:00"
+      },
+      {
+        "guid": "e720a0551a464b15a2f65f1e82fc4a4a",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs",
+        "fileHash": "e940bd1f2ca249a7eb8aab49e5a184f63fe52ac45338f154d7aa241a3ba343cd",
+        "line": 23,
+        "feature": "从显式 Bundle 构建并事务发布 Campaign 内容候选",
+        "status": "verified",
+        "checkedAt": "2026-08-28T08:42:36-07:00"
+      },
+      {
+        "guid": "89da669e4924d43409fe89475adc272b",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs",
+        "fileHash": "2955017e290c09fb7c7e02cc156714cac19067eef94f118cf873641e3951d30c",
+        "line": 105,
+        "feature": "使用显式 Bundle 和 Catalog 表引用离线准备营地内容计划",
+        "status": "verified",
+        "checkedAt": "2026-08-28T08:42:36-07:00"
+      }
+    ],
+    "evidence": [
+      "Unity 6000.5.9f1 编译通过。",
+      "内容源生命周期 EditMode 4/4。",
+      "Campaign 内容装配事务 EditMode 18/18。",
+      "事件、物品、配方、猎人和特性相关 EditMode 45/45。",
+      "GameLogic.csproj 构建 0 error；一条既有 CS4014 warning。",
+      "生产 HuntingInDarkness C# 中无 Resources.Load/LoadAll，Manifest 12 个引用均可解析。"
+    ],
+    "differences": [
+      "正式 Specs 尚未记录启动期显式 Manifest/Bundle，待人工审查后 sync。",
+      "本阶段未执行 Windows Player 构建与实际图形启动烟雾。"
+    ],
+    "verifiedAt": "2026-08-28T08:42:36-07:00"
+  },
+  "reviewIssues": [
+    {
+      "id": "ISSUE-PLAYER-SMOKE-PENDING-001",
+      "type": "implementation-delta",
+      "severity": "warning",
+      "status": "open",
+      "blocksApproval": false,
+      "summary": "Player 构建内容源启动烟雾待发布阶段补跑",
+      "details": "当前数据和 Editor 生命周期验证已通过，但尚未重新构建 Windows Player 验证 YooAsset 收集闭包。",
+      "sourceId": "verification",
+      "acceptedBy": "",
+      "acceptedAt": "",
+      "acceptanceNote": ""
+    }
+  ],
+  "gapIds": [],
+  "dependencyIds": [
+    "campaign-content-preflight-assembly--requires--zframework-startup-lifecycle",
+    "settlement-content-plan-lifecycle--requires--campaign-content-preflight-assembly",
+    "player-build-bootstrap--requires--zframework-startup-lifecycle"
+  ],
+  "capabilities": [
+    "zframework-startup-lifecycle",
+    "campaign-content-preflight-assembly",
+    "settlement-content-plan-lifecycle",
+    "player-build-bootstrap"
+  ],
+  "syncTargets": [
+    {
+      "capability": "campaign-content-preflight-assembly",
+      "title": "战役内容源预检装配",
+      "category": "architecture",
+      "deltaSpecPath": "openspec/changes/adopt-zframework-content-source-preload/specs/campaign-content-preflight-assembly/spec.md",
+      "targetSpecPath": "openspec/specs/campaign-content-preflight-assembly/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "58aa0922fb9b73a8cdbda6c0adb92fd91ae28b0e5b9430076379adb2cc9b2b47",
+      "baseSnapshotPath": "openspec/changes/adopt-zframework-content-source-preload/.sync-baseline/campaign-content-preflight-assembly/spec.md"
+    },
+    {
+      "capability": "player-build-bootstrap",
+      "title": "Player 构建内容源启动入口",
+      "category": "architecture",
+      "deltaSpecPath": "openspec/changes/adopt-zframework-content-source-preload/specs/player-build-bootstrap/spec.md",
+      "targetSpecPath": "openspec/specs/player-build-bootstrap/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "18097f6c9cf78ac11f1c0c53d8be1cfd6a9f1e136c30e6417a7339b9d307e053",
+      "baseSnapshotPath": "openspec/changes/adopt-zframework-content-source-preload/.sync-baseline/player-build-bootstrap/spec.md"
+    },
+    {
+      "capability": "settlement-content-plan-lifecycle",
+      "title": "营地内容计划显式来源",
+      "category": "architecture",
+      "deltaSpecPath": "openspec/changes/adopt-zframework-content-source-preload/specs/settlement-content-plan-lifecycle/spec.md",
+      "targetSpecPath": "openspec/specs/settlement-content-plan-lifecycle/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "236b95714cbd36c99740092ba53f539a12bed4f2573ffe41eb2dc46851f06ccd",
+      "baseSnapshotPath": "openspec/changes/adopt-zframework-content-source-preload/.sync-baseline/settlement-content-plan-lifecycle/spec.md"
+    },
+    {
+      "capability": "zframework-startup-lifecycle",
+      "title": "ZFramework 启动期内容源预载",
+      "category": "system",
+      "deltaSpecPath": "openspec/changes/adopt-zframework-content-source-preload/specs/zframework-startup-lifecycle/spec.md",
+      "targetSpecPath": "openspec/specs/zframework-startup-lifecycle/spec.md",
+      "targetExisted": true,
+      "baseFileHash": "5b627c9d069781482016441c460a487bdc0575e6f8c48907ec593f3429f35b53",
+      "baseSnapshotPath": "openspec/changes/adopt-zframework-content-source-preload/.sync-baseline/zframework-startup-lifecycle/spec.md"
+    }
+  ],
+  "specSyncStatus": "pending",
+  "syncValidation": {
+    "status": "clean",
+    "summary": "正式 Spec 与基线一致，可以 sync。",
+    "changes": [],
+    "conflicts": [],
+    "validatedAt": "2026-08-28T08:49:19-07:00"
+  },
+  "createdAt": "2026-08-28T08:42:36-07:00"
+}

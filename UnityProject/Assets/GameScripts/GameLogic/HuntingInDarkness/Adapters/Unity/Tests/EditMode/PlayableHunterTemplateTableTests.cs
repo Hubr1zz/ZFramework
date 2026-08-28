@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace HuntingInDarkness.Adapter.Tests
@@ -86,9 +87,10 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public void ResourceTable_ProvidesDifferentiatedRecruitmentRoster()
         {
-            IReadOnlyList<HunterTemplateTableRecord> records = new JsonHunterTemplateTableSource("HuntingInDarkness/Tables/hunters").Load();
+            TextAsset table = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/AssetRaw/Configs/HuntingInDarkness/Tables/hunters.json");
+            IReadOnlyList<HunterTemplateTableRecord> records = new JsonHunterTemplateTableSource("hunters", table).Load();
 
-            List<HunterTemplateTableEntry> entries = PlayableHunterTemplateTableRuntime.Build(records, PlayableItemTableRuntime.GetItems());
+                List<HunterTemplateTableEntry> entries = PlayableHunterTemplateTableRuntime.Build(records, PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable));
 
             Assert.That(entries, Has.Count.EqualTo(8));
             HunterTemplateTableEntry entry = entries.Find(candidate => candidate.Template != null && candidate.Template.ContentId == "ember_keeper_yao");

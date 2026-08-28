@@ -72,7 +72,7 @@ namespace HuntingInDarkness.Adapter.Tests
         public void RuntimeTable_ProvidesResourceContent()
         {
             ItemData item = null;
-            foreach (ItemData candidate in PlayableItemTableRuntime.GetItems())
+            foreach (ItemData candidate in PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable))
                 if (candidate != null && candidate.name == "black_salt")
                     item = candidate;
 
@@ -86,7 +86,7 @@ namespace HuntingInDarkness.Adapter.Tests
         public void RuntimeTable_ProvidesQuietingSaltWard()
         {
             ItemData item = null;
-            foreach (ItemData candidate in PlayableItemTableRuntime.GetItems())
+            foreach (ItemData candidate in PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable))
                 if (candidate != null && candidate.ContentId == "salt_ward")
                     item = candidate;
 
@@ -205,7 +205,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
         private static ItemData FindRuntimeItem(string contentId)
         {
-            foreach (ItemData item in PlayableItemTableRuntime.GetItems())
+            foreach (ItemData item in PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable))
                 if (item != null && item.ContentId == contentId)
                     return item;
             return null;

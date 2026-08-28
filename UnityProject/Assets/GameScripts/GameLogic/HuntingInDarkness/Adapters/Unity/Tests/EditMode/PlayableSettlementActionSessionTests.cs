@@ -27,7 +27,7 @@ namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableSettlementActionSessionTests
     {
-        private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
+        private const string SettingsPath = "Assets/AssetRaw/Configs/HuntingInDarkness/PlayableBootstrapSettings.asset";
 
         [SetUp]
         public void SetUp()
@@ -35,10 +35,18 @@ namespace HuntingInDarkness.Adapter.Tests
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
             Assert.That(settings, Is.Not.Null);
             PlayableSymptomRuntime.Configure(settings.Symptoms);
+            PlayableContentSourceBundle sourceBundle = PlayableContentSourceTestAssets.LoadBundle(settings);
+            PlayableBloodlineRuntime.Configure(new PlayableBloodlineTable(sourceBundle.BloodlinesTable));
+            Assert.That(PlayableEventTableRuntime.Rebuild(sourceBundle), Is.Not.Empty);
         }
 
         [TearDown]
-        public void TearDown() => PlayableSymptomRuntime.Configure(null);
+        public void TearDown()
+        {
+            PlayableEventTableRuntime.ClearCache();
+            PlayableBloodlineRuntime.Configure(null);
+            PlayableSymptomRuntime.Configure(null);
+        }
 
         [Test]
         public async Task ApplyHuntReturnAsync_ClearsPersistentLeaseBeforeCommitAndKeepsItOnPlanFailure()

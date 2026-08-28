@@ -11,7 +11,7 @@ namespace Core
     /// </summary>
     public class LocalizationManager
     {
-        private const string bundledChineseFontResourcePath = "HuntingInDarkness/Fonts/NotoSansSC-Regular";
+        private static Font bundledChineseFont;
         public static LocalizationManager Instance { get; private set; }
 
         // ─── 字体 ─────────────────────────────────────────────────────
@@ -25,7 +25,13 @@ namespace Core
         // ═══════════════════════════════════════════
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetRuntimeState() => Instance = null;
+        private static void ResetRuntimeState()
+        {
+            Instance = null;
+            bundledChineseFont = null;
+        }
+
+        public static void ConfigureBundledFont(Font font) => bundledChineseFont = font;
 
         /// <param name="fontAsset">可选的项目中文 SDF（须为 Dynamic 模式）；为空时使用随包字体。</param>
         /// <param name="characterSet">zh-cn.txt 等字符列表文件</param>
@@ -66,10 +72,10 @@ namespace Core
 
         private static TMP_FontAsset CreateBundledChineseFont()
         {
-            Font sourceFont = Resources.Load<Font>(bundledChineseFontResourcePath);
+            Font sourceFont = bundledChineseFont;
             if (sourceFont == null)
             {
-                Debug.LogWarning($"[LocalizationManager] 未找到内置中文字体 Resources/{bundledChineseFontResourcePath}");
+                Debug.LogWarning("[LocalizationManager] 未配置随包中文字体。");
                 return null;
             }
 

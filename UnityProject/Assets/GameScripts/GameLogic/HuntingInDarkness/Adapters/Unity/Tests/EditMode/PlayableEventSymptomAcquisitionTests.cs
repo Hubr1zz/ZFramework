@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Core;
+using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.ActionFlow.Events;
 using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.ContentTables;
@@ -170,8 +171,9 @@ namespace HuntingInDarkness.Adapter.Tests
         public void ProductionEventTables_ExerciseEveryExpandedSymptomByStableId()
         {
             var referenced = new HashSet<string>(StringComparer.Ordinal);
-            CollectTableAilments(new JsonEventTableSource("HuntingInDarkness/Tables/events").Load(), referenced);
-            CollectTableAilments(new JsonEventTableSource("HuntingInDarkness/Tables/hunt-events").Load(), referenced);
+            PlayableContentSourceBundle bundle = PlayableContentSourceTestAssets.LoadBundle();
+            CollectTableAilments(new JsonEventTableSource(bundle.EventsTable, "events").Load(), referenced);
+            CollectTableAilments(new JsonEventTableSource(bundle.HuntEventsTable, "hunt-events").Load(), referenced);
             string[] expected =
             {
                 "symptom_blood_fever",

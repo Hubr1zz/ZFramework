@@ -17,7 +17,7 @@ namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableSettlementProjectionTransactionTests
     {
-        private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
+        private const string SettingsPath = "Assets/AssetRaw/Configs/HuntingInDarkness/PlayableBootstrapSettings.asset";
         private static readonly MethodInfo resetAssemblerMethod = typeof(PlayableCampaignContentAssembler).GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
         private static readonly MethodInfo resetSettlementContentRuntimeMethod = typeof(PlayableSettlementContentRuntime).GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
         private static readonly MethodInfo prepareCandidateMethod = typeof(SettlementManager).GetMethod("TryPrepareCandidate", BindingFlags.Static | BindingFlags.NonPublic, null, new[] { typeof(SettlementInstance), typeof(SettlementManager).MakeByRefType(), typeof(string).MakeByRefType() }, null);
@@ -28,7 +28,7 @@ namespace HuntingInDarkness.Adapter.Tests
         public void SetUp()
         {
             PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
-            Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
             Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
         }
 

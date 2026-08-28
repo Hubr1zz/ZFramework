@@ -21,7 +21,7 @@ namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableHuntNoiseActionTests
     {
-        private const string SettingsPath = "Assets/GameScripts/GameLogic/HuntingInDarkness/Resources/HuntingInDarkness/PlayableBootstrapSettings.asset";
+        private const string SettingsPath = "Assets/AssetRaw/Configs/HuntingInDarkness/PlayableBootstrapSettings.asset";
 
         [SetUp]
         public void SetUp()

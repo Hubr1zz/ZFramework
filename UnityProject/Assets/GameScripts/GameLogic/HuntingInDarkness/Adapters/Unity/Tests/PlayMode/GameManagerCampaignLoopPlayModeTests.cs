@@ -1468,12 +1468,12 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
         private GameManager CreateProductionManager(ICampaignPersistencePort persistence, bool deferStartup = false, bool useRealEventView = false, ITabletopRandomInteractionPresenter randomPresenter = null, bool useProductionTabletopInteraction = false)
         {
-            PlayableBootstrapSettings settings = Resources.Load<PlayableBootstrapSettings>("HuntingInDarkness/PlayableBootstrapSettings");
+            PlayableBootstrapSettings settings = PlayableContentSourcePlayModeAssets.LoadBundle()?.Settings;
             if (contentCandidate == null)
             {
                 Assert.That(settings, Is.Not.Null);
                 PlayableSymptomRuntime.Configure(settings.Symptoms);
-                Assert.That(PlayableCampaignContentAssembler.TryBuild(settings, out contentCandidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourcePlayModeAssets.LoadBundle(), out contentCandidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
                 Assert.That(PlayableCampaignContentAssembler.Install(contentCandidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
                 destinationCatalog = contentCandidate.HuntDestinations;
             }

@@ -11,6 +11,7 @@ using UnityEngine;
 public partial class GameApp
 {
     private static bool _entered;
+    public static bool IsEntered => _entered;
 
     /// <summary>
     /// 游戏逻辑主入口。
@@ -47,6 +48,9 @@ public partial class GameApp
         }
 
         if (PlayableGameBootstrap.EnsureInstalled()) return true;
+
+        if (PlayableContentSourceSystem.IsValid)
+            PlayableContentSourceSystem.Instance.Release();
 
         Log.Error("Hunting in Darkness startup aborted: the active scene is not the configured playable entry scene or its bootstrap settings are missing.");
         return false;

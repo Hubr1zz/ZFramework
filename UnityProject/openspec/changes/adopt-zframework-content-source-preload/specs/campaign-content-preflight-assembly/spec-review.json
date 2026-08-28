@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 5,
+  "capability": "campaign-content-preflight-assembly",
+  "title": "战役内容源预检装配",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {"status": "verified", "summary": "Candidate 只消费已校验 Bundle，事务装配定向测试通过。", "codeEvidence": [{"guid": "e720a0551a464b15a2f65f1e82fc4a4a", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs", "fileHash": "e940bd1f2ca249a7eb8aab49e5a184f63fe52ac45338f154d7aa241a3ba343cd", "line": 23, "feature": "从显式 Bundle 构建并事务发布 Campaign 内容候选", "status": "verified", "checkedAt": "2026-08-28T08:42:36-07:00"}], "evidence": ["装配事务 EditMode 18/18。"], "differences": ["正式 Spec 的候选输入仍只描述 Settings。"], "verifiedAt": "2026-08-28T08:42:36-07:00"},
+  "gapIds": [], "dependencyIds": ["campaign-content-preflight-assembly--requires--zframework-startup-lifecycle"], "sourceReferences": ["formal::campaign-content-preflight-assembly"], "implementationOutline": ["Manifest 校验并冻结 Bundle；Assembler 验证 Bundle/血脉/Settings；沿既有事务发布事件、营地和狩猎世代。"], "reviewIssues": []
+}

@@ -20,10 +20,16 @@ namespace HuntingInDarkness.Bootstrap
             installationFailureProbe = null;
         }
 
-        public static bool TryBuild(PlayableBootstrapSettings settings, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport report)
+        public static bool TryBuild(PlayableContentSourceBundle sourceBundle, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport report)
         {
             candidate = null;
             report = new PlayableContentDiagnosticReport();
+            if (sourceBundle == null)
+            {
+                report.AddError("bootstrap.sources.missing", "缺少可游玩内容源 Bundle。");
+                return false;
+            }
+            PlayableBootstrapSettings settings = sourceBundle.Settings;
             if (settings == null)
             {
                 report.AddError("bootstrap.missing", "缺少可游玩启动配置。");
@@ -31,9 +37,12 @@ namespace HuntingInDarkness.Bootstrap
             }
             if (!settings.CanCreateGame)
                 report.AddError("bootstrap.incomplete", "启动配置缺少必需的营地、狩猎或角色内容。");
+            var bloodlineContent = new PlayableBloodlineTable(sourceBundle.BloodlinesTable);
+            if (bloodlineContent is PlayableBloodlineTable bloodlineTable && !bloodlineTable.IsValid)
+                report.AddError("bootstrap.bloodlines.invalid", "血脉内容表为空或包含无效记录。");
             ValidateHuntContent(settings, report);
             if (report.HasErrors) return false;
-            candidate = new PlayableCampaignContentCandidate(settings);
+            candidate = new PlayableCampaignContentCandidate(sourceBundle, bloodlineContent);
             return true;
         }
 
@@ -64,7 +73,7 @@ namespace HuntingInDarkness.Bootstrap
             try
             {
                 runtimeSnapshot = new PlayableCampaignRuntimeSnapshot();
-                stagedGeneration = PlayableEventTableRuntime.PrepareGeneration(candidate.Symptoms, PlayableBloodlineRuntime.Content);
+                stagedGeneration = PlayableEventTableRuntime.PrepareGeneration(candidate.Symptoms, candidate.BloodlineContent, candidate.SourceBundle);
                 if (stagedGeneration.HasErrors)
                     return FailAndRollback(report, "candidate.events.invalid", stagedGeneration.Diagnostic, candidate, runtimeSnapshot, stagedGeneration, previousGeneration, generationPublished, stagedSettlementPlan, previousSettlementPlan, settlementPlanPublished, stagedHuntBundle, previousHuntBundle, huntBundlePublished);
                 ThrowIfInstallationFailureRequested("after-event-prepare");

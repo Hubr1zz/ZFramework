@@ -3,6 +3,7 @@ using HuntingInDarkness.ContentTables;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Settlement;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace HuntingInDarkness.Adapter.Tests
@@ -12,7 +13,7 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public void TraitTable_ResolvesStableIdsAndLegacyDisplayNames()
         {
-            TextAsset table = Resources.Load<TextAsset>("HuntingInDarkness/Tables/traits");
+            TextAsset table = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/AssetRaw/Configs/HuntingInDarkness/Tables/traits.json");
 
             bool loaded = PlayableTraitCatalog.TryLoad(table, out PlayableTraitCatalog catalog, out string reason);
 
@@ -25,7 +26,7 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public void Migration_NormalizesLegacyTraitsOnceAndPreservesUnknownContent()
         {
-            TextAsset table = Resources.Load<TextAsset>("HuntingInDarkness/Tables/traits");
+            TextAsset table = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/AssetRaw/Configs/HuntingInDarkness/Tables/traits.json");
             Assert.That(PlayableTraitCatalog.TryLoad(table, out PlayableTraitCatalog catalog, out string reason), Is.True, reason);
             var settlement = new SettlementInstance
             {
@@ -74,7 +75,7 @@ namespace HuntingInDarkness.Adapter.Tests
         [Test]
         public void TraitTable_ProjectsConfiguredGameplayKeywords()
         {
-            TextAsset table = Resources.Load<TextAsset>("HuntingInDarkness/Tables/traits");
+            TextAsset table = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/AssetRaw/Configs/HuntingInDarkness/Tables/traits.json");
             Assert.That(PlayableTraitCatalog.TryLoad(table, out PlayableTraitCatalog catalog, out string reason), Is.True, reason);
             var keywords = new HashSet<string>();
 

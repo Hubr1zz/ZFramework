@@ -15,7 +15,6 @@ namespace HuntingInDarkness.Bootstrap
     /// </summary>
     public sealed class PlayableGameBootstrap : MonoBehaviour
     {
-        private const string SettingsPath = "HuntingInDarkness/PlayableBootstrapSettings";
         private static bool installed;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -39,39 +38,38 @@ namespace HuntingInDarkness.Bootstrap
                 return true;
             }
 
-            var settings = Resources.Load<PlayableBootstrapSettings>(SettingsPath);
+            PlayableContentSourceBundle sourceBundle = PlayableContentSourceSystem.CurrentBundle;
+            PlayableBootstrapSettings settings = sourceBundle?.Settings;
             if (settings == null || SceneManager.GetActiveScene().name != settings.EntrySceneName) return false;
 
-            installed = true;
             var installerObject = new GameObject("HuntingInDarkness Runtime Bootstrap");
-            installerObject.AddComponent<PlayableGameBootstrap>();
+            PlayableGameBootstrap bootstrap = installerObject.AddComponent<PlayableGameBootstrap>();
+            if (!bootstrap.Initialize(sourceBundle, settings))
+            {
+                if (Application.isPlaying) Destroy(installerObject);
+                else DestroyImmediate(installerObject);
+                return false;
+            }
+            installed = true;
             return true;
         }
 
         /// <summary>安装可游玩流程必需的世界空间输入端口；不受旧屏幕 HUD 可见性控制。</summary>
         public static void EnsureRequiredWorldSpacePorts(GameObject host, GameManager manager, PlayableBootstrapSettings settings) => PlayableSettlementWorldSpacePortInstaller.EnsureInstalled(host, manager, settings);
 
-        private void Start()
+        private bool Initialize(PlayableContentSourceBundle sourceBundle, PlayableBootstrapSettings settings)
         {
-            if (GameManager.Instance != null) return;
-
-            var settings = Resources.Load<PlayableBootstrapSettings>(SettingsPath);
-            if (settings == null)
+            if (sourceBundle == null || settings == null)
             {
-                Debug.LogError($"[PlayableGameBootstrap] 缺少 Resources/{SettingsPath}.asset，游戏无法启动。", this);
-                return;
+                Debug.LogError("[PlayableGameBootstrap] 缺少已准备的 Hunting in Darkness 内容源 Manifest，游戏无法启动。", this);
+                return false;
             }
 
-            if (!PlayableCampaignContentAssembler.TryBuild(settings, out PlayableCampaignContentCandidate contentCandidate, out PlayableContentDiagnosticReport buildReport))
+            Core.LocalizationManager.ConfigureBundledFont(sourceBundle.ChineseFont);
+            if (!PlayableCampaignContentAssembler.TryBuild(sourceBundle, out PlayableCampaignContentCandidate contentCandidate, out PlayableContentDiagnosticReport buildReport))
             {
                 Debug.LogError($"[PlayableGameBootstrap] 内容装配失败：{buildReport}", settings);
-                return;
-            }
-
-            if (!PlayableCampaignContentAssembler.Install(contentCandidate, out PlayableContentDiagnosticReport installReport))
-            {
-                Debug.LogError($"[PlayableGameBootstrap] 内容安装失败：{installReport}", settings);
-                return;
+                return false;
             }
 
             var managerObject = new GameObject("GameManager (Playable)");
@@ -88,7 +86,13 @@ namespace HuntingInDarkness.Bootstrap
             {
                 Debug.LogError("[PlayableGameBootstrap] GameManager 战役配置被拒绝。", manager);
                 Destroy(managerObject);
-                return;
+                return false;
+            }
+            if (!PlayableCampaignContentAssembler.Install(contentCandidate, out PlayableContentDiagnosticReport installReport))
+            {
+                Debug.LogError($"[PlayableGameBootstrap] 内容安装失败：{installReport}", settings);
+                Destroy(managerObject);
+                return false;
             }
             EnsureRequiredWorldSpacePorts(gameObject, manager, settings);
             managerObject.SetActive(true);
@@ -105,6 +109,8 @@ namespace HuntingInDarkness.Bootstrap
                 gameObject.AddComponent<PlayableOpeningSequence3D>().Initialize(manager, settings);
 
             Debug.Log("[PlayableGameBootstrap] 可游玩流程已接入 ZFramework 启动场景。", this);
+            return true;
         }
+
     }
 }

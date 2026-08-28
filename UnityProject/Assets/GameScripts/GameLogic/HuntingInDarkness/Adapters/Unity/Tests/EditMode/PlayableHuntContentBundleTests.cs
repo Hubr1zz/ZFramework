@@ -441,7 +441,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
         private static void ConfigureItems(params ItemData[] additionalItems)
         {
-            var items = new List<ItemData>(PlayableItemTableRuntime.GetItems());
+            var items = new List<ItemData>(PlayableItemTableRuntime.GetItems(PlayableContentSourceTestAssets.LoadBundle().ItemsTable));
             items.AddRange(additionalItems ?? System.Array.Empty<ItemData>());
             PlayableSettlementItemRegistry.Configure(items);
         }

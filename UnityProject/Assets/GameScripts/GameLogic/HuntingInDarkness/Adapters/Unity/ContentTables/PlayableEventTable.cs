@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Content;
 using HuntingInDarkness.GameCore.Hunters;
@@ -82,26 +83,23 @@ namespace HuntingInDarkness.ContentTables
 
     public sealed class JsonEventTableSource : IContentTableSource<EventTableRecord>
     {
-        private readonly string resourcePath;
+        private readonly TextAsset tableAsset;
+        private readonly string sourceName;
 
-        public JsonEventTableSource(string resourcePath)
+        public JsonEventTableSource(TextAsset tableAsset, string sourceName)
         {
-            this.resourcePath = resourcePath;
+            this.tableAsset = tableAsset;
+            this.sourceName = sourceName ?? string.Empty;
         }
 
         public IReadOnlyList<EventTableRecord> Load()
         {
-            TextAsset tableAsset = Resources.Load<TextAsset>(resourcePath);
-            if (tableAsset == null)
-            {
-                Debug.LogWarning($"[ContentTable] 未找到事件表 Resources/{resourcePath}.json");
-                return Array.Empty<EventTableRecord>();
-            }
+            if (tableAsset == null) return Array.Empty<EventTableRecord>();
 
             EventTableDocument document = JsonUtility.FromJson<EventTableDocument>(tableAsset.text);
             if (document?.events == null)
             {
-                Debug.LogError($"[ContentTable] 事件表格式无效：{resourcePath}");
+                Debug.LogError($"[ContentTable] 事件表格式无效：{sourceName}");
                 return Array.Empty<EventTableRecord>();
             }
             if (document.version != 1)
@@ -185,10 +183,6 @@ namespace HuntingInDarkness.ContentTables
     /// <summary>把表数据映射为旧 EventData，并按稳定 ID 支持内容注入与覆盖。</summary>
     public static class PlayableEventTableRuntime
     {
-        private const string TablePath = "HuntingInDarkness/Tables/events";
-        private const string BloodlineTablePath = "HuntingInDarkness/Tables/bloodline-events";
-        private const string CardInteractionTablePath = "HuntingInDarkness/Tables/card-interaction-events";
-        private const string HuntTablePath = "HuntingInDarkness/Tables/hunt-events";
         private static List<EventTableRecord> cachedRecords;
         private static PlayableEventTableGeneration currentGeneration;
 
@@ -214,15 +208,17 @@ namespace HuntingInDarkness.ContentTables
         }
 
         /// <summary>在正式内容装配边界重建事件表缓存。</summary>
-        public static IReadOnlyList<EventData> Rebuild()
+        public static IReadOnlyList<EventData> Rebuild() => Rebuild(PlayableContentSourceSystem.CurrentBundle);
+
+        public static IReadOnlyList<EventData> Rebuild(PlayableContentSourceBundle sourceBundle)
         {
             if (PlayableSettlementContentRuntime.IsEventGenerationLeased(currentGeneration) || PlayableHuntContentRuntime.IsEventGenerationLeased(currentGeneration))
             {
                 Debug.LogError("[PlayableEventTable] 活动营地内容计划仍在使用当前事件世代，拒绝重建缓存。");
                 return currentGeneration.Events;
             }
-            IReadOnlyList<EventTableRecord> retryRecords = currentGeneration != null && currentGeneration.HasErrors ? currentGeneration.Records : null;
-            PlayableEventTableGeneration replacement = BuildGeneration(PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, retryRecords, true);
+            IReadOnlyList<EventTableRecord> records = currentGeneration != null && currentGeneration.HasErrors ? currentGeneration.Records : LoadRecords(sourceBundle);
+            PlayableEventTableGeneration replacement = BuildGeneration(PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, records);
             if (replacement.HasErrors)
             {
                 RetireGeneration(replacement);
@@ -290,13 +286,13 @@ namespace HuntingInDarkness.ContentTables
         public static IReadOnlyList<EventData> GetEvents()
         {
             if (currentGeneration != null) return currentGeneration.Events;
-            PlayableEventTableGeneration replacement = BuildGeneration(PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, cachedRecords, false);
+            PlayableEventTableGeneration replacement = BuildGeneration(PlayableSymptomRuntime.Catalog, PlayableBloodlineRuntime.Content, cachedRecords);
             PlayableEventTableGeneration retired = SwapGeneration(replacement);
             RetireGeneration(retired);
             return replacement.Events;
         }
 
-        internal static PlayableEventTableGeneration PrepareGeneration(PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent) => BuildGeneration(symptomCatalog, bloodlineContent, null, true);
+        internal static PlayableEventTableGeneration PrepareGeneration(PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent, PlayableContentSourceBundle sourceBundle) => BuildGeneration(symptomCatalog, bloodlineContent, LoadRecords(sourceBundle));
         internal static PlayableEventTableGeneration CurrentGeneration => currentGeneration;
 
         internal static PlayableEventTableGeneration SwapGeneration(PlayableEventTableGeneration replacement)
@@ -314,9 +310,9 @@ namespace HuntingInDarkness.ContentTables
             generation.Dispose();
         }
 
-        private static PlayableEventTableGeneration BuildGeneration(PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent, IReadOnlyList<EventTableRecord> sourceRecords, bool forceReload)
+        private static PlayableEventTableGeneration BuildGeneration(PlayableSymptomCatalog symptomCatalog, IHunterBloodlineContent bloodlineContent, IReadOnlyList<EventTableRecord> sourceRecords)
         {
-            List<EventTableRecord> records = sourceRecords != null ? new List<EventTableRecord>(sourceRecords) : LoadRecords(forceReload);
+            List<EventTableRecord> records = sourceRecords != null ? new List<EventTableRecord>(sourceRecords) : new List<EventTableRecord>();
             var generation = new PlayableEventTableGeneration(records, symptomCatalog, bloodlineContent);
             try
             {
@@ -361,13 +357,14 @@ namespace HuntingInDarkness.ContentTables
             }
         }
 
-        private static List<EventTableRecord> LoadRecords(bool forceReload)
+        private static List<EventTableRecord> LoadRecords(PlayableContentSourceBundle sourceBundle)
         {
-            if (!forceReload && cachedRecords != null) return new List<EventTableRecord>(cachedRecords);
-            var records = new List<EventTableRecord>(new JsonEventTableSource(TablePath).Load());
-            records.AddRange(new JsonEventTableSource(BloodlineTablePath).Load());
-            records.AddRange(new JsonEventTableSource(CardInteractionTablePath).Load());
-            records.AddRange(new JsonEventTableSource(HuntTablePath).Load());
+            var records = new List<EventTableRecord>();
+            if (sourceBundle == null) return records;
+            records.AddRange(new JsonEventTableSource(sourceBundle.EventsTable, "events").Load());
+            records.AddRange(new JsonEventTableSource(sourceBundle.BloodlineEventsTable, "bloodline-events").Load());
+            records.AddRange(new JsonEventTableSource(sourceBundle.CardInteractionEventsTable, "card-interaction-events").Load());
+            records.AddRange(new JsonEventTableSource(sourceBundle.HuntEventsTable, "hunt-events").Load());
             return records;
         }
 

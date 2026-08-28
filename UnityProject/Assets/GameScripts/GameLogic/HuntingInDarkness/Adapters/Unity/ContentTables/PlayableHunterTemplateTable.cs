@@ -50,28 +50,28 @@ namespace HuntingInDarkness.ContentTables
 
     public sealed class JsonHunterTemplateTableSource : IContentTableSource<HunterTemplateTableRecord>
     {
-        private readonly string resourcePath;
+        private readonly string sourceName;
         private readonly TextAsset tableAsset;
 
-        public JsonHunterTemplateTableSource(string resourcePath, TextAsset tableAsset = null)
+        public JsonHunterTemplateTableSource(string sourceName, TextAsset tableAsset)
         {
-            this.resourcePath = resourcePath;
+            this.sourceName = sourceName;
             this.tableAsset = tableAsset;
         }
 
         public IReadOnlyList<HunterTemplateTableRecord> Load()
         {
-            TextAsset source = tableAsset != null ? tableAsset : Resources.Load<TextAsset>(resourcePath);
+            TextAsset source = tableAsset;
             if (source == null)
             {
-                Debug.LogWarning($"[ContentTable] 未找到猎人模板表 Resources/{resourcePath}.json");
+                Debug.LogWarning($"[ContentTable] 缺少猎人模板表内容源：{sourceName}");
                 return Array.Empty<HunterTemplateTableRecord>();
             }
 
             HunterTemplateTableDocument document = JsonUtility.FromJson<HunterTemplateTableDocument>(source.text);
             if (document?.hunters == null)
             {
-                Debug.LogError($"[ContentTable] 猎人模板表格式无效：{resourcePath}");
+                Debug.LogError($"[ContentTable] 猎人模板表格式无效：{sourceName}");
                 return Array.Empty<HunterTemplateTableRecord>();
             }
             if (document.version != 1)

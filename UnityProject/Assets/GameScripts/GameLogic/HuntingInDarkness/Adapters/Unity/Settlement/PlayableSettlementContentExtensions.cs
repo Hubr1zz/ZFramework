@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.ContentTables;
 using UnityEngine;
@@ -7,8 +9,6 @@ namespace HuntingInDarkness.Settlement
 {
     public static class PlayableSettlementContentExtensions
     {
-        private const string ResourcePath = "HuntingInDarkness/SettlementExtensions";
-
         public static void Extend(IReadOnlyList<ItemData> baseItems, IReadOnlyList<CraftRecipe> baseRecipes, out List<ItemData> allItems, out List<CraftRecipe> allRecipes)
         {
             Extend(baseItems, baseRecipes, null, out allItems, out allRecipes);
@@ -24,43 +24,56 @@ namespace HuntingInDarkness.Settlement
             allItems = CopyItems(baseItems);
             allRecipes = CopyRecipes(baseRecipes);
             allInventions = CopyInventions(baseInventions);
-            PlayableSettlementContentExtension[] extensions = Resources.LoadAll<PlayableSettlementContentExtension>(ResourcePath);
-            System.Array.Sort(extensions, (left, right) => string.CompareOrdinal(left.name, right.name));
-
-            foreach (PlayableSettlementContentExtension extension in extensions)
-            {
-                if (extension == null) continue;
-                AppendItems(allItems, extension.Items);
-                AppendRecipes(allRecipes, extension.Recipes);
-            }
+            AppendExplicitExtensions(allItems, allRecipes, Array.Empty<PlayableSettlementContentExtension>());
             AppendItems(allItems, PlayableItemTableRuntime.GetItems());
             AppendInventions(allInventions, PlayableInventionTableRuntime.GetInventions(inventionTable, allItems, baseInventions));
-            AppendRecipes(allRecipes, PlayableCraftRecipeTableRuntime.GetRecipes(allItems, allInventions));
             AppendRecipeItems(allItems, allRecipes);
         }
 
-        internal static void Prepare(IReadOnlyList<ItemData> baseItems, IReadOnlyList<CraftRecipe> baseRecipes, IReadOnlyList<InventionData> baseInventions, TextAsset inventionTable, IReadOnlyList<EventData> events, PlayableSettlementContentOwnership ownership, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions, System.Action<string> reportError)
+        public static void Extend(IReadOnlyList<ItemData> baseItems, IReadOnlyList<CraftRecipe> baseRecipes, IReadOnlyList<InventionData> baseInventions, TextAsset inventionTable, PlayableContentSourceBundle sourceBundle, IReadOnlyList<EventData> events, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions)
         {
             allItems = CopyItems(baseItems);
             allRecipes = CopyRecipes(baseRecipes);
             allInventions = CopyInventions(baseInventions);
-            PlayableSettlementContentExtension[] extensions = Resources.LoadAll<PlayableSettlementContentExtension>(ResourcePath);
-            System.Array.Sort(extensions, (left, right) => string.CompareOrdinal(left.name, right.name));
-            foreach (PlayableSettlementContentExtension extension in extensions)
-            {
-                if (extension == null) continue;
-                AppendItems(allItems, extension.Items);
-                AppendRecipes(allRecipes, extension.Recipes);
-            }
+            if (sourceBundle == null) return;
+            AppendExplicitExtensions(allItems, allRecipes, sourceBundle.SettlementExtensions);
+            AppendItems(allItems, PlayableItemTableRuntime.BuildTable(sourceBundle.ItemsTable, null));
+            AppendInventions(allInventions, PlayableInventionTableRuntime.BuildTable(inventionTable, allItems, baseInventions, events ?? Array.Empty<EventData>(), null));
+            AppendRecipes(allRecipes, PlayableCraftRecipeTableRuntime.BuildTable(sourceBundle.RecipesTable, allItems, allInventions, null));
+            AppendRecipeItems(allItems, allRecipes);
+        }
 
-            List<ItemData> generatedItems = PlayableItemTableRuntime.BuildTable(reportError);
+        internal static void Prepare(IReadOnlyList<ItemData> baseItems, IReadOnlyList<CraftRecipe> baseRecipes, IReadOnlyList<InventionData> baseInventions, TextAsset inventionTable, IReadOnlyList<EventData> events, PlayableContentSourceBundle sourceBundle, PlayableSettlementContentOwnership ownership, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions, System.Action<string> reportError)
+        {
+            allItems = CopyItems(baseItems);
+            allRecipes = CopyRecipes(baseRecipes);
+            allInventions = CopyInventions(baseInventions);
+            if (sourceBundle == null)
+            {
+                reportError?.Invoke("缺少 Settlement 内容源 Bundle。");
+                return;
+            }
+            AppendExplicitExtensions(allItems, allRecipes, sourceBundle.SettlementExtensions);
+
+            List<ItemData> generatedItems = PlayableItemTableRuntime.BuildTable(sourceBundle.ItemsTable, reportError);
             ownership.OwnRange(generatedItems);
             AppendItems(allItems, generatedItems);
             List<InventionData> generatedInventions = PlayableInventionTableRuntime.BuildTable(inventionTable, allItems, baseInventions, events, reportError);
             ownership.OwnRange(generatedInventions);
             AppendInventions(allInventions, generatedInventions);
-            AppendRecipes(allRecipes, PlayableCraftRecipeTableRuntime.BuildTable(allItems, allInventions, reportError));
+            AppendRecipes(allRecipes, PlayableCraftRecipeTableRuntime.BuildTable(sourceBundle.RecipesTable, allItems, allInventions, reportError));
             AppendRecipeItems(allItems, allRecipes);
+        }
+
+        private static void AppendExplicitExtensions(List<ItemData> allItems, List<CraftRecipe> allRecipes, IReadOnlyList<PlayableSettlementContentExtension> extensions)
+        {
+            if (extensions == null) return;
+            foreach (PlayableSettlementContentExtension extension in extensions)
+            {
+                if (extension == null) continue;
+                AppendItems(allItems, extension.Items);
+                AppendRecipes(allRecipes, extension.Recipes);
+            }
         }
 
         private static List<ItemData> CopyItems(IReadOnlyList<ItemData> source)

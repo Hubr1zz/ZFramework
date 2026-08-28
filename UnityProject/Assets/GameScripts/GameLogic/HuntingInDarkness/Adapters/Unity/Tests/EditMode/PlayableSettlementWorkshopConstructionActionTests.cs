@@ -104,7 +104,7 @@ namespace HuntingInDarkness.Adapter.Tests
 
         private static TestContext CreateContext(string workshopId = null)
         {
-            PlayableWorkshopCatalog catalog = Resources.Load<PlayableWorkshopCatalog>("HuntingInDarkness/PlayableWorkshopCatalog");
+            PlayableWorkshopCatalog catalog = PlayableContentSourceTestAssets.LoadBundle().Settings.WorkshopContent;
             Assert.That(catalog, Is.Not.Null);
             Assert.That(catalog.Workshops, Is.Not.Empty);
             PlayableWorkshopDefinition definition = workshopId == null ? catalog.Workshops[0] : catalog.Workshops.Single(workshop => workshop.WorkshopId == workshopId);

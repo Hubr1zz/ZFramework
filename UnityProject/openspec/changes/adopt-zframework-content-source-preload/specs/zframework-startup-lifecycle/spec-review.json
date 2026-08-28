@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 5,
+  "capability": "zframework-startup-lifecycle",
+  "title": "ZFramework 启动期内容源预载",
+  "category": "system",
+  "readiness": "implemented",
+  "verification": {"status": "verified", "summary": "Procedure 在内容源准备成功后才进入 GameApp，失败保持 Launcher。", "codeEvidence": [{"guid": "62121fa43bc144049bf4a15006dba945", "displayPath": "Assets/GameScripts/Procedure/ProcedureStartGame.cs", "fileHash": "65f57524a3becfccdfd5f85ede021de8e1a191708e5c7f663bba5f2cda896eb4", "line": 13, "feature": "在进入 GameApp 前等待内容源准备并按进入结果隐藏 Launcher", "status": "verified", "checkedAt": "2026-08-28T08:42:36-07:00"}], "evidence": ["内容源生命周期 EditMode 4/4。"], "differences": ["正式 Spec 尚未记录 Manifest 预载门禁。"], "verifiedAt": "2026-08-28T08:42:36-07:00"},
+  "gapIds": [], "dependencyIds": [], "sourceReferences": ["formal::zframework-startup-lifecycle"], "implementationOutline": ["Procedure await 内容源系统 Prepare；成功后 Entrance；IsEntered 后隐藏 Launcher；Singleton 释放时归还 Manifest。"], "reviewIssues": []
+}

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.ContentTables;
+using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.GameCore.Settlement;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -83,7 +84,8 @@ namespace HuntingInDarkness.Settlement
                 return false;
             }
             PlayableEventTableRuntime.GetEvents();
-            if (!TryPreparePlan(PlayableEventTableRuntime.CurrentGeneration, out PlayableSettlementContentPlan replacement, out string reason))
+            PlayableContentSourceBundle sourceBundle = PlayableContentSourceSystem.CurrentBundle;
+            if (!TryPreparePlan(PlayableEventTableRuntime.CurrentGeneration, sourceBundle, out PlayableSettlementContentPlan replacement, out string reason))
             {
                 Debug.LogError($"[SettlementManager] {reason}");
                 return false;
@@ -100,7 +102,7 @@ namespace HuntingInDarkness.Settlement
             return false;
         }
 
-        internal bool TryPreparePlan(PlayableEventTableGeneration eventGeneration, out PlayableSettlementContentPlan plan, out string reason)
+        internal bool TryPreparePlan(PlayableEventTableGeneration eventGeneration, PlayableContentSourceBundle sourceBundle, out PlayableSettlementContentPlan plan, out string reason)
         {
             plan = null;
             reason = string.Empty;
@@ -116,7 +118,7 @@ namespace HuntingInDarkness.Settlement
             try
             {
                 if (!PlayableTraitCatalog.TryLoad(traitTable, out PlayableTraitCatalog traitCatalog, out string traitReason)) errors.Add(traitReason);
-                PlayableSettlementContentExtensions.Prepare(GetKnownItems(), recipes, inventions, inventionTable, tableEvents, ownership, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions, errors.Add);
+                PlayableSettlementContentExtensions.Prepare(GetKnownItems(), recipes, inventions, inventionTable, tableEvents, sourceBundle, ownership, out List<ItemData> allItems, out List<CraftRecipe> allRecipes, out List<InventionData> allInventions, errors.Add);
                 bool dutiesValid = PlayableFacilityDutyTable.Build(facilityDutyTable, allInventions, out List<SettlementFacilityDutyDefinition> facilityDuties, errors.Add);
                 bool huntersValid = PlayableHunterTemplateTableRuntime.Extend(startingHunters, recruitmentTemplates, allItems, hunterTable, out List<HunterData> allStartingHunters, out List<HunterData> allRecruitmentTemplates, out List<HunterData> generatedHunters, errors.Add);
                 ownership.OwnRange(generatedHunters);

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 5,
+  "capability": "settlement-content-plan-lifecycle",
+  "title": "营地内容计划显式来源",
+  "category": "architecture",
+  "readiness": "implemented",
+  "verification": {"status": "verified", "summary": "Settlement Plan 从同一 Bundle 和显式 Catalog 表引用构建，相关表测试通过。", "codeEvidence": [{"guid": "89da669e4924d43409fe89475adc272b", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs", "fileHash": "2955017e290c09fb7c7e02cc156714cac19067eef94f118cf873641e3951d30c", "line": 105, "feature": "使用显式 Bundle 和 Catalog 表引用离线准备营地内容计划", "status": "verified", "checkedAt": "2026-08-28T08:42:36-07:00"}], "evidence": ["相关内容表 EditMode 45/45。"], "differences": ["正式 Spec 尚未禁止 Resources 路径扫描。"], "verifiedAt": "2026-08-28T08:42:36-07:00"},
+  "gapIds": [], "dependencyIds": ["settlement-content-plan-lifecycle--requires--campaign-content-preflight-assembly"], "sourceReferences": ["formal::settlement-content-plan-lifecycle"], "implementationOutline": ["Plan 从 Bundle 读取扩展、物品和配方，从 Catalog 读取特性、猎人及设施表；统一校验后一次发布。"], "reviewIssues": []
+}

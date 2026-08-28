@@ -1,0 +1,12 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的采纳对账：通过 ZFramework/YooAsset 预载并注入完整 Hunting in Darkness 内容源闭包。",
+  "sourceRoots": ["openspec/specs", "Assets/GameScripts/GameLogic/HuntingInDarkness", "Assets/AssetRaw"],
+  "sourceReferences": [
+    "conversation::2026-08-28",
+    "formal::zframework-startup-lifecycle",
+    "formal::campaign-content-preflight-assembly",
+    "formal::settlement-content-plan-lifecycle",
+    "formal::player-build-bootstrap"
+  ]
+}
