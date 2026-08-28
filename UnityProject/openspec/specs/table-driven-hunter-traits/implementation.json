@@ -82,22 +82,32 @@
         "status": "verified",
         "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "验证真实营地候选投影把旧特性显示名迁移为稳定 ID 后才替换权威运行图。"
+      },
+      {
+        "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+        "line": 302,
+        "fileHash": "e903e04fef8a1d570b3d556c1bc9ceb5f9dbbe3f820f43292502125904ef54b3",
+        "status": "verified",
+        "checkedAt": "2026-08-28T01:32:10-07:00",
+        "feature": "验证事件授予稳定 trait_stone_speaker、装备档案显示本地化名称，并在重新反序列化后继续控制后续事件的行动者可用性。"
       }
     ],
     "tests": [
       "PlayableTraitIdentityTests: 5/5 passed",
       "PlayableCampaignContentAssemblerTests: 14/14 passed",
-      "PlayableConditionalEventOptionTests: 12/12 passed",
+      "PlayableConditionalEventOptionTests: 15/15 passed",
       "PlayableHunterTemplateTableTests: 5/5 passed",
       "PlayableGrowthMilestoneTests: 2/2 passed",
       "PlayableSettlementSymptomActionTests: 5/5 passed",
-      "PlayableSettlementActionSessionTests: 33/33 passed",
+      "PlayableSettlementActionSessionTests: 39/39 passed",
       "PlayableSettlementProjectionTransactionTests: 4/4 passed",
       "CampaignSaveStorageTests: 13/13 passed",
       "HuntingInDarkness.GameCore.Tests: 157/157 passed",
-      "HunterEquipmentPanel3DPlayModeTests: 5/5 passed"
+      "HunterEquipmentPanel3DPlayModeTests: 5/5 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 4/4 passed"
     ],
-    "verifiedAt": "2026-08-27T11:36:18-07:00"
+    "verifiedAt": "2026-08-28T01:32:10-07:00"
   },
   "implementationOutline": [
     "版本化 traits.json 在营地内容计划构建时形成不可变身份目录，并对跨内容引用执行 fail-closed 预检。",

@@ -33,9 +33,9 @@
         "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
         "line": 197,
-        "fileHash": "c82ff65113df408bca1dae8e1a0a33bd95c5ec4602fcd5733cb5d8d9466d3eb2",
+        "fileHash": "e903e04fef8a1d570b3d556c1bc9ceb5f9dbbe3f820f43292502125904ef54b3",
         "status": "verified",
-        "checkedAt": "2026-08-28T01:13:32-07:00",
+        "checkedAt": "2026-08-28T01:32:10-07:00",
         "feature": "验证 3D 营地事件获得低语症、存档继续及指定猎人在 Hunt 中解锁症状分支。"
       },
       {
@@ -78,9 +78,9 @@
     "tests": [
       "EventOptionAvailabilityRulesTests: 7/7 passed",
       "PlayableConditionalEventOptionTests: 15/15 passed",
-      "PlayableSettlementEventProductionLoopPlayModeTests: 3/3 passed"
+      "PlayableSettlementEventProductionLoopPlayModeTests: 4/4 passed"
     ],
-    "verifiedAt": "2026-08-28T01:19:12-07:00"
+    "verifiedAt": "2026-08-28T01:32:10-07:00"
   },
   "implementationOutline": [
     "读表内容使用稳定症状 ID，显示名与 alias 仅用于旧存档迁移。",

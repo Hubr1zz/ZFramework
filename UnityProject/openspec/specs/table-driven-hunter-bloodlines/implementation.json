@@ -8,7 +8,7 @@
   "progress": 100,
   "verification": {
     "status": "verified",
-    "summary": "血脉定义由独立 Resources 表提供；猎人在招募提交前按权重获得稳定身份，存档同步只刷新已知身份的显示缓存；血脉条件与激活效果经统一事件表和 Settlement ActionQueue 根提交。",
+    "summary": "血脉定义由独立 Resources 表提供；猎人在招募提交前按权重获得稳定身份，存档同步只刷新已知身份的显示缓存；生产 3D 事件链已验证血脉激活、特性授予、序列化恢复及后续条件选项解锁均经 Settlement ActionQueue 根提交。",
     "validatedAgainstSpecHash": "87e5157db79c9d2a9c5f388268633c205ac98e36e594b17aaa28645d04bd0053",
     "evidence": [
       {
@@ -64,16 +64,26 @@
         "status": "verified",
         "checkedAt": "2026-08-25T17:06:01-07:00",
         "feature": "以独立内容表配置三类血脉觉醒选项、条件、激活和特性授予，不修改基础事件记录。"
+      },
+      {
+        "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
+        "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
+        "line": 302,
+        "fileHash": "e903e04fef8a1d570b3d556c1bc9ceb5f9dbbe3f820f43292502125904ef54b3",
+        "status": "verified",
+        "checkedAt": "2026-08-28T01:32:10-07:00",
+        "feature": "以正式内容和世界空间 3D 卡牌验证听石之血觉醒、石语者唯一授予、真实保存载荷恢复、后续特性选项解锁与资源提交。"
       }
     ],
     "tests": [
       "HunterBloodlineRulesTests: 3/3 passed",
       "PlayableBloodlineContentTests: 2/2 passed",
-      "PlayableConditionalEventOptionTests: 10/10 passed",
+      "PlayableConditionalEventOptionTests: 15/15 passed",
       "PlayableSettlementCareActionTests: 11/11 passed",
-      "PlayableSettlementActionSessionTests.ResolveEventsAsync_BloodlineActivationCommitsThroughSettlementRoot: 1/1 passed"
+      "PlayableSettlementActionSessionTests: 39/39 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 4/4 passed"
     ],
-    "verifiedAt": "2026-08-25T14:27:10-07:00"
+    "verifiedAt": "2026-08-28T01:32:10-07:00"
   },
   "implementationOutline": [
     "PlayableBloodlineTable 从 Resources JSON 构建稳定、只读的 GameCore 血脉定义，并拒绝歧义身份。",

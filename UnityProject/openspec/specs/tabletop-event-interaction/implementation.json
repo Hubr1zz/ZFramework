@@ -121,27 +121,27 @@
       {
         "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
-        "line": 1,
-        "fileHash": "b68a8fe8540145551b44a4b32260a28e518bc3ae7bc373b2b7bc17e22f7eade5",
+        "line": 302,
+        "fileHash": "e903e04fef8a1d570b3d556c1bc9ceb5f9dbbe3f820f43292502125904ef54b3",
         "status": "verified",
-        "checkedAt": "2026-08-26T04:42:56-07:00",
-        "feature": "以正式设置和内容装配驱动真实世界空间事件卡；安全路线完成子链，风险路线提交 PhysicalDice 1d10 请求。"
+        "checkedAt": "2026-08-28T01:32:10-07:00",
+        "feature": "以正式设置和内容装配驱动真实世界空间事件卡；验证血脉与特性门禁只控制实体行动者卡可用性，规则提交后释放输入并可继续打开实体出猎编队桌。"
       }
     ],
     "tests": [
       "Unity CLI compile: passed",
       "PlayableSettlementWorldSpacePortInstallerTests: 2/2 passed",
       "PlayableSettlementEventViewPlayModeTests: 1/1 passed",
-      "PlayableSettlementActionSessionTests: 33/33 passed",
+      "PlayableSettlementActionSessionTests: 39/39 passed",
       "EventOptionAvailabilityRulesTests: 5/5 passed",
-      "PlayableConditionalEventOptionTests: 12/12 passed",
+      "PlayableConditionalEventOptionTests: 15/15 passed",
       "PlayableEventTableCacheLifecycleTests: 5/5 passed",
       "PlayableSettlementEventContentTests: 4/4 passed",
       "PlayableHuntEventFlowTests: 10/10 passed",
       "PlayableHuntActionSessionTests: 21/21 passed",
-      "PlayableSettlementEventProductionLoopPlayModeTests: 2/2 passed"
+      "PlayableSettlementEventProductionLoopPlayModeTests: 4/4 passed"
     ],
-    "verifiedAt": "2026-08-26T04:42:56-07:00"
+    "verifiedAt": "2026-08-28T01:32:10-07:00"
   },
   "implementationOutline": [
     "Playable bootstrap 始终安装共享 PlayableSettlementEventView，不受旧 HUD 开关控制。",

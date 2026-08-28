@@ -298,6 +298,90 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(manager.SettlementData.CurrentSeasonIndex, Is.EqualTo(1));
         }
 
+        [UnityTest]
+        public IEnumerator StoneListenerBloodline_PersistsAndUnlocksLaterSettlementSolution()
+        {
+            var persistence = new MemoryCampaignPersistence { SnapshotToLoad = CreateBloodlineSettlementSnapshot() };
+            GameManager manager = CreateProductionManager(persistence, new RecordingRandomPresenter(10));
+            UniTask<CampaignStartupResult>.Awaiter continueAttempt = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(continueAttempt);
+            CampaignStartupResult continueResult = continueAttempt.GetResult();
+            Assert.That(continueResult.Succeeded, Is.True, continueResult.Reason);
+
+            PlayableSettlementEventView eventView = managerObject.GetComponent<PlayableSettlementEventView>();
+            HunterInstance listener = manager.SettlementData.GetAliveHunters().First();
+            Assert.That(listener.BloodlineId, Is.EqualTo("stone-listener"));
+            HunterInstance otherHunter = manager.SettlementData.GetAliveHunters().First(hunter => hunter.InstanceId != listener.InstanceId && !hunter.Traits.Contains("trait_stone_speaker"));
+            int listenerId = listener.InstanceId;
+            yield return WaitForChoice(eventView, "侧耳贴近石面，听清沉默中的回声");
+            ClickCard(FindChoice(eventView, "侧耳贴近石面，听清沉默中的回声"));
+            yield return WaitForChoice(eventView, listener.Name);
+            TabletopEventChoiceCard3D[] bloodlineHunters = eventView.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true);
+            Assert.That(bloodlineHunters.Single(card => card.DisplayName == listener.Name).IsInteractable, Is.True);
+            Assert.That(bloodlineHunters.Single(card => card.DisplayName == otherHunter.Name).IsInteractable, Is.False);
+            ClickCard(FindChoice(eventView, listener.Name));
+            yield return WaitForChoice(eventView, "继续");
+            ClickCard(FindChoice(eventView, "继续"));
+            yield return WaitForSettlementIdle(manager);
+
+            Assert.That(listener.IsBloodlineActivated, Is.True);
+            Assert.That(listener.Traits.Count(trait => trait == "trait_stone_speaker"), Is.EqualTo(1));
+            Assert.That(manager.SettlementData.Timeline.Single(entry => entry.EventId == "random_bloodline_awakening").IsCompleted, Is.True);
+            Assert.That(manager.SettlementData.EventMemories.Count(memory => memory.EventId == "random_bloodline_awakening"), Is.EqualTo(1));
+            HunterEquipmentPanel3D equipmentPanel = managerObject.GetComponentInChildren<HunterEquipmentPanel3D>(true);
+            Assert.That(equipmentPanel, Is.Not.Null);
+            equipmentPanel.Show(listener, manager.SettlementData, Array.Empty<ItemData>(), Vector3.zero);
+            string profileText = string.Join("\n", equipmentPanel.GetComponentsInChildren<TMPro.TextMeshPro>(true).Select(text => text.text));
+            Assert.That(profileText, Does.Contain("听石之血 · 已激活").And.Contain("石语者"));
+            equipmentPanel.Hide();
+
+            Assert.That(persistence.SaveCount, Is.GreaterThan(0));
+            Assert.That(persistence.Payload, Is.Not.Null.And.Not.Empty);
+            CampaignSnapshot awakenedSnapshot = JsonUtility.FromJson<CampaignSnapshot>(persistence.Payload);
+            EventData sealedStore = PlayableEventTableRuntime.GetEvents().Single(item => item.ContentId == "random_sealed_store");
+            awakenedSnapshot.Settlement.Timeline.Add(new AnnalEntry { Year = awakenedSnapshot.Settlement.CurrentYear, EventId = sealedStore.ContentId, EventName = sealedStore.eventName, EntryType = TimelineEntryType.Random });
+            int firstMemoryCount = awakenedSnapshot.Settlement.EventMemories.Count;
+            UnityEngine.Object.Destroy(managerObject);
+            managerObject = null;
+            yield return null;
+            persistence.SnapshotToLoad = awakenedSnapshot;
+            manager = CreateProductionManager(persistence, new RecordingRandomPresenter(10));
+            UniTask<CampaignStartupResult>.Awaiter restoreAttempt = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(restoreAttempt);
+            CampaignStartupResult restoreResult = restoreAttempt.GetResult();
+            Assert.That(restoreResult.Succeeded, Is.True, restoreResult.Reason);
+
+            eventView = managerObject.GetComponent<PlayableSettlementEventView>();
+            listener = manager.SettlementData.GetHunter(listenerId);
+            otherHunter = manager.SettlementData.GetAliveHunters().First(hunter => hunter.InstanceId != listenerId && !hunter.Traits.Contains("trait_stone_speaker"));
+            Assert.That(listener.BloodlineId, Is.EqualTo("stone-listener"));
+            Assert.That(listener.IsBloodlineActivated, Is.True);
+            Assert.That(listener.Traits.Count(trait => trait == "trait_stone_speaker"), Is.EqualTo(1));
+            Assert.That(manager.SettlementData.EventMemories.Count(memory => memory.EventId == "random_bloodline_awakening"), Is.EqualTo(1));
+            int initialStone = manager.SettlementData.GetResource("broken_stone");
+            yield return WaitForChoice(eventView, "让理解石头的猎人判断洞壁收拢的节奏");
+            ClickCard(FindChoice(eventView, "让理解石头的猎人判断洞壁收拢的节奏"));
+            yield return WaitForChoice(eventView, listener.Name);
+            TabletopEventChoiceCard3D[] traitHunters = eventView.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true);
+            Assert.That(traitHunters.Single(card => card.DisplayName == listener.Name).IsInteractable, Is.True);
+            Assert.That(traitHunters.Single(card => card.DisplayName == otherHunter.Name).IsInteractable, Is.False);
+            EventOption traitOption = sealedStore.options.Single(option => option.optionId == "read_wall_rhythm");
+            Assert.That(PlayableEventOptionAvailability.CanUse(traitOption, otherHunter, manager.SettlementData, out string unavailableReason), Is.False);
+            Assert.That(unavailableReason, Does.Contain("石语者").And.Not.Contain("trait_stone_speaker"));
+            ClickCard(FindChoice(eventView, listener.Name));
+            yield return WaitForChoice(eventView, "继续");
+            ClickCard(FindChoice(eventView, "继续"));
+            yield return WaitForSettlementIdle(manager);
+
+            Assert.That(manager.SettlementData.GetResource("broken_stone"), Is.EqualTo(initialStone + 2));
+            Assert.That(manager.SettlementData.Timeline.Single(entry => entry.EventId == "random_sealed_store").IsCompleted, Is.True);
+            Assert.That(manager.SettlementData.EventMemories.Count, Is.EqualTo(firstMemoryCount + 1));
+            Assert.That(manager.SettlementData.EventMemories.Count(memory => memory.EventId == "random_sealed_store"), Is.EqualTo(1));
+            Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
+            ClickCard(manager.GetComponentsInChildren<TabletopDepartureLauncherCard3D>(true).Single());
+            yield return WaitUntil(() => managerObject.GetComponent<PlayableHuntDestinationView>().IsPresenting, "血脉事件弧完成后应可继续打开实体出猎编队桌。");
+        }
+
         private GameManager CreateProductionManager(MemoryCampaignPersistence persistence, ITabletopRandomInteractionPresenter presenter)
         {
             managerObject = new GameObject("Playable Settlement Event Production Loop");
@@ -347,6 +431,29 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             source.Data.CurrentYear = 3;
             source.Data.CurrentSeasonIndex = 0;
             EventData gameEvent = PlayableEventTableRuntime.GetEvents().First(item => item.ContentId == "random_whispering_mortar");
+            source.Data.Timeline.Add(new AnnalEntry { Year = 3, EventId = gameEvent.ContentId, EventName = gameEvent.eventName, EntryType = TimelineEntryType.Random });
+            return new CampaignSnapshot { Settlement = source.Data, CampaignSchemaVersion = CampaignSnapshot.CurrentSchemaVersion };
+        }
+
+        private static CampaignSnapshot CreateBloodlineSettlementSnapshot()
+        {
+            var source = new SettlementManager(23);
+            source.EnsureStartingConditions();
+            source.Data.CurrentYear = 3;
+            source.Data.CurrentSeasonIndex = 0;
+            HunterInstance listener = source.Data.GetAliveHunters().First();
+            listener.BloodlineId = "stone-listener";
+            listener.BloodlineName = "听石之血";
+            listener.IsBloodlineActivated = false;
+            listener.Traits.RemoveAll(trait => trait == "trait_stone_speaker");
+            foreach (HunterInstance hunter in source.Data.GetAliveHunters().Where(hunter => hunter.InstanceId != listener.InstanceId))
+            {
+                hunter.BloodlineId = "ember-remembered";
+                hunter.BloodlineName = "余烬之血";
+                hunter.IsBloodlineActivated = false;
+                hunter.Traits.RemoveAll(trait => trait == "trait_stone_speaker");
+            }
+            EventData gameEvent = PlayableEventTableRuntime.GetEvents().Single(item => item.ContentId == "random_bloodline_awakening");
             source.Data.Timeline.Add(new AnnalEntry { Year = 3, EventId = gameEvent.ContentId, EventName = gameEvent.eventName, EntryType = TimelineEntryType.Random });
             return new CampaignSnapshot { Settlement = source.Data, CampaignSchemaVersion = CampaignSnapshot.CurrentSchemaVersion };
         }

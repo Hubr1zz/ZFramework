@@ -122,11 +122,11 @@
       {
         "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
-        "line": 1,
-        "fileHash": "b68a8fe8540145551b44a4b32260a28e518bc3ae7bc373b2b7bc17e22f7eade5",
+        "line": 302,
+        "fileHash": "e903e04fef8a1d570b3d556c1bc9ceb5f9dbbe3f820f43292502125904ef54b3",
         "status": "verified",
-        "checkedAt": "2026-08-26T04:42:56-07:00",
-        "feature": "以 Memory Campaign Persistence 验证正式日程父子链完成后的保存、GameManager 重建、不重放与下一次出猎。"
+        "checkedAt": "2026-08-28T01:32:10-07:00",
+        "feature": "从真实保存 payload 重新反序列化战役，验证血脉激活、稳定特性和事件记忆各保留一次，并可继续提交后续事件与打开下一次出猎入口。"
       }
     ],
     "tests": [
@@ -135,14 +135,14 @@
       "PlayableCampaignPacingTests: 9/9 passed",
       "SettlementEventRestoreProjectionTests: 13/13 passed",
       "ActiveHuntPersistenceTests: 4/4 passed",
-      "PlayableSettlementActionSessionTests: 33/33 passed",
+      "PlayableSettlementActionSessionTests: 39/39 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed",
-      "PlayableSettlementEventProductionLoopPlayModeTests: 2/2 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 4/4 passed",
       "CampaignPersistenceCoordinatorTests: 5/5 passed",
       "Unity CLI EditMode full suite: 763/763 passed",
       "GameManagerCampaignLoopPlayModeTests: 21/21 passed"
     ],
-    "verifiedAt": "2026-08-26T13:10:00-07:00"
+    "verifiedAt": "2026-08-28T01:32:10-07:00"
   },
   "implementationOutline": [
     "GameManager 只提供快照捕获边界；CampaignPersistenceCoordinator 在阶段提交或空闲检查点后冻结稳定载荷。",

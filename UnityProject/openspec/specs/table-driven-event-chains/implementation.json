@@ -123,9 +123,9 @@
         "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
         "line": 1,
-        "fileHash": "cc494237a0797f5c8204867821ac8844cf8ac17a310e43b5fb93c9a1f33126d2",
+        "fileHash": "e903e04fef8a1d570b3d556c1bc9ceb5f9dbbe3f820f43292502125904ef54b3",
         "status": "verified",
-        "checkedAt": "2026-08-26T04:42:56-07:00",
+        "checkedAt": "2026-08-28T01:32:10-07:00",
         "feature": "经正式装配与世界空间 3D 卡牌验证日程事件的父子链完成、存档恢复不重放，以及后续真实出猎入口。"
       }
     ],
@@ -136,11 +136,11 @@
       "PlayableConditionalEventOptionTests: 12/12 passed",
       "PlayableSettlementActionSessionTests: 33/33 passed",
       "PlayableEventChoiceTransactionTests: 10/10 passed",
-      "PlayableSettlementEventProductionLoopPlayModeTests: 2/2 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 4/4 passed",
       "Unity CLI targeted Hunt event and persistence cluster: 69/69 passed",
       "C# derived index: 994/994, 100% coverage"
     ],
-    "verifiedAt": "2026-08-26T04:42:56-07:00"
+    "verifiedAt": "2026-08-28T01:32:10-07:00"
   },
   "implementationOutline": [
     "PlayableEventTableRuntime 在共享事件世代完成合并后校验并绑定事件级、成功与失败分支，错误依赖传递拒绝。",
