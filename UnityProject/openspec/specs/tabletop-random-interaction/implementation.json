@@ -41,18 +41,18 @@
         "guid": "d94d370a430db9b41b025aedfeb3a471",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
         "line": 1,
-        "fileHash": "1c3b64ae95de55bb90f2286adddf679feef3f584e7f0bf4a98366671199937ae",
+        "fileHash": "dce62dda9aa8c0db9d1c29c1b24b6c30fc4b719cb70850b8cbdae083881de224",
         "status": "verified",
-        "checkedAt": "2026-08-25T10:59:07-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "事件 Action 在提交前等待桌面随机结果并拒绝无效或取消的返回。"
       },
       {
         "guid": "b53d54014d826bd4fb6897de7a6c4c83",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs",
         "line": 1,
-        "fileHash": "57d82acfc38f948c7c0fa1e7c72d206733dda347e08467b74d13edc2529f8a44",
+        "fileHash": "10a5adf5483a165ef1139b0c91ebe1a2e7d18cec3f058e6b235eb5e07bb3b057",
         "status": "verified",
-        "checkedAt": "2026-08-26T04:42:56-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "按配置的牌数与面数验证初投和重投范围，并以鬼牌结果直接决定 OldMaid 成败。"
       },
       {
@@ -104,9 +104,9 @@
         "guid": "927a97e1c0cf3c443ab526fe87f671e4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
         "line": 736,
-        "fileHash": "70b084d51374a84abcae3588e75afb7cbae1183ec5bd1e12d303e088a9571813",
+        "fileHash": "4ea1d5b100025200e1d88626eb88b75145756ff7884f903d9310b2349b9a4576",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "验证重投检查点在后续取消时仍保留意志与命运，并在无意志时不呈现第二次骰子。"
       },
       {
@@ -148,14 +148,14 @@
     ],
     "tests": [
       "PlayableConditionalEventOptionTests: 12/12 passed",
-      "PlayableSettlementActionSessionTests: 33/33 passed",
-      "PlayableEventChoiceTransactionTests: 10/10 passed",
+      "PlayableSettlementActionSessionTests: 40/40 passed",
+      "PlayableEventChoiceTransactionTests: 12/12 passed",
       "PlayableSettlementSymptomActionTests: 5/5 passed",
       "EventRerollRulesTests: 5/5 passed",
       "TabletopRandomInteractionTests: 5/5 passed",
       "PlayableSettlementEventViewPlayModeTests: 1/1 passed"
     ],
-    "verifiedAt": "2026-08-26T04:42:56-07:00"
+    "verifiedAt": "2026-08-28T02:00:20-07:00"
   },
   "implementationOutline": [
     "阶段 ActionQueue 从执行环境获取统一随机表现端口，并在规则提交前等待结果。",

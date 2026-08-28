@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 5,
+  "capability": "campaign-persistence",
+  "title": "战役持久化与恢复",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "营地 Timeline/子 occurrence 与角色支付在同一保存边界持久化，Continue 只提交一次最终结果。",
+    "codeEvidence": [
+      { "guid": "e03f23b616fd5be46b68d164379dc2ef", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEventActions.cs", "fileHash": "a2a38009468858979dd86fdc2196b4f8cffd37615e6a1d233bf6e5e2bc77f935", "line": 39, "feature": "在营地事件提交点保存并清理重投 continuation", "status": "verified", "checkedAt": "2026-08-28T02:00:20-07:00" },
+      { "guid": "927a97e1c0cf3c443ab526fe87f671e4", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs", "fileHash": "4ea1d5b100025200e1d88626eb88b75145756ff7884f903d9310b2349b9a4576", "line": 930, "feature": "验证重投后中断、JSON 往返与无重复支付恢复", "status": "verified", "checkedAt": "2026-08-28T02:00:20-07:00" }
+    ],
+    "evidence": ["营地 ActionSession 定向测试通过。"],
+    "differences": ["正式 Spec 尚未定义 Continue 对重投支付和 continuation 的原子恢复。"],
+    "verifiedAt": "2026-08-28T02:00:20-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["campaign-persistence--requires--event-occurrence-checkpoint-core"],
+  "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["Reroll 提交先写当前 Timeline 或子 occurrence，再发布既有营地事务事实。", "Continue 将 JsonUtility 默认空对象视为缺失；真实检查点校验后恢复，Resolution 后清理。"],
+  "reviewIssues": []
+}

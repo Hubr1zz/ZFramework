@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 5,
+  "capability": "tabletop-random-interaction",
+  "title": "桌游式随机交互",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "共享事件事务可恢复冻结的已重投结果，3D View 不再触发重复选择、初投或支付。",
+    "codeEvidence": [
+      { "guid": "b53d54014d826bd4fb6897de7a6c4c83", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs", "fileHash": "10a5adf5483a165ef1139b0c91ebe1a2e7d18cec3f058e6b235eb5e07bb3b057", "line": 128, "feature": "校验并恢复已支付重投的冻结事件事务", "status": "verified", "checkedAt": "2026-08-28T02:00:20-07:00" },
+      { "guid": "d94d370a430db9b41b025aedfeb3a471", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs", "fileHash": "dce62dda9aa8c0db9d1c29c1b24b6c30fc4b719cb70850b8cbdae083881de224", "line": 90, "feature": "在共享 ActionQueue 节点中提交或继续重投检查点", "status": "verified", "checkedAt": "2026-08-28T02:00:20-07:00" },
+      { "guid": "9f3f3c95db5b4a7cae536b57f22ea37d", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs", "fileHash": "192398aad9f73699b748d60bb24319a01a43121742888b3e097460f674739450", "line": 197, "feature": "验证生产 3D 物理骰重投、支付与事件结果闭环", "status": "verified", "checkedAt": "2026-08-28T02:00:20-07:00" }
+    ],
+    "evidence": ["Unity PlayMode 生产事件闭环 5/5。"],
+    "differences": ["正式 Spec 尚未定义已支付重投恢复为同一权威判定。"],
+    "verifiedAt": "2026-08-28T02:00:20-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["tabletop-random-interaction--integrates-with--event-occurrence-checkpoint-core"],
+  "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["重投成功后冻结稳定身份、RollValue 与 Bonus。", "恢复节点跳过选择和初投，以 HasRerolled=true 进入既有检查卡并禁止第二次支付。"],
+  "reviewIssues": [
+    { "id": "ISSUE-EVENT-REROLL-RECOVERY-001", "type": "authority-delta", "severity": "warning", "status": "open", "blocksApproval": true, "summary": "确认已支付重投应作为 occurrence 的权威可恢复子状态。", "details": "恢复不重新执行选择、随机表现或支付。", "sourceId": "conversation::2026-08-28", "acceptedBy": "", "acceptedAt": "", "acceptanceNote": "" }
+  ]
+}

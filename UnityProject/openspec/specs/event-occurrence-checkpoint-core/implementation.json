@@ -15,27 +15,27 @@
         "guid": "881b14754c20430e852c9fda727bb3d9",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventChainOccurrenceQueue.cs",
         "line": 41,
-        "fileHash": "a5348a14d1ae3751320a594e3e4c981a053e482eed57b70d5d82be1ef07b4844",
+        "fileHash": "9c1d1561bca6d6c9f82270b1e3ec48750a567a1d89cb9490fc9c20a0f467a1db",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "提供与内容 ID 无关的序号、幂等消费、重复兄弟和有界恢复算法。"
       },
       {
         "guid": "3b94f2b91c9d4f1ba72fe3ffb4dd1ea6",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
         "line": 75,
-        "fileHash": "b4db9c18b62aecc587f5ea681f1518344d215fde4ae186a815aed72a13077984",
+        "fileHash": "cedac87dfdd3ac18ddb461f1620423effdd06857b2ff1811cc4ef7628984b363",
         "status": "verified",
-        "checkedAt": "2026-08-25T15:46:39-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "保留狩猎会话运行时内容引用，并在内容解析前拒绝超限活动狩猎快照。"
       },
       {
         "guid": "e159b3c1d6bfcce4082b45e63fc28083",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs",
         "line": 122,
-        "fileHash": "a18a347713a2df3b610cf778a7c4b7ea70fd634c026038f8aee40835611296e0",
+        "fileHash": "a5f2f98392ad51f43aeb925d4410bad7568ebe2bb153bf6f2ee7cbc7220c276f",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "以 schema 2 DTO 持久化链 ID、occurrence 序号、祖先 ContentId 路径及有界待办队列。"
       },
       {
@@ -51,9 +51,9 @@
         "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
         "line": 1,
-        "fileHash": "3f53aa935f3719d1c40e30aeefacc081b62673a8ab70946a14e52d2054520b37",
+        "fileHash": "09fe9d1dfd4e7f6e64460eca44b4d0f3674aa7c9bc0e1077d7ae0fb181c8c9d4",
         "status": "verified",
-        "checkedAt": "2026-08-25T21:33:00-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "只在完整活动狩猎快照中持久化狩猎 occurrence，不写入营地链。"
       },
       {
@@ -69,9 +69,9 @@
         "guid": "2667ba9674c844adbc87b87ecefef0b9",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableHuntEventOccurrenceStoreTests.cs",
         "line": 1,
-        "fileHash": "aa5da28a4647646ecba715a2931c5e72dfd4b94b50bbc486437c281d20f8e418",
+        "fileHash": "a45d290720cd175fcdc514599071139bddf822c62d2eb224c61015444d68f4eb",
         "status": "verified",
-        "checkedAt": "2026-08-25T21:33:00-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "覆盖狩猎 occurrence 恢复、重复兄弟排空、稳定 ID 循环和超限快照拒绝。"
       },
       {
@@ -86,11 +86,11 @@
     ],
     "tests": [
       "PlayableEventChainOccurrenceQueueTests: 10/10 passed",
-      "PlayableHuntEventOccurrenceStoreTests: 12/12 passed",
+      "PlayableHuntEventOccurrenceStoreTests: 15/15 passed",
       "SettlementEventRestoreProjectionTests: 14/14 passed",
-      "PlayableSettlementActionSessionTests: 33/33 passed"
+      "PlayableSettlementActionSessionTests: 40/40 passed"
     ],
-    "verifiedAt": "2026-08-25T15:46:39-07:00"
+    "verifiedAt": "2026-08-28T02:00:20-07:00"
   },
   "implementationOutline": [
     "PlayableEventChainOccurrenceQueue 只管理 occurrence 身份、顺序、幂等和上限，不拥有任何阶段业务或存档 I/O。",

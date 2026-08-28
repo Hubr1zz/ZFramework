@@ -126,6 +126,27 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void CaptureAndRestore_PreservesRerollCheckpointOnExactOccurrence()
+        {
+            var source = new PlayableHuntEventOccurrenceStore();
+            EventData gameEvent = CreateEvent("reroll-checkpoint");
+            Assert.That(source.TryScheduleRoot(gameEvent, new Vector2Int(3, -2), 4, 101, out PlayableHuntEventOccurrence occurrence), Is.True);
+            var checkpoint = new PlayableEventRerollCheckpoint { HasValue = true, EventId = gameEvent.ContentId, OptionId = "risk", ActorId = 101, RollValue = 9, Bonus = 2 };
+
+            Assert.That(source.TrySetRerollCheckpoint(occurrence, checkpoint, out string reason), Is.True, reason);
+            PlayableHuntEventOccurrenceStoreState state = source.CaptureState();
+            Assert.That(PlayableHuntEventOccurrenceStore.TryRestore(state, id => id == gameEvent.ContentId ? gameEvent : null, out PlayableHuntEventOccurrenceStore restored, out reason), Is.True, reason);
+            Assert.That(restored.TryGetNextPending(out PlayableHuntEventOccurrence pending), Is.True);
+            Assert.That(pending.Sequence, Is.EqualTo(occurrence.Sequence));
+            Assert.That(pending.RerollCheckpoint, Is.Not.Null);
+            Assert.That(pending.RerollCheckpoint.EventId, Is.EqualTo(gameEvent.ContentId));
+            Assert.That(pending.RerollCheckpoint.OptionId, Is.EqualTo("risk"));
+            Assert.That(pending.RerollCheckpoint.ActorId, Is.EqualTo(101));
+            Assert.That(pending.RerollCheckpoint.RollValue, Is.EqualTo(9));
+            Assert.That(pending.RerollCheckpoint.Bonus, Is.EqualTo(2));
+        }
+
+        [Test]
         public void TryRestore_RejectsOversizedPendingStateWithoutResolvingContent()
         {
             var records = new List<PlayableHuntEventOccurrenceRecord>();

@@ -340,7 +340,7 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             currentOccurrence = pendingOccurrences.Dequeue();
             HuntingInDarkness.Data.EventData nextEvent = currentOccurrence.Event;
             HunterInstance occurrenceActor = ResolveOccurrenceActor(currentOccurrence.Occurrence.ActorId);
-            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, occurrenceActor, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand, worldCommand, itemCommand: manager.EventItemCommand, populationCommand: manager.EventPopulationCommand);
+            currentEntry = new ResolvePlayableEventNodeAction(manager.EventSystem, manager.EventInput, nextEvent, occurrenceActor, manager.ActiveHunters, eventOutbox, StageCommitCheckpoint, Source, resolveEventEntity(nextEvent), randomInteractionPresenter, manager.EventResourceCommand, worldCommand, itemCommand: manager.EventItemCommand, populationCommand: manager.EventPopulationCommand, rerollCheckpoint: currentOccurrence.Occurrence.RerollCheckpoint);
             return currentEntry;
         }
 
@@ -363,6 +363,11 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         {
             HasCommittedCheckpoint = true;
             manager.EnsureSelectedHunterAvailable();
+            if (checkpoint.Kind == PlayableEventCommitKind.Reroll && !occurrenceStore.TrySetRerollCheckpoint(currentOccurrence, checkpoint.RerollCheckpoint, out failureReason))
+            {
+                failure = true;
+                return;
+            }
             if (checkpoint.Kind == PlayableEventCommitKind.Resolution)
             {
                 PlayableHuntEventOccurrenceCommitResult commitResult = occurrenceStore.Commit(currentOccurrence, checkpoint.ChainedEvents, manager.CurrentYear, checkpoint.ActorId);

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "nodes": [
+    { "id": "event-occurrence-checkpoint-core", "label": "跨阶段事件 occurrence 检查点核心", "category": "system", "readiness": "implemented", "specPath": "openspec/changes/complete-tabletop-event-reroll-recovery/specs/event-occurrence-checkpoint-core/spec.md" },
+    { "id": "tabletop-random-interaction", "label": "桌游式随机交互", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/complete-tabletop-event-reroll-recovery/specs/tabletop-random-interaction/spec.md" },
+    { "id": "campaign-persistence", "label": "战役持久化与恢复", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/complete-tabletop-event-reroll-recovery/specs/campaign-persistence/spec.md" },
+    { "id": "hunt-session-event-occurrence-recovery", "label": "狩猎会话事件链恢复", "category": "feature", "readiness": "implemented", "specPath": "openspec/changes/complete-tabletop-event-reroll-recovery/specs/hunt-session-event-occurrence-recovery/spec.md" }
+  ],
+  "edges": [
+    { "id": "tabletop-random-interaction--integrates-with--event-occurrence-checkpoint-core", "from": "tabletop-random-interaction", "to": "event-occurrence-checkpoint-core", "type": "integrates-with", "status": "resolved", "reason": "共享事件节点从 occurrence 恢复已支付重投事务。", "gapId": "", "blocksImplementation": false },
+    { "id": "campaign-persistence--requires--event-occurrence-checkpoint-core", "from": "campaign-persistence", "to": "event-occurrence-checkpoint-core", "type": "requires", "status": "resolved", "reason": "营地 Timeline 与子 occurrence 持久化共享重投状态。", "gapId": "", "blocksImplementation": false },
+    { "id": "hunt-session-event-occurrence-recovery--requires--event-occurrence-checkpoint-core", "from": "hunt-session-event-occurrence-recovery", "to": "event-occurrence-checkpoint-core", "type": "requires", "status": "resolved", "reason": "活动狩猎快照复用共享 occurrence 检查点。", "gapId": "", "blocksImplementation": false },
+    { "id": "hunt-session-event-occurrence-recovery--integrates-with--tabletop-random-interaction", "from": "hunt-session-event-occurrence-recovery", "to": "tabletop-random-interaction", "type": "integrates-with", "status": "resolved", "reason": "狩猎恢复继续使用共享物理随机表现端口。", "gapId": "", "blocksImplementation": false }
+  ]
+}

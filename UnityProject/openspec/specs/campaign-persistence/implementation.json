@@ -87,9 +87,9 @@
         "guid": "e65f64d837aa4bc08338c1f0d4f1fa99",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs",
         "line": 1,
-        "fileHash": "3f53aa935f3719d1c40e30aeefacc081b62673a8ab70946a14e52d2054520b37",
+        "fileHash": "09fe9d1dfd4e7f6e64460eca44b4d0f3674aa7c9bc0e1077d7ae0fb181c8c9d4",
         "status": "verified",
-        "checkedAt": "2026-08-25T21:33:00-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "冻结并恢复路线世代、地图、编队、携带物、事件检查点和确定性随机状态。"
       },
       {
@@ -114,18 +114,18 @@
         "guid": "927a97e1c0cf3c443ab526fe87f671e4",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableSettlementActionSessionTests.cs",
         "line": 1,
-        "fileHash": "70b084d51374a84abcae3588e75afb7cbae1183ec5bd1e12d303e088a9571813",
+        "fileHash": "4ea1d5b100025200e1d88626eb88b75145756ff7884f903d9310b2349b9a4576",
         "status": "verified",
-        "checkedAt": "2026-08-25T17:06:01-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "覆盖回营幂等、事件检查点、事件链恢复、失败保留，以及重投取消后已提交资源事实的保留。"
       },
       {
         "guid": "9f3f3c95db5b4a7cae536b57f22ea37d",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/PlayableSettlementEventProductionLoopPlayModeTests.cs",
         "line": 302,
-        "fileHash": "e903e04fef8a1d570b3d556c1bc9ceb5f9dbbe3f820f43292502125904ef54b3",
+        "fileHash": "192398aad9f73699b748d60bb24319a01a43121742888b3e097460f674739450",
         "status": "verified",
-        "checkedAt": "2026-08-28T01:32:10-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "从真实保存 payload 重新反序列化战役，验证血脉激活、稳定特性和事件记忆各保留一次，并可继续提交后续事件与打开下一次出猎入口。"
       }
     ],
@@ -134,15 +134,15 @@
       "PlayableItemIdentityMigrationTests: 7/7 passed",
       "PlayableCampaignPacingTests: 9/9 passed",
       "SettlementEventRestoreProjectionTests: 13/13 passed",
-      "ActiveHuntPersistenceTests: 4/4 passed",
-      "PlayableSettlementActionSessionTests: 39/39 passed",
+      "ActiveHuntPersistenceTests: 13/13 passed",
+      "PlayableSettlementActionSessionTests: 40/40 passed",
       "GameManagerCampaignLoopPlayModeTests: 14/14 passed",
-      "PlayableSettlementEventProductionLoopPlayModeTests: 4/4 passed",
+      "PlayableSettlementEventProductionLoopPlayModeTests: 5/5 passed",
       "CampaignPersistenceCoordinatorTests: 5/5 passed",
       "Unity CLI EditMode full suite: 763/763 passed",
       "GameManagerCampaignLoopPlayModeTests: 21/21 passed"
     ],
-    "verifiedAt": "2026-08-28T01:32:10-07:00"
+    "verifiedAt": "2026-08-28T02:00:20-07:00"
   },
   "implementationOutline": [
     "GameManager 只提供快照捕获边界；CampaignPersistenceCoordinator 在阶段提交或空闲检查点后冻结稳定载荷。",

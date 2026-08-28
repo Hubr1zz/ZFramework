@@ -899,7 +899,7 @@ namespace HuntingInDarkness.Adapter.Tests
             EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
             gameEvent.name = "reroll-then-cancel";
             gameEvent.eventType = GameEventType.Choice;
-            gameEvent.options.Add(new EventOption { optionText = "尝试", checkType = CheckType.Courage, checkTarget = 99 });
+            gameEvent.options.Add(new EventOption { optionId = "attempt", optionText = "尝试", checkType = CheckType.Courage, checkTarget = 99 });
             var input = new RerollThenBlockInput(hunter);
             var commits = new List<SettlementTransactionKind>();
             Action<SettlementTransactionCommittedEvent> handler = evt => commits.Add(evt.Kind);
@@ -922,6 +922,67 @@ namespace HuntingInDarkness.Adapter.Tests
             {
                 session.Dispose();
                 EventBus.Unsubscribe(handler);
+                UnityEngine.Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public async Task RerollCheckpoint_JsonRoundTripResumesFrozenResultWithoutDuplicatePaymentOrRoll()
+        {
+            SettlementInstance settlement = CreateSettlement(resourceAmount: 0);
+            HunterInstance hunter = settlement.Hunters[0];
+            hunter.Understanding = 0;
+            hunter.Willpower = 2;
+            hunter.WillpowerMax = 2;
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "reroll-recovery";
+            gameEvent.eventType = GameEventType.Choice;
+            gameEvent.options.Add(new EventOption
+            {
+                optionId = "read-echo",
+                optionText = "解读回声",
+                checkType = CheckType.Understanding,
+                checkTarget = 8,
+                successEffects = new List<EventEffect> { new() { effectType = EventEffectType.AddResource, targetName = "碎石", value = 2 } }
+            });
+            var timelineEntry = new AnnalEntry { EventId = gameEvent.ContentId, EventName = gameEvent.eventName, EntryType = TimelineEntryType.Random };
+            settlement.Timeline.Add(timelineEntry);
+            var blockingInput = new RerollThenBlockInput(hunter);
+            var sourcePresenter = new FixedDicePresenter(2, 9);
+            var sourceSession = new PlayableSettlementActionSession(settlement, new TestWeaponTrainingContent(), new EventSystem(settlement, new FirstRandom()), blockingInput, randomInteractionPresenter: sourcePresenter);
+
+            try
+            {
+                UniTask<SettlementEventCommandResult> execution = sourceSession.ResolveEventsAsync(new[] { new SettlementEventWork(gameEvent, timelineEntry) });
+                await blockingInput.Rerolled.Task;
+                Assert.That(timelineEntry.RerollCheckpoint, Is.Not.Null);
+                sourceSession.Dispose();
+                Assert.That((await execution).Succeeded, Is.False);
+
+                SettlementInstance restoredSettlement = JsonUtility.FromJson<SettlementInstance>(JsonUtility.ToJson(settlement));
+                HunterInstance restoredHunter = restoredSettlement.Hunters.Single(item => item.InstanceId == hunter.InstanceId);
+                AnnalEntry restoredEntry = restoredSettlement.Timeline.Single(item => item.EventId == gameEvent.ContentId);
+                var restoredInput = new RestoredRerollAcceptInput();
+                var restoredPresenter = new FixedDicePresenter();
+                using var restoredSession = new PlayableSettlementActionSession(restoredSettlement, new TestWeaponTrainingContent(), new EventSystem(restoredSettlement, new FirstRandom()), restoredInput, randomInteractionPresenter: restoredPresenter);
+
+                SettlementEventCommandResult result = await restoredSession.ResolveEventsAsync(new[] { new SettlementEventWork(gameEvent, restoredEntry) });
+
+                Assert.That(result.Succeeded, Is.True, result.Reason);
+                Assert.That(restoredInput.SelectionCount, Is.Zero);
+                Assert.That(restoredInput.CheckCount, Is.EqualTo(1));
+                Assert.That(restoredInput.SawRerolledResult, Is.True);
+                Assert.That(restoredPresenter.Requests, Is.Empty);
+                Assert.That(restoredHunter.Willpower, Is.EqualTo(1));
+                Assert.That(restoredHunter.Luck, Is.EqualTo(1));
+                Assert.That(restoredSettlement.GetResource("碎石"), Is.EqualTo(2));
+                Assert.That(restoredEntry.IsCompleted, Is.True);
+                Assert.That(restoredEntry.RerollCheckpoint, Is.Null);
+                Assert.That(restoredSettlement.EventMemories.Single(item => item.EventId == gameEvent.ContentId).WasRerolled, Is.True);
+            }
+            finally
+            {
+                sourceSession.Dispose();
                 UnityEngine.Object.DestroyImmediate(gameEvent);
             }
         }
@@ -1395,6 +1456,30 @@ namespace HuntingInDarkness.Adapter.Tests
             public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
             public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, IPlayableEventResourceAvailability resourceAvailability, CancellationToken cancellationToken) => UniTask.FromResult(new PlayableEventChoiceSelection(0, hunter));
             public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken) => UniTask.FromResult(checkCount++ == 0 ? PlayableEventCheckDecision.Reroll : PlayableEventCheckDecision.Accept);
+            public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
+        }
+
+        private sealed class RestoredRerollAcceptInput : IPlayableEventInput
+        {
+            public int SelectionCount { get; private set; }
+            public int CheckCount { get; private set; }
+            public bool SawRerolledResult { get; private set; }
+
+            public UniTask ConfirmNarrativeAsync(EventData gameEvent, HunterInstance actor, CancellationToken cancellationToken) => UniTask.CompletedTask;
+
+            public UniTask<PlayableEventChoiceSelection> SelectChoiceAsync(EventData gameEvent, HunterInstance actor, IReadOnlyList<HunterInstance> hunters, IPlayableEventResourceAvailability resourceAvailability, CancellationToken cancellationToken)
+            {
+                SelectionCount++;
+                return UniTask.FromResult(new PlayableEventChoiceSelection(-1, null));
+            }
+
+            public UniTask<PlayableEventCheckDecision> PresentCheckAsync(PlayableEventChoiceTransaction transaction, CancellationToken cancellationToken)
+            {
+                CheckCount++;
+                SawRerolledResult = transaction.HasRerolled && !transaction.CanReroll;
+                return UniTask.FromResult(PlayableEventCheckDecision.Accept);
+            }
+
             public UniTask ConfirmResultAsync(EventData gameEvent, EventResolutionResult result, CancellationToken cancellationToken) => UniTask.CompletedTask;
         }
 

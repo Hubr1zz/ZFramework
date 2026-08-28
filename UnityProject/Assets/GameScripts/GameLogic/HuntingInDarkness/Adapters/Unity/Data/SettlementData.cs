@@ -120,6 +120,21 @@ namespace HuntingInDarkness.Data
         public TimelineEntryType EntryType = TimelineEntryType.Random;
         public string SourceHuntRecordId;
         public string ResolutionMemoryId;
+        public PlayableEventRerollCheckpoint RerollCheckpoint;
+    }
+
+    [System.Serializable]
+    public sealed class PlayableEventRerollCheckpoint
+    {
+        public const int CurrentSchemaVersion = 1;
+        public const int MaximumAbsoluteBonus = 10000;
+        public bool HasValue;
+        public int SchemaVersion = CurrentSchemaVersion;
+        public string EventId;
+        public string OptionId;
+        public int ActorId;
+        public int RollValue;
+        public int Bonus;
     }
 
     [System.Serializable]
@@ -186,6 +201,7 @@ namespace HuntingInDarkness.Data
         public int Year;
         public int ActorId;
         public List<string> AncestorEventIds = new();
+        public PlayableEventRerollCheckpoint RerollCheckpoint;
     }
 
     [System.Serializable]

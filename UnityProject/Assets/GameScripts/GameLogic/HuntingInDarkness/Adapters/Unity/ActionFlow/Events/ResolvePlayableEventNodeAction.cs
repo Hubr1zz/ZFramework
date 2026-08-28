@@ -66,7 +66,7 @@ namespace HuntingInDarkness.ActionFlow.Events
 
     public readonly struct PlayableEventCommitCheckpoint
     {
-        public PlayableEventCommitCheckpoint(PlayableEventCommitKind kind, string eventId, int actorId, IReadOnlyList<string> chainedEventIds = null, IReadOnlyList<EventData> chainedEvents = null, PlayableEventResolutionFact resolutionFact = default)
+        public PlayableEventCommitCheckpoint(PlayableEventCommitKind kind, string eventId, int actorId, IReadOnlyList<string> chainedEventIds = null, IReadOnlyList<EventData> chainedEvents = null, PlayableEventResolutionFact resolutionFact = default, PlayableEventRerollCheckpoint rerollCheckpoint = null)
         {
             Kind = kind;
             EventId = eventId ?? string.Empty;
@@ -74,6 +74,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             ChainedEventIds = chainedEventIds ?? Array.Empty<string>();
             ChainedEvents = chainedEvents ?? Array.Empty<EventData>();
             ResolutionFact = resolutionFact;
+            RerollCheckpoint = rerollCheckpoint;
         }
 
         public PlayableEventCommitKind Kind { get; }
@@ -82,6 +83,7 @@ namespace HuntingInDarkness.ActionFlow.Events
         public IReadOnlyList<string> ChainedEventIds { get; }
         public IReadOnlyList<EventData> ChainedEvents { get; }
         public PlayableEventResolutionFact ResolutionFact { get; }
+        public PlayableEventRerollCheckpoint RerollCheckpoint { get; }
     }
 
     /// <summary>跨阶段复用的单事件节点；阶段 Runner 只注入提交事实，不复制选择、重投与效果流程。</summary>
@@ -101,8 +103,9 @@ namespace HuntingInDarkness.ActionFlow.Events
         private readonly IPlayableEventWorldCommand worldCommand;
         private readonly IPlayableEventSettlementCommand settlementCommand;
         private readonly IPlayableEventPopulationCommand populationCommand;
+        private readonly PlayableEventRerollCheckpoint rerollCheckpoint;
 
-        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null)
+        public ResolvePlayableEventNodeAction(EventSystem eventSystem, IPlayableEventInput eventInput, EventData gameEvent, HunterInstance defaultActor, IReadOnlyList<HunterInstance> hunters, ActionEventOutbox eventOutbox, Action<PlayableEventCommitCheckpoint> stageCommitCheckpoint, IReactorEntity source, IReactorEntity target, ITabletopRandomInteractionPresenter randomInteractionPresenter = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null, PlayableEventRerollCheckpoint rerollCheckpoint = null)
         {
             this.eventSystem = eventSystem ?? throw new ArgumentNullException(nameof(eventSystem));
             this.eventInput = eventInput;
@@ -119,6 +122,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             this.worldCommand = worldCommand;
             this.settlementCommand = settlementCommand;
             this.populationCommand = populationCommand;
+            this.rerollCheckpoint = rerollCheckpoint;
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
         }
@@ -167,29 +171,37 @@ namespace HuntingInDarkness.ActionFlow.Events
             }
 
             bool hasPlayerInput = eventInput != null;
-            EventResolutionSelectionMode selectionMode = hasPlayerInput ? EventResolutionSelectionMode.Player : EventResolutionSelectionMode.Automatic;
-            PlayableEventChoiceSelection selection = hasPlayerInput
-                ? await eventInput.SelectChoiceAsync(gameEvent, defaultActor, hunters, resourceAvailability, cancellationToken)
-                : FindAutomaticSelection();
-            if (!IsAllowedActor(selection.Actor))
-                selection = new PlayableEventChoiceSelection(-1, null);
-            PlayableEventChoiceTransaction transaction = selection.IsValid ? await PrepareChoiceAsync(selection, cancellationToken) : null;
-            if (selection.IsValid && transaction == null && hasPlayerInput)
-                return ActionOutcome.Failure("事件选项条件已经变化，请重新选择。");
-            if (transaction == null)
+            EventResolutionSelectionMode selectionMode = hasPlayerInput || rerollCheckpoint != null ? EventResolutionSelectionMode.Player : EventResolutionSelectionMode.Automatic;
+            PlayableEventChoiceTransaction transaction;
+            if (rerollCheckpoint != null)
             {
-                selectionMode = EventResolutionSelectionMode.Automatic;
-                selection = FindAutomaticSelection();
-                transaction = selection.IsValid ? await PrepareChoiceAsync(selection, cancellationToken) : null;
+                HunterInstance restoredActor = ResolveCheckpointActor(rerollCheckpoint.ActorId);
+                if (!eventSystem.TryRestoreRerolledChoice(gameEvent, rerollCheckpoint, restoredActor, out transaction, out string restoreReason, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand))
+                    return ActionOutcome.Failure(restoreReason);
             }
-            if (transaction == null)
+            else
             {
-                PlayableEventNodeCommitResult fallbackResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand);
-                ChainedEvents = fallbackResult.ChainedEvents;
-                EncounterIds = fallbackResult.EncounterIds;
-                EffectResults = fallbackResult.EffectResults;
-                PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor, ChainedEvents, new PlayableEventResolutionFact(gameEvent.ContentId, gameEvent.eventName, "Automatic", EventResolutionSelectionMode.Automatic, string.Empty, string.Empty, eventSystem.Settlement.CurrentYear, defaultActor?.InstanceId ?? 0, CheckType.None.ToString(), false, true, 0, 0, 0, 0, false, string.IsNullOrWhiteSpace(gameEvent.hiddenText) ? gameEvent.displayText : gameEvent.hiddenText, EffectResults.Effects));
-                return ActionOutcome.Success();
+                PlayableEventChoiceSelection selection = hasPlayerInput ? await eventInput.SelectChoiceAsync(gameEvent, defaultActor, hunters, resourceAvailability, cancellationToken) : FindAutomaticSelection();
+                if (!IsAllowedActor(selection.Actor))
+                    selection = new PlayableEventChoiceSelection(-1, null);
+                transaction = selection.IsValid ? await PrepareChoiceAsync(selection, cancellationToken) : null;
+                if (selection.IsValid && transaction == null && hasPlayerInput)
+                    return ActionOutcome.Failure("事件选项条件已经变化，请重新选择。");
+                if (transaction == null)
+                {
+                    selectionMode = EventResolutionSelectionMode.Automatic;
+                    selection = FindAutomaticSelection();
+                    transaction = selection.IsValid ? await PrepareChoiceAsync(selection, cancellationToken) : null;
+                }
+                if (transaction == null)
+                {
+                    PlayableEventNodeCommitResult fallbackResult = eventSystem.ResolveNarrativeNodeStandalone(gameEvent, defaultActor, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand);
+                    ChainedEvents = fallbackResult.ChainedEvents;
+                    EncounterIds = fallbackResult.EncounterIds;
+                    EffectResults = fallbackResult.EffectResults;
+                    PublishCommitCheckpoint(PlayableEventCommitKind.Resolution, defaultActor, ChainedEvents, new PlayableEventResolutionFact(gameEvent.ContentId, gameEvent.eventName, "Automatic", EventResolutionSelectionMode.Automatic, string.Empty, string.Empty, eventSystem.Settlement.CurrentYear, defaultActor?.InstanceId ?? 0, CheckType.None.ToString(), false, true, 0, 0, 0, 0, false, string.IsNullOrWhiteSpace(gameEvent.hiddenText) ? gameEvent.displayText : gameEvent.hiddenText, EffectResults.Effects));
+                    return ActionOutcome.Success();
+                }
             }
 
             while (transaction.RequiresCheck && eventInput != null)
@@ -199,7 +211,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                 if (!transaction.CanReroll) break;
                 int? rerollValue = randomInteractionPresenter != null ? await ResolveTabletopCheckAsync(transaction.Option, transaction.Actor, "reroll", cancellationToken) : null;
                 if (!transaction.TryReroll(rerollValue)) break;
-                PublishCommitCheckpoint(PlayableEventCommitKind.Reroll, transaction.Actor);
+                PublishCommitCheckpoint(PlayableEventCommitKind.Reroll, transaction.Actor, rerollCheckpoint: transaction.CreateRerollCheckpoint());
             }
             PlayableEventCommitResult result = transaction.CommitStandalone(true);
             bool campaignEnded = eventSystem.Settlement.GetAliveHunters().Count == 0;
@@ -279,7 +291,16 @@ namespace HuntingInDarkness.ActionFlow.Events
             return false;
         }
 
-        private void PublishCommitCheckpoint(PlayableEventCommitKind kind, HunterInstance actor, IReadOnlyList<EventData> chainedEvents = null, PlayableEventResolutionFact resolutionFact = default)
+        private HunterInstance ResolveCheckpointActor(int actorId)
+        {
+            if (defaultActor != null && defaultActor.InstanceId == actorId) return defaultActor;
+            foreach (HunterInstance hunter in hunters)
+                if (hunter != null && hunter.InstanceId == actorId)
+                    return hunter;
+            return null;
+        }
+
+        private void PublishCommitCheckpoint(PlayableEventCommitKind kind, HunterInstance actor, IReadOnlyList<EventData> chainedEvents = null, PlayableEventResolutionFact resolutionFact = default, PlayableEventRerollCheckpoint rerollCheckpoint = null)
         {
             if (kind == PlayableEventCommitKind.Resolution)
                 StageCommittedEffectFacts();
@@ -290,7 +311,7 @@ namespace HuntingInDarkness.ActionFlow.Events
                     string eventId = chainedEvent?.ContentId ?? string.Empty;
                     if (eventId.Length > 0) chainedEventIds.Add(eventId);
                 }
-            stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.ContentId, actor?.InstanceId ?? 0, chainedEventIds, chainedEvents, resolutionFact));
+            stageCommitCheckpoint?.Invoke(new PlayableEventCommitCheckpoint(kind, gameEvent.ContentId, actor?.InstanceId ?? 0, chainedEventIds, chainedEvents, resolutionFact, rerollCheckpoint));
             if (kind == PlayableEventCommitKind.Resolution)
                 ResolutionCheckpointPublished = true;
             eventOutbox.PublishCheckpoint();

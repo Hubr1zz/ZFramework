@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 5,
+  "capability": "hunt-session-event-occurrence-recovery",
+  "title": "狩猎会话事件链恢复",
+  "category": "feature",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "Hunt occurrence store 与活动狩猎快照保留同一重投 continuation，不复制阶段专属重投规则。",
+    "codeEvidence": [
+      { "guid": "9c726607d6f6843489ac06114f3cc299", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs", "fileHash": "d40e5ca65a672f23994869c5e38f77eb2e3a105dc38b8a24efe82fcd72f905b9", "line": 249, "feature": "在 Hunt ActionQueue 节点写入并继续共享重投检查点", "status": "verified", "checkedAt": "2026-08-28T02:00:20-07:00" },
+      { "guid": "3b94f2b91c9d4f1ba72fe3ffb4dd1ea6", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs", "fileHash": "cedac87dfdd3ac18ddb461f1620423effdd06857b2ff1811cc4ef7628984b363", "line": 77, "feature": "更新并捕获精确狩猎 occurrence 的重投子状态", "status": "verified", "checkedAt": "2026-08-28T02:00:20-07:00" },
+      { "guid": "e65f64d837aa4bc08338c1f0d4f1fa99", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs", "fileHash": "09fe9d1dfd4e7f6e64460eca44b4d0f3674aa7c9bc0e1077d7ae0fb181c8c9d4", "line": 112, "feature": "在活动狩猎存档中往返重投 continuation", "status": "verified", "checkedAt": "2026-08-28T02:00:20-07:00" }
+    ],
+    "evidence": ["Hunt Store 与 ActiveHuntPersistence 定向测试通过。"],
+    "differences": ["正式 Spec 尚未定义活动狩猎 pending occurrence 的重投 continuation。"],
+    "verifiedAt": "2026-08-28T02:00:20-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": ["hunt-session-event-occurrence-recovery--requires--event-occurrence-checkpoint-core", "hunt-session-event-occurrence-recovery--integrates-with--tabletop-random-interaction"],
+  "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["Reroll checkpoint 更新当前仍 pending 的 Hunt occurrence。", "活动狩猎快照捕获该可选字段，恢复后交回共享事件事务工厂。"],
+  "reviewIssues": []
+}

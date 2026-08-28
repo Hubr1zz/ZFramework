@@ -37,7 +37,7 @@ namespace HuntingInDarkness.Settlement
         public bool IsCommitted { get; private set; }
         public bool CanReroll => RequiresCheck && !HasRerolled && !IsCommitted && actor != null && actor.Willpower > 0;
 
-        internal PlayableEventChoiceTransaction(EventSystem eventSystem, EventData gameEvent, int optionIndex, HunterInstance actor, int rollValue, int bonus, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand, IPlayableEventSettlementCommand settlementCommand, IPlayableEventItemCommand itemCommand, IPlayableEventPopulationCommand populationCommand)
+        internal PlayableEventChoiceTransaction(EventSystem eventSystem, EventData gameEvent, int optionIndex, HunterInstance actor, int rollValue, int bonus, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand, IPlayableEventSettlementCommand settlementCommand, IPlayableEventItemCommand itemCommand, IPlayableEventPopulationCommand populationCommand, bool hasRerolled = false)
         {
             this.eventSystem = eventSystem;
             this.gameEvent = gameEvent;
@@ -51,6 +51,7 @@ namespace HuntingInDarkness.Settlement
             option = gameEvent.options[optionIndex];
             RollValue = rollValue;
             Bonus = bonus;
+            HasRerolled = hasRerolled;
         }
 
         public bool TryReroll(int? preparedRoll = null)
@@ -65,6 +66,12 @@ namespace HuntingInDarkness.Settlement
             RollValue = result.FinalRoll;
             HasRerolled = true;
             return true;
+        }
+
+        public PlayableEventRerollCheckpoint CreateRerollCheckpoint()
+        {
+            if (!HasRerolled || actor == null || string.IsNullOrWhiteSpace(gameEvent.ContentId) || string.IsNullOrWhiteSpace(option.optionId)) return null;
+            return new PlayableEventRerollCheckpoint { HasValue = true, EventId = gameEvent.ContentId, OptionId = option.optionId, ActorId = actor.InstanceId, RollValue = RollValue, Bonus = Bonus };
         }
 
         public EventResolutionResult Commit()
@@ -116,6 +123,36 @@ namespace HuntingInDarkness.Settlement
             int rollValue = option.checkType == CheckType.None ? 0 : preparedRoll ?? RollDice(PlayableEventCheckRules.ResolveCount(option), PlayableEventCheckRules.ResolveSides(option));
             int bonus = GetCheckBonus(actor, option.checkType);
             return new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, rollValue, bonus, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand);
+        }
+
+        public bool TryRestoreRerolledChoice(EventData gameEvent, PlayableEventRerollCheckpoint checkpoint, HunterInstance actor, out PlayableEventChoiceTransaction transaction, out string reason, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null)
+        {
+            transaction = null;
+            if (gameEvent == null || checkpoint == null || !checkpoint.HasValue || checkpoint.SchemaVersion != PlayableEventRerollCheckpoint.CurrentSchemaVersion)
+            {
+                reason = "事件重投检查点缺失或版本不受支持。";
+                return false;
+            }
+            if (!string.Equals(gameEvent.ContentId, checkpoint.EventId, System.StringComparison.Ordinal) || actor == null || actor.InstanceId != checkpoint.ActorId || !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))
+            {
+                reason = "事件重投检查点的事件或行动者身份已经失效。";
+                return false;
+            }
+            int optionIndex = gameEvent.options?.FindIndex(option => option != null && string.Equals(option.optionId, checkpoint.OptionId, System.StringComparison.Ordinal)) ?? -1;
+            if (optionIndex < 0)
+            {
+                reason = "事件重投检查点引用的选项不存在。";
+                return false;
+            }
+            EventOption option = gameEvent.options[optionIndex];
+            if (option.checkType == CheckType.None || !PlayableEventCheckRules.IsValidRoll(option, checkpoint.RollValue) || checkpoint.Bonus < -PlayableEventRerollCheckpoint.MaximumAbsoluteBonus || checkpoint.Bonus > PlayableEventRerollCheckpoint.MaximumAbsoluteBonus)
+            {
+                reason = "事件重投检查点的判定值无效。";
+                return false;
+            }
+            transaction = new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, checkpoint.RollValue, checkpoint.Bonus, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand, true);
+            reason = string.Empty;
+            return true;
         }
 
         internal EventResolutionResult CommitPreparedChoice(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null)

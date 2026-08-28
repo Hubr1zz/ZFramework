@@ -13,9 +13,9 @@
         "guid": "3b94f2b91c9d4f1ba72fe3ffb4dd1ea6",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs",
         "line": 1,
-        "fileHash": "d4a61d17a7efd056a6cafc7ddc90108fa580f4f71f75d024abbbf551655b32cb",
+        "fileHash": "cedac87dfdd3ac18ddb461f1620423effdd06857b2ff1811cc4ef7628984b363",
         "status": "verified",
-        "checkedAt": "2026-08-24T23:17:53-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "维护狩猎会话内 occurrence、稳定祖先身份、冻结行动者和有界子链提交。"
       },
       {
@@ -31,18 +31,18 @@
         "guid": "9c726607d6f6843489ac06114f3cc299",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs",
         "line": 1,
-        "fileHash": "691232f89713a636f92e8de69c886e2f440b1294df6ebe2c8d5ba786bec2de7a",
+        "fileHash": "d40e5ca65a672f23994869c5e38f77eb2e3a105dc38b8a24efe82fcd72f905b9",
         "status": "verified",
-        "checkedAt": "2026-08-24T23:17:53-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "在事件节点提交检查点消费父 occurrence、登记子 occurrence并发布提交或截断事实。"
       },
       {
         "guid": "d94d370a430db9b41b025aedfeb3a471",
         "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs",
         "line": 1,
-        "fileHash": "89e5f5a7f8d95c9f30776c8689a9ae3c20ae76ce762c2f3843cae83b03c21088",
+        "fileHash": "dce62dda9aa8c0db9d1c29c1b24b6c30fc4b719cb70850b8cbdae083881de224",
         "status": "verified",
-        "checkedAt": "2026-08-24T23:17:53-07:00",
+        "checkedAt": "2026-08-28T02:00:20-07:00",
         "feature": "复用跨阶段事件节点，并在结果确认前暴露直接子 EventData 的同步提交检查点。"
       }
     ],
@@ -52,7 +52,7 @@
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/EditMode/PlayableEventChainOccurrenceQueueTests.cs",
       "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Tests/PlayMode/GameManagerCampaignLoopPlayModeTests.cs"
     ],
-    "verifiedAt": "2026-08-24T23:17:53-07:00"
+    "verifiedAt": "2026-08-28T02:00:20-07:00"
   },
   "implementationOutline": [
     "Hunt session 在节点执行前登记 root occurrence，并在节点提交回调中同步消费父节点与追加直接子节点。",

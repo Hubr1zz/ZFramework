@@ -217,7 +217,9 @@ namespace HuntingInDarkness.Adapter.Tests
             source.OnEnter(new List<HunterInstance> { hunter }, settlement.CurrentYear);
             Assert.That(source.BoundRoute.TryResolveEvent("hunt_rust_burial_open_eyes", out EventData child), Is.True);
             var occurrences = new PlayableHuntEventOccurrenceStore();
-            Assert.That(occurrences.TryScheduleRoot(child, source.SquadPosition, settlement.CurrentYear, hunter.InstanceId, out _), Is.True);
+            Assert.That(occurrences.TryScheduleRoot(child, source.SquadPosition, settlement.CurrentYear, hunter.InstanceId, out PlayableHuntEventOccurrence occurrence), Is.True);
+            var rerollCheckpoint = new PlayableEventRerollCheckpoint { HasValue = true, EventId = child.ContentId, OptionId = child.options[0].optionId, ActorId = hunter.InstanceId, RollValue = 8, Bonus = 1 };
+            Assert.That(occurrences.TrySetRerollCheckpoint(occurrence, rerollCheckpoint, out string checkpointReason), Is.True, checkpointReason);
             using var session = new PlayableHuntActionSession(source, "encounter", source.BoundRoute.DestinationId, restoredOccurrenceStore: occurrences);
 
             Assert.That(ActiveHuntSnapshotAdapter.TryCapture(settlement, source, session, "expedition-triggered", out CampaignSnapshot captured, out string reason), Is.True, reason);
@@ -228,6 +230,9 @@ namespace HuntingInDarkness.Adapter.Tests
             Assert.That(ActiveHuntSnapshotAdapter.TryRestore(saved, destination, out _, out PlayableHuntEventOccurrenceStore restored, out reason), Is.True, reason);
             Assert.That(restored.TryGetNextPending(out PlayableHuntEventOccurrence pending), Is.True);
             Assert.That(pending.Event.ContentId, Is.EqualTo(child.ContentId));
+            Assert.That(pending.RerollCheckpoint, Is.Not.Null);
+            Assert.That(pending.RerollCheckpoint.OptionId, Is.EqualTo(child.options[0].optionId));
+            Assert.That(pending.RerollCheckpoint.RollValue, Is.EqualTo(8));
 
             saved.ActiveHunt.EventStore.PendingOccurrences[0].EventId = "hunt:foreign-event";
             Assert.That(ActiveHuntSnapshotAdapter.TryRestore(saved, destination, out _, out _, out reason), Is.False);
@@ -394,6 +399,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(ActiveHuntSnapshotAdapter.TryCapture(settlement, source, sourceSession, "expedition-rust-burial-resume", out CampaignSnapshot captured, out string reason), Is.True, reason);
                 Assert.That(SaveLoadSystem.TryCreatePayload(captured, out string payload, out reason), Is.True, reason);
                 Assert.That(CampaignSaveRecovery.TryRestore(new CampaignSaveCandidates(CampaignSaveCodec.Encode(payload), null), out CampaignSnapshot saved, out _, out reason), Is.True, reason);
+                Assert.That(saved.ActiveHunt.EventStore.PendingOccurrences.All(item => item.RerollCheckpoint?.HasValue != true), Is.True);
 
                 HuntManager destination = CreateManager(saved.Settlement, null, null, 47);
                 Assert.That(ActiveHuntSnapshotAdapter.TryRestore(saved, destination, out PlayableHuntRuntimeState runtime, out PlayableHuntEventOccurrenceStore restoredOccurrences, out reason), Is.True, reason);

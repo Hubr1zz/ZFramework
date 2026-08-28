@@ -43,7 +43,8 @@ namespace HuntingInDarkness.Settlement
         public static PlayableEventChainOccurrence ToSharedOccurrence(SettlementEventChainOccurrence occurrence)
         {
             if (occurrence == null) return default;
-            return new PlayableEventChainOccurrence(occurrence.Sequence, occurrence.EventId, occurrence.EventName, occurrence.Year, occurrence.ActorId, occurrence.AncestorEventIds);
+            PlayableEventRerollCheckpoint checkpoint = occurrence.RerollCheckpoint?.HasValue == true ? occurrence.RerollCheckpoint : null;
+            return new PlayableEventChainOccurrence(occurrence.Sequence, occurrence.EventId, occurrence.EventName, occurrence.Year, occurrence.ActorId, occurrence.AncestorEventIds, checkpoint);
         }
 
         private SettlementEventChainCheckpoint FindCheckpoint(string chainId)

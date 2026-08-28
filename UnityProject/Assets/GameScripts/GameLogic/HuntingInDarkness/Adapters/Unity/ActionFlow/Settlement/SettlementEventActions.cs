@@ -153,7 +153,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             PendingEventWork nextWork = pendingEvents.Dequeue();
             EventData nextEvent = nextWork.Event;
             currentWork = nextWork;
-            currentEntry = new ResolvePlayableEventNodeAction(eventSystem, eventInput, nextEvent, null, eventSystem.Settlement.GetAvailableHunters(), eventOutbox, checkpoint => StageCommitCheckpoint(checkpoint, nextWork), Source, resolveEventEntity(nextEvent), randomInteractionPresenter, settlementCommand: settlementCommand);
+            currentEntry = new ResolvePlayableEventNodeAction(eventSystem, eventInput, nextEvent, null, eventSystem.Settlement.GetAvailableHunters(), eventOutbox, checkpoint => StageCommitCheckpoint(checkpoint, nextWork), Source, resolveEventEntity(nextEvent), randomInteractionPresenter, settlementCommand: settlementCommand, rerollCheckpoint: nextWork.RerollCheckpoint);
             return currentEntry;
         }
 
@@ -176,6 +176,18 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         {
             lastCommittedChildren = Array.Empty<PlayableEventChainOccurrence>();
             lastCommitDiagnostic = string.Empty;
+            if (checkpoint.Kind == PlayableEventCommitKind.Reroll)
+            {
+                if (checkpoint.RerollCheckpoint == null)
+                {
+                    lastCommitDiagnostic = "营地事件重投检查点无效。";
+                    return;
+                }
+                if (work.Work.RestoredOccurrence != null)
+                    work.Work.RestoredOccurrence.RerollCheckpoint = checkpoint.RerollCheckpoint;
+                else if (work.Work.TimelineEntry != null)
+                    work.Work.TimelineEntry.RerollCheckpoint = checkpoint.RerollCheckpoint;
+            }
             if (checkpoint.Kind == PlayableEventCommitKind.Resolution)
             {
                 SettlementEventMemory memory = CreateEventMemory(checkpoint, work);
@@ -201,6 +213,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
                     return;
                 }
                 if (work.Work.TimelineEntry != null) work.Work.TimelineEntry.ResolutionMemoryId = memory.MemoryId;
+                if (work.Work.TimelineEntry != null) work.Work.TimelineEntry.RerollCheckpoint = null;
                 var chainedEventIds = new List<string>();
                 foreach (string chainedEventId in checkpoint.ChainedEventIds)
                 {
@@ -384,6 +397,14 @@ namespace HuntingInDarkness.ActionFlow.Settlement
             public EventData Event => Work.Event;
             public int PersistenceSequence { get; }
             public IReadOnlyCollection<string> AncestorEventIds { get; }
+            public PlayableEventRerollCheckpoint RerollCheckpoint
+            {
+                get
+                {
+                    PlayableEventRerollCheckpoint checkpoint = Work.RestoredOccurrence?.RerollCheckpoint ?? Work.TimelineEntry?.RerollCheckpoint;
+                    return checkpoint?.HasValue == true ? checkpoint : null;
+                }
+            }
         }
 
         private static IReadOnlyList<SettlementEventWork> ToWorkItems(IReadOnlyList<EventData> events, IReadOnlyList<SettlementEventChainOccurrence> restoredOccurrences)

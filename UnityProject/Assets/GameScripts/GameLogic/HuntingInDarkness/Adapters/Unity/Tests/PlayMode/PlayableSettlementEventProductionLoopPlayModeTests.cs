@@ -194,6 +194,51 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
+        public IEnumerator RiskChoice_RerollsOnPhysicalTableAndCommitsPaymentExactlyOnce()
+        {
+            CampaignSnapshot snapshot = CreateSettlementSnapshot();
+            HunterInstance snapshotHunter = snapshot.Settlement.GetAliveHunters().First();
+            snapshotHunter.Willpower = 2;
+            snapshotHunter.WillpowerMax = 2;
+            var presenter = new RecordingRandomPresenter(1, 10);
+            var persistence = new MemoryCampaignPersistence { SnapshotToLoad = snapshot };
+            GameManager manager = CreateProductionManager(persistence, presenter);
+            UniTask<CampaignStartupResult>.Awaiter continueAttempt = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(continueAttempt);
+            Assert.That(continueAttempt.GetResult().Succeeded, Is.True, continueAttempt.GetResult().Reason);
+
+            PlayableSettlementEventView eventView = managerObject.GetComponent<PlayableSettlementEventView>();
+            HunterInstance hunter = manager.SettlementData.GetHunter(snapshotHunter.InstanceId);
+            int initialWillpower = hunter.Willpower;
+            int initialLuck = hunter.Luck;
+            int initialStone = manager.SettlementData.GetResource("broken_stone");
+            yield return WaitForChoice(eventView, "辨认碎石上的纹路");
+            ClickCard(FindChoice(eventView, "辨认碎石上的纹路"));
+            yield return WaitForChoice(eventView, hunter.Name);
+            ClickCard(FindChoice(eventView, hunter.Name));
+            yield return WaitUntil(() => presenter.Requests.Count == 1, "等待第一次实体骰子稳定超时。");
+            yield return WaitForChoice(eventView, "重投");
+            ClickCard(FindChoice(eventView, "重投"));
+            yield return WaitUntil(() => presenter.Requests.Count == 2, "等待实体重投骰子稳定超时。");
+            yield return WaitForChoice(eventView, "接受结果");
+            ClickCard(FindChoice(eventView, "接受结果"));
+            yield return WaitForChoice(eventView, "继续");
+            ClickCard(FindChoice(eventView, "继续"));
+            yield return WaitForPrimary(eventView, "未说完的话");
+            ClickCard(FindChoice(eventView, "接受结果"));
+            yield return WaitForSettlementIdle(manager);
+
+            Assert.That(presenter.Requests[0].InteractionId, Does.Contain(":initial:"));
+            Assert.That(presenter.Requests[1].InteractionId, Does.Contain(":reroll:"));
+            Assert.That(presenter.Requests.All(request => request.Kind == TabletopRandomInteractionKind.PhysicalDice && request.ActorId == hunter.InstanceId.ToString()), Is.True);
+            Assert.That(hunter.Willpower, Is.EqualTo(initialWillpower - 1));
+            Assert.That(hunter.Luck, Is.EqualTo(initialLuck + 1));
+            Assert.That(manager.SettlementData.GetResource("broken_stone"), Is.EqualTo(initialStone + 1));
+            Assert.That(manager.SettlementData.EventMemories.Single(memory => memory.EventId == "main_face_echo").WasRerolled, Is.True);
+            Assert.That(persistence.SnapshotToLoad.Settlement.GetHunter(hunter.InstanceId).Willpower, Is.EqualTo(initialWillpower - 1));
+        }
+
+        [UnityTest]
         public IEnumerator WhisperSickness_PersistsAndUnlocksActorScopedHuntReward()
         {
             var presenter = new RecordingRandomPresenter(1);
@@ -557,16 +602,19 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
         private sealed class RecordingRandomPresenter : ITabletopRandomInteractionPresenter
         {
-            private readonly int value;
+            private readonly Queue<int> values;
 
-            public RecordingRandomPresenter(int value) => this.value = value;
+            public RecordingRandomPresenter(params int[] values) => this.values = new Queue<int>(values);
 
             public TabletopRandomInteractionRequest? LastRequest { get; private set; }
+            public List<TabletopRandomInteractionRequest> Requests { get; } = new();
 
             public UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
             {
                 LastRequest = request;
+                Requests.Add(request);
                 IReadOnlyList<string> cardIds = request.Kind == TabletopRandomInteractionKind.PhysicalDice ? Array.Empty<string>() : new[] { $"{request.DeckId}:0" };
+                int value = values.Count > 0 ? values.Dequeue() : 1;
                 return UniTask.FromResult(new TabletopRandomInteractionResult(request.InteractionId, new[] { value }, cardIds));
             }
         }

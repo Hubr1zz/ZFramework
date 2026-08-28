@@ -53,6 +53,76 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
+        public void RerolledChoiceCheckpoint_RestoresFrozenResultWithoutChargingAgain()
+        {
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 8129) { Name = "记录者", Understanding = 1, Willpower = 2, WillpowerMax = 2 };
+            settlement.Hunters.Add(hunter);
+            EventData gameEvent = CreateCheckedEvent();
+            var eventSystem = new EventSystem(settlement, new SequenceRandom(1, 8));
+
+            try
+            {
+                PlayableEventChoiceTransaction original = eventSystem.PrepareChoice(gameEvent, 0, hunter);
+                Assert.That(original.TryReroll(), Is.True);
+                PlayableEventRerollCheckpoint checkpoint = original.CreateRerollCheckpoint();
+                int willpowerAfterReroll = hunter.Willpower;
+                int luckAfterReroll = hunter.Luck;
+
+                Assert.That(eventSystem.TryRestoreRerolledChoice(gameEvent, checkpoint, hunter, out PlayableEventChoiceTransaction restored, out string reason), Is.True, reason);
+                Assert.That(restored.RollValue, Is.EqualTo(original.RollValue));
+                Assert.That(restored.Bonus, Is.EqualTo(original.Bonus));
+                Assert.That(restored.HasRerolled, Is.True);
+                Assert.That(restored.CanReroll, Is.False);
+                Assert.That(restored.TryReroll(10), Is.False);
+                restored.CommitStandalone();
+                Assert.That(hunter.Willpower, Is.EqualTo(willpowerAfterReroll));
+                Assert.That(hunter.Luck, Is.EqualTo(luckAfterReroll));
+                Assert.That(settlement.GetResource("碎石"), Is.EqualTo(2));
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void RerolledChoiceCheckpoint_RejectsInvalidIdentityVersionAndRollWithoutMutation()
+        {
+            var settlement = new SettlementInstance();
+            var hunter = new HunterInstance(null, 8132) { Understanding = 1, Willpower = 2, WillpowerMax = 2 };
+            settlement.Hunters.Add(hunter);
+            EventData gameEvent = CreateCheckedEvent();
+            var eventSystem = new EventSystem(settlement, new SequenceRandom(0));
+
+            try
+            {
+                var checkpoint = new PlayableEventRerollCheckpoint { HasValue = true, EventId = gameEvent.ContentId, OptionId = gameEvent.options[0].optionId, ActorId = hunter.InstanceId, RollValue = 9, Bonus = hunter.Understanding };
+                int initialWillpower = hunter.Willpower;
+                int initialLuck = hunter.Luck;
+
+                checkpoint.SchemaVersion++;
+                Assert.That(eventSystem.TryRestoreRerolledChoice(gameEvent, checkpoint, hunter, out _, out _), Is.False);
+                checkpoint.SchemaVersion = PlayableEventRerollCheckpoint.CurrentSchemaVersion;
+                checkpoint.OptionId = "missing-option";
+                Assert.That(eventSystem.TryRestoreRerolledChoice(gameEvent, checkpoint, hunter, out _, out _), Is.False);
+                checkpoint.OptionId = gameEvent.options[0].optionId;
+                checkpoint.ActorId++;
+                Assert.That(eventSystem.TryRestoreRerolledChoice(gameEvent, checkpoint, hunter, out _, out _), Is.False);
+                checkpoint.ActorId = hunter.InstanceId;
+                checkpoint.RollValue = 11;
+                Assert.That(eventSystem.TryRestoreRerolledChoice(gameEvent, checkpoint, hunter, out _, out _), Is.False);
+                Assert.That(hunter.Willpower, Is.EqualTo(initialWillpower));
+                Assert.That(hunter.Luck, Is.EqualTo(initialLuck));
+                Assert.That(settlement.GetResource("碎石"), Is.Zero);
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
         public void HuntWorldEffect_RequiresPortAndDelegatesToBoundWorld()
         {
             var settlement = new SettlementInstance();
@@ -367,8 +437,10 @@ namespace HuntingInDarkness.Adapter.Tests
         private static EventData CreateCheckedEvent()
         {
             var gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = "checked-event";
             var option = new EventOption
             {
+                optionId = "read-marks",
                 optionText = "解读刻痕",
                 checkType = CheckType.Understanding,
                 checkTarget = 8,

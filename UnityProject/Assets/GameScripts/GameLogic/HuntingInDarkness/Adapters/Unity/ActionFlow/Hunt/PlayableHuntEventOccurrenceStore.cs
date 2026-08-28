@@ -17,13 +17,16 @@ namespace HuntingInDarkness.ActionFlow.Hunt
             AncestorContentIds = ancestorContentIds ?? Array.Empty<string>();
         }
 
-        public PlayableEventChainOccurrence Occurrence { get; }
+        public PlayableEventChainOccurrence Occurrence { get; private set; }
         public EventData Event { get; }
         public Vector2Int Coordinate { get; }
         public IReadOnlyList<string> AncestorContentIds { get; }
         public string AncestorContentId => AncestorContentIds.Count == 0 ? string.Empty : AncestorContentIds[AncestorContentIds.Count - 1];
         public int Sequence => Occurrence.Sequence;
         public string EventId => Event?.ContentId ?? Occurrence.EventId;
+        public PlayableEventRerollCheckpoint RerollCheckpoint => Occurrence.RerollCheckpoint;
+
+        internal void UpdateOccurrence(PlayableEventChainOccurrence occurrence) => Occurrence = occurrence;
     }
 
     public readonly struct PlayableHuntEventOccurrenceRecord
@@ -94,6 +97,24 @@ namespace HuntingInDarkness.ActionFlow.Hunt
         {
             foreach (PlayableEventChainOccurrence occurrence in queue.PendingOccurrences)
                 if (occurrence.Sequence == sequence) return true;
+            return false;
+        }
+
+        public bool TrySetRerollCheckpoint(PlayableHuntEventOccurrence occurrence, PlayableEventRerollCheckpoint checkpoint, out string reason)
+        {
+            if (occurrence == null || checkpoint == null || !occurrences.TryGetValue(occurrence.Sequence, out PlayableHuntEventOccurrence current) || !ReferenceEquals(current, occurrence) || !queue.TrySetRerollCheckpoint(occurrence.Sequence, checkpoint))
+            {
+                reason = "狩猎事件重投检查点无法绑定当前 occurrence。";
+                return false;
+            }
+            foreach (PlayableEventChainOccurrence pending in queue.PendingOccurrences)
+                if (pending.Sequence == occurrence.Sequence)
+                {
+                    occurrence.UpdateOccurrence(pending);
+                    reason = string.Empty;
+                    return true;
+                }
+            reason = "狩猎事件重投检查点写入后 occurrence 丢失。";
             return false;
         }
 

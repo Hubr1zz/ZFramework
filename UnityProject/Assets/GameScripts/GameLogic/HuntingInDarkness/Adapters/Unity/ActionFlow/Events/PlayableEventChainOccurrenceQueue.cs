@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using HuntingInDarkness.Data;
 
 namespace HuntingInDarkness.ActionFlow.Events
 {
     public readonly struct PlayableEventChainOccurrence
     {
-        public PlayableEventChainOccurrence(int sequence, string eventId, string eventName, int year, int actorId, IReadOnlyList<string> ancestorEventIds = null)
+        public PlayableEventChainOccurrence(int sequence, string eventId, string eventName, int year, int actorId, IReadOnlyList<string> ancestorEventIds = null, PlayableEventRerollCheckpoint rerollCheckpoint = null)
         {
             Sequence = sequence;
             EventId = eventId ?? string.Empty;
@@ -13,6 +14,7 @@ namespace HuntingInDarkness.ActionFlow.Events
             Year = year;
             ActorId = actorId;
             AncestorEventIds = ancestorEventIds ?? Array.Empty<string>();
+            RerollCheckpoint = rerollCheckpoint;
         }
 
         public int Sequence { get; }
@@ -21,6 +23,7 @@ namespace HuntingInDarkness.ActionFlow.Events
         public int Year { get; }
         public int ActorId { get; }
         public IReadOnlyList<string> AncestorEventIds { get; }
+        public PlayableEventRerollCheckpoint RerollCheckpoint { get; }
     }
 
     public readonly struct PlayableEventChainCommitResult
@@ -84,6 +87,17 @@ namespace HuntingInDarkness.ActionFlow.Events
         public IReadOnlyList<PlayableEventChainOccurrence> PendingOccurrences => pendingOccurrences;
         public string Diagnostic => diagnostic;
         public bool HasPendingOccurrences => pendingOccurrences.Count > 0;
+
+        public bool TrySetRerollCheckpoint(int sequence, PlayableEventRerollCheckpoint checkpoint)
+        {
+            if (checkpoint?.HasValue != true) return false;
+            int index = pendingOccurrences.FindIndex(occurrence => occurrence.Sequence == sequence);
+            if (index < 0) return false;
+            PlayableEventChainOccurrence occurrence = pendingOccurrences[index];
+            if (!string.Equals(occurrence.EventId, checkpoint.EventId, StringComparison.Ordinal) || occurrence.ActorId > 0 && occurrence.ActorId != checkpoint.ActorId) return false;
+            pendingOccurrences[index] = new PlayableEventChainOccurrence(occurrence.Sequence, occurrence.EventId, occurrence.EventName, occurrence.Year, checkpoint.ActorId, occurrence.AncestorEventIds, checkpoint);
+            return true;
+        }
 
         /// <summary>为当前 Action 根分配受限的负序号；正序号只保留给 commit 产生的 child occurrence。</summary>
         public bool TryScheduleRoot(string eventId, string eventName, int year, int actorId, out PlayableEventChainOccurrence occurrence)

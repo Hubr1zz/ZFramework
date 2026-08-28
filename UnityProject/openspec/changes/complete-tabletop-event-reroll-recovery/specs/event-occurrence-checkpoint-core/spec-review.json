@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 5,
+  "capability": "event-occurrence-checkpoint-core",
+  "title": "跨阶段事件 occurrence 检查点核心",
+  "category": "system",
+  "readiness": "implemented",
+  "verification": {
+    "status": "implemented",
+    "summary": "共享 occurrence 支持带存在标记的版本化重投状态，并保持序号、身份和父链不变。",
+    "codeEvidence": [
+      { "guid": "e159b3c1d6bfcce4082b45e63fc28083", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs", "fileHash": "a5f2f98392ad51f43aeb925d4410bad7568ebe2bb153bf6f2ee7cbc7220c276f", "line": 127, "feature": "定义可序列化且可区分缺失状态的重投检查点", "status": "verified", "checkedAt": "2026-08-28T02:00:20-07:00" },
+      { "guid": "881b14754c20430e852c9fda727bb3d9", "displayPath": "Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventChainOccurrenceQueue.cs", "fileHash": "9c1d1561bca6d6c9f82270b1e3ec48750a567a1d89cb9490fc9c20a0f467a1db", "line": 45, "feature": "在保持 occurrence 身份和顺序的前提下更新重投子状态", "status": "verified", "checkedAt": "2026-08-28T02:00:20-07:00" }
+    ],
+    "evidence": ["共享 Store 捕获与恢复测试通过。"],
+    "differences": ["正式 Spec 尚未定义重投 continuation 字段与一致校验。"],
+    "verifiedAt": "2026-08-28T02:00:20-07:00"
+  },
+  "gapIds": [],
+  "dependencyIds": [],
+  "sourceReferences": ["conversation::2026-08-28"],
+  "implementationOutline": ["Occurrence 可选持有 PlayableEventRerollCheckpoint。", "更新时先匹配 sequence、EventId 与 ActorId；恢复事务时再校验版本、选项和数值范围。"],
+  "reviewIssues": []
+}

@@ -1,0 +1,12 @@
+{
+  "sourceRunId": "",
+  "source": "直接实现后的收养对账：保证事件重投支付、结果与 occurrence 在营地 Continue 和活动狩猎恢复中保持同一权威事务。",
+  "sourceRoots": ["openspec/specs"],
+  "sourceReferences": [
+    "conversation::2026-08-28",
+    "formal::tabletop-random-interaction",
+    "formal::event-occurrence-checkpoint-core",
+    "formal::campaign-persistence",
+    "formal::hunt-session-event-occurrence-recovery"
+  ]
+}

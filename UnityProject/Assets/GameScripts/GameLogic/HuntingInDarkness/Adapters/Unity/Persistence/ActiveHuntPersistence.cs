@@ -106,6 +106,7 @@ namespace Core
         public int X;
         public int Y;
         public List<string> AncestorEventIds = new();
+        public PlayableEventRerollCheckpoint RerollCheckpoint;
     }
 
     public static class ActiveHuntSnapshotAdapter
@@ -408,7 +409,8 @@ namespace Core
                     ActorId = occurrence.ActorId,
                     X = record.Coordinate.x,
                     Y = record.Coordinate.y,
-                    AncestorEventIds = new List<string>(ancestorIds)
+                    AncestorEventIds = new List<string>(ancestorIds),
+                    RerollCheckpoint = occurrence.RerollCheckpoint?.HasValue == true ? occurrence.RerollCheckpoint : null
                 });
             }
             reason = string.Empty;
@@ -525,7 +527,8 @@ namespace Core
                         reason = $"无法解析待恢复狩猎事件 ancestor：{ancestorId}";
                         return false;
                     }
-                var core = new PlayableEventChainOccurrence(occurrence.Sequence, occurrence.EventId, occurrence.EventName, occurrence.Year, occurrence.ActorId, occurrence.AncestorEventIds);
+                PlayableEventRerollCheckpoint checkpoint = occurrence.RerollCheckpoint?.HasValue == true ? occurrence.RerollCheckpoint : null;
+                var core = new PlayableEventChainOccurrence(occurrence.Sequence, occurrence.EventId, occurrence.EventName, occurrence.Year, occurrence.ActorId, occurrence.AncestorEventIds, checkpoint);
                 pending.Add(new PlayableHuntEventOccurrenceRecord(core, new Vector2Int(occurrence.X, occurrence.Y), occurrence.AncestorEventIds));
             }
             var state = new PlayableHuntEventOccurrenceStoreState { NextSequence = saved.NextSequence, NextRootSequence = saved.NextRootSequence, CommittedSequences = saved.CommittedSequences, PendingOccurrences = pending, Diagnostic = saved.Diagnostic };
