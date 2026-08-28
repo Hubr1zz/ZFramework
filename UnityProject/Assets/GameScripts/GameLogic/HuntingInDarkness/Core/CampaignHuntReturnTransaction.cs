@@ -163,7 +163,7 @@ namespace Core
             }
         }
 
-        public async UniTask<SettlementHuntReturnCommandResult> ApplyPendingAsync(bool queueAnnualEvents, CancellationToken cancellationToken)
+        public async UniTask<SettlementHuntReturnCommandResult> ApplyPendingAsync(bool queueSettlementEvents, CancellationToken cancellationToken)
         {
             HuntRecord record = PendingRecord;
             PlayableSettlementActionSession session = host.SettlementActionSession;
@@ -184,7 +184,7 @@ namespace Core
 
                 SettlementEventRestoreProjection projection = null;
                 SettlementEventRestorePlan restorePlan = default;
-                if (queueAnnualEvents)
+                if (queueSettlementEvents)
                 {
                     projection = host.CreateEventRestoreCandidate();
                     if (projection == null) return SettlementHuntReturnCommandResult.Failed("营地事件恢复投影尚未准备完成。");
@@ -209,7 +209,7 @@ namespace Core
                 checkpointCleared = false;
                 if (host.SettlementRuntime?.Manager?.Data?.PendingHuntReturn != null) return SettlementHuntReturnCommandResult.Failed("回营检查点清除状态未生效。");
                 if (!IsCurrentSettlement(sequence, runtime, session)) return SettlementHuntReturnCommandResult.Failed("回营检查点保存后权威运行世代已经变化。");
-                if (!queueAnnualEvents) return result;
+                if (!queueSettlementEvents) return result;
 
                 host.PublishEventRestore(projection);
                 await host.ResolveSettlementEventsAsync(runtime, session, restorePlan, projection);

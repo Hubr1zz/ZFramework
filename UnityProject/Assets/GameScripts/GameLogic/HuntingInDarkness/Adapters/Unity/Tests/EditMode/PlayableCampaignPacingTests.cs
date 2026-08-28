@@ -53,6 +53,8 @@ namespace HuntingInDarkness.Tests
         {
             var settlement = new SettlementInstance { CurrentYear = 3 };
             var timeline = CreateTimeline(settlement);
+            EventData returnEvent = CreateRandomEvent("return-event");
+            timeline.RandomEventPool = new List<EventData> { returnEvent };
             var calendar = new CampaignCalendarDefinition("three_season_test", new[]
             {
                 new SeasonDefinition("season_a", "A", 0),
@@ -61,21 +63,32 @@ namespace HuntingInDarkness.Tests
             });
             Assert.That(timeline.TryBindCalendar(calendar, out string bindReason), Is.True, bindReason);
 
-            IReadOnlyList<EventData> firstEvents = timeline.AdvanceCalendar(new HuntRecord { RecordId = "season-a", Year = 3 }, out CampaignCalendarAdvancePlan first, out string reason);
-            Assert.That(reason, Is.Empty);
-            Assert.That(firstEvents, Is.Empty);
-            Assert.That(first.YearAdvanced, Is.False);
-            Assert.That(settlement.CurrentYear, Is.EqualTo(3));
-            Assert.That(settlement.CurrentSeasonIndex, Is.EqualTo(1));
+            try
+            {
+                IReadOnlyList<EventData> firstEvents = timeline.AdvanceCalendar(new HuntRecord { RecordId = "season-a", Year = 3 }, out CampaignCalendarAdvancePlan first, out string reason);
+                Assert.That(reason, Is.Empty);
+                Assert.That(firstEvents, Is.EqualTo(new[] { returnEvent }));
+                Assert.That(first.YearAdvanced, Is.False);
+                Assert.That(settlement.CurrentYear, Is.EqualTo(3));
+                Assert.That(settlement.CurrentSeasonIndex, Is.EqualTo(1));
 
-            timeline.AdvanceCalendar(new HuntRecord { RecordId = "season-b", Year = 3 }, out CampaignCalendarAdvancePlan second, out reason);
-            Assert.That(reason, Is.Empty);
-            Assert.That(second.YearAdvanced, Is.False);
-            timeline.AdvanceCalendar(new HuntRecord { RecordId = "season-c", Year = 3 }, out CampaignCalendarAdvancePlan third, out reason);
-            Assert.That(reason, Is.Empty);
-            Assert.That(third.YearAdvanced, Is.True);
-            Assert.That(settlement.CurrentYear, Is.EqualTo(4));
-            Assert.That(settlement.CurrentSeasonIndex, Is.Zero);
+                IReadOnlyList<EventData> secondEvents = timeline.AdvanceCalendar(new HuntRecord { RecordId = "season-b", Year = 3 }, out CampaignCalendarAdvancePlan second, out reason);
+                Assert.That(reason, Is.Empty);
+                Assert.That(secondEvents, Is.EqualTo(new[] { returnEvent }));
+                Assert.That(second.YearAdvanced, Is.False);
+                IReadOnlyList<EventData> thirdEvents = timeline.AdvanceCalendar(new HuntRecord { RecordId = "season-c", Year = 3 }, out CampaignCalendarAdvancePlan third, out reason);
+                Assert.That(reason, Is.Empty);
+                Assert.That(thirdEvents, Is.EqualTo(new[] { returnEvent }));
+                Assert.That(third.YearAdvanced, Is.True);
+                Assert.That(settlement.CurrentYear, Is.EqualTo(4));
+                Assert.That(settlement.CurrentSeasonIndex, Is.Zero);
+                Assert.That(settlement.Timeline.FindAll(entry => entry.EntryType == TimelineEntryType.Random), Has.Count.EqualTo(3));
+                Assert.That(settlement.Timeline.ConvertAll(entry => entry.SourceHuntRecordId), Is.EquivalentTo(new[] { "season-a", "season-b", "season-c" }));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(returnEvent);
+            }
         }
 
         [Test]
@@ -126,18 +139,18 @@ namespace HuntingInDarkness.Tests
         }
 
         [Test]
-        public void AdvanceCalendar_ReusesExistingAnnualRandomSlotAfterInterruptedAttempt()
+        public void AdvanceCalendar_ReusesExistingReturnRandomByStableRecordId()
         {
             var settlement = new SettlementInstance { CurrentYear = 4 };
-            settlement.Timeline.Add(new AnnalEntry { Year = 5, EventId = "replacement", EntryType = TimelineEntryType.Random });
-            EventData annualEvent = ScriptableObject.CreateInstance<EventData>();
-            annualEvent.name = "replacement";
-            annualEvent.category = EventCategory.Random;
-            annualEvent.minYear = 1;
-            annualEvent.maxYear = 99;
-            annualEvent.drawWeight = 1;
+            settlement.Timeline.Add(new AnnalEntry { Year = 5, EventId = "replacement", EntryType = TimelineEntryType.Random, SourceHuntRecordId = "recovered-return" });
+            EventData returnEvent = ScriptableObject.CreateInstance<EventData>();
+            returnEvent.name = "replacement";
+            returnEvent.category = EventCategory.Random;
+            returnEvent.minYear = 1;
+            returnEvent.maxYear = 99;
+            returnEvent.drawWeight = 1;
             var timeline = CreateTimeline(settlement);
-            timeline.RandomEventPool = new List<EventData> { annualEvent };
+            timeline.RandomEventPool = new List<EventData> { returnEvent };
 
             try
             {
@@ -146,14 +159,14 @@ namespace HuntingInDarkness.Tests
                 SettlementEventRestorePlan restorePlan = projection.Prepare();
 
                 Assert.That(settlement.CurrentYear, Is.EqualTo(5));
-                Assert.That(settlement.Timeline.FindAll(entry => entry != null && entry.Year == 5 && entry.EntryType == TimelineEntryType.Random), Has.Count.EqualTo(1));
+                Assert.That(settlement.Timeline.FindAll(entry => entry != null && entry.EntryType == TimelineEntryType.Random && entry.SourceHuntRecordId == "recovered-return"), Has.Count.EqualTo(1));
                 Assert.That(restorePlan.Succeeded, Is.True);
                 Assert.That(restorePlan.Events, Has.Count.EqualTo(1));
-                Assert.That(restorePlan.Events[0], Is.SameAs(annualEvent));
+                Assert.That(restorePlan.Events[0], Is.SameAs(returnEvent));
             }
             finally
             {
-                UnityEngine.Object.DestroyImmediate(annualEvent);
+                UnityEngine.Object.DestroyImmediate(returnEvent);
             }
         }
 
@@ -287,6 +300,18 @@ namespace HuntingInDarkness.Tests
             Assert.That(restored.CampaignPacingSchemaVersion, Is.EqualTo(SettlementInstance.CurrentCampaignPacingSchemaVersion));
         }
 
+        [Test]
+        public void ReturnEventSource_RoundTripsAsStableRecordIdentity()
+        {
+            var data = new SettlementInstance();
+            data.Timeline.Add(new AnnalEntry { Year = 2, EventId = "return-event", EntryType = TimelineEntryType.Random, SourceHuntRecordId = "hunt-record-2" });
+
+            SettlementInstance restored = JsonUtility.FromJson<SettlementInstance>(JsonUtility.ToJson(data));
+
+            Assert.That(restored.Timeline, Has.Count.EqualTo(1));
+            Assert.That(restored.Timeline[0].SourceHuntRecordId, Is.EqualTo("hunt-record-2"));
+        }
+
         private static TimelineSystem CreateTimeline(SettlementInstance settlement)
         {
             var timeline = new TimelineSystem(settlement, new FirstRandom());
@@ -295,6 +320,19 @@ namespace HuntingInDarkness.Tests
                 new SeasonDefinition("season_default", "默认季", 0)
             }), out string reason), Is.True, reason);
             return timeline;
+        }
+
+        private static EventData CreateRandomEvent(string contentId)
+        {
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.name = contentId;
+            gameEvent.eventName = contentId;
+            gameEvent.category = EventCategory.Random;
+            gameEvent.minYear = 1;
+            gameEvent.maxYear = 99;
+            gameEvent.drawWeight = 1;
+            gameEvent.ConfigureContentId(contentId);
+            return gameEvent;
         }
 
         private sealed class FirstRandom : HuntingInDarkness.GameCore.Foundation.IRandomSource

@@ -8,7 +8,7 @@ title: "营地时间线事件稳定身份"
 
 ## Purpose
 
-让营地年度事件以稳定 ContentId 持久化，并把每一个年鉴 occurrence 精确交给 Settlement ActionQueue 完成，避免资产改名、重复事件或跨阶段复用导致错误恢复与误完成。
+让营地事件以稳定 ContentId 持久化，并把每一个年鉴 occurrence 精确交给 Settlement ActionQueue 完成，避免资产改名、重复事件或跨阶段复用导致错误恢复与误完成。
 
 ## Requirements
 
@@ -34,7 +34,7 @@ MainStory、Random 与 Scheduled 年鉴条目 SHALL 把 EventData.ContentId 保�
 
 ### Requirement: ActionQueue completes the exact timeline occurrence
 
-每个年度事件工作项 SHALL 携带其精确 AnnalEntry。Settlement Runner SHALL 在事件效果提交检查点完成该条目；同 ContentId 的多个未完成条目 SHALL 保持独立，不得以 FindLast 或名称匹配完成其他 occurrence。
+每个 Timeline 事件工作项 SHALL 携带其精确 AnnalEntry。Settlement Runner SHALL 在事件效果提交检查点完成该条目；同 ContentId 的多个未完成条目 SHALL 保持独立，不得以 FindLast 或名称匹配完成其他 occurrence。
 
 #### Scenario: The same event occurs in two years
 
@@ -44,12 +44,13 @@ MainStory、Random 与 Scheduled 年鉴条目 SHALL 把 EventData.ContentId 保�
 
 ### Requirement: Calendar boundaries gate annual occurrence creation
 
-年度 Timeline occurrence SHALL 只在配置化日历实际从最后季节进入下一年时创建。同年季节推进 SHALL 只记录 Hunt 与季节事实，不得生成下一年 MainStory、Random 或 Scheduled 条目。重复回营 RecordId 或回营检查点恢复 SHALL 复用既有精确 AnnalEntry，不得创建第二份年度 occurrence。
+年度 MainStory 与到期 Scheduled occurrence SHALL 只在配置化日历实际从最后季节进入下一年时创建。同年季节推进 SHALL NOT 生成下一年度条目。每次首次成功回营 SHALL 从当前年份可用池物化至多一个 Random occurrence，并把稳定 HuntRecord.RecordId 保存为 SourceHuntRecordId；重复记录或回营检查点恢复 SHALL 复用该精确条目，不得重新抽取。
 
 #### Scenario: A Hunt returns during the same year
 
 - **WHEN** 默认两季日历从季节索引 0 推进到 1
 - **THEN** Timeline SHALL NOT 创建下一年度条目
+- **AND** SHALL 为本次成功回营创建至多一个绑定 RecordId 的当前年度 Random occurrence
 - **AND** 当前年度既有未完成 occurrence SHALL 保持原身份与状态
 
 #### Scenario: A year-boundary return is retried
@@ -58,6 +59,12 @@ MainStory、Random 与 Scheduled 年鉴条目 SHALL 把 EventData.ContentId 保�
 - **WHEN** 相同 RecordId 因检查点恢复再次进入回营 Action
 - **THEN** Timeline SHALL NOT 创建重复条目
 - **AND** 恢复投影 SHALL 继续原 AnnalEntry 或其持久 child occurrence
+
+#### Scenario: No return event is currently eligible
+
+- **WHEN** 成功回营时 Random 池为空或没有满足当前年份条件的内容
+- **THEN** 历史、资源与季节提交 SHALL 正常完成
+- **AND** Timeline SHALL NOT 创建空占位或无效事件条目
 
 ### Requirement: Restore only projects due timeline occurrences
 
@@ -74,9 +81,9 @@ MainStory、Random 与 Scheduled 年鉴条目 SHALL 把 EventData.ContentId 保�
 
 事件效果与精确年鉴条目完成 SHALL 位于结果表现确认之前。确认失败后，已提交父条目 SHALL 保持完成，已登记的子 occurrence SHALL 留在事件链检查点等待恢复，父效果 SHALL NOT 重放。
 
-#### Scenario: Result confirmation fails after the annual event commits
+#### Scenario: Result confirmation fails after a timeline event commits
 
-- **WHEN** 年度父事件已提交效果和子事件，随后结果确认失败
+- **WHEN** Timeline 父事件已提交效果和子事件，随后结果确认失败
 - **THEN** 父年鉴 occurrence SHALL 保持完成
 - **AND** 恢复 SHALL 从待办子 occurrence 继续
 

@@ -117,6 +117,7 @@ namespace HuntingInDarkness.Data
         public bool   IsCompleted;
         public bool   IsMilestone;     // 主线事件（金色标记）
         public TimelineEntryType EntryType = TimelineEntryType.Random;
+        public string SourceHuntRecordId;
         public string ResolutionMemoryId;
     }
 

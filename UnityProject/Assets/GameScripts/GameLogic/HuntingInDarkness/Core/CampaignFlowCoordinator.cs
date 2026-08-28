@@ -242,11 +242,11 @@ namespace Core
             return RequestRetreatAsync(decision, ResolveLifetimeToken());
         }
 
-        internal UniTask<bool> ApplyPendingReturnAsync(bool queueAnnualEvents, CancellationToken cancellationToken)
-            => ApplyPendingReturnCoreAsync(queueAnnualEvents, cancellationToken);
+        internal UniTask<bool> ApplyPendingReturnAsync(bool queueSettlementEvents, CancellationToken cancellationToken)
+            => ApplyPendingReturnCoreAsync(queueSettlementEvents, cancellationToken);
 
-        private async UniTask<bool> ApplyPendingReturnCoreAsync(bool queueAnnualEvents, CancellationToken cancellationToken)
-            => (await huntReturn.ApplyPendingAsync(queueAnnualEvents, cancellationToken)).Succeeded;
+        private async UniTask<bool> ApplyPendingReturnCoreAsync(bool queueSettlementEvents, CancellationToken cancellationToken)
+            => (await huntReturn.ApplyPendingAsync(queueSettlementEvents, cancellationToken)).Succeeded;
 
         internal void QueueSettlementEvents(IReadOnlyList<SettlementEventWork> works, SettlementEventRestoreProjection projection = null, string restoredChainId = null)
             => settlementPhase.QueueCurrentEvents(works, projection, restoredChainId);

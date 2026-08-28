@@ -8,7 +8,7 @@ title: "狩猎归来结果检查点"
 
 ## Purpose
 
-让正常狩猎归来的资源、参战猎人成长、远征历史、季节游标以及跨年时的年度事件在可恢复的 Settlement 提交边界内恰好生效一次。
+让正常狩猎归来的资源、参战猎人成长、远征历史、季节游标、回营随机事件以及跨年年度事件在可恢复的 Settlement 提交边界内恰好生效一次。
 
 ## Requirements
 
@@ -41,7 +41,7 @@ Settlement Runner SHALL 在同一 root 修改状态前验证协议版本、Recor
 
 ### Requirement: Current return outcomes commit exactly once
 
-未应用的当前版本记录 SHALL 在一个 Settlement root 内转入记录中的资源、清除参战者携带物、只推进存活参战者并处理退休、追加 HuntHistory，并推进恰好一个配置季节。只有该季节提交越过冻结日历末尾时才 SHALL 推进一年并物化年度 Timeline。死亡参战者 SHALL NOT 成长；提交事实 SHALL 仅从 root 的 EventBus outbox 发布。
+未应用的当前版本记录 SHALL 在一个 Settlement root 内转入记录中的资源、清除参战者携带物、只推进存活参战者并处理退休、追加 HuntHistory、推进恰好一个配置季节，并从当前年份可用池物化至多一个绑定 RecordId 的 Random Timeline occurrence。只有该季节提交越过冻结日历末尾时才 SHALL 推进一年并物化 MainStory 与到期 Scheduled 年度 Timeline。死亡参战者 SHALL NOT 成长；提交事实 SHALL 仅从 root 的 EventBus outbox 发布。
 
 #### Scenario: A current return commits
 
@@ -51,7 +51,7 @@ Settlement Runner SHALL 在同一 root 修改状态前验证协议版本、Recor
 #### Scenario: The same return is replayed
 
 - **WHEN** 相同 RecordId 已存在于 HuntHistory
-- **THEN** Settlement SHALL 幂等成功，且 SHALL NOT 重复资源、成长、退休、年份或年度事件
+- **THEN** Settlement SHALL 幂等成功，且 SHALL NOT 重复资源、成长、退休、年份、回营 Random 或年度事件
 
 ### Requirement: Applied state remains recoverable until checkpoint clear is durable
 

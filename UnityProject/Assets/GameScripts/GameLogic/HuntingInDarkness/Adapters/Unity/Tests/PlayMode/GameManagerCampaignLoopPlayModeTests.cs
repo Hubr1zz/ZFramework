@@ -960,11 +960,12 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 FindChoice(restoredEventView, "用一份金属碎片封住石片的缝隙").Clicked.Invoke();
                 yield return WaitForChoice(restoredEventView, "继续");
                 FindChoice(restoredEventView, "继续").Clicked.Invoke();
+                Assert.That(restoredRandom.RequestCount, Is.Zero, "恢复 child 的安全资源选项不应重放父事件骰子。");
+                restoredManager.SetPlayableEventInput(new ImmediateEventInput(() => restoredManager.SettlementData));
                 yield return WaitForCompletion(retreat);
                 HuntRetreatCommandResult retreatResult = retreat.GetResult();
                 Assert.That(retreatResult.Succeeded, Is.True, retreatResult.Reason);
                 yield return WaitForSettlementIdle(restoredManager);
-                Assert.That(restoredRandom.RequestCount, Is.Zero, "恢复 child 的安全资源选项不应重放父事件骰子。");
                 CampaignSnapshot drainedCheckpoint = persistence.Snapshots.Skip(checkpointSaveCount).LastOrDefault(snapshot => snapshot?.HasActiveHunt == true && snapshot.ActiveHunt.EventStore?.PendingOccurrences?.Count == 0);
                 Assert.That(drainedCheckpoint, Is.Not.Null, "child 完成后缺少 pending 清空的活动 Hunt checkpoint。");
                 Assert.That(drainedCheckpoint.Settlement.GetResource("metal_fragment"), Is.Zero);

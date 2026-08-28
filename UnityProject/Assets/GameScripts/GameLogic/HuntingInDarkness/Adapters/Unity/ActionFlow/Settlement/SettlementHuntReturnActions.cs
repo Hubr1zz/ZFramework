@@ -36,7 +36,7 @@ namespace HuntingInDarkness.ActionFlow.Settlement
         public static SettlementHuntReturnCommandResult Failed(string reason) => new(false, false, reason, Array.Empty<EventData>());
     }
 
-    /// <summary>在 Settlement Runner 的单个 root 内提交远征记录、资源、猎人成长、年份和年度 Timeline。</summary>
+    /// <summary>在 Settlement Runner 的单个 root 内提交远征记录、资源、猎人成长、日历和回营事件 Timeline。</summary>
     public sealed class ApplySettlementHuntReturnAction : CommandAction, ISourceAction, ITargetAction
     {
         private readonly TimelineSystem timeline;

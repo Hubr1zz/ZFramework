@@ -111,19 +111,20 @@ Hunt Runner SHALL 生成稳定 HuntRecord；Settlement Runner 接受该记录后
 
 ### Requirement: Annual events occur only on a real year boundary
 
-每次首次成功回营 SHALL 发布一份季节推进玩法事实和 HuntCompleted 事实。只有日历计划实际进入新一年时，Settlement Runner 才 SHALL 创建该新年份的年度 Timeline occurrence 并发布 YearAdvanced 事实；同年季节推进、出发失败、取消和读档恢复 SHALL NOT 创建年度 occurrence。
+每次首次成功回营 SHALL 发布一份季节推进玩法事实和 HuntCompleted 事实，并从当前年份可用池创建至多一个绑定该 RecordId 的 Random Timeline occurrence。只有日历计划实际进入新一年时，Settlement Runner 才 SHALL 创建该新年份的 MainStory 与到期 Scheduled 年度 occurrence 并发布 YearAdvanced 事实；同年季节推进、出发失败、取消和读档恢复 SHALL NOT 创建年度 occurrence。
 
 #### Scenario: The first season completes in the default calendar
 
 - **WHEN** 年份 1、季节索引 0 的回营首次成功提交
 - **THEN** HuntCompleted 与 SeasonAdvanced SHALL 各发布一次
 - **AND** YearAdvanced 与年份 2 的年度 occurrence SHALL NOT 产生
+- **AND** 当前年份可用 Random occurrence SHALL 与该 RecordId 精确绑定
 
 #### Scenario: A return record is retried after persistence recovery
 
 - **WHEN** 同一个稳定 RecordId 已经推进过季节但检查点仍待清理
 - **THEN** 重试 SHALL NOT 再推进季节或年份
-- **AND** SHALL NOT 重复创建年度 occurrence
+- **AND** SHALL NOT 重复创建年度或回营 Random occurrence
 
 ### Requirement: Legacy pacing fields migrate conservatively
 

@@ -69,6 +69,15 @@ namespace HuntingInDarkness.Adapter.Tests
         {
             var settlement = new SettlementInstance { CurrentYear = 5 };
             var timeline = new TimelineSystem(settlement, new FirstRandom());
+            EventData returnEvent = ScriptableObject.CreateInstance<EventData>();
+            returnEvent.name = "return-event";
+            returnEvent.eventName = "归来余波";
+            returnEvent.category = EventCategory.Random;
+            returnEvent.minYear = 1;
+            returnEvent.maxYear = 99;
+            returnEvent.drawWeight = 1;
+            returnEvent.ConfigureContentId("return-event");
+            timeline.RandomEventPool = new List<EventData> { returnEvent };
             var calendar = new CampaignCalendarDefinition("two_season_test", new[]
             {
                 new SeasonDefinition("early", "早季", 0),
@@ -100,6 +109,8 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(first.YearAdvanced, Is.False);
                 Assert.That(first.CurrentYear, Is.EqualTo(5));
                 Assert.That(first.CurrentSeasonIndex, Is.EqualTo(1));
+                Assert.That(first.Events, Is.EqualTo(new[] { returnEvent }));
+                Assert.That(settlement.Timeline.Single(entry => entry.SourceHuntRecordId == "season-first").Year, Is.EqualTo(5));
                 Assert.That(seasonFacts, Is.EqualTo(1));
                 Assert.That(yearFacts, Is.Zero);
                 Assert.That(huntFacts, Is.EqualTo(1));
@@ -113,6 +124,8 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(second.YearAdvanced, Is.True);
                 Assert.That(second.CurrentYear, Is.EqualTo(6));
                 Assert.That(second.CurrentSeasonIndex, Is.Zero);
+                Assert.That(second.Events, Is.EqualTo(new[] { returnEvent }));
+                Assert.That(settlement.Timeline.Single(entry => entry.SourceHuntRecordId == "season-second").Year, Is.EqualTo(6));
                 Assert.That(seasonFacts, Is.EqualTo(2));
                 Assert.That(yearFacts, Is.EqualTo(1));
                 Assert.That(huntFacts, Is.EqualTo(2));
@@ -126,6 +139,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 EventBus.Unsubscribe(seasonHandler);
                 EventBus.Unsubscribe(yearHandler);
                 EventBus.Unsubscribe(huntHandler);
+                UnityEngine.Object.DestroyImmediate(returnEvent);
             }
         }
 

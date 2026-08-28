@@ -17,18 +17,23 @@ namespace HuntingInDarkness.Adapter.Tests
         public void TearDown() => PlayableSettlementEventRegistry.Configure(Array.Empty<EventData>());
 
         [Test]
-        public void Timeline_StoresAndResolvesExplicitContentIdAfterAssetRename()
+        public void ReturnRandom_StoresStableEventAndSourceIdentityAfterAssetRename()
         {
             EventData gameEvent = CreateEvent("legacy-asset", "stable-event");
             var settlement = new SettlementInstance { CurrentYear = 1 };
             var timeline = new TimelineSystem(settlement, new FirstRandom()) { RandomEventPool = new() { gameEvent } };
             try
             {
-                var works = timeline.GetEventWorkItemsForYear(2);
+                Assert.That(timeline.TryBindCalendar(new CampaignCalendarDefinition("single", new[] { new SeasonDefinition("season", "季", 0) }), out string bindReason), Is.True, bindReason);
+                Assert.That(timeline.GetEventWorkItemsForYear(1), Is.Empty, "开局年度入口不得提前抽取回营随机事件。");
 
-                Assert.That(works, Has.Count.EqualTo(1));
-                Assert.That(works[0].TimelineEntry, Is.SameAs(settlement.Timeline[0]));
+                IReadOnlyList<EventData> events = timeline.AdvanceCalendar(new HuntRecord { RecordId = "return-1", Year = 1 }, out _, out string reason);
+
+                Assert.That(reason, Is.Empty);
+                Assert.That(events, Is.EqualTo(new[] { gameEvent }));
+                Assert.That(settlement.Timeline, Has.Count.EqualTo(1));
                 Assert.That(settlement.Timeline[0].EventId, Is.EqualTo("stable-event"));
+                Assert.That(settlement.Timeline[0].SourceHuntRecordId, Is.EqualTo("return-1"));
                 gameEvent.name = "renamed-asset";
                 Assert.That(timeline.ResolveEvent("stable-event"), Is.SameAs(gameEvent));
                 Assert.That(timeline.ResolveEvent("legacy-asset"), Is.Null);

@@ -9,7 +9,7 @@ namespace HuntingInDarkness.Settlement
 {
     /// <summary>
     /// 年鉴/Timeline 系统（纯 C#）。
-    /// 职责：管理年份推进、事件调度（主线 + 随机）、年度狩猎记录。
+    /// 职责：管理配置日历推进、年度事件与逐次回营随机事件调度、狩猎历史。
     /// </summary>
     public class TimelineSystem : IDelayedEventScheduler
     {
@@ -63,9 +63,10 @@ namespace HuntingInDarkness.Settlement
             _settlement.CurrentYear = advancePlan.NextYear;
             _settlement.CurrentSeasonIndex = advancePlan.NextSeasonIndex;
             _settlement.HuntsCompletedThisYear = 0;
-            if (!advancePlan.YearAdvanced) return new List<EventData>();
-            Debug.Log($"[Timeline] 年份推进 → {advancePlan.NextYear}");
-            return GetEventsForYear(advancePlan.NextYear);
+            var events = advancePlan.YearAdvanced ? GetEventsForYear(advancePlan.NextYear) : new List<EventData>();
+            AppendReturnRandomEvent(huntRecord.RecordId, advancePlan.NextYear, events);
+            if (advancePlan.YearAdvanced) Debug.Log($"[Timeline] 年份推进 → {advancePlan.NextYear}");
+            return events;
         }
 
         public bool TryCreateCalendarAdvancePlan(HuntRecord huntRecord, out CampaignCalendarAdvancePlan advancePlan, out string reason)
@@ -100,9 +101,10 @@ namespace HuntingInDarkness.Settlement
         // ─── 事件调度 ────────────────────────────────────────────
 
         /// <summary>
-        /// 获取指定年份应触发的事件列表：
-        /// 1. 主线事件（固定年份）
-        /// 2. 随机事件（从可用池中抽取）
+        /// 获取指定年份应触发的年度事件列表：
+        /// 1. 到期延时事件
+        /// 2. 主线事件（固定年份）
+        /// 回营随机事件由 AdvanceCalendar 按 HuntRecord 稳定身份单独物化。
         /// </summary>
         public List<EventData> GetEventsForYear(int year)
         {
@@ -137,32 +139,37 @@ namespace HuntingInDarkness.Settlement
                 }
             }
 
-            // 随机事件：抽取1张
-            if (_settlement.Timeline.Exists(entry => entry != null && entry.Year == year && entry.EntryType == TimelineEntryType.Random)) return result;
+            return result;
+        }
+
+        private void AppendReturnRandomEvent(string huntRecordId, int year, List<EventData> events)
+        {
+            if (string.IsNullOrWhiteSpace(huntRecordId)) return;
+            string sourceRecordId = huntRecordId.Trim();
+            AnnalEntry existing = _settlement.Timeline.Find(entry => entry != null && entry.EntryType == TimelineEntryType.Random && string.Equals(entry.SourceHuntRecordId, sourceRecordId, System.StringComparison.Ordinal));
+            if (existing != null)
+            {
+                EventData existingEvent = existing.IsCompleted ? null : ResolveEvent(existing.EventId);
+                if (existingEvent != null) events.Add(existingEvent);
+                return;
+            }
+
             var available = GetAvailableRandomEvents(year);
             string mostRecentEventId = _settlement.Timeline.FindLast(entry => entry != null && entry.EntryType == TimelineEntryType.Random)?.EventId;
             bool hasAlternative = available.Exists(gameEvent => !string.Equals(gameEvent.ContentId, mostRecentEventId, System.StringComparison.Ordinal));
             available.RemoveAll(gameEvent => EventRecencyRules.ShouldExcludeMostRecent(gameEvent.ContentId, mostRecentEventId, hasAlternative));
-            if (available.Count > 0)
+            EventData picked = WeightedRandom(available, _rng);
+            if (picked == null) return;
+            _settlement.Timeline.Add(new AnnalEntry
             {
-                var picked = WeightedRandom(available, _rng);
-                if (picked != null)
-                {
-                    // 将其标记为该年的记录
-                    var entry = new AnnalEntry
-                    {
-                        Year      = year,
-                        EventId   = picked.ContentId,
-                        EventName = picked.eventName,
-                        IsMilestone = picked.category == EventCategory.MainStory,
-                        EntryType = TimelineEntryType.Random
-                    };
-                    _settlement.Timeline.Add(entry);
-                    result.Add(new SettlementEventWork(picked, entry));
-                }
-            }
-
-            return result;
+                Year = year,
+                EventId = picked.ContentId,
+                EventName = picked.eventName,
+                IsMilestone = false,
+                EntryType = TimelineEntryType.Random,
+                SourceHuntRecordId = sourceRecordId
+            });
+            events.Add(picked);
         }
 
         private List<EventData> GetAvailableRandomEvents(int year)

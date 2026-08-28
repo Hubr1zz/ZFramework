@@ -43,8 +43,10 @@ namespace HuntingInDarkness.Adapter.Tests
 
             try
             {
-                List<EventData> events = timeline.GetEventsForYear(5);
+                Assert.That(timeline.TryBindCalendar(new CampaignCalendarDefinition("single", new[] { new SeasonDefinition("season", "季", 0) }), out string bindReason), Is.True, bindReason);
+                List<EventData> events = timeline.AdvanceCalendar(new HuntRecord { RecordId = "return-after-first", Year = 4 }, out _, out string reason);
 
+                Assert.That(reason, Is.Empty);
                 Assert.That(events, Has.Count.EqualTo(1));
                 Assert.That(events[0].name, Is.EqualTo("Second"));
             }
