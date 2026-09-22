@@ -1,0 +1,311 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "black_salt",
+      "itemName": "黑盐",
+      "itemType": "Resource",
+      "description": "只会在石缝深处凝结的暗色盐晶，可用于仪式与精细制造。",
+      "tags": ["Mineral", "Rare"],
+      "keywords": ["ritual"],
+      "stackLimit": 99
+    },
+    {
+      "id": "salt_ward",
+      "itemName": "盐纹护符",
+      "itemType": "Armor",
+      "description": "用黑盐刻出的随身护符，能在贴近黑暗时维持一道微弱屏障。",
+      "tags": ["Gear", "Sacred", "Rare"],
+      "keywords": ["ritual", "ward"],
+      "armorStats": {
+        "armorBody": 1
+      },
+      "stackLimit": 1,
+      "huntNoise": -1
+    },
+    {
+      "id": "salt_crystal_edge",
+      "itemName": "盐晶短刃",
+      "itemType": "Weapon",
+      "description": "将黑盐晶嵌入打磨过的石刃，切割力更强，但晶体碰撞会在荒野中留下清脆声响。",
+      "tags": ["Gear", "Weapon", "Stone", "Mineral"],
+      "keywords": ["stone", "ritual"],
+      "weaponStats": {
+        "speed": 1,
+        "power": 2,
+        "accuracy": 1,
+        "range": 1,
+        "specialRule": "装备后队伍狩猎噪音 +1。"
+      },
+      "stackLimit": 1,
+      "huntNoise": 1
+    },
+    {
+      "id": "fungal_hush_wrap",
+      "itemName": "菌绒裹衣",
+      "itemType": "Armor",
+      "description": "以蘑菇纤维包裹柔软器官制成的贴身护衣，能吸收枝叶摩擦与装备碰撞的声响。",
+      "tags": ["Gear", "Cloth", "Herb", "Organ"],
+      "keywords": ["herb", "quiet"],
+      "armorStats": {
+        "armorBody": 1,
+        "armorArms": 1
+      },
+      "stackLimit": 1,
+      "huntNoise": -1
+    },
+    {
+      "id": "echo_sinew",
+      "itemName": "回声筋腱",
+      "itemType": "Resource",
+      "description": "从石缝深处抽出的灰白筋束，绷紧时会复述附近最近的声音。",
+      "tags": ["Organ", "Rare"],
+      "keywords": ["echo", "flexible"],
+      "stackLimit": 99
+    },
+    {
+      "id": "echo_hook_spear",
+      "itemName": "回声钩矛",
+      "itemType": "Weapon",
+      "description": "以回声筋腱绑紧的长柄石钩，能在危险边缘拖拽目标。",
+      "tags": ["Gear", "Weapon", "Stone", "Organ", "Rare"],
+      "keywords": ["echo", "reach", "stone"],
+      "weaponStats": {
+        "speed": 1,
+        "power": 2,
+        "accuracy": 1,
+        "range": 2,
+        "specialRule": "回声与长柄词条可解锁特殊事件选项。"
+      },
+      "stackLimit": 1,
+      "huntNoise": 0
+    },
+    {
+      "id": "stonewatch_mantle",
+      "itemName": "守石斗篷",
+      "itemType": "Armor",
+      "description": "菌丝缝入薄石片的披风，移动时石片会先于穿戴者感知震动。",
+      "tags": ["Gear", "Cloth", "Stone", "Herb"],
+      "keywords": ["stone", "quiet", "watcher"],
+      "armorStats": {
+        "armorBody": 1,
+        "armorLegs": 1
+      },
+      "stackLimit": 1,
+      "huntNoise": -1
+    },
+    {
+      "id": "viscous_sap",
+      "itemName": "粘稠汁液",
+      "itemType": "Resource",
+      "description": "从肥厚菌体中挤出的半透明胶液，干燥后能牢牢黏住骨片与纤维。",
+      "tags": ["Organ"],
+      "keywords": ["adhesive"],
+      "stackLimit": 99
+    },
+    {
+      "id": "glowing_worm",
+      "itemName": "微光长虫",
+      "itemType": "Resource",
+      "description": "受惊时会发出冷光的细长生物，适合作为药剂与照明实验的原料。",
+      "tags": ["Organ", "Rare"],
+      "keywords": ["glow", "living"],
+      "stackLimit": 99
+    },
+    {
+      "id": "hair",
+      "itemName": "毛发",
+      "itemType": "Resource",
+      "description": "韧性尚可的成束毛发，清洗后可用于绑缚、填充与缝制。",
+      "tags": ["Hide"],
+      "keywords": ["flexible"],
+      "stackLimit": 99
+    },
+    {
+      "id": "white_hair",
+      "itemName": "白色发丝",
+      "itemType": "Resource",
+      "description": "比普通毛发更坚韧的苍白纤维，在黑暗中会缓慢朝热源弯曲。",
+      "tags": ["Hide", "Rare"],
+      "keywords": ["flexible", "responsive"],
+      "stackLimit": 99
+    },
+    {
+      "id": "dust_mite",
+      "itemName": "尘螨",
+      "itemType": "Resource",
+      "description": "藏在毛草根部的微小生物，磨碎后会散发令人短暂清醒的气味。",
+      "tags": ["Organ"],
+      "keywords": ["living", "stimulant"],
+      "stackLimit": 99
+    },
+    {
+      "id": "carapace",
+      "itemName": "甲壳",
+      "itemType": "Resource",
+      "description": "带有柔和光泽的弧形硬壳，边缘仍残留着规律生长的层纹。",
+      "tags": ["Hide"],
+      "keywords": ["shell", "rigid"],
+      "stackLimit": 99
+    },
+    {
+      "id": "bone",
+      "itemName": "骨头",
+      "itemType": "Resource",
+      "description": "来源已经无法辨认的坚硬骨材，适合制作支架、握柄和粗糙刃口。",
+      "tags": ["Bone"],
+      "keywords": ["bone", "rigid"],
+      "stackLimit": 99
+    },
+    {
+      "id": "earthworm",
+      "itemName": "蚯蚓",
+      "itemType": "Resource",
+      "description": "离开泥土后仍会朝同一个方向蠕动的环节生物，可用于诱饵与酿药。",
+      "tags": ["Organ"],
+      "keywords": ["living", "bait"],
+      "stackLimit": 99
+    },
+    {
+      "id": "metal_fragment",
+      "itemName": "金属碎片",
+      "itemType": "Resource",
+      "description": "从土层里挖出的暗色金属残片，现有工具只能勉强改变它的形状。",
+      "tags": ["Mineral", "Rare"],
+      "keywords": ["metal", "rigid"],
+      "stackLimit": 99
+    },
+    {
+      "id": "bulbous_root",
+      "itemName": "球状根茎",
+      "itemType": "Resource",
+      "description": "形似植物根茎的肉质球体，被切开时内部会收缩并发出细小摩擦声。",
+      "tags": ["Herb", "Organ"],
+      "keywords": ["herb", "living"],
+      "stackLimit": 99
+    },
+    {
+      "id": "ancient_stone_chip",
+      "itemName": "古老石屑",
+      "itemType": "Resource",
+      "description": "从旧雕像内部剥落的深色石屑，带着不属于当前荒原的潮湿气味。",
+      "tags": ["Stone", "Rare"],
+      "keywords": ["stone", "relic"],
+      "stackLimit": 99
+    },
+    {
+      "id": "bone_saw_blade",
+      "itemName": "骨锯短刃",
+      "itemType": "Weapon",
+      "description": "用两段硬骨磨出交错齿口，再以粘液固定在短柄上的轻型切割武器。",
+      "tags": ["Gear", "Weapon", "Bone"],
+      "keywords": ["bone", "serrated"],
+      "weaponStats": {
+        "speed": 2,
+        "power": 1,
+        "accuracy": 0,
+        "range": 1,
+        "specialRule": "骨与锯齿词条可解锁处理遗骸的特殊事件选项。"
+      },
+      "stackLimit": 1,
+      "huntNoise": 0
+    },
+    {
+      "id": "carapace_bracer",
+      "itemName": "甲壳护臂",
+      "itemType": "Armor",
+      "description": "以毛发束缚弧形甲壳制成的护臂，轻便且不会妨碍手腕转动。",
+      "tags": ["Gear", "Hide"],
+      "keywords": ["shell", "flexible"],
+      "armorStats": {
+        "armorArms": 1
+      },
+      "stackLimit": 1,
+      "huntNoise": 0
+    },
+    {
+      "id": "mite_hush_hood",
+      "itemName": "尘螨静息兜帽",
+      "itemType": "Armor",
+      "description": "以白色发丝缝成兜帽，将磨碎的尘螨封在夹层中；气味使佩戴者保持清醒，也吸收细碎摩擦声。",
+      "tags": ["Gear", "Cloth", "Organ"],
+      "keywords": ["quiet", "stimulant"],
+      "armorStats": {
+        "armorHead": 1
+      },
+      "stackLimit": 1,
+      "huntNoise": -1
+    },
+    {
+      "id": "rootstep_greaves",
+      "itemName": "根步护腿",
+      "itemType": "Armor",
+      "description": "将球状根茎切片后夹入毛发绑带，柔软组织会随脚步收缩，减少石地上的碰撞声。",
+      "tags": ["Gear", "Cloth", "Herb", "Organ"],
+      "keywords": ["herb", "padded", "living"],
+      "armorStats": {
+        "armorLegs": 1
+      },
+      "stackLimit": 1,
+      "huntNoise": -1
+    },
+    {
+      "id": "rust_hook_knife",
+      "itemName": "锈钩短刀",
+      "itemType": "Weapon",
+      "description": "把暗色金属碎片弯成双钩后固定在短柄上，适合快速勾开甲壳与纤维。",
+      "tags": ["Gear", "Weapon", "Mineral"],
+      "keywords": ["metal", "hook", "serrated"],
+      "weaponStats": {
+        "speed": 2,
+        "power": 1,
+        "accuracy": 1,
+        "range": 1,
+        "specialRule": "金属、钩与锯齿词条可解锁拆解类事件选项。"
+      },
+      "stackLimit": 1,
+      "huntNoise": 1
+    },
+    {
+      "id": "relic_maul",
+      "itemName": "遗石重槌",
+      "itemType": "Weapon",
+      "description": "以古老石屑包覆碎石锤头制成的沉重武器，挥动缓慢，却能把旧石层一并震裂。",
+      "tags": ["Gear", "Weapon", "Stone", "Rare"],
+      "keywords": ["stone", "relic", "heavy"],
+      "weaponStats": {
+        "speed": 1,
+        "power": 3,
+        "accuracy": -1,
+        "range": 1,
+        "specialRule": "石、遗物与沉重词条可解锁遗迹类事件选项。"
+      },
+      "stackLimit": 1,
+      "huntNoise": 1
+    },
+    {
+      "id": "weathered_field_dressing",
+      "itemName": "旧式包扎布",
+      "itemType": "Consumable",
+      "description": "从遗落行囊中找到的基础急救用品，可用于恢复猎人的一个受伤部位。",
+      "tags": ["Cloth"],
+      "keywords": ["medicine"],
+      "stackLimit": 99,
+      "huntNoise": 0,
+      "consumableEffect": "RecoverBodyPart",
+      "consumableEffectAmount": 1
+    },
+    {
+      "id": "mushroom_flesh_poultice",
+      "itemName": "菌肉敷剂",
+      "itemType": "Consumable",
+      "description": "将菌肉与粘稠汁液压成的临时敷剂，可用于恢复猎人的一个受伤部位。",
+      "tags": ["Organ", "Herb"],
+      "keywords": ["medicine", "fungal"],
+      "stackLimit": 99,
+      "huntNoise": 0,
+      "consumableEffect": "RecoverBodyPart",
+      "consumableEffectAmount": 1
+    }
+  ]
+}

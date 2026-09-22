@@ -6,7 +6,8 @@
         "HuntingInDarkness.GameCore",
         "UniTask",
         "ActionQueue.Runtime",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Unity.ugui"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

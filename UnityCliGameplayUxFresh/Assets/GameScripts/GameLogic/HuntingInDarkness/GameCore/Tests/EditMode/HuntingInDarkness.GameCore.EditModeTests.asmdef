@@ -1,0 +1,21 @@
+{
+    "name": "HuntingInDarkness.GameCore.EditModeTests",
+    "rootNamespace": "HuntingInDarkness.GameCore.Tests",
+    "references": [
+        "HuntingInDarkness.GameCore"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

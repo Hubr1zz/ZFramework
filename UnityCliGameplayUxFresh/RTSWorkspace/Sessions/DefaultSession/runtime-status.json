@@ -1,0 +1,19 @@
+{
+    "schemaVersion": 1,
+    "updatedUtc": "2026-08-31T20:20:53.4884209Z",
+    "activeSession": "DefaultSession",
+    "isPlaying": false,
+    "activeScene": "",
+    "editorDomainGeneration": 1,
+    "sceneLoadCount": 0,
+    "lastCompileSucceeded": false,
+    "lastCompileMs": 0.0,
+    "compileP95Ms": 0.0,
+    "lastApplyMs": 0.0,
+    "healthyGeneration": "",
+    "activeInstances": 0,
+    "loadedGenerationCount": 0,
+    "loadedAssemblyBytes": 0,
+    "maintenanceReloadSuggested": false,
+    "lastError": ""
+}

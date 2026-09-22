@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dd44b6d63d00ac4187f2221d6cfc579, type: 3}
+  m_Name: BossConfig
+  m_EditorClassIdentifier: 
+  bossName: Boss
+  bossCardPool:
+  - {fileID: 11400000, guid: da4e5e30c926f8144bec417b1974f48d, type: 2}
+  - {fileID: 11400000, guid: cd72cba580ddb414996d2efec12ef753, type: 2}
+  bossHitLocationPool:
+  - {fileID: 11400000, guid: c8cc2afb38af99742a7c873ed149f7f3, type: 2}
+  - {fileID: 11400000, guid: 2be0ab4d1156fc8478f4dc6501901bc0, type: 2}
+  - {fileID: 11400000, guid: 58fb668b4e6e0e443ab0955fb39135a5, type: 2}
+  - {fileID: 11400000, guid: 6812d43c61abcf640816fea8c82c56e3, type: 2}
+  - {fileID: 11400000, guid: 42940ddbb310f7c4faf9d2e10e4065ea, type: 2}
+  - {fileID: 11400000, guid: 689ced0bd6c7f894889d07a637c1cc74, type: 2}
+  - {fileID: 11400000, guid: 362956ad2bca81f4fa188e997f7b26cf, type: 2}
+  startingTile: {x: 0, y: 0}

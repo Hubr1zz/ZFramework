@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "symptoms": [
+    {
+      "id": "symptom_blood_fever",
+      "displayName": "血热",
+      "aliases": [],
+      "description": "闻到鲜血时会过度兴奋。闪避 -1；完成内化后力量 +1。",
+      "negative": { "strength": 0, "accuracy": 0, "evasion": -1, "movement": 0 },
+      "internalized": { "strength": 1, "accuracy": 0, "evasion": 0, "movement": 0 },
+      "internalizationThreshold": 2,
+      "reflectionWillpowerCost": 1,
+      "overcomeCourageRequirement": 3,
+      "overcomeGrowthCost": 1
+    },
+    {
+      "id": "symptom_claustrophobia",
+      "displayName": "幽闭恐惧",
+      "aliases": ["惧窟"],
+      "description": "狭窄空间会令呼吸紊乱。移动 -1；完成内化后精准 +1。",
+      "negative": { "strength": 0, "accuracy": 0, "evasion": 0, "movement": -1 },
+      "internalized": { "strength": 0, "accuracy": 1, "evasion": 0, "movement": 0 },
+      "internalizationThreshold": 2,
+      "reflectionWillpowerCost": 1,
+      "overcomeCourageRequirement": 2,
+      "overcomeGrowthCost": 1
+    },
+    {
+      "id": "symptom_cowardice",
+      "displayName": "胆怯",
+      "aliases": [],
+      "description": "面对巨大威胁时本能退缩。力量 -1；完成内化后闪避 +1。",
+      "negative": { "strength": -1, "accuracy": 0, "evasion": 0, "movement": 0 },
+      "internalized": { "strength": 0, "accuracy": 0, "evasion": 1, "movement": 0 },
+      "internalizationThreshold": 2,
+      "reflectionWillpowerCost": 1,
+      "overcomeCourageRequirement": 2,
+      "overcomeGrowthCost": 1
+    },
+    {
+      "id": "symptom_night_terrors",
+      "displayName": "夜惊",
+      "aliases": ["梦魇症"],
+      "description": "睡梦中的黑影使注意力涣散。精准 -1；完成内化后移动 +1。",
+      "negative": { "strength": 0, "accuracy": -1, "evasion": 0, "movement": 0 },
+      "internalized": { "strength": 0, "accuracy": 0, "evasion": 0, "movement": 1 },
+      "internalizationThreshold": 2,
+      "reflectionWillpowerCost": 1,
+      "overcomeCourageRequirement": 2,
+      "overcomeGrowthCost": 1
+    },
+    {
+      "id": "symptom_shadow_fixation",
+      "displayName": "逐影",
+      "aliases": [],
+      "description": "会不由自主追逐视野边缘的影子。闪避 -1；完成内化后移动 +1。",
+      "negative": { "strength": 0, "accuracy": 0, "evasion": -1, "movement": 0 },
+      "internalized": { "strength": 0, "accuracy": 0, "evasion": 0, "movement": 1 },
+      "internalizationThreshold": 3,
+      "reflectionWillpowerCost": 1,
+      "overcomeCourageRequirement": 3,
+      "overcomeGrowthCost": 1
+    },
+    {
+      "id": "symptom_stone_lung",
+      "displayName": "石肺",
+      "aliases": ["尘肺"],
+      "description": "矿尘让每一步都变得沉重。移动 -1；完成内化后力量 +1。",
+      "negative": { "strength": 0, "accuracy": 0, "evasion": 0, "movement": -1 },
+      "internalized": { "strength": 1, "accuracy": 0, "evasion": 0, "movement": 0 },
+      "internalizationThreshold": 3,
+      "reflectionWillpowerCost": 1,
+      "overcomeCourageRequirement": 3,
+      "overcomeGrowthCost": 2
+    },
+    {
+      "id": "symptom_trembling_hands",
+      "displayName": "手颤",
+      "aliases": [],
+      "description": "紧张时双手无法保持稳定。精准 -1；完成内化后闪避 +1。",
+      "negative": { "strength": 0, "accuracy": -1, "evasion": 0, "movement": 0 },
+      "internalized": { "strength": 0, "accuracy": 0, "evasion": 1, "movement": 0 },
+      "internalizationThreshold": 2,
+      "reflectionWillpowerCost": 1,
+      "overcomeCourageRequirement": 2,
+      "overcomeGrowthCost": 1
+    },
+    {
+      "id": "symptom_whisper_sickness",
+      "displayName": "低语症",
+      "aliases": ["耳语病"],
+      "description": "不存在的低语不断消磨专注。力量 -1；完成内化后精准 +1。",
+      "negative": { "strength": -1, "accuracy": 0, "evasion": 0, "movement": 0 },
+      "internalized": { "strength": 0, "accuracy": 1, "evasion": 0, "movement": 0 },
+      "internalizationThreshold": 3,
+      "reflectionWillpowerCost": 1,
+      "overcomeCourageRequirement": 3,
+      "overcomeGrowthCost": 2
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="7" result="Passed" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.1985494">
+  <test-suite type="TestSuite" id="1130" name="Hunting in Darkness" fullname="Hunting in Darkness" runstate="Runnable" testcasecount="106" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.198549" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1124" name="HuntingInDarkness.Adapter.PlayModeTests.dll" fullname="D:/UnityProjects/ZFramework/UnityCliGameplayUxFresh/Library/ScriptAssemblies/HuntingInDarkness.Adapter.PlayModeTests.dll" runstate="Runnable" testcasecount="106" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.185074" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="79924" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1125" name="HuntingInDarkness" fullname="HuntingInDarkness" runstate="Runnable" testcasecount="106" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.182828" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1126" name="Adapter" fullname="HuntingInDarkness.Adapter" runstate="Runnable" testcasecount="106" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.180890" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1127" name="PlayModeTests" fullname="HuntingInDarkness.Adapter.PlayModeTests" runstate="Runnable" testcasecount="100" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.178583" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1106" name="TabletopHuntDeparturePanel3DTests" fullname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests" classname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.173293" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1113" name="DestinationView_DestroyAfterPanelWasAlreadyDestroyed_DoesNotAccessMissingReference" fullname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests.DestinationView_DestroyAfterPanelWasAlreadyDestroyed_DoesNotAccessMissingReference" methodname="DestinationView_DestroyAfterPanelWasAlreadyDestroyed_DoesNotAccessMissingReference" classname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests" runstate="Runnable" seed="309246444" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.009356" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1110" name="HunterPresentation_BoundsDecisionDetailsAndShowsSignedEquipmentNoise" fullname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests.HunterPresentation_BoundsDecisionDetailsAndShowsSignedEquipmentNoise" methodname="HunterPresentation_BoundsDecisionDetailsAndShowsSignedEquipmentNoise" classname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests" runstate="Runnable" seed="1262334613" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.008149" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1112" name="PresentDestinations_AllLockedShowsSingleUnavailablePlaceholder" fullname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests.PresentDestinations_AllLockedShowsSingleUnavailablePlaceholder" methodname="PresentDestinations_AllLockedShowsSingleUnavailablePlaceholder" classname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests" runstate="Runnable" seed="1709736968" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.113220" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1111" name="PresentDestinations_HidesLockedRoutesAndRequiresExplicitSelectionBeforeDeparture" fullname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests.PresentDestinations_HidesLockedRoutesAndRequiresExplicitSelectionBeforeDeparture" methodname="PresentDestinations_HidesLockedRoutesAndRequiresExplicitSelectionBeforeDeparture" classname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests" runstate="Runnable" seed="637293180" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.004811" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1108" name="PresentSquad_ClickInspectsHunterWithoutChangingSquadSlot" fullname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests.PresentSquad_ClickInspectsHunterWithoutChangingSquadSlot" methodname="PresentSquad_ClickInspectsHunterWithoutChangingSquadSlot" classname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests" runstate="Runnable" seed="737540738" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.014842" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1109" name="PresentSquad_DragDoesNotReplaceInspectedHunter" fullname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests.PresentSquad_DragDoesNotReplaceInspectedHunter" methodname="PresentSquad_DragDoesNotReplaceInspectedHunter" classname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests" runstate="Runnable" seed="1971494598" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.006147" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1107" name="PresentSquad_RestoresStagedHunterOrderInsteadOfRosterOrder" fullname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests.PresentSquad_RestoresStagedHunterOrderInsteadOfRosterOrder" methodname="PresentSquad_RestoresStagedHunterOrderInsteadOfRosterOrder" classname="HuntingInDarkness.Adapter.PlayModeTests.TabletopHuntDeparturePanel3DTests" runstate="Runnable" seed="1532638405" result="Passed" start-time="2026-08-31 20:13:00Z" end-time="2026-08-31 20:13:00Z" duration="0.004599" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: D:\UnityProjects\ZFramework\gameplay-ux-departure-results.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -1,3 +1,4 @@
+using Cards3D;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -18,6 +19,7 @@ namespace HuntingInDarkness.Hunt
         /// <summary>统一接收鼠标、触摸或控制器对实体地块的点击；只转发玩法意图。</summary>
         public void HandleResolvedPointerClick()
         {
+            if (CardInspectionOverlay.BlocksWorldInput) return;
             Visualizer?.HandleTileClicked(Coord);
         }
     }

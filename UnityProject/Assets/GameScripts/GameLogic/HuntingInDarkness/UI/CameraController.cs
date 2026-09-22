@@ -1,5 +1,8 @@
+using Cards3D;
 using Core;
+using HuntingInDarkness.ViewLayer.Tabletop;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace UI
 {
@@ -20,6 +23,7 @@ namespace UI
 
         [Header("旋转灵敏度")]
         [SerializeField] private float rotateSensitivity = 2.5f;
+        [SerializeField, Range(0, 2)] private int mouseOrbitButton = 2;
         [SerializeField] private float minPitch = 15f;
         [SerializeField] private float maxPitch = 80f;
 
@@ -49,6 +53,12 @@ namespace UI
         [SerializeField] private float panRangeFactor = 1.2f;
         [Tooltip("未收到棋盘大小事件前的默认世界半径")]
         [SerializeField] private float defaultBoardWorldRadius = 4f;
+        [Header("桌面视野")]
+        [SerializeField, Range(25f, 65f)] private float perspectiveFieldOfView = 42f;
+        [SerializeField, Min(1f)] private float boardFramingPadding = 2f;
+        [SerializeField] private KeyCode resetViewKey = KeyCode.Home;
+        [SerializeField] private string controlHint = "中键旋转 / WASD 移动 · 滚轮缩放 · Home 复位 · H 显示提示";
+        [SerializeField] private TabletopControlHintOverlay controlHintOverlay;
 
         private float _yaw;
         private float _pitch;
@@ -70,9 +80,17 @@ namespace UI
         private Vector3 _detailReturnPos;
         private Quaternion _detailReturnRot;
         private float _boardWorldRadius;
+        private float homeFramingDistance;
+        private Vector3 homeOrbitTarget;
+        private float homeYaw;
+        private float homePitch;
+        private Camera controlledCamera;
+        private bool missingControlHintLogged;
+        private bool hasInitialOrbitPose;
 
         private void OnEnable()
         {
+            controlledCamera = GetComponent<Camera>();
             _distance = Vector3.Distance(transform.position, orbitTarget);
 
             var euler = transform.eulerAngles;
@@ -83,8 +101,23 @@ namespace UI
             _targetRot = transform.rotation;
             _mode = CameraMode.Orbit;
             _transitioning = false;
+            if (!hasInitialOrbitPose)
+            {
+                homeOrbitTarget = orbitTarget;
+                homeYaw = _yaw;
+                homePitch = _pitch;
+                hasInitialOrbitPose = true;
+            }
+
+            if (controlHintOverlay == null && !missingControlHintLogged)
+            {
+                Debug.LogWarning($"[{nameof(CameraController)}] 未绑定 {nameof(TabletopControlHintOverlay)}，跳过操作提示。", this);
+                missingControlHintLogged = true;
+            }
+            controlHintOverlay?.Show(this, controlHint);
 
             if (_boardWorldRadius <= 0f) _boardWorldRadius = defaultBoardWorldRadius;
+            ApplyBoardFraming();
 
             EventBus.Subscribe<BoardFocusChangedEvent>(OnFocusChanged);
             EventBus.Subscribe<CharacterDetailFocusChangedEvent>(OnDetailFocusChanged);
@@ -93,6 +126,7 @@ namespace UI
 
         private void OnDisable()
         {
+            controlHintOverlay?.Hide(this);
             EventBus.Unsubscribe<BoardFocusChangedEvent>(OnFocusChanged);
             EventBus.Unsubscribe<CharacterDetailFocusChangedEvent>(OnDetailFocusChanged);
             EventBus.Unsubscribe<BoardReadyEvent>(OnBoardReady);
@@ -101,13 +135,28 @@ namespace UI
         private void OnBoardReady(BoardReadyEvent evt)
         {
             _boardWorldRadius = evt.MapRadius * evt.CellSize;
+            ApplyBoardFraming();
+        }
+
+        private void ApplyBoardFraming()
+        {
+            if (controlledCamera == null) return;
+            controlledCamera.orthographic = false;
+            controlledCamera.fieldOfView = perspectiveFieldOfView;
+            float diameter = Mathf.Max(1f, _boardWorldRadius * 2f);
+            var bounds = new Bounds(orbitTarget, new Vector3(diameter, 1f, diameter));
+            TabletopCameraFraming.CalculatePerspectivePose(controlledCamera, bounds, _pitch, _yaw, 1f + boardFramingPadding / diameter, minFocusDistance, out _targetPos, out _targetRot);
+            _distance = Vector3.Distance(_targetPos, orbitTarget);
+            homeFramingDistance = _distance;
+            transform.SetPositionAndRotation(_targetPos, _targetRot);
         }
 
         private void Update()
         {
+            if (CardInspectionOverlay.BlocksWorldInput) return;
             if (_transitioning)
             {
-                _transT += Time.deltaTime / Mathf.Max(0.0001f, focusTransitionDuration);
+                _transT += Time.unscaledDeltaTime / Mathf.Max(0.0001f, focusTransitionDuration);
                 float t = Mathf.Clamp01(_transT);
                 transform.position = Vector3.Lerp(_fromPos, _targetPos, t);
                 transform.rotation = Quaternion.Slerp(_fromRot, _targetRot, t);
@@ -122,7 +171,14 @@ namespace UI
                 return;
             }
 
-            if (Input.GetMouseButton(1))
+            if (!CanReceiveInput()) return;
+            if (Input.GetKeyDown(resetViewKey))
+            {
+                ResetOrbitFraming();
+                return;
+            }
+
+            if (Input.GetMouseButton(mouseOrbitButton))
             {
                 _yaw += Input.GetAxis("Mouse X") * rotateSensitivity;
                 _pitch -= Input.GetAxis("Mouse Y") * rotateSensitivity;
@@ -137,9 +193,9 @@ namespace UI
             _targetRot = orbitRot;
 
             transform.position = Vector3.Lerp(
-                transform.position, _targetPos, Time.deltaTime * transitionSpeed);
+                transform.position, _targetPos, Time.unscaledDeltaTime * transitionSpeed);
             transform.rotation = Quaternion.Slerp(
-                transform.rotation, _targetRot, Time.deltaTime * transitionSpeed);
+                transform.rotation, _targetRot, Time.unscaledDeltaTime * transitionSpeed);
         }
 
         private void HandleZoom()
@@ -148,8 +204,8 @@ namespace UI
             if (Mathf.Approximately(scroll, 0f)) return;
 
             float minDistance = Mathf.Max(0.1f, minFocusDistance);
-            float maxDistance = Mathf.Max(minDistance, maxFocusDistance);
-            _distance = Mathf.Clamp(_distance - scroll * zoomSpeed, minDistance, maxDistance);
+            float maxDistance = Mathf.Max(minDistance, maxFocusDistance, homeFramingDistance);
+            _distance = Mathf.Clamp(_distance - scroll * zoomSpeed * GlobalGameSettings.CameraZoomSpeed, minDistance, maxDistance);
         }
 
         private void HandleWasdPan()
@@ -167,7 +223,7 @@ namespace UI
 
             Vector3 move = fwd * v + right * h;
             if (move.sqrMagnitude > 1f) move.Normalize();
-            orbitTarget += move * (panSpeed * Time.deltaTime);
+            orbitTarget += move * (panSpeed * GlobalGameSettings.CameraPanSpeed * Time.unscaledDeltaTime);
 
             float maxR = Mathf.Max(0.01f, _boardWorldRadius * panRangeFactor);
             var planar = new Vector2(orbitTarget.x, orbitTarget.z);
@@ -298,6 +354,19 @@ namespace UI
             _targetRot = rotation;
             _transT = 0f;
             _transitioning = true;
+        }
+
+        private void ResetOrbitFraming()
+        {
+            orbitTarget = homeOrbitTarget;
+            _yaw = homeYaw;
+            _pitch = homePitch;
+            ApplyBoardFraming();
+        }
+
+        private bool CanReceiveInput()
+        {
+            return controlledCamera != null && Application.isFocused && controlledCamera.pixelRect.Contains(Input.mousePosition) && !(EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) && !CardInspectionOverlay.BlocksWorldInput;
         }
     }
 }

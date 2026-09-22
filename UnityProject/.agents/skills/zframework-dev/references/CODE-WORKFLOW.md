@@ -31,7 +31,6 @@
 | 程序集、启动、DLC/Mod | `assembly-content-workflow.md` 与 `code-map.md` |
 | Luban 配置 | `.agents/skills/luban-dev/SKILL.md` 与 `luban-config.md` |
 | 命名和编码风格 | `naming-rules.md` |
-| Unity/MCP 操作 | `mcp-tools.md`；美术与动画再读 `mcp-visual.md` |
 
 涉及资源、启动、异步、编辑器扩展或其他工程能力时，同时读取
 `.agents/skills/project-tooling/references/tooling-catalog.json` 中命中的条目。

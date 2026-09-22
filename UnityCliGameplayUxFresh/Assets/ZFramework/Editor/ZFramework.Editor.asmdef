@@ -1,0 +1,21 @@
+{
+    "name": "ZFramework.Editor",
+    "rootNamespace": "",
+    "references": [
+        "ZFramework.Runtime",
+        "YooAsset",
+        "YooAsset.Editor",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -2,6 +2,7 @@ using Cards3D;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Cards3D
 {
@@ -84,9 +85,7 @@ namespace Cards3D
         public static ResourceCard3D Create(
             string resourceId, string resourceName, int count, Transform parent, Vector3 localPos = default)
         {
-            var go   = new GameObject($"Res_{resourceId}");
-            go.transform.SetParent(parent, false);
-            var card = go.AddComponent<ResourceCard3D>();
+            ResourceCard3D card = CardPrefabRegistry.Create<ResourceCard3D>(parent, $"Res_{resourceId}");
             card.Init(resourceId, resourceName, count, localPos);
             return card;
         }
@@ -95,24 +94,14 @@ namespace Cards3D
 
         protected override void BuildTextFields()
         {
-            if (_nameText != null) return; // prefab 已配置，跳过
+            float ty = Depth * 0.5f + 0.003f;
 
-            float ty = CD * 0.5f + 0.003f;
-
-            _nameText = MakeText("Name",
-                new Vector3(0f, ty, CH * 0.36f), 0.10f,
-                TextAlignmentOptions.Center,
-                new Vector2(CW - 0.06f, 0.18f));
-
-            _countText = MakeText("Count",
-                new Vector3(0f, ty, CH * 0.00f), 0.16f,
-                TextAlignmentOptions.Center,
-                new Vector2(CW - 0.08f, 0.30f));
-
-            _labelText = MakeText("Label",
-                new Vector3(0f, ty, -CH * 0.35f), 0.07f,
-                TextAlignmentOptions.Center,
-                new Vector2(CW - 0.06f, 0.12f));
+            _nameText ??= transform.Find("Name")?.GetComponent<TextMeshPro>();
+            _countText ??= transform.Find("Count")?.GetComponent<TextMeshPro>();
+            _labelText ??= transform.Find("Label")?.GetComponent<TextMeshPro>();
+            _nameText ??= MakeText("Name", new Vector3(0f, ty, Height * 0.36f), 0.10f, TextAlignmentOptions.Center, new Vector2(Width - 0.06f, 0.18f));
+            _countText ??= MakeText("Count", new Vector3(0f, ty, Height * 0.00f), 0.16f, TextAlignmentOptions.Center, new Vector2(Width - 0.08f, 0.30f));
+            _labelText ??= MakeText("Label", new Vector3(0f, ty, -Height * 0.35f), 0.07f, TextAlignmentOptions.Center, new Vector2(Width - 0.06f, 0.12f));
         }
 
         protected override void ApplyVisuals()
@@ -147,6 +136,7 @@ namespace Cards3D
 
         private void OnMouseOver()
         {
+            if (CardInspectionOverlay.BlocksWorldInput || EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
             if (Input.GetMouseButtonDown(1) && !IsDraggingCard)
                 Flip();
         }

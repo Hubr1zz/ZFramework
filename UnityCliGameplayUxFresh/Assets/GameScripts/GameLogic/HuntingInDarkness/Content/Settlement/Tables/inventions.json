@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "inventions": [
+    {
+      "id": "paper-and-pen",
+      "inventionName": "纸和笔",
+      "description": "营地开始记录可重复验证的见闻，不再只依靠口耳相传。",
+      "prerequisiteIds": [],
+      "costs": [
+        { "itemId": "broken_stone", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "解锁知识记录分支。",
+      "category": "Knowledge"
+    },
+    {
+      "id": "plant-knowledge",
+      "inventionName": "植物知识",
+      "description": "被辨认、分类和记录的植物，终于不再全凭运气采摘。",
+      "prerequisiteIds": ["paper-and-pen"],
+      "costs": [
+        { "itemId": "mushroom_flesh", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "采集草药类素材时，翻牌成功率 +10%。",
+      "actionEffects": [
+        {
+          "effectId": "plant-knowledge:herb-harvest-chance",
+          "kind": "ModifyHarvestHitChance",
+          "targetKeyword": "herb",
+          "value": 0.1
+        }
+      ],
+      "category": "Knowledge"
+    },
+    {
+      "id": "faith",
+      "inventionName": "信仰",
+      "description": "营地开始以共同信念对抗漫长黑夜。",
+      "prerequisiteIds": [],
+      "costs": [
+        { "itemId": "broken_stone", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "解锁信仰分支。",
+      "category": "Knowledge"
+    },
+    {
+      "id": "ritual",
+      "inventionName": "仪式",
+      "description": "以反复演练的仪轨稳固猎人们的心智。",
+      "prerequisiteIds": ["faith"],
+      "costs": [
+        { "itemId": "soft_organ", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "全体可出战猎人的意志点上限 +1。",
+      "effects": [
+        {
+          "lifetime": "Campaign",
+          "modifierId": "ritual:willpower-maximum",
+          "kind": "ModifyWillpowerMaximum",
+          "target": "AllLivingAndFutureHunters",
+          "value": 1
+        }
+      ],
+      "category": "Knowledge"
+    },
+    {
+      "id": "prayer",
+      "inventionName": "祈祷",
+      "description": "营地学会以共同的祷词在黑暗中维系信念。",
+      "prerequisiteIds": ["faith"],
+      "costs": [
+        { "itemId": "mushroom_flesh", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "每年可主持一次夜祷；选择猎人进行实体骰子胆识判定，成功恢复 1 意志。",
+      "activeEffects": [
+        {
+          "effectId": "prayer:night-vigil",
+          "effectName": "主持夜祷",
+          "description": "选择一名猎人投掷 d10 进行胆识判定。",
+          "eventId": "active_prayer_night_vigil",
+          "maxUsesPerYear": 1
+        }
+      ],
+      "category": "Knowledge"
+    },
+    {
+      "id": "fire",
+      "inventionName": "火",
+      "description": "营地学会保存火种，并让每一次归来都能重新点亮同一处炉心。",
+      "prerequisiteIds": [],
+      "costs": [
+        { "itemId": "black_salt", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "解锁用火与烹饪分支。",
+      "category": "Basic"
+    },
+    {
+      "id": "cooking",
+      "inventionName": "烹饪",
+      "description": "猎人开始用稳定火候处理菌肉与器官，让食物不再只是勉强吞咽的补给。",
+      "prerequisiteIds": ["fire"],
+      "costs": [
+        { "itemId": "mushroom_flesh", "count": 1 },
+        { "itemId": "soft_organ", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "全体当前与未来猎人的意志点上限 +1。",
+      "effects": [
+        {
+          "lifetime": "Campaign",
+          "modifierId": "cooking:willpower-maximum",
+          "kind": "ModifyWillpowerMaximum",
+          "target": "AllLivingAndFutureHunters",
+          "value": 1
+        }
+      ],
+      "category": "Basic"
+    },
+    {
+      "id": "shelter",
+      "inventionName": "庇护所",
+      "description": "甲壳、毛发与石缝被组织成可反复修补的睡眠区，夜里的风不再直接穿过营地。",
+      "prerequisiteIds": ["tools"],
+      "costs": [
+        { "itemId": "carapace", "count": 2 },
+        { "itemId": "hair", "count": 1 }
+      ],
+      "exclusiveIds": [],
+      "effectDescription": "全体当前与未来猎人的意志点上限 +1。",
+      "effects": [
+        {
+          "lifetime": "Campaign",
+          "modifierId": "shelter:willpower-maximum",
+          "kind": "ModifyWillpowerMaximum",
+          "target": "AllLivingAndFutureHunters",
+          "value": 1
+        }
+      ],
+      "category": "Basic"
+    }
+  ]
+}

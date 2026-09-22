@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Cards3D;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -192,6 +193,7 @@ namespace InteractionSystem.Runtime
         // ─── Update ───────────────────────────────────────────────────────────────
         public void Update()
         {
+            if (CardInspectionOverlay.BlocksWorldInput) return;
             if (IsPointerOverUIOnly())
             {
                 possibleClickObject = null;

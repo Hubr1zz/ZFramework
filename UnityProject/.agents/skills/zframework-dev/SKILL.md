@@ -37,8 +37,6 @@ L1 可以不加载模块参考；L2-L4 不得跳过对应主题资料与源码�
 | Luban 配置 | [luban-config.md](references/luban-config.md) | — | P1 |
 | 项目结构 | [architecture.md](references/architecture.md) | — | P2 |
 | 问题排查 | [troubleshooting.md](references/troubleshooting.md) | — | P2 |
-| MCP 场景/GO/UI/脚本/Editor | [mcp-tools.md](references/mcp-tools.md) | — | P1 |
-| MCP 材质/Shader/动画/VFX | [mcp-visual.md](references/mcp-visual.md) | — | P2 |
 
 `code-map.md` 由脚本生成。涉及当前类名、程序集、Procedure 或包版本时优先读取它；架构变化后运行：
 

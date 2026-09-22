@@ -1,0 +1,435 @@
+using System.Collections.Generic;
+using Cards3D;
+using TMPro;
+using UnityEngine;
+#if UNITY_EDITOR
+using Sirenix.OdinInspector;
+using UnityEditor;
+#endif
+
+namespace Cards3D
+{
+    /// <summary>
+    /// 所有3D卡牌视图的抽象基类。卡牌平铺在 XZ 平面，从上方（Y+）俯视可读。
+    ///
+    /// 新增功能：
+    ///  - EnableDrag：可被 ResizableCardSlot 或代码开启，使用 Unity 内置鼠标拖拽
+    ///  - DragStarted / DragEnded 事件：供卡槽订阅以清理占位
+    ///  - Category：供卡槽做类型过滤，子类可覆写
+    ///  - OnBeginDrag / OnDragFrame / OnEndDrag：子类钩子
+    /// </summary>
+    public abstract class CardView3D : MonoBehaviour
+    {
+        // 标准卡牌尺寸仅作为未配置类型的回退值；核心卡牌尺寸由 CardPrefabCatalog 统一提供。
+        public const float CW = 0.75f;
+        public const float CH = 1.05f;
+        public const float CD = 0.025f;
+
+        protected virtual CardDimensions FallbackDimensions => CardDimensions.Standard;
+        private CardDimensions resolvedDimensions;
+        private bool dimensionsResolved;
+        private CardDimensions Dimensions => dimensionsResolved ? resolvedDimensions : CardPrefabRegistry.GetDimensions(GetType(), FallbackDimensions);
+        public virtual float Width => Dimensions.Width;
+        public virtual float Height => Dimensions.Height;
+        public virtual float Depth => Dimensions.Depth;
+
+        [SerializeField] protected Renderer _bodyRenderer;
+        private Vector3 _baseLocalPos;
+        private bool _isHovered;
+
+        // ─── 拖拽状态 ──────────────────────────────────────────────────────
+        [SerializeField, Min(0f)] private float dragThresholdPixels = 5f;
+        private bool _dragReady;
+        private Vector2 _mouseDownScreenPos;
+        private bool _isDragging;
+        protected Vector3 _preDragLocalPos;
+        protected Transform _preDragParent;
+
+        // ─── 类别（可被测试代码覆写） ───────────────────────────────────────
+        private CardCategory? _forcedCategory;
+        /// <summary>强制覆盖卡牌类别（测试用，优先级高于子类 Category 虚属性）</summary>
+        public void ForceCategory(CardCategory cat) => _forcedCategory = cat;
+
+        // ─── 公开属性 ──────────────────────────────────────────────────────
+        public Vector3 BaseLocalPos => _baseLocalPos;
+
+        /// <summary>卡牌被点击时触发（由展台连接到游戏逻辑）</summary>
+        public event System.Action<CardView3D> OnClicked;
+
+        /// <summary>拖拽开始时触发；ResizableCardSlot 订阅此事件以清理占位。</summary>
+        public event System.Action<CardView3D> DragStarted;
+        /// <summary>拖拽结束时触发。</summary>
+        public event System.Action<CardView3D> DragEnded;
+
+        /// <summary>是否允许拖拽（默认关闭；由 ResizableCardSlot.PlaceCard 自动开启）</summary>
+        public bool EnableDrag = false;
+
+        protected virtual float HoverLift => 0.12f;
+        protected bool IsHovered => _isHovered;
+        protected bool IsDraggingCard => _isDragging;
+
+        /// <summary>卡牌类别，供卡槽过滤。子类覆写提供默认值；ForceCategory() 可在外部覆盖。</summary>
+        public CardCategory Category => _forcedCategory ?? GetDefaultCategory();
+
+        /// <summary>卡堆预览列表中显示的名称。子类可覆写为更友好的名称（默认用 GameObject 名）。</summary>
+        public virtual string DisplayName => gameObject.name;
+
+        /// <summary>
+        /// 堆叠键。两张 StackKey 相同（且非空）的「松散卡」互相拖拽可合并成动态卡堆。
+        /// null = 不参与动态合并（如猎人卡/发明卡）。
+        /// </summary>
+        public virtual string StackKey => null;
+
+        /// <summary>当前所在卡槽；null 表示松散卡（未入槽）。由 CardSlot 维护。</summary>
+        public CardSlot CurrentSlot { get; internal set; }
+
+        /// <summary>全部存活卡牌（动态合并时用于查找邻近松散卡）。</summary>
+        public static readonly List<CardView3D> AllCards = new();
+
+        /// <summary>覆盖"拖拽松手后回归的父级"（卡牌被拖出卡堆时，家应改为桌面根）。</summary>
+        public void SetDragHome(Transform home) => _preDragParent = home;
+
+        /// <summary>子类覆写此方法返回默认类别（而非直接覆写 Category 属性）。</summary>
+        protected virtual CardCategory GetDefaultCategory() => CardCategory.Any;
+
+        // ─── 初始化 ────────────────────────────────────────────────────────
+
+        protected virtual void Awake() => AllCards.Add(this);
+
+        protected virtual void OnDestroy()
+        {
+            CardInspectionOverlay.ClearCard(this);
+            AllCards.Remove(this);
+        }
+
+        protected void InitView(Vector3 localPos)
+        {
+            _baseLocalPos = localPos;
+            transform.localPosition = localPos;
+            resolvedDimensions = CardPrefabRegistry.GetDimensions(GetType(), FallbackDimensions);
+            dimensionsResolved = true;
+            bool wasPrebuilt = _bodyRenderer != null || transform.Find("Body")?.GetComponent<Renderer>() != null;
+            BuildBaseGeometry();
+            ApplyConfiguredDimensions();
+            // Prefab mode: body already exists, instance the material per-card
+            if (wasPrebuilt && _bodyRenderer != null)
+                _bodyRenderer.material = new Material(_bodyRenderer.sharedMaterial);
+            BuildTextFields();
+            ApplyVisuals();
+        }
+
+        private void BuildBaseGeometry()
+        {
+            _bodyRenderer ??= transform.Find("Body")?.GetComponent<Renderer>();
+            if (_bodyRenderer != null) return; // prefab already has body
+
+            var bodyGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            bodyGo.name = "Body";
+            bodyGo.transform.SetParent(transform, false);
+            bodyGo.transform.localScale = new Vector3(Width, Depth, Height);
+            SafeDestroy(bodyGo.GetComponent<Collider>());
+            _bodyRenderer = bodyGo.GetComponent<Renderer>();
+            _bodyRenderer.material = new Material(_bodyRenderer.sharedMaterial);
+        }
+
+        private void ApplyConfiguredDimensions()
+        {
+            var collider = GetComponent<BoxCollider>();
+            if (collider == null) collider = gameObject.AddComponent<BoxCollider>();
+            Vector3 bodyCenter = _bodyRenderer != null ? _bodyRenderer.transform.localPosition : Vector3.zero;
+            collider.size = new Vector3(Width, Depth, Height);
+            collider.center = bodyCenter;
+            if (_bodyRenderer != null) _bodyRenderer.transform.localScale = new Vector3(Width, Depth, Height);
+
+            foreach (Collider childCollider in GetComponentsInChildren<Collider>(true))
+                if (childCollider != collider)
+                    SafeDestroy(childCollider);
+        }
+
+        private static void SafeDestroy(UnityEngine.Object target)
+        {
+            if (target == null) return;
+            if (Application.isPlaying) Destroy(target);
+            else DestroyImmediate(target);
+        }
+
+#if UNITY_EDITOR
+        [Button("根据 CardPrefabCatalog 同步尺寸"), ContextMenu("根据 CardPrefabCatalog 同步尺寸")]
+        private void ApplyCatalogDimensionsInEditor()
+        {
+            CardPrefabCatalog matchedCatalog = null;
+            CardDimensions matchedDimensions = default;
+            foreach (string guid in AssetDatabase.FindAssets("t:CardPrefabCatalog"))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                CardPrefabCatalog candidate = AssetDatabase.LoadAssetAtPath<CardPrefabCatalog>(path);
+                if (candidate == null || !candidate.TryGetDimensions(GetType(), out CardDimensions dimensions)) continue;
+                if (matchedCatalog != null)
+                {
+                    Debug.LogError($"[{nameof(CardView3D)}] {GetType().Name} 同时存在于多个 CardPrefabCatalog，请先消除重复配置。", this);
+                    return;
+                }
+                matchedCatalog = candidate;
+                matchedDimensions = dimensions;
+            }
+
+            if (matchedCatalog == null)
+            {
+                Debug.LogError($"[{nameof(CardView3D)}] 没有 CardPrefabCatalog 配置 {GetType().Name}。", this);
+                return;
+            }
+
+            _bodyRenderer ??= transform.Find("Body")?.GetComponent<Renderer>();
+            if (_bodyRenderer == null)
+            {
+                Debug.LogError($"[{nameof(CardView3D)}] {name} 缺少名为 Body 的 Renderer，无法同步尺寸。", this);
+                return;
+            }
+
+            Undo.RegisterFullObjectHierarchyUndo(gameObject, "同步卡牌 Catalog 尺寸");
+            resolvedDimensions = matchedDimensions;
+            dimensionsResolved = true;
+            ApplyConfiguredDimensions();
+            EditorUtility.SetDirty(gameObject);
+            EditorUtility.SetDirty(this);
+            EditorUtility.SetDirty(_bodyRenderer.transform);
+            BoxCollider collider = GetComponent<BoxCollider>();
+            if (collider != null) EditorUtility.SetDirty(collider);
+            if (PrefabUtility.IsPartOfPrefabInstance(gameObject)) PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+            SceneView.RepaintAll();
+            Debug.Log($"[{nameof(CardView3D)}] 已从 {matchedCatalog.name} 同步 {GetType().Name}：{Width} × {Height} × {Depth}", this);
+        }
+#endif
+
+        /// <summary>
+        /// 创建一个平铺（XZ 平面）的 TextMeshPro 子物体，从上方俯视可读。
+        /// Euler(90,0,0) 让文字法线朝 +Y。
+        /// </summary>
+        protected TextMeshPro MakeText(
+            string goName, Vector3 pos, float fontSize,
+            TextAlignmentOptions align, Vector2 rectSize)
+        {
+            var go = new GameObject(goName);
+            go.transform.SetParent(transform, false);
+            go.transform.localPosition = pos;
+            go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+
+            var tmp = go.AddComponent<TextMeshPro>();
+            tmp.fontSize  = fontSize;
+            tmp.alignment = align;
+            tmp.color     = new Color(0.08f, 0.08f, 0.08f);
+            tmp.rectTransform.sizeDelta = rectSize;
+#if UNITY_6000_0_OR_NEWER
+            tmp.textWrappingMode = TMPro.TextWrappingModes.Normal;
+#else
+            tmp.enableWordWrapping = true;
+#endif
+            tmp.overflowMode = TextOverflowModes.Ellipsis;
+            return tmp;
+        }
+
+        // ─── 子类实现 ──────────────────────────────────────────────────────
+
+        protected abstract void BuildTextFields();
+        protected abstract void ApplyVisuals();
+        protected virtual bool CanHover() => true;
+        protected virtual bool SupportsInspection => true;
+
+        public virtual bool TryGetInspectionContent(out CardInspectionContent content)
+        {
+            content = default;
+            if (!SupportsInspection) return false;
+
+            TextMeshPro[] fields = GetComponentsInChildren<TextMeshPro>(true);
+            string title = null;
+            foreach (TextMeshPro field in fields)
+            {
+                if (!IsVisibleInspectionField(field)) continue;
+                if (field.gameObject.name != "Title" && field.gameObject.name != "Name") continue;
+                title = field.text?.Trim();
+                break;
+            }
+
+            if (string.IsNullOrWhiteSpace(title)) title = DisplayName;
+            var sections = new List<string>();
+            var uniqueSections = new HashSet<string>();
+            foreach (TextMeshPro field in fields)
+            {
+                if (!IsVisibleInspectionField(field)) continue;
+                string value = field.text?.Trim();
+                if (string.IsNullOrWhiteSpace(value) || value == title || !uniqueSections.Add(value)) continue;
+                sections.Add(value);
+            }
+
+            if (sections.Count == 0) return false;
+            content = new CardInspectionContent(title, string.Join("\n\n", sections), $"{Category} · 实体卡完整信息");
+            return true;
+        }
+
+        private static bool IsVisibleInspectionField(TextMeshPro field)
+        {
+            if (field == null || !field.gameObject.activeInHierarchy) return false;
+            return field.color.a > 0.01f;
+        }
+
+        // ─── 公共操作 ──────────────────────────────────────────────────────
+
+        public void MoveTo(Vector3 newLocalPos)
+        {
+            _baseLocalPos = newLocalPos;
+            transform.localPosition = newLocalPos;
+        }
+
+        /// <summary>将 _baseLocalPos 同步到当前 localPosition（拖拽落点后调用）</summary>
+        protected void SyncBasePos()
+        {
+            _baseLocalPos = transform.localPosition;
+        }
+
+        // ─── 鼠标交互 ──────────────────────────────────────────────────────
+
+        protected virtual void OnMouseEnter()
+        {
+            CardInspectionOverlay.SetHovered(this);
+            if (!CanHover() || _isDragging) return;
+            _isHovered = true;
+            transform.localPosition = _baseLocalPos + Vector3.up * HoverLift;
+            ApplyVisuals();
+        }
+
+        protected virtual void OnMouseExit()
+        {
+            CardInspectionOverlay.ClearHovered(this);
+            if (_isDragging) return;
+            _isHovered = false;
+            transform.localPosition = _baseLocalPos;
+            ApplyVisuals();
+        }
+
+        protected virtual void OnMouseDown()
+        {
+            HandlePointerDown(Input.mousePosition);
+        }
+
+        private void OnMouseDrag()
+        {
+            HandlePointerDrag(Input.mousePosition);
+        }
+
+        protected virtual void OnMouseUp()
+        {
+            HandlePointerUp();
+        }
+
+        /// <summary>接收世界空间输入适配器的按下位置；不产生玩法命令。</summary>
+        public void HandlePointerDown(Vector2 screenPosition)
+        {
+            if (_isDragging || CardInspectionOverlay.BlocksWorldInput) return;
+            _mouseDownScreenPos = screenPosition;
+            _dragReady = true;
+        }
+
+        /// <summary>使用主相机把屏幕指针投影到当前卡牌平面，供 Unity 鼠标路径调用。</summary>
+        public void HandlePointerDrag(Vector2 screenPosition)
+        {
+            bool hasWorldPosition = TryResolveDragWorldPosition(screenPosition, out Vector3 worldPosition);
+            HandlePointerDrag(screenPosition, hasWorldPosition, worldPosition);
+        }
+
+        /// <summary>接收已由触摸、控制器或测试射线解析的世界落点。</summary>
+        public void HandlePointerDrag(Vector2 screenPosition, Vector3 worldPosition)
+        {
+            HandlePointerDrag(screenPosition, true, worldPosition);
+        }
+
+        /// <summary>结束当前指针手势；只有超过阈值的拖拽才进入卡槽命令入口。</summary>
+        public void HandlePointerUp()
+        {
+            bool shouldClick = _dragReady && !_isDragging;
+            _dragReady = false;
+            if (_isDragging)
+            {
+                EndDrag();
+                return;
+            }
+            if (shouldClick)
+                OnClickReleased();
+        }
+
+        private void HandlePointerDrag(Vector2 screenPosition, bool hasWorldPosition, Vector3 worldPosition)
+        {
+            if (_dragReady && !_isDragging && Vector2.Distance(screenPosition, _mouseDownScreenPos) > dragThresholdPixels)
+            {
+                _dragReady = false;
+                if (EnableDrag)
+                    BeginDrag();
+            }
+            if (!_isDragging || !hasWorldPosition) return;
+            transform.position = new Vector3(worldPosition.x, transform.position.y, worldPosition.z);
+            OnDragFrame();
+        }
+
+        /// <summary>指针松开且未形成拖拽时调用。子类可扩展真实点击行为。</summary>
+        protected virtual void OnClickReleased() => OnClicked?.Invoke(this);
+
+        // ─── 拖拽核心（私有实现） ──────────────────────────────────────────
+
+        private void BeginDrag()
+        {
+            CardInspectionOverlay.ClearHovered(this);
+            _isDragging = true;
+            _isHovered  = false;
+            _preDragLocalPos = _baseLocalPos;
+            _preDragParent   = transform.parent;
+
+            transform.SetParent(null, worldPositionStays: true);
+            transform.localScale = Vector3.one; // 从卡槽中离开时重置缩放
+            transform.position  += Vector3.up * 0.15f;
+
+            OnBeginDrag();
+            DragStarted?.Invoke(this);
+            ApplyVisuals();
+        }
+
+        private bool TryResolveDragWorldPosition(Vector2 screenPosition, out Vector3 worldPosition)
+        {
+            worldPosition = default;
+            Camera mainCamera = Camera.main;
+            if (mainCamera == null) return false;
+            Ray ray = mainCamera.ScreenPointToRay(screenPosition);
+            var plane = new Plane(Vector3.up, new Vector3(0f, transform.position.y, 0f));
+            if (!plane.Raycast(ray, out float distance)) return false;
+            worldPosition = ray.GetPoint(distance);
+            return true;
+        }
+
+        private void EndDrag()
+        {
+            _isDragging = false;
+            OnEndDrag(); // 子类可在此重定向父级或吸附槽
+
+            // 若子类没有重新挂父，则回到原父级并同步落点位置
+            if (transform.parent == null)
+            {
+                transform.SetParent(_preDragParent, worldPositionStays: true);
+                SyncBasePos();
+            }
+            DragEnded?.Invoke(this);
+            ApplyVisuals();
+        }
+
+        // ─── 子类拖拽钩子 ──────────────────────────────────────────────────
+
+        /// <summary>拖拽开始后（脱离父级后）调用。可在此清理卡槽占位。</summary>
+        protected virtual void OnBeginDrag() { }
+
+        /// <summary>每帧拖拽移动后调用。可在此做卡槽高亮检测。</summary>
+        protected virtual void OnDragFrame() { }
+
+        /// <summary>
+        /// 拖拽结束时调用（DragEnded 事件之前）。
+        /// 若在此完成了 SetParent，基类不会再重设父级。
+        /// </summary>
+        protected virtual void OnEndDrag() { }
+    }
+}

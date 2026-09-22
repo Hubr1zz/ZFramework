@@ -1,0 +1,526 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using HuntingInDarkness.Bootstrap;
+using HuntingInDarkness.ContentTables;
+using HuntingInDarkness.Data;
+using HuntingInDarkness.Hunt;
+using HuntingInDarkness.GameCore.Settlement;
+using HuntingInDarkness.Settlement;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace HuntingInDarkness.Adapter.Tests
+{
+    public sealed class PlayableCampaignContentAssemblerTests
+    {
+        private const string SettingsPath = "Assets/AssetRaw/Configs/HuntingInDarkness/PlayableBootstrapSettings.asset";
+        private static readonly FieldInfo installationFailureProbeField = typeof(PlayableCampaignContentAssembler).GetField("installationFailureProbe", BindingFlags.Static | BindingFlags.NonPublic);
+        private static readonly MethodInfo resetAssemblerMethod = typeof(PlayableCampaignContentAssembler).GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
+        private static readonly MethodInfo resetSettlementContentRuntimeMethod = typeof(PlayableSettlementContentRuntime).GetMethod("ResetRuntimeState", BindingFlags.Static | BindingFlags.NonPublic);
+        private static readonly PropertyInfo candidateSettlementPlanProperty = typeof(PlayableCampaignContentCandidate).GetProperty("SettlementPlan", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        [TearDown]
+        public void TearDown()
+        {
+            installationFailureProbeField.SetValue(null, null);
+            resetAssemblerMethod.Invoke(null, null);
+            resetSettlementContentRuntimeMethod.Invoke(null, null);
+            PlayableHuntContentRuntime.Configure(null);
+            PlayableEventTableRuntime.ClearCache();
+            PlayableSymptomRuntime.Configure(null);
+            PlayableSettlementItemRegistry.Configure(null);
+            PlayableSettlementInventionRegistry.Configure(null);
+            PlayableSettlementEventRegistry.Configure(null);
+        }
+
+        [Test]
+        public void TryBuild_InvalidSettings_DoesNotMutateRuntime()
+        {
+            var sentinel = ScriptableObject.CreateInstance<PlayableHuntContentCatalog>();
+            try
+            {
+                PlayableHuntContentRuntime.Configure(sentinel);
+
+                bool built = PlayableCampaignContentAssembler.TryBuild(null, out _, out PlayableContentDiagnosticReport report);
+
+                Assert.That(built, Is.False);
+                Assert.That(report.HasErrors, Is.True);
+                Assert.That(PlayableHuntContentRuntime.Catalog, Is.SameAs(sentinel));
+            }
+            finally
+            {
+                Object.DestroyImmediate(sentinel);
+            }
+        }
+
+        [Test]
+        public void TryBuild_ValidSettings_CreatesDeterministicCandidate()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+
+            bool firstBuilt = PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate first, out PlayableContentDiagnosticReport firstReport);
+            bool secondBuilt = PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate second, out PlayableContentDiagnosticReport secondReport);
+
+            Assert.That(firstBuilt, Is.True, firstReport.ToString());
+            Assert.That(secondBuilt, Is.True, secondReport.ToString());
+            Assert.That(first.SettlementContent, Is.SameAs(second.SettlementContent));
+            Assert.That(first.DefaultHuntContent, Is.SameAs(second.DefaultHuntContent));
+            Assert.That(first.Destinations, Has.Count.EqualTo(second.Destinations.Count));
+            for (int index = 0; index < first.Destinations.Count; index++)
+                Assert.That(first.Destinations[index].DestinationId, Is.EqualTo(second.Destinations[index].DestinationId));
+        }
+
+        [Test]
+        public void SettlementCatalog_UsesStableTwoSeasonCalendarDefinition()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            CampaignCalendarConfig config = settings.SettlementContent.CampaignCalendar;
+
+            Assert.That(config, Is.Not.Null);
+            Assert.That(config.TryCreateDefinition(out CampaignCalendarDefinition definition, out string reason), Is.True, reason);
+            Assert.That(definition.CalendarId, Is.EqualTo("standard_two_season_v1"));
+            Assert.That(definition.Seasons.Select(season => season.Id), Is.EqualTo(new[] { "season_early", "season_late" }));
+            Assert.That(definition.Seasons.Select(season => season.Order), Is.EqualTo(new[] { 0, 1 }));
+            Assert.That(definition.DefaultSeasonIndex, Is.Zero);
+        }
+
+        [Test]
+        public void SettlementCatalog_MissingFacilityDutyTableFailsClosed()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSettlementContentCatalog clone = Object.Instantiate(settings.SettlementContent);
+            try
+            {
+                SetPrivateField(clone, "facilityDutyTable", null);
+
+                bool prepared = clone.TryPreparePlan(null, PlayableContentSourceTestAssets.LoadBundle(settings), out _, out string reason);
+
+                Assert.That(prepared, Is.False);
+                Assert.That(reason, Does.Contain("设施值守表未配置"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(clone);
+            }
+        }
+
+        [Test]
+        public void SettlementCatalog_RequiresDefaultCalendarInSupportedSetAndRejectsDuplicateIds()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSettlementContentCatalog source = settings.SettlementContent;
+            CampaignCalendarConfig defaultConfig = source.DefaultCalendar;
+            CampaignCalendarConfig otherConfig = Object.Instantiate(defaultConfig);
+            PlayableSettlementContentCatalog clone = Object.Instantiate(source);
+            try
+            {
+                SetPrivateField(otherConfig, "calendarId", "other_calendar");
+                SetPrivateField(clone, "supportedCalendars", new List<CampaignCalendarConfig> { otherConfig });
+                Assert.That(InvokeTryPrepareCalendars(clone, out _, out _, out string missingReason), Is.False);
+                Assert.That(missingReason, Does.Contain("默认战役日历未包含"));
+
+                SetPrivateField(clone, "supportedCalendars", new List<CampaignCalendarConfig> { defaultConfig, defaultConfig });
+                Assert.That(InvokeTryPrepareCalendars(clone, out _, out _, out string duplicateReason), Is.False);
+                Assert.That(duplicateReason, Does.Contain("ID 重复"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(otherConfig);
+                Object.DestroyImmediate(clone);
+            }
+        }
+
+        [Test]
+        public void SettlementCatalog_ResolvesPersistedCalendarIdFromSupportedDefinitions()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSettlementContentCatalog catalog = settings.SettlementContent;
+            Assert.That(InvokeTryPrepareCalendars(catalog, out CampaignCalendarDefinition defaultCalendar, out Dictionary<string, CampaignCalendarDefinition> calendars, out string reason), Is.True, reason);
+            Assert.That(defaultCalendar.CalendarId, Is.EqualTo("standard_two_season_v1"));
+            Assert.That(calendars.TryGetValue("standard_two_season_v1", out CampaignCalendarDefinition resolved), Is.True);
+            Assert.That(resolved.CalendarId, Is.EqualTo(defaultCalendar.CalendarId));
+            Assert.That(calendars.ContainsKey("missing_calendar"), Is.False);
+        }
+
+        private static bool InvokeTryPrepareCalendars(PlayableSettlementContentCatalog catalog, out CampaignCalendarDefinition defaultCalendar, out Dictionary<string, CampaignCalendarDefinition> calendars, out string reason)
+        {
+            MethodInfo method = typeof(PlayableSettlementContentCatalog).GetMethod("TryPrepareCalendars", BindingFlags.Instance | BindingFlags.NonPublic);
+            object[] arguments = { null, null, null };
+            bool result = (bool)method.Invoke(catalog, arguments);
+            defaultCalendar = (CampaignCalendarDefinition)arguments[0];
+            calendars = (Dictionary<string, CampaignCalendarDefinition>)arguments[1];
+            reason = (string)arguments[2];
+            return result;
+        }
+
+        [Test]
+        public void TryBuild_SettingsChangeAfterBuild_DoesNotChangeCandidate()
+        {
+            PlayableBootstrapSettings source = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableBootstrapSettings settings = Object.Instantiate(source);
+            try
+            {
+                Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport report), Is.True, report.ToString());
+                PlayableSettlementContentCatalog settlementContent = candidate.SettlementContent;
+                PlayableHuntContentCatalog huntContent = candidate.DefaultHuntContent;
+
+                SetPrivateField(settings, "settlementContent", null);
+                SetPrivateField(settings, "huntContent", null);
+
+                Assert.That(candidate.SettlementContent, Is.SameAs(settlementContent));
+                Assert.That(candidate.DefaultHuntContent, Is.SameAs(huntContent));
+            }
+            finally
+            {
+                Object.DestroyImmediate(settings);
+            }
+        }
+
+        [Test]
+        public void TryBuild_DuplicateDestinationIds_AreReported()
+        {
+            var settings = ScriptableObject.CreateInstance<PlayableBootstrapSettings>();
+            var destinationCatalog = ScriptableObject.CreateInstance<PlayableHuntDestinationCatalog>();
+            var first = new PlayableHuntDestination();
+            var second = new PlayableHuntDestination();
+            try
+            {
+                SetPrivateField(first, "destinationId", "duplicate");
+                SetPrivateField(second, "destinationId", " duplicate ");
+                SetPrivateField(destinationCatalog, "destinations", new List<PlayableHuntDestination> { first, second });
+                SetPrivateField(settings, "huntDestinations", destinationCatalog);
+
+                bool built = PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out _, out PlayableContentDiagnosticReport report);
+
+                Assert.That(built, Is.False);
+                Assert.That(report.Diagnostics, Has.Some.Matches<PlayableContentDiagnostic>(diagnostic => diagnostic.Code == "hunt.destination.id.duplicate"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(destinationCatalog);
+                Object.DestroyImmediate(settings);
+            }
+        }
+
+        [Test]
+        public void NoiseCoverage_InfiniteEvent_CoversUnboundedCampaign()
+        {
+            var profile = new PlayableHuntNoiseProfile();
+            EventData gameEvent = CreateDangerEvent("danger:always", 1, 0);
+            try
+            {
+                SetPrivateField(profile, "dangerEvents", new List<EventData> { gameEvent });
+
+                Assert.That(profile.TryValidateContinuousCoverage(1, out int firstMissingYear), Is.True);
+                Assert.That(firstMissingYear, Is.Zero);
+            }
+            finally
+            {
+                Object.DestroyImmediate(gameEvent);
+            }
+        }
+
+        [Test]
+        public void NoiseCoverage_GapBeforeInfiniteEvent_ReportsFirstMissingYear()
+        {
+            var profile = new PlayableHuntNoiseProfile();
+            EventData earlyEvent = CreateDangerEvent("danger:early", 1, 2);
+            EventData lateEvent = CreateDangerEvent("danger:late", 4, 0);
+            try
+            {
+                SetPrivateField(profile, "dangerEvents", new List<EventData> { lateEvent, earlyEvent });
+
+                Assert.That(profile.TryValidateContinuousCoverage(1, out int firstMissingYear), Is.False);
+                Assert.That(firstMissingYear, Is.EqualTo(3));
+            }
+            finally
+            {
+                Object.DestroyImmediate(earlyEvent);
+                Object.DestroyImmediate(lateEvent);
+            }
+        }
+
+        [Test]
+        public void NoiseCoverage_AdjacentIntervals_CoverFromDestinationOpeningYear()
+        {
+            var profile = new PlayableHuntNoiseProfile();
+            EventData earlyEvent = CreateDangerEvent("danger:opening", 3, 5);
+            EventData lateEvent = CreateDangerEvent("danger:late", 6, 0);
+            try
+            {
+                SetPrivateField(profile, "dangerEvents", new List<EventData> { lateEvent, earlyEvent });
+
+                Assert.That(profile.TryValidateContinuousCoverage(3, out int firstMissingYear), Is.True);
+                Assert.That(firstMissingYear, Is.Zero);
+            }
+            finally
+            {
+                Object.DestroyImmediate(earlyEvent);
+                Object.DestroyImmediate(lateEvent);
+            }
+        }
+
+        [Test]
+        public void InstallFailureAfterProjection_RestoresRuntimeAndPublishedEventGeneration()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            var sentinelHuntContent = ScriptableObject.CreateInstance<PlayableHuntContentCatalog>();
+            EventData stagedEvent = null;
+            PlayableHuntContentBundle stagedHuntBundle = null;
+            HexTileData stagedStartingTile = null;
+            try
+            {
+                PlayableSymptomRuntime.Configure(settings.Symptoms);
+                PlayableContentSourceBundle sourceBundle = PlayableContentSourceTestAssets.LoadBundle(settings);
+                IReadOnlyList<EventData> previousEvents = PlayableEventTableRuntime.Rebuild(sourceBundle);
+                EventData previousEvent = previousEvents[0];
+                PlayableHuntContentRuntime.Configure(sentinelHuntContent);
+                PlayableSettlementItemRegistry.Configure(null);
+                PlayableSettlementInventionRegistry.Configure(null);
+                PlayableSettlementEventRegistry.Configure(null);
+                Assert.That(PlayableCampaignContentAssembler.TryBuild(sourceBundle, out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+                installationFailureProbeField.SetValue(null, new System.Func<string, bool>(stage =>
+                {
+                    if (stage != "after-settlement-projection") return false;
+                    stagedEvent = PlayableEventTableRuntime.GetEvents()[0];
+                    stagedHuntBundle = PlayableHuntContentRuntime.CurrentBundle;
+                    stagedStartingTile = stagedHuntBundle?.DefaultRoute?.StartingTile;
+                    return true;
+                }));
+
+                bool installed = PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport);
+
+                Assert.That(installed, Is.False);
+                Assert.That(installReport.HasErrors, Is.True);
+                Assert.That(PlayableHuntContentRuntime.Catalog, Is.SameAs(sentinelHuntContent));
+                Assert.That(PlayableEventTableRuntime.GetEvents()[0], Is.SameAs(previousEvent));
+                Assert.That(previousEvent != null, Is.True);
+                Assert.That(stagedEvent == null, Is.True);
+                Assert.That(PlayableHuntContentRuntime.CurrentBundle, Is.Null);
+                Assert.That(stagedHuntBundle?.IsUsable, Is.False);
+                Assert.That(stagedStartingTile == null, Is.True);
+                Assert.That(PlayableSettlementItemRegistry.Items, Is.Empty);
+                Assert.That(PlayableSettlementInventionRegistry.Inventions, Is.Empty);
+
+                installationFailureProbeField.SetValue(null, new System.Func<string, bool>(stage => stage == "after-event-prepare"));
+                Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport retryReport), Is.False);
+                Assert.That(retryReport.Diagnostics, Has.None.Matches<PlayableContentDiagnostic>(diagnostic => diagnostic.Code == "candidate.install.gate"));
+                Assert.That(PlayableEventTableRuntime.GetEvents()[0], Is.SameAs(previousEvent));
+            }
+            finally
+            {
+                Object.DestroyImmediate(sentinelHuntContent);
+            }
+        }
+
+        [Test]
+        public void InstallFailureAfterSettlementPrepare_ReleasesOwnedObjectsWithoutPublishing()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            ItemData generatedItem = null;
+            InventionData generatedInvention = null;
+            HunterData generatedHunter = null;
+            HunterData externalHunter = settings.SettlementContent.RecruitmentTemplates[0];
+            PlayableSymptomRuntime.Configure(settings.Symptoms);
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            installationFailureProbeField.SetValue(null, new System.Func<string, bool>(stage =>
+            {
+                if (stage != "after-settlement-prepare") return false;
+                object plan = candidateSettlementPlanProperty.GetValue(candidate);
+                generatedItem = FindByName(GetPlanList<ItemData>(plan, "Items"), "black_salt");
+                generatedInvention = FindByName(GetPlanList<InventionData>(plan, "Inventions"), "paper-and-pen");
+                generatedHunter = FindByName(GetPlanList<HunterData>(plan, "RecruitmentTemplates"), "ember_keeper_yao");
+                Assert.That(generatedHunter, Is.Not.Null);
+                return true;
+            }));
+
+            bool installed = PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport report);
+
+            Assert.That(installed, Is.False);
+            Assert.That(report.HasErrors, Is.True);
+            Assert.That(generatedItem == null, Is.True, "被拒绝计划必须释放表生成 ItemData。");
+            Assert.That(generatedInvention == null, Is.True, "被拒绝计划必须释放表生成 InventionData。");
+            Assert.That(generatedHunter == null, Is.True, "被拒绝计划必须释放表生成 HunterData。");
+            Assert.That(externalHunter != null, Is.True, "序列化 HunterData 资产不得被计划回收。");
+            Assert.That(PlayableSettlementItemRegistry.Items, Is.Empty);
+            Assert.That(candidateSettlementPlanProperty.GetValue(candidate), Is.Null);
+        }
+
+        [Test]
+        public void Install_PublishesOneSettlementPlanAndReusesItsObjectGraph()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSymptomRuntime.Configure(settings.Symptoms);
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+
+            bool installed = PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport);
+
+            Assert.That(installed, Is.True, installReport.ToString());
+            object plan = candidateSettlementPlanProperty.GetValue(candidate);
+            IReadOnlyList<ItemData> planItems = GetPlanList<ItemData>(plan, "Items");
+            ItemData planItem = FindByName(planItems, "black_salt");
+            InventionData planInvention = FindByName(GetPlanList<InventionData>(plan, "Inventions"), "paper-and-pen");
+            IReadOnlyList<HunterData> planRecruitment = GetPlanList<HunterData>(plan, "RecruitmentTemplates");
+            HunterData planHunter = FindByName(planRecruitment, "ember_keeper_yao");
+            HunterData rootWalker = FindByName(planRecruitment, "root_walker_an");
+            HunterData externalHunter = settings.SettlementContent.RecruitmentTemplates[0];
+            Assert.That(planItem, Is.Not.Null);
+            Assert.That(planInvention, Is.Not.Null);
+            Assert.That(planHunter, Is.Not.Null);
+            Assert.That(rootWalker, Is.Not.Null);
+            Assert.That(planRecruitment, Has.Count.GreaterThanOrEqualTo(11));
+            Assert.That(FindByName(PlayableSettlementItemRegistry.Items, "black_salt"), Is.SameAs(planItem));
+            var firstManager = new SettlementManager(101);
+            var secondManager = new SettlementManager(202);
+            firstManager.Data.AddResource(planItem, 1);
+            Assert.That(PlayableSettlementContentRuntime.TryApplyTo(firstManager), Is.True);
+            Assert.That(PlayableSettlementContentRuntime.TryApplyTo(secondManager), Is.True);
+            Assert.That(FindByName(PlayableSettlementItemRegistry.Items, "black_salt"), Is.SameAs(planItem));
+            Assert.That(firstManager.Data.Hunters, Is.Not.Empty);
+            Assert.That(secondManager.Data.Hunters, Is.Not.Empty);
+            Assert.That(firstManager.Data.HasDiscoveredMaterial(planItem.ContentId), Is.True, "旧存档的正库存素材必须补种为已发现知识。");
+            Assert.That(secondManager.Data.Resources.Where(resource => resource != null && resource.Value > 0).All(resource => secondManager.Data.HasDiscoveredMaterial(resource.Key)), Is.True, "初始资源必须立即进入素材知识。 ");
+            object huntBundle = typeof(PlayableCampaignContentCandidate).GetProperty("HuntBundle", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(candidate);
+            Assert.That(PlayableHuntContentRuntime.CurrentBundle, Is.SameAs(huntBundle));
+            Assert.That(PlayableHuntContentRuntime.CurrentBundle.DefaultRoute.IsUsable, Is.True);
+            PlayableHuntContentRuntime.Configure(null);
+            resetSettlementContentRuntimeMethod.Invoke(null, null);
+            Assert.That(planItem == null, Is.True);
+            Assert.That(planInvention == null, Is.True);
+            Assert.That(planHunter == null, Is.True);
+            Assert.That(externalHunter != null, Is.True);
+            Assert.That(PlayableSettlementItemRegistry.Items, Is.Empty);
+            Assert.That(PlayableSettlementInventionRegistry.Inventions, Is.Empty);
+        }
+
+        [Test]
+        public void PublishedPlan_RejectsFutureSchemasBeforeMutatingSettlement()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSymptomRuntime.Configure(settings.Symptoms);
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
+            var manager = new SettlementManager(303);
+            manager.Data.CurrentYear = 7;
+            manager.Data.CampaignPacingSchemaVersion = SettlementInstance.CurrentCampaignPacingSchemaVersion + 1;
+
+            bool applied = PlayableSettlementContentRuntime.TryApplyTo(manager);
+
+            Assert.That(applied, Is.False);
+            Assert.That(manager.Data.CurrentYear, Is.EqualTo(7));
+            Assert.That(manager.Data.CampaignPacingSchemaVersion, Is.EqualTo(SettlementInstance.CurrentCampaignPacingSchemaVersion + 1));
+            Assert.That(manager.Data.Hunters, Is.Empty);
+            Assert.That(manager.Timeline.RandomEventPool, Is.Empty);
+        }
+
+        [Test]
+        public void PublishedPlan_RejectsFutureMaterialDiscoverySchemaBeforeMutation()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSymptomRuntime.Configure(settings.Symptoms);
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
+            var manager = new SettlementManager(304);
+            manager.Data.CurrentYear = 9;
+            manager.Data.MaterialDiscoverySchemaVersion = SettlementInstance.CurrentMaterialDiscoverySchemaVersion + 1;
+
+            bool applied = PlayableSettlementContentRuntime.TryApplyTo(manager);
+
+            Assert.That(applied, Is.False);
+            Assert.That(manager.Data.CurrentYear, Is.EqualTo(9));
+            Assert.That(manager.Data.MaterialDiscoverySchemaVersion, Is.EqualTo(SettlementInstance.CurrentMaterialDiscoverySchemaVersion + 1));
+            Assert.That(manager.Data.Hunters, Is.Empty);
+            Assert.That(manager.Data.DiscoveredMaterialIds, Is.Empty);
+            Assert.That(manager.Timeline.RandomEventPool, Is.Empty);
+        }
+
+        [Test]
+        public void PublishedPlan_RejectsIndependentRegistryReconfigurationWithoutDrift()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSymptomRuntime.Configure(settings.Symptoms);
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
+            IReadOnlyList<ItemData> items = PlayableSettlementContentRuntime.Items;
+            IReadOnlyList<InventionData> inventions = PlayableSettlementContentRuntime.Inventions;
+            IReadOnlyList<EventData> events = PlayableSettlementContentRuntime.Events;
+
+            Assert.Throws<System.InvalidOperationException>(() => PlayableSettlementItemRegistry.Configure(null));
+            Assert.Throws<System.InvalidOperationException>(() => PlayableSettlementInventionRegistry.Configure(null));
+            Assert.Throws<System.InvalidOperationException>(() => PlayableSettlementEventRegistry.Configure(null));
+            Assert.Throws<System.InvalidOperationException>(() => PlayableSettlementContentRuntime.Configure(null));
+
+            Assert.That(PlayableSettlementContentRuntime.Items, Is.SameAs(items));
+            Assert.That(PlayableSettlementContentRuntime.Inventions, Is.SameAs(inventions));
+            Assert.That(PlayableSettlementContentRuntime.Events, Is.SameAs(events));
+            Assert.That(PlayableSettlementItemRegistry.Items, Is.SameAs(items));
+            Assert.That(PlayableSettlementInventionRegistry.Inventions, Is.SameAs(inventions));
+            Assert.That(PlayableSettlementItemRegistry.TryGet(items[0].ContentId, out ItemData resolvedItem), Is.True);
+            Assert.That(resolvedItem, Is.SameAs(items[0]));
+            Assert.That(PlayableSettlementInventionRegistry.TryGet(inventions[0].ContentId, out InventionData resolvedInvention), Is.True);
+            Assert.That(resolvedInvention, Is.SameAs(inventions[0]));
+            Assert.That(PlayableSettlementEventRegistry.TryResolveCanonical(events[0].ContentId, out EventData resolvedEvent), Is.True);
+            Assert.That(resolvedEvent, Is.SameAs(events[0]));
+        }
+
+        [Test]
+        public void PublishedPlan_LeasesEventGenerationUntilPlanRetires()
+        {
+            PlayableBootstrapSettings settings = AssetDatabase.LoadAssetAtPath<PlayableBootstrapSettings>(SettingsPath);
+            PlayableSymptomRuntime.Configure(settings.Symptoms);
+            Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourceTestAssets.LoadBundle(settings), out PlayableCampaignContentCandidate candidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
+            Assert.That(PlayableCampaignContentAssembler.Install(candidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
+            IReadOnlyList<EventData> leasedEvents = PlayableEventTableRuntime.GetEvents();
+            EventData leasedEvent = leasedEvents[0];
+
+            LogAssert.Expect(LogType.Error, "[PlayableEventTable] 活动营地内容计划仍在使用当前事件世代，拒绝重建缓存。");
+            Assert.That(PlayableEventTableRuntime.Rebuild(), Is.SameAs(leasedEvents));
+            LogAssert.Expect(LogType.Error, "[PlayableEventTable] 活动营地内容计划仍在使用当前事件世代，拒绝清理缓存。");
+            PlayableEventTableRuntime.ClearCache();
+
+            Assert.That(PlayableEventTableRuntime.GetEvents(), Is.SameAs(leasedEvents));
+            Assert.That(leasedEvent != null, Is.True);
+            resetSettlementContentRuntimeMethod.Invoke(null, null);
+            PlayableHuntContentRuntime.Configure(null);
+            PlayableEventTableRuntime.ClearCache();
+            Assert.That(leasedEvent == null, Is.True);
+        }
+
+        private static EventData CreateDangerEvent(string contentId, int minYear, int maxYear)
+        {
+            EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
+            gameEvent.ConfigureContentId(contentId);
+            gameEvent.category = EventCategory.Hunt;
+            gameEvent.drawWeight = 1;
+            gameEvent.minYear = minYear;
+            gameEvent.maxYear = maxYear;
+            return gameEvent;
+        }
+
+        private static void SetPrivateField(object target, string fieldName, object value)
+        {
+            FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null, fieldName);
+            field.SetValue(target, value);
+        }
+
+        private static IReadOnlyList<T> GetPlanList<T>(object plan, string propertyName)
+        {
+            Assert.That(plan, Is.Not.Null);
+            PropertyInfo property = plan.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(property, Is.Not.Null, propertyName);
+            return (IReadOnlyList<T>)property.GetValue(plan);
+        }
+
+        private static T FindByName<T>(IReadOnlyList<T> assets, string name) where T : Object
+        {
+            foreach (T asset in assets)
+                if (asset != null && asset.name == name)
+                    return asset;
+            return null;
+        }
+    }
+}

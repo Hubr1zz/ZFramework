@@ -1,0 +1,1826 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.5/staging' branch; Version is '6000.5.9f1 (b57deb96f08d) revision 11894251'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-leonz" at "2026-08-31T19:55:56.9230498Z"
+OS: 'Windows 11  (10.0.26200) CoreCountrySpecific' Language: 'zh' Physical Memory: 31964 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-08-31T19:55:56Z
+
+COMMAND LINE ARGUMENTS:
+D:\UnityVersions\6000.5.9f1\Editor\Unity.exe
+-batchmode
+-nographics
+-quit
+-projectPath
+D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh
+-logFile
+D:\UnityProjects\ZFramework\gameplay-ux-compile.log
+Successfully changed project path to: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh
+D:/UnityProjects/ZFramework/UnityCliGameplayUxFresh
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-remapper-allocator-initial-capacity=32768"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-main-allocator-mimalloc-enabled=0"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+Logging is directed to a specific file, skipping project log.Player connection [36196]  Target information:
+
+Player connection [36196]  * "[IP] 26.122.147.101 [Port] 55505 [Flags] 2 [Guid] 246550696 [EditorId] 246550696 [Version] 1048832 [Id] WindowsEditor(7,zza) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [36196]  * "[IP] 192.168.1.22 [Port] 55505 [Flags] 2 [Guid] 246550696 [EditorId] 246550696 [Version] 1048832 [Id] WindowsEditor(7,zza) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [36196] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [36196] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-20272" after 0.2 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::Client] Error: HandshakeResponse reported an error:
+	ResponseCode: 505
+	ResponseStatus: Unsupported protocol version '1.18.3'.
+[Licensing::Module] Error: Failed to handshake to channel: "LicenseClient-leonz"
+[Licensing::IpcConnector] LicenseClient-leonz channel disconnected successfully.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-leonz-6000.5.9" at "2026-08-31T19:55:58.6039506Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 41344, path: "D:/UnityVersions/6000.5.9f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+  Session Id:              44dac0e34bd14e56a47e405aae9ec5fc
+  Correlation Id:          e1a820a077868393e9e462d9ca9c921d
+  External correlation Id: 7481823112288548046
+  Machine Id:              Ik5fYd8gbb0FOBsCcc2zMKgraJ4=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-leonz-6000.5.9" (connect: 0.00s, validation: 0.01s, handshake: 0.01s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-leonz-6000.5.9-notifications" at "2026-08-31T19:55:58.6193782Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: ewogICJzdWJzR3JvdXAiIDogInVuaXR5IGVkaXRvciIsCiAgIm5hbWVzcGFjZSIgOiAidW5pdHlfZWRpdG9yIiwKICAidHlwZSIgOiAiRURJVE9SIiwKICAidGFnIiA6ICJVbml0eVBlcnNvbmFsXXXX
+  Product: Unity Personal Version
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 1.73s
+[Licensing::Module] Licensing is initialized (took 1.14s).
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+Rebuilding Library because the asset database could not be found!
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Initialize engine version: 6000.5.9f1 (b57deb96f08d)
+[Subsystems] Discovering subsystems at path D:/UnityVersions/6000.5.9f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path D:/UnityProjects/ZFramework/UnityCliGameplayUxFresh/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Initialize mono
+Mono path[0] = 'D:/UnityVersions/6000.5.9f1/Editor/Data/Managed'
+Mono path[1] = 'D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/runtime/netstandard2.1'
+Mono path[2] = 'D:/UnityVersions/6000.5.9f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'D:/UnityVersions/6000.5.9f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56272
+CodeReloadManager initialized
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: D:/UnityVersions/6000.5.9f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.001577 seconds.
+Native extension for WindowsStandalone target not found
+Package Manager log level set to [2]
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:False
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.420 seconds
+Domain Reload Profiling: 796ms
+	BeginReloadAssembly (109ms)
+		CreateAndSetChildDomain (12ms)
+	RebuildCommonClasses (4ms)
+	RebuildNativeTypeToScriptingClass (13ms)
+	initialDomainReloadingComplete (48ms)
+	LoadAllAssembliesAndSetupDomain (203ms)
+		LoadAssemblies (95ms)
+		AnalyzeDomain (148ms)
+			TypeCache.Refresh (147ms)
+				TypeCache.ScanAssembly (136ms)
+	FinalizeReload (421ms)
+		SetupLoadedEditorAssemblies (0ms)
+			BeforeProcessingInitializeOnLoad (69ms)
+			ProcessInitializeOnLoadAttributes (74ms)
+			ProcessInitializeOnLoadMethodAttributes (217ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+[Package Manager] Done resolving packages in 6.43 seconds
+[Licensing::Client] Successfully resolved entitlement details
+Embedded package [com.cysharp.unitask] was found in the directory [D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\UniTask]. Please consider changing the directory name to match the package name.
+Embedded package [com.tuyoogame.yooasset] was found in the directory [D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\YooAsset]. Please consider changing the directory name to match the package name.
+[Package Manager] Registered 49 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.ai.navigation@2.0.14 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.ai.navigation@134dd6a3b97b)
+    com.unity.ide.rider@3.0.40 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.ide.rider@e4950c6d131b)
+    com.unity.ide.visualstudio@2.0.26 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.ide.visualstudio@a99d56dec63f)
+    com.unity.nuget.newtonsoft-json@3.2.2 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64)
+    com.unity.scriptablebuildpipeline@2.6.1 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.scriptablebuildpipeline@36e3b5898ee2)
+  Built-in packages:
+    com.unity.ugui@2.5.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.ugui@1c4864518158)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.physicscore2d@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.physicscore2d)
+    com.unity.modules.screencapture@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.wind@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.test-framework@1.7.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.test-framework@1405238725ab)
+    com.unity.ext.nunit@2.1.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.ext.nunit@44f7d31723bd)
+  Embedded packages:
+    com.cysharp.unitask@file:D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\UniTask (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\UniTask)
+    com.tuyoogame.yooasset@file:D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\YooAsset (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\YooAsset)
+    com.zframework.ecs@file:D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\com.zframework.ecs (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\com.zframework.ecs)
+    com.zframework.rts@file:D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\com.zframework.rts (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\com.zframework.rts)
+  Local packages:
+    com.leonz.z-editor-tools@file:D:\MyLibrary\UnityEditorTools\zEditor(vSeries) (location: D:\MyLibrary\UnityEditorTools\zEditor(vSeries))
+  Git packages:
+    com.leonz.scene-tools@https://github.com/Hubr1zz/UnityEditorTools.git?path=/SceneTools#v0.1.3 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.leonz.scene-tools@f8fa0cd5fc36)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.00 seconds
+AcceleratorClientConnectionCallback - disconnected - :0
+[API Updater] Processing imported assemblies took 107 ms (0/0 assembly(ies)).
+Assembly Updater Post Process Assets time: 0.109138s
+[ScriptCompilation] Requested script compilation because: Assembly Definition File(s) changed
+[ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
+Starting: D:\UnityVersions\6000.5.9f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aEDbg.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: D:/UnityProjects/ZFramework/UnityCliGameplayUxFresh
+ExitCode: 4 Duration: 0s43ms
+[             ] Require frontend run.  Library/Bee/1900b0aEDbg.dag couldn't be loaded
+DisplayProgressbar: Compiling Scripts
+Starting: D:\UnityVersions\6000.5.9f1\Editor\Data\netcorerun\netcorerun.exe "D:\UnityVersions\6000.5.9f1\Editor\Data\Tools\BuildPipeline\ScriptCompilationBuildProgram.exe" "Library/Bee/1900b0aEDbg.dag.json" "Library/Bee/1900b0aEDbg-inputdata.json" "Library\Bee\buildprogram0.traceevents"
+WorkingDir: D:/UnityProjects/ZFramework/UnityCliGameplayUxFresh
+ExitCode: 0 Duration: 0s482ms
+Starting: D:\UnityVersions\6000.5.9f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aEDbg.dag" --continue-on-failure --dagfilejson="Library\Bee\1900b0aEDbg.dag.json" --profile="Library/Bee/backend2.traceevents" ScriptAssemblies
+WorkingDir: D:/UnityProjects/ZFramework/UnityCliGameplayUxFresh
+ExitCode: 3 Duration: 4s698ms
+Finished compiling graph: 635 nodes, 10036 flattened edges (9064 ToBuild, 116 ToUse), maximum node priority 365
+[  1/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GraphicsStateCollectionSerializerModule.dll_E3FE9282A3539EF1.mvfrm
+[  2/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.CoreBusinessMetricsModule.dll_F4BC53DF60B7E4AF.mvfrm
+[  3/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GIModule.dll_A3B9019AFA9A68BB.mvfrm
+[  4/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.EmbreeModule.dll_65BFED231BEE1461.mvfrm
+[  5/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.AssetComplianceModule.dll_79B23DA441AC0C56.mvfrm
+[  6/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GridAndSnapModule.dll_67F6161957656526.mvfrm
+[  7/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.MediaModule.dll_DEC9E49863EFE3AF.mvfrm
+[  8/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.PropertiesModule.dll_5E23486BD7FDEC0C.mvfrm
+[  9/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.MultiplayerModule.dll_A718309435CBD675.mvfrm
+[ 10/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GridModule.dll_B1425E001DC7AF0F.mvfrm
+[ 11/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.PlayModeModule.dll_589A24BB12288300.mvfrm
+[ 12/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.BuildProfileModule.dll_B334D72AC8086EB4.mvfrm
+[ 13/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.CoreModule.dll_D3D1421205731918.mvfrm
+[ 14/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.DiagnosticsModule.dll_5E3D2F97D400A837.mvfrm
+[ 15/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.PhysicsModule.dll_412B9817D75D2412.mvfrm
+[ 16/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.PresetsUIModule.dll_FD3DAF903D64C333.mvfrm
+[ 17/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.ClothModule.dll_79F22801BFC03A05.mvfrm
+[ 18/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.Physics2DModule.dll_A71CF1DED0E68584.mvfrm
+[ 19/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GenericRemoteModule.dll_1B458EADB6DBE288.mvfrm
+[ 20/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SafeModeModule.dll_12A63301735F7399.mvfrm
+[ 21/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.HierarchyModule.dll_2F4B7D89F8EBA9F0.mvfrm
+[ 22/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.LightingModule.dll_0CADAA7DC64B3CC5.mvfrm
+[ 23/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.MathematicsModule.dll_4C84C1E0F17C4031.mvfrm
+[ 24/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.QuickSearchModule.dll_E94CB0A52CD7A490.mvfrm
+[ 25/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.QuickInstallModule.dll_9214256A098EDCE7.mvfrm
+[ 26/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GraphViewModule.dll_41D776AE3B0C6B2E.mvfrm
+[ 27/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.EditorToolbarModule.dll_BB404EA4CECD6AD9.mvfrm
+[ 28/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.PhysicsCore2DModule.dll_7308107DB3DCAE73.mvfrm
+[ 29/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.DeviceSimulatorModule.dll_40D72DB5C6F02829.mvfrm
+[ 30/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.ContentLoadModule.dll_C0866D484B86F0EA.mvfrm
+[ 31/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.ProjectAuditorModule.dll_DB8F3C75D0469C9E.mvfrm
+[ 32/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GraphToolkitModule.dll_CF11BBD5B8B79D39.mvfrm
+[ 33/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.ShaderBuildSettingsModule.dll_7CF7A10E0D6FE6F7.mvfrm
+[ 34/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SceneViewModule.dll_808759B6302F383C.mvfrm
+[ 35/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SceneTemplateModule.dll_DEDFBF62CDBA1511.mvfrm
+[ 36/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.ShaderFoundryModule.dll_1DBF8FA5F069919F.mvfrm
+[ 37/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.ShaderCompilationModule.dll_DF20EE869A69C629.mvfrm
+[ 38/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SpriteShapeModule.dll_40D1416232A68107.mvfrm
+[ 39/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SketchUpModule.dll_FABB1851BE910FB0.mvfrm
+[ 40/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UIAutomationModule.dll_63D5C61B647C3774.mvfrm
+[ 41/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UnityConnectModule.dll_AE6EE4A0ECEC53CE.mvfrm
+[ 42/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TreeModule.dll_317D37208D38AE57.mvfrm
+[ 43/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.VideoModule.dll_38134F71A83576C6.mvfrm
+[ 44/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UIBuilderModule.dll_966023CAADC4E462.mvfrm
+[ 45/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TextRenderingModule.dll_2882E19E2016C66A.mvfrm
+[ 46/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.U2DModule.dll_08692B119FA6EA32.mvfrm
+[ 47/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TilemapModule.dll_FA6E7B07C4D84E09.mvfrm
+[ 48/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SubstanceModule.dll_EBB70387CAC4433B.mvfrm
+[ 49/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SpriteMaskModule.dll_1A147BBD86821D4A.mvfrm
+[ 50/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AndroidJNIModule.dll_07492C5AA115B02A.mvfrm
+[ 51/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TextCoreFontEngineModule.dll_379C22CBBF254F96.mvfrm
+[ 52/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.dll_18C2857C69D544FD.mvfrm
+[ 53/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.VFXModule.dll_DC90802E6A0A89D3.mvfrm
+[ 54/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ARModule.dll_035E0F2027861335.mvfrm
+[ 55/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.XRModule.dll_8C814044E6275923.mvfrm
+[ 56/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TextCoreTextEngineModule.dll_7F84593D4EA908B4.mvfrm
+[ 57/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UIElementsSamplesModule.dll_D3528C0EB765D159.mvfrm
+[ 58/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AIModule.dll_49EB4A1CCA68B46C.mvfrm
+[ 59/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AdaptivePerformanceModule.dll_3560EF1B75B608BA.mvfrm
+[ 60/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UmbraModule.dll_8DDE771F72CA0694.mvfrm
+[ 61/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UIToolkitAuthoringModule.dll_6AF2B758DDABD356.mvfrm
+[ 62/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.VectorGraphicsModule.dll_2821C8450DB44D87.mvfrm
+[ 63/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TerrainModule.dll_5B721386AD1B6D00.mvfrm
+[ 64/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UIElementsModule.dll_8900438757F64154.mvfrm
+[ 65/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AnimationModule.dll_105CF2D715693FD4.mvfrm
+[ 66/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ClothModule.dll_401EE465F13D6AAA.mvfrm
+[ 67/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AudioModule.dll_D936876B17208BC6.mvfrm
+[ 68/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AssetBundleModule.dll_2D35E3968F3E5982.mvfrm
+[ 69/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ClusterInputModule.dll_2E0B59B69E742694.mvfrm
+[ 70/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ClusterRendererModule.dll_4683F02736AB35AD.mvfrm
+[ 71/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.GIModule.dll_E227932A66179C86.mvfrm
+[ 72/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.DirectorModule.dll_0DBCF581F72A4B20.mvfrm
+[ 73/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.GraphicsStateCollectionSerializerModule.dll_ECF25F727052E856.mvfrm
+[ 74/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.DSPGraphModule.dll_130E56EB698B1C41.mvfrm
+[ 75/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.GridModule.dll_D4633152C5CD1A3A.mvfrm
+[ 76/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.HotReloadModule.dll_91A5B0DCF09C5B56.mvfrm
+[ 77/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.HierarchyCoreModule.dll_889FC7D43CDD95A4.mvfrm
+[ 78/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.IdentifiersModule.dll_05BF6B8C51B7279A.mvfrm
+[ 79/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.GameCenterModule.dll_319676756756A11B.mvfrm
+[ 80/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.IMGUIModule.dll_119626D1DD521FA7.mvfrm
+[ 81/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.CrashReportingModule.dll_F8ECAA5F2988DFBB.mvfrm
+[ 82/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.CoreModule.dll_F6F21564AD788443.mvfrm
+[ 83/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.InputForUIModule.dll_3448D08EC7773DD7.mvfrm
+[ 84/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ContentLoadModule.dll_C64C3CD75DC1016F.mvfrm
+[ 85/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.MathematicsModule.dll_524A917003B650B6.mvfrm
+[ 86/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.InsightsModule.dll_A783BE1281A79A9F.mvfrm
+[ 87/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ImageConversionModule.dll_B275EDD7B8CFEDA1.mvfrm
+[ 88/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.InputLegacyModule.dll_BE7AFEB527300F73.mvfrm
+[ 89/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ParticleSystemModule.dll_4BFEF3AB979A6B49.mvfrm
+[ 90/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.MultiplayerModule.dll_ACDE00234805E6FA.mvfrm
+[ 91/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.JSONSerializeModule.dll_719CB435CD6B9D38.mvfrm
+[ 92/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.InputModule.dll_3FAC4F1B8D58B06A.mvfrm
+[ 93/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.PerformanceReportingModule.dll_60B70419EECF1C02.mvfrm
+[ 94/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.MarshallingModule.dll_D59E822B736686D4.mvfrm
+[ 95/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.Physics2DModule.dll_5D02E2C7B6663769.mvfrm
+[ 96/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.LocalizationModule.dll_6C58240935F0198D.mvfrm
+[ 97/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.PhysicsCore2DModule.dll_FF4902A52CD53198.mvfrm
+[ 98/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.PhysicsBackendPhysXModule.dll_0F74D6A858724B79.mvfrm
+[ 99/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.PhysicsModule.dll_33A650C23C6C0B57.mvfrm
+[100/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.RenderAs2DModule.dll_A0097839B99C4F8E.mvfrm
+[101/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.PropertiesModule.dll_5ED1B5B3DA420557.mvfrm
+[102/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ShaderVariantAnalyticsModule.dll_296BA0977E14EF2A.mvfrm
+[103/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.SharedInternalsModule.dll_36872CAD2FFDE8F1.mvfrm
+[104/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ScreenCaptureModule.dll_8B8461BAE1D7C99A.mvfrm
+[105/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.SpriteShapeModule.dll_469710F144E0918C.mvfrm
+[106/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll_2ACAA676BAC3FA32.mvfrm
+[107/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ScriptingModule.dll_277E4B9D94F0EE87.mvfrm
+[108/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.StreamingModule.dll_C4F1E02764F0F712.mvfrm
+[109/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TerrainPhysicsModule.dll_4C799C7EB0DD65D6.mvfrm
+[110/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.SpriteMaskModule.dll_1AC2E90588C63695.mvfrm
+[111/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.SubsystemsModule.dll_85704F67570E1EA8.mvfrm
+[112/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TerrainModule.dll_4DECCC31122A5445.mvfrm
+[113/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TLSModule.dll_67D38A13034D2E6B.mvfrm
+[114/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.TestRunner.UnityAdditionalFile.txt
+[115/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.TestRunner.rsp2
+[116/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.UI.UnityAdditionalFile.txt
+[117/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TilemapModule.dll_ECE933B229E7354E.mvfrm
+[118/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TextCoreFontEngineModule.dll_B5FB9E1ED2230E61.mvfrm
+[119/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.SubstanceModule.dll_A19CF470B043F520.mvfrm
+[120/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.UI.rsp2
+[121/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityConsentModule.dll_6D73FFDBF47EEAC9.mvfrm
+[122/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UIModule.dll_455EE84A26AFBA18.mvfrm
+[123/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.TestRunner.dll.mvfrm.rsp
+[124/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.UI.dll.mvfrm.rsp
+[125/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.TestRunner.rsp
+[126/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.UI.rsp
+[127/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.TestRunner.UnityAdditionalFile.txt
+[128/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.TestRunner.rsp2
+[129/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityAnalyticsModule.dll_6B9E647543C1BD45.mvfrm
+[130/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.U2DRuntimeModule.dll_564CA02E276994B5.mvfrm
+[131/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.TestRunner.dll.mvfrm.rsp
+[132/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.TestRunner.rsp
+[133/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.UnityAdditionalFile.txt
+[134/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityAnalyticsCommonModule.dll_FBF5C15E08B7BA60.mvfrm
+[135/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.rsp2
+[136/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TextRenderingModule.dll_B4C3D3C5990F498F.mvfrm
+[137/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.dll.mvfrm.rsp
+[138/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.rsp
+[139/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityWebRequestAssetBundleModule.dll_41544FEBE992CBD6.mvfrm
+[140/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityCurlModule.dll_43799408857D31C1.mvfrm
+[141/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityConnectModule.dll_9BCE68AFE7745479.mvfrm
+[142/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.InternalAPIEngineBridge.004.UnityAdditionalFile.txt
+[143/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.InternalAPIEngineBridge.004.rsp2
+[144/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.InternalAPIEngineBridge.004.dll.mvfrm.rsp
+[145/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.InternalAPIEngineBridge.004.rsp
+[146/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.UnityAdditionalFile.txt
+[147/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.rsp2
+[148/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.UnityAdditionalFile.txt
+[149/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TextCoreTextEngineModule.dll_FDE3D49061A6C77F.mvfrm
+[150/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.rsp2
+[151/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.UnityAdditionalFile.txt
+[152/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.rsp2
+[153/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.UnityAdditionalFile.txt
+[154/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.ConversionSystem.rsp2
+[155/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.rsp2
+[156/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.ConversionSystem.UnityAdditionalFile.txt
+[157/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.dll.mvfrm.rsp
+[158/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.dll.mvfrm.rsp
+[159/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.rsp
+[160/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.rsp2
+[161/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.UnityAdditionalFile.txt
+[162/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.rsp
+[163/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.dll.mvfrm.rsp
+[164/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.ConversionSystem.dll.mvfrm.rsp
+[165/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.dll.mvfrm.rsp
+[166/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.rsp
+[167/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.rsp
+[168/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.ConversionSystem.rsp
+[169/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.dll.mvfrm.rsp
+[170/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.Editor.UnityAdditionalFile.txt
+[171/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Runtime.UnityAdditionalFile.txt
+[172/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.rsp
+[173/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.Editor.rsp2
+[174/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UmbraModule.dll_540B3383A4473739.mvfrm
+[175/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Runtime.rsp2
+[176/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.rsp2
+[177/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.UnityAdditionalFile.txt
+[178/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.RuntimeExtension.UnityAdditionalFile.txt
+[179/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.RuntimeExtension.rsp2
+[180/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Runtime.UnityAdditionalFile.txt
+[181/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.Editor.dll.mvfrm.rsp
+[182/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Runtime.rsp2
+[183/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.RuntimeExtension.dll.mvfrm.rsp
+[184/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.Editor.rsp
+[185/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.RuntimeExtension.rsp
+[186/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.dll.mvfrm.rsp
+[187/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.Runtime.UnityAdditionalFile.txt
+[188/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.Runtime.rsp2
+[189/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Runtime.dll.mvfrm.rsp
+[190/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.rsp
+[191/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Contracts.rsp2
+[192/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Contracts.UnityAdditionalFile.txt
+[193/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.rsp2
+[194/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.UnityAdditionalFile.txt
+[195/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Runtime.rsp
+[196/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Runtime.dll.mvfrm.rsp
+[197/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Runtime.rsp
+[198/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.Runtime.dll.mvfrm.rsp
+[199/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UIElementsModule.dll_89AEB0CF5A3A5A9F.mvfrm
+[200/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.Runtime.rsp
+[201/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Contracts.dll.mvfrm.rsp
+[202/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.Editor.UnityAdditionalFile.txt
+[203/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.ActionQueueAdapter.UnityAdditionalFile.txt
+[204/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PresentationSystem.Runtime.UnityAdditionalFile.txt
+[205/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Contracts.rsp
+[206/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PresentationSystem.Runtime.rsp2
+[207/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.Editor.rsp2
+[208/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.ActionQueueAdapter.rsp2
+[209/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.Analytics.rsp2
+[210/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.VisualStudio.Editor.UnityAdditionalFile.txt
+[211/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.VisualStudio.Editor.rsp2
+[212/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.Editor.rsp2
+[213/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.Rider.Editor.UnityAdditionalFile.txt
+[214/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.Editor.UnityAdditionalFile.txt
+[215/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.Rider.Editor.rsp2
+[216/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.dll.mvfrm.rsp
+[217/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.Analytics.UnityAdditionalFile.txt
+[218/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Updater.rsp2
+[219/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Updater.UnityAdditionalFile.txt
+[220/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Runtime.rsp2
+[221/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Runtime.UnityAdditionalFile.txt
+[222/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VTabs.rsp2
+[223/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VHierarchy.rsp2
+[224/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VInspector.UnityAdditionalFile.txt
+[225/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VFavorites.rsp2
+[226/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VInspector.rsp2
+[227/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VFolders.UnityAdditionalFile.txt
+[228/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VTabs.UnityAdditionalFile.txt
+[229/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VFolders.rsp2
+[230/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VFavorites.UnityAdditionalFile.txt
+[231/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VHierarchy.UnityAdditionalFile.txt
+[232/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.rsp
+[233/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PresentationSystem.Runtime.dll.mvfrm.rsp
+[234/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.ActionQueueAdapter.dll.mvfrm.rsp
+[235/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.Rider.Editor.dll.mvfrm.rsp
+[236/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.VisualStudio.Editor.dll.mvfrm.rsp
+[237/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.Editor.dll.mvfrm.rsp
+[238/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Updater.dll.mvfrm.rsp
+[239/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.Editor.dll.mvfrm.rsp
+[240/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.Analytics.dll.mvfrm.rsp
+[241/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VFavorites.dll.mvfrm.rsp
+[242/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VFolders.dll.mvfrm.rsp
+[243/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VInspector.dll.mvfrm.rsp
+[244/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VHierarchy.dll.mvfrm.rsp
+[245/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VTabs.dll.mvfrm.rsp
+[246/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PresentationSystem.Runtime.rsp
+[247/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.rsp2
+[248/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.ActionQueueAdapter.rsp
+[249/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.UnityAdditionalFile.txt
+[250/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Runtime.dll.mvfrm.rsp
+[251/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.Rider.Editor.rsp
+[252/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Updater.rsp
+[253/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.Editor.rsp
+[254/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Unity.VisualStudio.Editor.rsp
+[255/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.Analytics.rsp
+[256/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.Editor.rsp
+[257/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.Runtime.UnityAdditionalFile.txt
+[258/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VHierarchy.rsp
+[259/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.Runtime.rsp2
+[260/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VFavorites.rsp
+[261/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Runtime.rsp
+[262/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VInspector.rsp
+[263/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VFolders.rsp
+[264/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Editor.rsp2
+[265/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/VTabs.rsp
+[266/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Launcher.rsp2
+[267/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Editor.rsp2
+[268/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Editor.UnityAdditionalFile.txt
+[269/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.EditorExtension.rsp2
+[270/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.ECS.rsp2
+[271/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.ECS.UnityAdditionalFile.txt
+[272/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityWebRequestTextureModule.dll_68B182E6D248B3AF.mvfrm
+[273/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.EditorExtension.UnityAdditionalFile.txt
+[274/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Leonz.SceneTools.Editor.rsp2
+[275/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityWebRequestWWWModule.dll_C8A619EC516683EB.mvfrm
+[276/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Linq.UnityAdditionalFile.txt
+[277/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityWebRequestAudioModule.dll_D8B357F87539E69A.mvfrm
+[278/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.TextMeshPro.UnityAdditionalFile.txt
+[279/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Linq.rsp2
+[280/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.YooAsset.UnityAdditionalFile.txt
+[281/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.YooAsset.rsp2
+[282/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZEditorTools.Settings.rsp2
+[283/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.DOTween.rsp2
+[284/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.VFXModule.dll_E8B22281D9BA97D8.mvfrm
+[285/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityWebRequestModule.dll_C414F581C3C48820.mvfrm
+[286/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.DOTween.UnityAdditionalFile.txt
+[287/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZEditorTools.Settings.UnityAdditionalFile.txt
+[288/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.TextMeshPro.rsp2
+[289/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Editor.UnityAdditionalFile.txt
+[290/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Leonz.SceneTools.Editor.UnityAdditionalFile.txt
+[291/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Addressables.rsp2
+[292/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Addressables.UnityAdditionalFile.txt
+[293/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Launcher.UnityAdditionalFile.txt
+[294/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Editor.rsp2
+[295/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Editor.UnityAdditionalFile.txt
+[296/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.Runtime.dll.mvfrm.rsp
+[297/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.dll.mvfrm.rsp
+[298/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Addressables.dll.mvfrm.rsp
+[299/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.EditorExtension.dll.mvfrm.rsp
+[300/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.YooAsset.dll.mvfrm.rsp
+[301/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.ECS.dll.mvfrm.rsp
+[302/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Editor.dll.mvfrm.rsp
+[303/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZEditorTools.Settings.dll.mvfrm.rsp
+[304/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.rsp
+[305/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.TextMeshPro.dll.mvfrm.rsp
+[306/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.VideoModule.dll_FE400BD5D9B2A76B.mvfrm
+[307/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.DOTween.dll.mvfrm.rsp
+[308/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.VectorGraphicsModule.dll_E34629E029A0E192.mvfrm
+[309/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Editor.dll.mvfrm.rsp
+[310/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Editor.dll.mvfrm.rsp
+[311/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Launcher.dll.mvfrm.rsp
+[312/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Linq.dll.mvfrm.rsp
+[313/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Leonz.SceneTools.Editor.dll.mvfrm.rsp
+[314/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.Runtime.rsp
+[315/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.ECS.rsp
+[316/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Editor.rsp
+[317/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Leonz.SceneTools.Editor.rsp
+[318/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Linq.rsp
+[319/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.DOTween.rsp
+[320/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZEditorTools.Settings.rsp
+[321/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Editor.rsp
+[322/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Editor.rsp
+[323/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.dll_4B66CC54C848D1E2.mvfrm
+[324/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.TextMeshPro.rsp
+[325/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.VehiclesModule.dll_857FEF0171541ABB.mvfrm
+[326/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.YooAsset.rsp
+[327/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Addressables.rsp
+[328/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.VirtualTexturingModule.dll_03DF858D4B784921.mvfrm
+[329/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.WindModule.dll_6D40F08D3EAF02AC.mvfrm
+[330/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.EditorExtension.rsp
+[331/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Launcher.rsp
+[332/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-firstpass.UnityAdditionalFile.txt
+[333/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.XRModule.dll_CAEFD1D451A48CEE.mvfrm
+[334/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-firstpass.rsp2
+[335/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-firstpass.dll.mvfrm.rsp
+[336/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-firstpass.rsp
+[337/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp.UnityAdditionalFile.txt
+[338/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp.rsp2
+[339/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.AccessibilityModule.dll_854438D25537B989.mvfrm
+[340/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp.dll.mvfrm.rsp
+[341/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.AIModule.dll_0B7CB88D5EEB80A1.mvfrm
+[342/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp.rsp
+[343/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.PlayModeTests.UnityAdditionalFile.txt
+[344/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.AdaptivePerformanceModule.dll_74D15A653A70B5B5.mvfrm
+[345/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.PlayModeTests.dll.mvfrm.rsp
+[346/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.PlayModeTests.rsp2
+[347/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.EditorTests.dll.mvfrm.rsp
+[348/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.EditorTests.rsp2
+[349/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.EditorTests.rsp2
+[350/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.EditorTests.UnityAdditionalFile.txt
+[351/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.EditModeTests.UnityAdditionalFile.txt
+[352/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Editor.rsp2
+[353/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.EditModeTests.dll.mvfrm.rsp
+[354/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.EditModeTests.dll.mvfrm.rsp
+[355/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-Editor.dll.mvfrm.rsp
+[356/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Editor.dll.mvfrm.rsp
+[357/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.EditorTests.rsp2
+[358/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.EditModeTests.rsp2
+[359/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.EditorTests.dll.mvfrm.rsp
+[360/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.EditModeTests.UnityAdditionalFile.txt
+[361/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-Editor.UnityAdditionalFile.txt
+[362/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-Editor.rsp2
+[363/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Editor.UnityAdditionalFile.txt
+[364/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.EditorTests.UnityAdditionalFile.txt
+[365/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.EditorTests.UnityAdditionalFile.txt
+[366/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.iOS_I2Loc.Xcode.dll_51B689D96E93E4BE.mvfrm
+[367/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.EditModeTests.rsp2
+[368/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AccessibilityModule.dll_11852AF9CE303CAE.mvfrm
+[369/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.EditorTests.dll.mvfrm.rsp
+[370/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.PlayModeTests.rsp
+[371/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.HierarchyModule.dll_E5316E72DE6B5BD5.mvfrm
+[372/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-Editor.rsp
+[373/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.EditorTests.rsp
+[374/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AMDModule.dll_6943C6ADDC1CB318.mvfrm
+[375/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.EditorTests.rsp
+[376/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.Scripting.dll_7390EDC519AC21E9.mvfrm
+[377/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.EditModeTests.rsp
+[378/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Editor.rsp
+[379/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.NVIDIAModule.dll_BDD1050A798B2F0F.mvfrm
+[380/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.EditModeTests.rsp
+[381/632    0s] WriteText Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.EditorTests.rsp
+[382/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.WindowsStandalone.Extensions.dll_A85485FF1DA64208.mvfrm
+[383/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.Graphs.dll_B66B92E65B168B4A.mvfrm
+[384/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Contracts.dll.mvfrm
+[385/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/PresentationSystem.Runtime.dll.mvfrm
+[386/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.Runtime.dll.mvfrm
+[387/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.Runtime.dll.mvfrm
+[388/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.dll.mvfrm
+[389/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.ActionQueueAdapter.dll.mvfrm
+[390/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.UI.dll.mvfrm
+[391/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.TestRunner.dll.mvfrm
+[391/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Contracts.dll (+2 others) [CacheHit 15c22ba35a6071402459c527e84ab0d900000000000000000000000000000006]
+[392/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Contracts.dll (+2 others)
+[392/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.UI.dll (+2 others) [CacheHit d21e59aa17070091e88f84d51247cec300000000000000000000000000000006]
+[394/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.UI.dll (+2 others)
+[396/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.RTS.Contracts.dll
+[397/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.RTS.Contracts.pdb
+[398/632    0s] CopyFiles Library/ScriptAssemblies/UnityEngine.UI.pdb
+[399/632    0s] CopyFiles Library/ScriptAssemblies/UnityEngine.UI.dll
+[397/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.TestRunner.dll (+2 others) [CacheHit 1e4b5796e747d41c87a944548d42025f00000000000000000000000000000006]
+[400/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.TestRunner.dll (+2 others)
+[402/632    0s] CopyFiles Library/ScriptAssemblies/UnityEngine.TestRunner.pdb
+[403/632    0s] CopyFiles Library/ScriptAssemblies/UnityEngine.TestRunner.dll
+[404/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UI.ref.dll_1A140323D56DB509.mvfrm
+[405/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TestRunner.ref.dll_090C4A8A7C09A9C7.mvfrm
+[406/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.TestRunner.dll.mvfrm
+[403/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.TestRunner.dll (+2 others) [CacheHit 1ca8de01aefcd0cc59e7b4feec88f5a100000000000000000000000000000006]
+[407/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.TestRunner.dll (+2 others)
+[409/632    0s] CopyFiles Library/ScriptAssemblies/UnityEditor.TestRunner.dll
+[410/632    0s] CopyFiles Library/ScriptAssemblies/UnityEditor.TestRunner.pdb
+[411/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TestRunner.ref.dll_3CEDFFDC50464BDC.mvfrm
+[412/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.EditModeTests.dll.mvfrm
+[413/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.EditorTests.dll.mvfrm
+[414/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.EditorTests.dll.mvfrm
+[415/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.EditorTests.dll.mvfrm
+[416/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.dll.mvfrm
+[412/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.dll (+2 others) [CacheHit 0ad28edf57140394b2b525e4fb057c0d00000000000000000000000000000006]
+[417/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.dll (+2 others)
+[419/632    0s] CopyFiles Library/ScriptAssemblies/UnityEditor.UI.pdb
+[420/632    0s] CopyFiles Library/ScriptAssemblies/UnityEditor.UI.dll
+[421/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UI.ref.dll_5DAE2CC8CF4B8C9E.mvfrm
+[422/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.dll.mvfrm
+[423/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.YooAsset.dll.mvfrm
+[424/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Runtime.dll.mvfrm
+[425/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/VInspector.dll.mvfrm
+[426/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Unity.InternalAPIEngineBridge.004.dll.mvfrm
+[427/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.dll.mvfrm
+[428/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Runtime.dll.mvfrm
+[429/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Editor.dll.mvfrm
+[430/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.DOTween.dll.mvfrm
+[431/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/VFavorites.dll.mvfrm
+[432/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Launcher.dll.mvfrm
+[433/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.ConversionSystem.dll.mvfrm
+[434/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Editor.dll.mvfrm
+[435/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Addressables.dll.mvfrm
+[436/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.dll.mvfrm
+[437/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Unity.VisualStudio.Editor.dll.mvfrm
+[438/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Unity.Rider.Editor.dll.mvfrm
+[439/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.dll.mvfrm
+[440/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.RuntimeExtension.dll.mvfrm
+[441/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.ECS.dll.mvfrm
+[442/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Editor.dll.mvfrm
+[443/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Linq.dll.mvfrm
+[444/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/VHierarchy.dll.mvfrm
+[445/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/ZEditorTools.Settings.dll.mvfrm
+[446/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/VFolders.dll.mvfrm
+[447/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/VTabs.dll.mvfrm
+[448/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Leonz.SceneTools.Editor.dll.mvfrm
+[443/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.dll (+2 others) [CacheHit 9f0d24afee3ef87a50717ff8eae869ba00000000000000000000000000000006]
+[449/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.dll (+2 others)
+[451/632    0s] CopyFiles Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.pdb
+[452/632    0s] CopyFiles Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.dll
+[446/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.dll (+2 others) [CacheHit 1f77c10df20665a639fc6627afae775a00000000000000000000000000000006]
+[453/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.dll (+2 others)
+[447/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.InternalAPIEngineBridge.004.dll (+2 others) [CacheHit 5c1c692cb54718ab2c1da26f46178b2500000000000000000000000000000006]
+[455/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.InternalAPIEngineBridge.004.dll (+2 others)
+[448/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/VInspector.dll (+2 others) [CacheHit 8c96ddf0a57f25aa166b08fed82e94fe00000000000000000000000000000006]
+[457/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/VInspector.dll (+2 others)
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorClipboard.cs(107,24): warning CS0618: 'LensFlare' is obsolete: 'The Lens Flare component is deprecated now that the Built-In Render Pipeline is deprecated. To use an alternative, refer to the documentation in the component help icon. #from(6000.5)'
+
+
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorClipboard.cs(108,24): warning CS0618: 'Projector' is obsolete: 'Projector component is deprecated now that the Built-In Render Pipeline is deprecated. To use an alternative, refer to the documentation in the component help icon. #from(6000.5)'
+
+
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorComponentWindow.cs(458,33): warning UAC1001: Field 'inspectorElement' type 'UnityEditor.UIElements.InspectorElement' is skipped by serialization (missing the [Serializable] attribute). Refer to the Serialization rules analyzer reference. (https://docs.unity3d.com/6000.5/Documentation/Manual/script-serialization-analyzer.html#uac1001)
+
+
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorClipboard.cs(224,47): warning UAC1009: Field 'serializedPropertyValues_byPath' uses an unsupported type 'System.Collections.Generic.Dictionary<string, object>'. Refer to the Serialization rules analyzer reference. (https://docs.unity3d.com/6000.5/Documentation/Manual/script-serialization-analyzer.html#uac1009)
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorClipboard.cs(107,24): warning CS0618: 'LensFlare' is obsolete: 'The Lens Flare component is deprecated now that the Built-In Render Pipeline is deprecated. To use an alternative, refer to the documentation in the component help icon. #from(6000.5)'
+
+
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorClipboard.cs(108,24): warning CS0618: 'Projector' is obsolete: 'Projector component is deprecated now that the Built-In Render Pipeline is deprecated. To use an alternative, refer to the documentation in the component help icon. #from(6000.5)'
+
+
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorComponentWindow.cs(458,33): warning UAC1001: Field 'inspectorElement' type 'UnityEditor.UIElements.InspectorElement' is skipped by serialization (missing the [Serializable] attribute). Refer to the Serialization rules analyzer reference. (https://docs.unity3d.com/6000.5/Documentation/Manual/script-serialization-analyzer.html#uac1001)
+
+
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorClipboard.cs(224,47): warning UAC1009: Field 'serializedPropertyValues_byPath' uses an unsupported type 'System.Collections.Generic.Dictionary<string, object>'. Refer to the Serialization rules analyzer reference. (https://docs.unity3d.com/6000.5/Documentation/Manual/script-serialization-analyzer.html#uac1009)
+[459/632    0s] CopyFiles Library/ScriptAssemblies/Unity.AI.Navigation.pdb
+[460/632    0s] CopyFiles Library/ScriptAssemblies/Unity.AI.Navigation.dll
+[461/632    0s] CopyFiles Library/ScriptAssemblies/Unity.InternalAPIEngineBridge.004.pdb
+[462/632    0s] CopyFiles Library/ScriptAssemblies/Unity.InternalAPIEngineBridge.004.dll
+[463/632    0s] CopyFiles Library/ScriptAssemblies/VInspector.pdb
+[464/632    0s] CopyFiles Library/ScriptAssemblies/VInspector.dll
+[455/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/VFavorites.dll (+2 others) [CacheHit 114a338fea537c38bacad548504728ea00000000000000000000000000000006]
+[465/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/VFavorites.dll (+2 others)
+[456/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.ConversionSystem.dll (+2 others) [CacheHit c125ca2ce1e079df04fa4c8a0e0797d600000000000000000000000000000006]
+[467/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.ConversionSystem.dll (+2 others)
+[469/632    0s] CopyFiles Library/ScriptAssemblies/VFavorites.pdb
+[470/632    0s] CopyFiles Library/ScriptAssemblies/VFavorites.dll
+[471/632    0s] CopyFiles Library/ScriptAssemblies/Unity.AI.Navigation.Editor.ConversionSystem.dll
+[472/632    0s] CopyFiles Library/ScriptAssemblies/Unity.AI.Navigation.Editor.ConversionSystem.pdb
+[461/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Leonz.SceneTools.Editor.dll (+2 others) [CacheHit 09dc0831d5d47127203b6b9ff74eb1e400000000000000000000000000000006]
+[473/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Leonz.SceneTools.Editor.dll (+2 others)
+[462/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/VTabs.dll (+2 others) [CacheHit 0a9ccefe611c709a24b96a9bc1c7e50c00000000000000000000000000000006]
+[475/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/VTabs.dll (+2 others)
+[477/632    0s] CopyFiles Library/ScriptAssemblies/Leonz.SceneTools.Editor.pdb
+[463/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/VHierarchy.dll (+2 others) [CacheHit c21626738c83eddffde5bcda368117bf00000000000000000000000000000006]
+[478/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/VHierarchy.dll (+2 others)
+[465/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.Rider.Editor.dll (+2 others) [CacheHit 141218dda179ba5a908d35146e4719a900000000000000000000000000000006]
+[480/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.Rider.Editor.dll (+2 others)
+[482/632    0s] CopyFiles Library/ScriptAssemblies/Leonz.SceneTools.Editor.dll
+[467/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/VFolders.dll (+2 others) [CacheHit 4f23a8a2d3f05d4207c131df2b130e9200000000000000000000000000000006]
+[483/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/VFolders.dll (+2 others)
+[468/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.VisualStudio.Editor.dll (+2 others) [CacheHit 60d2a70c4b2147612919d47927aeca7a00000000000000000000000000000006]
+[485/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.VisualStudio.Editor.dll (+2 others)
+[469/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.dll (+2 others) [CacheHit 814617e71276c4f380685e32174df3da00000000000000000000000000000006]
+[487/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.dll (+2 others)
+[489/632    0s] CopyFiles Library/ScriptAssemblies/VTabs.dll
+[490/632    0s] CopyFiles Library/ScriptAssemblies/VTabs.pdb
+[491/632    0s] CopyFiles Library/ScriptAssemblies/Unity.Rider.Editor.pdb
+[492/632    0s] CopyFiles Library/ScriptAssemblies/Unity.Rider.Editor.dll
+[493/632    0s] CopyFiles Library/ScriptAssemblies/VHierarchy.dll
+[494/632    0s] CopyFiles Library/ScriptAssemblies/VHierarchy.pdb
+[495/632    0s] CopyFiles Library/ScriptAssemblies/VFolders.pdb
+[496/632    0s] CopyFiles Library/ScriptAssemblies/VFolders.dll
+[497/632    0s] CopyFiles Library/ScriptAssemblies/Unity.VisualStudio.Editor.pdb
+[498/632    0s] CopyFiles Library/ScriptAssemblies/Unity.VisualStudio.Editor.dll
+[499/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.pdb
+[500/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.dll
+[482/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.dll (+2 others) [CacheHit 1726d24fda25d981f54363ae7a682ebc00000000000000000000000000000006]
+[501/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.dll (+2 others)
+[503/632    0s] CopyFiles Library/ScriptAssemblies/YooAsset.dll
+[504/632    0s] CopyFiles Library/ScriptAssemblies/YooAsset.pdb
+[485/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.DOTween.dll (+2 others) [CacheHit bb504e3f702349fb2f113ec4a04e7b8000000000000000000000000000000006]
+[505/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.DOTween.dll (+2 others)
+[486/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZEditorTools.Settings.dll (+2 others) [CacheHit 99410f4da7922cb87334f31a795d5f9100000000000000000000000000000006]
+[507/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZEditorTools.Settings.dll (+2 others)
+[487/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Addressables.dll (+2 others) [CacheHit 334bf2f73a5b56b5d9d4509a67d1a14800000000000000000000000000000006]
+[509/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Addressables.dll (+2 others)
+[488/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Editor.dll (+2 others) [CacheHit 79266c8b64d9fee2b9440d7e5da84e5c00000000000000000000000000000006]
+[511/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Editor.dll (+2 others)
+[513/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.DOTween.dll
+[514/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.DOTween.pdb
+[515/632    0s] CopyFiles Library/ScriptAssemblies/ZEditorTools.Settings.dll
+[516/632    0s] CopyFiles Library/ScriptAssemblies/ZEditorTools.Settings.pdb
+[517/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.Addressables.pdb
+[518/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.Addressables.dll
+[519/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.Editor.pdb
+[520/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.Editor.dll
+[521/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.ScriptableBuildPipeline.ref.dll_9CC2337DD9A84A7A.mvfrm
+[498/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Linq.dll (+2 others) [CacheHit 9362e29d82ab0f0dca325423067f36d900000000000000000000000000000006]
+[522/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.Linq.dll (+2 others)
+[524/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.Linq.pdb
+[525/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.Linq.dll
+[501/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.YooAsset.dll (+2 others) [CacheHit 7838968be4e8162e50fa0da79a057da300000000000000000000000000000006]
+[526/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.YooAsset.dll (+2 others)
+[502/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.RuntimeExtension.dll (+2 others) [CacheHit 5a6647ed194f267646920da3b2fd4a6600000000000000000000000000000006]
+[528/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.RuntimeExtension.dll (+2 others)
+[530/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.YooAsset.pdb
+[531/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.YooAsset.dll
+[532/632    0s] CopyFiles Library/ScriptAssemblies/YooAsset.RuntimeExtension.pdb
+[533/632    0s] CopyFiles Library/ScriptAssemblies/YooAsset.RuntimeExtension.dll
+[534/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.AI.Navigation.ref.dll_4DBD8B01BD2AE419.mvfrm
+[535/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.InternalAPIEngineBridge.004.ref.dll_B8264E1028DEF94D.mvfrm
+[536/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.AI.Navigation.Editor.ConversionSystem.ref.dll_E86391A30E30A641.mvfrm
+[537/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.VisualStudio.Editor.ref.dll_0788C6E0BDFBBC54.mvfrm
+[538/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.Rider.Editor.ref.dll_07D7D7B7487B1198.mvfrm
+[539/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.Editor.dll.mvfrm
+[540/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.dll.mvfrm
+[541/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.dll.mvfrm
+[515/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.Editor.dll (+2 others) [CacheHit 8a9e1e5cc5190f0c0a87e41a9cfd1f3600000000000000000000000000000006]
+[542/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.ScriptableBuildPipeline.Editor.dll (+2 others)
+[544/632    0s] CopyFiles Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.Editor.pdb
+[545/632    0s] CopyFiles Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.Editor.dll
+[518/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.dll (+2 others) [CacheHit 40e57150866c3741291ba3f05a6464d200000000000000000000000000000006]
+[546/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Editor.dll (+2 others)
+[548/632    0s] CopyFiles Library/ScriptAssemblies/Unity.AI.Navigation.Editor.pdb
+[549/632    0s] CopyFiles Library/ScriptAssemblies/Unity.AI.Navigation.Editor.dll
+[521/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.dll (+2 others) [CacheHit 9b94754fc8156285ef4cb9a1725227a500000000000000000000000000000006]
+[550/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.dll (+2 others)
+[552/632    0s] CopyFiles Library/ScriptAssemblies/Unity.TextMeshPro.pdb
+[553/632    0s] CopyFiles Library/ScriptAssemblies/Unity.TextMeshPro.dll
+[554/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.ScriptableBuildPipeline.Editor.ref.dll_4402053C4F6AC2D7.mvfrm
+[555/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.AI.Navigation.Editor.ref.dll_D159463F08EBC828.mvfrm
+[556/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.TextMeshPro.ref.dll_A4B478B3CE6E8702.mvfrm
+[557/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.EditorExtension.dll.mvfrm
+[558/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.Editor.dll.mvfrm
+[559/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Updater.dll.mvfrm
+[560/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Runtime.dll.mvfrm
+[561/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.dll.mvfrm
+[562/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Editor.dll.mvfrm
+[563/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.PlayModeTests.dll.mvfrm
+[564/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.TextMeshPro.dll.mvfrm
+[565/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.Editor.dll.mvfrm
+[566/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.EditModeTests.dll.mvfrm
+[567/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.Analytics.dll.mvfrm
+[538/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Updater.dll (+2 others) [CacheHit 2a3a757f61666ac60ae24afa84760e1500000000000000000000000000000006]
+[568/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.AI.Navigation.Updater.dll (+2 others)
+[570/632    0s] CopyFiles Library/ScriptAssemblies/Unity.AI.Navigation.Updater.pdb
+[571/632    0s] CopyFiles Library/ScriptAssemblies/Unity.AI.Navigation.Updater.dll
+[541/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.Analytics.dll (+2 others) [CacheHit 616311c22e04378aeaf209e85cf3cf2700000000000000000000000000000006]
+[572/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.Analytics.dll (+2 others)
+[542/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.TextMeshPro.dll (+2 others) [CacheHit 74f831ff0a6779c664c7b517477c2c2a00000000000000000000000000000006]
+[574/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.TextMeshPro.dll (+2 others)
+[543/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.Editor.dll (+2 others) [CacheHit f614f54ee86f2a684e929c3d0692eaf300000000000000000000000000000006]
+[576/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.Editor.dll (+2 others)
+[578/632    0s] CopyFiles Library/ScriptAssemblies/UnityEditor.UI.Analytics.dll
+[579/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.TextMeshPro.dll
+[580/632    0s] CopyFiles Library/ScriptAssemblies/UnityEditor.UI.Analytics.pdb
+[581/632    0s] CopyFiles Library/ScriptAssemblies/YooAsset.Editor.pdb
+[582/632    0s] CopyFiles Library/ScriptAssemblies/UniTask.TextMeshPro.pdb
+[583/632    0s] CopyFiles Library/ScriptAssemblies/YooAsset.Editor.dll
+[550/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.Editor.dll (+2 others) [CacheHit 1e242a598c7c164ef87f435f0bc7163f00000000000000000000000000000006]
+[584/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.Editor.dll (+2 others)
+[586/632    0s] CopyFiles Library/ScriptAssemblies/Unity.TextMeshPro.Editor.pdb
+[587/632    0s] CopyFiles Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll
+[553/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.EditorExtension.dll (+2 others) [CacheHit cd450edbc99fe55fa9bf431c79ee664c00000000000000000000000000000006]
+[588/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/YooAsset.EditorExtension.dll (+2 others)
+[590/632    0s] CopyFiles Library/ScriptAssemblies/YooAsset.EditorExtension.pdb
+[591/632    0s] CopyFiles Library/ScriptAssemblies/YooAsset.EditorExtension.dll
+[592/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.AI.Navigation.Updater.ref.dll_624D4C5EA49E89F4.mvfrm
+[593/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UI.Analytics.ref.dll_5DAFC3BAE25E48A6.mvfrm
+[594/632    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.TextMeshPro.Editor.ref.dll_37E92434B2D8A6CF.mvfrm
+[595/632    1s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.Runtime.dll (+2 others)
+[596/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/PresentationSystem.Runtime.dll (+2 others)
+[597/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Launcher.dll (+2 others)
+[598/632    1s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.Runtime.dll (+2 others)
+[599/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Runtime.dll (+2 others)
+[600/632    0s] CopyFiles Library/ScriptAssemblies/PresentationSystem.Runtime.pdb
+[601/632    1s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.dll (+2 others)
+[602/632    0s] CopyFiles Library/ScriptAssemblies/BuffSystem.Runtime.pdb
+[603/632    0s] CopyFiles Library/ScriptAssemblies/PresentationSystem.Runtime.dll
+[604/632    0s] CopyFiles Library/ScriptAssemblies/PreviewSystem.Runtime.dll
+[605/632    0s] CopyFiles Library/ScriptAssemblies/BuffSystem.Runtime.dll
+[606/632    0s] CopyFiles Library/ScriptAssemblies/PreviewSystem.Runtime.pdb
+[607/632    0s] CopyFiles Library/ScriptAssemblies/Launcher.dll
+[608/632    0s] CopyFiles Library/ScriptAssemblies/Launcher.pdb
+[609/632    0s] CopyFiles Library/ScriptAssemblies/ActionQueue.Runtime.dll
+[610/632    0s] CopyFiles Library/ScriptAssemblies/ActionQueue.Runtime.pdb
+[611/632    0s] CopyFiles Library/ScriptAssemblies/HuntingInDarkness.GameCore.pdb
+[612/632    0s] CopyFiles Library/ScriptAssemblies/HuntingInDarkness.GameCore.dll
+[613/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp.dll.mvfrm
+[614/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-firstpass.dll.mvfrm
+[615/632    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-Editor.dll.mvfrm
+[616/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/PreviewSystem.EditorTests.dll (+2 others)
+[617/632    0s] CopyFiles Library/ScriptAssemblies/PreviewSystem.EditorTests.dll
+[618/632    0s] CopyFiles Library/ScriptAssemblies/PreviewSystem.EditorTests.pdb
+[619/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.EditorTests.dll (+2 others)
+[620/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.ActionQueueAdapter.dll (+2 others)
+[621/632    0s] CopyFiles Library/ScriptAssemblies/BuffSystem.EditorTests.pdb
+[622/632    0s] CopyFiles Library/ScriptAssemblies/BuffSystem.EditorTests.dll
+[623/632    0s] CopyFiles Library/ScriptAssemblies/BuffSystem.ActionQueueAdapter.dll
+[624/632    0s] CopyFiles Library/ScriptAssemblies/BuffSystem.ActionQueueAdapter.pdb
+[625/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.EditorTests.dll (+2 others)
+[626/632    0s] CopyFiles Library/ScriptAssemblies/ActionQueue.EditorTests.pdb
+[627/632    0s] CopyFiles Library/ScriptAssemblies/ActionQueue.EditorTests.dll
+[628/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.EditModeTests.dll (+2 others)
+[629/632    0s] CopyFiles Library/ScriptAssemblies/HuntingInDarkness.GameCore.EditModeTests.pdb
+[630/632    0s] CopyFiles Library/ScriptAssemblies/HuntingInDarkness.GameCore.EditModeTests.dll
+[631/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Editor.dll (+2 others)
+[632/632    0s] CopyFiles Library/ScriptAssemblies/ActionQueue.Editor.pdb
+[633/632    0s] CopyFiles Library/ScriptAssemblies/ActionQueue.Editor.dll
+[634/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Runtime.dll (+2 others)
+[635/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.Runtime.pdb
+[636/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.Runtime.dll
+[601/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Runtime.dll (+2 others) [CacheHit bb2957cc81a9f6eb0ba08554dc09e6b700000000000000000000000000000006]
+[637/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Runtime.dll (+2 others)
+[602/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.ECS.dll (+2 others) [CacheHit b182698b20da140d1d3da249c44e071b00000000000000000000000000000006]
+[639/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.ECS.dll (+2 others)
+[641/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.RTS.Runtime.dll
+[642/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.ECS.dll
+[643/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.RTS.Runtime.pdb
+[644/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.ECS.pdb
+[607/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Editor.dll (+2 others) [CacheHit f2afb2bb8954b8f25dd1d9895e14048300000000000000000000000000000006]
+[645/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.RTS.Editor.dll (+2 others)
+[647/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.RTS.Editor.pdb
+[648/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.RTS.Editor.dll
+[649/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Editor.dll (+2 others)
+[650/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.Editor.pdb
+[651/632    0s] CopyFiles Library/ScriptAssemblies/ZFramework.Editor.dll
+[652/632    1s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.dll (+2 others)
+##### CommandLine
+"D:\UnityVersions\6000.5.9f1\Editor\Data\DotNetSdk\dotnet.exe" exec "D:/UnityVersions/6000.5.9f1/Editor/Data/DotNetSdk/sdk/8.0.318/Roslyn/bincore/csc.dll" /nostdlib /noconfig /shared "@Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.rsp" "@Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.rsp2"
+##### Contents of Library\Bee\artifacts\1900b0aEDbg.dag\GameLogic.rsp
+-target:library
+-out:"Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.dll"
+-refout:"Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.ref.dll"
+-define:UNITY_6000_5_9
+-define:UNITY_6000_5
+-define:UNITY_6000
+-define:UNITY_5_3_OR_NEWER
+-define:UNITY_5_4_OR_NEWER
+-define:UNITY_5_5_OR_NEWER
+-define:UNITY_5_6_OR_NEWER
+-define:UNITY_2017_1_OR_NEWER
+-define:UNITY_2017_2_OR_NEWER
+-define:UNITY_2017_3_OR_NEWER
+-define:UNITY_2017_4_OR_NEWER
+-define:UNITY_2018_1_OR_NEWER
+-define:UNITY_2018_2_OR_NEWER
+-define:UNITY_2018_3_OR_NEWER
+-define:UNITY_2018_4_OR_NEWER
+-define:UNITY_2019_1_OR_NEWER
+-define:UNITY_2019_2_OR_NEWER
+-define:UNITY_2019_3_OR_NEWER
+-define:UNITY_2019_4_OR_NEWER
+-define:UNITY_2020_1_OR_NEWER
+-define:UNITY_2020_2_OR_NEWER
+-define:UNITY_2020_3_OR_NEWER
+-define:UNITY_2021_1_OR_NEWER
+-define:UNITY_2021_2_OR_NEWER
+-define:UNITY_2021_3_OR_NEWER
+-define:UNITY_2022_1_OR_NEWER
+-define:UNITY_2022_2_OR_NEWER
+-define:UNITY_2022_3_OR_NEWER
+-define:UNITY_2023_1_OR_NEWER
+-define:UNITY_2023_2_OR_NEWER
+-define:UNITY_2023_3_OR_NEWER
+-define:UNITY_6000_0_OR_NEWER
+-define:UNITY_6000_1_OR_NEWER
+-define:UNITY_6000_2_OR_NEWER
+-define:UNITY_6000_3_OR_NEWER
+-define:UNITY_6000_4_OR_NEWER
+-define:UNITY_6000_5_OR_NEWER
+-define:PLATFORM_ARCH_64
+-define:UNITY_64
+-define:UNITY_INCLUDE_TESTS
+-define:ENABLE_AR
+-define:ENABLE_AUDIO
+-define:ENABLE_AUDIO_SCRIPTABLE_PIPELINE
+-define:ENABLE_CACHING
+-define:ENABLE_CLOTH
+-define:ENABLE_EVENT_QUEUE
+-define:ENABLE_MICROPHONE
+-define:ENABLE_MULTIPLE_DISPLAYS
+-define:ENABLE_PHYSICS
+-define:ENABLE_TEXTURE_STREAMING
+-define:ENABLE_VIRTUALTEXTURING
+-define:ENABLE_LZMA
+-define:ENABLE_UNITYEVENTS
+-define:ENABLE_VR
+-define:ENABLE_WEBCAM
+-define:ENABLE_UNITYWEBREQUEST
+-define:ENABLE_WWW
+-define:ENABLE_CLOUD_SERVICES
+-define:ENABLE_CLOUD_SERVICES_ADS
+-define:ENABLE_CLOUD_SERVICES_USE_WEBREQUEST
+-define:ENABLE_UNITY_CONSENT
+-define:ENABLE_UNITY_CLOUD_IDENTIFIERS
+-define:ENABLE_CLOUD_SERVICES_CRASH_REPORTING
+-define:ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING
+-define:ENABLE_CLOUD_SERVICES_PURCHASING
+-define:ENABLE_CLOUD_SERVICES_ANALYTICS
+-define:ENABLE_CLOUD_SERVICES_BUILD
+-define:ENABLE_EDITOR_GAME_SERVICES
+-define:ENABLE_UNITY_GAME_SERVICES_ANALYTICS_SUPPORT
+-define:ENABLE_CLOUD_LICENSE
+-define:ENABLE_EDITOR_HUB_LICENSE
+-define:ENABLE_WEBSOCKET_CLIENT
+-define:ENABLE_GENERATE_NATIVE_PLUGINS_FOR_ASSEMBLIES_API
+-define:ENABLE_DIRECTOR_AUDIO
+-define:ENABLE_DIRECTOR_TEXTURE
+-define:ENABLE_MANAGED_JOBS
+-define:ENABLE_MANAGED_TRANSFORM_JOBS
+-define:ENABLE_MANAGED_ANIMATION_JOBS
+-define:ENABLE_MANAGED_AUDIO_JOBS
+-define:ENABLE_MANAGED_UNITYTLS
+-define:INCLUDE_DYNAMIC_GI
+-define:ENABLE_SCRIPTING_GC_WBARRIERS
+-define:PLATFORM_SUPPORTS_MONO
+-define:RENDER_SOFTWARE_CURSOR
+-define:ENABLE_MARSHALLING_TESTS
+-define:ENABLE_VIDEO
+-define:ENABLE_NAVIGATION_OFFMESHLINK_TO_NAVMESHLINK
+-define:ENABLE_ACCELERATOR_CLIENT_DEBUGGING
+-define:ENABLE_ACCESSIBILITY_SCREEN_READER
+-define:TEXTCORE_1_0_OR_NEWER
+-define:EDITOR_ONLY_NAVMESH_BUILDER_DEPRECATED
+-define:PLATFORM_STANDALONE_WIN
+-define:PLATFORM_STANDALONE
+-define:UNITY_STANDALONE_WIN
+-define:UNITY_STANDALONE
+-define:ENABLE_RUNTIME_GI
+-define:ENABLE_MOVIES
+-define:ENABLE_NETWORK
+-define:ENABLE_NVIDIA
+-define:ENABLE_AMD
+-define:ENABLE_CRUNCH_TEXTURE_COMPRESSION
+-define:ENABLE_CLOUD_SERVICES_ENGINE_DIAGNOSTICS
+-define:ENABLE_OUT_OF_PROCESS_CRASH_HANDLER
+-define:ENABLE_CLUSTER_SYNC
+-define:ENABLE_CLUSTERINPUT
+-define:PLATFORM_UPDATES_TIME_OUTSIDE_OF_PLAYER_LOOP
+-define:GFXDEVICE_WAITFOREVENT_MESSAGEPUMP
+-define:PLATFORM_USES_EXPLICIT_MEMORY_MANAGER_INITIALIZER
+-define:PLATFORM_SUPPORTS_WAIT_FOR_PRESENTATION
+-define:PLATFORM_SUPPORTS_SPLIT_GRAPHICS_JOBS
+-define:PLATFORM_USES_VULKAN_OLD_SWAPCHAIN
+-define:USE_READ_ASYNC_MANAGED_API
+-define:ENABLE_MONO
+-define:NET_STANDARD_2_0
+-define:NET_STANDARD
+-define:NET_STANDARD_2_1
+-define:NETSTANDARD
+-define:NETSTANDARD2_1
+-define:ENABLE_PROFILER
+-define:DEBUG
+-define:TRACE
+-define:UNITY_ASSERTIONS
+-define:UNITY_EDITOR
+-define:UNITY_EDITOR_64
+-define:UNITY_EDITOR_WIN
+-define:ENABLE_UNITY_COLLECTIONS_CHECKS
+-define:ENABLE_BURST_AOT
+-define:UNITY_TEAM_LICENSE
+-define:ENABLE_CUSTOM_RENDER_TEXTURE
+-define:ENABLE_DIRECTOR
+-define:ENABLE_LOCALIZATION
+-define:ENABLE_SPRITES
+-define:ENABLE_TERRAIN
+-define:ENABLE_TILEMAP
+-define:ENABLE_TIMELINE
+-define:ENABLE_LEGACY_INPUT_MANAGER
+-define:TEXTCORE_FONT_ENGINE_1_5_OR_NEWER
+-define:TEXTCORE_TEXT_ENGINE_1_5_OR_NEWER
+-define:TEXTCORE_FONT_ENGINE_1_6_OR_NEWER
+-define:ENABLE_LOG
+-define:TextMeshPro
+-define:CSHARP_7_OR_LATER
+-define:CSHARP_7_3_OR_NEWER
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/ref/Microsoft.Bcl.AsyncInterfaces.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/ref/Microsoft.Extensions.DependencyInjection.Abstractions.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/ref/Microsoft.Extensions.Logging.Abstractions.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/ref/System.Collections.Immutable.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/ref/System.Diagnostics.DiagnosticSource.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/ref/System.IO.Hashing.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/ref/System.Reflection.Metadata.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/ref/System.Runtime.CompilerServices.Unsafe.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/ref/System.Text.Encodings.Web.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/ref/System.Text.Json.dll"
+-r:"Assets/ZFramework/Editor/Localization/Unity XCode/UnityEditor.iOS_I2Loc.Xcode.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEditor.Graphs.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/Unity.Scripting.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.AIModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.AccessibilityModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.AdaptivePerformanceModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.AssetComplianceModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.BuildProfileModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.ClothModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.ContentLoadModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.CoreBusinessMetricsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.CoreModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.DeviceSimulatorModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.DiagnosticsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.EditorToolbarModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.EmbreeModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.GIModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.GenericRemoteModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.GraphToolkitModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.GraphViewModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.GraphicsStateCollectionSerializerModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.GridAndSnapModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.GridModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.HierarchyModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.LightingModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.MathematicsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.MediaModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.MultiplayerModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.Physics2DModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.PhysicsCore2DModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.PhysicsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.PlayModeModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.PresetsUIModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.ProjectAuditorModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.PropertiesModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.QuickInstallModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.QuickSearchModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.SafeModeModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.SceneTemplateModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.SceneViewModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.ShaderBuildSettingsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.ShaderCompilationModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.ShaderFoundryModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.SketchUpModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.SpriteMaskModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.SpriteShapeModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.SubstanceModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.TerrainModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.TextCoreFontEngineModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.TextCoreTextEngineModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.TextRenderingModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.TilemapModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.TreeModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.U2DModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.UIAutomationModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.UIBuilderModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.UIElementsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.UIElementsSamplesModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.UIToolkitAuthoringModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.UmbraModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.UnityConnectModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.VFXModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.VectorGraphicsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.VideoModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.XRModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEditor.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.AIModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.ARModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.AdaptivePerformanceModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.AndroidJNIModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.AnimationModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.AssetBundleModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.AudioModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.ClothModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.ClusterInputModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.ClusterRendererModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.ContentLoadModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.CoreModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.CrashReportingModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.DSPGraphModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.DirectorModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.GIModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.GameCenterModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.GraphicsStateCollectionSerializerModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.GridModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.HierarchyCoreModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.HotReloadModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.IMGUIModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.IdentifiersModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.ImageConversionModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.InputForUIModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.InputLegacyModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.InputModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.InsightsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.JSONSerializeModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.LocalizationModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.MarshallingModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.MathematicsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.MultiplayerModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.ParticleSystemModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.PerformanceReportingModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.Physics2DModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.PhysicsBackendPhysXModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.PhysicsCore2DModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.PhysicsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.PropertiesModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.RenderAs2DModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.ScreenCaptureModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.ScriptingModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.ShaderVariantAnalyticsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.SharedInternalsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.SpriteMaskModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.SpriteShapeModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.StreamingModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.SubstanceModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.SubsystemsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.TLSModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.TerrainModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.TerrainPhysicsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.TextCoreFontEngineModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.TextCoreTextEngineModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.TextRenderingModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.TilemapModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.U2DRuntimeModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UIElementsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UIModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UmbraModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityAnalyticsCommonModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityAnalyticsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityConnectModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityConsentModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityCurlModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityWebRequestAssetBundleModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityWebRequestAudioModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityWebRequestModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityWebRequestTextureModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityWebRequestWWWModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.VFXModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.VectorGraphicsModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.VehiclesModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.VideoModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.VirtualTexturingModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.WindModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.XRModule.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/Extensions/2.0.0/System.Runtime.InteropServices.WindowsRuntime.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.ComponentModel.Composition.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Core.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Data.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Drawing.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.IO.Compression.FileSystem.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Net.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Numerics.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Runtime.Serialization.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.ServiceModel.Web.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Transactions.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Web.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Windows.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Xml.Linq.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Xml.Serialization.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.Xml.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/mscorlib.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/Microsoft.Win32.Primitives.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.AppContext.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Buffers.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Collections.Concurrent.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Collections.NonGeneric.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Collections.Specialized.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Collections.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.ComponentModel.EventBasedAsync.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.ComponentModel.Primitives.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.ComponentModel.TypeConverter.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.ComponentModel.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Console.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Data.Common.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Diagnostics.Contracts.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Diagnostics.Debug.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Diagnostics.FileVersionInfo.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Diagnostics.Process.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Diagnostics.StackTrace.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Diagnostics.TextWriterTraceListener.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Diagnostics.Tools.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Diagnostics.TraceSource.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Diagnostics.Tracing.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Drawing.Primitives.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Dynamic.Runtime.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Globalization.Calendars.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Globalization.Extensions.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Globalization.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.IO.Compression.ZipFile.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.IO.Compression.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.IO.FileSystem.DriveInfo.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.IO.FileSystem.Primitives.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.IO.FileSystem.Watcher.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.IO.FileSystem.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.IO.IsolatedStorage.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.IO.MemoryMappedFiles.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.IO.Pipes.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.IO.UnmanagedMemoryStream.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.IO.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Linq.Expressions.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Linq.Parallel.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Linq.Queryable.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Linq.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Memory.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Net.Http.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Net.NameResolution.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Net.NetworkInformation.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Net.Ping.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Net.Primitives.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Net.Requests.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Net.Security.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Net.Sockets.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Net.WebHeaderCollection.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Net.WebSockets.Client.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Net.WebSockets.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Numerics.Vectors.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.ObjectModel.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Reflection.DispatchProxy.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Reflection.Emit.ILGeneration.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Reflection.Emit.Lightweight.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Reflection.Emit.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Reflection.Extensions.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Reflection.Primitives.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Reflection.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Resources.Reader.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Resources.ResourceManager.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Resources.Writer.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.CompilerServices.VisualC.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.Extensions.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.Handles.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.InteropServices.RuntimeInformation.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.InteropServices.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.Numerics.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.Serialization.Formatters.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.Serialization.Json.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.Serialization.Primitives.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.Serialization.Xml.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Runtime.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Security.Claims.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Security.Cryptography.Algorithms.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Security.Cryptography.Csp.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Security.Cryptography.Encoding.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Security.Cryptography.Primitives.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Security.Cryptography.X509Certificates.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Security.Principal.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Security.SecureString.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Text.Encoding.Extensions.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Text.Encoding.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Text.RegularExpressions.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Threading.Overlapped.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Threading.Tasks.Extensions.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Threading.Tasks.Parallel.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Threading.Tasks.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Threading.Thread.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Threading.ThreadPool.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Threading.Timer.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Threading.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.ValueTuple.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Xml.ReaderWriter.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Xml.XDocument.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Xml.XPath.XDocument.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Xml.XPath.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Xml.XmlDocument.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/compat/2.1.0/shims/netstandard/System.Xml.XmlSerializer.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/NetStandard/ref/2.1.0/netstandard.dll"
+-r:"D:/UnityVersions/6000.5.9f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll"
+-r:"Library/PackageCache/com.unity.ext.nunit@44f7d31723bd/net472/unity-custom/nunit.framework.dll"
+-r:"Library/PackageCache/com.unity.nuget.newtonsoft-json@4dfd81071c64/Runtime/Newtonsoft.Json.dll"
+-r:"Library/Bee/artifacts/1900b0aEDbg.dag/ActionQueue.Runtime.ref.dll"
+-r:"Library/Bee/artifacts/1900b0aEDbg.dag/BuffSystem.ActionQueueAdapter.ref.dll"
+-r:"Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.GameCore.ref.dll"
+-r:"Library/Bee/artifacts/1900b0aEDbg.dag/PresentationSystem.Runtime.ref.dll"
+-r:"Library/Bee/artifacts/1900b0aEDbg.dag/UniTask.ref.dll"
+-r:"Library/Bee/artifacts/1900b0aEDbg.dag/Unity.TextMeshPro.ref.dll"
+-r:"Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.ref.dll"
+-r:"Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.UI.ref.dll"
+-r:"Library/Bee/artifacts/1900b0aEDbg.dag/ZFramework.Runtime.ref.dll"
+-analyzer:"Assets/ZFramework/Runtime/Core/GameEvent/GameEventAnalyzer.dll"
+-analyzer:"Assets/ZFramework/Runtime/Core/GameEvent/SourceGenerator.dll"
+-analyzer:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/analyzers/dotnet/roslyn4.0/cs/Microsoft.Extensions.Logging.Generators.dll"
+-analyzer:"D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/TargetingPacks/netstandard2.1/analyzers/dotnet/roslyn4.0/cs/System.Text.Json.SourceGeneration.dll"
+-analyzer:"D:/UnityVersions/6000.5.9f1/Editor/Data/Tools/BuildPipeline/Unity.Analyzers.Common/Unity.Analyzers.Common.dll"
+-analyzer:"D:/UnityVersions/6000.5.9f1/Editor/Data/Tools/BuildPipeline/Unity.Analyzers.LongLiving/Unity.Analyzers.LongLiving.dll"
+-analyzer:"D:/UnityVersions/6000.5.9f1/Editor/Data/Tools/BuildPipeline/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll"
+-analyzer:"D:/UnityVersions/6000.5.9f1/Editor/Data/Tools/BuildPipeline/Unity.SourceGenerators/Unity.SourceGenerators.dll"
+-analyzer:"D:/UnityVersions/6000.5.9f1/Editor/Data/Tools/BuildPipeline/Unity.SourceGenerators/Unity.UIToolkit.SourceGenerator.dll"
+"Assets/GameScripts/GameLogic/AssemblyInfo.cs"
+"Assets/GameScripts/GameLogic/GameApp.cs"
+"Assets/GameScripts/GameLogic/GameModule.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/3DCardTest/CardTableTestSetup.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/3DCardTest/CombatTestSetup.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/3DCardTest/HunterPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironment.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEnvironmentInstallerRegistry.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ActionEventOutbox.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/CampaignEncounterRequest.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignActionSession.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Campaign/PlayableCampaignLoopContract.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Combat/ActionCardLifecycleActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Combat/BossActionFlowActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Combat/CardLinkFlowActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Combat/CharacterAttackFlowAction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Combat/CombatTurnFlowActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Combat/PlayCharacterCardAction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Combat/PlayableCombatActionSession.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventChainGuard.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventChainOccurrenceQueue.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventEffectResult.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventFatalInjury.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventInput.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventItemCommand.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventPopulationCommand.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventResourceCommand.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventSettlementCommand.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/PlayableEventWorldCommand.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Events/ResolvePlayableEventNodeAction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntActorSelectionActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntConsumableActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntEncounterAccumulator.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntHarvestActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseLeaseProjection.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntNoiseLeaseReactor.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntRetreatActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/HuntTileEventWorldCommand.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntActionSession.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntConsumableInput.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Hunt/PlayableHuntEventOccurrenceStore.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Inventions/InventionActionEffectInstaller.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Presentation/HuntTileInteractionPresentation.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Presentation/TabletopRandomInteraction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/ReactorEntityHandleRegistry.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/PlayableSettlementActionSession.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/ResolveHunterSymptomAction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCareContent.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementConsumableActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementCraftActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementDepartureActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEquipmentActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementEventActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementFacilityDutyActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementHuntReturnActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementInventionActiveEffectActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SettlementWorkshopConstructionActions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/SpendHunterGrowthAction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ActionFlow/Settlement/TrainWeaponAction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Board/BoardManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Board/HexGrid.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Board/LegacyContracts/BoardStub.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Board/LegacyContracts/EntityClickHandler.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Board/LegacyContracts/EntityVisualizer.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Board/LegacyContracts/HexBoardVisualizer.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Board/LegacyContracts/HexDirection.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Board/LegacyContracts/HexGridGizmos.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Board/LegacyContracts/IBoardGrid.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Board/LegacyContracts/IBoardInterfaces.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentAssembler.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignContentCandidate.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableCampaignRuntimeSnapshot.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/ContentAssembly/PlayableContentDiagnostic.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Bootstrap/PlayableBootstrapSettings.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/ActionCardResolution.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/AttackResultDeckInput.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/BossController.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/BossHitDeckInput.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/CardSystem.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/CharacterActionCardInstance.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/CombatManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/DeathDeckInput.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/ICombatRuntimeDataProvider.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/AttackPipeline.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/BattleGenerator.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/BattleSetup.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/BossAttackSteps.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/Cards/BossActionCard/BossActionCardEffect.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/Cards/CharacterActionCard/CharacterActionCardEffect.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/Cards/Effect/AttackEffect.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/Cards/Effect/MoveEffect.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/Cards/FlipConditions/FlipCondtions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/Cards/FlipConditions/IFlipCondition.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/Cards/HitLocationCard/HitLocationEffect.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/Character.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/CharacterAttackSteps.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/CharacterRuntimeData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/CombatData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/CombatEvents.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/IAttackStep.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/IPlayerInputProvider.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/ITargetSelector.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/TargetSelectors.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/LegacyShowdown/WeaponResolver.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableActionCardCommands.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableActionCardLifecycle.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableActionPreparation.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableBossCardEffects.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableBossDefeatStep.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableBossTargetResolver.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableCharacterCardEffects.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableCombatCasualtyCoordinator.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableCombatEquipmentCatalog.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableCombatInspiration.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableCombatInspirationEffects.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableCombatSession.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableCombatSessionScope.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableDirectedBossAttackEffect.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableEncounterCatalog.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableFocusEffect.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableHunterCombatAdapter.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableHunterInjuryAdapter.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableLoadoutWeaponResolver.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayablePermanentInjuryCatalog.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayablePermanentInjuryRuntime.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayablePreparedActionEffects.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableSurvivalEvents.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableWeaponMasteryCatalog.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableWeaponMasteryRuntime.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayableWeaponMasteryTracker.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/PlayerOptionInput.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/TimelineManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Combat/TurnStateMachine.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableBloodlineTable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableEventTable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableFacilityDutyTable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableHunterTemplateTable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableInventionTable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableItemTable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableRecipeTable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableSymptomTable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/ContentTables/PlayableTraitTable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/EventData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HexTileData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/HunterData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/InventionActionEffect.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/ItemData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Data/SettlementData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntEventItemCommand.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntEventPopulationCommand.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntEventResourceCommand.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/HuntExplorationPort.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HexMapGenerator.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntEventSystem.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/HuntManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/Legacy/ResourceSystem.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHarvestTransaction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentBundle.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntContentCatalog.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntDestinationCatalog.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntInputGuard.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntMapIntroPlanner.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntNoiseProfile.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntResourceMarkerLayout.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntRuntimeState.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntSquadAvailability.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Hunt/PlayableHuntTileInteraction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ActiveHuntPersistence.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/CampaignSaveStorage.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/ICampaignPersistencePort.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Persistence/SaveLoadSystem.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/CampaignCalendarConfig.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/IHunterDeathCommand.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/IWeaponTrainingContent.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/EventSystem.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/HunterManagementSystem.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/InventionSystem.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/SettlementManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/TimelineSystem.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/Legacy/WorkshopSystem.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEquipmentRules.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventChoiceTransaction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableEventOptionAvailability.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableGrowthMilestoneCatalog.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableGrowthMilestoneRuntime.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableHunterAdvancementAdapter.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableHunterRecoveryService.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableRecruitmentService.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentCatalog.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentExtension.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentExtensions.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementContentPlan.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementEventRegistry.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementInventionRegistry.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementModifierRuntime.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSettlementRegistryBundle.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSymptomCatalog.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableSymptomRuntime.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableTraitRegistry.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableWeaponTrainingService.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableWorkshopCatalog.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/PlayableWorkshopConstructionService.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEquipmentStorage.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventChainCheckpointAdapter.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementEventRestoreProjection.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Adapters/Unity/Settlement/SettlementTimelineJournal.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableContentSourceManifest.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableContentSourceSystem.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableGameBootstrap.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Bootstrap/PlayableSettlementWorldSpacePortInstaller.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardCategory.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardInspectionOverlay.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardPrefabCatalog.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardPrefabRegistry.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardSlot.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/CardView3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/ClickProxy.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/SlotDraggableCardView3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/SlotGrid.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/StackPreviewPanel.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/WorldSpaceTypographyGuard.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Base/WorldSpaceViewPanel.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/BossActionCard.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/BossHitLocationCard.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/CampLedgerLauncherCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/CharacterActionCard.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/EquipmentCard.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/EquipmentCardData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/HunterCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/HunterGrowthChoiceCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/HunterRecoveryCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/HunterSymptomCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/InventionCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/InventionDeckCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/RecruitmentLauncherCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/RecruitmentTemplateCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/ResourceCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/SettlementFacilityDutyCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/SettlementFacilityDutyLauncherCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/SettlementItemCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/WeaponTrainingCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/WorkshopBlueprintCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/WorkshopCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Cards3D/Views/WorkshopRecipeCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Compatibility/OdinInspectorCompatibility.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/ActiveHuntRestoreTransaction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/BossRuntimeData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/BurstRewardData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignAccessPorts.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignBootstrapRequest.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignDeveloperCommands.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignEncounterHandoffTransaction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowBindings.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignFlowCoordinator.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntDepartureTransaction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignHuntReturnTransaction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignPersistenceCoordinator.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignRestartTransaction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignSaveStatus.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignShowdownOutcomeTransaction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupLifecycle.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignStartupTransaction.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CampaignUnityBridge.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CardEffectData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/CombatActionEvents.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/EventBus.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GameManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/GlobalTabletopPresentation.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/HunterLossEvents.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/LocalizationManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/LootEntry.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PhaseManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableCampaignPhasePorts.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseCoordinator.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableHuntPhaseManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseCoordinator.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableSettlementPhaseManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/Phases/PlayableShowdownPhaseManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignPersistentEffectProjection.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableCampaignRuntimeModule.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableHuntRuntime.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/PlayableSettlementRuntime.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/SettlementTransactionEvents.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/Core/WeaponMasteryEvents.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/GameplayBase/Config/BossConfig/BossConfigSO.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/GameplayBase/Config/CharacterConfig/CharacterConfigSO.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/GameplayBase/Context.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/GameplayBase/GameEnums.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/GameplayBase/IBossVitalityState.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/GameplayBase/IGameState.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/InteractionSystem/IInteractable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/InteractionSystem/IInteractableTarget.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/InteractionSystem/InputTrigger.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/InteractionSystem/InteractableBehaviourBase.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/InteractionSystem/InteractableObject.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/InteractionSystem/InteractableThreeDBehaviour.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/InteractionSystem/InteractableUIBehaviour.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/InteractionSystem/InteractableUIElement.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/InteractionSystem/InteractionSystem.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/SO/Boss/ActionCard/BossActionCardData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/SO/Boss/HitLocation/Effects/TestBossHitLocationEffects.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/SO/Boss/HitLocation/HitLocation.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/SO/Character/ActionCard SO/CharacterActionCardData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/SO/Character/ActionCard SO/TargetingRuleData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/SO/Combat/CombatComponentSO.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/SO/Combat/CombatFieldRulesSO.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/SO/Combat/ComponentSpawnRuleData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/SO/Weapon/Weapon Effects/WeaponEffect.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/SO/Weapon/Weapon SO/WeaponData.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/BossCardTable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/BossCombatPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/CameraController.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/CardDisplayManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/CharacterCardTable.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/CharacterEntity.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/CombatPanelLayout.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/DevModePanel.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/EntityCreator.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/GameCameraManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/GameOverScreen.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/GlobalGameSettings.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/GlobalSettingsMenu.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/IUIViews.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/SettlementCameraController.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UI/WorkshopCraftPanel.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UnitTests/CombatTestBootstrap.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/UnitTests/StandaloneGameTestEntry.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Camera/PlayablePhaseCameraRig.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Combat/PlayableBossVitalityView.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Combat/PlayableCharacterEntityFactory.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Combat/PlayableInspirationCardView.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Combat/UIPlayerInputProvider.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/BackgroundDeselectionInput3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/CampaignSaveStatusPresenter3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/PlayableFlowGuide.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/PlayableOpeningSequence3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/PlayableStartMenu.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Flow/TabletopGameOverView3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/UI/HuntUIManager.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCameraController.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectiblePresentation.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntCollectibleTray3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntConsumablePanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntHarvestCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntHarvestControlCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntHarvestLayout.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntHarvestPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntMapVisualizer.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntRetreatPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntStatusBoardLayout.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/HuntTileScoutPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHexTileFactory.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHuntMapIntroCamera3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHuntResourceMarker3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/PlayableHuntSquadPawn3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/ResourceMarkerClickHandler.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Hunt/World/TileClickHandler.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHuntDestinationView.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableHunterRecoveryView.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableRecruitmentView.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableSettlementEventView.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/PlayableWorkshopConstructionView.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/CampLedgerPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/CampLedgerPresentation.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/DepartureCard.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterAdvancementPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterEquipmentPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterRecoveryPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterSymptomPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/HunterZone.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionActiveEffectPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionUnlockPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/InventionZone.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/RecruitmentPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/ResourceZone.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementFacilityDutyPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementNoticePresenter3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTable3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SettlementTableLayoutSettings.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/SquadZone.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopConstructionPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/Table3D/WorkshopZone.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Settlement/UI/HunterEquipmentSlotView.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/HuntDepartureHunterCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/HuntDepartureHunterPresentation.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/PhysicalDiceTabletopPresenter.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/PhysicalDie3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopBackgroundInputBlocker.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCameraFrameLease.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCameraFraming.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopCardInteractionPresenter.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopControlHintOverlay.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopDepartureLauncherCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopEventChoiceCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopEventLayout.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopEventPanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopEventPrimaryCard3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopHuntDeparturePanel3D.cs"
+"Assets/GameScripts/GameLogic/HuntingInDarkness/ViewLayer/Tabletop/TabletopRandomCard3D.cs"
+"Assets/GameScripts/GameLogic/IEvent/ILoginUI.cs"
+"Assets/GameScripts/GameLogic/Module/UIModule/ErrorLogger/ErrorLogger.cs"
+"Assets/GameScripts/GameLogic/Module/UIModule/ErrorLogger/LogUI.cs"
+"Assets/GameScripts/GameLogic/Module/UIModule/IUIResourceLoader.cs"
+"Assets/GameScripts/GameLogic/Module/UIModule/SetUISafeFitHelper.cs"
+"Assets/GameScripts/GameLogic/Module/UIModule/UIBase.cs"
+"Assets/GameScripts/GameLogic/Module/UIModule/UIModule.cs"
+"Assets/GameScripts/GameLogic/Module/UIModule/UIWidget.cs"
+"Assets/GameScripts/GameLogic/Module/UIModule/UIWindow.cs"
+"Assets/GameScripts/GameLogic/Module/UIModule/WindowAttribute.cs"
+"Assets/GameScripts/GameLogic/SingletonSystem/Singleton.cs"
+"Assets/GameScripts/GameLogic/SingletonSystem/SingletonBehaviour.cs"
+"Assets/GameScripts/GameLogic/SingletonSystem/SingletonSystem.cs"
+"Assets/GameScripts/GameLogic/UI/BattleMainUI/BattleMainUI.cs"
+"Assets/GameScripts/GameLogic/UI/LoginUI/LoginUI.cs"
+-langversion:9.0
+/unsafe+
+/deterministic
+/optimize-
+/debug:portable
+/nologo
+/RuntimeMetadataVersion:v4.0.30319
+/nowarn:0169
+/nowarn:0649
+/nowarn:0282
+/nowarn:1701
+/nowarn:1702
+/utf8output
+/preferreduilang:en-US
+/additionalfile:"Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.UnityAdditionalFile.txt"
+##### Custom Environment Variables
+DOTNET_HOST_PATH=D:\UnityVersions\6000.5.9f1\Editor\Data\DotNetSdk\dotnet.exe
+DOTNET_MULTILEVEL_LOOKUP=0
+##### ExitCode
+1
+##### Output
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Settlement\PlayableHuntDestinationView.cs(114,17): error CS0103: The name 'ReturnToSquad' does not exist in the current context
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(110,52): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(122,63): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(126,40): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(150,106): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\Core\CampaignDeveloperCommands.cs(109,31): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+*** Tundra build failed (4.67 seconds), 576 items updated, 632 evaluated
+## Script Compilation Error for: Csc Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.dll (+2 others)
+## CmdLine: "D:\UnityVersions\6000.5.9f1\Editor\Data\DotNetSdk\dotnet.exe" exec "D:/UnityVersions/6000.5.9f1/Editor/Data/DotNetSdk/sdk/8.0.318/Roslyn/bincore/csc.dll" /nostdlib /noconfig /shared "@Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.rsp" "@Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.rsp2"
+## Output:
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Settlement\PlayableHuntDestinationView.cs(114,17): error CS0103: The name 'ReturnToSquad' does not exist in the current context
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(110,52): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(122,63): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(126,40): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(150,106): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+Assets\GameScripts\GameLogic\HuntingInDarkness\Core\CampaignDeveloperCommands.cs(109,31): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorClipboard.cs(107,24): warning CS0618: 'LensFlare' is obsolete: 'The Lens Flare component is deprecated now that the Built-In Render Pipeline is deprecated. To use an alternative, refer to the documentation in the component help icon. #from(6000.5)'
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorClipboard.cs(108,24): warning CS0618: 'Projector' is obsolete: 'Projector component is deprecated now that the Built-In Render Pipeline is deprecated. To use an alternative, refer to the documentation in the component help icon. #from(6000.5)'
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorComponentWindow.cs(458,33): warning UAC1001: Field 'inspectorElement' type 'UnityEditor.UIElements.InspectorElement' is skipped by serialization (missing the [Serializable] attribute). Refer to the Serialization rules analyzer reference. (https://docs.unity3d.com/6000.5/Documentation/Manual/script-serialization-analyzer.html#uac1001)
+D:\MyLibrary\UnityEditorTools\zEditor(vSeries)\Editor\vInspector\VInspectorClipboard.cs(224,47): warning UAC1009: Field 'serializedPropertyValues_byPath' uses an unsupported type 'System.Collections.Generic.Dictionary<string, object>'. Refer to the Serialization rules analyzer reference. (https://docs.unity3d.com/6000.5/Documentation/Manual/script-serialization-analyzer.html#uac1009)
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Settlement\PlayableHuntDestinationView.cs(114,17): error CS0103: The name 'ReturnToSquad' does not exist in the current context
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(110,52): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(122,63): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(126,40): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Hunt\World\HuntCameraController.cs(150,106): error CS0103: The name 'GlobalGameSettings' does not exist in the current context
+Assets\GameScripts\GameLogic\HuntingInDarkness\Core\CampaignDeveloperCommands.cs(109,31): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+AssetDatabase: script compilation time: 5.688753s
+Scripts have compiler errors.
+Exiting without the bug reporter. Application will terminate with return code 1

@@ -1,0 +1,608 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "main_giant_face",
+      "eventName": "巨大的脸",
+      "eventType": "Choice",
+      "displayText": "你们在无火的黑暗中走了很久。这里没有血迹，也没有白骨，只有一张仰卧在空地上的巨大石脸。它闭着眼，却像是在等待一句话。",
+      "hiddenText": "石脸没有回答，但你确信它听见了。这里将成为你们第一次愿意回来的地方。",
+      "options": [
+        {
+          "optionId": "ask_name",
+          "optionText": "站到它面前，高声询问它的名字",
+          "checkType": "Courage",
+          "checkTarget": 6,
+          "successText": "你的声音没有被黑暗吞没。石脸依旧沉默，但你不再回避自己的恐惧。胆识 +1。",
+          "successEffects": [
+            { "effectType": "AddCourage", "targetName": "selected", "value": 1, "description": "胆识 +1" },
+            { "effectType": "ScheduleEvent", "targetName": "main_face_echo", "value": 2, "description": "两年后，石脸将再次产生变化" }
+          ],
+          "failText": "话语出口时变成了颤抖。石脸没有嘲笑你，沉默反而让这次失败显得可以承受。",
+          "failEffects": [
+            { "effectType": "ScheduleEvent", "targetName": "main_face_echo", "value": 2, "description": "两年后，石脸将再次产生变化" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionId": "observe_marks",
+          "optionText": "谨慎靠近，观察它表面的痕迹",
+          "checkType": "Understanding",
+          "checkTarget": 6,
+          "successText": "你在裂隙中辨认出被反复触摸的痕迹。曾有人也在这里停留。知识 +1。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" },
+            { "effectType": "ScheduleEvent", "targetName": "main_face_echo", "value": 2, "description": "两年后，石脸将再次产生变化" }
+          ],
+          "failText": "裂纹彼此纠缠，没有组成你能理解的符号。至少你记住了它们的形状。",
+          "failEffects": [
+            { "effectType": "ScheduleEvent", "targetName": "main_face_echo", "value": 2, "description": "两年后，石脸将再次产生变化" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionId": "follow_gaze",
+          "optionText": "让守望者沿着石脸的视线寻找它注视的方向",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "守望者没有从石脸本身寻找答案，而是顺着那副沉默面孔朝向的黑暗观察。远处并无火光，但你记住了一条安全的归途。知识 +1。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" },
+            { "effectType": "ScheduleEvent", "targetName": "main_face_echo", "value": 2, "description": "两年后，石脸将再次产生变化" }
+          ],
+          "successChainIds": ["triggered_face_safe_path"],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasTrait", "key": "trait_watcher", "displayName": "守望者", "value": 0, "inverted": false }
+          ]
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 1,
+      "drawWeight": 1,
+      "category": "MainStory"
+    },
+    {
+      "id": "main_face_echo",
+      "eventName": "石脸的回声",
+      "eventType": "Choice",
+      "displayText": "两年过去，那张巨大的石脸第一次睁开了眼。它没有看向任何人，只凝视营火之外更深的黑暗。随后，一块温热的碎石从眼角脱落，像一句尚未说完的话。",
+      "hiddenText": "石脸重新闭眼，但营地里再没有人认为它只是一块普通的岩石。",
+      "options": [
+        {
+          "optionId": "read_stone_pattern",
+          "optionText": "辨认碎石上的纹路",
+          "checkType": "Understanding",
+          "checkTarget": 7,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "successText": "纹路在火光下显出短暂的秩序。你把它记在心里，并将碎石带回营地。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" },
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 1, "description": "碎石 +1" }
+          ],
+          "failText": "纹路在火光下重新变得杂乱，碎石边缘也划伤了你的手臂。石脸重新闭上。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "arms", "value": 1, "description": "手臂生命 -1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionId": "carry_stone_home",
+          "optionText": "直接把碎石带回营地",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "你不再追问石脸的沉默，只把温热的碎石带回营地。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "chainedEventIds": ["triggered_face_memory"],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Scheduled"
+    },
+    {
+      "id": "triggered_face_safe_path",
+      "eventName": "石脸所望之处",
+      "eventType": "Narrative",
+      "displayText": "守望者沿着石脸朝向的黑暗走出很远，在碎石间找到了一条不会吞没脚步声的窄路。",
+      "hiddenText": "这条路暂时没有通向答案，却让营地第一次拥有了可以辨认的归途。",
+      "options": [],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Triggered"
+    },
+    {
+      "id": "triggered_face_memory",
+      "eventName": "未说完的话",
+      "eventType": "Narrative",
+      "displayText": "温热的石片在众人手中逐渐冷却，表面留下了一道朝向营火之外的细痕。",
+      "hiddenText": "你们把它收进年鉴旁的石匣。即使无人理解，营地仍会记得石脸曾经睁眼。",
+      "options": [],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Triggered"
+    },
+    {
+      "id": "random_stone_vigil",
+      "eventName": "石缝里的盐光",
+      "eventType": "Choice",
+      "displayText": "营火将熄时，桌边一块旧石忽然渗出细小的黑色盐晶。它们像在躲避火光，沿着石缝缓慢聚拢。",
+      "hiddenText": "并非所有石头都沉默。有些只是等待同类替它开口。",
+      "options": [
+        {
+          "optionId": "send_stone_listener",
+          "optionText": "让携带石质装备的猎人辨认盐晶的走向",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "装备上的石纹与盐晶彼此呼应。你们收集到一小撮黑盐，猎人也记住了石头传递讯息的方式。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" },
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "stone", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionId": "sweep_salt_crystal",
+          "optionText": "用木片扫开盐晶，避免惊动未知事物",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "盐晶落进灰里，很快失去了微光。至少今夜没有别的东西循迹而来。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionId": "take_salt_crystal",
+          "optionText": "带走盐晶，接受石头留下的回声",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "黑盐在掌心发热。你们带回了更多盐晶，却也让某种回声记住了下一次出猎的脚步。",
+          "successEffects": [
+            { "effectType": "CreateHuntNoiseLease", "targetName": "stone_vigil_risk", "value": 2, "description": "下一次出猎风险 +2" },
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 2, "description": "黑盐 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Random"
+    },
+    {
+      "id": "random_dark_bargain",
+      "eventName": "黑暗的交易",
+      "eventType": "Choice",
+      "displayText": "营火之外传来一个与你们声音相同的低语。它愿意交出一袋黑盐，只要求一名猎人独自走进火光照不到的地方。",
+      "hiddenText": "黑暗从不白白给予东西。拒绝它也并不意味着没有代价。",
+      "options": [
+        {
+          "optionId": "make_dark_bargain",
+          "optionText": "选择一名猎人履行交易，换取三份黑盐",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "被选中的猎人没有回头。黎明前，一袋黑盐出现在空着的座位上。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 3, "description": "黑盐 +3" },
+            { "effectType": "KillHunter", "targetName": "dark_bargain", "value": 1, "description": "履行了黑暗交易" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionId": "reject_dark_bargain",
+          "optionText": "选择一名猎人拒绝低语并守住营火",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "低语整夜没有停下。守火者活到了黎明，却再也无法忘记那道与自己相同的声音。压抑 +1。",
+          "successEffects": [
+            { "effectType": "AddInsanity", "targetName": "selected", "value": 1, "description": "压抑 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 3,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    },
+    {
+      "id": "random_falling_beam",
+      "eventName": "倾倒的横梁",
+      "eventType": "Choice",
+      "displayText": "营火旁的旧横梁突然松脱，向堆放资源卡的桌面倒下。必须有人在它砸落前撑住它。",
+      "hiddenText": "横梁被重新绑紧，但营地的每一处庇护都需要人付出代价。",
+      "options": [
+        {
+          "optionId": "hold_beam",
+          "optionText": "撑住横梁，让同伴搬走桌上的资源",
+          "checkType": "Strength",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在支撑横梁的猎人旁投掷一枚 d10",
+          "successText": "横梁被稳稳撑住，资源和猎人都安然无恙。",
+          "successEffects": [],
+          "failText": "横梁擦过猎人的手臂。伤口不致命，但回营后需要休养。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "arms", "value": 1, "description": "手臂生命 -1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    },
+    {
+      "id": "active_prayer_night_vigil",
+      "eventName": "无火夜祷",
+      "eventType": "Choice",
+      "displayText": "信仰无法点燃木柴，却能让一个人在黑暗里再站直一次。谁来主持今夜的祈祷？",
+      "hiddenText": "祷词散去后，黑暗仍在；但被选中的猎人重新握紧了武器。",
+      "options": [
+        {
+          "optionId": "lead_night_vigil",
+          "optionText": "直面恐惧，带领同伴完成夜祷",
+          "checkType": "Courage",
+          "checkTarget": 7,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在主持夜祷的猎人旁投掷一枚 d10",
+          "successText": "你的声音压过了黑暗中的低语。意志恢复 1。",
+          "successEffects": [
+            { "effectType": "AddWillpower", "targetName": "selected", "value": 1, "description": "意志 +1" }
+          ],
+          "failText": "祷词被恐惧打断。至少，没有人因此失去更多东西。",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Triggered"
+    },
+    {
+      "id": "random_echo_knot",
+      "eventName": "会记住名字的绳结",
+      "eventType": "Choice",
+      "displayText": "一段灰白筋腱缠在营地边缘的木桩上。每当有人叫出同伴的名字，绳结便会向那个方向收紧。",
+      "hiddenText": "你们没有找到编织它的人，却找到了几道从营地通往黑暗的旧足迹。",
+      "options": [
+        {
+          "optionId": "listen_echo_knot",
+          "optionText": "让携带回声词条的猎人听完绳结的记忆",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "绳结重复了几个早已无人记得的名字。猎人学会分辨声音从何处返回。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" },
+            { "effectType": "AddResource", "targetName": "echo_sinew", "value": 1, "description": "回声筋腱 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "echo", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionId": "cut_echo_knot",
+          "optionText": "割下绳结，把它作为普通筋腱收藏",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "离开木桩后，筋腱不再复述名字，但仍是一份可用的材料。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "echo_sinew", "value": 1, "description": "回声筋腱 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Random"
+    },
+    {
+      "id": "random_fate_knots",
+      "eventName": "缠命之结",
+      "eventType": "Choice",
+      "displayText": "三根发黑的细线悬在营火外，线头分别朝向过去、现在和一个尚未发生的伤口。它们只在被命运反复触碰的人靠近时收紧。",
+      "hiddenText": "线结散开时，灰烬里留下几粒黑盐。没人能确认那道尚未发生的伤口是否也随之消失。",
+      "options": [
+        {
+          "optionId": "cut_fate_thread",
+          "optionText": "趁命运尚轻，剪下一段松弛的细线",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "细线没有反抗，只在断口凝出一粒黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "MaximumLuck", "key": "", "value": 1, "inverted": false }
+          ]
+        },
+        {
+          "optionId": "draw_fate_card",
+          "optionText": "让命运已扭曲的猎人从线结中抽出一张牌",
+          "checkType": "Luck",
+          "checkTarget": 2,
+          "checkPresentation": "OldMaid",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "fate-knots",
+          "checkInstruction": "从缠命之结中抽出一张背面相同的牌；不要抽到指向伤口的鬼牌",
+          "successText": "线结把未来的代价吐了出来，灰烬里凝出三粒黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 3, "description": "黑盐 +3" }
+          ],
+          "failText": "鬼牌上的线刺入猎人的躯干。那道未来的伤口提前成为现实。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "torso", "value": 1, "description": "躯干生命 -1" }
+          ],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "MinimumLuck", "key": "", "value": 2, "inverted": false }
+          ]
+        },
+        {
+          "optionId": "leave_fate_knots",
+          "optionText": "不要触碰这些线",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "猎人退回营火旁，细线重新垂入黑暗。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    },
+    {
+      "id": "random_muffled_knock",
+      "eventName": "桌下的叩响",
+      "eventType": "Choice",
+      "displayText": "午夜后，资源桌下传来规律的三次叩响。每当有人俯身查看，声音就会转移到他的床铺下面。",
+      "hiddenText": "天亮后，桌腿上多出三道向内凹陷的指印。没人承认自己在夜里敲过桌子。",
+      "options": [
+        {
+          "optionId": "wrap_quiet_gear",
+          "optionText": "用带有安静词条的装备包住桌腿，听清声音来源",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "柔软的包裹吞掉了杂音，只剩一阵来自地下的微弱呼吸。你们及时离开，并记住了它的位置。知识 +1。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "quiet", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionId": "wait_for_knock",
+          "optionText": "守在桌边直到声音停止",
+          "checkType": "Courage",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在守夜猎人的床铺旁投掷一枚 d10",
+          "successText": "叩响在黎明前停下。守夜者没有睡着，却证明了声音无法把自己拖进桌下。胆识 +1。",
+          "successEffects": [
+            { "effectType": "AddCourage", "targetName": "selected", "value": 1, "description": "胆识 +1" }
+          ],
+          "failText": "守夜者最终睡着，并在梦里听见那三次叩响从自己的胸腔里传出。他染上了夜惊。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_night_terrors", "value": 1, "description": "获得症状：夜惊" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionId": "move_resource_table",
+          "optionText": "把资源桌移到营火另一侧",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "叩响没有追过来。至少这一夜，所有人都能继续休息。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Random"
+    },
+    {
+      "id": "random_sealed_store",
+      "eventName": "封死的储藏洞",
+      "eventType": "Choice",
+      "displayText": "工坊地面在夜里塌出一个狭窄洞口。里面堆着完整石料，但石壁正一点点向内合拢。",
+      "hiddenText": "洞口重新封闭后，石面上留下了一圈像牙齿咬合的白痕。",
+      "options": [
+        {
+          "optionId": "read_wall_rhythm",
+          "optionText": "让理解石头的猎人判断洞壁收拢的节奏",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "猎人听懂了石壁摩擦的间隙，带回两份碎石后安全退出。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasTrait", "key": "trait_stone_speaker", "displayName": "石语者", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionId": "hold_cave_wall",
+          "optionText": "撑住洞壁，尽快拖出石料",
+          "checkType": "Strength",
+          "checkTarget": 5,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 6,
+          "checkInstruction": "在进入洞穴的猎人旁投掷一枚 d6",
+          "successText": "石壁合拢前，猎人带回一份碎石。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 1, "description": "碎石 +1" }
+          ],
+          "failText": "洞壁没有夹住猎人，但狭窄黑暗从此留在他的呼吸里。他染上了幽闭恐惧。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_claustrophobia", "value": 1, "description": "获得症状：幽闭恐惧" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionId": "seal_cave",
+          "optionText": "封住洞口，不冒险取走石料",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "石壁在土层下继续摩擦，但没有人被留在里面。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    },
+    {
+      "id": "random_whispering_mortar",
+      "eventName": "墙缝里的配方",
+      "eventType": "Choice",
+      "displayText": "工坊墙缝整夜念着一张不存在的配方。它准确说出每份材料的重量，却始终不肯说成品是什么。",
+      "hiddenText": "低语停止时，墙灰里留下了一枚舌头形状的黑盐晶。",
+      "options": [
+        {
+          "optionId": "record_mortar_recipe",
+          "optionText": "佩戴带有守护词条的装备记录配方",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "护符隔开了低语的诱导。猎人只记下有用部分，并从墙灰中取出一份黑盐。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" },
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "ward", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionId": "draw_missing_recipe",
+          "optionText": "从配方牌中翻出缺失的最后一张",
+          "checkType": "Understanding",
+          "checkTarget": 6,
+          "checkPresentation": "FlipCards",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "whispering-recipe",
+          "checkInstruction": "翻开一张盖在墙灰上的配方牌",
+          "successText": "最后一张牌是空白的。猎人意识到配方本身就是诱饵，并及时停止倾听。知识 +1。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
+          ],
+          "failText": "牌面写着猎人的名字。从那以后，低语即使离开墙缝也会跟着他。他染上了低语症。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_whisper_sickness", "value": 1, "description": "获得症状：低语症" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionId": "seal_wall_gap",
+          "optionText": "用泥封住墙缝",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "配方被封在墙里。也许它仍在继续念，只是营地暂时听不见了。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 3,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    }
+  ]
+}

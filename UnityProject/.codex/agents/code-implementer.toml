@@ -6,5 +6,5 @@ sandbox_mode = "workspace-write"
 
 developer_instructions = '''
 读取并遵守 .agents/agent-roles/code-implementer.md。
-Unity 自动化默认使用 Tools/UnityCli/Invoke-Unity.ps1，不使用 Unity MCP。
+Unity 自动化默认使用 Tools/UnityCli/Invoke-Unity.ps1。
 '''

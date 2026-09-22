@@ -1,0 +1,8 @@
+{
+  "name": "com.zframework.rts",
+  "version": "0.7.0",
+  "displayName": "ZFramework Roslyn Runtime Scripts",
+  "description": "Editor-first runtime script experimentation layer for ZFramework.",
+  "unity": "2022.3",
+  "author": { "name": "ZFramework" }
+}

@@ -227,6 +227,8 @@ namespace Cards3D
 
         private void RebuildTrigger()
         {
+            // 槽位触发体只保留给物理范围查询；不能抢占卡牌的鼠标射线。
+            gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
             if (_triggerCol == null)
                 _triggerCol = gameObject.AddComponent<BoxCollider>();
             // Y 范围覆盖拖拽高度（BeginDrag 抬起约 0.15f）
@@ -677,6 +679,12 @@ namespace Cards3D
 
         private void Update()
         {
+            if (CardInspectionOverlay.BlocksWorldInput)
+            {
+                if (_previewShown) HidePreview();
+                return;
+            }
+
             if (!Stackable) return;
 
             bool want = _deck.Count > 0

@@ -45,7 +45,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             {
                 intro.Present(presentationCamera, CreateTilePositions());
                 PlayableHuntMapIntroPlan plan = intro.Plan;
-                for (int frame = 0; frame < 10 && intro.IsPresenting; frame++)
+                float deadline = Time.realtimeSinceStartup + 1f;
+                while (intro.IsPresenting && Time.realtimeSinceStartup < deadline)
                     yield return null;
 
                 Assert.That(intro.IsPresenting, Is.False);

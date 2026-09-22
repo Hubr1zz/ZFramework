@@ -1,0 +1,340 @@
+using System;
+using System.Threading;
+using CardGame.ActionQueue;
+using Core;
+using Cysharp.Threading.Tasks;
+using GameplayBase;
+using HuntingInDarkness.Hunt;
+
+namespace HuntingInDarkness.ActionFlow.Campaign
+{
+    public interface ICampaignPhaseTransitionHost
+    {
+        GamePhase CurrentPhase { get; }
+        bool TryApplyPhaseTransition(GamePhase targetPhase, out string reason);
+        bool TryBeginEncounter(CampaignEncounterRequest request, out string reason);
+    }
+
+    public interface ICampaignPhaseTransitionRequestHost
+    {
+        bool TryApplyPhaseTransition(CampaignPhaseTransitionRequest request, out string reason);
+    }
+
+    public interface ICampaignRestartHost
+    {
+        UniTask<CampaignRestartResult> RestartCampaignFromActionAsync(CancellationToken cancellationToken);
+    }
+
+    public readonly struct CampaignRestartResult
+    {
+        public CampaignRestartResult(bool succeeded, string reason)
+        {
+            Succeeded = succeeded;
+            Reason = reason ?? string.Empty;
+        }
+
+        public bool Succeeded { get; }
+        public string Reason { get; }
+        public static CampaignRestartResult Success() => new(true, string.Empty);
+        public static CampaignRestartResult Failed(string reason) => new(false, reason);
+    }
+
+    public struct CampaignRestartCommittedEvent
+    {
+    }
+
+    public readonly struct CampaignHuntEntryContext
+    {
+        public CampaignHuntEntryContext(PlayableHuntRoutePlan routePlan, int year, string departurePreparationToken)
+        {
+            RoutePlan = routePlan;
+            Year = year;
+            DeparturePreparationToken = departurePreparationToken?.Trim() ?? string.Empty;
+        }
+
+        public PlayableHuntRoutePlan RoutePlan { get; }
+        public int Year { get; }
+        public string DeparturePreparationToken { get; }
+        public string DestinationId => RoutePlan?.DestinationId ?? string.Empty;
+        public string ContentBundleId => RoutePlan?.ContentBundleId ?? string.Empty;
+        public bool IsValid => RoutePlan?.IsUsable == true && Year > 0 && DeparturePreparationToken.Length > 0;
+    }
+
+    public readonly struct CampaignPhaseTransitionRequest
+    {
+        public CampaignPhaseTransitionRequest(GamePhase targetPhase, CampaignHuntEntryContext huntContext)
+        {
+            TargetPhase = targetPhase;
+            HuntContext = huntContext;
+        }
+
+        public GamePhase TargetPhase { get; }
+        public CampaignHuntEntryContext HuntContext { get; }
+        public bool HasHuntContext => HuntContext.RoutePlan != null;
+        public bool IsValid => TargetPhase == GamePhase.Hunt ? !HasHuntContext || HuntContext.IsValid : !HasHuntContext;
+        public static CampaignPhaseTransitionRequest ForPhase(GamePhase targetPhase) => new(targetPhase, default);
+        public static CampaignPhaseTransitionRequest ForHunt(CampaignHuntEntryContext context) => new(GamePhase.Hunt, context);
+    }
+
+    public readonly struct CampaignPhaseTransitionResult
+    {
+        public CampaignPhaseTransitionResult(bool succeeded, bool changed, GamePhase previousPhase, GamePhase currentPhase, string reason)
+        {
+            Succeeded = succeeded;
+            Changed = changed;
+            PreviousPhase = previousPhase;
+            CurrentPhase = currentPhase;
+            Reason = reason ?? string.Empty;
+        }
+
+        public bool Succeeded { get; }
+        public bool Changed { get; }
+        public GamePhase PreviousPhase { get; }
+        public GamePhase CurrentPhase { get; }
+        public string Reason { get; }
+        public static CampaignPhaseTransitionResult Failed(GamePhase currentPhase, string reason) => new(false, false, currentPhase, currentPhase, reason);
+    }
+
+    public struct CampaignPhaseTransitionCommittedEvent
+    {
+        public GamePhase PreviousPhase;
+        public GamePhase CurrentPhase;
+    }
+
+    public readonly struct CampaignEncounterStartResult
+    {
+        public CampaignEncounterStartResult(bool succeeded, string encounterId, string reason)
+        {
+            Succeeded = succeeded;
+            EncounterId = encounterId ?? string.Empty;
+            Reason = reason ?? string.Empty;
+        }
+
+        public bool Succeeded { get; }
+        public string EncounterId { get; }
+        public string Reason { get; }
+        public static CampaignEncounterStartResult Failed(string encounterId, string reason) => new(false, encounterId, reason);
+    }
+
+    public struct CampaignEncounterStartedEvent
+    {
+        public CampaignEncounterRequest Request;
+    }
+
+    /// <summary>随整场战役存活的跨阶段 Runner；阶段内部 Runner 不互相嵌套调用。</summary>
+    public sealed class PlayableCampaignActionSession : IDisposable
+    {
+        private readonly ICampaignPhaseTransitionHost host;
+        private readonly ActionEnvironment environment;
+
+        public PlayableCampaignActionSession(ICampaignPhaseTransitionHost host, IActionEnvironmentInstallerRegistry installerRegistry = null)
+        {
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
+            environment = new ActionEnvironment(new ActionEnvironmentConfiguration
+            {
+                Name = "Campaign",
+                Kind = ActionEnvironmentKind.Campaign,
+                MaxActionsPerChain = 128,
+                TraceCapacity = 48
+            }, installerRegistry);
+        }
+
+        public bool IsActive => !environment.IsDisposed;
+        public bool IsRunning => environment.IsRunning;
+        public ReactorRegistry Reactors => environment.Reactors;
+        public ReactionGateRegistry ReactionGates => environment.ReactionGates;
+
+        public async UniTask<CampaignPhaseTransitionResult> TransitionAsync(GamePhase targetPhase, CancellationToken cancellationToken = default)
+            => await TransitionAsync(CampaignPhaseTransitionRequest.ForPhase(targetPhase), cancellationToken);
+
+        public async UniTask<CampaignPhaseTransitionResult> TransitionAsync(CampaignPhaseTransitionRequest request, CancellationToken cancellationToken = default)
+        {
+            if (!IsActive) return CampaignPhaseTransitionResult.Failed(host.CurrentPhase, "战役流程已经结束");
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle campaign = environment.EntityHandles.GetOrCreate("campaign", "active", "当前战役");
+            ReactorEntityHandle phase = environment.EntityHandles.GetOrCreate("game-phase", request.TargetPhase.ToString(), request.TargetPhase.ToString());
+            var action = new TransitionCampaignPhaseAction(host, request, outbox, campaign, phase);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            if (outcome.IsSuccess) return action.Result;
+            return CampaignPhaseTransitionResult.Failed(host.CurrentPhase, string.IsNullOrWhiteSpace(action.Result.Reason) ? outcome.Reason : action.Result.Reason);
+        }
+
+        public async UniTask<CampaignEncounterStartResult> BeginEncounterAsync(CampaignEncounterRequest request, CancellationToken cancellationToken = default)
+        {
+            if (!IsActive) return CampaignEncounterStartResult.Failed(request.EncounterId, "战役流程已经结束");
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle campaign = environment.EntityHandles.GetOrCreate("campaign", "active", "当前战役");
+            ReactorEntityHandle encounter = environment.EntityHandles.GetOrCreate("encounter", request.EncounterId ?? string.Empty, request.EncounterId ?? "遭遇");
+            var action = new BeginCampaignEncounterAction(host, request, outbox, campaign, encounter);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            if (outcome.IsSuccess) return action.Result;
+            return CampaignEncounterStartResult.Failed(request.EncounterId, string.IsNullOrWhiteSpace(action.Result.Reason) ? outcome.Reason : action.Result.Reason);
+        }
+
+        public async UniTask<CampaignRestartResult> RestartAsync(CancellationToken cancellationToken = default)
+        {
+            if (!IsActive) return CampaignRestartResult.Failed("战役流程已经结束");
+            var outbox = new ActionEventOutbox();
+            ReactorEntityHandle campaign = environment.EntityHandles.GetOrCreate("campaign", "active", "当前战役");
+            var action = new RestartCampaignAction(host, outbox, campaign);
+            ActionOutcome outcome = await environment.ExecuteAsync(action, outbox, cancellationToken: cancellationToken);
+            if (outcome.IsSuccess) return action.Result;
+            return CampaignRestartResult.Failed(string.IsNullOrWhiteSpace(action.Result.Reason) ? outcome.Reason : action.Result.Reason);
+        }
+
+        public void Dispose() => environment.Dispose();
+    }
+
+    /// <summary>重新建立整场战役的唯一玩家命令；Before Reactor 可阻止或注入重启前流程。</summary>
+    public sealed class RestartCampaignAction : CommandAction, ISourceAction, ITargetAction
+    {
+        private readonly ICampaignPhaseTransitionHost host;
+        private readonly ActionEventOutbox eventOutbox;
+
+        public RestartCampaignAction(ICampaignPhaseTransitionHost host, ActionEventOutbox eventOutbox, IReactorEntity campaign)
+        {
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
+            Source = campaign ?? throw new ArgumentNullException(nameof(campaign));
+            Target = campaign;
+        }
+
+        public CampaignRestartResult Result { get; private set; }
+        public IReactorEntity Source { get; }
+        public IReactorEntity Target { get; }
+
+        protected override async UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (host is not ICampaignRestartHost restartHost)
+            {
+                Result = CampaignRestartResult.Failed("战役宿主不支持重新开始。");
+                return ActionOutcome.Failure(Result.Reason);
+            }
+
+            Result = await restartHost.RestartCampaignFromActionAsync(cancellationToken);
+            if (!Result.Succeeded) return ActionOutcome.Failure(Result.Reason);
+            eventOutbox.StageAfterCommit(new CampaignRestartCommittedEvent());
+            return ActionOutcome.Success();
+        }
+    }
+
+    /// <summary>验证来源远征、解析遭遇并切入战斗的战役级命令。</summary>
+    public sealed class BeginCampaignEncounterAction : CommandAction, ISourceAction, ITargetAction
+    {
+        private readonly ICampaignPhaseTransitionHost host;
+        private readonly CampaignEncounterRequest request;
+        private readonly ActionEventOutbox eventOutbox;
+
+        public BeginCampaignEncounterAction(ICampaignPhaseTransitionHost host, CampaignEncounterRequest request, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+        {
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.request = request;
+            this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
+            Source = source ?? throw new ArgumentNullException(nameof(source));
+            Target = target ?? throw new ArgumentNullException(nameof(target));
+        }
+
+        public CampaignEncounterRequest Request => request;
+        public CampaignEncounterStartResult Result { get; private set; }
+        public IReactorEntity Source { get; }
+        public IReactorEntity Target { get; }
+
+        protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!request.IsValid)
+            {
+                Result = CampaignEncounterStartResult.Failed(request.EncounterId, "遭遇请求缺少有效的来源会话或配置 ID");
+                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+            }
+            if (!host.TryBeginEncounter(request, out string reason))
+            {
+                Result = CampaignEncounterStartResult.Failed(request.EncounterId, reason);
+                return UniTask.FromResult(ActionOutcome.Failure(reason));
+            }
+
+            Result = new CampaignEncounterStartResult(true, request.EncounterId, string.Empty);
+            eventOutbox.StageAfterCommit(new CampaignEncounterStartedEvent { Request = request });
+            return UniTask.FromResult(ActionOutcome.Success());
+        }
+    }
+
+    /// <summary>跨功能切换的唯一权威入口；Before Reactor 可阻止或注入战役级前置流程。</summary>
+    public sealed class TransitionCampaignPhaseAction : CommandAction, ISourceAction, ITargetAction
+    {
+        private readonly ICampaignPhaseTransitionHost host;
+        private readonly CampaignPhaseTransitionRequest request;
+        private readonly ActionEventOutbox eventOutbox;
+
+        public TransitionCampaignPhaseAction(ICampaignPhaseTransitionHost host, GamePhase targetPhase, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+            : this(host, CampaignPhaseTransitionRequest.ForPhase(targetPhase), eventOutbox, source, target)
+        {
+        }
+
+        public TransitionCampaignPhaseAction(ICampaignPhaseTransitionHost host, CampaignPhaseTransitionRequest request, ActionEventOutbox eventOutbox, IReactorEntity source, IReactorEntity target)
+        {
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.request = request;
+            this.eventOutbox = eventOutbox ?? throw new ArgumentNullException(nameof(eventOutbox));
+            Source = source ?? throw new ArgumentNullException(nameof(source));
+            Target = target ?? throw new ArgumentNullException(nameof(target));
+        }
+
+        public GamePhase TargetPhase => request.TargetPhase;
+        public CampaignPhaseTransitionRequest Request => request;
+        public CampaignPhaseTransitionResult Result { get; private set; }
+        public IReactorEntity Source { get; }
+        public IReactorEntity Target { get; }
+
+        protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            GamePhase previousPhase = host.CurrentPhase;
+            if (!request.IsValid)
+            {
+                Result = CampaignPhaseTransitionResult.Failed(previousPhase, "战役阶段切换请求与狩猎上下文不匹配。");
+                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+            }
+            if (previousPhase == GamePhase.Hunt && request.TargetPhase == GamePhase.Hunt && request.HasHuntContext)
+            {
+                Result = CampaignPhaseTransitionResult.Failed(previousPhase, "活动狩猎不能通过同阶段请求替换路线。");
+                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+            }
+            if (request.TargetPhase == GamePhase.Hunt && request.HasHuntContext && previousPhase != GamePhase.Settlement)
+            {
+                Result = CampaignPhaseTransitionResult.Failed(previousPhase, "只有营地阶段可以提交狩猎入场请求。");
+                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+            }
+            if (previousPhase == request.TargetPhase)
+            {
+                Result = new CampaignPhaseTransitionResult(true, false, previousPhase, previousPhase, string.Empty);
+                return UniTask.FromResult(ActionOutcome.Success());
+            }
+            if (request.TargetPhase == GamePhase.Hunt && !request.HasHuntContext)
+            {
+                Result = CampaignPhaseTransitionResult.Failed(previousPhase, "进入狩猎阶段必须携带已准备的路线上下文。");
+                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+            }
+            if (request.HasHuntContext && host is not ICampaignPhaseTransitionRequestHost)
+            {
+                Result = CampaignPhaseTransitionResult.Failed(previousPhase, "阶段 Host 不支持狩猎入场上下文。");
+                return UniTask.FromResult(ActionOutcome.Failure(Result.Reason));
+            }
+            bool applied = host is ICampaignPhaseTransitionRequestHost requestHost ? requestHost.TryApplyPhaseTransition(request, out string reason) : host.TryApplyPhaseTransition(request.TargetPhase, out reason);
+            if (!applied)
+            {
+                Result = CampaignPhaseTransitionResult.Failed(host.CurrentPhase, reason);
+                return UniTask.FromResult(ActionOutcome.Failure(reason));
+            }
+
+            Result = new CampaignPhaseTransitionResult(true, true, previousPhase, host.CurrentPhase, string.Empty);
+            eventOutbox.StageAfterCommit(new CampaignPhaseTransitionCommittedEvent
+            {
+                PreviousPhase = previousPhase,
+                CurrentPhase = host.CurrentPhase
+            });
+            return UniTask.FromResult(ActionOutcome.Success());
+        }
+    }
+}

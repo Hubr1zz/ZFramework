@@ -59,7 +59,7 @@ namespace UI
 
         private void Update()
         {
-            if (_activeDetailTrigger != null &&
+            if (!CardInspectionOverlay.BlocksWorldInput && _activeDetailTrigger != null &&
                 (Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1)))
             {
                 ExitDetailFocus();

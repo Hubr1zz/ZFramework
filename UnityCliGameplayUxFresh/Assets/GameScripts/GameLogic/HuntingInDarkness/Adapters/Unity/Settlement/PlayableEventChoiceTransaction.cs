@@ -1,0 +1,401 @@
+using System.Collections.Generic;
+using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.Data;
+using HuntingInDarkness.GameCore.Settlement;
+
+namespace HuntingInDarkness.Settlement
+{
+    /// <summary>锁定一次事件选择与骰值，直到玩家接受结果时才提交效果。</summary>
+    public sealed class PlayableEventChoiceTransaction
+    {
+        private readonly EventSystem eventSystem;
+        private readonly EventData gameEvent;
+        private readonly EventOption option;
+        private readonly HunterInstance actor;
+        private readonly int optionIndex;
+        private readonly IPlayableEventResourceCommand resourceCommand;
+        private readonly IPlayableEventItemCommand itemCommand;
+        private readonly IPlayableEventWorldCommand worldCommand;
+        private readonly IPlayableEventSettlementCommand settlementCommand;
+        private readonly IPlayableEventPopulationCommand populationCommand;
+        private readonly IPlayableEventFatalInjuryCommand fatalInjuryCommand;
+        private EventResolutionResult committedResult;
+        private IReadOnlyList<EventData> standaloneChain;
+        private IReadOnlyList<string> standaloneEncounterIds;
+        private PlayableEventEffectBatchResult standaloneEffectResults;
+        private Dictionary<int, PlayableEventFatalInjuryPreparation> fatalInjuryPreparations = new();
+
+        public EventData GameEvent => gameEvent;
+        public EventOption Option => option;
+        public HunterInstance Actor => actor;
+        public bool RequiresCheck => option.checkType != CheckType.None;
+        public int RollValue { get; private set; }
+        public int Bonus { get; }
+        public int Total => PlayableEventCheckRules.ResolveTotal(option, RollValue, Bonus);
+        public int Target => option.checkTarget;
+        public bool Success => !RequiresCheck || PlayableEventCheckRules.IsSuccessful(option, RollValue, Bonus);
+        public bool HasRerolled { get; private set; }
+        public bool IsCommitted { get; private set; }
+        public bool CanReroll => RequiresCheck && !HasRerolled && !IsCommitted && actor != null && actor.Willpower > 0;
+
+        public bool TryPrepareFatalInjuries(out IReadOnlyList<PlayableEventFatalInjuryPreparation> preparations, out string reason)
+        {
+            preparations = System.Array.Empty<PlayableEventFatalInjuryPreparation>();
+            reason = string.Empty;
+            if (IsCommitted)
+            {
+                reason = "事件结果已经提交。";
+                return false;
+            }
+
+            IReadOnlyList<EventEffect> effects = Success ? option.successEffects : option.failEffects;
+            fatalInjuryPreparations = new Dictionary<int, PlayableEventFatalInjuryPreparation>();
+            if (effects == null) return true;
+            var prepared = new List<PlayableEventFatalInjuryPreparation>();
+            for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+            {
+                EventEffect effect = effects[effectIndex];
+                if (effect?.effectType != EventEffectType.FatalInjury) continue;
+                if (effects.Count != 1)
+                {
+                    reason = "致命伤结果必须独占事件效果事务。";
+                    return false;
+                }
+                if (fatalInjuryCommand == null)
+                {
+                    reason = "Hunt 致命伤端口尚未注入。";
+                    return false;
+                }
+                if (!fatalInjuryCommand.TryPrepare(effect, actor, out PlayableEventFatalInjuryPreparation preparation, out reason)) return false;
+                fatalInjuryPreparations.Add(effectIndex, preparation);
+                prepared.Add(preparation);
+            }
+            preparations = prepared;
+            return true;
+        }
+
+        internal PlayableEventChoiceTransaction(EventSystem eventSystem, EventData gameEvent, int optionIndex, HunterInstance actor, int rollValue, int bonus, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand, IPlayableEventSettlementCommand settlementCommand, IPlayableEventItemCommand itemCommand, IPlayableEventPopulationCommand populationCommand, IPlayableEventFatalInjuryCommand fatalInjuryCommand, bool hasRerolled = false)
+        {
+            this.eventSystem = eventSystem;
+            this.gameEvent = gameEvent;
+            this.optionIndex = optionIndex;
+            this.actor = actor;
+            this.resourceCommand = resourceCommand;
+            this.itemCommand = itemCommand;
+            this.worldCommand = worldCommand;
+            this.settlementCommand = settlementCommand;
+            this.populationCommand = populationCommand;
+            this.fatalInjuryCommand = fatalInjuryCommand;
+            option = gameEvent.options[optionIndex];
+            RollValue = rollValue;
+            Bonus = bonus;
+            HasRerolled = hasRerolled;
+        }
+
+        public bool TryReroll(int? preparedRoll = null)
+        {
+            if (!CanReroll) return false;
+
+            int count = PlayableEventCheckRules.ResolveCount(option);
+            int sides = PlayableEventCheckRules.ResolveSides(option);
+            RerollResult result = preparedRoll.HasValue ? eventSystem.TryReroll(actor, RollValue, preparedRoll.Value, count, count * sides) : eventSystem.TryReroll(actor, RollValue, count, sides);
+            if (!result.Success) return false;
+
+            RollValue = result.FinalRoll;
+            HasRerolled = true;
+            return true;
+        }
+
+        public PlayableEventRerollCheckpoint CreateRerollCheckpoint()
+        {
+            if (!HasRerolled || actor == null || string.IsNullOrWhiteSpace(gameEvent.ContentId) || string.IsNullOrWhiteSpace(option.optionId)) return null;
+            return new PlayableEventRerollCheckpoint { HasValue = true, EventId = gameEvent.ContentId, OptionId = option.optionId, ActorId = actor.InstanceId, RollValue = RollValue, Bonus = Bonus };
+        }
+
+        public EventResolutionResult Commit()
+        {
+            if (IsCommitted) return committedResult;
+
+            IsCommitted = true;
+            committedResult = eventSystem.CommitPreparedChoice(gameEvent, optionIndex, actor, Success, RollValue, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand);
+            return committedResult;
+        }
+
+        /// <summary>提交单个节点但不推进共享事件队列，供 ActionQueue 自己维护事件子树。</summary>
+        public PlayableEventCommitResult CommitStandalone(bool captureEncounterRequests = false)
+        {
+            if (!IsCommitted)
+            {
+                IsCommitted = true;
+                PlayableEventCommitResult result = eventSystem.CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, Success, RollValue, resourceCommand, worldCommand, settlementCommand, captureEncounterRequests, itemCommand, populationCommand, fatalInjuryCommand, fatalInjuryPreparations);
+                committedResult = result.Result;
+                standaloneChain = result.ChainedEvents;
+                standaloneEncounterIds = result.EncounterIds;
+                standaloneEffectResults = result.EffectResults;
+            }
+            return new PlayableEventCommitResult(committedResult, standaloneChain, standaloneEncounterIds, standaloneEffectResults);
+        }
+
+    }
+
+    public partial class EventSystem
+    {
+        public PlayableEventChoiceTransaction PrepareChoice(EventData gameEvent, int optionIndex, HunterInstance actor = null, int? preparedRoll = null, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventResourceAvailability resourceAvailability = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null)
+        {
+            if (gameEvent?.options == null || optionIndex < 0 || optionIndex >= gameEvent.options.Count) return null;
+            EventOption option = gameEvent.options[optionIndex];
+            if (preparedRoll.HasValue && !PlayableEventCheckRules.IsValidRoll(option, preparedRoll.Value)) return null;
+            bool requiresHunter = option.checkType != CheckType.None || PlayableEventOptionAvailability.RequiresHunter(option);
+            if (requiresHunter && (actor == null || !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))) return null;
+            if (PlayableEventOptionAvailability.HasHunterDeathEffect(option) && hunterDeathCommand == null) return null;
+            resourceAvailability ??= (IPlayableEventResourceAvailability)resourceCommand ?? new SettlementEventResourceAvailability(_settlement);
+            resourceAvailability = PlayableEventAvailabilityScope.Compose(resourceAvailability, itemCommand);
+            if (!PlayableEventOptionAvailability.CanUse(option, actor, _settlement, resourceAvailability, out _)) return null;
+            int rollValue = option.checkType == CheckType.None ? 0 : preparedRoll ?? RollDice(PlayableEventCheckRules.ResolveCount(option), PlayableEventCheckRules.ResolveSides(option));
+            int bonus = GetCheckBonus(actor, option.checkType);
+            return new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, rollValue, bonus, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand, fatalInjuryCommand);
+        }
+
+        public bool TryRestoreRerolledChoice(EventData gameEvent, PlayableEventRerollCheckpoint checkpoint, HunterInstance actor, out PlayableEventChoiceTransaction transaction, out string reason, IPlayableEventResourceCommand resourceCommand = null, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null)
+        {
+            transaction = null;
+            if (gameEvent == null || checkpoint == null || !checkpoint.HasValue || checkpoint.SchemaVersion != PlayableEventRerollCheckpoint.CurrentSchemaVersion)
+            {
+                reason = "事件重投检查点缺失或版本不受支持。";
+                return false;
+            }
+            if (!string.Equals(gameEvent.ContentId, checkpoint.EventId, System.StringComparison.Ordinal) || actor == null || actor.InstanceId != checkpoint.ActorId || !ReferenceEquals(_settlement.GetHunter(actor.InstanceId), actor))
+            {
+                reason = "事件重投检查点的事件或行动者身份已经失效。";
+                return false;
+            }
+            int optionIndex = gameEvent.options?.FindIndex(option => option != null && string.Equals(option.optionId, checkpoint.OptionId, System.StringComparison.Ordinal)) ?? -1;
+            if (optionIndex < 0)
+            {
+                reason = "事件重投检查点引用的选项不存在。";
+                return false;
+            }
+            EventOption option = gameEvent.options[optionIndex];
+            if (option.checkType == CheckType.None || !PlayableEventCheckRules.IsValidRoll(option, checkpoint.RollValue) || checkpoint.Bonus < -PlayableEventRerollCheckpoint.MaximumAbsoluteBonus || checkpoint.Bonus > PlayableEventRerollCheckpoint.MaximumAbsoluteBonus)
+            {
+                reason = "事件重投检查点的判定值无效。";
+                return false;
+            }
+            transaction = new PlayableEventChoiceTransaction(this, gameEvent, optionIndex, actor, checkpoint.RollValue, checkpoint.Bonus, resourceCommand, worldCommand, settlementCommand, itemCommand, populationCommand, fatalInjuryCommand, true);
+            reason = string.Empty;
+            return true;
+        }
+
+        internal EventResolutionResult CommitPreparedChoice(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null)
+        {
+            PlayableEventCommitResult result = CommitPreparedChoiceStandalone(gameEvent, optionIndex, actor, success, rollValue, resourceCommand, worldCommand, settlementCommand, itemCommand: itemCommand, populationCommand: populationCommand);
+            MarkEventCompleted(gameEvent);
+            return result.Result;
+        }
+
+        internal PlayableEventCommitResult CommitPreparedChoiceStandalone(EventData gameEvent, int optionIndex, HunterInstance actor, bool success, int rollValue, IPlayableEventResourceCommand resourceCommand, IPlayableEventWorldCommand worldCommand = null, IPlayableEventSettlementCommand settlementCommand = null, bool captureEncounterRequests = false, IPlayableEventItemCommand itemCommand = null, IPlayableEventPopulationCommand populationCommand = null, IPlayableEventFatalInjuryCommand fatalInjuryCommand = null, IReadOnlyDictionary<int, PlayableEventFatalInjuryPreparation> fatalInjuryPreparations = null)
+        {
+            EventOption option = gameEvent.options[optionIndex];
+            List<EventEffect> effects = success ? option.successEffects : option.failEffects;
+            var encounterIds = new List<string>();
+            var effectResults = new List<PlayableEventEffectResult>();
+            if (!TryPreflightItemRemovals(effects, actor, resourceCommand, itemCommand, out int rejectedEffectIndex, out string rejectedReason))
+                return RejectChoice(option, success, rollValue, effects[rejectedEffectIndex], rejectedEffectIndex, rejectedReason, gameEvent.ContentId);
+            if (effects != null && settlementCommand != null)
+                for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+                    if (effects[effectIndex]?.effectType == EventEffectType.CreateHuntNoiseLease && !settlementCommand.CanApply(effects[effectIndex], out string reason))
+                        return RejectChoice(option, success, rollValue, effects[effectIndex], effectIndex, reason, gameEvent.ContentId);
+            if (gameEvent.eventType == GameEventType.Combat && !string.IsNullOrWhiteSpace(gameEvent.combatEncounterId))
+                RecordEncounter(gameEvent.combatEncounterId, encounterIds);
+            if (effects != null)
+                for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+                    effectResults.Add(ApplyEffect(effects[effectIndex], actor, actor, encounterIds, resourceCommand, worldCommand, settlementCommand, effectIndex, gameEvent.ContentId, itemCommand, populationCommand, fatalInjuryCommand, fatalInjuryPreparations));
+            if (gameEvent.eventType == GameEventType.Combat && encounterIds.Count == 0)
+                RecordEncounter(gameEvent.combatEncounterId, encounterIds);
+            bool campaignEnded = _settlement.GetAliveHunters().Count == 0;
+            if (campaignEnded)
+                encounterIds.Clear();
+            if (!captureEncounterRequests && !campaignEnded)
+                PublishEncounters(encounterIds, gameEvent.name);
+            var result = new EventResolutionResult
+            {
+                Success = success,
+                RollValue = rollValue,
+                ResultText = success ? option.successText : option.failText,
+                EffectResults = new PlayableEventEffectBatchResult(effectResults)
+            };
+            IReadOnlyList<EventData> chain = System.Array.Empty<EventData>();
+            if (!campaignEnded)
+            {
+                var resolvedChain = new List<EventData>();
+                IReadOnlyList<EventData> optionChain = success ? option.successChain : option.failChain;
+                if (optionChain != null)
+                    foreach (EventData chainedEvent in optionChain)
+                        if (chainedEvent != null)
+                            resolvedChain.Add(chainedEvent);
+                if (gameEvent.chainedEvents != null)
+                    foreach (EventData chainedEvent in gameEvent.chainedEvents)
+                        if (chainedEvent != null && !resolvedChain.Contains(chainedEvent))
+                            resolvedChain.Add(chainedEvent);
+                chain = resolvedChain;
+            }
+            return new PlayableEventCommitResult(result, chain, encounterIds, result.EffectResults);
+        }
+
+        private static bool TryPreflightItemRemovals(IReadOnlyList<EventEffect> effects, HunterInstance actor, IPlayableEventResourceCommand resourceCommand, IPlayableEventItemCommand itemCommand, out int rejectedEffectIndex, out string reason)
+        {
+            rejectedEffectIndex = -1;
+            reason = string.Empty;
+            if (effects == null) return true;
+            var totals = new Dictionary<string, int>(System.StringComparer.Ordinal);
+            var firstIndices = new Dictionary<string, int>(System.StringComparer.Ordinal);
+            bool killsActor = false;
+            for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+            {
+                EventEffect effect = effects[effectIndex];
+                if (effect?.effectType == EventEffectType.KillHunter) killsActor = true;
+                if (effect?.effectType != EventEffectType.RemoveItem) continue;
+                if (itemCommand == null)
+                    return FailPreflight(effectIndex, "狩猎物品消耗端口尚未注入。", out rejectedEffectIndex, out reason);
+                if (effect.value <= 0)
+                    return FailPreflight(effectIndex, "事件消耗物品数量无效。", out rejectedEffectIndex, out reason);
+                string itemId = PlayableSettlementItemRegistry.ResolveContentId(effect.targetName);
+                if (string.IsNullOrWhiteSpace(itemId))
+                    return FailPreflight(effectIndex, "事件消耗物品 ID 无效。", out rejectedEffectIndex, out reason);
+                int oldTotal = totals.TryGetValue(itemId, out int value) ? value : 0;
+                if (oldTotal > int.MaxValue - effect.value)
+                    return FailPreflight(effectIndex, "事件消耗物品数量溢出。", out rejectedEffectIndex, out reason);
+                totals[itemId] = oldTotal + effect.value;
+                firstIndices.TryAdd(itemId, effectIndex);
+            }
+            if (totals.Count == 0) return true;
+            if (killsActor)
+            {
+                int firstEffectIndex = int.MaxValue;
+                foreach (int effectIndex in firstIndices.Values)
+                    if (effectIndex < firstEffectIndex) firstEffectIndex = effectIndex;
+                return FailPreflight(firstEffectIndex, "同一事件结果不能同时消耗携带物并永久杀死执行猎人。", out rejectedEffectIndex, out reason);
+            }
+            if (!TryPreflightItemCostResources(effects, actor, resourceCommand, out rejectedEffectIndex, out reason)) return false;
+            foreach (KeyValuePair<string, int> total in totals)
+                if (!itemCommand.CanRemove(total.Key, total.Value, actor, out reason))
+                {
+                    rejectedEffectIndex = firstIndices[total.Key];
+                    return false;
+                }
+            return true;
+        }
+
+        private static bool TryPreflightItemCostResources(IReadOnlyList<EventEffect> effects, HunterInstance actor, IPlayableEventResourceCommand resourceCommand, out int rejectedEffectIndex, out string reason)
+        {
+            rejectedEffectIndex = -1;
+            reason = string.Empty;
+            for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+            {
+                EventEffect effect = effects[effectIndex];
+                if (effect?.effectType != EventEffectType.AddResource && effect?.effectType != EventEffectType.RemoveResource) continue;
+                if (resourceCommand == null)
+                    return FailPreflight(effectIndex, "带物品成本的事件资源变化端口尚未注入。", out rejectedEffectIndex, out reason);
+                return resourceCommand.CanApplyBatch(effects, actor, out rejectedEffectIndex, out reason);
+            }
+            return true;
+        }
+
+        private static bool FailPreflight(int effectIndex, string message, out int rejectedEffectIndex, out string reason)
+        {
+            rejectedEffectIndex = effectIndex;
+            reason = message;
+            return false;
+        }
+
+        private static PlayableEventCommitResult RejectChoice(EventOption option, bool success, int rollValue, EventEffect effect, int effectIndex, string reason, string eventId)
+        {
+            var effectResults = new[] { new PlayableEventEffectResult(effectIndex, effect, PlayableEventEffectStatus.Failed, reason, eventId) };
+            var rejected = new EventResolutionResult
+            {
+                Success = success,
+                RollValue = rollValue,
+                ResultText = success ? option.successText : option.failText,
+                EffectResults = new PlayableEventEffectBatchResult(effectResults)
+            };
+            return new PlayableEventCommitResult(rejected, System.Array.Empty<EventData>(), System.Array.Empty<string>(), rejected.EffectResults);
+        }
+
+    }
+
+    internal static class PlayableEventCheckRules
+    {
+        public static int ResolveCount(EventOption option) => option?.checkCount > 0 ? option.checkCount : 1;
+
+        public static int ResolveSides(EventOption option) => option?.checkSides > 1 ? option.checkSides : 10;
+
+        public static bool IsValidRoll(EventOption option, int roll)
+        {
+            int count = ResolveCount(option);
+            int sides = ResolveSides(option);
+            return roll >= count && roll <= count * sides;
+        }
+
+        public static int ResolveTotal(EventOption option, int roll, int bonus)
+        {
+            return option?.checkPresentation == EventCheckPresentationKind.OldMaid ? roll : roll + bonus;
+        }
+
+        public static bool IsSuccessful(EventOption option, int roll, int bonus)
+        {
+            if (option?.checkPresentation == EventCheckPresentationKind.OldMaid) return roll > 1;
+            return EventRules.CheckSucceeded(roll, bonus, option?.checkTarget ?? 0);
+        }
+    }
+
+    public readonly struct PlayableEventCommitResult
+    {
+        public PlayableEventCommitResult(EventResolutionResult result, IReadOnlyList<EventData> chainedEvents)
+            : this(result, chainedEvents, System.Array.Empty<string>(), result.EffectResults)
+        {
+        }
+
+        public PlayableEventCommitResult(EventResolutionResult result, IReadOnlyList<EventData> chainedEvents, IReadOnlyList<string> encounterIds)
+            : this(result, chainedEvents, encounterIds, result.EffectResults)
+        {
+        }
+
+        public PlayableEventCommitResult(EventResolutionResult result, IReadOnlyList<EventData> chainedEvents, IReadOnlyList<string> encounterIds, PlayableEventEffectBatchResult effectResults)
+        {
+            Result = result;
+            ChainedEvents = chainedEvents ?? System.Array.Empty<EventData>();
+            EncounterIds = encounterIds ?? System.Array.Empty<string>();
+            EffectResults = effectResults;
+        }
+
+        public EventResolutionResult Result { get; }
+        public IReadOnlyList<EventData> ChainedEvents { get; }
+        public IReadOnlyList<string> EncounterIds { get; }
+        public PlayableEventEffectBatchResult EffectResults { get; }
+    }
+
+    public readonly struct PlayableEventNodeCommitResult
+    {
+        public PlayableEventNodeCommitResult(IReadOnlyList<EventData> chainedEvents, IReadOnlyList<string> encounterIds)
+            : this(chainedEvents, encounterIds, PlayableEventEffectBatchResult.Empty)
+        {
+        }
+
+        public PlayableEventNodeCommitResult(IReadOnlyList<EventData> chainedEvents, IReadOnlyList<string> encounterIds, PlayableEventEffectBatchResult effectResults)
+        {
+            ChainedEvents = chainedEvents ?? System.Array.Empty<EventData>();
+            EncounterIds = encounterIds ?? System.Array.Empty<string>();
+            EffectResults = effectResults;
+        }
+
+        public IReadOnlyList<EventData> ChainedEvents { get; }
+        public IReadOnlyList<string> EncounterIds { get; }
+        public PlayableEventEffectBatchResult EffectResults { get; }
+    }
+
+    public struct PlayableEventEncounterRequestedEvent
+    {
+        public string EncounterId;
+        public string SourceEventId;
+    }
+}

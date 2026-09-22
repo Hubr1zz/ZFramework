@@ -2,6 +2,7 @@ using Cards3D;
 using Core;
 using GameplayBase.Board;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace HuntingInDarkness.ViewLayer.Flow
 {
@@ -10,6 +11,7 @@ namespace HuntingInDarkness.ViewLayer.Flow
     {
         private void Update()
         {
+            if (CardInspectionOverlay.BlocksWorldInput || EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
             if (!Input.GetMouseButtonDown(0) || UnityEngine.Camera.main == null) return;
             Ray ray = UnityEngine.Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit))

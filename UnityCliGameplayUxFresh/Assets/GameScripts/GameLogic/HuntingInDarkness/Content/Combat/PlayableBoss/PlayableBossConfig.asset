@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dd44b6d63d00ac4187f2221d6cfc579, type: 3}
+  m_Name: PlayableBossConfig
+  m_EditorClassIdentifier: GameLogic::Config.BossConfigSO
+  bossName: "\u65E0\u5149\u517D"
+  baseToughness: 2
+  maxHealth: 6
+  bossCardPool:
+  - {fileID: 11400000, guid: 16207ba10d2610441a2de33f28e0bb14, type: 2}
+  bossHitLocationPool:
+  - {fileID: 11400000, guid: d8dcc56bb2db5ea4a9d1e39d38be5008, type: 2}
+  - {fileID: 11400000, guid: 7511af9086647fe4ebc2f18ab09b6784, type: 2}
+  - {fileID: 11400000, guid: 3eb4bde5df120b6479cd14d949ae8df6, type: 2}
+  - {fileID: 11400000, guid: 1876ed6afe56df948a8e9146299d1f5f, type: 2}
+  killLoot:
+  - resourceName: "\u788E\u77F3"
+    chance: 1
+    count: 2
+  - resourceName: "\u67D4\u8F6F\u5668\u5B98"
+    chance: 1
+    count: 1

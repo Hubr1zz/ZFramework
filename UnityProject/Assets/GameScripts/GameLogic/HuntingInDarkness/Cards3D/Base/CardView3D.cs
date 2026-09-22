@@ -2,6 +2,11 @@ using System.Collections.Generic;
 using Cards3D;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+#if UNITY_EDITOR
+using Sirenix.OdinInspector;
+using UnityEditor;
+#endif
 
 namespace Cards3D
 {
@@ -16,15 +21,18 @@ namespace Cards3D
     /// </summary>
     public abstract class CardView3D : MonoBehaviour
     {
-        // 标准卡牌尺寸（默认值常量；布局代码沿用这些静态常量）
+        // 标准卡牌尺寸仅作为未配置类型的回退值；核心卡牌尺寸由 CardPrefabCatalog 统一提供。
         public const float CW = 0.75f;
         public const float CH = 1.05f;
         public const float CD = 0.025f;
 
-        // ─── 实例尺寸（子类可覆写，使不同卡有不同大小）──────────────────────
-        public virtual float Width  => CW;
-        public virtual float Height => CH;
-        public virtual float Depth  => CD;
+        protected virtual CardDimensions FallbackDimensions => CardDimensions.Standard;
+        private CardDimensions resolvedDimensions;
+        private bool dimensionsResolved;
+        private CardDimensions Dimensions => dimensionsResolved ? resolvedDimensions : CardPrefabRegistry.GetDimensions(GetType(), FallbackDimensions);
+        public virtual float Width => Dimensions.Width;
+        public virtual float Height => Dimensions.Height;
+        public virtual float Depth => Dimensions.Depth;
 
         [SerializeField] protected Renderer _bodyRenderer;
         private Vector3 _baseLocalPos;
@@ -60,6 +68,7 @@ namespace Cards3D
         protected virtual float HoverLift => 0.12f;
         protected bool IsHovered => _isHovered;
         protected bool IsDraggingCard => _isDragging;
+        public bool IsDragging => _isDragging;
 
         /// <summary>卡牌类别，供卡槽过滤。子类覆写提供默认值；ForceCategory() 可在外部覆盖。</summary>
         public CardCategory Category => _forcedCategory ?? GetDefaultCategory();
@@ -87,15 +96,23 @@ namespace Cards3D
 
         // ─── 初始化 ────────────────────────────────────────────────────────
 
-        protected virtual void Awake()    => AllCards.Add(this);
-        protected virtual void OnDestroy() => AllCards.Remove(this);
+        protected virtual void Awake() => AllCards.Add(this);
+
+        protected virtual void OnDestroy()
+        {
+            CardInspectionOverlay.ClearCard(this);
+            AllCards.Remove(this);
+        }
 
         protected void InitView(Vector3 localPos)
         {
             _baseLocalPos = localPos;
             transform.localPosition = localPos;
-            bool wasPrebuilt = _bodyRenderer != null;
+            resolvedDimensions = CardPrefabRegistry.GetDimensions(GetType(), FallbackDimensions);
+            dimensionsResolved = true;
+            bool wasPrebuilt = _bodyRenderer != null || transform.Find("Body")?.GetComponent<Renderer>() != null;
             BuildBaseGeometry();
+            ApplyConfiguredDimensions();
             // Prefab mode: body already exists, instance the material per-card
             if (wasPrebuilt && _bodyRenderer != null)
                 _bodyRenderer.material = new Material(_bodyRenderer.sharedMaterial);
@@ -105,20 +122,86 @@ namespace Cards3D
 
         private void BuildBaseGeometry()
         {
+            _bodyRenderer ??= transform.Find("Body")?.GetComponent<Renderer>();
             if (_bodyRenderer != null) return; // prefab already has body
-
-            var col = gameObject.AddComponent<BoxCollider>();
-            col.size   = new Vector3(Width, HoverLift + Depth * 2f, Height);
-            col.center = new Vector3(0f, HoverLift * 0.4f, 0f);
 
             var bodyGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             bodyGo.name = "Body";
             bodyGo.transform.SetParent(transform, false);
             bodyGo.transform.localScale = new Vector3(Width, Depth, Height);
-            Destroy(bodyGo.GetComponent<Collider>());
+            SafeDestroy(bodyGo.GetComponent<Collider>());
             _bodyRenderer = bodyGo.GetComponent<Renderer>();
             _bodyRenderer.material = new Material(_bodyRenderer.sharedMaterial);
         }
+
+        private void ApplyConfiguredDimensions()
+        {
+            var collider = GetComponent<BoxCollider>();
+            if (collider == null) collider = gameObject.AddComponent<BoxCollider>();
+            Vector3 bodyCenter = _bodyRenderer != null ? _bodyRenderer.transform.localPosition : Vector3.zero;
+            collider.size = new Vector3(Width, Depth, Height);
+            collider.center = bodyCenter;
+            if (_bodyRenderer != null) _bodyRenderer.transform.localScale = new Vector3(Width, Depth, Height);
+
+            foreach (Collider childCollider in GetComponentsInChildren<Collider>(true))
+                if (childCollider != collider)
+                    SafeDestroy(childCollider);
+        }
+
+        private static void SafeDestroy(UnityEngine.Object target)
+        {
+            if (target == null) return;
+            if (Application.isPlaying) Destroy(target);
+            else DestroyImmediate(target);
+        }
+
+#if UNITY_EDITOR
+        [Button("根据 CardPrefabCatalog 同步尺寸"), ContextMenu("根据 CardPrefabCatalog 同步尺寸")]
+        private void ApplyCatalogDimensionsInEditor()
+        {
+            CardPrefabCatalog matchedCatalog = null;
+            CardDimensions matchedDimensions = default;
+            foreach (string guid in AssetDatabase.FindAssets("t:CardPrefabCatalog"))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                CardPrefabCatalog candidate = AssetDatabase.LoadAssetAtPath<CardPrefabCatalog>(path);
+                if (candidate == null || !candidate.TryGetDimensions(GetType(), out CardDimensions dimensions)) continue;
+                if (matchedCatalog != null)
+                {
+                    Debug.LogError($"[{nameof(CardView3D)}] {GetType().Name} 同时存在于多个 CardPrefabCatalog，请先消除重复配置。", this);
+                    return;
+                }
+                matchedCatalog = candidate;
+                matchedDimensions = dimensions;
+            }
+
+            if (matchedCatalog == null)
+            {
+                Debug.LogError($"[{nameof(CardView3D)}] 没有 CardPrefabCatalog 配置 {GetType().Name}。", this);
+                return;
+            }
+
+            _bodyRenderer ??= transform.Find("Body")?.GetComponent<Renderer>();
+            if (_bodyRenderer == null)
+            {
+                Debug.LogError($"[{nameof(CardView3D)}] {name} 缺少名为 Body 的 Renderer，无法同步尺寸。", this);
+                return;
+            }
+
+            Undo.RegisterFullObjectHierarchyUndo(gameObject, "同步卡牌 Catalog 尺寸");
+            resolvedDimensions = matchedDimensions;
+            dimensionsResolved = true;
+            ApplyConfiguredDimensions();
+            EditorUtility.SetDirty(gameObject);
+            EditorUtility.SetDirty(this);
+            EditorUtility.SetDirty(_bodyRenderer.transform);
+            BoxCollider collider = GetComponent<BoxCollider>();
+            if (collider != null) EditorUtility.SetDirty(collider);
+            if (PrefabUtility.IsPartOfPrefabInstance(gameObject)) PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+            SceneView.RepaintAll();
+            Debug.Log($"[{nameof(CardView3D)}] 已从 {matchedCatalog.name} 同步 {GetType().Name}：{Width} × {Height} × {Depth}", this);
+        }
+#endif
 
         /// <summary>
         /// 创建一个平铺（XZ 平面）的 TextMeshPro 子物体，从上方俯视可读。
@@ -152,6 +235,44 @@ namespace Cards3D
         protected abstract void BuildTextFields();
         protected abstract void ApplyVisuals();
         protected virtual bool CanHover() => true;
+        protected virtual bool SupportsInspection => true;
+
+        public virtual bool TryGetInspectionContent(out CardInspectionContent content)
+        {
+            content = default;
+            if (!SupportsInspection) return false;
+
+            TextMeshPro[] fields = GetComponentsInChildren<TextMeshPro>(true);
+            string title = null;
+            foreach (TextMeshPro field in fields)
+            {
+                if (!IsVisibleInspectionField(field)) continue;
+                if (field.gameObject.name != "Title" && field.gameObject.name != "Name") continue;
+                title = field.text?.Trim();
+                break;
+            }
+
+            if (string.IsNullOrWhiteSpace(title)) title = DisplayName;
+            var sections = new List<string>();
+            var uniqueSections = new HashSet<string>();
+            foreach (TextMeshPro field in fields)
+            {
+                if (!IsVisibleInspectionField(field)) continue;
+                string value = field.text?.Trim();
+                if (string.IsNullOrWhiteSpace(value) || value == title || !uniqueSections.Add(value)) continue;
+                sections.Add(value);
+            }
+
+            if (sections.Count == 0) return false;
+            content = new CardInspectionContent(title, string.Join("\n\n", sections), "卡牌详情");
+            return true;
+        }
+
+        private static bool IsVisibleInspectionField(TextMeshPro field)
+        {
+            if (field == null || !field.gameObject.activeInHierarchy) return false;
+            return field.color.a > 0.01f;
+        }
 
         // ─── 公共操作 ──────────────────────────────────────────────────────
 
@@ -171,6 +292,8 @@ namespace Cards3D
 
         protected virtual void OnMouseEnter()
         {
+            if (CardInspectionOverlay.BlocksWorldInput || EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+            CardInspectionOverlay.SetHovered(this);
             if (!CanHover() || _isDragging) return;
             _isHovered = true;
             transform.localPosition = _baseLocalPos + Vector3.up * HoverLift;
@@ -179,6 +302,8 @@ namespace Cards3D
 
         protected virtual void OnMouseExit()
         {
+            if (CardInspectionOverlay.BlocksWorldInput) return;
+            CardInspectionOverlay.ClearHovered(this);
             if (_isDragging) return;
             _isHovered = false;
             transform.localPosition = _baseLocalPos;
@@ -203,7 +328,7 @@ namespace Cards3D
         /// <summary>接收世界空间输入适配器的按下位置；不产生玩法命令。</summary>
         public void HandlePointerDown(Vector2 screenPosition)
         {
-            if (_isDragging) return;
+            if (_isDragging || CardInspectionOverlay.BlocksWorldInput || EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
             _mouseDownScreenPos = screenPosition;
             _dragReady = true;
         }
@@ -224,6 +349,12 @@ namespace Cards3D
         /// <summary>结束当前指针手势；只有超过阈值的拖拽才进入卡槽命令入口。</summary>
         public void HandlePointerUp()
         {
+            if (CardInspectionOverlay.BlocksWorldInput)
+            {
+                _dragReady = false;
+                return;
+            }
+
             bool shouldClick = _dragReady && !_isDragging;
             _dragReady = false;
             if (_isDragging)
@@ -237,6 +368,7 @@ namespace Cards3D
 
         private void HandlePointerDrag(Vector2 screenPosition, bool hasWorldPosition, Vector3 worldPosition)
         {
+            if (CardInspectionOverlay.BlocksWorldInput && !_isDragging) return;
             if (_dragReady && !_isDragging && Vector2.Distance(screenPosition, _mouseDownScreenPos) > dragThresholdPixels)
             {
                 _dragReady = false;
@@ -255,6 +387,7 @@ namespace Cards3D
 
         private void BeginDrag()
         {
+            CardInspectionOverlay.ClearHovered(this);
             _isDragging = true;
             _isHovered  = false;
             _preDragLocalPos = _baseLocalPos;

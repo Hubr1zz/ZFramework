@@ -5,7 +5,7 @@ description: 优化、扩展或重构本项目 zWorkFlow Unity Workbench UI 时�
 
 # zWorkFlow UI Maintenance
 
-本 skill 只约束当前项目中的 zWorkFlow Workbench 改动。开始修改前先读取目标页面及其共享渲染方法，完成后运行覆盖全部 Workbench 页面与可移植模板的布局审计，再做 Unity MCP 编译验证。
+本 skill 只约束当前项目中的 zWorkFlow Workbench 改动。开始修改前先读取目标页面及其共享渲染方法，完成后运行覆盖全部 Workbench 页面与可移植模板的布局审计，再做 Unity CLI 编译验证。
 
 ## 布局规则
 
@@ -13,7 +13,7 @@ description: 优化、扩展或重构本项目 zWorkFlow Unity Workbench UI 时�
 2. 分栏优先让布局系统把扣除固定栏与间距后的剩余空间交给弹性栏；不得从窗口宽度手算嵌套栏固定宽度。确需显式预算时只能使用父容器提供的本地宽度，结果最小只能钳制到可布局的正数，不能用会反向撑大父容器的视觉最小宽度。
 3. 固定宽度控件必须有明确预算或窄窗口降级方案。正文、标签和帮助文本启用换行；普通页面只使用纵向滚动。横向滚动仅允许用于明确需要保持原始行宽的代码或原始数据视图。
 4. Markdown 表格、图片、编辑器和代码块的最大宽度不得超过调用方提供的本地内容宽度。表格列数增加时压缩单元格并换行，不得以单元格最小宽度撑破父容器。
-5. 新增或修改任一页面后，至少验证 Workbench 的 `900x600` 最小窗口和一个常用较大尺寸。布局审计必须扫描全部 `AgentWorkbenchWindow*.cs` 与对应模板，禁止新增全局视图宽度和“窗口宽度 + 视觉最小值”式嵌套计算。优先使用数据化布局审计与 Unity MCP，不以截图作为主要验证手段。
+5. 新增或修改任一页面后，至少验证 Workbench 的 `900x600` 最小窗口和一个常用较大尺寸。布局审计必须扫描全部 `AgentWorkbenchWindow*.cs` 与对应模板，禁止新增全局视图宽度和“窗口宽度 + 视觉最小值”式嵌套计算。优先使用数据化布局审计与 Unity CLI，不以截图作为主要验证手段。
 6. 顶部工具栏、筛选栏和操作栏的固定宽度总和超过最小窗口预算时，必须按窗口宽度换行或折叠；页面内容修复不能掩盖其上层公共 chrome 的横向溢出。
 7. Unity IMGUI 的局部宽度测量不得在同一帧同时作为 GUILayout 的 Layout 与 Repaint 宽度约束；需要把宽度传入 Markdown、表格或编辑器时，必须缓存上一次有效 Repaint 测量，让下一轮 Layout/Repaint 共用同一预算。
 
@@ -25,7 +25,7 @@ description: 优化、扩展或重构本项目 zWorkFlow Unity Workbench UI 时�
 pwsh -NoProfile -File .agents/skills/zworkflow-ui-maintenance/scripts/test-layout.ps1
 ```
 
-随后通过 Unity MCP 刷新资源、等待编译完成并检查 Error 日志。若修改了 `zWorkFlow/setup/assets` 中的可移植模板，还要同步验证模板与实际 Editor 文件；本项目专用规则本身禁止进入模板或移植包。
+随后通过 Unity CLI 刷新资源、等待编译完成并检查 Error 日志。若修改了 `zWorkFlow/setup/assets` 中的可移植模板，还要同步验证模板与实际 Editor 文件；本项目专用规则本身禁止进入模板或移植包。
 
 ## 分发边界
 

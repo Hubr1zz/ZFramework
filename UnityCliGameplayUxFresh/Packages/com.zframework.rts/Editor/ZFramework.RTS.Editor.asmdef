@@ -1,0 +1,14 @@
+{
+  "name": "ZFramework.RTS.Editor",
+  "rootNamespace": "ZFramework.RTS.Editor",
+  "references": ["ZFramework.RTS.Contracts", "ZFramework.RTS.Runtime", "ZFramework.Runtime"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55ba345218bd9de46ae2a1fda1716941, type: 3}
+  m_Name: HuntingInDarknessContentSources
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Bootstrap.PlayableContentSourceManifest
+  manifestId: hunting-in-darkness-content-v1
+  schemaVersion: 1
+  settings: {fileID: 11400000, guid: eaa6505530fa9d141ba26750404aaa6a, type: 2}
+  eventsTable: {fileID: 4900000, guid: 2a32e230eed309144a69d91ec3f752f4, type: 3}
+  bloodlineEventsTable: {fileID: 4900000, guid: 1e0d246fe7975284aa80f31c816ed619, type: 3}
+  cardInteractionEventsTable: {fileID: 4900000, guid: 2a2dffcbb02a04c46aaa6a1985bbe5d9, type: 3}
+  huntEventsTable: {fileID: 4900000, guid: 6a052d984b59f624f9a084bb3ee4204f, type: 3}
+  bloodlinesTable: {fileID: 4900000, guid: a54aa1f6080ceb646ba15ad8a30ec785, type: 3}
+  itemsTable: {fileID: 4900000, guid: 8c2b910c19609904ea5a547a1ec3d80d, type: 3}
+  recipesTable: {fileID: 4900000, guid: 156c7bea2196d0047b84b06aa2342495, type: 3}
+  settlementExtensions:
+  - {fileID: 11400000, guid: a0612c9cfafc3ef46aee76e4bf53f246, type: 2}
+  - {fileID: 11400000, guid: 5a1e9d2c7b4f6a8e9c0d1e2f3a4b5c6d, type: 2}
+  chineseFont: {fileID: 12800000, guid: c2369fcfa3a4d724092d6c9a9f82f452, type: 3}

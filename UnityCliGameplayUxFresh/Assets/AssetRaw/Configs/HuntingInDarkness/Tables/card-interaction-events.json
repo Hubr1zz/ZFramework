@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "random_bone_omens",
+      "eventName": "掌中的骨兆",
+      "eventType": "Choice",
+      "displayText": "清点猎物时，你们发现十枚薄如纸片的骨片。每一枚都刻着不同的眼睛，只有翻开后，刻痕才会短暂发亮。",
+      "hiddenText": "骨片重新黯淡。无论它是否说中了什么，翻牌的人都已经把那个征兆记在心里。",
+      "options": [
+        {
+          "optionId": "read_bone_omen",
+          "optionText": "让一名猎人翻开骨兆，解读刻痕",
+          "checkType": "Understanding",
+          "checkTarget": 7,
+          "checkPresentation": "FlipCards",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "bone-omens",
+          "checkInstruction": "选择一枚骨兆并将它翻开",
+          "successText": "骨片上的眼睛朝向石堆。你们在那里找到了可用的材料，解读者也理解了这种征兆。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" },
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
+          ],
+          "failText": "光痕彼此抵消，留下一个无法解释的空洞。猎人强迫自己记下这种失败。",
+          "failEffects": [
+            { "effectType": "AddLuck", "targetName": "selected", "value": 1, "description": "命运值 +1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionId": "reject_omen",
+          "optionText": "不让未知征兆替你们做决定",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "骨片被重新包好。今晚，你们只相信亲手做出的选择。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    },
+    {
+      "id": "random_faceless_hand",
+      "eventName": "无面人的手牌",
+      "eventType": "Choice",
+      "displayText": "一个戴着骨面具的旅人把十张背面相同的旧牌铺成扇形。九张画着熄灭的灯，剩下一张没有脸。",
+      "hiddenText": "旅人收回手牌，没有解释那张无面牌究竟代表谁。",
+      "options": [
+        {
+          "optionId": "draw_hand_card",
+          "optionText": "让一名猎人从手牌中抽出一张",
+          "checkType": "Luck",
+          "checkTarget": 10,
+          "checkPresentation": "OldMaid",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "faceless-hand",
+          "checkInstruction": "从无面人的手牌中抽一张，避开无面牌",
+          "successText": "牌面是一盏熄灭的灯。旅人留下几块黑盐，像是在支付一场没有发生的葬礼。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "无面牌贴在猎人的掌心，直到皮肤渗血才肯脱落。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "arms", "value": 1, "description": "手臂受到 1 点普通伤势" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionId": "reject_card_game",
+          "optionText": "拒绝这场没有赌注说明的游戏",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "旅人耸了耸肩，把牌收回斗篷深处。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Random"
+    }
+  ]
+}

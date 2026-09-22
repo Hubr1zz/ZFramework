@@ -130,6 +130,9 @@ GameObject:
   - component: {fileID: 519420032}
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
+  - component: {fileID: 519420035}
+  - component: {fileID: 519420034}
+  - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -178,9 +181,9 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
-  orthographic: 1
-  orthographic size: 5
+  field of view: 42
+  orthographic: 0
+  orthographic size: 8
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -204,13 +207,218 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalRotation: {x: 0.4617486, y: 0, z: 0, w: 0.8870108}
+  m_LocalPosition: {x: 0, y: 16, z: -11}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 55, y: 0, z: 0}
+--- !u!114 &519420033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60373db0aa6e7b94f8bc80f8b975002a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameLogic::UI.CameraController
+  orbitTarget: {x: 0, y: 0, z: 0}
+  rotateSensitivity: 2.5
+  mouseOrbitButton: 2
+  minPitch: 15
+  maxPitch: 80
+  transitionSpeed: 6
+  focusTransitionDuration: 0.5
+  characterFocusFarOffset: {x: 4, y: 6, z: -7}
+  characterFocusNearOffset: {x: 2.5, y: 4, z: -4}
+  maxCharacterBossFocusDistance: 0
+  zoomSpeed: 1
+  minFocusDistance: 3
+  maxFocusDistance: 20
+  panSpeed: 6
+  panRangeFactor: 1.2
+  defaultBoardWorldRadius: 4
+  perspectiveFieldOfView: 42
+  boardFramingPadding: 2
+  resetViewKey: 278
+  controlHint: "\u4E2D\u952E\u65CB\u8F6C / WASD \u79FB\u52A8 \xB7 \u6EDA\u8F6E\u7F29\u653E
+    \xB7 Home \u590D\u4F4D \xB7 H \u663E\u793A\u63D0\u793A"
+  controlHintOverlay: {fileID: 1933885152}
+--- !u!114 &519420034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 652c941af3ea04146a67cb88381d478b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Hunt.HuntCameraController
+  panSpeed: 0.025
+  panBorder: 80
+  enableEdgePan: 0
+  zoomSpeed: 2
+  minY: 3
+  maxY: 20
+  mapExtent: 8
+  initialPosition: {x: 0, y: 16, z: -11}
+  initialPitch: 55
+  perspectiveFieldOfView: 42
+  framingPadding: 1.15
+  minimumFramingDistance: 10
+  resetViewKey: 278
+  controlHint: "\u4E2D\u952E\u62D6\u52A8 / WASD \u79FB\u52A8 \xB7 \u6EDA\u8F6E\u7F29\u653E
+    \xB7 Home \u590D\u4F4D \xB7 \u60AC\u505C\u5361\u724C\u6309 F \u67E5\u770B\u8BE6\u60C5
+    \xB7 H \u663E\u793A\u63D0\u793A"
+  controlHintOverlay: {fileID: 1933885152}
+--- !u!114 &519420035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 104fc4a94e0abd34392f3be6c6a6b99a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameLogic::UI.SettlementCameraController
+  defaultPosition: {x: 0, y: 16, z: -11}
+  defaultEulerAngles: {x: 55, y: 0, z: 0}
+  perspectiveFieldOfView: 42
+  framingPadding: 1.15
+  minimumFramingDistance: 10
+  enablePan: 1
+  keyboardPanSpeed: 5
+  mousePanButton: 2
+  panBoundsPadding: 1.5
+  enableScrollZoom: 1
+  zoomSpeed: 1.5
+  minimumZoomRatio: 0.45
+  maximumZoomRatio: 1.65
+  resetViewKey: 278
+  controlHint: "\u4E2D\u952E\u62D6\u52A8 / WASD \u79FB\u52A8 \xB7 \u6EDA\u8F6E\u7F29\u653E
+    \xB7 Home \u590D\u4F4D \xB7 \u60AC\u505C\u5361\u724C\u6309 F \u67E5\u770B\u8BE6\u60C5
+    \xB7 H \u663E\u793A\u63D0\u793A"
+  controlHintOverlay: {fileID: 1933885152}
+--- !u!1001 &1933885151
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 361693370864845818, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_Name
+      value: TabletopUsability
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429148165026622278, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8103475133657763199, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+      propertyPath: inputCamera
+      value: 
+      objectReference: {fileID: 519420031}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+--- !u!114 &1933885152 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6783281270109905100, guid: 1468abcbacaf5b346b7097e7f4555d2b, type: 3}
+  m_PrefabInstance: {fileID: 1933885151}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f73293f2357ce44298c085459298a5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.ViewLayer.Tabletop.TabletopControlHintOverlay
 --- !u!1001 &2425705316520036048
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -340,3 +548,4 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 7696541954144433114}
   - {fileID: 2425705316520036048}
+  - {fileID: 1933885151}

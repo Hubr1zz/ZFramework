@@ -1,0 +1,751 @@
+using System.Collections.Generic;
+using HuntingInDarkness.GameCore.Hunt;
+using HuntingInDarkness.GameCore.Hunters;
+using HuntingInDarkness.GameCore.Settlement;
+using UnityEngine;
+
+namespace HuntingInDarkness.Data
+{
+    // ═══════════════════════════════════════════════════════════════
+    // Settlement 数据模型
+    // ═══════════════════════════════════════════════════════════════
+
+    // ─── 发明树 ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// 发明节点 ScriptableObject。含前置依赖引用（树形依赖图）。
+    /// 经典模式下无法解锁全部发明（互斥选择由 exclusiveWith 控制）。
+    /// </summary>
+    [CreateAssetMenu(fileName = "NewInvention", menuName = "HuntingInDarkness/Invention")]
+    public class InventionData : ScriptableObject
+    {
+        [Header("基础")]
+        [SerializeField, Tooltip("稳定内容 ID。写入存档及跨内容引用时使用；旧资产为空时暂以资产名兼容。")]
+        private string contentId;
+        public string inventionName = "新发明";
+        [TextArea] public string description;
+
+        [Header("前置依赖（全部解锁后才可解锁此发明）")]
+        public List<InventionData> prerequisites = new();
+
+        [Header("解锁成本")]
+        public List<InventionCost> costs = new();
+
+        [Header("互斥（只能选其一）")]
+        public List<InventionData> exclusiveWith = new();
+
+        [Header("发明效果说明（仅供玩家阅读）")]
+        [TextArea] public string effectDescription;
+
+        [Header("解锁时结构化效果")]
+        public List<InventionPassiveEffect> unlockEffects = new();
+
+        [Header("跨阶段 Action 效果")]
+        public List<InventionActionEffect> actionEffects = new();
+
+        [Header("发明类别")]
+        public InventionCategory category = InventionCategory.Basic;
+
+        [Header("卡牌图标")]
+        public Sprite icon;
+
+        [Header("主动效果选项（有多个时点击卡牌弹出选择）")]
+        public List<InventionActiveEffect> activeEffects = new();
+
+        public string ContentId
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(contentId)) return contentId.Trim();
+                if (!string.IsNullOrWhiteSpace(name)) return name.Trim();
+                return inventionName?.Trim() ?? string.Empty;
+            }
+        }
+
+        public bool HasExplicitContentId => !string.IsNullOrWhiteSpace(contentId);
+        public void ConfigureContentId(string value) => contentId = value?.Trim() ?? string.Empty;
+    }
+
+    public enum InventionCategory
+    {
+        Basic,      // 基础（训练、工具等）
+        Knowledge,  // 知识（故事、信仰、纸和笔等）
+        Crafting,   // 制造（装备、工坊升级等）
+        Combat,     // 战斗强化
+        Special     // 特殊/传承
+    }
+
+    [System.Serializable]
+    public class InventionCost
+    {
+        public ItemData resource;
+        public int count = 1;
+    }
+
+    [System.Serializable]
+    public sealed class InventionPassiveEffect
+    {
+        [Tooltip("Unlock 只在掌握瞬间结算；Campaign 作为持续来源投影到当前及未来猎人。")]
+        public InventionEffectLifetime lifetime;
+        [Tooltip("Campaign 效果必填的稳定修正 ID；内容重排或改名时保持不变。")]
+        public string modifierId;
+        public InventionEffectKind kind;
+        public InventionEffectTarget target = InventionEffectTarget.AvailableHunters;
+        public int value = 1;
+    }
+
+    [System.Serializable]
+    public class InventionActiveEffect
+    {
+        [Tooltip("稳定效果 ID；用于年度次数与存档。")]
+        public string effectId;
+        public string effectName;
+        [TextArea] public string description;
+        [Tooltip("启动的稳定事件 ID。事件负责角色选择、判定、随机表现与结算。")]
+        public string eventId;
+        [Min(0), Tooltip("每年最多使用次数；0 表示不限次数。")]
+        public int maxUsesPerYear = 1;
+    }
+
+    // ─── Timeline 数据模型 ───────────────────────────────────────
+
+    /// <summary>年鉴条目（营地 Timeline 中的一行记录）</summary>
+    [System.Serializable]
+    public class AnnalEntry
+    {
+        public int    Year;
+        public string EventId;         // 事件型条目使用 EventData.ContentId；动态条目保留自身稳定 ID
+        public string EventName;       // 缓存名称
+        public bool   IsCompleted;
+        public bool   IsMilestone;     // 主线事件（金色标记）
+        public TimelineEntryType EntryType = TimelineEntryType.Random;
+        public string SourceHuntRecordId;
+        public string ResolutionMemoryId;
+        public PlayableEventRerollCheckpoint RerollCheckpoint;
+    }
+
+    [System.Serializable]
+    public sealed class PlayableEventRerollCheckpoint
+    {
+        public const int CurrentSchemaVersion = 1;
+        public const int MaximumAbsoluteBonus = 10000;
+        public bool HasValue;
+        public int SchemaVersion = CurrentSchemaVersion;
+        public string EventId;
+        public string OptionId;
+        public int ActorId;
+        public int RollValue;
+        public int Bonus;
+    }
+
+    [System.Serializable]
+    public class EventResolutionMemoryEffect
+    {
+        public int EffectIndex;
+        public string EffectType;
+        public string TargetName;
+        public string ResolvedTargetId;
+        public bool Applied;
+        public string Reason;
+        public int TargetActorId;
+        public bool StateChanged;
+        public int PreviousValue;
+        public int CurrentValue;
+        public bool HasDeathCard;
+        public DeathCardType DeathCard;
+        public string PermanentInjuryId;
+        public bool HunterDied;
+        public string DeathDeckId;
+        public int FacedownPosition;
+    }
+
+    [System.Serializable]
+    public class EventResolutionMemory
+    {
+        public string MemoryId;
+        public string EventId;
+        public string EventName;
+        public string ResolutionMode;
+        public EventResolutionSelectionMode SelectionMode;
+        public string OptionId;
+        public string OptionText;
+        public int Year;
+        public int ActorId;
+        public string CheckType;
+        public bool HasCheck;
+        public bool Success;
+        public int RollValue;
+        public int Bonus;
+        public int Total;
+        public int Target;
+        public bool WasRerolled;
+        public string ResultText;
+        public int OccurrenceSequence;
+        public string SourceContextId;
+        public List<EventResolutionMemoryEffect> Effects = new();
+    }
+
+    /// <summary>旧存档与源码兼容别名；实际结构由 EventResolutionMemory 提供。</summary>
+    [System.Serializable]
+    public sealed class SettlementEventMemoryEffect : EventResolutionMemoryEffect
+    {
+    }
+
+    [System.Serializable]
+    public sealed class SettlementEventMemory : EventResolutionMemory
+    {
+    }
+
+    /// <summary>
+    /// 已提交事件节点留下的最小持久化链检查点。
+    /// 只保存稳定内容 ID 和顺序，不保存 ScriptableObject、效果快照或运行时引用。
+    /// </summary>
+    [System.Serializable]
+    public sealed class SettlementEventChainCheckpoint
+    {
+        public const int CurrentSchemaVersion = 2;
+        public int SchemaVersion = CurrentSchemaVersion;
+        public string ChainId;
+        public int NextSequence = 1;
+        public string Diagnostic;
+        public List<int> CommittedSequences = new();
+        public List<SettlementEventChainOccurrence> PendingOccurrences = new();
+    }
+
+    [System.Serializable]
+    public sealed class SettlementEventChainOccurrence
+    {
+        public int Sequence;
+        public string EventId;
+        public string EventName;
+        public int Year;
+        public int ActorId;
+        public List<string> AncestorEventIds = new();
+        public PlayableEventRerollCheckpoint RerollCheckpoint;
+    }
+
+    [System.Serializable]
+    public sealed class PendingHuntNoiseLease
+    {
+        public const int CurrentSchemaVersion = 1;
+        public int SchemaVersion = CurrentSchemaVersion;
+        public string LeaseId;
+        public string SourceEventId;
+        public int NoiseModifier;
+    }
+
+    public enum TimelineEntryType
+    {
+        MainStory,  // 主线强制触发
+        Random,     // 随机抽取
+        PlayerAdded, // 玩家行为/发明触发
+        RosterChanged, // 猎人退休等名册历史变化
+        Scheduled, // 由事件结果动态加入的未来事件
+        Invention // 已掌握的发明
+    }
+
+    /// <summary>
+    /// 年度狩猎记录（每年出发记录）
+    /// </summary>
+    [System.Serializable]
+    public class HuntRecord
+    {
+        public const int CurrentReturnSchemaVersion = 4;
+        public const int CurrentPopulationSchemaVersion = 3;
+        public const int CurrentEventMemorySchemaVersion = 4;
+        [Tooltip("稳定的本次远征实例 ID；旧存档为空时保持兼容，不自动伪造身份。")]
+        public string RecordId;
+        [Tooltip("主动回营结果协议版本；0 表示旧流程已经转移资源/成长的兼容记录。")]
+        public int ReturnSchemaVersion;
+        public int  Year;
+        public int  HuntersDeployed;
+        public int  HuntersLost;
+        public bool BossDefeated;
+        public List<int> ParticipantHunterIds = new();
+        [Tooltip("v1 兼容字段；只表示旧版资源 ContentId 列表。v2 生产记录改用 CollectedItems。")]
+        public List<string> CollectedResources = new();
+        [Tooltip("v2 权威携带物快照；资源、装备和消耗品统一保存稳定 ItemId 与聚合数量。")]
+        public List<HuntLootStack> CollectedItems = new();
+        [Tooltip("v3 权威救援人口；回营提交成功前不进入营地人口池。")]
+        public int RescuedPopulation;
+        public int PopulationSchemaVersion;
+        public int EventMemorySchemaVersion;
+        public List<EventResolutionMemory> Memories = new();
+    }
+
+    // ─── 营地运行时状态 ──────────────────────────────────────────
+
+    /// <summary>
+    /// 营地运行时状态（完整存档数据）。
+    /// 用 JsonUtility 序列化到 Application.persistentDataPath。
+    /// 注意：ItemData 引用使用稳定 ContentId 存档；旧显示名由内容目录在加载后幂等迁移。
+    /// </summary>
+    [System.Serializable]
+    public class SettlementInstance
+    {
+        public const int CurrentCampaignPacingSchemaVersion = 2;
+        public const int CurrentMaterialDiscoverySchemaVersion = 1;
+        public const int MaxLegacyHuntsPerYear = 8;
+        public const int MaxPendingEventChainOccurrences = 64;
+        [Header("内容存档版本")]
+        public int ItemIdentitySchemaVersion;
+        public int TraitIdentitySchemaVersion;
+        public int InventionIdentitySchemaVersion;
+        public int TimelineEventIdentitySchemaVersion;
+        public string TimelineEventIdentityMigrationDiagnostic;
+        public int SettlementModifierSchemaVersion;
+        public int MaterialDiscoverySchemaVersion;
+        public const int CurrentEventMemorySchemaVersion = 4;
+        public const int CurrentFacilityDutySchemaVersion = 1;
+        public int EventMemorySchemaVersion;
+        public string EventMemoryMigrationDiagnostic;
+        public int FacilityDutySchemaVersion;
+        public string FacilityDutyMigrationDiagnostic;
+
+        [Header("时间线")]
+        public int CurrentYear = 1;
+        public string CampaignCalendarId;
+        public int CurrentSeasonIndex;
+        public int HuntsCompletedThisYear;
+        public int HuntsPerYear = 2;
+        public int Population;
+        public int CampaignPacingSchemaVersion;
+        public string CampaignPacingMigrationDiagnostic;
+        public int LastRecruitmentYear;
+
+        [Header("猎人名单（按 InstanceId 索引）")]
+        public List<HunterInstance> Hunters = new();
+
+        [Header("资源存储（稳定物品 ID → 数量）")]
+        public List<ResourceEntry> Resources = new();
+
+        [Header("已发现素材（稳定物品 ID）")]
+        public List<string> DiscoveredMaterialIds = new();
+
+        [Header("装备仓库（稳定物品 ID → 数量）")]
+        public List<ResourceEntry> EquipmentStorage = new();
+
+        [Header("发明解锁状态（稳定发明 ID → 是否解锁）")]
+        public List<StringBoolEntry> UnlockedInventions = new();
+
+        [Header("战役持续修正（稳定 ModifierId → 实际生效值）")]
+        public List<SettlementModifierState> ActiveModifiers = new();
+
+        [Header("下一次狩猎一次性风险租约")]
+        public PendingHuntNoiseLease PendingHuntNoiseLease;
+
+        [Header("发明主动效果年度使用状态")]
+        public List<InventionActiveEffectUsage> InventionActiveEffectUses = new();
+
+        [Header("已建工坊（稳定工坊 ID → 是否建成）")]
+        public List<StringBoolEntry> BuiltWorkshops = new();
+
+        [Header("设施值守")]
+        public List<SettlementFacilityDutyState> FacilityDuties = new();
+
+        [Header("Timeline")]
+        public List<AnnalEntry> Timeline = new();
+        public List<EventResolutionMemory> EventMemories = new();
+        public List<HuntRecord>    HuntHistory = new();
+        [Header("待完成的远征归来结算")]
+        public HuntRecord PendingHuntReturn;
+
+        [Header("事件链恢复检查点")]
+        public List<SettlementEventChainCheckpoint> PendingEventChains = new();
+
+        [Header("本年出发的猎人（狩猎阶段用）")]
+        public List<int> DepartingHunterIds = new();
+        public int DeparturePreparedYear;
+        public string DeparturePreparationToken;
+        [System.NonSerialized] public string RuntimeDeparturePreparationToken;
+
+        /// <summary>
+        /// 旧存档仍带有按年配额字段。它们只作为反序列化与迁移输入保留，生产规则以绑定日历的季节列表为权威。
+        /// </summary>
+        public void NormalizeLegacyHuntProgress()
+        {
+            HuntsCompletedThisYear = 0;
+            HuntsPerYear = 1;
+        }
+
+        public bool HasHuntRecord(string recordId)
+        {
+            string normalizedId = recordId?.Trim() ?? string.Empty;
+            return normalizedId.Length > 0 && HuntHistory != null && HuntHistory.Exists(record => record != null && string.Equals(record.RecordId?.Trim(), normalizedId, System.StringComparison.Ordinal));
+        }
+
+        public bool TryAppendHuntRecord(HuntRecord record)
+        {
+            if (record == null) return false;
+            HuntHistory ??= new List<HuntRecord>();
+            string recordId = record.RecordId?.Trim() ?? string.Empty;
+            if (recordId.Length == 0 || HuntHistory.Exists(existing => existing != null && string.Equals(existing.RecordId?.Trim(), recordId, System.StringComparison.Ordinal))) return false;
+            HuntHistory.Add(record);
+            return true;
+        }
+
+        // ─── 资源操作 ─────────────────────────────────────────────
+
+        public int GetResource(string name)
+        {
+            return ResourceRules.Get(Resources, name);
+        }
+
+        public void AddResource(string name, int amount)
+        {
+            ResourceRules.Add(Resources, name, amount, () => new ResourceEntry());
+        }
+
+        public bool SpendResource(string name, int amount)
+        {
+            return ResourceRules.Spend(Resources, name, amount, () => new ResourceEntry());
+        }
+
+        public int GetResource(ItemData item) => item == null ? 0 : GetResource(item.ContentId);
+        public void AddResource(ItemData item, int amount)
+        {
+            if (item != null) AddResource(item.ContentId, amount);
+        }
+        public bool SpendResource(ItemData item, int amount) => item != null && SpendResource(item.ContentId, amount);
+
+        public bool HasDiscoveredMaterial(string materialId)
+        {
+            string normalizedId = materialId?.Trim() ?? string.Empty;
+            return normalizedId.Length > 0 && DiscoveredMaterialIds != null && DiscoveredMaterialIds.Exists(id => string.Equals(id?.Trim(), normalizedId, System.StringComparison.Ordinal));
+        }
+
+        public bool DiscoverMaterial(string materialId)
+        {
+            string normalizedId = materialId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 || HasDiscoveredMaterial(normalizedId)) return false;
+            DiscoveredMaterialIds ??= new List<string>();
+            DiscoveredMaterialIds.Add(normalizedId);
+            return true;
+        }
+
+        // ─── 发明操作 ─────────────────────────────────────────────
+
+        public bool IsInventionUnlocked(string inventionId)
+        {
+            string normalizedId = inventionId?.Trim() ?? string.Empty;
+            return normalizedId.Length > 0 && UnlockedInventions != null && UnlockedInventions.Exists(entry => entry != null && entry.Key == normalizedId && entry.Value);
+        }
+
+        public void UnlockInvention(string inventionId)
+        {
+            string normalizedId = inventionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0) return;
+            UnlockedInventions ??= new List<StringBoolEntry>();
+            StringBoolEntry entry = UnlockedInventions.Find(candidate => candidate != null && candidate.Key == normalizedId);
+            if (entry == null)
+            {
+                entry = new StringBoolEntry { Key = normalizedId };
+                UnlockedInventions.Add(entry);
+            }
+            entry.Value = true;
+        }
+
+        public bool IsWorkshopBuilt(string workshopId)
+        {
+            return BuiltWorkshops != null && BuiltWorkshops.Exists(entry => entry.Key == workshopId && entry.Value);
+        }
+
+        public void BuildWorkshop(string workshopId)
+        {
+            BuiltWorkshops ??= new List<StringBoolEntry>();
+            StringBoolEntry entry = BuiltWorkshops.Find(candidate => candidate.Key == workshopId);
+            if (entry == null)
+            {
+                entry = new StringBoolEntry { Key = workshopId };
+                BuiltWorkshops.Add(entry);
+            }
+            entry.Value = true;
+        }
+
+        // ─── 猎人操作 ─────────────────────────────────────────────
+
+        public HunterInstance GetHunter(int id) => Hunters.Find(h => h.InstanceId == id);
+        public List<HunterInstance> GetAliveHunters() => Hunters.FindAll(h => h.IsAlive);
+        public List<HunterInstance> GetAvailableHunters() => Hunters.FindAll(h => h.IsAvailable);
+
+        public bool TryGetFacilityDuty(string dutyId, out SettlementFacilityDutyState state)
+        {
+            state = null;
+            string normalizedId = dutyId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 || FacilityDuties == null) return false;
+            state = FacilityDuties.Find(candidate => candidate != null && candidate.Status == SettlementFacilityDutyStateStatus.Active && (string.Equals(candidate.DutyId?.Trim(), normalizedId, System.StringComparison.Ordinal) || string.Equals(candidate.AssignmentId?.Trim(), normalizedId, System.StringComparison.Ordinal)));
+            return state != null;
+        }
+
+        public bool HasActiveFacilityDuty(string dutyId) => TryGetFacilityDuty(dutyId, out _);
+
+        public bool HasDueFacilityDuty(int year, int seasonIndex) => SettlementFacilityDutyRules.HasDueDuty(FacilityDuties, year, seasonIndex);
+
+        public bool HasAssignedFacilityDuty(int hunterId)
+        {
+            return FacilityDuties != null && FacilityDuties.Exists(duty => SettlementFacilityDutyRules.IsAssigned(duty, hunterId));
+        }
+
+        public bool CanHunterDepart(int hunterId, int currentYear, int currentSeasonIndex)
+        {
+            HunterInstance hunter = GetHunter(hunterId);
+            return hunter != null && hunter.IsAvailable && !HasDueFacilityDuty(currentYear, currentSeasonIndex) && !HasAssignedFacilityDuty(hunterId);
+        }
+
+        public List<HunterInstance> GetDepartureEligibleHunters(int currentYear, int currentSeasonIndex)
+        {
+            if (HasDueFacilityDuty(currentYear, currentSeasonIndex)) return new List<HunterInstance>();
+            var result = new List<HunterInstance>();
+            foreach (HunterInstance hunter in Hunters ?? new List<HunterInstance>())
+                if (hunter != null && CanHunterDepart(hunter.InstanceId, currentYear, currentSeasonIndex)) result.Add(hunter);
+            return result;
+        }
+
+        public bool TryAddFacilityDuty(SettlementFacilityDutyState state, out string reason)
+        {
+            reason = string.Empty;
+            if (state == null || string.IsNullOrWhiteSpace(state.DutyId) || string.IsNullOrWhiteSpace(state.AssignmentId) || string.IsNullOrWhiteSpace(state.CalendarId) || string.IsNullOrWhiteSpace(state.FacilityId) || state.AssignedHunterId <= 0 || state.Status != SettlementFacilityDutyStateStatus.Active)
+            {
+                reason = "值守状态无效。";
+                return false;
+            }
+            if (HasActiveFacilityDuty(state.DutyId) || HasAssignedFacilityDuty(state.AssignedHunterId))
+            {
+                reason = "该值守岗位或猎人已经被占用。";
+                return false;
+            }
+            FacilityDuties ??= new List<SettlementFacilityDutyState>();
+            FacilityDuties.Add(state);
+            FacilityDutySchemaVersion = CurrentFacilityDutySchemaVersion;
+            FacilityDutyMigrationDiagnostic = string.Empty;
+            return true;
+        }
+
+        public bool TryRemoveFacilityDuty(string assignmentId)
+        {
+            string normalizedId = assignmentId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 || FacilityDuties == null) return false;
+            return FacilityDuties.RemoveAll(state => state != null && string.Equals(state.AssignmentId?.Trim(), normalizedId, System.StringComparison.Ordinal)) > 0;
+        }
+
+        public bool HasPendingEventChainOccurrences => PendingEventChains != null && PendingEventChains.Exists(chain => chain != null && chain.PendingOccurrences != null && chain.PendingOccurrences.Count > 0);
+
+        public bool CanRecordEventMemory(EventResolutionMemory memory, out string reason)
+        {
+            if (!EventResolutionMemoryRules.TryValidate(memory, out reason)) return false;
+            if (EventMemorySchemaVersion > CurrentEventMemorySchemaVersion)
+            {
+                reason = $"事件记忆 schema {EventMemorySchemaVersion} 高于当前版本 {CurrentEventMemorySchemaVersion}。";
+                return false;
+            }
+            EventResolutionMemory existing = EventMemories?.Find(candidate => candidate != null && string.Equals(candidate.MemoryId, memory.MemoryId, System.StringComparison.Ordinal));
+            if (existing == null) return true;
+            if (EventResolutionMemoryRules.Equivalent(existing, memory)) return true;
+            reason = $"事件记忆 {memory.MemoryId} 已存在但事实不一致。";
+            return false;
+        }
+
+        public bool TryRecordEventMemory(EventResolutionMemory memory, out string reason)
+        {
+            if (!CanRecordEventMemory(memory, out reason)) return false;
+            EventMemories ??= new List<EventResolutionMemory>();
+            if (EventMemories.Exists(candidate => candidate != null && string.Equals(candidate.MemoryId, memory.MemoryId, System.StringComparison.Ordinal))) return true;
+            if (EventMemories.Count >= EventResolutionMemoryRules.MaximumMemories)
+            {
+                reason = $"事件记忆数量超过上限 {EventResolutionMemoryRules.MaximumMemories}。";
+                return false;
+            }
+            EventMemories.Add(EventResolutionMemoryRules.Clone(memory));
+            EventMemorySchemaVersion = CurrentEventMemorySchemaVersion;
+            EventMemoryMigrationDiagnostic = string.Empty;
+            return true;
+        }
+
+        public IReadOnlyList<SettlementEventChainOccurrence> GetPendingEventChainOccurrences(string chainId)
+        {
+            string normalizedChainId = chainId?.Trim() ?? string.Empty;
+            SettlementEventChainCheckpoint checkpoint = PendingEventChains?.Find(candidate => candidate != null && candidate.ChainId == normalizedChainId);
+            if (checkpoint?.PendingOccurrences == null) return System.Array.Empty<SettlementEventChainOccurrence>();
+            return checkpoint.PendingOccurrences;
+        }
+
+        public string GetEventChainDiagnostic(string chainId)
+        {
+            string normalizedChainId = chainId?.Trim() ?? string.Empty;
+            return PendingEventChains?.Find(candidate => candidate != null && candidate.ChainId == normalizedChainId)?.Diagnostic ?? string.Empty;
+        }
+
+        /// <summary>在同一同步提交边界中消费当前 occurrence，并追加直接子 occurrence。</summary>
+        public IReadOnlyList<SettlementEventChainOccurrence> CommitEventChainOccurrence(string chainId, int completedSequence, IReadOnlyList<string> childEventIds, int year, int actorId, IReadOnlyCollection<string> ancestorEventIds = null)
+        {
+            string normalizedChainId = chainId?.Trim() ?? string.Empty;
+            if (normalizedChainId.Length == 0) return System.Array.Empty<SettlementEventChainOccurrence>();
+            PendingEventChains ??= new List<SettlementEventChainCheckpoint>();
+            SettlementEventChainCheckpoint checkpoint = PendingEventChains.Find(candidate => candidate != null && candidate.ChainId == normalizedChainId);
+            bool hasChildren = childEventIds != null && childEventIds.Count > 0;
+            if (checkpoint == null)
+            {
+                if (!hasChildren) return System.Array.Empty<SettlementEventChainOccurrence>();
+                checkpoint = new SettlementEventChainCheckpoint { ChainId = normalizedChainId };
+                PendingEventChains.Add(checkpoint);
+            }
+
+            checkpoint.CommittedSequences ??= new List<int>();
+            checkpoint.PendingOccurrences ??= new List<SettlementEventChainOccurrence>();
+            checkpoint.SchemaVersion = SettlementEventChainCheckpoint.CurrentSchemaVersion;
+            var appendedOccurrences = new List<SettlementEventChainOccurrence>();
+            if (!checkpoint.CommittedSequences.Contains(completedSequence))
+            {
+                checkpoint.CommittedSequences.Add(completedSequence);
+                checkpoint.PendingOccurrences.RemoveAll(occurrence => occurrence != null && occurrence.Sequence == completedSequence);
+                if (hasChildren)
+                    foreach (string childEventId in childEventIds)
+                    {
+                        string normalizedEventId = childEventId?.Trim() ?? string.Empty;
+                        if (normalizedEventId.Length == 0) continue;
+                        if (checkpoint.PendingOccurrences.Count >= MaxPendingEventChainOccurrences)
+                        {
+                            checkpoint.Diagnostic = $"事件链检查点超过待恢复 occurrence 上限 {MaxPendingEventChainOccurrences}。";
+                            break;
+                        }
+                        if (checkpoint.NextSequence <= 0 || checkpoint.NextSequence == int.MaxValue)
+                        {
+                            checkpoint.Diagnostic = "事件链检查点 occurrence 序号已耗尽。";
+                            break;
+                        }
+                        var occurrence = new SettlementEventChainOccurrence
+                        {
+                            Sequence = checkpoint.NextSequence++,
+                            EventId = normalizedEventId,
+                            EventName = normalizedEventId,
+                            Year = year,
+                            ActorId = actorId,
+                            AncestorEventIds = ancestorEventIds == null ? new List<string>() : new List<string>(ancestorEventIds)
+                        };
+                        checkpoint.PendingOccurrences.Add(occurrence);
+                        appendedOccurrences.Add(occurrence);
+                    }
+            }
+
+            if (checkpoint.PendingOccurrences.Count == 0 && string.IsNullOrWhiteSpace(checkpoint.Diagnostic))
+            {
+                PendingEventChains.Remove(checkpoint);
+                return System.Array.Empty<SettlementEventChainOccurrence>();
+            }
+            return appendedOccurrences;
+        }
+    }
+
+    // ─── 序列化辅助（JsonUtility 不支持 Dictionary） ────────────
+
+    [System.Serializable]
+    public class ResourceEntry : ResourceAmount { }
+
+    [System.Serializable]
+    public class StringBoolEntry : NamedFlag { }
+}
+
+namespace HuntingInDarkness.Data
+{
+    public static class EventResolutionMemoryRules
+    {
+        public const int CurrentSchemaVersion = 4;
+        public const int MaximumMemories = 256;
+        public const int MaximumEffects = 64;
+        public const int MaximumStableIdLength = 256;
+        public const int MaximumShortTextLength = 512;
+        public const int MaximumPlayerTextLength = 4096;
+
+        public static bool TryValidate(EventResolutionMemory memory, out string reason)
+        {
+            reason = string.Empty;
+            if (memory == null || !HasStableId(memory.MemoryId) || !HasStableId(memory.EventId)) return Fail("事件结果记忆缺少稳定 ID。", out reason);
+            if (!HasLength(memory.EventName, MaximumShortTextLength) || !HasLength(memory.ResolutionMode, MaximumShortTextLength) || !HasLength(memory.OptionId, MaximumStableIdLength) || !HasLength(memory.OptionText, MaximumPlayerTextLength) || !HasLength(memory.CheckType, MaximumShortTextLength) || !HasLength(memory.ResultText, MaximumPlayerTextLength) || !HasLength(memory.SourceContextId, MaximumStableIdLength)) return Fail("事件结果记忆包含过长字段。", out reason);
+            if (memory.Effects == null || memory.Effects.Count > MaximumEffects) return Fail("事件结果记忆效果数量超限。", out reason);
+            for (int index = 0; index < memory.Effects.Count; index++)
+            {
+                EventResolutionMemoryEffect effect = memory.Effects[index];
+                if (effect == null || effect.EffectIndex < 0 || !HasLength(effect.EffectType, MaximumShortTextLength) || !HasLength(effect.TargetName, MaximumStableIdLength) || !HasLength(effect.ResolvedTargetId, MaximumStableIdLength) || !HasLength(effect.Reason, MaximumPlayerTextLength) || !HasLength(effect.PermanentInjuryId, MaximumStableIdLength) || !HasLength(effect.DeathDeckId, MaximumStableIdLength) || effect.FacedownPosition < -1) return Fail("事件结果记忆包含无效效果。", out reason);
+            }
+            return true;
+        }
+
+        public static bool TryValidateHuntList(IReadOnlyList<EventResolutionMemory> memories, string expeditionId, IReadOnlyList<int> committedSequences, out string reason)
+        {
+            reason = string.Empty;
+            if (memories == null || memories.Count == 0) return true;
+            if (!HasStableId(expeditionId) || memories.Count > MaximumMemories || memories.Count > (committedSequences?.Count ?? 0)) return Fail("狩猎事件结果记忆数量与远征检查点不一致。", out reason);
+            var seenSequences = new HashSet<int>();
+            var committed = new HashSet<int>(committedSequences);
+            foreach (EventResolutionMemory memory in memories)
+            {
+                if (!TryValidate(memory, out reason) || memory.SourceContextId != expeditionId || memory.OccurrenceSequence == 0 || !committed.Contains(memory.OccurrenceSequence) || !seenSequences.Add(memory.OccurrenceSequence) || memory.MemoryId != $"hunt-event-memory:{expeditionId}:{memory.OccurrenceSequence}:{memory.EventId}") return Fail(string.IsNullOrWhiteSpace(reason) ? "狩猎事件结果记忆身份无效。" : reason, out reason);
+            }
+            return true;
+        }
+
+        public static bool TryValidateHuntRecord(HuntRecord record, out string reason)
+        {
+            reason = string.Empty;
+            IReadOnlyList<EventResolutionMemory> memories = record?.Memories;
+            if (record == null) return Fail("远征记录为空。", out reason);
+            if (record.ReturnSchemaVersion < 0 || record.ReturnSchemaVersion > HuntRecord.CurrentReturnSchemaVersion || record.EventMemorySchemaVersion < 0 || record.EventMemorySchemaVersion > HuntRecord.CurrentEventMemorySchemaVersion || record.PopulationSchemaVersion < 0 || record.PopulationSchemaVersion > HuntRecord.CurrentPopulationSchemaVersion) return Fail("远征记录 schema 无效或高于当前版本。", out reason);
+            if (memories == null || memories.Count == 0) return true;
+            if (record.ReturnSchemaVersion < HuntRecord.CurrentEventMemorySchemaVersion || record.EventMemorySchemaVersion != HuntRecord.CurrentEventMemorySchemaVersion || string.IsNullOrWhiteSpace(record.RecordId)) return Fail("旧版远征记录不能包含事件结果记忆。", out reason);
+            if (memories.Count > MaximumMemories) return Fail("远征记录事件结果记忆数量超限。", out reason);
+            var seen = new HashSet<int>();
+            foreach (EventResolutionMemory memory in memories)
+            {
+                if (!TryValidate(memory, out reason) || memory.SourceContextId != record.RecordId || memory.OccurrenceSequence == 0 || !seen.Add(memory.OccurrenceSequence) || memory.MemoryId != $"hunt-event-memory:{record.RecordId}:{memory.OccurrenceSequence}:{memory.EventId}") return Fail(string.IsNullOrWhiteSpace(reason) ? "远征记录事件结果记忆身份无效。" : reason, out reason);
+            }
+            return true;
+        }
+
+        public static EventResolutionMemory Clone(EventResolutionMemory source)
+        {
+            if (source == null) return null;
+            var clone = new EventResolutionMemory
+            {
+                MemoryId = source.MemoryId, EventId = source.EventId, EventName = source.EventName, ResolutionMode = source.ResolutionMode, SelectionMode = source.SelectionMode, OptionId = source.OptionId, OptionText = source.OptionText, Year = source.Year, ActorId = source.ActorId, CheckType = source.CheckType, HasCheck = source.HasCheck, Success = source.Success, RollValue = source.RollValue, Bonus = source.Bonus, Total = source.Total, Target = source.Target, WasRerolled = source.WasRerolled, ResultText = source.ResultText, OccurrenceSequence = source.OccurrenceSequence, SourceContextId = source.SourceContextId
+            };
+            foreach (EventResolutionMemoryEffect effect in source.Effects ?? new List<EventResolutionMemoryEffect>())
+                if (effect != null) clone.Effects.Add(Clone(effect));
+            return clone;
+        }
+
+        public static List<EventResolutionMemory> CloneList(IReadOnlyList<EventResolutionMemory> source)
+        {
+            var result = new List<EventResolutionMemory>(source?.Count ?? 0);
+            foreach (EventResolutionMemory memory in source ?? new List<EventResolutionMemory>())
+                if (memory != null) result.Add(Clone(memory));
+            return result;
+        }
+
+        public static EventResolutionMemoryEffect Clone(EventResolutionMemoryEffect source)
+        {
+            if (source == null) return null;
+            return new EventResolutionMemoryEffect { EffectIndex = source.EffectIndex, EffectType = source.EffectType, TargetName = source.TargetName, ResolvedTargetId = source.ResolvedTargetId, Applied = source.Applied, Reason = source.Reason, TargetActorId = source.TargetActorId, StateChanged = source.StateChanged, PreviousValue = source.PreviousValue, CurrentValue = source.CurrentValue, HasDeathCard = source.HasDeathCard, DeathCard = source.DeathCard, PermanentInjuryId = source.PermanentInjuryId, HunterDied = source.HunterDied, DeathDeckId = source.DeathDeckId, FacedownPosition = source.FacedownPosition };
+        }
+
+        public static bool Equivalent(EventResolutionMemory left, EventResolutionMemory right)
+        {
+            if (left == null || right == null || left.MemoryId != right.MemoryId || left.EventId != right.EventId || left.EventName != right.EventName || left.ResolutionMode != right.ResolutionMode || left.SelectionMode != right.SelectionMode || left.OptionId != right.OptionId || left.OptionText != right.OptionText || left.Year != right.Year || left.ActorId != right.ActorId || left.CheckType != right.CheckType || left.HasCheck != right.HasCheck || left.Success != right.Success || left.RollValue != right.RollValue || left.Bonus != right.Bonus || left.Total != right.Total || left.Target != right.Target || left.WasRerolled != right.WasRerolled || left.ResultText != right.ResultText || left.OccurrenceSequence != right.OccurrenceSequence || left.SourceContextId != right.SourceContextId || (left.Effects?.Count ?? 0) != (right.Effects?.Count ?? 0)) return false;
+            for (int index = 0; index < (left.Effects?.Count ?? 0); index++)
+                if (!Equivalent(left.Effects[index], right.Effects[index])) return false;
+            return true;
+        }
+
+        private static bool Equivalent(EventResolutionMemoryEffect left, EventResolutionMemoryEffect right)
+        {
+            return left != null && right != null && left.EffectIndex == right.EffectIndex && left.EffectType == right.EffectType && left.TargetName == right.TargetName && left.ResolvedTargetId == right.ResolvedTargetId && left.Applied == right.Applied && left.Reason == right.Reason && left.TargetActorId == right.TargetActorId && left.StateChanged == right.StateChanged && left.PreviousValue == right.PreviousValue && left.CurrentValue == right.CurrentValue && left.HasDeathCard == right.HasDeathCard && left.DeathCard == right.DeathCard && left.PermanentInjuryId == right.PermanentInjuryId && left.HunterDied == right.HunterDied && left.DeathDeckId == right.DeathDeckId && left.FacedownPosition == right.FacedownPosition;
+        }
+
+        private static bool HasStableId(string value) => !string.IsNullOrWhiteSpace(value) && value.Trim().Length <= MaximumStableIdLength;
+        private static bool HasLength(string value, int maximum) => string.IsNullOrEmpty(value) || value.Length <= maximum;
+        private static bool Fail(string message, out string reason)
+        {
+            reason = message;
+            return false;
+        }
+    }
+}

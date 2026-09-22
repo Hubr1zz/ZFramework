@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27382589b6f6fc24e83ffdf54bc755f0, type: 3}
+  m_Name: PlayableStrike
+  m_EditorClassIdentifier: GameLogic::SO.Boss.ActionCard.CharacterActionCardData
+  cardName: "\u6B66\u5668\u653B\u51FB"
+  cardId: playable.weapon-strike
+  cardImage: {fileID: 0}
+  faceUpDescription: "\u652F\u4ED8\u4EFB\u610F\u7075\u611F\uFF0C\u9009\u62E9\u4E00\u628A\u6709\u6548\u5C04\u7A0B\u5185\u7684\u6B66\u5668\u653B\u51FBBoss\u3002"
+  faceDownDescription: "\u51B7\u5374\u4E2D\u3002\u5DE6\u952E\u652F\u4ED81\u4EFB\u610F\u6218\u6597\u7075\u611F\u6062\u590D\u3002"
+  timePointCost: 0
+  costs:
+  - rid: 4366595399496761408
+  - rid: 4366595399496761409
+  oncePerTurn: 0
+  faceUpEffects:
+  - rid: 4366595399496761396
+  faceDownEffects: []
+  flipConditions:
+  - rid: 4366595399496761416
+  restoreConditions:
+  - rid: 4366595399496761417
+  burstReward:
+    enabled: 1
+    currencyReward: 0
+    timePointReward: 1
+    rewardDescription: "\u83B7\u5F971\u65F6\u70B9"
+    bonusEffects: []
+  tags:
+  - Attack
+  - Basic
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 4366595399496761396
+      type: {class: PlayableAttackEffectData, ns: HuntingInDarkness.Combat, asm: GameLogic}
+      data:
+        targeting:
+          rid: -2
+    - rid: 4366595399496761408
+      type: {class: TimePointActionCardCostData, ns: SO.Boss.ActionCard, asm: GameLogic}
+      data:
+        amount: 2
+    - rid: 4366595399496761409
+      type: {class: CombatInspirationActionCardCostData, ns: SO.Boss.ActionCard, asm: GameLogic}
+      data:
+        amount: 1
+        requiredColor: 0
+    - rid: 4366595399496761416
+      type: {class: FlipOnPlayConditionData, ns: GameplayBase.CombatSystem.Cards.FlipConditions, asm: GameLogic}
+      data:
+    - rid: 4366595399496761417
+      type: {class: CombatInspirationRestoreConditionData, ns: HuntingInDarkness.Combat, asm: GameLogic}
+      data:
+        amount: 1
+        requiredColor: 0

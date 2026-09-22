@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
+using Cards3D;
 using Core;
 using Cysharp.Threading.Tasks;
 using GameplayBase;
@@ -9,6 +10,7 @@ using HuntingInDarkness.Combat;
 using HuntingInDarkness.GameCore.Combat;
 using SO.Character;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace GameplayBase.CombatSystem
@@ -17,7 +19,7 @@ namespace GameplayBase.CombatSystem
     /// IPlayerInputProvider 的 UGUI 实现。
     /// 纯 C# 类，由 GameManager 构造并注入 BoardManager / HexBoardVisualizer 引用。
     /// </summary>
-    public class UIPlayerInputProvider : IPlayerInputProvider, IPlayerOptionInputProvider, IAttackResultDeckInputProvider, IAttackResultBatchInputProvider, IBossHitDeckInputProvider, IDeathDeckInputProvider
+    public class UIPlayerInputProvider : IPlayerInputProvider, IPlayerOptionInputProvider, IAttackResultDeckInputProvider, IAttackResultBatchInputProvider, IBossHitDeckInputProvider, IDeathDeckInputProvider, IBossIntentInputProvider
     {
         private readonly BoardManager _boardManager;
         private readonly HexBoardVisualizer _boardVisualizer;
@@ -47,10 +49,16 @@ namespace GameplayBase.CombatSystem
             _initialized = true;
 
 #if UNITY_2023_1_OR_NEWER
-            _canvas = UnityEngine.Object.FindAnyObjectByType<Canvas>();
+            Canvas[] canvases = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
 #else
-            _canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+            Canvas[] canvases = UnityEngine.Object.FindObjectsOfType<Canvas>();
 #endif
+            foreach (Canvas candidate in canvases)
+            {
+                if (candidate == null || candidate.GetComponentInParent<CardInspectionOverlay>() != null) continue;
+                _canvas = candidate;
+                break;
+            }
             if (_canvas == null)
             {
                 var canvasGo = new GameObject("CombatInputCanvas");
@@ -205,7 +213,7 @@ namespace GameplayBase.CombatSystem
                 buttons[i] = new ButtonConfig($"◆\n背面牌 {i + 1}", () => tcs.TrySetResult(facedownPosition));
             }
 
-            ShowCardGrid($"{prompt}\n\n<color=#aaaaaa>已知构成：存活 {composition.SurvivalCards} / 死亡 {composition.DeathCards}</color>", buttons);
+            ShowCardGrid($"{prompt}\n\n<color=#aaaaaa>已知构成：普通存活 {composition.OrdinarySurvivalCards} / 生存卡 {composition.SurvivalEventCards} / 死亡 {composition.DeathCards}</color>", buttons);
             try
             {
                 return await tcs.Task.AttachExternalCancellation(cancellationToken);
@@ -288,6 +296,7 @@ namespace GameplayBase.CombatSystem
                 while (selected == null)
                 {
                     await UniTask.NextFrame(cancellationToken: cancellationToken);
+                    if (CardInspectionOverlay.BlocksWorldInput || EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) continue;
                     if (Input.GetMouseButtonDown(1)) break;
                     if (Input.GetMouseButtonDown(0) && Camera.main != null)
                     {
@@ -310,6 +319,67 @@ namespace GameplayBase.CombatSystem
                 HideHint();
             }
             return selected;
+        }
+
+        public async UniTask<Vector2Int?> RequestBossDestination(string prompt, List<Vector2Int> validTiles, List<Vector2Int> compliantTiles, CancellationToken cancellationToken = default)
+        {
+            EnsureInitialized();
+            if (_boardManager == null || validTiles == null || validTiles.Count == 0) return null;
+
+            _boardVisualizer?.HighlightIntent(validTiles, compliantTiles);
+            ShowHint($"{prompt}\n<color=#66dd77>绿色：遵循行动</color>　<color=#ff8833>橙色：偏移，全员命运 +1</color>\n<color=#aaaaaa>右键采用绿色落点</color>");
+            var positions = new List<(Vector2Int coord, Vector3 world)>(validTiles.Count);
+            foreach (Vector2Int tile in validTiles)
+                positions.Add((tile, _boardManager.TileToWorld(tile)));
+
+            float threshold = _boardManager.CellSize * 0.6f;
+            try
+            {
+                while (true)
+                {
+                    await UniTask.NextFrame(cancellationToken: cancellationToken);
+                    if (CardInspectionOverlay.BlocksWorldInput || EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) continue;
+                    if (Input.GetMouseButtonDown(1)) return null;
+                    if (!Input.GetMouseButtonDown(0) || Camera.main == null) continue;
+                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                    if (Mathf.Abs(ray.direction.y) <= 0.001f) continue;
+                    float distance = -ray.origin.y / ray.direction.y;
+                    if (distance <= 0f) continue;
+                    Vector2Int? selected = FindClosestValidTile(ray.origin + ray.direction * distance, positions, threshold);
+                    if (selected.HasValue) return selected;
+                }
+            }
+            finally
+            {
+                _boardVisualizer?.ClearHighlights();
+                HideHint();
+            }
+        }
+
+        public async UniTask<int> RequestBossTarget(string prompt, List<int> validTargetIds, List<int> compliantTargetIds, CancellationToken cancellationToken = default)
+        {
+            EnsureInitialized();
+            if (validTargetIds == null || validTargetIds.Count == 0) return -1;
+
+            var tcs = new UniTaskCompletionSource<int>();
+            var buttons = new ButtonConfig[validTargetIds.Count + 1];
+            for (int index = 0; index < validTargetIds.Count; index++)
+            {
+                int targetId = validTargetIds[index];
+                string targetName = resolveTargetName?.Invoke(targetId);
+                string prefix = compliantTargetIds != null && compliantTargetIds.Contains(targetId) ? "[规则目标] " : "[偏移：规则目标命运+1] ";
+                buttons[index] = new ButtonConfig(prefix + (string.IsNullOrWhiteSpace(targetName) ? $"猎人 #{targetId}" : targetName), () => tcs.TrySetResult(targetId));
+            }
+            buttons[buttons.Length - 1] = new ButtonConfig("采用规则目标", () => tcs.TrySetResult(-1));
+            ShowCardGrid(prompt, buttons, 2);
+            try
+            {
+                return await tcs.Task.AttachExternalCancellation(cancellationToken);
+            }
+            finally
+            {
+                HidePanel();
+            }
         }
 
         public async UniTask<int> RequestSelectCard(string prompt, List<int> validCardIds, CancellationToken cancellationToken = default)

@@ -1,0 +1,394 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.5/staging' branch; Version is '6000.5.9f1 (b57deb96f08d) revision 11894251'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-leonz" at "2026-08-31T20:12:09.9735591Z"
+OS: 'Windows 11  (10.0.26200) CoreCountrySpecific' Language: 'zh' Physical Memory: 31964 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-08-31T20:12:09Z
+
+COMMAND LINE ARGUMENTS:
+D:\UnityVersions\6000.5.9f1\Editor\Unity.exe
+-batchmode
+-nographics
+-quit
+-projectPath
+D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh
+-logFile
+D:\UnityProjects\ZFramework\gameplay-ux-compile-3.log
+Successfully changed project path to: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh
+D:/UnityProjects/ZFramework/UnityCliGameplayUxFresh
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-remapper-allocator-initial-capacity=32768"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-main-allocator-mimalloc-enabled=0"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+Logging is directed to a specific file, skipping project log.Player connection [79436]  Target information:
+
+Player connection [79436]  * "[IP] 26.122.147.101 [Port] 55504 [Flags] 2 [Guid] 4007471169 [EditorId] 4007471169 [Version] 1048832 [Id] WindowsEditor(7,zza) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [79436]  * "[IP] 192.168.1.22 [Port] 55504 [Flags] 2 [Guid] 4007471169 [EditorId] 4007471169 [Version] 1048832 [Id] WindowsEditor(7,zza) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [79436] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [79436] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-41788" after 0.2 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::Client] Error: HandshakeResponse reported an error:
+	ResponseCode: 505
+	ResponseStatus: Unsupported protocol version '1.18.3'.
+[Licensing::Module] Error: Failed to handshake to channel: "LicenseClient-leonz"
+[Licensing::IpcConnector] LicenseClient-leonz channel disconnected successfully.
+[Licensing::IpcConnector] Channel LicenseClient-leonz-6000.5.9 doesn't exist
+[Licensing::Module] Successfully launched the LicensingClient (PId: 87768)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-leonz-6000.5.9" at "2026-08-31T20:12:12.1132906Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 87768, path: "D:/UnityVersions/6000.5.9f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+  Session Id:              9ee06f81d2104c1c92b6aa8ce9995e7f
+  Correlation Id:          532ef9e8c1e6cf9d1ec58735ae3b4f92
+  External correlation Id: 2767184764120892267
+  Machine Id:              Ik5fYd8gbb0FOBsCcc2zMKgraJ4=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-leonz-6000.5.9" (connect: 0.37s, validation: 0.22s, handshake: 0.01s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-leonz-6000.5.9-notifications" at "2026-08-31T20:12:12.34156Z"
+[Licensing::Module] Connected to LicensingClient (PId: 87768, launch time: 0.04, total connection time: 0.60s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: ewogICJzdWJzR3JvdXAiIDogInVuaXR5IGVkaXRvciIsCiAgIm5hbWVzcGFjZSIgOiAidW5pdHlfZWRpdG9yIiwKICAidHlwZSIgOiAiRURJVE9SIiwKICAidGFnIiA6ICJVbml0eVBlcnNvbmFsXXXX
+  Product: Unity Personal Version
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 2.40s
+[Licensing::Module] Licensing is initialized (took 1.81s).
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Initialize engine version: 6000.5.9f1 (b57deb96f08d)
+[Subsystems] Discovering subsystems at path D:/UnityVersions/6000.5.9f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path D:/UnityProjects/ZFramework/UnityCliGameplayUxFresh/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Initialize mono
+Mono path[0] = 'D:/UnityVersions/6000.5.9f1/Editor/Data/Managed'
+Mono path[1] = 'D:/UnityVersions/6000.5.9f1/Editor/Data/BCLExtensions/runtime/netstandard2.1'
+Mono path[2] = 'D:/UnityVersions/6000.5.9f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'D:/UnityVersions/6000.5.9f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56788
+CodeReloadManager initialized
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: D:/UnityVersions/6000.5.9f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.001692 seconds.
+Native extension for WindowsStandalone target not found
+Package Manager log level set to [2]
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:False
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.445 seconds
+Domain Reload Profiling: 845ms
+	BeginReloadAssembly (108ms)
+		CreateAndSetChildDomain (5ms)
+	RebuildCommonClasses (4ms)
+	RebuildNativeTypeToScriptingClass (14ms)
+	initialDomainReloadingComplete (52ms)
+	LoadAllAssembliesAndSetupDomain (220ms)
+		LoadAssemblies (99ms)
+		AnalyzeDomain (158ms)
+			TypeCache.Refresh (157ms)
+				TypeCache.ScanAssembly (146ms)
+	FinalizeReload (447ms)
+		SetupLoadedEditorAssemblies (0ms)
+			BeforeProcessingInitializeOnLoad (77ms)
+			ProcessInitializeOnLoadAttributes (74ms)
+			ProcessInitializeOnLoadMethodAttributes (223ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+Embedded package [com.cysharp.unitask] was found in the directory [D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\UniTask]. Please consider changing the directory name to match the package name.
+Embedded package [com.tuyoogame.yooasset] was found in the directory [D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\YooAsset]. Please consider changing the directory name to match the package name.
+[Package Manager] Registered 49 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.ai.navigation@2.0.14 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.ai.navigation@134dd6a3b97b)
+    com.unity.ide.rider@3.0.40 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.ide.rider@e4950c6d131b)
+    com.unity.ide.visualstudio@2.0.26 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.ide.visualstudio@a99d56dec63f)
+    com.unity.nuget.newtonsoft-json@3.2.2 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64)
+    com.unity.scriptablebuildpipeline@2.6.1 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.scriptablebuildpipeline@36e3b5898ee2)
+  Built-in packages:
+    com.unity.ugui@2.5.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.ugui@1c4864518158)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.physicscore2d@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.physicscore2d)
+    com.unity.modules.screencapture@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.wind@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.test-framework@1.7.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.test-framework@1405238725ab)
+    com.unity.ext.nunit@2.1.0 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.unity.ext.nunit@44f7d31723bd)
+  Embedded packages:
+    com.cysharp.unitask@file:D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\UniTask (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\UniTask)
+    com.tuyoogame.yooasset@file:D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\YooAsset (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\YooAsset)
+    com.zframework.ecs@file:D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\com.zframework.ecs (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\com.zframework.ecs)
+    com.zframework.rts@file:D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\com.zframework.rts (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\com.zframework.rts)
+  Local packages:
+    com.leonz.z-editor-tools@file:D:\MyLibrary\UnityEditorTools\zEditor(vSeries) (location: D:\MyLibrary\UnityEditorTools\zEditor(vSeries))
+  Git packages:
+    com.leonz.scene-tools@https://github.com/Hubr1zz/UnityEditorTools.git?path=/SceneTools#v0.1.3 (location: D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Library\PackageCache\com.leonz.scene-tools@f8fa0cd5fc36)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.03 seconds
+[ScriptCompilation] Requested script compilation because: AssetDatabase observed changes in script compilation related files
+Starting: D:\UnityVersions\6000.5.9f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aEDbg.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: D:/UnityProjects/ZFramework/UnityCliGameplayUxFresh
+DisplayProgressbar: Compiling Scripts
+ExitCode: 0 Duration: 3s562ms
+[614/632    2s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/GameLogic.dll (+2 others)
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Settlement\Table3D\InventionZone.cs(111,29): warning CS0108: 'InventionZone.DestroyObject(Object)' hides inherited member 'Object.DestroyObject(Object)'. Use the new keyword if hiding was intended.
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\Core\CampaignDeveloperCommands.cs(109,31): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+[615/632    0s] CopyFiles Library/ScriptAssemblies/GameLogic.pdb
+[616/632    0s] CopyFiles Library/ScriptAssemblies/GameLogic.dll
+[617/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-firstpass.dll (+2 others)
+[618/632    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll
+[619/632    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-firstpass.pdb
+[620/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp.dll (+2 others)
+[621/632    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
+[622/632    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
+[623/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.PlayModeTests.dll (+2 others)
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\TabletopCardInteractionPresenterPlayModeTests.cs(24,110): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\TabletopCardInteractionPresenterPlayModeTests.cs(24,51): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\TabletopCardInteractionPresenterPlayModeTests.cs(164,121): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\TabletopCardInteractionPresenterPlayModeTests.cs(164,62): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\PlayableSettlementEventProductionLoopPlayModeTests.cs(257,127): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\PlayableSettlementEventProductionLoopPlayModeTests.cs(257,68): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\PlayableSettlementEventProductionLoopPlayModeTests.cs(258,104): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\PlayableSettlementEventProductionLoopPlayModeTests.cs(258,45): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+[624/632    0s] CopyFiles Library/ScriptAssemblies/HuntingInDarkness.Adapter.PlayModeTests.pdb
+[625/632    0s] CopyFiles Library/ScriptAssemblies/HuntingInDarkness.Adapter.PlayModeTests.dll
+[626/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/HuntingInDarkness.Adapter.EditModeTests.dll (+2 others)
+[627/632    0s] CopyFiles Library/ScriptAssemblies/HuntingInDarkness.Adapter.EditModeTests.pdb
+[628/632    0s] CopyFiles Library/ScriptAssemblies/HuntingInDarkness.Adapter.EditModeTests.dll
+[629/632    0s] Csc Library/Bee/artifacts/1900b0aEDbg.dag/Assembly-CSharp-Editor.dll (+2 others)
+[630/632    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
+[631/632    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+*** Tundra build success (3.52 seconds), 18 items updated, 632 evaluated
+Assets\GameScripts\GameLogic\HuntingInDarkness\ViewLayer\Settlement\Table3D\InventionZone.cs(111,29): warning CS0108: 'InventionZone.DestroyObject(Object)' hides inherited member 'Object.DestroyObject(Object)'. Use the new keyword if hiding was intended.
+Assets\GameScripts\GameLogic\HuntingInDarkness\Core\CampaignDeveloperCommands.cs(109,31): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\TabletopCardInteractionPresenterPlayModeTests.cs(24,110): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\TabletopCardInteractionPresenterPlayModeTests.cs(24,51): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\TabletopCardInteractionPresenterPlayModeTests.cs(164,121): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\TabletopCardInteractionPresenterPlayModeTests.cs(164,62): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\PlayableSettlementEventProductionLoopPlayModeTests.cs(257,127): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\PlayableSettlementEventProductionLoopPlayModeTests.cs(257,68): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\PlayableSettlementEventProductionLoopPlayModeTests.cs(258,104): warning CS0618: 'FindObjectsSortMode' is obsolete: 'FindObjectsSortMode has been deprecated. Use the FindObjectsByType overloads that do not take a FindObjectsSortMode parameter.'
+Assets\GameScripts\GameLogic\HuntingInDarkness\Adapters\Unity\Tests\PlayMode\PlayableSettlementEventProductionLoopPlayModeTests.cs(258,45): warning CS0618: 'Object.FindObjectsByType<T>(FindObjectsSortMode)' is obsolete: 'FindObjectsByType with FindObjectsSortMode parameter has been deprecated. Use FindObjectsByType<T>() or FindObjectsByType<T>(FindObjectsInactive) instead. InstanceID will be replaced in the future with EntityId and previous sort order cannot be maintained.'
+AssetDatabase: script compilation time: 3.998700s
+Begin MonoManager ReloadAssembly
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Terms_Description.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Tools_Categorize.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Tools_CharSet.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Languages.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Tools_MergeTerms.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Tools_NoLocalized.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Tools_ParseTerms.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Terms.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Warnings.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Tools_Scenes.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Inspectors/LocalizationEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Spreadsheet_Local.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Tools_Script.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Spreadsheet_Google.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+'Assets/ZFramework/Editor/Localization/Localization/LocalizationEditor_Tools.cs' contains partial class of Unity.Object, exactly 1 of the partial classes needs to be in a file with the same filename. This is to know the one that can be referenced from ie. GameObjects
+Native extension for WindowsStandalone target not found
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.640 seconds
+Domain Reload Profiling: 1369ms
+	BeginReloadAssembly (339ms)
+		DisableScriptedObjects (23ms)
+		CreateAndSetChildDomain (167ms)
+	RebuildCommonClasses (8ms)
+	RebuildNativeTypeToScriptingClass (15ms)
+	initialDomainReloadingComplete (42ms)
+	LoadAllAssembliesAndSetupDomain (322ms)
+		LoadAssemblies (234ms)
+		AnalyzeDomain (96ms)
+			TypeCache.Refresh (68ms)
+				TypeCache.ScanAssembly (61ms)
+			BuildScriptInfoCaches (24ms)
+	FinalizeReload (642ms)
+		SetupLoadedEditorAssemblies (0ms)
+			BeforeProcessingInitializeOnLoad (70ms)
+			ProcessInitializeOnLoadAttributes (234ms)
+			ProcessInitializeOnLoadMethodAttributes (157ms)
+			AfterProcessingInitializeOnLoad (6ms)
+		AwakeInstancesAfterBackupRestoration (32ms)
+Starting new worker id: 0 with log in D:/UnityProjects/ZFramework/UnityCliGameplayUxFresh/Logs/AssetImportWorkerHW0.log
+
+Asset Pipeline Refresh (id=db228a9211bd4de43a01cd981567cd0e): Total: 5.794 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	(Values over 0.05ms)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=876 ms
+		Asset DB Callback time: managed=69 ms, native=32 ms
+		Scripting: domain reloads=1, domain reload time=768 ms, compile time=4001 ms, other=47 ms
+		Project Asset Count: scripts=750, non-scripts=420
+		Asset File Changes: new=0, changed=7, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokePackagesCallback: 33.377ms
+	ApplyChangesToAssetFolders: 1.035ms
+	Scan: 58.414ms
+	Collect global state as custom dependencies: 5.655ms
+	OnSourceAssetsModified: 0.542ms
+	CategorizeScriptCompilationAssets: 14.279ms
+	ProcessAssetsWithTransientArtifactChanges: 29.063ms
+	CategorizeAssets: 10.008ms
+	CompileScripts: 4000.709ms
+	ImportOutOfDateAssets: 659.795ms (647.679ms without children)
+		UnloadImportedAssets: 1.501ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.163ms
+		ImportSchedulerStart: 10.436ms
+	PostProcessAllAssets: 70.430ms
+		VCAutoAddAssetPostprocess 0.819ms
+		MonoPostProcessAllAssets: 68.630ms
+			AssetPostprocessor.OnPostprocessAllAssets 24.554ms
+			StyleCatalogPostProcessor.OnPostprocessAllAssets 12.764ms
+			WindowAssetPostprocessingWatcher.OnPostprocessAllAssets 7.000ms
+			BuilderAssetPostprocessor.OnPostprocessAllAssets 3.861ms
+			SpritePostprocessor.OnPostprocessAllAssets 2.854ms
+			SyncVS.PostprocessSyncProject 1.675ms
+			AssetChangedListener.OnPostprocessAllAssets 1.582ms
+			FolderStateChangeDetector.OnPostprocessAllAssets 1.283ms
+			RetainedModeAssetPostprocessor.OnPostprocessAllAssets 1.091ms
+			EditModeScopePostprocessor.OnPostprocessAllAssets 0.700ms
+			SpeedTree9Postprocessor.OnPostprocessAllAssets 0.592ms
+			TextAssetPostProcessor.OnPostprocessAllAssets 0.452ms
+			ArtifactBrowserPostProcessor.OnPostprocessAllAssets 0.408ms
+			ConfigAssetsTracker.OnPostprocessAllAssets 0.386ms
+			TMPro_TexturePostProcessor.OnPostprocessAllAssets 0.243ms
+			AssetEvents.OnPostprocessAllAssets 0.236ms
+			SceneImportDetector.OnPostprocessAllAssets 0.223ms
+			AudioMixerPostprocessor.OnPostprocessAllAssets 0.218ms
+			TerrainToolbarOverlayPostProcessor.OnPostprocessAllAssets 0.196ms
+			AssetDatabaseCallbacks.OnPostprocessAllAssets 0.151ms
+			ReferencedClipsPostProcessor.OnPostprocessAllAssets 0.151ms
+			SpeedTreePostProcessor.OnPostprocessAllAssets 0.130ms
+			ScenarioDriftAssetsTracker.OnPostprocessAllAssets 0.111ms
+			RenderPipelineGlobalSettingsPostprocessor.OnPostprocessAllAssets 0.084ms
+			AudioContainerPostProcessor.OnPostprocessAllAssets 0.073ms
+	PostAssetChangesProfiler: 1.915ms
+	UnloadStreamsBegin: 1.077ms
+	GenerateScriptTypeHashes: 1.657ms
+	GenerateScriptTypeSerializationHashes: 3.217ms
+	Untracked: 902.703ms
+
+Application.AssetDatabase Initial Refresh End
+Scanning for USB devices : 4.614ms
+Initializing Unity extensions:
+Script 'Packages/YooAsset/Mini Game/Runtime/YooAsset.MiniGame.asmdef' will not be compiled because it exists outside the Assets folder and does not to belong to any assembly definition file.
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-Hunting in Darkness
+Unloading 22 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 2767 unused Assets / (2.9 MB). Loaded Objects now: 3543.
+Memory consumption went from 264.8 MB to 262.0 MB.
+Total: 7.542800 ms (FindLiveObjects: 0.414400 ms CreateObjectMapping: 0.537500 ms MarkObjects: 5.261700 ms  DeleteObjects: 1.325500 ms)
+
+Batchmode quit successfully invoked - shutting down!
+Curl error 42: Callback aborted
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input Polling Thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-leonz-6000.5.9-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-leonz-6000.5.9 channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+CodeReloadManager destroyed
+13:12:20.386 |V| RiderPlugin                    | :1                             | AppDomain.CurrentDomain.DomainUnload lifetimeDefinition.Terminate
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0

@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "tasks": [
+    { "action": "compile", "requiresConfirmation": false },
+    { "action": "validate-runtime-data", "requiresConfirmation": false }
+  ]
+}

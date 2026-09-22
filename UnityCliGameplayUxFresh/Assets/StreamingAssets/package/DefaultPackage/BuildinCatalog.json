@@ -1,0 +1,115 @@
+{
+    "FileVersion": "1.0.0",
+    "PackageName": "DefaultPackage",
+    "PackageVersion": "2026-08-28-536",
+    "Wrappers": [
+        {
+            "BundleGUID": "1189bad9742659abad66121bb145149e",
+            "FileName": "defaultpackage_assets_assetraw_configs_1189bad9742659abad66121bb145149e.bundle"
+        },
+        {
+            "BundleGUID": "ea229358c581db2938415bced82b9d99",
+            "FileName": "defaultpackage_assets_assetraw_configs_huntingindarkness_ea229358c581db2938415bced82b9d99.bundle"
+        },
+        {
+            "BundleGUID": "f0b182500e9312460043429bb15cfdfb",
+            "FileName": "defaultpackage_assets_assetraw_configs_huntingindarkness_settlementextensions_f0b182500e9312460043429bb15cfdfb.bundle"
+        },
+        {
+            "BundleGUID": "e9664eb645e1b61c84bbd314d690517b",
+            "FileName": "defaultpackage_assets_assetraw_configs_huntingindarkness_tables_e9664eb645e1b61c84bbd314d690517b.bundle"
+        },
+        {
+            "BundleGUID": "8b087af8f765db4c0702ac74bfb07599",
+            "FileName": "defaultpackage_assets_assetraw_fonts_huntingindarkness_8b087af8f765db4c0702ac74bfb07599.bundle"
+        },
+        {
+            "BundleGUID": "726ee57cf02214c7261180dd29d1d4c8",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_combat_726ee57cf02214c7261180dd29d1d4c8.bundle"
+        },
+        {
+            "BundleGUID": "11a0051fb122176a6deb60ad515a9557",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_combat_encounters_11a0051fb122176a6deb60ad515a9557.bundle"
+        },
+        {
+            "BundleGUID": "59d886411dadc5af24d088298e446955",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_combat_permanentinjuries_59d886411dadc5af24d088298e446955.bundle"
+        },
+        {
+            "BundleGUID": "60f4f27a8cd36ae9d5f8db5f4f4dd54b",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_combat_playableboss_60f4f27a8cd36ae9d5f8db5f4f4dd54b.bundle"
+        },
+        {
+            "BundleGUID": "667f67f4938690ed6652118208f5bf95",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_combat_playableboss_hitlocations_667f67f4938690ed6652118208f5bf95.bundle"
+        },
+        {
+            "BundleGUID": "30a6367b42077f68464584932cb69582",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_combat_playablecards_30a6367b42077f68464584932cb69582.bundle"
+        },
+        {
+            "BundleGUID": "e4d43ba6e086a052e5e5d9ceeb53a4f4",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_combat_playablecharacters_e4d43ba6e086a052e5e5d9ceeb53a4f4.bundle"
+        },
+        {
+            "BundleGUID": "209ec36f112f153198ec2eecb580c590",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_combat_survivalevents_209ec36f112f153198ec2eecb580c590.bundle"
+        },
+        {
+            "BundleGUID": "2c5c5f1b34182072d148f4a89f924699",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_hunt_2c5c5f1b34182072d148f4a89f924699.bundle"
+        },
+        {
+            "BundleGUID": "98ae5e8bb06084bd5d1d0cd32a7d5428",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_hunt_destinations_98ae5e8bb06084bd5d1d0cd32a7d5428.bundle"
+        },
+        {
+            "BundleGUID": "75454158b45456ed7eb12d59d1aa20ed",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_hunt_events_75454158b45456ed7eb12d59d1aa20ed.bundle"
+        },
+        {
+            "BundleGUID": "445abcf3c27249045c525cf0e0fb73c0",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_hunt_items_445abcf3c27249045c525cf0e0fb73c0.bundle"
+        },
+        {
+            "BundleGUID": "678a02fa31a92e9cbbe5cf2fe40352dc",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_hunt_tiles_678a02fa31a92e9cbbe5cf2fe40352dc.bundle"
+        },
+        {
+            "BundleGUID": "79f8d5af7189ed9d8e7df7ec6805bd18",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_settlement_events_79f8d5af7189ed9d8e7df7ec6805bd18.bundle"
+        },
+        {
+            "BundleGUID": "f5504499e1ae01dcb86615ecd2db5227",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_settlement_f5504499e1ae01dcb86615ecd2db5227.bundle"
+        },
+        {
+            "BundleGUID": "01ac75ee71c998bb352d1087b5c9e770",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_settlement_growth_01ac75ee71c998bb352d1087b5c9e770.bundle"
+        },
+        {
+            "BundleGUID": "fe40069afc0ed676cd5537772015e678",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_settlement_hunters_fe40069afc0ed676cd5537772015e678.bundle"
+        },
+        {
+            "BundleGUID": "0f947c8312da8f4ebd46957ce07ea2e1",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_settlement_progression_inventions_0f947c8312da8f4ebd46957ce07ea2e1.bundle"
+        },
+        {
+            "BundleGUID": "69697711a56cf24b2f89c1f20808b38d",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_settlement_progression_items_69697711a56cf24b2f89c1f20808b38d.bundle"
+        },
+        {
+            "BundleGUID": "a516dbb10bd253a6b48f17897465cf84",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_settlement_symptoms_a516dbb10bd253a6b48f17897465cf84.bundle"
+        },
+        {
+            "BundleGUID": "2106e7de3fdc7f0aac29b430f0afd563",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_content_settlement_tables_2106e7de3fdc7f0aac29b430f0afd563.bundle"
+        },
+        {
+            "BundleGUID": "4723d56ff3cde238ade5da8f16d4482c",
+            "FileName": "defaultpackage_share_assets_gamescripts_gamelogic_huntingindarkness_so_weapon_weapon_so_4723d56ff3cde238ade5da8f16d4482c.bundle"
+        }
+    ]
+}

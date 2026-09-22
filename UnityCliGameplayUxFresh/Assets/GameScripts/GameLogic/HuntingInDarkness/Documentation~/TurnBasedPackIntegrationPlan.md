@@ -1,0 +1,172 @@
+# TurnBasedPack 全生命周期接入评估
+
+更新日期：2026-08-18
+
+## 决策
+
+采用 TurnBasedPack 的 `ActionQueue + Reactor` 作为全游戏的因果执行底座，并在大量事件、物品、装备与流程覆盖内容进入项目之前先完成基础迁移。
+
+不采用唯一全局 Runner。战役、营地、狩猎、战斗分别维护自己的 Action 执行环境和 Reactor 池，由战役协调器负责跨环境编排。这样既能共享同一套 Action 语义，又能让规则注册、取消、调试预算和释放边界与功能生命周期一致。
+
+当前已完成环境基础、营地训练、主要战斗、狩猎地图/采集/事件及战役阶段切换的受控垂直迁移。旧 `GameCore/Cards/ActionQueue` 与 TurnBasedPack 仍不得共同执行同一个 Root Action。
+
+## 第一性约束
+
+游戏需要解决的不是“排队调用函数”，而是以下五类权威问题：
+
+1. 一个玩家意图从验证、付费、判定、状态改变到表现完成，必须存在唯一且可追踪的因果顺序。
+2. 装备、Buff、Boss 规则、事件和设施能在明确作用域内阻止、改写或注入流程，而不污染其他会话。
+3. 阶段退出或会话销毁后，旧异步行为和 Reactor 不得继续改变新环境。
+4. UI 与其他系统只观察已提交事实，不通过普通事件监听器偷偷修改权威状态。
+5. 失败、取消、循环和部分提交必须有明确语义，不能由调用方猜测。
+
+TurnBasedPack 已提供 Root FIFO、非递归注入、Reactor 优先级与作用域、ReactionGate、取消、循环预算及显式 Outcome，适合作为上述底座；跨 Runner 协调、事务提交、事件出站和持久化仍需项目层补齐。
+
+## 目标结构
+
+```text
+ZFramework Procedure / PlayableGameBootstrap
+                    │
+          CampaignFlowCoordinator
+          ┌─────────┼──────────┬──────────┐
+          │         │          │          │
+   CampaignEnv  SettlementEnv  HuntEnv  CombatEnv
+   战役生命周期    阶段生命周期   单次远征    单场战斗
+
+每个 ActionEnvironment 拥有：
+Runner / Engine + ReactorRegistry + ReactionGates
++ EntityHandleRegistry + Lifetime CancellationToken
++ EventOutbox + 可选 PresentationDispatcher
+```
+
+建议的环境职责：
+
+- `CampaignActionEnvironment`：年份推进、阶段计划、结局、保存边界与跨领域协调，随战役存活。
+- `SettlementActionEnvironment`：招募、休养、建设、训练、事件选择，离开营地阶段时释放。
+- `HuntActionEnvironment`：移动、翻开、采集、狩猎事件、遭遇，随一次 `HuntSession` 创建和释放。
+- `CombatActionEnvironment`：卡牌、费用、判定、伤害、状态、死亡和胜利，随一次 `CombatSession` 创建和释放。
+
+不同环境可配置不同的循环预算、等待策略、Reactor 集合和表现分发器，但应复用同一个项目级 `IActionEnvironment` 契约与诊断格式。
+
+## Action、Reactor 与事件的边界
+
+- `GameAction` 是命令或因果步骤，唯一允许提交权威状态改变。
+- `Reactor` 是同一执行环境中的规则覆盖与流程注入，例如护甲减伤、装备追加效果、Boss 反击或设施折扣。
+- TEngine `GameEvent` / 当前 `EventBus` 是提交后的不可变事实，用于 UI、音效、任务、统计与跨系统通知。
+- 普通事件监听器不得承担与 Reactor 重复的权威修改；同一效果只能有一个执行来源。
+- 跨环境事实先进入 `CampaignFlowCoordinator`，等源 Root 提交完成后，再向目标环境排入新的 Root Action；禁止跨 Runner 嵌套修改。
+
+建议由环境维护 Event Outbox：Action 成功提交后按顺序发布事实；失败、阻止或取消时丢弃未提交事实。Presentation 只消费事实或 Action 表现请求，不反向承担结算。
+
+## 当前实证
+
+- Unity MCP 数据探针确认两个 Runner 的 ReactorRegistry 相互隔离：Runner A 的目标减伤 Reactor 不会影响 Runner B。
+- Engine 探针确认阻止产生 `Prevented`、失败可注入反击、间接循环会被预算终止为 `Failed`。
+- BuffSystem 与 PreviewSystem 的 17 个现有 EditMode 测试全部通过。
+- ActionQueue 核心已经覆盖 Root FIFO、作用域隔离、取消、循环预算、提交事件和 after-commit 交接；业务回归继续通过 Unity MCP 执行。
+
+## 接入前的实际阻塞
+
+`Assets/TurnBasedPack/ActionQueue` 没有 Runtime asmdef，因此被编入默认 `Assembly-CSharp`；项目 `GameLogic` 使用命名程序集，按 Unity 规则不能引用默认程序集中的类型。Buff 的 ActionQueue Adapter 与 PresentationSystem 也缺少独立程序集边界。
+
+正式引用前应一次完成包级加固：
+
+1. 为 ActionQueue Runtime 增加 asmdef，并为其 Editor 子目录增加 Editor-only asmdef。
+2. 为 Buff ActionQueue Adapter 增加引用 Buff Runtime 与 ActionQueue Runtime 的 asmdef。
+3. 为 Presentation Runtime 增加 asmdef。
+4. 让 `GameLogic.asmdef` 显式引用需要的 Runtime 程序集。
+5. 将修复维护为版本化本地 UPM 包或可重复补丁，避免重新导包覆盖。
+6. 为核心顺序、作用域、取消、循环预算和 Runner 隔离补最小自动化测试后，再迁移业务。
+
+上述程序集阻塞和最低测试门槛已于本轮解除：ActionQueue Runtime/Editor、Buff Adapter、Presentation Runtime 已有独立 asmdef，`GameLogic` 可显式引用；ActionQueue 新增 5 个核心测试并与相关程序集回归共同通过。包仍位于 `Assets`，版本化本地 UPM 是长期发布门槛，不阻止当前受控迁移。
+
+## 必须由项目层补齐的能力
+
+1. `IActionEnvironment`：统一 Runner、生命周期令牌、实体句柄、Outbox 和释放协议。
+2. `CampaignFlowCoordinator`：跨环境编排、阶段切换、保存时点与失败策略。
+3. 稳定 `IReactorEntity` 句柄：按 HunterId、ItemId、BossPartId 等稳定 ID 缓存；不能临时重复包装，因为 Reactor 实体匹配采用引用身份。
+4. 提交协议：Composite 不会在后续子 Action 失败时自动回滚已完成子项。经济与内容事务应采用“准备不可变计划 → 原子提交”，必要时显式补偿。
+5. 保存规则：初期只允许环境空闲或 Root 成功提交后保存；在 Action/Queue 尚不可序列化前禁止中途保存链状态。
+6. 取消规范：所有异步 Action 必须观察环境生命周期 `CancellationToken`，否则释放 Runner 也无法保证及时终止外部等待。
+7. 预览模型：Preview 不运行真实 Action/Reactor，关键装备和 Buff 必须显式提供模拟规则，确认时仍要重新验证。
+
+项目层基础实现已经位于 `Adapters/Unity/ActionFlow`：
+
+- `ActionEnvironment` 统一 Engine、Reactor、Gate、Guard、生命周期取消和释放。
+- `ReactorEntityHandleRegistry` 保证同一环境内稳定引用身份、不同环境之间身份隔离，释放后禁止重新创建句柄。
+- `ActionEventOutbox` 每个 Root 独占；成功后按顺序发布 TEngine 事件，失败、取消、阻止或环境释放时丢弃。
+- `StageAfterCommit` 专用于跨环境交接：检查点不会提前发布，只有 Root 成功且源 Engine 已清理活动链后才触发监听器，因此监听器可以安全释放源环境或向目标环境提交新 Root。
+- `PlayableCampaignActionSession` 随战役存活并串行阶段切换；Settlement、Hunt、Combat 环境仍只维护各自生命周期，不互相嵌套执行。
+
+需要特别注意：Engine 返回的是 Root Action 的 Outcome，并不会自动把任意 Reactor 注入 Action 的普通 `Failed` 汇总成整个 Chain 失败。会影响提交成败的关键步骤必须成为 Root Composite 的可观察子 Action，或由后续明确的 Chain Commit Policy 汇总；不能让“可能失败但不影响 Root Outcome”的 Reactor Action 暂存权威提交事件。
+
+Buff Gate 还需特别约束：Gate 虽按 Runner 注册，但不会自动按实体路由。每个 Gate 必须核对所属实体/匹配上下文，否则一个角色的 Buff 可能错误抑制同环境中其他角色的反应。
+
+## 一次迁移、分阶段交付
+
+### 阶段 0：包与契约加固
+
+完成 asmdef、核心测试、`IActionEnvironment`、实体句柄 Registry、生命周期令牌和 Event Outbox。此阶段不改玩法结果。
+
+状态：已完成。Unity MCP 已验证正式 ZFramework 入口可启动，Play Mode 中两个环境的同键实体句柄保持“环境内稳定、环境间隔离”，释放成功且控制台无错误。
+
+### 阶段 1：营地最小垂直切片
+
+优先迁移武器训练或工坊建设的一条完整事务：请求、验证、资源计划、原子提交、Reactor 覆盖、事实发布、保存和反馈全部进入一个 Root。旧入口与新入口配置二选一。
+
+营地切片比战斗更适合验证跨游戏通用语义，且能较低成本暴露事务、事件桥与保存边界问题。
+
+状态：武器训练垂直切片已完成。`PlayableSettlementActionSession` 在进入营地时创建独立环境，离开时释放；`TrainWeaponAction` 负责执行时重验、资源扣除、熟练度提交与失败补偿，Before Reactor 可覆盖成本/经验或阻止命令。成功后 Outbox 依次发布资源、熟练度和 `SettlementTransactionCommittedEvent`，由 `GameManager` 统一触发保存与 View 刷新；正式 View 不再调用旧静态训练服务。Unity MCP 回归 227/227 通过，Play Mode 确认正式入口能创建有效营地环境且控制台无错误。
+
+本阶段尚有两个明确边界：`CanTrainWeapon` 只计算基础规则，不能让 Reactor 折扣反向启用原本不可用的按钮；保存由提交事实触发异步任务，磁盘写入失败不会回写当前 Command Outcome。在装备/设施开始广泛修改可用性前应接入 Preview 规则；在 Campaign 协调器落地时应把保存策略、失败反馈与重试纳入跨环境提交协议。
+
+### 阶段 2：完整战斗 Root
+
+迁移一条完整武器攻击：准备输入、费用、命中牌、伤害、部位效果、死亡/胜利与表现等待。随后迁移 Boss 行动。不得只把伤害步骤塞入新队列而保留旧队列控制外层。
+
+状态：玩家行动卡、默认玩家攻击和 Boss 行动 Root 已完成。`PlayableCombatActionSession` 随单场 `PlayableCombatSession` 创建和释放，拥有独立 Runner、Reactor、Gate 与实体句柄；正式玩家出牌与 Boss 回合均进入这一环境。`PlayCharacterCardAction` 是玩家 Composite Root，统一重验回合/卡牌资格、准备费用与异步效果、扣费前构造所有效果 Action，并在效果子树结束后提交卡牌状态。Outbox 按顺序发布 CardPlayed、CardFlipped 与 CombatActionCommitted。
+
+默认玩家攻击由 `CharacterAttackFlowAction` 展开：受击部位抽取、结果牌准备、每次部位选择、伤害、部位效果、展示清理、Boss 胜利声明和攻击完成事实都是独立 Child Action。Boss 侧由“回合 → 行动卡 → 效果”三级 Composite 展开；定向攻击继续拆为目标选择、每次命中、死亡判定准备、伤口提交、表现、存活事件和攻击完成。Before Reactor 可以覆盖单次命中、伤口或效果，猎人死亡会截断同一攻击的剩余次数。格子覆盖的玩家攻击暂时保留为单个 Legacy Pipeline Child，避免破坏尚未使用的 TargetSelector 扩展，是阶段 2 的剩余兼容项。
+
+主动恢复与灵感爆发也已成为 Combat Root。恢复在准备阶段选择并锁定灵感费用，提交时重新校验卡面与恢复条件；爆发先准备/展开奖励效果，再以不可阻止的最终节点发布翻面和弃置检查点，最后应用时点返还。并发点击由同一 Runner 串行重验，只有一个请求能够提交。玩家轮开始现由 `BeginPlayerTurnAction` 先重置时间线/每回合可用性，再按稳定卡牌 ID 展开自动翻面与恢复 Child；初始化完成前玩家输入保持锁定。
+
+跨卡翻面/恢复/弃置联动现由来源 Root 的 `ResolveCardLinkChainAction` 后代子树结算，不再依赖 EventBus 修改权威状态。触发事实 FIFO、候选卡 ID 升序，每次实际变化均为独立可路由 Action；出牌后翻面、翻牌费用、主动恢复、爆发双事实和回合开始变化均已接入。当前条件对象仍允许在 `Evaluate` 中累计内部计数，后续读表条件契约应拆分事实观察、只读判定与成功消费，明确被 Reactor 阻止的联动是否计数。
+
+费用仍在交互式攻击效果之前提交；Composite 不自动回滚已支付费用或已结算的前序命中。当前已通过“扣费前构造全部效果 Action、扣费后效果阻止只跳过、最终卡牌提交不可阻止”消除普通 Reactor 造成的部分提交；玩家伤害、部位翻回、Boss 胜利、猎人伤口/死亡和每张 Boss 卡完成都会立即发布 Outbox 检查点，后续取消只丢弃未发生事实。尚未实现专用队列接口的非攻击 Boss 效果仍以兼容原子 Child 执行；内容量增长前应逐类迁成专用 Action，避免内部多次写状态却只有一个 Reactor 边界。
+
+### 阶段 3：狩猎与剩余营地流程
+
+迁移移动/翻开/采集/事件/遭遇，以及招募、休养、年度事件等。跨环境结果统一交给 Campaign 协调器产生新 Root。
+
+状态：狩猎地图揭示/移动最小垂直切片已完成。`PlayableHuntActionSession` 随一次 Hunt 生命周期创建和释放，地图点击先捕获揭示或移动意图，再由 Runner 串行重验；`InteractHuntTileAction` 展开权威提交与地块事件两个 Child，分别开放 Reactor 覆盖窗口。提交后 Outbox 发布稳定坐标、交互类型、资源点数量和 Boss 标记事实；Boss 阶段切换延迟到 Root 与 Outbox 完成后，避免执行中的环境自释放。
+
+资源采集切片也已完成：准备、逐卡揭示和最终提交全部由同一 Hunt 环境串行执行，分别开放 `BeginHarvestAction`、`RevealHarvestCardAction`、`CommitHarvestAction` Reactor 边界。准备阶段捕获执行猎人、验证资源点属于当前已揭示地图并允许覆盖牌数/命中率；每张揭示与最终奖励用 Outbox 检查点发布。会话退出会废弃未完成预订，提交被阻止时允许在不重抽的情况下重试。
+
+狩猎事件的可等待子树已经完成：地块提交后先由独立 Action 选择事件，再按 FIFO 将每个事件/子事件展开成可覆盖节点；View 仅通过通用 `IPlayableEventInput` 返回决定，结算、重投和效果仍归 Runner。地图规则同步拆为揭示与开放邻格两步，最终开放只发生在事件子树结束之后。无 UI 环境会确定性选择首个合法选项，避免测试与兼容入口悬挂。
+
+战役阶段切换的底层入口已进入 `PlayableCampaignActionSession`：请求由 Campaign Runner 串行重验，Before Reactor 可阻止或注入前置流程，阶段提交事实仅在源 Root 收尾后发布。Boss 胜利也改用 after-commit 交接，不再在 Combat Root 检查点内同步销毁自身环境。
+
+`TriggerCombat` 的跨环境链路已经完成：Hunt Root 用 after-commit 发布带来源 Session、阶段、坐标、事件和稳定 EncounterId 的 `CampaignEncounterRequest`；营地旧事件入口也改发结构化遭遇事实。Campaign Runner 重新验证来源会话、从 `PlayableEncounterCatalog` 解析 BattleSetup，再切换至 BossFight；未知配置和旧会话保持原阶段。首场 `first-showdown` 已通过目录接线，两类 Boss 地块均配置稳定 ID；目录接口后续可替换为读表 Provider。
+
+营地年度事件也已迁入 Settlement Action 环境，并与 Hunt 复用同一个节点 Action、输入契约、提交检查点和事件链保护；两个环境仍各自维护 Runner、实体与 Reactor 池。招募与分部位休养也已成为 Settlement Root，View 只提交命令，资源、名册/伤势与事务事实由 Outbox 在成功后发布；费用、容量和恢复量均开放 Before Reactor 覆盖。旧 `EventSystem` 共享队列已没有生产调用者，招募/休养旧 Service 也无生产创建者，但兼容类和旧 UI/测试尚待阶段 4 清理。一次事件树出现多个遭遇时目前确定性采用事件定义优先的首个请求并停止后续链，尚未设计“战后恢复原事件链”。阶段进入初始化若在 FSM 已切换后抛出异常仍没有通用回滚；进入营地的异步存档也尚未成为 Campaign Outcome。生产内容的 Reactor 表绑定层应随首批装备/状态表落地，不提前制造空抽象。动态“贪婪采集”等特殊资源规则仍只保留 Action 工厂/策略扩展方向。
+
+### 阶段 4：收口
+
+删除无调用者的旧 `GameCore/Cards/ActionQueue`、EventBus 权威修改监听器和兼容流程。最后接入 Debugger、Preview 与更完整的 Presentation。
+
+## 每阶段准入测试
+
+- 两个同类 Runner 的 Reactor、Gate、实体与事件互不泄漏。
+- Reactor 顺序、注入位置、阻止、失败、取消和循环预算符合约定。
+- 会话释放后不再提交状态或发布事实，注册租约全部释放。
+- EventBus 只收到已提交事实，失败流程不会出现“UI 显示成功但状态未提交”。
+- 消耗资源的 Action 在失败时没有部分扣款；需要补偿的流程有明确测试。
+- 旧/新执行入口不能同时处理同一个 Root。
+- 连续两次营地/狩猎/战斗会话的数据互不污染。
+
+## 暂不执行的重构
+
+- 当前不直接修改 TurnBasedPack 核心算法。
+- 当前不把所有现有 EventBus 事件一次改名或搬迁。
+- 当前不为 Action 做存档/回放格式；先把保存限制在安全边界。
+- 当前不以单一全局 Runner 简化接线，因为它会造成 Reactor 泄漏、无关流程互相排队和阶段释放困难。

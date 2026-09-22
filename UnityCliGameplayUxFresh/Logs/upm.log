@@ -1,0 +1,12 @@
+[2026-08-31T20:20:43.742Z][INFO] Command-line: D:\\UnityVersions\\6000.5.9f1\\Editor\\Data\\Resources\\PackageManager\\Server\\UnityPackageManager.exe server -s 77368 --ipc-path Unity-Upm-77368 -l 2 --log-file D:\\UnityProjects\\ZFramework\\UnityCliGameplayUxFresh/Logs/upm.log
+[2026-08-31T20:20:43.786Z][INFO] IPC server started (IPC path=Unity-Upm-77368).
+[2026-08-31T20:20:43.786Z][INFO] Hint: To connect to this UPM instance, launch Unity with the command-line parameter -upmIpcPath Upm-77368.
+[2026-08-31T20:20:46.760Z][INFO] project:list-packages <-- Request received
+params: {}
+[2026-08-31T20:20:46.800Z][WARN] Package folder [D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\MCPForUnity] missing package manifest.
+[2026-08-31T20:20:46.888Z][INFO] project:list-packages --> 200 (128 ms)
+[2026-08-31T20:20:52.524Z][INFO] project:list-packages <-- Request received
+params: {}
+[2026-08-31T20:20:52.539Z][WARN] Package folder [D:\UnityProjects\ZFramework\UnityCliGameplayUxFresh\Packages\MCPForUnity] missing package manifest.
+[2026-08-31T20:20:52.611Z][INFO] project:list-packages --> 200 (87 ms)
+[2026-08-31T20:20:53.861Z][INFO] Shutting down UnityPackageManager.exe: parent process [77368] is no longer running.

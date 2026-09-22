@@ -1,3 +1,4 @@
+using Cards3D;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Cysharp.Threading.Tasks;
@@ -41,6 +42,7 @@ namespace HuntingInDarkness.Hunt
         /// <summary>统一接收鼠标、触摸或控制器对实体资源棋子的点击；提交仍由狩猎端口串行处理。</summary>
         public void HandleResolvedPointerClick()
         {
+            if (CardInspectionOverlay.BlocksWorldInput) return;
             if (explorationPort == null) return;
             if (GetComponentInParent<PlayableHexTileCard3D>()?.IsFlipping == true) return;
 

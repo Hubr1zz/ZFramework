@@ -1,0 +1,856 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "hunt_echoing_tracks",
+      "eventName": "回声足迹",
+      "eventType": "Choice",
+      "displayText": "前方的石面上出现了一串新鲜足迹。每一步落下后，远处都会传回多出一次的回声。",
+      "hiddenText": "足迹并不属于你们认识的生物，但回声暴露了附近较安全的落脚点。",
+      "options": [
+        {
+          "optionText": "沿回声间隙快速穿过",
+          "checkType": "Evasion",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在带队猎人旁投掷一枚 d10",
+          "successText": "你们抢在下一轮回声前穿过了石坡，并从裂缝中带走一份黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "回声追上了脚步。带队猎人强迫自己继续前进，压抑 +1。",
+          "failEffects": [
+            { "effectType": "AddInsanity", "targetName": "selected", "value": 1, "description": "压抑 +1" },
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "legs", "value": 1, "description": "腿部生命 -1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "绕开足迹，保留体力",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "你们放弃了捷径，但没有惊动留下足迹的东西。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_buried_cache",
+      "eventName": "埋藏的行囊",
+      "eventType": "Choice",
+      "displayText": "一只用筋腱缠紧的旧行囊半埋在灰土里，周围没有尸骨，只有几张朝下盖住的硬纸牌。",
+      "hiddenText": "牌面记录着陌生猎人的路线，其中一张仍指向可用的补给。",
+      "options": [
+        {
+          "optionText": "抽一张路线牌寻找补给",
+          "checkType": "Luck",
+          "checkTarget": 6,
+          "checkPresentation": "DrawCards",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "hunt-route-omens",
+          "checkInstruction": "从行囊旁的路线牌堆抽取一张牌",
+          "successText": "牌上的凹痕指向一块松动的石板，你们找到碎石和一包尚可使用的旧式包扎布。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "broken_stone", "value": 2, "description": "碎石 +2" },
+            { "effectType": "AddItem", "targetName": "weathered_field_dressing", "value": 1, "description": "旧式包扎布 +1" }
+          ],
+          "failText": "牌下只有一团仍在蠕动的黑灰。翻牌者立刻松手，却仍感到意志被削弱。",
+          "failEffects": [
+            { "effectType": "RemoveWillpower", "targetName": "selected", "value": 1, "description": "意志 -1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "不碰纸牌，检查行囊外层",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "行囊已经腐烂，但绳结的编法被猎人记了下来。",
+          "successEffects": [
+            { "effectType": "AddUnderstanding", "targetName": "selected", "value": 1, "description": "知识 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_cold_spore_bloom",
+      "eventName": "冷孢花",
+      "eventType": "Choice",
+      "displayText": "一簇苍白菌盖在没有风的地方依次张开，冷光像呼吸一样在它们之间传递。",
+      "hiddenText": "孢子短暂照亮了前路，也让吸入它的人看见并不存在的同行者。",
+      "options": [
+        {
+          "optionText": "屏住呼吸采下菌盖",
+          "checkType": "Strength",
+          "checkTarget": 5,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 6,
+          "checkInstruction": "在采集者旁投掷一枚 d6",
+          "successText": "菌盖完整脱落，冷光熄灭前照出了一份可用材料。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "soft_organ", "value": 1, "description": "柔软器官 +1" }
+          ],
+          "failText": "孢子钻入口鼻，采集者看见黑暗中多出一个自己。压抑 +1。",
+          "failEffects": [
+            { "effectType": "AddInsanity", "targetName": "selected", "value": 1, "description": "压抑 +1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "等待菌盖自行闭合后离开",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "冷光逐渐消失，你们没有带走材料，也没有吸入孢子。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_singing_sinew",
+      "eventName": "哼唱的筋束",
+      "eventType": "Choice",
+      "displayText": "数条灰白筋束横跨在两块巨石之间，风每穿过一次，它们就多哼出一个人声。",
+      "hiddenText": "筋束不会歌唱。它们只是把过路者留下的声音一次次送回黑暗。",
+      "options": [
+        {
+          "optionText": "让携带安静词条的猎人压住震动后切取筋束",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "安静的材料吸收了震动。筋束没来得及发出警告就被收起。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "echo_sinew", "value": 2, "description": "回声筋腱 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "quiet", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "用力扯断一束并在回声聚拢前离开",
+          "checkType": "Strength",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在扯动筋束的猎人旁投掷一枚 d10",
+          "successText": "筋束应声断裂，你们在它呼唤出别的东西前带走了材料。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "echo_sinew", "value": 1, "description": "回声筋腱 +1" }
+          ],
+          "failText": "筋束把猎人的喘息放大数十次。队伍逃离时，他仍觉得有人在背后呼吸。",
+          "failEffects": [
+            { "effectType": "AddInsanity", "targetName": "selected", "value": 1, "description": "压抑 +1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "绕开筋束，不让它记住更多声音",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "哼唱在身后继续，但没有一声属于你们。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_fleeing_shadow",
+      "eventName": "逃走的影子",
+      "eventType": "Choice",
+      "displayText": "队伍的影子忽然少了一道。它脱离主人，沿石坡向一处发着盐光的裂缝逃去。",
+      "hiddenText": "被抓回来的影子比原来更长了一截，仿佛还有别的东西躲在里面。",
+      "options": [
+        {
+          "optionText": "让带有守望者词条的猎人盯住真正的裂缝",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "猎人没有追逐影子，而是封住它最终想进入的裂缝，并取走一份黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "watcher", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "追上逃走的影子",
+          "checkType": "Evasion",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在追逐者与影子之间投掷一枚 d10",
+          "successText": "猎人在影子钻入裂缝前踩住了它。影子重新贴回脚下，没有留下伤口。",
+          "successEffects": [],
+          "failText": "影子回来了，但猎人此后总会看见视野边缘有什么东西逃走。他染上了逐影。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_shadow_fixation", "value": 1, "description": "获得症状：逐影" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "不追，让队伍远离裂缝",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "影子在远处停了一会儿，最终自行回到主人脚下。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_breathing_quarry",
+      "eventName": "会呼吸的采石坑",
+      "eventType": "Choice",
+      "displayText": "废弃采石坑每隔十次呼吸便喷出一阵白灰。坑底散落着尚未风化的黑盐晶。",
+      "hiddenText": "离开后，猎人仍能感觉到采石坑在远处与自己的胸腔同时起伏。",
+      "options": [
+        {
+          "optionText": "用安静的装备过滤石灰，等待喷息间隙采集",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "裹衣吸住了最细的粉尘。队伍在下一次喷息前取走两份黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 2, "description": "黑盐 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "quiet", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "屏住呼吸冲到坑底",
+          "checkType": "Strength",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在采集者旁投掷一枚 d10",
+          "successText": "采集者在喷息前返回，带回一份黑盐。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "black_salt", "value": 1, "description": "黑盐 +1" }
+          ],
+          "failText": "白灰灌入肺部。从此每次深呼吸都像吞下一把碎石。他染上了石肺。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_stone_lung", "value": 1, "description": "获得症状：石肺" },
+            { "effectType": "ExhaustCurrentHuntTileResources", "targetName": "", "bodyPart": "", "value": 0, "description": "白灰覆盖当前地块的全部资源点" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "标记采石坑后绕行",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "白灰在身后继续喷涌，没有进入任何人的肺。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_glasswing_nest",
+      "eventName": "玻璃翅巢",
+      "eventType": "Choice",
+      "displayText": "一团透明薄翅贴在岩壁上。每当手靠近，它们便震出足以让指骨发麻的尖鸣。",
+      "hiddenText": "薄翅被风吹散后，岩壁上露出几道像手指反复抓挠留下的划痕。",
+      "options": [
+        {
+          "optionText": "翻开一张共振牌，寻找薄翅同时静止的瞬间",
+          "checkType": "Understanding",
+          "checkTarget": 6,
+          "checkPresentation": "FlipCards",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "glasswing-resonance",
+          "checkInstruction": "从岩壁前翻开一张共振牌",
+          "successText": "所有薄翅同时静止了一瞬。猎人取下其中包裹的一份回声筋腱。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "echo_sinew", "value": 1, "description": "回声筋腱 +1" }
+          ],
+          "failText": "尖鸣沿手臂钻进骨头。离开巢穴后，猎人的双手仍无法停止颤抖。他染上了手颤。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_trembling_hands", "value": 1, "description": "获得症状：手颤" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "用石块从远处击散薄翅",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "薄翅碎成无害的透明粉末。队伍没有得到材料，也没有让尖鸣靠近。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 3,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_warm_carcass",
+      "eventName": "仍温热的空壳",
+      "eventType": "Choice",
+      "displayText": "一具没有内脏的兽壳横在路中，血却仍从空洞里持续涌出。血流绕开所有石块，主动靠近队伍。",
+      "hiddenText": "兽壳最终冷却时，血流在地上拼出了一个不属于任何猎人的名字。",
+      "options": [
+        {
+          "optionText": "让带有仪式词条的猎人用黑盐截断血流",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "盐晶吸住了血。猎人从空壳边缘取下一份仍有用途的柔软器官。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "soft_organ", "value": 1, "description": "柔软器官 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "ritual", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "从血流中抽一张脉动的牌",
+          "checkType": "Courage",
+          "checkTarget": 6,
+          "checkPresentation": "OldMaid",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "warm-carcass",
+          "checkInstruction": "从血流中央抽取一张仍在跳动的牌；避开空壳鬼牌",
+          "successText": "猎人抽到了一张完整器官牌，并从空壳中取出一份柔软器官。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "soft_organ", "value": 1, "description": "柔软器官 +1" }
+          ],
+          "failText": "空壳鬼牌贴上猎人的手掌。血流退去后，他仍渴望靠近下一处伤口。他染上了血热。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_blood_fever", "value": 1, "description": "获得症状：血热" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionText": "绕开空壳，不触碰血流",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "血流追出几步便停下了。队伍没有获得材料，也没有带走它的饥饿。",
+          "successEffects": [],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 3,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_sap_suture",
+      "eventName": "树脂缝线",
+      "eventType": "Choice",
+      "displayText": "一条半透明树脂从裂开的石皮里缓慢渗出，里面悬着许多仍在收缩的细丝。",
+      "hiddenText": "树脂离开石皮后迅速变稠，细丝则像被剪断的神经一样停止抽动。",
+      "options": [
+        {
+          "optionText": "用带有锯齿词条的装备切断细丝",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "整齐的切口没有牵动石皮。你们收起两份完整粘液。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "viscous_sap", "value": 2, "description": "粘液 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "serrated", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "徒手扯开树脂",
+          "checkType": "Strength",
+          "checkTarget": 5,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 6,
+          "checkInstruction": "在采集者手边投掷一枚 d6",
+          "successText": "细丝在发力的一瞬间断开，猎人带回一份粘液。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "viscous_sap", "value": 1, "description": "粘液 +1" }
+          ],
+          "failText": "细丝缠住手腕并猛然收紧，猎人的手臂受到普通伤势。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "arms", "value": 1, "description": "手臂受到 1 点普通伤势" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_carapace_cairn",
+      "eventName": "甲壳石冢",
+      "eventType": "Choice",
+      "displayText": "数十片空甲壳堆成一座矮冢。每当猎人靠近，最上层的甲壳便像手掌一样逐片翻动。",
+      "hiddenText": "石冢下面没有尸体，只有更多正在模仿手势的空壳。",
+      "options": [
+        {
+          "optionText": "戴着甲壳护臂回应它的手势",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "石冢认出了相同的弧度，主动送出两片仍有韧性的甲壳。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "carapace", "value": 2, "description": "甲壳 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasEquippedItem", "key": "carapace_bracer", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "趁甲壳翻动时抽走一片",
+          "checkType": "Evasion",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在石冢旁投掷一枚 d10",
+          "successText": "猎人在空壳合拢前抽回手，带走一片甲壳。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "carapace", "value": 1, "description": "甲壳 +1" }
+          ],
+          "failText": "甲壳夹住前臂，直到同伴撬开石冢才松手。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "arms", "value": 1, "description": "手臂受到 1 点普通伤势" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_white_hair_lure",
+      "eventName": "白发诱饵",
+      "eventType": "Choice",
+      "displayText": "几束白色长毛悬在没有蛛网的空中，末端绑着一张朝下的薄牌。",
+      "hiddenText": "牌背后的石壁布满抓痕，像是很多人曾在同一位置伸手。",
+      "options": [
+        {
+          "optionText": "用带有柔韧词条的装备缠住白发",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "柔韧的绑带分散了拉力。你们安全取下白发与普通毛发。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "white_hair", "value": 1, "description": "白色毛发 +1" },
+            { "effectType": "AddResource", "targetName": "hair", "value": 1, "description": "毛发 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "flexible", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "翻开薄牌后立刻扯下白发",
+          "checkType": "Understanding",
+          "checkTarget": 6,
+          "checkPresentation": "FlipCards",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "white-hair-lure",
+          "checkInstruction": "翻开白发末端的薄牌",
+          "successText": "牌面画着松开的手。猎人顺着图示卸力，取下一份白发。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "white_hair", "value": 1, "description": "白色毛发 +1" }
+          ],
+          "failText": "牌面画着猎人熟睡时的脸。此后他每次闭眼都会梦见那只伸出的手。",
+          "failEffects": [
+            { "effectType": "AddAilment", "targetName": "symptom_night_terrors", "value": 1, "description": "获得症状：夜惊" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_root_pulse",
+      "eventName": "根茎脉搏",
+      "eventType": "Choice",
+      "displayText": "土层下传来有规律的轻响。一排球状根茎随着声音依次鼓起，像某种埋在地下的心脏。",
+      "hiddenText": "切开的根茎没有汁液，只有一圈圈向内生长的细小牙齿。",
+      "options": [
+        {
+          "optionText": "让患有低语症的猎人指出脉搏间隙",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "那些纠缠他的低语第一次说出了同一个方向。队伍挖出两份完整根茎。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "bulbous_root", "value": 2, "description": "球状根茎 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasAilment", "key": "symptom_whisper_sickness", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "从跳动的根茎中抽出一张完整者",
+          "checkType": "Courage",
+          "checkTarget": 6,
+          "checkPresentation": "OldMaid",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "root-pulse",
+          "checkInstruction": "从根茎牌中抽一张，避开咬合的空根牌",
+          "successText": "抽出的根茎在猎人手中安静下来，可以安全带走。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "bulbous_root", "value": 1, "description": "球状根茎 +1" }
+          ],
+          "failText": "空根牌咬住手指，地下的脉搏随之加快。猎人的压抑增加。",
+          "failEffects": [
+            { "effectType": "AddInsanity", "targetName": "selected", "value": 1, "description": "压抑 +1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_rust_burial",
+      "eventName": "锈蚀葬坑",
+      "eventType": "Choice",
+      "displayText": "一圈古老石片围着浅坑，坑内埋着形状不明的金属。每块石片都刻有相同的闭眼符号。",
+      "hiddenText": "金属被挖出后，所有石片上的眼睛同时睁开，又立刻被锈色覆盖。",
+      "options": [
+        {
+          "optionText": "让带有仪式词条的猎人依次翻转石片",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "石片按仪式顺序沉入土中，露出金属碎片和一块古老石屑。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "metal_fragment", "value": 1, "description": "金属碎片 +1" },
+            { "effectType": "AddResource", "targetName": "ancient_stone_chip", "value": 1, "description": "古老石屑 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "ritual", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "抽一张石片决定挖掘位置",
+          "checkType": "Understanding",
+          "checkTarget": 7,
+          "checkPresentation": "DrawCards",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkDeckId": "rust-burial",
+          "checkInstruction": "从葬坑边缘抽取一张石片",
+          "successText": "刻痕指向没有机关的位置。队伍挖出一份金属碎片。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "metal_fragment", "value": 1, "description": "金属碎片 +1" }
+          ],
+          "successChainIds": ["hunt_rust_burial_open_eyes"],
+          "failText": "石片翻开时，猎人看见自己的闭眼符号。命运值 +1。",
+          "failEffects": [
+            { "effectType": "AddLuck", "targetName": "selected", "value": 1, "description": "命运值 +1" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 3,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_rust_burial_open_eyes",
+      "eventName": "睁眼的石片",
+      "eventType": "Choice",
+      "displayText": "金属碎片离开土层后，闭眼符号下方露出一圈新的刻痕。你可以冒险读懂它，也可以用已有的金属碎片封住这道缝隙。",
+      "hiddenText": "石片的眼睛终于闭合，留下的痕迹仍像是在记住每一个看过它的人。",
+      "options": [
+        {
+          "optionId": "understand_open_eyes",
+          "optionText": "翻开两张石片，理解它们为何睁眼",
+          "checkType": "Understanding",
+          "checkTarget": 12,
+          "checkPresentation": "FlipCards",
+          "checkCount": 2,
+          "checkSides": 10,
+          "checkDeckId": "rust-burial-open-eyes",
+          "checkInstruction": "翻开两张睁眼石片",
+          "successText": "两张石片的刻痕拼成一段古老路径。你取下一块完整的古老石屑。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "ancient_stone_chip", "value": 1, "description": "古老石屑 +1" }
+          ],
+          "failText": "石片的目光穿过手臂。猎人的双臂留下了无法立刻恢复的酸痛。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "arms", "value": 1, "description": "双臂受到 1 点普通伤势" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        },
+        {
+          "optionId": "seal_open_eyes",
+          "optionText": "用一份金属碎片封住石片的缝隙",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "金属嵌入缝隙，石片的眼睛重新闭合。",
+          "successEffects": [
+            { "effectType": "RemoveResource", "targetName": "metal_fragment", "value": 1, "description": "金属碎片 -1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "MinimumResource", "key": "metal_fragment", "value": 1, "inverted": false }
+          ]
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 3,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Triggered"
+    },
+    {
+      "id": "hunt_worm_rain",
+      "eventName": "蠕虫雨",
+      "eventType": "Choice",
+      "displayText": "岩顶传来密集敲击声，随后大量苍白蠕虫从裂缝落下。它们只朝裸露的皮肤爬行。",
+      "hiddenText": "雨停后，地面留下许多由蠕虫身体拼出的细小箭头，全都指向更深的荒原。",
+      "options": [
+        {
+          "optionText": "让带有甲壳词条的猎人接住蠕虫",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "蠕虫无法咬穿甲壳，反而聚在护臂凹槽中。队伍收集到两份。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "earthworm", "value": 2, "description": "蚯蚓 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "HasKeyword", "key": "shell", "value": 0, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "撕开旧式包扎布遮住裸露皮肤",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "包扎布挡住了第一波虫群。猎人在它彻底破碎前收集到两份蚯蚓。",
+          "successEffects": [
+            { "effectType": "RemoveItem", "targetName": "weathered_field_dressing", "value": 1, "description": "旧式包扎布 -1" },
+            { "effectType": "AddResource", "targetName": "earthworm", "value": 2, "description": "蚯蚓 +2" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": false,
+          "conditions": [
+            { "conditionKind": "MinimumCarriedItem", "key": "weathered_field_dressing", "displayName": "旧式包扎布", "value": 1, "inverted": false }
+          ]
+        },
+        {
+          "optionText": "在虫雨中快速收集样本",
+          "checkType": "Evasion",
+          "checkTarget": 6,
+          "checkPresentation": "PhysicalDice",
+          "checkCount": 1,
+          "checkSides": 10,
+          "checkInstruction": "在虫雨落点投掷一枚 d10",
+          "successText": "猎人避开咬合的虫群，带回一份蚯蚓和一份尘螨。",
+          "successEffects": [
+            { "effectType": "AddResource", "targetName": "earthworm", "value": 1, "description": "蚯蚓 +1" },
+            { "effectType": "AddResource", "targetName": "dust_mite", "value": 1, "description": "尘螨 +1" }
+          ],
+          "failText": "虫群钻入护腿缝隙，逃离时猎人的腿部受到普通伤势。",
+          "failEffects": [
+            { "effectType": "AddRecoverableWound", "targetName": "selected", "bodyPart": "legs", "value": 1, "description": "腿部受到 1 点普通伤势" }
+          ],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 2,
+      "maxYear": 0,
+      "drawWeight": 2,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_crushing_slab",
+      "eventName": "塌落的石板",
+      "eventType": "Choice",
+      "displayText": "一块悬空石板突然塌落，唯一的通路被压在阴影下。",
+      "hiddenText": "猎人撑住石板让队伍通过，伤势的后果只能在牌面翻开后确认。",
+      "options": [
+        {
+          "optionId": "hold_slab",
+          "optionText": "让选中的猎人撑住石板",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "石板终于滑过，猎人松开双臂；这次伤势的命运交给死亡牌堆。",
+          "successEffects": [
+            { "effectType": "FatalInjury", "targetName": "selected", "bodyPart": "arms", "fatalDeckId": "hunter-death", "survivalEventId": "hunt_fatal_injury_survivor", "value": 4, "description": "撑住塌落石板时遭受致命伤" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    },
+    {
+      "id": "hunt_fatal_injury_survivor",
+      "eventName": "幸运儿",
+      "eventType": "Narrative",
+      "displayText": "死亡牌翻开时，牌面上的裂纹停在猎人的指尖前。",
+      "hiddenText": "这一次，命运留下了一点余地。",
+      "options": [],
+      "immediateEffects": [
+        { "effectType": "AddLuck", "targetName": "selected", "value": 1, "description": "命运值 +1" }
+      ],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Triggered"
+    },
+    {
+      "id": "hunt_lost_survivor",
+      "eventName": "迷路的幸存者",
+      "eventType": "Choice",
+      "displayText": "一张折断的求救牌压在石堆下。沿着牌角指向，你们找到一名仍能行走的幸存者。",
+      "hiddenText": "幸存者跟在队伍最后，只有成功回到营地后才会成为可供招募的人口。",
+      "options": [
+        {
+          "optionId": "escort_survivor_home",
+          "optionText": "带幸存者同行",
+          "checkType": "None",
+          "checkTarget": 0,
+          "successText": "你们把一张同行标记牌交给幸存者，并为归途留出位置。",
+          "successEffects": [
+            { "effectType": "RescuePopulation", "targetName": "", "value": 1, "description": "同行幸存者 +1" }
+          ],
+          "failText": "",
+          "failEffects": [],
+          "alwaysAvailable": true,
+          "conditions": []
+        }
+      ],
+      "immediateEffects": [],
+      "minYear": 1,
+      "maxYear": 0,
+      "drawWeight": 1,
+      "category": "Hunt"
+    }
+  ]
+}
