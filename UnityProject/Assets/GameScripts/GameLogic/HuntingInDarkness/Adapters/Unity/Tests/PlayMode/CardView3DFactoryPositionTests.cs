@@ -14,8 +14,23 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 {
     public sealed class CardView3DFactoryPositionTests
     {
-        [TearDown]
-        public void TearDown() => CardPrefabRegistry.Configure(null);
+        private GameObject presentationAssets;
+
+        [UnitySetUp]
+        public IEnumerator SetUp()
+        {
+            presentationAssets = TabletopUsabilityPlayModeTests.CreatePresentationAssets();
+            yield return null;
+        }
+
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            CardPrefabRegistry.Configure(null);
+            TabletopUsabilityPlayModeTests.DestroyPresentationAssets(presentationAssets);
+            presentationAssets = null;
+            yield return null;
+        }
 
         [UnityTest]
         public IEnumerator Factories_PlaceDirectPanelCardsAtRequestedLocalPositions()
@@ -50,7 +65,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             var root = new GameObject("CardInspectionRoot");
             TabletopEventPrimaryCard3D card = TabletopEventPrimaryCard3D.Create(root.transform);
             const string fullBody = "这是一段超过实体卡可视区域时仍应由详情层完整读取的叙事正文，包括结果、条件与后续影响。";
-            card.Present("废墟回声", fullBody, "按 F 查看完整信息", TabletopEventPrimaryTone.Narrative);
+            card.Present("废墟回声", fullBody, "详情", TabletopEventPrimaryTone.Narrative);
 
             Assert.That(card.TryGetInspectionContent(out CardInspectionContent content), Is.True);
             Assert.That(content.Title, Is.EqualTo("废墟回声"));
@@ -70,7 +85,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         }
 
         [UnityTest]
-        public IEnumerator EventPrimaryCard_ClickOpensAndDestroyClosesInspection()
+        public IEnumerator EventPrimaryCard_HoverShowsAndDestroyClearsInspection()
         {
             var cameraObject = new GameObject("InspectionCamera") { tag = "MainCamera" };
             Camera camera = cameraObject.AddComponent<Camera>();
@@ -81,9 +96,10 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
             try
             {
-                card.HandlePointerDown(Vector2.zero);
-                card.HandlePointerUp();
-                Assert.That(CardInspectionOverlay.BlocksWorldInput, Is.True);
+            CardInspectionOverlay.SetHovered(card);
+            Assert.That(CardInspectionOverlay.BlocksWorldInput, Is.False);
+            Assert.That(CardInspectionOverlay.Open(card), Is.True);
+            Assert.That(CardInspectionOverlay.IsShowingHover, Is.True);
             }
             finally
             {
@@ -94,6 +110,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
             yield return null;
             Assert.That(CardInspectionOverlay.BlocksWorldInput, Is.False);
+            Assert.That(CardInspectionOverlay.IsShowingHover, Is.False);
         }
 
         [UnityTest]

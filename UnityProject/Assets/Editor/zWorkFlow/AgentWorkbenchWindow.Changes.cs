@@ -13,8 +13,6 @@ namespace AgentWorkflow.Editor
 {
     public sealed partial class AgentWorkbenchWindow : EditorWindow
     {
-        private const float ChangeListWidth = 270f;
-        private const float ChangePanelGap = 6f;
         private const float ChangeDetailHorizontalChrome = 20f;
         private float changeDetailContentWidth = 1f;
 
@@ -25,7 +23,7 @@ namespace AgentWorkflow.Editor
             var visibleChanges = new List<ChangeEntry>();
             using (new EditorGUILayout.HorizontalScope(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
             {
-                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(ChangeListWidth), GUILayout.ExpandHeight(true)))
+                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(NavigationPanelWidth()), GUILayout.ExpandHeight(true)))
                 {
                     DrawChangeCategoryTabs();
                     EditorGUILayout.Space(4);
@@ -35,7 +33,7 @@ namespace AgentWorkflow.Editor
                         .ToList();
                     if (_selectedChange == null || !visibleChanges.Contains(_selectedChange))
                         _selectedChange = visibleChanges.FirstOrDefault();
-                    EditorGUILayout.LabelField($"Changes（{visibleChanges.Count}）", ReportHeaderStyle());
+                    EditorGUILayout.LabelField(AgentWorkbenchText.Format("change.summary", visibleChanges.Count), ReportHeaderStyle());
                     _changeListScroll.x = 0f;
                     _changeListScroll = BeginVerticalScrollView(
                         _changeListScroll,
@@ -48,7 +46,7 @@ namespace AgentWorkflow.Editor
                     EditorGUILayout.EndScrollView();
                 }
 
-                GUILayout.Space(ChangePanelGap);
+                DrawNavigationResizeHandle();
                 using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
                 {
                     UpdateChangeDetailContentWidth();
@@ -154,7 +152,13 @@ namespace AgentWorkflow.Editor
 
         private void DrawChangeListItem(ChangeEntry change)
         {
-            const float rowHeight = 29f;
+            const float folderButtonWidth = 28f;
+            const float progressWidth = 42f;
+            const float categoryWidth = 78f;
+            var rowHeight = WrappedListItemHeight(
+                change.Title,
+                SpecListNameStyle(),
+                NavigationListContentWidth(folderButtonWidth + progressWidth + categoryWidth + 20f));
             if (ReferenceEquals(_renamingChange, change))
             {
                 using (new EditorGUILayout.HorizontalScope(GUILayout.Height(rowHeight)))
@@ -169,7 +173,6 @@ namespace AgentWorkflow.Editor
             }
 
             var rect = GUILayoutUtility.GetRect(1, rowHeight, GUILayout.ExpandWidth(true));
-            const float folderButtonWidth = 28f;
             var selectRect = new Rect(rect.x, rect.y, rect.width - folderButtonWidth - 2f, rect.height);
             var folderRect = new Rect(selectRect.xMax + 2f, rect.y, folderButtonWidth, rect.height);
             if (Event.current.type == EventType.ContextClick && selectRect.Contains(Event.current.mousePosition))
@@ -200,8 +203,6 @@ namespace AgentWorkflow.Editor
             var progress = change.Tasks.Count == 0
                 ? "—"
                 : $"{Mathf.RoundToInt(completed * 100f / change.Tasks.Count)}%";
-            const float progressWidth = 42f;
-            const float categoryWidth = 78f;
             GUI.Label(
                 new Rect(selectRect.x + 8, selectRect.y, selectRect.width - progressWidth - categoryWidth - 20, selectRect.height),
                 change.Title,

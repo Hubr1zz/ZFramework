@@ -22,7 +22,7 @@ namespace Cards3D
             float nearestDistance = dropSearchRadius;
             foreach (CardSlot slot in CardSlot.AllSlots)
             {
-                if (slot == null || !CanDropInto(slot)) continue;
+                if (!IsDropTargetActive(slot) || !CanDropInto(slot)) continue;
                 float distance = DistanceToSlotArea(slot, transform.position);
                 if (distance >= nearestDistance) continue;
                 nearest = slot;
@@ -49,7 +49,7 @@ namespace Cards3D
             hoverSlot?.SetHighlight(false);
             hoverSlot = null;
 
-            if (target != null && CanDropInto(target))
+            if (IsDropTargetActive(target) && CanDropInto(target))
             {
                 if (TryHandleSlotDrop(target))
                 {
@@ -74,6 +74,11 @@ namespace Cards3D
         }
 
         protected virtual bool CanDropInto(CardSlot slot) => slot.CanAccept(this);
+
+        private static bool IsDropTargetActive(CardSlot slot)
+        {
+            return slot != null && slot.isActiveAndEnabled && slot.gameObject.activeInHierarchy;
+        }
 
         /// <summary>返回 true 表示子类把合法落点解释为命令请求，并已自行恢复或接管视觉。</summary>
         protected virtual bool TryHandleSlotDrop(CardSlot slot) => false;

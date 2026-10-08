@@ -8,6 +8,7 @@ using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.ViewLayer.Tabletop;
+using HuntingInDarkness.ViewLayer.Presentation;
 using UnityEngine;
 
 namespace UI
@@ -25,8 +26,16 @@ namespace UI
     /// </summary>
     public class SettlementTable3D : MonoBehaviour
     {
+        public static SettlementTable3D Current { get; private set; }
+        public SettlementManager Manager => _mgr;
+        public PlayableWorkshopCatalog WorkshopCatalog => workshopCatalog;
+        public PlayableSettlementContentCatalog SettlementContentCatalog => settlementContentCatalog;
+        public PlayableWorkshopConstructionService WorkshopConstructionService => workshopConstructionService;
+        public InventionZone InventionZone => _inventionZone;
         [Header("程序化回退布局")]
         [SerializeField] private SettlementTableLayoutSettings fallbackLayout = new();
+        [SerializeField] private SettlementTableVisualLayout visualLayout;
+        private GameObject visualLayoutInstance;
 
         // ─── 分区 presenter（Inspector 连线）──────────────────────────────
         [Header("分区 presenter（场景预放置）")]
@@ -85,6 +94,7 @@ namespace UI
         private Cards3D.SettlementFacilityDutyLauncherCard3D facilityDutyLauncher;
 
         [Header("狩猎整备入口")]
+        [SerializeField] private Transform departureLauncherAnchor;
         [SerializeField] private Vector3 fallbackDepartureLauncherPosition = new(3.25f, 0.03f, -2.65f);
         private TabletopDepartureLauncherCard3D departureLauncher;
 
@@ -125,6 +135,8 @@ namespace UI
                 gameObject.AddComponent<WorldSpaceTypographyGuard>();
             UnsubscribeEvents();
             _mgr = mgr;
+            Current = this;
+            CampaignScreenView.Current?.BindSettlementTable(this);
             workshopCatalog = catalog;
             settlementContentCatalog = settlementContent;
             workshopConstructionService = new PlayableWorkshopConstructionService(() => _mgr?.Data);
@@ -156,6 +168,22 @@ namespace UI
 
         private void RefreshCameraFraming()
         {
+            if (visualLayout != null)
+            {
+                SettlementExpansionAreaController[] expansions =
+                {
+                    visualLayout.WorkshopExpansion,
+                    visualLayout.ResourceExpansion,
+                    visualLayout.InventionExpansion,
+                    visualLayout.PreviewExpansion
+                };
+                foreach (SettlementExpansionAreaController expansion in expansions)
+                    if (expansion != null && expansion.IsOpen)
+                    {
+                        expansion.RefreshFrame();
+                        return;
+                    }
+            }
             if (!isActiveAndEnabled || !TabletopCameraFraming.TryCalculateWorldBounds(transform, out Bounds bounds)) return;
             TabletopCameraFraming.Request(this, bounds);
         }
@@ -191,7 +219,8 @@ namespace UI
         private void EnsureDepartureLauncher()
         {
             if (departureLauncher != null || _squadZone?.HasDepartureCard == true) return;
-            departureLauncher = TabletopDepartureLauncherCard3D.Create(transform, fallbackDepartureLauncherPosition);
+            Vector3 position = departureLauncherAnchor != null ? transform.InverseTransformPoint(departureLauncherAnchor.position) : fallbackDepartureLauncherPosition;
+            departureLauncher = TabletopDepartureLauncherCard3D.Create(transform, position);
         }
 
         private void EnsureHunterEquipmentPanel()
@@ -219,13 +248,21 @@ namespace UI
         private void EnsureRecruitmentLauncher()
         {
             if (recruitmentLauncher == null)
-                recruitmentLauncher = RecruitmentLauncherCard3D.Create(transform, fallbackRecruitmentLauncherPosition);
+            {
+                Vector3 position = recruitmentPanelAnchor != null ? transform.InverseTransformPoint(recruitmentPanelAnchor.position) : fallbackRecruitmentLauncherPosition;
+                recruitmentLauncher = RecruitmentLauncherCard3D.Create(transform, position);
+            }
             recruitmentLauncher.Configure(_mgr.Data, settlementContentCatalog);
             recruitmentLauncher.Clicked = ShowRecruitment;
         }
 
         private void ShowRecruitment()
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.OpenRecruitment();
+                return;
+            }
             if (recruitmentPanel == null) return;
             HideContextPanels();
             Vector3 position = recruitmentPanelAnchor != null ? recruitmentPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.0f));
@@ -241,6 +278,11 @@ namespace UI
 
         private void ShowHunterAdvancement(HunterInstance hunter)
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.OpenHunterGrowth(hunter);
+                return;
+            }
             if (hunter == null || hunterAdvancementPanel == null) return;
             HideContextPanels();
             Vector3 position = hunterAdvancementPanelAnchor != null ? hunterAdvancementPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.1f));
@@ -256,6 +298,11 @@ namespace UI
 
         private void ShowHunterSymptoms(HunterInstance hunter)
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.OpenHunterSymptoms(hunter);
+                return;
+            }
             if (hunter == null || hunterSymptomPanel == null) return;
             HideContextPanels();
             Vector3 position = hunterSymptomPanelAnchor != null ? hunterSymptomPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.0f));
@@ -269,13 +316,21 @@ namespace UI
             campLedgerPanel.EnsureBuilt();
             campLedgerPanel.SetCalendarSeason(_mgr.Timeline?.CurrentSeason);
             if (campLedgerLauncher == null)
-                campLedgerLauncher = CampLedgerLauncherCard3D.Create(transform, fallbackCampLedgerLauncherPosition);
+            {
+                Vector3 position = campLedgerPanelAnchor != null ? transform.InverseTransformPoint(campLedgerPanelAnchor.position) : fallbackCampLedgerLauncherPosition;
+                campLedgerLauncher = CampLedgerLauncherCard3D.Create(transform, position);
+            }
             campLedgerLauncher.Configure(_mgr.Data);
             campLedgerLauncher.Clicked = ShowCampLedger;
         }
 
         private void ShowCampLedger()
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.ShowSection("年鉴");
+                return;
+            }
             if (campLedgerPanel == null) return;
             HideContextPanels();
             Vector3 position = campLedgerPanelAnchor != null ? campLedgerPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.0f));
@@ -284,6 +339,11 @@ namespace UI
 
         private void ShowHunterRecovery(HunterInstance hunter)
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.OpenHunterRecovery(hunter);
+                return;
+            }
             if (hunter == null || hunterRecoveryPanel == null) return;
             HideContextPanels();
             Vector3 position = hunterRecoveryPanelAnchor != null ? hunterRecoveryPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.1f));
@@ -292,6 +352,11 @@ namespace UI
 
         private void ShowConsumableUse(HunterInstance hunter, ItemData item)
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.OpenHunterConsumables(hunter, item);
+                return;
+            }
             if (hunter == null || item == null || hunterRecoveryPanel == null) return;
             HideContextPanels();
             Vector3 position = hunterRecoveryPanelAnchor != null ? hunterRecoveryPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -3.1f));
@@ -323,13 +388,22 @@ namespace UI
         {
             if (facilityDutyPanel == null) facilityDutyPanel = SettlementFacilityDutyPanel3D.Create(transform);
             facilityDutyPanel.EnsureBuilt();
-            if (facilityDutyLauncher == null) facilityDutyLauncher = Cards3D.SettlementFacilityDutyLauncherCard3D.Create(transform, fallbackFacilityDutyLauncherPosition);
+            if (facilityDutyLauncher == null)
+            {
+                Vector3 position = facilityDutyPanelAnchor != null ? transform.InverseTransformPoint(facilityDutyPanelAnchor.position) : fallbackFacilityDutyLauncherPosition;
+                facilityDutyLauncher = Cards3D.SettlementFacilityDutyLauncherCard3D.Create(transform, position);
+            }
             facilityDutyLauncher.Configure(_mgr.Data);
             facilityDutyLauncher.Clicked = ShowFacilityDuty;
         }
 
         private void ShowFacilityDuty()
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.ShowSection("设施值守");
+                return;
+            }
             if (facilityDutyPanel == null || _mgr == null) return;
             HideContextPanels();
             Vector3 position = facilityDutyPanelAnchor != null ? facilityDutyPanelAnchor.position : transform.TransformPoint(new Vector3(-3.25f, 0.08f, -3.0f));
@@ -338,12 +412,22 @@ namespace UI
 
         private void ShowWorkshopCrafting(WorkshopCard3D card)
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.ShowSection("工坊");
+                return;
+            }
             HideContextPanels(card);
             OnWorkshopClicked?.Invoke(card);
         }
 
         private void ShowWorkshopConstruction(WorkshopBlueprintCard3D card)
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.ShowSection("工坊");
+                return;
+            }
             if (card?.Definition == null || workshopConstructionPanel == null) return;
             HideContextPanels();
             Vector3 position = workshopConstructionPanelAnchor != null ? workshopConstructionPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -2.85f));
@@ -352,6 +436,11 @@ namespace UI
 
         private void ShowInventionUnlock(InventionCard3D card)
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.UnlockInventionFromTable(card?.Data);
+                return;
+            }
             if (card?.Data == null || inventionUnlockPanel == null) return;
             HideContextPanels();
             Vector3 position = inventionUnlockPanelAnchor != null ? inventionUnlockPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -2.85f));
@@ -360,6 +449,11 @@ namespace UI
 
         private void ShowInventionEffects(InventionCard3D card)
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.UseInventionEffectFromTable(card?.Data);
+                return;
+            }
             if (card?.Data == null || inventionActiveEffectPanel == null) return;
             HideContextPanels();
             Vector3 position = inventionActiveEffectPanelAnchor != null ? inventionActiveEffectPanelAnchor.position : transform.TransformPoint(new Vector3(0f, 0.08f, -2.85f));
@@ -368,6 +462,11 @@ namespace UI
 
         private void ShowHunterEquipment(HunterInstance hunter)
         {
+            if (CampaignScreenView.Current != null)
+            {
+                CampaignScreenView.Current.OpenHunter(hunter);
+                return;
+            }
             if (hunterEquipmentPanel == null)
             {
                 OnHunterClicked?.Invoke(hunter);
@@ -397,7 +496,7 @@ namespace UI
         private void FillAllZones()
         {
             _hunterZone.Fill(_mgr.Data.GetAvailableHunters());
-            _resourceZone.Synchronize(_mgr.Data.Resources);
+            if (!CampaignScreenView.IsProductionMode) _resourceZone.Synchronize(_mgr.Data.Resources);
             _workshopZone.Fill(_mgr.Workshop, _mgr.Data, workshopCatalog);
             _inventionZone.Fill(_mgr.Inventions);
         }
@@ -413,12 +512,40 @@ namespace UI
             bool hasAnyZone = _hunterZone || _resourceZone || _workshopZone || _inventionZone;
             if (!hasAnyZone)
             {
-                BuildFallbackLayout();
+                GameObject prefab = TabletopPresentationAssets.SettlementLayoutPrefab;
+                if (prefab == null) throw new MissingReferenceException("SettlementTable3D 缺少 SettlementLayoutPrefab。请先安装并绑定持久化营地桌面 Prefab。");
+                visualLayoutInstance = Instantiate(prefab, transform, false);
+                visualLayout = visualLayoutInstance.GetComponentInChildren<SettlementTableVisualLayout>(true);
+                if (visualLayout == null) throw new System.InvalidOperationException("SettlementLayoutPrefab 缺少 SettlementTableVisualLayout 组件。");
+                _hunterZone = visualLayout.HunterZone;
+                _resourceZone = visualLayout.ResourceZone;
+                _workshopZone = visualLayout.WorkshopZone;
+                _inventionZone = visualLayout.InventionZone;
+                _squadZone = visualLayout.SquadZone;
+                ApplyVisualLayoutRefs();
+                if (!visualLayout.HasRequiredZones) throw new System.InvalidOperationException("SettlementLayoutPrefab 的四个营地分区未完整绑定。");
                 return;
             }
 
-            if (_hunterZone && _resourceZone && _workshopZone && _inventionZone) return;
+            if (_hunterZone && _resourceZone && _workshopZone && _inventionZone)
+            {
+                ApplyVisualLayoutRefs();
+                return;
+            }
             throw new System.InvalidOperationException("SettlementTable3D 场景装配不完整：Hunter、Resource、Workshop 与 Invention 四个分区必须全部连线，或全部留空以使用运行时回退。");
+        }
+
+        private void ApplyVisualLayoutRefs()
+        {
+            if (visualLayout == null) return;
+            recruitmentPanelAnchor = recruitmentPanelAnchor ?? visualLayout.RecruitmentAnchor;
+            facilityDutyPanelAnchor = facilityDutyPanelAnchor ?? visualLayout.FacilityDutyAnchor;
+            campLedgerPanelAnchor = campLedgerPanelAnchor ?? visualLayout.CampLedgerAnchor;
+            departureLauncherAnchor = departureLauncherAnchor ?? visualLayout.DepartureAnchor;
+            recruitmentLauncher = recruitmentLauncher ?? visualLayout.RecruitmentLauncher;
+            facilityDutyLauncher = facilityDutyLauncher ?? visualLayout.FacilityDutyLauncher;
+            campLedgerLauncher = campLedgerLauncher ?? visualLayout.CampLedgerLauncher;
+            departureLauncher = departureLauncher ?? visualLayout.DepartureLauncher;
         }
 
         private void BuildFallbackLayout()
@@ -563,7 +690,7 @@ namespace UI
         public void RefreshCrafting()
         {
             if (_mgr == null) return;
-            _resourceZone.Synchronize(_mgr.Data.Resources);
+            if (!CampaignScreenView.IsProductionMode) _resourceZone.Synchronize(_mgr.Data.Resources);
             _workshopZone.RefreshCards();
             hunterEquipmentPanel?.RefreshVisible();
             hunterRecoveryPanel?.RefreshVisible();
@@ -578,13 +705,13 @@ namespace UI
 
         private void OnResourceChanged(ResourceChangedEvent e)
         {
-            _resourceZone.Synchronize(_mgr.Data.Resources);
+            if (!CampaignScreenView.IsProductionMode) _resourceZone.Synchronize(_mgr.Data.Resources);
             RefreshContextPanels();
         }
 
         private void OnRosterChanged(HunterRosterChangedEvent _)
         {
-            _hunterZone.Fill(_mgr.Data.GetAvailableHunters());
+            if (!CampaignScreenView.IsProductionMode) _hunterZone.Fill(_mgr.Data.GetAvailableHunters());
             RefreshContextPanels();
         }
 
@@ -592,8 +719,11 @@ namespace UI
 
         private void OnYearAdvanced(YearAdvancedEvent _)
         {
-            _inventionZone.RefreshCards();
-            _workshopZone.RefreshCards();
+            if (!CampaignScreenView.IsProductionMode)
+            {
+                _inventionZone.RefreshCards();
+                _workshopZone.RefreshCards();
+            }
             RefreshContextPanels();
         }
 
@@ -613,6 +743,7 @@ namespace UI
 
         private void OnDestroy()
         {
+            if (Current == this) Current = null;
             TabletopCameraFraming.Release(this);
             UnsubscribeEvents();
         }

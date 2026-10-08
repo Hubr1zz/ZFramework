@@ -23,6 +23,7 @@ using HuntingInDarkness.ActionFlow.Presentation;
 using HuntingInDarkness.ViewLayer.Flow;
 using HuntingInDarkness.ViewLayer.Tabletop;
 using HuntingInDarkness.ViewLayer.Hunt;
+using HuntingInDarkness.ViewLayer.Presentation;
 using SO.Combat;
 using TMPro;
 using UI;
@@ -125,13 +126,17 @@ namespace Core
         private DevModePanel         _devPanel;
         private BattleSetup preAwakePendingSetup;
         private IPlayableEventInput preAwakeEventInput;
+        private IPlayableEventInput currentEventInput;
         private IPlayableHuntDepartureInput preAwakeHuntDepartureInput;
         private bool hasAwakened;
         private bool hasBootstrapConfiguration;
         private ICampaignPersistencePort configuredCampaignPersistence;
         private bool configuredWaitForEntrySelection;
+        private readonly Dictionary<int, CampaignScreenView.HunterReturnSnapshot> departurePresentationSnapshots = new();
         [SerializeField] private PhysicalDiceTabletopPresenter tabletopRandomPresenter;
         [SerializeField] private TabletopCardInteractionPresenter tabletopCardPresenter;
+        [SerializeField] private Camera playableCombatBoardCamera;
+        private bool screenInteractionEnabled;
         [SerializeField] private Vector3 tabletopDiceAnchorOffset = new(0f, 0f, -1.65f);
         private ITabletopRandomInteractionPresenter tabletopInteractionRouter;
         private ITabletopRandomInteractionPresenter configuredTabletopInteraction;
@@ -165,6 +170,14 @@ namespace Core
                 devStartPhase = GamePhase.Settlement;
             }
             hasBootstrapConfiguration = true;
+            return true;
+        }
+
+        public bool ConfigureScreenInteraction(bool enabled, Camera combatBoardCamera)
+        {
+            if (hasAwakened || gameObject.activeInHierarchy || enabled && combatBoardCamera == null) return false;
+            screenInteractionEnabled = enabled;
+            playableCombatBoardCamera = combatBoardCamera;
             return true;
         }
 
@@ -208,7 +221,9 @@ namespace Core
                 tabletopRandomPresenter = GetComponent<PhysicalDiceTabletopPresenter>() ?? gameObject.AddComponent<PhysicalDiceTabletopPresenter>();
             if (tabletopCardPresenter == null)
                 tabletopCardPresenter = GetComponent<TabletopCardInteractionPresenter>() ?? gameObject.AddComponent<TabletopCardInteractionPresenter>();
-            tabletopInteractionRouter = configuredTabletopInteraction ?? new TabletopRandomInteractionRouter(tabletopRandomPresenter, tabletopCardPresenter);
+            tabletopRandomPresenter.ConfigureScreenMode(screenInteractionEnabled);
+            tabletopCardPresenter.ConfigureScreenMode(screenInteractionEnabled);
+            tabletopInteractionRouter = configuredTabletopInteraction ?? new TabletopRandomInteractionRouter(tabletopRandomPresenter, tabletopCardPresenter, screenInteractionEnabled);
 
             campaignFlow = new CampaignFlowCoordinator(new CampaignFlowBindings
             {
@@ -229,6 +244,13 @@ namespace Core
                 WorkshopCatalog = workshopContentCatalog,
                 SettlementContentCatalog = settlementContentCatalog,
                 TabletopInteraction = tabletopInteractionRouter,
+                ReturnCommittedPresentation = record =>
+                {
+                    if (!screenInteractionEnabled) return;
+                    Dictionary<int, CampaignScreenView.HunterReturnSnapshot> snapshots = new(departurePresentationSnapshots);
+                    departurePresentationSnapshots.Clear();
+                    CampaignScreenView.PresentReturnSummaryAsync(this, record, snapshots).Forget();
+                },
                 Warning = message => Debug.LogWarning($"[GameManager] {message}")
             }, configuredCampaignPersistence ?? new SaveLoadSystemCampaignPersistenceAdapter(), configuredWaitForEntrySelection);
             campaignAccess = new CampaignAccessPorts(campaignFlow);
@@ -372,6 +394,8 @@ namespace Core
                 {
                     Setup = ResolveSetup(),
                     Parent = parent,
+                    UseCombatScreen = screenInteractionEnabled,
+                    BoardCamera = playableCombatBoardCamera,
                     ArenaRadius = arenaRadius,
                     CellSize = cellSize,
                     TileHeight = tileHeight,
@@ -424,6 +448,7 @@ namespace Core
         public bool IsCampaignRuntimeActive => CampaignReadModel?.IsCampaignActive == true;
         public bool IsSettlementActionSessionRunning => CampaignReadModel?.IsSettlementActionRunning == true;
         public bool IsSettlementEventRestoreReady => CampaignReadModel?.IsSettlementEventRestoreReady == true;
+        public IPlayableEventInput CurrentEventInput => currentEventInput;
         internal IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers => CampaignDiagnostics?.ActionEnvironmentInstallers;
         internal CardGame.ActionQueue.ReactorRegistry SettlementActionReactors => CampaignDiagnostics?.SettlementReactors;
         internal CardGame.ActionQueue.ReactorRegistry CampaignActionReactors => CampaignDiagnostics?.CampaignReactors;
@@ -433,6 +458,7 @@ namespace Core
 
         public void SetPlayableEventInput(IPlayableEventInput input)
         {
+            currentEventInput = input;
             if (campaignFlow != null)
             {
                 campaignFlow.SetPlayableEventInput(input);
@@ -443,12 +469,13 @@ namespace Core
 
         public void ClearPlayableEventInput(IPlayableEventInput input)
         {
+            if (ReferenceEquals(currentEventInput, input)) currentEventInput = null;
+            if (ReferenceEquals(preAwakeEventInput, input)) preAwakeEventInput = null;
             if (campaignFlow != null)
             {
                 campaignFlow.ClearPlayableEventInput(input);
                 return;
             }
-            if (ReferenceEquals(preAwakeEventInput, input)) preAwakeEventInput = null;
         }
 
         public void SetPlayableHuntDepartureInput(IPlayableHuntDepartureInput input)
@@ -473,7 +500,18 @@ namespace Core
 
         public UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds) => DepartForHuntAsync(hunterIds, null);
 
-        public UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds, PlayableHuntDestination destination) => CampaignCommands != null ? CampaignCommands.DepartForHuntAsync(hunterIds, destination) : UniTask.FromResult(SettlementDepartureCommandResult.Failed("出猎事务尚未初始化。"));
+        public UniTask<SettlementDepartureCommandResult> DepartForHuntAsync(IReadOnlyList<int> hunterIds, PlayableHuntDestination destination) => DepartForHuntWithPresentationSnapshotAsync(hunterIds, destination);
+
+        private async UniTask<SettlementDepartureCommandResult> DepartForHuntWithPresentationSnapshotAsync(IReadOnlyList<int> hunterIds, PlayableHuntDestination destination)
+        {
+            if (CampaignCommands == null) return SettlementDepartureCommandResult.Failed("出猎事务尚未初始化。");
+            Dictionary<int, CampaignScreenView.HunterReturnSnapshot> snapshots = screenInteractionEnabled ? CampaignScreenView.CaptureReturnSnapshots(hunterIds, hunterId => SettlementData?.GetHunter(hunterId)) : new();
+            SettlementDepartureCommandResult result = await CampaignCommands.DepartForHuntAsync(hunterIds, destination);
+            if (!result.Succeeded) return result;
+            departurePresentationSnapshots.Clear();
+            foreach (KeyValuePair<int, CampaignScreenView.HunterReturnSnapshot> pair in snapshots) departurePresentationSnapshots[pair.Key] = pair.Value;
+            return result;
+        }
 
 
         public void SaveSettlementProgress()
@@ -632,6 +670,8 @@ namespace Core
             if (uiSettlement != null) uiSettlement.SetActive(next == GamePhase.Settlement);
             if (uiHunt       != null) uiHunt.SetActive(next == GamePhase.Hunt);
             if (uiBossFight  != null) uiBossFight.SetActive(next == GamePhase.BossFight);
+
+            if (screenInteractionEnabled) CampaignScreenView.SetCampaignVisibleAsync(this, next).Forget();
 
             Debug.Log($"[GameManager] ApplyPhaseRoots: {prev} → {next}");
         }

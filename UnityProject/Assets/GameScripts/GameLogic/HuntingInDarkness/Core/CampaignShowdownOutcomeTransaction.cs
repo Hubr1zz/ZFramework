@@ -20,6 +20,8 @@ namespace Core
     internal sealed class CampaignShowdownOutcomeTransaction
     {
         private readonly ICampaignShowdownOutcomeHost host;
+        private PlayableCombatSession victoryRewardSession;
+        private PlayableCombatSession victoryCompletionSession;
 
         internal CampaignShowdownOutcomeTransaction(ICampaignShowdownOutcomeHost host)
         {
@@ -28,15 +30,14 @@ namespace Core
 
         internal void HandleBossDefeated()
         {
-            if (host.CurrentPhase != GamePhase.BossFight || host.ShowdownSession == null) return;
-            host.ShowdownSession.AccumulateDefeatLoot();
-            host.ShowdownSession.SettleWeaponMastery();
-            if (host.HuntManager != null && host.SettlementData != null)
-            {
-                host.HuntManager.CompleteHunt(true, host.SettlementData);
-                return;
-            }
-            host.RequestSettlementTransition();
+            PlayableCombatSession capturedSession = host.ShowdownSession;
+            if (host.CurrentPhase != GamePhase.BossFight || capturedSession == null || !capturedSession.IsActive || ReferenceEquals(victoryRewardSession, capturedSession)) return;
+            victoryRewardSession = capturedSession;
+            capturedSession.AccumulateDefeatLoot();
+            capturedSession.SettleWeaponMastery();
+            if (ReferenceEquals(victoryCompletionSession, capturedSession)) return;
+            victoryCompletionSession = capturedSession;
+            CompleteVictoryAfterActionAsync(capturedSession).Forget();
         }
 
         internal void CompleteDefeatedHunt()
@@ -57,8 +58,25 @@ namespace Core
 
         internal async UniTask CompleteDefeatedHuntAfterActionAsync()
         {
-            await UniTask.NextFrame();
+            PlayableCombatSession capturedSession = host.ShowdownSession;
+            if (capturedSession == null) return;
+            while (host.CurrentPhase == GamePhase.BossFight && ReferenceEquals(host.ShowdownSession, capturedSession) && capturedSession.IsActive && capturedSession.HasRunningAction)
+                await UniTask.NextFrame();
+            if (host.CurrentPhase != GamePhase.BossFight || !ReferenceEquals(host.ShowdownSession, capturedSession) || !capturedSession.IsActive) return;
             CompleteDefeatedHunt();
+        }
+
+        private async UniTask CompleteVictoryAfterActionAsync(PlayableCombatSession capturedSession)
+        {
+            while (host.CurrentPhase == GamePhase.BossFight && ReferenceEquals(host.ShowdownSession, capturedSession) && capturedSession.IsActive && capturedSession.HasRunningAction)
+                await UniTask.NextFrame();
+            if (host.CurrentPhase != GamePhase.BossFight || !ReferenceEquals(host.ShowdownSession, capturedSession) || !capturedSession.IsActive) return;
+            if (host.HuntManager != null && host.SettlementData != null)
+            {
+                host.HuntManager.CompleteHunt(true, host.SettlementData);
+                return;
+            }
+            host.RequestSettlementTransition();
         }
     }
 }

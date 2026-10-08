@@ -6,6 +6,7 @@ using HuntingInDarkness.ActionFlow.Settlement;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.ViewLayer.Tabletop;
+using HuntingInDarkness.ViewLayer.Presentation;
 using UnityEngine;
 
 namespace HuntingInDarkness.ViewLayer.Settlement
@@ -40,6 +41,11 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         {
             if (requestInFlight || manager == null || manager.SettlementData == null || manager.CurrentGamePhase != GamePhase.Settlement)
                 return;
+            if (CampaignScreenView.Current != null && CampaignScreenView.Current.IsBound)
+            {
+                CampaignScreenView.Current.OpenDeparturePrep(hunterIds);
+                return;
+            }
             pendingHunterIds.Clear();
             if (hunterIds != null)
                 foreach (int hunterId in hunterIds)

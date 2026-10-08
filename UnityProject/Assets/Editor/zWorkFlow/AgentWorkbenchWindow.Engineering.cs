@@ -118,7 +118,7 @@ namespace AgentWorkflow.Editor
 
             using (new EditorGUILayout.HorizontalScope(GUILayout.ExpandHeight(true)))
             {
-                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(270), GUILayout.ExpandHeight(true)))
+                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(NavigationPanelWidth()), GUILayout.ExpandHeight(true)))
                 {
                     DrawEngineeringKindFilters(entries);
                     DrawEngineeringLayerFilter();
@@ -143,7 +143,7 @@ namespace AgentWorkflow.Editor
                     EditorGUILayout.EndScrollView();
                 }
 
-                GUILayout.Space(6);
+                DrawNavigationResizeHandle();
                 using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
                 {
                     _engineeringDetailScroll = BeginVerticalScrollView(

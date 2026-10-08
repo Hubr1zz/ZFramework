@@ -89,6 +89,17 @@ namespace GameplayBase.Board
                     SetHighlight(tile, _highlightColor);
         }
 
+        public void HighlightBossPreview(List<Vector2Int> movementTiles, List<Vector2Int> attackRangeTiles)
+        {
+            ClearHighlights();
+            if (movementTiles != null)
+                foreach (Vector2Int tile in movementTiles)
+                    SetHighlight(tile, new Color(0.9f, 0.42f, 0.12f, 1f));
+            if (attackRangeTiles != null)
+                foreach (Vector2Int tile in attackRangeTiles)
+                    SetHighlight(tile, new Color(0.25f, 0.72f, 0.82f, 1f));
+        }
+
         public void ClearHighlights()
         {
             foreach (var tile in _highlighted)

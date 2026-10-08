@@ -31,12 +31,12 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
     public sealed class PlayableSettlementEventProductionLoopPlayModeTests
     {
         private const int FrameTimeout = 600;
-        private static readonly FieldInfo squadGridField = typeof(TabletopHuntDeparturePanel3D).GetField("squadGrid", BindingFlags.Instance | BindingFlags.NonPublic);
         private GameObject managerObject;
         private PlayableBootstrapSettings settings;
         private PlayableCampaignContentCandidate contentCandidate;
         private HexTileData patchedTileConfig;
         private EventData originalPatchedTileRevealEvent;
+        private GameObject presentationAssets;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -47,6 +47,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             PlayableSymptomRuntime.Configure(settings.Symptoms);
             Assert.That(PlayableCampaignContentAssembler.TryBuild(PlayableContentSourcePlayModeAssets.LoadBundle(), out contentCandidate, out PlayableContentDiagnosticReport buildReport), Is.True, buildReport.ToString());
             Assert.That(PlayableCampaignContentAssembler.Install(contentCandidate, out PlayableContentDiagnosticReport installReport), Is.True, installReport.ToString());
+            presentationAssets = TabletopUsabilityPlayModeTests.CreatePresentationAssets();
             yield return null;
         }
 
@@ -56,6 +57,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             RestorePatchedTile();
             if (managerObject != null)
                 UnityEngine.Object.Destroy(managerObject);
+            TabletopUsabilityPlayModeTests.DestroyPresentationAssets(presentationAssets);
+            presentationAssets = null;
             yield return null;
             ResetContentAssembly();
         }
@@ -79,6 +82,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return WaitForPrimary(eventView, "未说完的话");
             ClickCard(FindChoice(eventView, "接受结果"));
             yield return WaitForSettlementIdle(manager);
+            SettlementPresentationPlayModeTests.CaptureLayout(managerObject.GetComponentInChildren<SettlementTable3D>(true).gameObject, "camp-real.png");
 
             Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
             Assert.That(manager.SettlementData.GetResource("broken_stone"), Is.EqualTo(initialStone + 2));
@@ -104,18 +108,12 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(persistence.SaveCount, Is.EqualTo(saveCountAfterResolution));
             int completedRandomEventsBeforeHunt = restoredManager.SettlementData.Timeline.Count(entry => entry.EntryType == TimelineEntryType.Random && entry.IsCompleted);
 
-            TabletopDepartureLauncherCard3D launcher = restoredManager.GetComponentsInChildren<TabletopDepartureLauncherCard3D>(true).Single();
-            ClickCard(launcher);
+            yield return OpenDepartureDestinations(restoredManager);
             PlayableHuntDestinationView destinationView = managerObject.GetComponent<PlayableHuntDestinationView>();
-            yield return WaitUntil(() => destinationView.IsPresenting, "等待实体出猎编队面板打开超时。");
             TabletopHuntDeparturePanel3D departurePanel = destinationView.ActivePanel;
-            HuntDepartureHunterCard3D hunterCard = departurePanel.GetComponentsInChildren<HuntDepartureHunterCard3D>(true).First(card => card.Hunter != null);
-            SlotGrid squadGrid = (SlotGrid)squadGridField.GetValue(departurePanel);
-            BeginAndDrop(hunterCard, squadGrid.Slots[0]);
-            Assert.That(departurePanel.SquadCount, Is.EqualTo(1));
-            ClickCard(FindChoice(departurePanel, "选择路线"));
-            yield return WaitUntil(() => departurePanel.DestinationCount > 0, "等待实体狩猎路线面板打开超时。");
-            ClickCard(FindChoice(departurePanel, "确认出发"));
+            TabletopEventChoiceCard3D destinationCard = departurePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).First(card => card.gameObject.activeSelf && card.IsInteractable && card.DisplayName != "出发");
+            ClickCard(destinationCard);
+            ClickCard(FindChoice(departurePanel, "出发"));
             yield return WaitUntil(() => restoredManager.CurrentGamePhase == GamePhase.Hunt, "等待实体出猎进入狩猎阶段超时。");
             Assert.That(restoredManager.IsHuntActionSessionActive, Is.True);
 
@@ -151,8 +149,45 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(returnedManager.SettlementData.PendingHuntReturn, Is.Null);
             Assert.That(returnedManager.SettlementData.Timeline.Where(entry => entry.EntryType == TimelineEntryType.Random && entry.IsCompleted).Select(entry => entry.EventId).OrderBy(id => id), Is.EqualTo(completedRandomEventIds));
             Assert.That(persistence.SaveCount, Is.EqualTo(saveCountAfterReturn), "Continue 不得重复提交回营季节或存档。");
-            ClickCard(returnedManager.GetComponentsInChildren<TabletopDepartureLauncherCard3D>(true).Single());
-            yield return WaitUntil(() => managerObject.GetComponent<PlayableHuntDestinationView>().IsPresenting, "回营恢复后应可再次打开实体出猎编队桌。");
+            yield return OpenDepartureDestinations(returnedManager);
+        }
+
+        [UnityTest]
+        public IEnumerator GiantFaceScreenPresentationShowsChoicesConditionsAndCheckRange()
+        {
+            CampaignSnapshot snapshot = CreateSettlementSnapshot();
+            EventData giantFace = PlayableEventTableRuntime.GetEvents().Single(item => item.ContentId == "main_giant_face");
+            AnnalEntry scheduledEvent = snapshot.Settlement.Timeline.Single(entry => entry.EventId == "main_face_echo");
+            scheduledEvent.EventId = giantFace.ContentId;
+            scheduledEvent.EventName = giantFace.eventName;
+            foreach (HunterInstance hunter in snapshot.Settlement.Hunters)
+            {
+                if (hunter?.Traits == null)
+                    continue;
+                hunter.Traits.RemoveAll(trait => trait == "trait_watcher");
+            }
+            var persistence = new MemoryCampaignPersistence { SnapshotToLoad = snapshot };
+            GameManager manager = CreateProductionManager(persistence, new RecordingRandomPresenter(10));
+            UniTask<CampaignStartupResult>.Awaiter continueAttempt = manager.ContinueCampaignAsync().GetAwaiter();
+            yield return WaitForCompletion(continueAttempt);
+            Assert.That(continueAttempt.GetResult().Succeeded, Is.True, continueAttempt.GetResult().Reason);
+
+            PlayableSettlementEventView eventView = managerObject.GetComponent<PlayableSettlementEventView>();
+            yield return WaitUntil(() => eventView.ActivePanel != null && eventView.ActivePanel.IsOpen && eventView.ActivePanel.ChoiceCardCount == 3, "巨大的脸事件屏幕面板未打开。");
+            Assert.That(eventView.ActivePanel.Body, Does.Contain("巨大石脸"));
+            Assert.That(eventView.ActivePanel.Choices.Count, Is.EqualTo(3));
+            ScreenEventChoice unavailable = eventView.ActivePanel.Choices.Single(choice => choice.DisplayName.StartsWith("让守望者沿着"));
+            Assert.That(unavailable.IsInteractable, Is.False);
+            Assert.That(eventView.ActivePanel.InteractableChoiceCount, Is.EqualTo(2));
+            TabletopUsabilityPlayModeTests.CaptureOptionalScreenCanvasScreenshot(eventView.ActivePanel.gameObject, TabletopUsabilityPlayModeTests.CreatePresentationCaptureCamera(), "event-giant-face.png");
+
+            ScreenEventChoice checkedOption = eventView.ActivePanel.Choices.First(choice => choice.IsInteractable);
+            checkedOption.Click();
+            yield return WaitUntil(() => eventView.ActivePanel.IsOpen && eventView.ActivePanel.Choices.Any(choice => choice.DisplayName != "返回" && choice.IsInteractable), "事件选项未进入猎人选择页。");
+            ScreenEventChoice selectedHunter = eventView.ActivePanel.Choices.First(choice => choice.DisplayName != "返回" && choice.IsInteractable);
+            Assert.That(selectedHunter.Body, Does.Contain("骰点范围"));
+            Assert.That(selectedHunter.Body, Does.Contain("成功边界"));
+            TabletopUsabilityPlayModeTests.CaptureOptionalScreenCanvasScreenshot(eventView.ActivePanel.gameObject, TabletopUsabilityPlayModeTests.CreatePresentationCaptureCamera(), "event-giant-face-hunter-check.png");
         }
 
         [UnityTest]
@@ -392,7 +427,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return WaitForChoice(eventView, "侧耳贴近石面，听清沉默中的回声");
             ClickCard(FindChoice(eventView, "侧耳贴近石面，听清沉默中的回声"));
             yield return WaitForChoice(eventView, listener.Name);
-            TabletopEventChoiceCard3D[] bloodlineHunters = eventView.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true);
+            ScreenEventChoice[] bloodlineHunters = eventView.ActivePanel.Choices.ToArray();
             Assert.That(bloodlineHunters.Single(card => card.DisplayName == listener.Name).IsInteractable, Is.True);
             Assert.That(bloodlineHunters.Single(card => card.DisplayName == otherHunter.Name).IsInteractable, Is.False);
             ClickCard(FindChoice(eventView, listener.Name));
@@ -438,7 +473,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             yield return WaitForChoice(eventView, "让理解石头的猎人判断洞壁收拢的节奏");
             ClickCard(FindChoice(eventView, "让理解石头的猎人判断洞壁收拢的节奏"));
             yield return WaitForChoice(eventView, listener.Name);
-            TabletopEventChoiceCard3D[] traitHunters = eventView.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true);
+            ScreenEventChoice[] traitHunters = eventView.ActivePanel.Choices.ToArray();
             Assert.That(traitHunters.Single(card => card.DisplayName == listener.Name).IsInteractable, Is.True);
             Assert.That(traitHunters.Single(card => card.DisplayName == otherHunter.Name).IsInteractable, Is.False);
             EventOption traitOption = sealedStore.options.Single(option => option.optionId == "read_wall_rhythm");
@@ -454,8 +489,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             Assert.That(manager.SettlementData.EventMemories.Count, Is.EqualTo(firstMemoryCount + 1));
             Assert.That(manager.SettlementData.EventMemories.Count(memory => memory.EventId == "random_sealed_store"), Is.EqualTo(1));
             Assert.That(PlayableHuntInputGuard.IsBlocked, Is.False);
-            ClickCard(manager.GetComponentsInChildren<TabletopDepartureLauncherCard3D>(true).Single());
-            yield return WaitUntil(() => managerObject.GetComponent<PlayableHuntDestinationView>().IsPresenting, "血脉事件弧完成后应可继续打开实体出猎编队桌。");
+            yield return OpenDepartureDestinations(manager);
         }
 
         private GameManager CreateProductionManager(MemoryCampaignPersistence persistence, ITabletopRandomInteractionPresenter presenter)
@@ -568,7 +602,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             return new CampaignSnapshot { Settlement = source.Data, CampaignSchemaVersion = CampaignSnapshot.CurrentSchemaVersion };
         }
 
-        private static TabletopEventChoiceCard3D FindChoice(PlayableSettlementEventView view, string title) => view.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == title);
+        private static ScreenEventChoice FindChoice(PlayableSettlementEventView view, string title) => view.ActivePanel.Choices.Single(card => card.IsInteractable && card.DisplayName == title);
 
         private static TabletopEventChoiceCard3D FindChoice(TabletopHuntDeparturePanel3D panel, string title) => panel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.IsInteractable && card.DisplayName == title);
 
@@ -578,7 +612,38 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             card.HandlePointerUp();
         }
 
-        private static void BeginAndDrop(HuntDepartureHunterCard3D card, CardSlot target)
+        private static void ClickCard(ScreenEventChoice choice) => choice.Click();
+
+        private IEnumerator OpenDepartureDestinations(GameManager manager)
+        {
+            SquadZone squadZone = managerObject.GetComponentInChildren<SquadZone>(true);
+            Assert.That(squadZone, Is.Not.Null);
+            SlotGrid squadGrid = typeof(SquadZone).GetField("_squadGrid", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(squadZone) as SlotGrid;
+            Assert.That(squadGrid, Is.Not.Null);
+            List<HunterInstance> squad = squadZone.GetSquad();
+            if (squad.Count == 0)
+            {
+                HunterCard3D hunterCard = managerObject.GetComponentsInChildren<HunterCard3D>(true).First(card => card.Hunter?.IsAvailable == true);
+                BeginAndDrop(hunterCard, squadGrid.Slots[0]);
+                squad = squadZone.GetSquad();
+            }
+            Assert.That(squad, Has.Count.GreaterThan(0));
+            Assert.That(squad.All(hunter => hunter != null && hunter.IsAvailable), Is.True);
+            TabletopDepartureLauncherCard3D launcher = managerObject.GetComponentsInChildren<TabletopDepartureLauncherCard3D>(true).Single();
+            SettlementTable3D table = managerObject.GetComponentInChildren<SettlementTable3D>(true);
+            Assert.That(ScreenModalInputGate.IsBlocked, Is.False);
+            Assert.That(CardInspectionOverlay.BlocksWorldInput, Is.False);
+            Assert.That(launcher.Clicked, Is.Not.Null);
+            Assert.That(table, Is.Not.Null);
+            Assert.That(table.OnDepartureRequested, Is.Not.Null);
+            ClickCard(launcher);
+            PlayableHuntDestinationView destinationView = managerObject.GetComponent<PlayableHuntDestinationView>();
+            yield return WaitUntil(() => destinationView != null && destinationView.IsPresenting, "等待实体出猎目的地面板打开超时。");
+            Assert.That(destinationView.ActivePanel, Is.Not.Null);
+            yield return WaitUntil(() => destinationView.ActivePanel.DestinationCount > 0, "等待实体狩猎路线面板打开超时。");
+        }
+
+        private static void BeginAndDrop(HunterCard3D card, CardSlot target)
         {
             Vector2 pointerDown = Vector2.zero;
             card.HandlePointerDown(pointerDown);
@@ -588,7 +653,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
         private static IEnumerator WaitForChoice(PlayableSettlementEventView view, string title)
         {
-            yield return WaitUntil(() => view != null && view.ActivePanel != null && view.ActivePanel.IsOpen && view.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Any(card => card.IsInteractable && card.DisplayName == title), $"等待实体事件选项 {title} 超时。");
+            yield return WaitUntil(() => view != null && view.ActivePanel != null && view.ActivePanel.IsOpen && view.ActivePanel.Choices.Any(card => card.IsInteractable && card.DisplayName == title), $"等待屏幕事件选项 {title} 超时。");
         }
 
         private static IEnumerator ResolveSettlementEventsAfterReturn(GameManager manager, PlayableSettlementEventView view)
@@ -597,16 +662,16 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             for (int promptIndex = 0; promptIndex < maximumPrompts; promptIndex++)
             {
                 float deadline = Time.realtimeSinceStartup + 5f;
-                TabletopEventChoiceCard3D[] choices = null;
+                ScreenEventChoice[] choices = null;
                 while (Time.realtimeSinceStartup < deadline)
                 {
                     if (manager != null && !manager.IsSettlementActionSessionRunning && manager.IsSettlementEventRestoreReady) yield break;
-                    choices = view?.ActivePanel?.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Where(card => card.IsInteractable).ToArray();
+                    choices = view?.ActivePanel?.Choices.Where(card => card.IsInteractable).ToArray();
                     if (choices?.Length > 0) break;
                     yield return new WaitForFixedUpdate();
                 }
                 Assert.That(choices, Is.Not.Null.And.Not.Empty, "回营事件 Runner 正在等待，但实体事件桌没有可用选项。");
-                TabletopEventChoiceCard3D choice = choices.FirstOrDefault(card => card.DisplayName == "接受结果") ?? choices.FirstOrDefault(card => card.DisplayName == "继续") ?? choices.FirstOrDefault(card => card.DisplayName != "返回") ?? choices[0];
+                ScreenEventChoice choice = choices.FirstOrDefault(card => card.DisplayName == "接受结果") ?? choices.FirstOrDefault(card => card.DisplayName == "继续") ?? choices.FirstOrDefault(card => card.DisplayName != "返回") ?? choices[0];
                 ClickCard(choice);
                 yield return new WaitForFixedUpdate();
             }
@@ -615,7 +680,7 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 
         private static IEnumerator WaitForPrimary(PlayableSettlementEventView view, string title)
         {
-            yield return WaitUntil(() => view != null && view.ActivePanel != null && view.ActivePanel.IsOpen && view.ActivePanel.GetComponentsInChildren<TabletopEventPrimaryCard3D>(true).Any(card => card.DisplayName == title), $"等待实体事件主卡 {title} 超时。");
+            yield return WaitUntil(() => view != null && view.ActivePanel != null && view.ActivePanel.IsOpen && view.ActivePanel.Title == title, $"等待屏幕事件标题 {title} 超时。");
         }
 
         private static IEnumerator WaitForSettlementIdle(GameManager manager)
@@ -623,11 +688,14 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
             for (int frame = 0; frame < FrameTimeout; frame++)
             {
                 if (manager != null && manager.CurrentGamePhase == GamePhase.Settlement && manager.IsCampaignActionSessionActive && !manager.IsSettlementActionSessionRunning && manager.IsSettlementEventRestoreReady && manager.SettlementData?.PendingHuntReturn == null)
+                {
+                    yield return null;
                     yield break;
+                }
                 yield return null;
             }
             PlayableSettlementEventView eventView = manager != null ? manager.GetComponent<PlayableSettlementEventView>() : null;
-            string choices = eventView?.ActivePanel == null ? "none" : string.Join("|", eventView.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Where(card => card.IsInteractable).Select(card => card.DisplayName));
+            string choices = eventView?.ActivePanel == null ? "none" : string.Join("|", eventView.ActivePanel.Choices.Where(card => card.IsInteractable).Select(card => card.DisplayName));
             Assert.Fail($"等待营地事件生产闭环完成超时：phase={manager?.CurrentGamePhase}, campaign={manager?.IsCampaignActionSessionActive}, running={manager?.IsSettlementActionSessionRunning}, restore={manager?.IsSettlementEventRestoreReady}, pendingReturn={manager?.SettlementData?.PendingHuntReturn != null}, pendingEvents={manager?.SettlementData?.PendingEventChains?.Count ?? -1}, choices={choices}。");
         }
 

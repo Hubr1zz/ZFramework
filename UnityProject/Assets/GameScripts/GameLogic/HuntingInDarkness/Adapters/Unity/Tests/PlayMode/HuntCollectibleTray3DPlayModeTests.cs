@@ -14,6 +14,23 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 {
     public sealed class HuntCollectibleTray3DPlayModeTests
     {
+        private GameObject presentationAssets;
+
+        [UnitySetUp]
+        public IEnumerator SetUp()
+        {
+            presentationAssets = TabletopUsabilityPlayModeTests.CreatePresentationAssets();
+            yield return null;
+        }
+
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            if (presentationAssets != null) Object.DestroyImmediate(presentationAssets);
+            presentationAssets = null;
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator Present_ProjectsSelectedHunterStacksAndRefreshesChangedInventory()
         {
@@ -58,38 +75,47 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
         public IEnumerator ConsumableCard_OpensBodyPartCardsAndSubmitsHuntCommand()
         {
             var root = new GameObject("HuntConsumableTray3DPlayModeTests");
-            ItemData dressing = CreateItem("weathered_field_dressing", "旧式包扎布");
-            dressing.itemType = ItemType.Consumable;
-            dressing.ConfigureConsumableEffect(ConsumableEffectKind.RecoverBodyPart, 1);
-            var hunter = new HunterInstance(null, 1203) { Name = "负伤猎人" };
-            hunter.HP.arms = 1;
-            hunter.Collectibles.Add(new ItemInstance(dressing, 1));
-            var input = new RecordingConsumableInput(hunter, dressing);
-            HuntCollectibleTray3D tray = HuntCollectibleTray3D.Create(root.transform);
-            tray.Initialize(input);
-            tray.Present(hunter);
+            ItemData dressing = null;
+            try
+            {
+                dressing = CreateItem("weathered_field_dressing", "旧式包扎布");
+                dressing.itemType = ItemType.Consumable;
+                dressing.ConfigureConsumableEffect(ConsumableEffectKind.RecoverBodyPart, 1);
+                var hunter = new HunterInstance(null, 1203) { Name = "负伤猎人" };
+                hunter.HP.arms = 1;
+                hunter.Collectibles.Add(new ItemInstance(dressing, 1));
+                var input = new RecordingConsumableInput(hunter, dressing);
+                HuntCollectibleTray3D tray = HuntCollectibleTray3D.Create(root.transform);
+                tray.Initialize(input);
+                tray.Present(hunter);
 
-            HuntCollectibleCard3D itemCard = tray.GetComponentInChildren<HuntCollectibleCard3D>();
-            Assert.That(itemCard.IsInteractable, Is.True);
-            itemCard.gameObject.SendMessage("OnMouseDown");
-            Assert.That(tray.IsConsumablePanelOpen, Is.True);
-            HunterRecoveryCard3D armsCard = null;
-            foreach (HunterRecoveryCard3D card in root.GetComponentsInChildren<HunterRecoveryCard3D>())
-                if (card.BodyPart == HunterBodyPart.Arms) armsCard = card;
-            Assert.That(armsCard, Is.Not.Null);
-            armsCard.gameObject.SendMessage("OnMouseDown");
-            yield return null;
+                HuntCollectibleCard3D itemCard = tray.GetComponentInChildren<HuntCollectibleCard3D>();
+                Assert.That(itemCard.IsInteractable, Is.True);
+                itemCard.HandlePointerDown(Vector2.zero);
+                itemCard.HandlePointerUp();
+                Assert.That(tray.IsConsumablePanelOpen, Is.True);
+                HunterRecoveryCard3D armsCard = null;
+                foreach (HunterRecoveryCard3D card in root.GetComponentsInChildren<HunterRecoveryCard3D>())
+                    if (card.BodyPart == HunterBodyPart.Arms) armsCard = card;
+                Assert.That(armsCard, Is.Not.Null);
+                armsCard.HandlePointerDown(Vector2.zero);
+                armsCard.HandlePointerUp();
+                yield return null;
 
-            Assert.That(input.RequestCount, Is.EqualTo(1));
-            Assert.That(input.OwnerHunterId, Is.EqualTo(hunter.InstanceId));
-            Assert.That(input.ItemId, Is.EqualTo(dressing.ContentId));
-            Assert.That(input.BodyPart, Is.EqualTo(HunterBodyPart.Arms));
-            Assert.That(hunter.HP.arms, Is.EqualTo(2));
-            Assert.That(hunter.Collectibles, Is.Empty);
-            Assert.That(tray.CardCount, Is.Zero);
+                Assert.That(input.RequestCount, Is.EqualTo(1));
+                Assert.That(input.OwnerHunterId, Is.EqualTo(hunter.InstanceId));
+                Assert.That(input.ItemId, Is.EqualTo(dressing.ContentId));
+                Assert.That(input.BodyPart, Is.EqualTo(HunterBodyPart.Arms));
+                Assert.That(hunter.HP.arms, Is.EqualTo(2));
+                Assert.That(hunter.Collectibles, Is.Empty);
+                Assert.That(tray.CardCount, Is.Zero);
+            }
+            finally
+            {
+                Object.Destroy(root);
+                if (dressing != null) Object.Destroy(dressing);
+            }
 
-            Object.Destroy(root);
-            Object.Destroy(dressing);
             yield return null;
         }
 

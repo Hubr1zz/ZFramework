@@ -8,6 +8,7 @@ using Cysharp.Threading.Tasks;
 using GameplayBase;
 using GameplayBase.Board;
 using GameplayBase.Card.Effect;
+using GameplayBase.Card.CharacterActionCard;
 using GameplayBase.CombatSystem;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.ActionFlow;
@@ -20,6 +21,7 @@ using SO.Boss.HitLocation;
 using SO.Combat;
 using UI;
 using UnityEngine;
+using HuntingInDarkness.ViewLayer.Combat;
 
 namespace HuntingInDarkness.Combat
 {
@@ -46,6 +48,8 @@ namespace HuntingInDarkness.Combat
         public Vector3 BossTablePosition { get; set; }
         public Func<EventSystem> GetSettlementEvents { get; set; }
         public IActionEnvironmentInstallerRegistry ActionEnvironmentInstallers { get; set; }
+        public bool UseCombatScreen { get; set; }
+        public Camera BoardCamera { get; set; }
     }
 
     /// <summary>
@@ -57,6 +61,7 @@ namespace HuntingInDarkness.Combat
         private readonly PlayableCombatSessionConfiguration configuration;
         private readonly PlayableCombatSessionScope scope;
         private readonly List<CharacterRuntimeData> characters = new();
+        private readonly List<ICharacterState> combatRoster = new();
         private readonly Dictionary<int, CharacterRuntimeData> characterById = new();
         private readonly Dictionary<int, CharacterEntity> characterEntities = new();
         private readonly Dictionary<int, CharacterActionCardInstance> allCards = new();
@@ -77,10 +82,12 @@ namespace HuntingInDarkness.Combat
         private PlayableCombatActionSession combatActionSession;
         private BossController bossController;
         private CombatManager combatManager;
+        private UIPlayerInputProvider inputProvider;
         private BossRuntimeData bossData;
         private BossConfigSO activeBossConfig;
         private int mapRadius;
         private int turnNumber;
+        private BossActionStage currentBossActionStage = BossActionStage.Windup;
         private bool started;
         private bool disposed;
 
@@ -114,13 +121,17 @@ namespace HuntingInDarkness.Combat
         }
 
         public bool IsActive => !disposed;
+        public bool HasRunningAction => combatActionSession?.IsRunning ?? false;
         public CombatManager CombatManager => combatManager;
         public TurnPhase CurrentPhase => turnStateMachine?.CurrentPhase ?? TurnPhase.PlayerTurn;
+        public BossActionStage CurrentBossActionStage => currentBossActionStage;
         public int CurrentTurnNumber => turnNumber;
         public IReadOnlyList<ICharacterState> PlayerCharacters => PlayableHunterCombatAdapter.FilterActiveCharacters(characters);
+        public IReadOnlyList<ICharacterState> CombatRoster => combatRoster;
         public IBossState Boss => bossData;
         public IReadOnlyList<HitLocationRuntimeState> BossHitLocationStates => bossController?.GetHitLocationRuntimeStates() ?? new List<HitLocationRuntimeState>();
         public IReadOnlyList<BossActionCardData> BossRevealedCards => bossController?.LastRevealedCards ?? Array.Empty<BossActionCardData>();
+        public bool IsResolvingAction => CurrentPhase != TurnPhase.PlayerTurn || turnStateMachine?.GetState<PlayerTurnState>()?.IsResolvingAction != false;
         public ReactorRegistry ActionReactors => combatActionSession?.Reactors;
         public ReactionGateRegistry ActionReactionGates => combatActionSession?.ReactionGates;
 
@@ -140,13 +151,35 @@ namespace HuntingInDarkness.Combat
             PlayableHunterCombatAdapter.Apply(hunters, characters, characterEntities, timelineManager);
             weaponMasteryTracker.Bind(hunters, characters);
             combatCasualties.Bind(hunters, characters, characterEntities, timelineManager, boardCommand, hunterManagement, onPartyDefeated);
+            if (configuration.UseCombatScreen)
+            {
+                foreach (CharacterEntity entity in characterEntities.Values) entity.SetScreenOnlyMode();
+                StartWithCombatScreenAsync().Forget();
+                return;
+            }
             turnStateMachine.Start();
+        }
+
+        private async UniTaskVoid StartWithCombatScreenAsync()
+        {
+            try
+            {
+                await inputProvider.OpenScreenAsync(this);
+                if (!disposed) turnStateMachine.Start();
+            }
+            catch (Exception exception)
+            {
+                if (!disposed) Debug.LogException(exception);
+            }
         }
 
         public void Update()
         {
             if (!disposed)
+            {
                 turnStateMachine?.Update();
+                inputProvider?.RefreshScreen();
+            }
         }
 
         public void Dispose()
@@ -185,31 +218,150 @@ namespace HuntingInDarkness.Combat
 
         public void OnSelectCharacter(int characterId)
         {
+            inputProvider?.SelectCharacterForInspection(characterId);
             if (disposed || !PlayableHunterCombatAdapter.IsCharacterActive(GetCharacterData(characterId))) return;
             turnStateMachine?.GetState<PlayerTurnState>()?.SelectCharacter(characterId);
         }
 
+        public int GetTimePoints(int characterId) => timelineManager?.GetTimePoints(characterId) ?? 0;
+        public int GetTimePointLimit(int characterId) => timelineManager?.GetLimit(characterId) ?? 0;
+        public bool CanCharacterAct(int characterId) => !disposed && timelineManager != null && timelineManager.CanCharacterAct(characterId, this);
+        public string GetCharacterActionUnavailableReason(int characterId) => GetCharacterActionUnavailableReasonInternal(characterId);
+
+        public string GetCardUnavailableReason(int cardInstanceId)
+        {
+            if (disposed) return "战斗已经结束";
+            if (!allCards.TryGetValue(cardInstanceId, out CharacterActionCardInstance card)) return "行动卡不存在";
+            if (!PlayableHunterCombatAdapter.IsCharacterActive(GetCharacterData(card.OwnerCharacterId))) return "该猎人已离场";
+            if (CurrentPhase != TurnPhase.PlayerTurn) return "等待猎人行动阶段";
+            if (IsResolvingAction) return "正在结算当前行动";
+            if (!CanCharacterAct(card.OwnerCharacterId)) return GetCharacterActionUnavailableReasonInternal(card.OwnerCharacterId);
+            if (card.CurrentFace != CardFace.FaceUp) return "此卡当前为背面";
+            if (!card.IsAvailableThisTurn || !card.CanPlay) return "此卡本轮不可使用";
+            if (actionCardCostService == null || !actionCardCostService.CanPayResourceCosts(card.OwnerCharacterId, card.Costs)) return "缺少行动费用";
+            if (HasEncourageEffect(card) && !HasEligibleEncourageTarget(card.OwnerCharacterId)) return "没有处于加班状态的队友可鼓舞";
+            foreach (ActionCardCostDefinition cost in card.Costs)
+                if (cost.Kind == ActionCardCostKind.FlipOtherCard && flipConditionEvaluator.GetFlippableCostCandidates(card.OwnerCharacterId, card.InstanceId, cost.RequiredCardTag, null).Count < cost.Amount)
+                    return "缺少可支付的行动卡";
+            return string.Empty;
+        }
+
+        public bool CanRestoreCard(int cardInstanceId)
+        {
+            return string.IsNullOrEmpty(GetRestoreUnavailableReason(cardInstanceId));
+        }
+
+        public bool CanBurstCard(int cardInstanceId)
+        {
+            if (disposed || CurrentPhase != TurnPhase.PlayerTurn || IsResolvingAction || !allCards.TryGetValue(cardInstanceId, out CharacterActionCardInstance card)) return false;
+            return card.CurrentFace == CardFace.FaceUp && card.CanDiscard && card.BurstReward?.enabled == true;
+        }
+
+        public string GetRestoreCostDescription(int cardInstanceId)
+        {
+            if (!allCards.TryGetValue(cardInstanceId, out CharacterActionCardInstance card)) return "恢复费用未知";
+            var costs = GetRestoreCosts(card);
+            if (costs.Count == 0) return "无费用";
+            var descriptions = new List<string>(costs.Count);
+            foreach (ActionCardCostDefinition cost in costs)
+                descriptions.Add(DescribeCost(cost));
+            return string.Join("、", descriptions);
+        }
+
+        public string GetRestoreUnavailableReason(int cardInstanceId)
+        {
+            if (disposed) return "战斗已经结束";
+            if (CurrentPhase != TurnPhase.PlayerTurn) return "等待猎人行动阶段";
+            if (IsResolvingAction) return "正在结算当前行动";
+            if (!allCards.TryGetValue(cardInstanceId, out CharacterActionCardInstance card)) return "行动卡不存在";
+            if (!PlayableHunterCombatAdapter.IsCharacterActive(GetCharacterData(card.OwnerCharacterId))) return "该猎人已离场";
+            if (!flipConditionEvaluator.CanManuallyRestore(card)) return "恢复条件尚未满足";
+            List<ActionCardCostDefinition> costs = GetRestoreCosts(card);
+            if (costs.Count > 0 && (actionCardCostService == null || !actionCardCostService.CanPayResourceCosts(card.OwnerCharacterId, costs))) return $"缺少恢复费用：{GetRestoreCostDescription(cardInstanceId)}";
+            return string.Empty;
+        }
+
+        private static List<ActionCardCostDefinition> GetRestoreCosts(CharacterActionCardInstance card)
+        {
+            var costs = new List<ActionCardCostDefinition>();
+            foreach (GameplayBase.CombatSystem.Cards.FlipConditions.IFlipCondition condition in card.RestoreConditions)
+                if (condition is IPreparedActionCardRestoreCost preparedCost)
+                    costs.Add(preparedCost.Cost);
+            return costs;
+        }
+
+        private static string DescribeCost(ActionCardCostDefinition cost)
+        {
+            return cost.Kind switch
+            {
+                ActionCardCostKind.TimePoint => $"{cost.Amount} 时点",
+                ActionCardCostKind.CombatInspiration => $"{DescribeInspirationRequirement(cost.InspirationRequirement)}灵感 ×{cost.Amount}",
+                ActionCardCostKind.Willpower => $"意志 ×{cost.Amount}",
+                ActionCardCostKind.FlipOtherCard => $"翻转行动卡 ×{cost.Amount}",
+                _ => $"费用 ×{cost.Amount}"
+            };
+        }
+
+        private static string DescribeInspirationRequirement(InspirationRequirement requirement)
+        {
+            return requirement switch
+            {
+                InspirationRequirement.Red => "红色",
+                InspirationRequirement.Blue => "蓝色",
+                InspirationRequirement.Yellow => "黄色",
+                _ => "任意颜色"
+            };
+        }
+
+        private bool HasEncourageEffect(CharacterActionCardInstance card)
+        {
+            foreach (CharacterActionCardEffect effect in card.FaceUpEffects)
+                if (effect is PlayablePreparedEncourageEffect) return true;
+            return false;
+        }
+
+        private bool HasEligibleEncourageTarget(int sourceCharacterId)
+        {
+            foreach (CharacterRuntimeData character in characters)
+                if (character.Id != sourceCharacterId && PlayableHunterCombatAdapter.IsCharacterActive(character) && timelineManager.GetStatus(character.Id) == TimelineActionStatus.Overtime)
+                    return true;
+            return false;
+        }
+
+        public string GetBurstUnavailableReason(int cardInstanceId)
+        {
+            if (disposed) return "战斗已经结束";
+            if (CurrentPhase != TurnPhase.PlayerTurn) return "等待猎人行动阶段";
+            if (IsResolvingAction) return "正在结算当前行动";
+            if (!allCards.TryGetValue(cardInstanceId, out CharacterActionCardInstance card)) return "行动卡不存在";
+            if (!PlayableHunterCombatAdapter.IsCharacterActive(GetCharacterData(card.OwnerCharacterId))) return "该猎人已离场";
+            if (card.CurrentFace != CardFace.FaceUp) return "卡牌必须正面朝上";
+            if (!card.CanDiscard) return "卡牌当前不能弃置";
+            if (card.BurstReward?.enabled != true) return "卡牌没有可用的爆发奖励";
+            return string.Empty;
+        }
+
         public void OnPlayCard(int cardInstanceId, int targetEntityId)
         {
-            if (disposed) return;
+            if (disposed || CurrentPhase != TurnPhase.PlayerTurn || IsResolvingAction || GetCardUnavailableReason(cardInstanceId).Length > 0) return;
             turnStateMachine?.GetState<PlayerTurnState>()?.PlayCardAsync(cardInstanceId, targetEntityId).Forget();
         }
 
         public void OnRestoreCard(int cardInstanceId)
         {
-            if (disposed) return;
+            if (!CanRestoreCard(cardInstanceId)) return;
             turnStateMachine?.GetState<PlayerTurnState>()?.RestoreCardAsync(cardInstanceId).Forget();
         }
 
         public void OnDiscardCard(int cardInstanceId)
         {
-            if (disposed) return;
+            if (!CanBurstCard(cardInstanceId)) return;
             turnStateMachine?.GetState<PlayerTurnState>()?.DiscardCardAsync(cardInstanceId).Forget();
         }
 
         public void OnEndTurn()
         {
-            if (disposed) return;
+            if (disposed || CurrentPhase != TurnPhase.PlayerTurn || IsResolvingAction) return;
             turnStateMachine?.GetState<PlayerTurnState>()?.EndTurnManually();
         }
 
@@ -304,6 +456,35 @@ namespace HuntingInDarkness.Combat
 
         public void ClearCardPreview() => hexBoardVisualizer?.ClearHighlights();
 
+        public void HighlightBossDestinations(IReadOnlyList<Vector2Int> validTiles, IReadOnlyList<Vector2Int> compliantTiles)
+        {
+            hexBoardVisualizer?.HighlightIntent(validTiles == null ? null : new List<Vector2Int>(validTiles), compliantTiles == null ? null : new List<Vector2Int>(compliantTiles));
+        }
+
+        public void ClearBossHighlights() => hexBoardVisualizer?.ClearHighlights();
+
+        public void HighlightBossIntentPreview()
+        {
+            if (disposed || boardManager == null || hexBoardVisualizer == null || bossData == null || BossRevealedCards.Count == 0) return;
+            PlayableBossAttackEffectData attack = null;
+            foreach (BossActionCardEffectData effect in BossRevealedCards[0].effects)
+                if (effect is PlayableBossAttackEffectData attackEffect)
+                {
+                    attack = attackEffect;
+                    break;
+                }
+            if (attack == null) return;
+            Vector2Int origin = boardQuery.GetEntityPosition(bossData.Id);
+            List<Vector2Int> movementTiles = boardManager.GetTilesInRange(origin, attack.MovementDistance);
+            movementTiles.RemoveAll(tile => !boardQuery.IsValidTile(tile) || boardQuery.GetEntityAt(tile) is int occupant && occupant != bossData.Id);
+            if (!movementTiles.Contains(origin)) movementTiles.Add(origin);
+            var attackRangeTiles = new List<Vector2Int>();
+            foreach (Vector2Int movementTile in movementTiles)
+                foreach (Vector2Int tile in boardManager.GetTilesInRange(movementTile, attack.AttackRange))
+                    if (boardQuery.IsValidTile(tile) && !attackRangeTiles.Contains(tile)) attackRangeTiles.Add(tile);
+            hexBoardVisualizer.HighlightBossPreview(movementTiles, attackRangeTiles);
+        }
+
         public void AccumulateDefeatLoot() => bossController?.AccumulateDefeatLoot();
 
         public int SettleWeaponMastery() => weaponMasteryTracker?.SettleVictory() ?? 0;
@@ -338,6 +519,7 @@ namespace HuntingInDarkness.Combat
             foreach (CharacterRuntimeData character in result.characters)
             {
                 characters.Add(character);
+                combatRoster.Add(character);
                 characterById[character.Id] = character;
                 CharacterEntity entity = EntityCreator.CreateCharacterEntity(character.Id, GetEntityWorldPosition(character.Id), this, id => timelineManager?.GetTimePoints(id) ?? 0, id => timelineManager?.GetLimit(id) ?? 0, OnSelectCharacter, cardId => OnPlayCard(cardId, -1), entitiesRoot.transform);
                 characterEntities[character.Id] = entity;
@@ -370,6 +552,8 @@ namespace HuntingInDarkness.Combat
 
         private void InitializeTurnSystem()
         {
+            EventBus.Subscribe<BossActionStageChangedEvent>(OnBossActionStageChanged);
+            scope.RegisterCleanup(() => EventBus.Unsubscribe<BossActionStageChangedEvent>(OnBossActionStageChanged));
             timelineManager = new TimelineManager();
             foreach (CharacterRuntimeData character in characters)
             {
@@ -411,8 +595,10 @@ namespace HuntingInDarkness.Combat
             if (!IsActive || combatManager?.InputProvider == null) return UniTask.CompletedTask;
             IReadOnlyList<BossActionCardData> cards = BossRevealedCards;
             string message = cards.Count > 0 ? cards[0].recoveryDescription : "Boss 行动结束。确认后进入下一轮前摇。";
-            return combatManager.InputProvider.ShowResult($"<b>Boss 后摇</b>\n{message}");
+            return CombatPresentationDispatch.ShowPhaseConfirmation(combatManager.InputProvider, $"<b>Boss 后摇</b>\n{message}");
         }
+
+        private void OnBossActionStageChanged(BossActionStageChangedEvent stageChanged) => currentBossActionStage = stageChanged.Stage;
 
         private void InitializeEntityCallbacks()
         {
@@ -423,7 +609,8 @@ namespace HuntingInDarkness.Combat
 
         private void InitializeCombatSystem()
         {
-            var inputProvider = new UIPlayerInputProvider(boardManager, hexBoardVisualizer, id => GetCharacterData(id)?.Name);
+            inputProvider = new UIPlayerInputProvider(boardManager, hexBoardVisualizer, id => GetCharacterData(id)?.Name, configuration.UseCombatScreen ? this : null, configuration.BoardCamera);
+            scope.RegisterCleanup(inputProvider.Dispose);
             combatManager = new CombatManager(this, boardQuery, inputProvider, bossController.GetHitLocationRuntimeStates(), permanentInjuryResolver: PlayablePermanentInjuryRuntime.Resolver, survivalEventResolver: new PlayableSurvivalEventResolver(combatCasualties.GetHunter, configuration.GetSettlementEvents), bossToughness: activeBossConfig?.baseToughness ?? 1);
         }
 
@@ -436,6 +623,7 @@ namespace HuntingInDarkness.Combat
 
         private void InitializeCardDisplay()
         {
+            if (configuration.UseCombatScreen) return;
             var uiRoot = new GameObject("CardUI");
             uiRoot.transform.SetParent(scope.Root.transform, false);
             cardDisplayManager = new CardDisplayManager(this, uiRoot.transform, configuration.TableHeightOffset, configuration.TableScale, configuration.BossTablePosition, characterEntities);
@@ -510,7 +698,7 @@ namespace HuntingInDarkness.Combat
             };
         }
 
-        private string GetCharacterActionUnavailableReason(int characterId)
+        private string GetCharacterActionUnavailableReasonInternal(int characterId)
         {
             TimelineActionStatus status = timelineManager.GetStatus(characterId);
             return status switch

@@ -360,25 +360,41 @@ namespace HuntingInDarkness.ActionFlow.Combat
             UnityEngine.Vector2Int expectedTargetPosition = cardContext.BoardQuery.GetEntityPosition(expectedTargetId);
             List<UnityEngine.Vector2Int> selectableTiles = GetSelectableDestinations(origin, cardContext.GameContext.Boss.Id);
             List<UnityEngine.Vector2Int> compliantTiles = GetClosestDestinations(selectableTiles, expectedTargetPosition);
-            UnityEngine.Vector2Int selectedTile = compliantTiles.Count > 0 ? compliantTiles[0] : origin;
-            if (input is IBossIntentInputProvider intentInput && selectableTiles.Count > 1)
-            {
-                UnityEngine.Vector2Int? choice = await intentInput.RequestBossDestination($"<b>{actionName}</b>：选择 Boss 落点", selectableTiles, compliantTiles, cancellationToken);
-                if (choice.HasValue && selectableTiles.Contains(choice.Value))
-                    selectedTile = choice.Value;
-            }
-
             List<int> allTargets = new(aliveIds);
-            int selectedTargetId;
-            if (input is IBossIntentInputProvider targetInput)
+            UnityEngine.Vector2Int selectedTile = origin;
+            int selectedTargetId = expectedTargetId;
+            BossIntentDeviationResult deviation = null;
+            while (true)
             {
-                selectedTargetId = await targetInput.RequestBossTarget($"<b>{actionName}</b>：确认攻击目标", allTargets, priorityTargets, cancellationToken);
-                if (!allTargets.Contains(selectedTargetId))
-                    selectedTargetId = expectedTargetId;
-            }
-            else
-            {
-                selectedTargetId = await new PlayableBossTargetResolver(random).ResolveAsync(actionName, targetPolicy, candidates, input, cancellationToken);
+                selectedTile = compliantTiles.Count > 0 ? compliantTiles[0] : origin;
+                if (input is IBossIntentInputProvider intentInput && selectableTiles.Count > 1)
+                {
+                    UnityEngine.Vector2Int? choice = await intentInput.RequestBossDestination($"<b>{actionName}</b>：选择 Boss 落点", selectableTiles, compliantTiles, cancellationToken);
+                    if (!choice.HasValue || !selectableTiles.Contains(choice.Value)) return ActionOutcome.Cancelled("Boss 落点选择已取消");
+                    selectedTile = choice.Value;
+                }
+
+                if (input is IBossIntentInputProvider targetInput)
+                {
+                    selectedTargetId = await targetInput.RequestBossTarget($"<b>{actionName}</b>：确认攻击目标", allTargets, priorityTargets, cancellationToken);
+                    if (!allTargets.Contains(selectedTargetId)) return ActionOutcome.Cancelled("Boss 目标选择已取消");
+                }
+                else
+                {
+                    selectedTargetId = await new PlayableBossTargetResolver(random).ResolveAsync(actionName, targetPolicy, candidates, input, cancellationToken);
+                }
+
+                bool moveDeviation = !compliantTiles.Contains(selectedTile);
+                deviation = BossIntentDeviationRules.Evaluate(moveDeviation, expectedTargetId, selectedTargetId, aliveIds);
+                var targetPreviews = new List<CombatBossTargetPreview>();
+                foreach (BossTargetCandidate candidate in candidates)
+                {
+                    int distance = cardContext.BoardQuery.GetDistance(selectedTile, cardContext.BoardQuery.GetEntityPosition(candidate.EntityId));
+                    targetPreviews.Add(new CombatBossTargetPreview(candidate.EntityId, distance, distance <= attackRange, candidate.EntityId == expectedTargetId));
+                }
+                if (input is not ICombatPresentationInput) break;
+                bool accepted = await CombatPresentationDispatch.ShowBossIntentPreview(input, BuildSummary(deviation, expectedTargetId, selectedTargetId, cardContext.BoardQuery.GetDistance(selectedTile, cardContext.BoardQuery.GetEntityPosition(selectedTargetId)) <= attackRange), new CombatBossIntentPreviewContext(origin, selectedTile, attackRange, expectedTargetId, selectedTargetId, deviation.IsMoveDeviation, deviation.IsTargetDeviation, deviation.FateByHunterId, targetPreviews), cancellationToken);
+                if (accepted) break;
             }
 
             if (cardContext.GameContext is IPlayableBossIntentCommands commands)
@@ -391,8 +407,6 @@ namespace HuntingInDarkness.ActionFlow.Combat
                 selectedTile = origin;
             }
 
-            bool moveDeviation = !compliantTiles.Contains(selectedTile);
-            BossIntentDeviationResult deviation = BossIntentDeviationRules.Evaluate(moveDeviation, expectedTargetId, selectedTargetId, aliveIds);
             if (cardContext.GameContext is IPlayableBossIntentCommands fateCommands)
             {
                 foreach (KeyValuePair<int, int> fate in deviation.FateByHunterId)
@@ -405,7 +419,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
             if (input != null)
             {
                 string summary = BuildSummary(deviation, expectedTargetId, selectedTargetId, CanAttack);
-                await context.AwaitPresentationAsync(input.ShowResult(summary, cancellationToken));
+                await context.AwaitPresentationAsync(CombatPresentationDispatch.ShowOrdinary(input, summary, cancellationToken));
             }
             return ActionOutcome.Success(CanAttack ? "Boss 意图已确认" : "目标超出范围，执行失败分支");
         }
@@ -720,7 +734,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
             BossHitDeckDraw draw = BossHitDeckRules.ResolveDraw(deck, roll);
             execution.Context.RollResult = roll;
             execution.Context.HitResult = draw.IsHit ? HitResult.Success : HitResult.Failure;
-            await context.AwaitPresentationAsync(execution.Input.ShowResult(draw.IsHit ? "未能闪避，被Boss命中！" : "闪避成功！躲开了Boss的攻击", cancellationToken));
+            await context.AwaitPresentationAsync(CombatPresentationDispatch.ShowOrdinary(execution.Input, draw.IsHit ? "未能闪避，被Boss命中！" : "闪避成功！躲开了Boss的攻击", cancellationToken));
             return ActionOutcome.Success();
         }
     }
@@ -749,9 +763,8 @@ namespace HuntingInDarkness.ActionFlow.Combat
             DeathDeck deck = stats.InjuryState.DeathDeck;
             var composition = new DeathDeckComposition(deck.SurvivalCardCount, deck.DeathCardCount, deck.SurvivalEventCardCount);
             string partName = HunterBodyPartPresentation.GetName(execution.BodyPart);
-            await context.AwaitPresentationAsync(execution.Input.ShowResult($"<b>死亡判定</b>\n\n这次伤害会击中已经归零的{partName}。\n当前牌堆：普通存活 {composition.OrdinarySurvivalCards} / 生存卡 {composition.SurvivalEventCards} / 死亡 {composition.DeathCards}。\n\n所有牌背面相同；确认后洗混并选择一张。", cancellationToken));
             attempt.DeathDrawOrder = deck.PrepareDraw(execution.Random);
-            attempt.DeathCardPosition = await deathInput.RequestDrawDeathCard("<b>牌已洗混</b>\n选择一张背面牌并承担结果。", composition, cancellationToken);
+            attempt.DeathCardPosition = await deathInput.RequestDrawDeathCard($"<b>致命伤判定</b>\n本次伤害将再次命中已归零的{partName}。\n当前牌堆：普通存活 {composition.OrdinarySurvivalCards} / 生存事件 {composition.SurvivalEventCards} / 死亡 {composition.DeathCards}。\n选择一张相同牌背。", composition, cancellationToken);
             return ActionOutcome.Success();
         }
     }
@@ -811,7 +824,13 @@ namespace HuntingInDarkness.ActionFlow.Combat
                 if (damage.PermanentInjury != null)
                     message += $"\n获得永久损伤：{damage.PermanentInjury.DisplayName}";
             }
-            await context.AwaitPresentationAsync(execution.Input.ShowResult(message, cancellationToken));
+            if (damage.FatalInjuryTriggered)
+            {
+                string faceTitle = damage.IsDead ? "死亡" : damage.DeathDraw?.Card == DeathCardType.SurvivalEvent ? "生存卡" : "存活";
+                await context.AwaitPresentationAsync(CombatPresentationDispatch.ShowDeathResultAsync(execution.Input, attempt.DeathCardPosition, message, cancellationToken, faceTitle));
+            }
+            else
+                await context.AwaitPresentationAsync(CombatPresentationDispatch.ShowOrdinary(execution.Input, message, cancellationToken));
             return ActionOutcome.Success();
         }
     }

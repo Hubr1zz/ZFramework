@@ -54,6 +54,7 @@ namespace UI
         {
             Clear();
             if (_grid == null || workshop == null || settlement == null) return;
+            _grid.EnsureCapacityPreservingCards(CountProjectedCards(workshop, settlement, catalog), _grid.Columns);
             constructionService = new PlayableWorkshopConstructionService(() => settlement);
 
             var recipesByWorkshop = new Dictionary<string, List<CraftRecipe>>();

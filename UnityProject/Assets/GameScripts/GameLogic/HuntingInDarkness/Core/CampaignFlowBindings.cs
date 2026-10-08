@@ -42,6 +42,7 @@ namespace Core
         internal PlayableSettlementContentCatalog SettlementContentCatalog { get; set; }
         internal ITabletopRandomInteractionPresenter TabletopInteraction { get; set; }
         internal Action<string> Warning { get; set; }
+        internal Action<HuntRecord> ReturnCommittedPresentation { get; set; }
     }
 
 }

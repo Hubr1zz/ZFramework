@@ -7,6 +7,7 @@ using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Hunters;
 using HuntingInDarkness.GameCore.Settlement;
 using HuntingInDarkness.ViewLayer.Hunt;
+using HuntingInDarkness.ViewLayer.Tabletop;
 using TMPro;
 using UnityEngine;
 
@@ -126,10 +127,11 @@ namespace UI.Hunt
             textObject.transform.localPosition = localPosition;
             textObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             TextMeshPro text = textObject.AddComponent<TextMeshPro>();
-            text.fontSize = fontSize;
+            text.font = TabletopPresentationAssets.WorldFont;
+            text.fontSize = CardPresentationConsts.ResolveDynamicFontSize(objectName, fontSize);
             text.alignment = TextAlignmentOptions.Center;
             text.color = new Color(0.82f, 0.82f, 0.78f);
-            text.rectTransform.sizeDelta = size;
+            text.rectTransform.sizeDelta = CardPresentationConsts.ResolveDynamicRectSize(objectName, size);
             return text;
         }
 
@@ -149,9 +151,10 @@ namespace UI.Hunt
             labelObject.transform.localScale = new Vector3(2f, 1f / 0.22f, 1f);
             TextMeshPro label = labelObject.AddComponent<TextMeshPro>();
             label.text = "关闭";
-            label.fontSize = 0.10f;
+            label.font = TabletopPresentationAssets.WorldFont;
+            label.fontSize = CardPresentationConsts.DynamicBodyFontSize;
             label.alignment = TextAlignmentOptions.Center;
-            label.rectTransform.sizeDelta = new Vector2(0.45f, 0.18f);
+            label.rectTransform.sizeDelta = new Vector2(0.45f, 0.22f);
         }
 
         private void ClearCards()

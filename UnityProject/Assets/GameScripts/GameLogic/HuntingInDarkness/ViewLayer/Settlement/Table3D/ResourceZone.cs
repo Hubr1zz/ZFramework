@@ -35,6 +35,7 @@ namespace UI
 
         private void ApplySnapshot(IReadOnlyList<ResourceEntry> resources)
         {
+            _grid.EnsureCapacityPreservingCards(resources.Count, _grid.Columns);
             var desiredAmounts = new Dictionary<string, int>(StringComparer.Ordinal);
             foreach (ResourceEntry entry in resources)
                 desiredAmounts[entry.Key] = entry.Value;

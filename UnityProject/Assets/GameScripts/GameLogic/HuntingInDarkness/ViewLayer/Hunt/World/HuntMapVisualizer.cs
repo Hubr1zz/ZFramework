@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Presentation;
@@ -47,9 +48,19 @@ namespace HuntingInDarkness.Hunt
         private PlayableHuntMapIntroCamera3D mapIntroCamera;
         private IHuntExplorationPort explorationPort;
         private bool tileRequestInFlight;
+        private bool screenInteractionEnabled;
         private Vector2Int? selectedTileCoordinate;
         private Vector2Int? interactionAnchorCoordinate;
         private int presentationGeneration;
+
+        public event Action<Vector2Int> ScreenTileSelected;
+        public Vector2Int? SelectedTileCoordinate => selectedTileCoordinate;
+
+        public void SetScreenInteractionEnabled(bool enabled)
+        {
+            screenInteractionEnabled = enabled;
+            if (!enabled) selectedTileCoordinate = null;
+        }
 
         public Transform TabletopInteractionAnchor
         {
@@ -104,9 +115,15 @@ namespace HuntingInDarkness.Hunt
 
         public void HandleTileClicked(Vector2Int coordinate)
         {
-            if (PlayableHuntInputGuard.IsBlocked || tileRequestInFlight || _huntMgr == null || explorationPort == null) return;
+            if (PlayableHuntInputGuard.IsBlocked || ScreenModalInputGate.IsBlocked || tileRequestInFlight || _huntMgr == null || explorationPort == null) return;
             if (!_huntMgr.Map.TryGetValue(coordinate, out HexTileInstance tile)) return;
             interactionAnchorCoordinate = coordinate;
+            if (screenInteractionEnabled)
+            {
+                SelectTile(coordinate);
+                ScreenTileSelected?.Invoke(coordinate);
+                return;
+            }
             if (tile.State == TileState.Interactable)
             {
                 if (selectedTileCoordinate != coordinate)

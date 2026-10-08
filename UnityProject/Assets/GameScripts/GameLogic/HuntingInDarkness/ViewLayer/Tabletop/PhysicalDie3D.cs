@@ -8,12 +8,30 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
     /// <summary>运行时生成的实体骰子；当前支持事件流程使用的 d10 与通用 d6。</summary>
     public sealed class PhysicalDie3D : MonoBehaviour
     {
-        private Vector3[] faceNormals = Array.Empty<Vector3>();
-        private int[] faceValues = Array.Empty<int>();
+        [SerializeField] private Vector3[] faceNormals = Array.Empty<Vector3>();
+        [SerializeField] private int[] faceValues = Array.Empty<int>();
+        [SerializeField] private Rigidbody body;
+        [SerializeField] private int sides;
         private Mesh ownedMesh;
 
-        public Rigidbody Body { get; private set; }
-        public int Sides { get; private set; }
+        public Rigidbody Body { get => body; private set => body = value; }
+        public int Sides { get => sides; private set => sides = value; }
+
+        public void UsePersistentMesh(Mesh mesh)
+        {
+            if (Sides != 10 || mesh == null) throw new ArgumentException("只有 d10 骰子需要有效的持久化网格。", nameof(mesh));
+            MeshFilter filter = GetComponent<MeshFilter>();
+            MeshCollider meshCollider = GetComponent<MeshCollider>();
+            if (filter == null || meshCollider == null) throw new MissingComponentException($"[{nameof(PhysicalDie3D)}] d10 缺少 MeshFilter 或 MeshCollider。");
+            filter.sharedMesh = mesh;
+            meshCollider.sharedMesh = mesh;
+            if (ownedMesh != null)
+            {
+                if (Application.isPlaying) Destroy(ownedMesh);
+                else DestroyImmediate(ownedMesh);
+            }
+            ownedMesh = null;
+        }
 
         public static PhysicalDie3D Create(int sides, Transform parent, Vector3 position, float size, Material material)
         {
@@ -52,7 +70,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             die.faceValues = new[] { 1, 6, 3, 4, 2, 5 };
             die.ConfigureBody();
             for (int index = 0; index < die.faceNormals.Length; index++)
-                die.BuildFaceLabel(die.faceValues[index], die.faceNormals[index] * 0.505f, die.faceNormals[index], 0.18f);
+                die.BuildFaceLabel(die.faceValues[index], die.faceNormals[index] * 0.505f, die.faceNormals[index], 6f, new Vector2(0.8f, 0.8f));
             return die;
         }
 
@@ -126,7 +144,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             {
                 int vertexIndex = index * 3;
                 Vector3 center = (vertices[vertexIndex] + vertices[vertexIndex + 1] + vertices[vertexIndex + 2]) / 3f;
-                BuildFaceLabel(faceValues[index], center + faceNormals[index] * 0.012f, faceNormals[index], 0.16f);
+                BuildFaceLabel(faceValues[index], center + faceNormals[index] * 0.012f, faceNormals[index], 3.2f, new Vector2(0.45f, 0.45f));
             }
         }
 
@@ -152,7 +170,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             resolvedNormals.Add(normal);
         }
 
-        private void BuildFaceLabel(int value, Vector3 localPosition, Vector3 normal, float fontSize)
+        private void BuildFaceLabel(int value, Vector3 localPosition, Vector3 normal, float fontSize, Vector2 labelSize)
         {
             var labelObject = new GameObject($"Face_{value}");
             labelObject.transform.SetParent(transform, false);
@@ -160,13 +178,13 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             Vector3 labelUp = Vector3.ProjectOnPlane(Vector3.up, normal).normalized;
             if (labelUp.sqrMagnitude < 0.01f)
                 labelUp = Vector3.ProjectOnPlane(Vector3.forward, normal).normalized;
-            labelObject.transform.localRotation = Quaternion.LookRotation(normal, labelUp);
+            labelObject.transform.localRotation = Quaternion.LookRotation(-normal, labelUp);
             TextMeshPro label = labelObject.AddComponent<TextMeshPro>();
             label.text = value.ToString();
             label.fontSize = fontSize;
             label.alignment = TextAlignmentOptions.Center;
             label.color = new Color(0.96f, 0.90f, 0.68f);
-            label.rectTransform.sizeDelta = new Vector2(0.30f, 0.20f);
+            label.rectTransform.sizeDelta = labelSize;
         }
 
         private void OnDestroy()

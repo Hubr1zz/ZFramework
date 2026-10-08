@@ -43,6 +43,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
         }
 
         public bool IsActive => !environment.IsDisposed;
+        public bool IsRunning => environment.IsRunning;
         public ReactorRegistry Reactors => environment.Reactors;
         public ReactionGateRegistry ReactionGates => environment.ReactionGates;
 

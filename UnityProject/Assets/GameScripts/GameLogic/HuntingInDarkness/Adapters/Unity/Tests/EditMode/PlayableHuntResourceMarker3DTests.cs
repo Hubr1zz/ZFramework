@@ -1,16 +1,42 @@
 using System.Collections.Generic;
+using System.Reflection;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Foundation;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
+using HuntingInDarkness.ViewLayer.Tabletop;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace HuntingInDarkness.Adapter.Tests
 {
     public sealed class PlayableHuntResourceMarker3DTests
     {
+        private const string PresentationRegistryPrefabPath = "Assets/AssetRaw/UI/Prefabs/TabletopPresentationAssets.prefab";
+        private GameObject presentationAssets;
+
+        [SetUp]
+        public void SetUp()
+        {
+#if UNITY_EDITOR
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PresentationRegistryPrefabPath);
+            Assert.That(prefab, Is.Not.Null, $"缺少已安装的事件/年鉴注册 Prefab：{PresentationRegistryPrefabPath}");
+            presentationAssets = Object.Instantiate(prefab);
+            InvokePrivateLifecycle(presentationAssets.GetComponent<TabletopPresentationAssets>(), "OnEnable");
+#endif
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (presentationAssets != null) Object.DestroyImmediate(presentationAssets);
+            presentationAssets = null;
+        }
+
         [Test]
         public void Availability_ChangesFromTravelHintToHarvestHintAfterSquadArrives()
         {
@@ -54,6 +80,14 @@ namespace HuntingInDarkness.Adapter.Tests
                 Object.DestroyImmediate(root);
                 Object.DestroyImmediate(resource);
             }
+        }
+
+        private static void InvokePrivateLifecycle(object instance, string methodName)
+        {
+            Assert.That(instance, Is.Not.Null, methodName);
+            MethodInfo method = instance.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null, methodName);
+            method.Invoke(instance, null);
         }
     }
 }

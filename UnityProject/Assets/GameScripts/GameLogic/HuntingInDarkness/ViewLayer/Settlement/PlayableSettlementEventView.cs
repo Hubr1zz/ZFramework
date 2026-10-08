@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using Core;
 using Cysharp.Threading.Tasks;
@@ -36,7 +37,6 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private UniTaskCompletionSource<PlayableEventChoiceSelection> choiceSource;
         private UniTaskCompletionSource<PlayableEventCheckDecision> checkSource;
         private UniTaskCompletionSource resultSource;
-        private TabletopBackgroundInputBlocker backgroundInputBlocker;
 
         public bool IsPresenting => prompt != EventPromptKind.None;
         public TabletopEventPanel3D ActivePanel => panel;
@@ -119,7 +119,7 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             string actionLabel = currentEvent.eventType == GameEventType.Combat ? "迎接战斗" : "接受结果";
             var choices = new[]
             {
-                new TabletopEventChoicePresentation(actionLabel, "点击实体卡继续事件", true, string.Empty, () => narrativeSource?.TrySetResult())
+                new TabletopEventChoicePresentation(actionLabel, "点击屏幕按钮继续事件", true, string.Empty, () => narrativeSource?.TrySetResult())
             };
             PresentPanel(currentEvent.eventName, currentEvent.displayText, ActorFooter(currentActor), TabletopEventPrimaryTone.Narrative, choices);
         }
@@ -143,10 +143,10 @@ namespace HuntingInDarkness.ViewLayer.Settlement
                     availableCount++;
                 string optionTitle = string.IsNullOrWhiteSpace(option.optionText) ? $"选项 {index + 1}" : option.optionText;
                 string requirements = PlayableEventOptionAvailability.GetRequirements(option, resourceAvailability);
-                string body = optionTitle;
-                body += option.checkType == CheckType.None ? "\n\n无需判定 · 直接结算" : option.checkPresentation == EventCheckPresentationKind.OldMaid ? "\n\n抽鬼牌 · 避开无面牌" : $"\n\n{GetCheckName(option.checkType)}判定 · 目标 {option.checkTarget}";
+                string body = DescribeCheck(option, currentActor);
                 if (!string.IsNullOrWhiteSpace(requirements))
                     body += $"\n{requirements}";
+                body += DescribeOutcomes(option);
                 choices.Add(new TabletopEventChoicePresentation(optionTitle, body, available, available ? "点击选择" : reason, () => SelectOption(optionIndex)));
             }
             if (availableCount == 0)
@@ -172,22 +172,19 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         private void PresentHunterSelection(int optionIndex)
         {
             EventOption option = currentEvent.options[optionIndex];
-            bool oldMaid = option.checkPresentation == EventCheckPresentationKind.OldMaid;
             var choices = new List<TabletopEventChoicePresentation>();
             foreach (HunterInstance hunter in candidateHunters)
             {
                 if (hunter == null) continue;
                 HunterInstance selectedHunter = hunter;
                 bool available = PlayableEventOptionAvailability.CanUse(option, hunter, manager.SettlementData, resourceAvailability, out string reason);
-                string body = oldMaid
-                    ? $"抽鬼牌不使用属性\n意志 {hunter.Willpower}/{hunter.WillpowerMax}"
-                    : option.checkType == CheckType.None
-                    ? $"意志 {hunter.Willpower}/{hunter.WillpowerMax}"
-                    : $"{GetCheckName(option.checkType)} {GetCheckBonus(hunter, option.checkType)}\n意志 {hunter.Willpower}/{hunter.WillpowerMax}";
+                string body = $"{DescribeCheck(option, hunter)}\n意志 {hunter.Willpower}/{hunter.WillpowerMax}";
+                body += DescribeOutcomes(option);
                 choices.Add(new TabletopEventChoicePresentation(hunter.Name, body, available, available ? "点击派出" : reason, () => choiceSource?.TrySetResult(new PlayableEventChoiceSelection(optionIndex, selectedHunter))));
             }
             choices.Add(new TabletopEventChoicePresentation("返回", "重新查看事件选项", true, string.Empty, PresentChoices));
             string hunterAction = $"执行{GetCheckName(option.checkType)}判定";
+            bool oldMaid = option.checkPresentation == EventCheckPresentationKind.OldMaid;
             if (oldMaid)
                 hunterAction = "抽牌";
             else if (option.checkType == CheckType.None)
@@ -200,16 +197,17 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         {
             bool oldMaid = transaction.Option.checkPresentation == EventCheckPresentationKind.OldMaid;
             bool usesCards = transaction.Option.checkPresentation != EventCheckPresentationKind.PhysicalDice;
-            string valueLabel = usesCards ? "牌面" : "骰值";
-            string body = oldMaid ? $"{transaction.Option.optionText}\n\n抽牌结果：{(transaction.Success ? "安全牌" : "无面牌")}\n\n{(transaction.Success ? "避开鬼牌" : "抽中鬼牌")}" : $"{transaction.Option.optionText}\n\n{valueLabel} {transaction.RollValue} + 属性 {transaction.Bonus} = {transaction.Total}\n目标 {transaction.Target}\n\n{(transaction.Success ? "判定成功" : "判定失败")}";
+            string valueLabel = usesCards ? "牌面合计" : "骰点";
+            string body = oldMaid ? $"{transaction.Option.optionText}\n\n抽牌结果：{(transaction.Success ? "安全牌" : "无面牌")}\n\n{(transaction.Success ? "避开鬼牌" : "抽中鬼牌")}" : $"{transaction.Option.optionText}\n\n{DescribeCheck(transaction.Option, transaction.Actor)}\n实际：{valueLabel} {transaction.RollValue} + 属性 {transaction.Bonus} = 总值 {transaction.Total}\n目标 {transaction.Target}\n\n{(transaction.Success ? "判定成功" : "判定失败")}";
+            body += DescribeResolvedOutcome(transaction.Option, transaction.Success);
             if (transaction.HasRerolled)
-                body += oldMaid ? "\n已消耗 1 意志重抽并保留安全结果。" : $"\n已消耗 1 意志重新{(usesCards ? "抽牌" : "投掷")}并保留较高结果。";
+                body += oldMaid ? "\n已消耗 1 意志并使命运 +1；重抽并保留安全结果。" : $"\n已消耗 1 意志并使命运 +1；重新{(usesCards ? "抽牌" : "投掷")}后保留较高结果。";
             var choices = new List<TabletopEventChoicePresentation>
             {
                 new("接受结果", "提交当前判定", true, string.Empty, () => checkSource?.TrySetResult(PlayableEventCheckDecision.Accept))
             };
             if (transaction.CanReroll)
-                choices.Insert(0, new TabletopEventChoicePresentation(usesCards ? "重抽" : "重投", usesCards ? "消耗 1 意志，再进行一次桌面抽牌" : "消耗 1 意志，再次投掷实体骰子", true, string.Empty, () => checkSource?.TrySetResult(PlayableEventCheckDecision.Reroll)));
+                choices.Insert(0, new TabletopEventChoicePresentation(usesCards ? "重抽" : "重投", "费用：意志 -1、命运 +1。" + (oldMaid ? "重抽后保留安全结果。" : "重投后保留较高结果。"), true, string.Empty, () => checkSource?.TrySetResult(PlayableEventCheckDecision.Reroll)));
             PresentPanel(transaction.GameEvent.eventName, body, ActorFooter(transaction.Actor), transaction.Success ? TabletopEventPrimaryTone.Success : TabletopEventPrimaryTone.Failure, choices);
         }
 
@@ -266,15 +264,6 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             candidateHunters = hunters ?? System.Array.Empty<HunterInstance>();
             EnsureInputOwnerId();
             PlayableHuntInputGuard.Acquire(inputOwnerId);
-            try
-            {
-                backgroundInputBlocker = TabletopBackgroundInputBlocker.Capture();
-            }
-            catch
-            {
-                EndPrompt(nextPrompt);
-                throw;
-            }
         }
 
         private void EndPrompt(EventPromptKind completedPrompt)
@@ -286,8 +275,6 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             candidateHunters = System.Array.Empty<HunterInstance>();
             resourceAvailability = null;
             panel?.Close();
-            backgroundInputBlocker?.Dispose();
-            backgroundInputBlocker = null;
             PlayableHuntInputGuard.Release(inputOwnerId);
         }
 
@@ -298,6 +285,65 @@ namespace HuntingInDarkness.ViewLayer.Settlement
         }
 
         private static string ActorFooter(HunterInstance actor) => actor != null ? $"关联猎人 · {actor.Name}" : string.Empty;
+
+        private static string DescribeCheck(EventOption option, HunterInstance actor)
+        {
+            if (option == null || option.checkType == CheckType.None) return "无需判定 · 直接结算";
+            if (option.checkPresentation == EventCheckPresentationKind.OldMaid) return "抽鬼牌 · 不使用属性骰 · 安全牌 / 无面牌";
+            int count = PlayableEventCheckRules.ResolveCount(option);
+            int sides = PlayableEventCheckRules.ResolveSides(option);
+            int minRoll = count;
+            int maxRoll = count * sides;
+            string rollLabel = option.checkPresentation == EventCheckPresentationKind.PhysicalDice ? "骰点" : "牌面合计";
+            string bonus = actor == null ? "选定猎人属性" : GetCheckBonus(actor, option.checkType).ToString();
+            string totalRange = actor == null ? "选定猎人属性" : $"{minRoll + GetCheckBonus(actor, option.checkType)}–{maxRoll + GetCheckBonus(actor, option.checkType)}";
+            string formula = option.checkPresentation == EventCheckPresentationKind.PhysicalDice ? $"{count}d{sides}" : $"{count}张牌（每张 1–{sides}）";
+            if (actor == null) return $"判定式：{formula} + {GetCheckName(option.checkType)}({bonus})\n{rollLabel}范围 {minRoll}–{maxRoll} · 总值范围待选猎人确定 · 成功边界 ≥ {option.checkTarget}\n选择猎人后显示成功/失败区间";
+            int threshold = option.checkTarget - GetCheckBonus(actor, option.checkType);
+            return $"判定式：{formula} + {GetCheckName(option.checkType)}({bonus})\n{rollLabel}范围 {minRoll}–{maxRoll} · 总值范围 {totalRange} · 成功边界 ≥ {option.checkTarget}\n{DescribeRollOutcome(rollLabel, minRoll, maxRoll, threshold)}";
+        }
+
+        private static string DescribeRollOutcome(string rollLabel, int minRoll, int maxRoll, int threshold)
+        {
+            if (threshold <= minRoll) return $"{rollLabel}{minRoll}–{maxRoll}：成功（全部满足）";
+            if (threshold > maxRoll) return $"{rollLabel}{minRoll}–{maxRoll}：失败（全部不满足）";
+            return $"{rollLabel}{minRoll}–{threshold - 1}：失败\n{rollLabel}{threshold}–{maxRoll}：成功";
+        }
+
+        private static string DescribeOutcomes(EventOption option)
+        {
+            if (option == null) return string.Empty;
+            var builder = new StringBuilder();
+            AppendOutcome(builder, "成功", option.successText, option.successEffects, option.successChain);
+            if (option.checkType != CheckType.None)
+                AppendOutcome(builder, "失败", option.failText, option.failEffects, option.failChain);
+            return builder.ToString();
+        }
+
+        private static string DescribeResolvedOutcome(EventOption option, bool success)
+        {
+            if (option == null) return string.Empty;
+            var builder = new StringBuilder();
+            IReadOnlyList<EventEffect> effects = success ? option.successEffects : option.failEffects;
+            IReadOnlyList<EventData> chain = success ? option.successChain : option.failChain;
+            AppendOutcome(builder, success ? "本次成功结果" : "本次失败结果", success ? option.successText : option.failText, effects, chain);
+            return builder.ToString();
+        }
+
+        private static void AppendOutcome(StringBuilder builder, string label, string resultText, IReadOnlyList<EventEffect> effects, IReadOnlyList<EventData> chain)
+        {
+            builder.Append($"\n\n{label}：{(string.IsNullOrWhiteSpace(resultText) ? "未配置结果文本" : resultText)}");
+            if (effects != null)
+                foreach (EventEffect effect in effects)
+                    if (effect != null && !string.IsNullOrWhiteSpace(effect.description))
+                        builder.Append($"\n影响：{effect.description.Trim()}");
+            if (chain != null)
+                foreach (EventData child in chain)
+                {
+                    string childName = child?.eventName?.Trim();
+                    if (!string.IsNullOrWhiteSpace(childName)) builder.Append($"\n后续事件：{childName}");
+                }
+        }
 
         private static int GetCheckBonus(HunterInstance hunter, CheckType checkType)
         {
@@ -334,8 +380,6 @@ namespace HuntingInDarkness.ViewLayer.Settlement
             choiceSource?.TrySetCanceled();
             checkSource?.TrySetCanceled();
             resultSource?.TrySetCanceled();
-            backgroundInputBlocker?.Dispose();
-            backgroundInputBlocker = null;
             PlayableHuntInputGuard.Release(inputOwnerId);
             if (panel != null)
             {

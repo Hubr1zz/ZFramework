@@ -53,13 +53,14 @@ namespace UI
         private Func<int, int> _getCurrentTP;
         private Func<int, int> _getTPLimit;
         private Collider _activeDetailTrigger;
+        private bool screenOnlyMode;
 
         private readonly Dictionary<int, CharacterActionCard> _cardViews = new();
         private readonly Dictionary<int, PlayableInspirationCardView> inspirationViews = new();
 
         private void Update()
         {
-            if (!CardInspectionOverlay.BlocksWorldInput && _activeDetailTrigger != null &&
+            if (!screenOnlyMode && !CardInspectionOverlay.BlocksWorldInput && _activeDetailTrigger != null &&
                 (Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1)))
             {
                 ExitDetailFocus();
@@ -200,6 +201,16 @@ namespace UI
         {
             ExitDetailFocus();
             if (panelRoot != null) panelRoot.SetActive(false);
+        }
+
+        public void SetScreenOnlyMode()
+        {
+            screenOnlyMode = true;
+            HidePanel();
+            SetDetailChildColliders(headPanelTrigger, false);
+            SetDetailChildColliders(infoPanelTrigger, false);
+            if (headPanelTrigger != null) headPanelTrigger.enabled = false;
+            if (infoPanelTrigger != null) infoPanelTrigger.enabled = false;
         }
 
         // ─── 行动卡填充 ─────────────────────────────────────────────────────────

@@ -56,6 +56,7 @@ namespace Core
         bool IPlayableHuntPhasePort.TryPrepareInitialized(IPlayableSettlementRuntime settlement, PlayableHuntStartPlan plan, out IPlayableHuntRuntime candidate, out string reason) => TryPrepareInitialized(settlement, plan, out candidate, out reason);
         bool IPlayableHuntPhasePort.TryStartCurrentPresentationAndSession(PlayableHuntEventOccurrenceStore restoredOccurrences, out string reason) => TryStartCurrentPresentationAndSession(restoredOccurrences, out reason);
         void IPlayableHuntPhasePort.DeactivateCurrentActionSession() => DeactivateCurrentActionSession();
+        void IPlayableHuntPhasePort.ReleaseCurrentScreenBindings() => ReleaseCurrentScreenBindings();
         void IPlayableHuntPhasePort.CleanupCurrentPresentation(bool includeVisualizer) => CleanupCurrentPresentation(includeVisualizer);
         void IPlayableHuntPhasePort.RestorePreviousPresentation(GamePhase previousPhase, IPlayableHuntRuntime previousHunt) => RestorePreviousPresentation(previousPhase, previousHunt);
         void IPlayableHuntPhasePort.EnsureHuntUI(HuntManager manager, IHuntExplorationPort port) => coordinator.EnsureHuntUI(manager, port);
@@ -186,6 +187,12 @@ namespace Core
         {
             ThrowIfDisposed();
             coordinator.Cleanup(includeVisualizer);
+        }
+
+        internal void ReleaseCurrentScreenBindings()
+        {
+            ThrowIfDisposed();
+            coordinator.ReleaseScreenBindings();
         }
 
         internal void RestorePreviousPresentation(GamePhase previousPhase, IPlayableHuntRuntime previousHunt)

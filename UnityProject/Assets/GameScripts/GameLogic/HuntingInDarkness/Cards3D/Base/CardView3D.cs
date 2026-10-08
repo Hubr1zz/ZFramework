@@ -3,6 +3,7 @@ using Cards3D;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using HuntingInDarkness.ViewLayer.Tabletop;
 #if UNITY_EDITOR
 using Sirenix.OdinInspector;
 using UnityEditor;
@@ -96,7 +97,11 @@ namespace Cards3D
 
         // ─── 初始化 ────────────────────────────────────────────────────────
 
-        protected virtual void Awake() => AllCards.Add(this);
+        protected virtual void Awake()
+        {
+            AllCards.Add(this);
+            _baseLocalPos = transform.localPosition;
+        }
 
         protected virtual void OnDestroy()
         {
@@ -217,10 +222,18 @@ namespace Cards3D
             go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
 
             var tmp = go.AddComponent<TextMeshPro>();
-            tmp.fontSize  = fontSize;
+            tmp.fontSize  = CardPresentationConsts.ResolveDynamicFontSize(goName, fontSize);
+            TryAssignWorldFont(tmp);
             tmp.alignment = align;
             tmp.color     = new Color(0.08f, 0.08f, 0.08f);
-            tmp.rectTransform.sizeDelta = rectSize;
+            Vector2 resolvedRectSize = CardPresentationConsts.ResolveDynamicRectSize(goName, rectSize);
+            tmp.rectTransform.sizeDelta = resolvedRectSize;
+            Vector3 clampedPosition = go.transform.localPosition;
+            float xLimit = Mathf.Max(0f, Width * 0.5f - resolvedRectSize.x * 0.5f - 0.015f);
+            float zLimit = Mathf.Max(0f, Height * 0.5f - resolvedRectSize.y * 0.5f - 0.015f);
+            clampedPosition.x = Mathf.Clamp(clampedPosition.x, -xLimit, xLimit);
+            clampedPosition.z = Mathf.Clamp(clampedPosition.z, -zLimit, zLimit);
+            go.transform.localPosition = clampedPosition;
 #if UNITY_6000_0_OR_NEWER
             tmp.textWrappingMode = TMPro.TextWrappingModes.Normal;
 #else
@@ -228,6 +241,12 @@ namespace Cards3D
 #endif
             tmp.overflowMode = TextOverflowModes.Ellipsis;
             return tmp;
+        }
+
+        private void TryAssignWorldFont(TextMeshPro text)
+        {
+            if (text == null) return;
+            text.font = TabletopPresentationAssets.WorldFont;
         }
 
         // ─── 子类实现 ──────────────────────────────────────────────────────

@@ -33,7 +33,7 @@ namespace HuntingInDarkness.Hunt
         [SerializeField, Min(1f)] private float framingPadding = 1.15f;
         [SerializeField, Min(1f)] private float minimumFramingDistance = 10f;
         [SerializeField] private KeyCode resetViewKey = KeyCode.Home;
-        [SerializeField] private string controlHint = "中键拖动 / WASD 移动 · 滚轮缩放 · Home 复位 · 悬停卡牌按 F 查看详情 · H 显示提示";
+        [SerializeField] private string controlHint = "中键拖动 / WASD 移动 · 滚轮缩放 · Home 复位 · 悬停卡牌查看详情 · H 显示提示";
 
         private Vector3 _dragStartPos;
         private bool _isDragging;
@@ -168,6 +168,7 @@ namespace HuntingInDarkness.Hunt
 
         private void HandleZoom()
         {
+            if (CardInspectionOverlay.IsShowingHover) return;
             float scroll = Input.mouseScrollDelta.y;
             if (Mathf.Abs(scroll) < 0.001f) return;
             float forwardY = _cam.transform.forward.y;

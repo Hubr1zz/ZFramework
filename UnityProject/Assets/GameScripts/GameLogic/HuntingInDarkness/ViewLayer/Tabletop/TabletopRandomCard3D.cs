@@ -1,5 +1,7 @@
 using System;
+using System.Threading;
 using Cards3D;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
@@ -17,6 +19,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         private string deathFaceLabel;
         private bool isFaceUp;
         private bool isSelectable;
+        private bool isRevealing;
         private float width;
         private float height;
         private float depth;
@@ -78,6 +81,52 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             SetSelectable(false);
             MoveTo(localPosition);
             ApplyVisuals();
+        }
+
+        public async UniTask RevealAsync(Vector3 localPosition, float duration, CancellationToken cancellationToken)
+        {
+            if (duration <= 0f)
+            {
+                Reveal(localPosition);
+                return;
+            }
+            if (isFaceUp || isRevealing) return;
+
+            isRevealing = true;
+            SetSelectable(false);
+            Quaternion originalRotation = transform.localRotation;
+            Quaternion edgeRotation = originalRotation * Quaternion.Euler(0f, 0f, 90f);
+            float halfDuration = duration * 0.5f;
+            bool completed = false;
+            try
+            {
+                for (float elapsed = 0f; elapsed < halfDuration; elapsed += Time.unscaledDeltaTime)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    transform.localRotation = Quaternion.Slerp(originalRotation, edgeRotation, elapsed / halfDuration);
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
+
+                isFaceUp = true;
+                ApplyVisuals();
+                for (float elapsed = 0f; elapsed < halfDuration; elapsed += Time.unscaledDeltaTime)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    transform.localRotation = originalRotation * Quaternion.Euler(0f, 0f, Mathf.Lerp(-90f, 0f, elapsed / halfDuration));
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
+
+                MoveTo(localPosition);
+                completed = true;
+            }
+            finally
+            {
+                transform.localRotation = originalRotation;
+                if (!completed) isFaceUp = false;
+                ApplyVisuals();
+                isRevealing = false;
+                SetSelectable(false);
+            }
         }
 
         protected override void BuildTextFields()

@@ -29,6 +29,10 @@ namespace AgentWorkflow.Editor
         private const string MaintainerPrefKey = "AgentWorkflow.Workbench.Maintainer";
         private const float MainEntryButtonHeight = 40f;
         private const float TabButtonHeight = 32f;
+        private const float NavigationPanelDefaultWidth = 320f;
+        private const float NavigationPanelMinWidth = 220f;
+        private const float NavigationPanelMaxWidth = 420f;
+        private const float NavigationResizeHandleWidth = 6f;
         private static readonly Regex FieldRegex = new(@"^- \*\*(?<name>[^*]+)\*\*: ?(?<value>.*)$");
         private static readonly Regex DesignSourceReferenceRegex = new(
             @"^(?:(?<sourceId>[A-Za-z0-9._-]+)::)?(?<path>.+?\.md)(?::(?<line>\d+))?$",
@@ -144,8 +148,78 @@ namespace AgentWorkflow.Editor
         private Rect _observedWindowRect;
         private double _windowRectChangedAt;
         private bool _windowRectSavePending;
+        private bool _resizingNavigationPanel;
+        private float _navigationResizeStartX;
+        private float _navigationResizeStartWidth;
+        private float _cachedLayoutContentWidth = 600f;
         private double _dependencyGraphChangedAt;
         private bool _dependencyGraphSavePending;
+
+        private float NavigationPanelWidth() => Mathf.Clamp(
+            _config?.navigationPanelWidth > 0f ? _config.navigationPanelWidth : NavigationPanelDefaultWidth,
+            NavigationPanelMinWidth,
+            NavigationPanelMaxWidth);
+
+        private float NavigationListContentWidth(float trailingWidth = 0f) => Mathf.Max(
+            120f,
+            NavigationPanelWidth() - 32f - trailingWidth);
+
+        private static float WrappedListItemHeight(
+            string label,
+            GUIStyle style,
+            float width,
+            float minHeight = 29f,
+            float maxHeight = 144f) => Mathf.Clamp(
+            style.CalcHeight(new GUIContent(label ?? string.Empty), Mathf.Max(1f, width)),
+            minHeight,
+            maxHeight);
+
+        private void DrawNavigationResizeHandle()
+        {
+            var rect = GUILayoutUtility.GetRect(
+                NavigationResizeHandleWidth,
+                1f,
+                GUILayout.Width(NavigationResizeHandleWidth),
+                GUILayout.ExpandHeight(true));
+            var controlId = GUIUtility.GetControlID(FocusType.Passive);
+            var currentEvent = Event.current;
+            EditorGUIUtility.AddCursorRect(rect, MouseCursor.ResizeHorizontal);
+
+            if (currentEvent.type == EventType.MouseDown && currentEvent.button == 0 && rect.Contains(currentEvent.mousePosition))
+            {
+                _resizingNavigationPanel = true;
+                _navigationResizeStartX = currentEvent.mousePosition.x;
+                _navigationResizeStartWidth = NavigationPanelWidth();
+                GUIUtility.hotControl = controlId;
+                currentEvent.Use();
+            }
+
+            if (currentEvent.type == EventType.Repaint)
+                EditorGUI.DrawRect(rect, AgentWorkbenchTheme.IsDarkMode
+                    ? new Color(0.32f, 0.36f, 0.43f)
+                    : new Color(0.62f, 0.65f, 0.7f));
+
+            if (!_resizingNavigationPanel || GUIUtility.hotControl != controlId)
+                return;
+
+            if (currentEvent.type == EventType.MouseDrag)
+            {
+                _config.navigationPanelWidth = Mathf.Clamp(
+                    _navigationResizeStartWidth + currentEvent.mousePosition.x - _navigationResizeStartX,
+                    NavigationPanelMinWidth,
+                    NavigationPanelMaxWidth);
+                Repaint();
+                currentEvent.Use();
+            }
+            else if (currentEvent.type == EventType.MouseUp)
+            {
+                _resizingNavigationPanel = false;
+                GUIUtility.hotControl = 0;
+                AgentWorkbenchConfigStore.Save(_projectRoot, _config);
+                currentEvent.Use();
+            }
+
+        }
 
         private static Vector2 BeginVerticalScrollView(Vector2 position, params GUILayoutOption[] options) =>
             EditorGUILayout.BeginScrollView(position, GUIStyle.none, GUI.skin.verticalScrollbar, options);
@@ -557,8 +631,8 @@ namespace AgentWorkflow.Editor
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.LabelField($"Specs：{_specFiles.Count}", EditorStyles.boldLabel, GUILayout.Width(120));
-                EditorGUILayout.LabelField($"Open Changes：{_openChanges.Count}", EditorStyles.boldLabel, GUILayout.Width(180));
+                EditorGUILayout.LabelField(AgentWorkbenchText.Format("spec.summary", _specFiles.Count), EditorStyles.boldLabel, GUILayout.Width(120));
+                EditorGUILayout.LabelField(AgentWorkbenchText.Format("change.summary", _openChanges.Count), EditorStyles.boldLabel, GUILayout.Width(180));
                 EditorGUILayout.LabelField($"{L("common.missing")}：{_specGaps.Count(gap => gap.status != "resolved")}", EditorStyles.boldLabel, GUILayout.Width(120));
             }
 
@@ -591,7 +665,7 @@ namespace AgentWorkflow.Editor
 
             using (new EditorGUILayout.HorizontalScope(GUILayout.ExpandHeight(true)))
             {
-                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(270), GUILayout.ExpandHeight(true)))
+                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(NavigationPanelWidth()), GUILayout.ExpandHeight(true)))
                 {
                     DrawSpecCategoryTabs();
                     EditorGUILayout.Space(4);
@@ -607,7 +681,7 @@ namespace AgentWorkflow.Editor
                     EditorGUILayout.EndScrollView();
                 }
 
-                GUILayout.Space(6);
+                DrawNavigationResizeHandle();
                 using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
                 {
                     if (_selectedSpec == null)
@@ -722,7 +796,11 @@ namespace AgentWorkflow.Editor
 
         private void DrawSpecListItem(SpecFile spec)
         {
-            const float rowHeight = 29f;
+            const float folderButtonWidth = 28f;
+            const float categoryWidth = 96f;
+            var nameStyle = SpecListNameStyle();
+            var nameWidth = NavigationListContentWidth(folderButtonWidth + categoryWidth + 18f);
+            var rowHeight = WrappedListItemHeight(spec.Title, nameStyle, nameWidth);
             if (ReferenceEquals(_renamingSpec, spec))
             {
                 using (new EditorGUILayout.HorizontalScope(GUILayout.Height(rowHeight)))
@@ -737,7 +815,6 @@ namespace AgentWorkflow.Editor
             }
 
             var rowRect = GUILayoutUtility.GetRect(1, rowHeight, GUILayout.ExpandWidth(true));
-            const float folderButtonWidth = 28f;
             var selectRect = new Rect(rowRect.x, rowRect.y, rowRect.width - folderButtonWidth - 2f, rowRect.height);
             var folderRect = new Rect(selectRect.xMax + 2f, rowRect.y, folderButtonWidth, rowRect.height);
             var selected = ReferenceEquals(spec, _selectedSpec);
@@ -763,10 +840,9 @@ namespace AgentWorkflow.Editor
                 _specDetailScroll = Vector2.zero;
             }
 
-            var categoryWidth = 96f;
             var nameRect = new Rect(selectRect.x + 10, selectRect.y, selectRect.width - categoryWidth - 18, selectRect.height);
             var categoryRect = new Rect(selectRect.xMax - categoryWidth - 6, selectRect.y, categoryWidth, selectRect.height);
-            GUI.Label(nameRect, new GUIContent(spec.Title, FolderNameFor(spec.Capability)), SpecListNameStyle());
+            GUI.Label(nameRect, new GUIContent(spec.Title, FolderNameFor(spec.Capability)), nameStyle);
             GUI.Label(categoryRect, CategoryLabel(spec.Category), CategoryStyle(spec.Category));
             if (GUI.Button(folderRect, FolderAssignmentContent(spec.Capability), FolderListButtonStyle()))
                 ShowFolderAssignmentMenu(spec.Capability);
@@ -776,7 +852,7 @@ namespace AgentWorkflow.Editor
         {
             return new GUIStyle(selected ? EditorStyles.toolbarButton : EditorStyles.miniButton)
             {
-                fixedHeight = 29f,
+                fixedHeight = 0f,
                 padding = new RectOffset(0, 0, 0, 0),
                 margin = new RectOffset(0, 0, 1, 1)
             };
@@ -786,9 +862,11 @@ namespace AgentWorkflow.Editor
         {
             var style = new GUIStyle(EditorStyles.label)
             {
-                alignment = TextAnchor.MiddleCenter,
+                alignment = TextAnchor.MiddleLeft,
                 fontSize = 12,
-                clipping = TextClipping.Clip
+                wordWrap = true,
+                padding = new RectOffset(6, 2, 2, 2),
+                clipping = TextClipping.Overflow
             };
             style.normal.textColor = ThemePrimaryTextColor();
             return style;
@@ -2672,10 +2750,12 @@ namespace AgentWorkflow.Editor
             }
         }
 
-        private static float CurrentLayoutContentWidth(float horizontalChrome = 0f)
+        private float CurrentLayoutContentWidth(float horizontalChrome = 0f)
         {
             var widthProbe = GUILayoutUtility.GetRect(1f, 0f, GUILayout.ExpandWidth(true));
-            return Mathf.Max(1f, widthProbe.width - horizontalChrome);
+            if (Event.current.type == EventType.Repaint && widthProbe.width > 1f)
+                _cachedLayoutContentWidth = widthProbe.width;
+            return Mathf.Max(1f, _cachedLayoutContentWidth - horizontalChrome);
         }
 
         private string ResolveHumanWorkflowDocument(string fileName)

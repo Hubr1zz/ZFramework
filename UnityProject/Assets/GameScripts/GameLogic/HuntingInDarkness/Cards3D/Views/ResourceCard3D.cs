@@ -41,6 +41,7 @@ namespace Cards3D
         int    _count;
         bool   _isFaceUp  = true;
         bool   _isFlipping;
+        private Quaternion faceUpLocalRotation;
 
         [SerializeField] TextMeshPro _nameText;
         [SerializeField] TextMeshPro _countText;
@@ -70,6 +71,7 @@ namespace Cards3D
             _resourceId     = resourceId;
             _resourceName   = resourceName;
             _count          = count;
+            faceUpLocalRotation = transform.localRotation;
             gameObject.name = $"Res_{resourceId}";
             InitView(localPos);
         }
@@ -149,29 +151,34 @@ namespace Cards3D
 
         private async UniTaskVoid FlipAsync()
         {
+            Quaternion startRotation = transform.localRotation;
+            Quaternion targetRotation = _isFaceUp ? faceUpLocalRotation * Quaternion.Euler(0f, 0f, 180f) : faceUpLocalRotation;
+            bool completed = false;
             _isFlipping = true;
             try
             {
-                const float half = 0.15f;
+                const float halfDuration = 0.15f;
                 var cancellationToken = this.GetCancellationTokenOnDestroy();
 
-                for (float t = 0; t < half; t += Time.deltaTime)
+                for (float elapsed = 0f; elapsed < halfDuration; elapsed += Time.deltaTime)
                 {
-                    transform.localEulerAngles = new Vector3(Mathf.Lerp(0f, 90f, t / half), 0f, 0f);
+                    transform.localRotation = Quaternion.Slerp(startRotation, targetRotation, Mathf.Lerp(0f, 0.5f, elapsed / halfDuration));
                     await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
                 }
                 _isFaceUp = !_isFaceUp;
                 ApplyVisuals();
 
-                for (float t = 0; t < half; t += Time.deltaTime)
+                for (float elapsed = 0f; elapsed < halfDuration; elapsed += Time.deltaTime)
                 {
-                    transform.localEulerAngles = new Vector3(Mathf.Lerp(-90f, 0f, t / half), 0f, 0f);
+                    transform.localRotation = Quaternion.Slerp(startRotation, targetRotation, Mathf.Lerp(0.5f, 1f, elapsed / halfDuration));
                     await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
                 }
-                transform.localEulerAngles = Vector3.zero;
+                transform.localRotation = targetRotation;
+                completed = true;
             }
             finally
             {
+                transform.localRotation = completed ? targetRotation : startRotation;
                 _isFlipping = false;
             }
         }

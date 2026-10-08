@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2408979077992638406
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7227876890772332326}
+  - component: {fileID: 7551597615329560461}
+  m_Layer: 0
+  m_Name: TabletopPresentationAssets
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7227876890772332326
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2408979077992638406}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7551597615329560461
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2408979077992638406}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d0f1c3e7a2b4f948c9e1d6a3b5e7f20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.ViewLayer.Tabletop.TabletopPresentationAssets
+  eventPanelPrefab: {fileID: 1584165954987595726, guid: 5716998f12599684898026695bdf456c, type: 3}
+  ledgerPanelPrefab: {fileID: 7933566342365537218, guid: e89b43b37e4309f4f8394a34fe9b90f7, type: 3}
+  settlementLayoutPrefab: {fileID: 302142376372718310, guid: 243b31fa130be1a4186ea357548350a5, type: 3}
+  worldFont: {fileID: 11400000, guid: b4c8e85317e4bd94daa72c3e304bb480, type: 2}

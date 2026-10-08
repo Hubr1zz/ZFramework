@@ -119,6 +119,51 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &258761829
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 258761831}
+  - component: {fileID: 258761830}
+  m_Layer: 0
+  m_Name: Playable Game Bootstrap
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &258761830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 258761829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3036f45e4a7fd284caf46b4750249551, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: GameLogic::HuntingInDarkness.Bootstrap.PlayableGameBootstrap
+  boardCamera: {fileID: 519420031}
+--- !u!4 &258761831
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 258761829}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -187,7 +232,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 2147483647
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -274,7 +319,7 @@ MonoBehaviour:
   minimumFramingDistance: 10
   resetViewKey: 278
   controlHint: "\u4E2D\u952E\u62D6\u52A8 / WASD \u79FB\u52A8 \xB7 \u6EDA\u8F6E\u7F29\u653E
-    \xB7 Home \u590D\u4F4D \xB7 \u60AC\u505C\u5361\u724C\u6309 F \u67E5\u770B\u8BE6\u60C5
+    \xB7 Home \u590D\u4F4D \xB7 \u60AC\u505C\u5361\u724C\u67E5\u770B\u8BE6\u60C5
     \xB7 H \u663E\u793A\u63D0\u793A"
   controlHintOverlay: {fileID: 1933885152}
 --- !u!114 &519420035
@@ -290,10 +335,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GameLogic::UI.SettlementCameraController
   defaultPosition: {x: 0, y: 16, z: -11}
-  defaultEulerAngles: {x: 55, y: 0, z: 0}
+  defaultEulerAngles: {x: 75, y: 0, z: 0}
   perspectiveFieldOfView: 42
-  framingPadding: 1.15
-  minimumFramingDistance: 10
+  framingPadding: 1.08
+  minimumFramingDistance: 6
   enablePan: 1
   keyboardPanSpeed: 5
   mousePanButton: 2
@@ -304,9 +349,66 @@ MonoBehaviour:
   maximumZoomRatio: 1.65
   resetViewKey: 278
   controlHint: "\u4E2D\u952E\u62D6\u52A8 / WASD \u79FB\u52A8 \xB7 \u6EDA\u8F6E\u7F29\u653E
-    \xB7 Home \u590D\u4F4D \xB7 \u60AC\u505C\u5361\u724C\u6309 F \u67E5\u770B\u8BE6\u60C5
+    \xB7 Home \u590D\u4F4D \xB7 \u60AC\u505C\u5361\u724C\u67E5\u770B\u8BE6\u60C5
     \xB7 H \u663E\u793A\u63D0\u793A"
   controlHintOverlay: {fileID: 1933885152}
+--- !u!1001 &820273263
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2408979077992638406, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
+      propertyPath: m_Name
+      value: TabletopPresentationAssets
+      objectReference: {fileID: 0}
+    - target: {fileID: 7227876890772332326, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7227876890772332326, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7227876890772332326, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7227876890772332326, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7227876890772332326, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7227876890772332326, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7227876890772332326, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7227876890772332326, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7227876890772332326, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7227876890772332326, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 657a78fe0d42a3d4390b3ad1921eb621, type: 3}
 --- !u!1001 &1933885151
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -475,6 +577,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: UIRoot
       objectReference: {fileID: 0}
+    - target: {fileID: 2425705316150093153, guid: 4f5fbbbb040049d41a5f897d5a956bf6, type: 3}
+      propertyPath: m_ReferenceResolution.x
+      value: 1920
+      objectReference: {fileID: 0}
+    - target: {fileID: 2425705316150093153, guid: 4f5fbbbb040049d41a5f897d5a956bf6, type: 3}
+      propertyPath: m_ReferenceResolution.y
+      value: 1080
+      objectReference: {fileID: 0}
+    - target: {fileID: 2425705316150093153, guid: 4f5fbbbb040049d41a5f897d5a956bf6, type: 3}
+      propertyPath: m_MatchWidthOrHeight
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -549,3 +663,5 @@ SceneRoots:
   - {fileID: 7696541954144433114}
   - {fileID: 2425705316520036048}
   - {fileID: 1933885151}
+  - {fileID: 820273263}
+  - {fileID: 258761831}

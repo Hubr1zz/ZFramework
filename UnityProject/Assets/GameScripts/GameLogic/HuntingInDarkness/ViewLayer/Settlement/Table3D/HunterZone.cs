@@ -39,6 +39,7 @@ namespace UI
 
         private void ApplySnapshot(IReadOnlyList<HunterInstance> hunters)
         {
+            _grid.EnsureCapacityPreservingCards(hunters.Count, _grid.Columns);
             var desiredHunters = new Dictionary<int, HunterInstance>();
             foreach (HunterInstance hunter in hunters)
                 desiredHunters[hunter.InstanceId] = hunter;

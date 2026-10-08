@@ -82,6 +82,7 @@ namespace Core
         bool TryPrepareInitialized(IPlayableSettlementRuntime settlement, PlayableHuntStartPlan plan, out IPlayableHuntRuntime candidate, out string reason);
         bool TryStartCurrentPresentationAndSession(PlayableHuntEventOccurrenceStore restoredOccurrences, out string reason);
         void DeactivateCurrentActionSession();
+        void ReleaseCurrentScreenBindings();
         void CleanupCurrentPresentation(bool includeVisualizer = true);
         void RestorePreviousPresentation(GamePhase previousPhase, IPlayableHuntRuntime previousHunt);
         void EnsureHuntUI(HuntManager manager, IHuntExplorationPort port);

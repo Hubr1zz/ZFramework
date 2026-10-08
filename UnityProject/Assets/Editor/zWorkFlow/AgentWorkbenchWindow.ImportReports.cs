@@ -23,12 +23,12 @@ namespace AgentWorkflow.Editor
 
             using (new EditorGUILayout.HorizontalScope(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
             {
-                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(270), GUILayout.ExpandHeight(true)))
+                using (new EditorGUILayout.VerticalScope(ReportPanelStyle(), GUILayout.Width(NavigationPanelWidth()), GUILayout.ExpandHeight(true)))
                 {
                     DrawImportNavigation();
                 }
 
-                GUILayout.Space(6);
+                DrawNavigationResizeHandle();
                 using (new EditorGUILayout.VerticalScope(
                            ReportPanelStyle(),
                            GUILayout.ExpandWidth(true),
@@ -56,7 +56,10 @@ namespace AgentWorkflow.Editor
             if (!_showImportSpecNavigation || _selectedImportRun == null)
             {
                 EditorGUILayout.LabelField($"{L("import.records")}（{_designImports.Count}）", ReportHeaderStyle());
-                _importRunScroll = BeginVerticalScrollView(_importRunScroll);
+                _importRunScroll = BeginVerticalScrollView(
+                    _importRunScroll,
+                    GUILayout.ExpandWidth(true),
+                    GUILayout.ExpandHeight(true));
                 foreach (var run in _designImports.OrderByDescending(item => item.createdAt))
                 {
                     var style = ReportButtonStyle(false);
@@ -65,7 +68,7 @@ namespace AgentWorkflow.Editor
                     if (GUILayout.Button(
                             label,
                             style,
-                            GUILayout.Height(ReportButtonHeight(label, style, 248)),
+                            GUILayout.Height(ReportButtonHeight(label, style, NavigationListContentWidth())),
                             GUILayout.ExpandWidth(true)) && TryLeaveRawEditor())
                         SelectImportRun(run);
                 }
@@ -126,7 +129,10 @@ namespace AgentWorkflow.Editor
             if (_selectedDraftGroup == null || !visibleGroups.Contains(_selectedDraftGroup))
                 SelectDraftGroup(visibleGroups.FirstOrDefault());
 
-            _importSpecListScroll = BeginVerticalScrollView(_importSpecListScroll);
+            _importSpecListScroll = BeginVerticalScrollView(
+                _importSpecListScroll,
+                GUILayout.ExpandWidth(true),
+                GUILayout.ExpandHeight(true));
             if (visibleGroups.Count == 0)
                 EditorGUILayout.HelpBox(L("import.categoryEmpty"), MessageType.Info);
             foreach (var group in visibleGroups)
@@ -154,7 +160,7 @@ namespace AgentWorkflow.Editor
                 var label = $"{group.Title}\n{CategoryLabel(current?.Category)} · {readiness}{conflict}";
                 var rowRect = GUILayoutUtility.GetRect(
                     1,
-                    ReportButtonHeight(label, style, 248),
+                    ReportButtonHeight(label, style, NavigationListContentWidth()),
                     GUILayout.ExpandWidth(true));
                 if (Event.current.type == EventType.ContextClick && rowRect.Contains(Event.current.mousePosition))
                 {
@@ -2107,7 +2113,7 @@ namespace AgentWorkflow.Editor
 
         private static float ReportButtonHeight(string label, GUIStyle style, float width)
         {
-            return Mathf.Clamp(style.CalcHeight(new GUIContent(label), width), 44, 96);
+            return Mathf.Clamp(style.CalcHeight(new GUIContent(label), width), 44, 144);
         }
 
         private bool ImportChangeExists(DesignImportRun run, DesignImportSpec spec)

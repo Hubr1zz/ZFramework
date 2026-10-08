@@ -7,8 +7,8 @@ namespace Cards3D
     public sealed class SettlementFacilityDutyLauncherCard3D : CardView3D
     {
         private SettlementInstance settlement;
-        private TextMeshPro titleText;
-        private TextMeshPro statusText;
+        [SerializeField] private TextMeshPro titleText;
+        [SerializeField] private TextMeshPro statusText;
         public System.Action Clicked;
         public override string DisplayName => "设施值守";
         protected override CardCategory GetDefaultCategory() => CardCategory.Invention;
@@ -32,19 +32,23 @@ namespace Cards3D
         {
             if (titleText != null) return;
             float textY = CD * 0.5f + 0.003f;
-            titleText = MakeText("Title", new Vector3(0f, textY, CH * 0.30f), 0.09f, TextAlignmentOptions.Center, new Vector2(CW - 0.06f, 0.22f));
-            statusText = MakeText("Status", new Vector3(0f, textY, -CH * 0.28f), 0.06f, TextAlignmentOptions.Center, new Vector2(CW - 0.06f, 0.26f));
+            titleText = MakeText("Title", new Vector3(0f, textY, CH * 0.30f), 0.09f, TextAlignmentOptions.Center, new Vector2(CW - 0.06f, 0.30f));
+            statusText = MakeText("Status", new Vector3(0f, textY, -CH * 0.28f), 0.06f, TextAlignmentOptions.Center, new Vector2(CW - 0.06f, 0.36f));
+            statusText.enableWordWrapping = true;
+            statusText.overflowMode = TextOverflowModes.Overflow;
         }
 
         protected override void ApplyVisuals()
         {
             if (_bodyRenderer == null || titleText == null) return;
-            _bodyRenderer.material.color = IsHovered ? new Color(0.39f, 0.31f, 0.19f) : new Color(0.28f, 0.22f, 0.14f);
+            _bodyRenderer.material.color = IsHovered ? new Color(0.30f, 0.18f, 0.08f) : new Color(0.18f, 0.10f, 0.05f);
             titleText.text = "设施值守";
             int activeCount = 0;
             foreach (HuntingInDarkness.GameCore.Settlement.SettlementFacilityDutyState duty in settlement?.FacilityDuties ?? new System.Collections.Generic.List<HuntingInDarkness.GameCore.Settlement.SettlementFacilityDutyState>())
                 if (duty != null && duty.Status == HuntingInDarkness.GameCore.Settlement.SettlementFacilityDutyStateStatus.Active) activeCount++;
-            statusText.text = settlement == null ? "尚未配置" : $"人口 {settlement.Population} · 岗位 {activeCount}";
+            statusText.text = settlement == null ? "尚未配置" : $"人口 {settlement.Population}\n岗位 {activeCount}";
+            titleText.color = new Color(0.98f, 0.82f, 0.45f);
+            statusText.color = new Color(0.90f, 0.88f, 0.82f);
         }
 
         protected override void OnClickReleased() => Clicked?.Invoke();

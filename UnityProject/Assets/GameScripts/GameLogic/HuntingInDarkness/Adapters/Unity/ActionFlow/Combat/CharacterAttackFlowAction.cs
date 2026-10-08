@@ -275,7 +275,21 @@ namespace HuntingInDarkness.ActionFlow.Combat
             {
                 float successRate = 100f * execution.Deck.SuccessCards / execution.Deck.TotalCards;
                 string prompt = $"<b>攻击结果牌堆</b> [{resolution.Index}/{resolution.Count}]\nBoss韧性 {execution.Context.DefenderToughness} - 武器威力 {execution.Context.Weapon?.strengthBonus ?? 0}\n成功牌 {execution.Deck.SuccessCards} / 失败牌 {execution.Deck.FailureCards}  成功率 {successRate:0.#}%";
-                await context.AwaitPresentationAsync(batchInput.RequestRevealAttackResult(prompt, cancellationToken));
+                if (execution.Input is ICombatPresentationInput)
+                {
+                    bool hadPreviousSuccess = execution.PreviousResult == HitResult.Success;
+                    var candidates = new List<CombatHitLocationCandidateMetadata>();
+                    foreach (HitLocationRuntimeState candidate in execution.Remaining)
+                    {
+                        int toughness = HitLocationSequenceRules.GetEffectiveToughness(candidate.DomainState.Definition, hadPreviousSuccess);
+                        bool succeeds = resolution.ResultCard == AttackResultCard.Success && HitLocationSequenceRules.DoesSuccessCardSucceed(candidate.DomainState.Definition, execution.Context.TotalAttackPower, hadPreviousSuccess);
+                        candidates.Add(new CombatHitLocationCandidateMetadata(candidate, candidate.Data.locationName, candidate.CurrentHp, candidate.Data.maxHp, toughness, succeeds, candidate.IsDestroyed));
+                    }
+                    var reveal = new CombatAttackRevealContext(resolution.Index, resolution.Count, resolution.ResultCard, execution.PreviousResult, execution.Context.TotalAttackPower, candidates);
+                    await context.AwaitPresentationAsync(CombatPresentationDispatch.RevealAttackResult(execution.Input, prompt, reveal, cancellationToken));
+                }
+                else
+                    await context.AwaitPresentationAsync(batchInput.RequestRevealAttackResult(prompt, cancellationToken));
             }
 
             string resultName = resolution.ResultCard == AttackResultCard.Success ? "成功" : "失败";
@@ -393,7 +407,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
                 result += "\n持续部位留场：下次攻击可直接选择击破";
             if (execution.Context.GameContext?.Boss is IBossVitalityState vitality)
                 result += $"\nBoss生命 {vitality.CurrentHealth}/{vitality.MaxHealth}";
-            await context.AwaitPresentationAsync(execution.Input.ShowResult(result, cancellationToken));
+            await context.AwaitPresentationAsync(CombatPresentationDispatch.ShowOrdinary(execution.Input, result, cancellationToken));
             execution.Remaining.Remove(resolution.Selected);
             execution.PreviousResult = execution.Context.HitResult;
             execution.Context.CurrentHitLocation = null;
@@ -461,6 +475,7 @@ namespace HuntingInDarkness.ActionFlow.Combat
 
         protected override UniTask<ActionOutcome> ExecuteAsync(ActionExecutionContext context, CancellationToken cancellationToken)
         {
+            CombatPresentationDispatch.EndAttackPresentation(execution.Input);
             execution.EventOutbox.Stage(new AttackCompletedEvent
             {
                 AttackerId = execution.Context.AttackerId,

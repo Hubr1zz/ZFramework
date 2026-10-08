@@ -12,6 +12,7 @@ using HuntingInDarkness.Data;
 using HuntingInDarkness.Hunt;
 using HuntingInDarkness.Settlement;
 using HuntingInDarkness.ViewLayer.Tabletop;
+using HuntingInDarkness.ViewLayer.Presentation;
 using HuntingInDarkness.ViewLayer.Hunt;
 using UI.Hunt;
 using UnityEngine;
@@ -106,7 +107,7 @@ namespace Core
                     return false;
                 }
                 visualizer.Init(runtime.Manager, runtime.ExplorationPort);
-                EnsureHuntRetreatPanel(runtime.Manager);
+                if (!IsScreenPresentationEnabled) EnsureHuntRetreatPanel(runtime.Manager);
                 EnsureHuntUI(runtime.Manager, runtime.ExplorationPort);
                 if (!IsTabletopPresentationReady)
                     throw new InvalidOperationException("狩猎必要 3D 交互未完整创建。");
@@ -129,7 +130,7 @@ namespace Core
             {
                 activeGenerationId = previousHunt.GenerationId;
                 visualizer?.Init(previousHunt.Manager, previousHunt.ExplorationPort);
-                EnsureHuntRetreatPanel(previousHunt.Manager);
+                if (!IsScreenPresentationEnabled) EnsureHuntRetreatPanel(previousHunt.Manager);
                 EnsureHuntUI(previousHunt.Manager, previousHunt.ExplorationPort);
                 return;
             }
@@ -147,7 +148,10 @@ namespace Core
             if (huntUI != null)
             {
                 huntUI.ReleaseBindings();
-                UnityEngine.Object.Destroy(huntUI.gameObject);
+                if (visualizer == null || huntUI.gameObject != visualizer.gameObject)
+                    UnityEngine.Object.Destroy(huntUI.gameObject);
+                else if (!includeVisualizer)
+                    UnityEngine.Object.Destroy(huntUI);
             }
             if (includeVisualizer && visualizer != null)
                 UnityEngine.Object.Destroy(visualizer.gameObject);
@@ -157,10 +161,32 @@ namespace Core
                 visualizer = null;
         }
 
+        internal void ReleaseScreenBindings()
+        {
+            if (!IsScreenPresentationEnabled) return;
+            huntUI?.CloseScreenWindow();
+        }
+
         internal void EnsureHuntUI(HuntManager manager, IHuntExplorationPort port)
         {
             EnsureConfigured();
             if (visualizer == null) throw new InvalidOperationException("狩猎地图表现尚未初始化。");
+            if (IsScreenPresentationEnabled)
+            {
+                if (huntUI == null)
+                    huntUI = visualizer.GetComponent<HuntUIManager>() ?? visualizer.gameObject.AddComponent<HuntUIManager>();
+                int guardId = visualizer.GetEntityId().GetHashCode();
+                PlayableHuntInputGuard.Acquire(guardId);
+                try
+                {
+                    huntUI.InitScreen(manager, visualizer, port, retreatInput);
+                }
+                finally
+                {
+                    PlayableHuntInputGuard.Release(guardId);
+                }
+                return;
+            }
             if (huntUI != null)
             {
                 huntUI.InitTabletop(manager, visualizer, port);
@@ -176,6 +202,7 @@ namespace Core
         internal void EnsureHuntRetreatPanel(HuntManager manager)
         {
             EnsureConfigured();
+            if (IsScreenPresentationEnabled) return;
             if (visualizer == null) throw new InvalidOperationException("狩猎地图表现尚未初始化。");
             retreatPanel ??= HuntRetreatPanel3D.Create(visualizer.transform);
             retreatPanel.Initialize(retreatInput, manager);
@@ -190,7 +217,9 @@ namespace Core
             visualizer = visualizerObject.AddComponent<HuntMapVisualizer>();
         }
 
-        private bool IsTabletopPresentationReady => visualizer != null && retreatPanel != null && huntUI?.IsTabletopReady == true;
+        private bool IsTabletopPresentationReady => visualizer != null && (IsScreenPresentationEnabled ? huntUI?.IsScreenReady == true : retreatPanel != null && huntUI?.IsTabletopReady == true);
+
+        private bool IsScreenPresentationEnabled => randomInteractionPresenter is TabletopRandomInteractionRouter router && router.ScreenPresentationEnabled;
 
         private bool IsCurrent(IPlayableHuntRuntime runtime, HuntManager manager)
         {

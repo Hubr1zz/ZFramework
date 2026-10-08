@@ -4,6 +4,7 @@ using HuntingInDarkness.Testing;
 using HuntingInDarkness.ViewLayer.Camera;
 using HuntingInDarkness.ViewLayer.Combat;
 using HuntingInDarkness.ViewLayer.Flow;
+using HuntingInDarkness.ViewLayer.Presentation;
 using HuntingInDarkness.ViewLayer.Settlement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,8 +16,9 @@ namespace HuntingInDarkness.Bootstrap
     /// </summary>
     public sealed class PlayableGameBootstrap : MonoBehaviour
     {
-        private static bool installed;
+        [SerializeField] private Camera boardCamera;
 
+        private static bool installed;
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetRuntimeState()
         {
@@ -42,12 +44,14 @@ namespace HuntingInDarkness.Bootstrap
             PlayableBootstrapSettings settings = sourceBundle?.Settings;
             if (settings == null || SceneManager.GetActiveScene().name != settings.EntrySceneName) return false;
 
-            var installerObject = new GameObject("HuntingInDarkness Runtime Bootstrap");
-            PlayableGameBootstrap bootstrap = installerObject.AddComponent<PlayableGameBootstrap>();
+            PlayableGameBootstrap bootstrap = FindAnyObjectByType<PlayableGameBootstrap>();
+            if (bootstrap == null)
+            {
+                Debug.LogError("[PlayableGameBootstrap] 入口场景缺少已配置的 PlayableGameBootstrap 绑定对象。未执行运行时自动创建。", settings);
+                return false;
+            }
             if (!bootstrap.Initialize(sourceBundle, settings))
             {
-                if (Application.isPlaying) Destroy(installerObject);
-                else DestroyImmediate(installerObject);
                 return false;
             }
             installed = true;
@@ -66,6 +70,7 @@ namespace HuntingInDarkness.Bootstrap
             }
 
             Core.LocalizationManager.ConfigureBundledFont(sourceBundle.ChineseFont);
+            CampaignScreenView.ConfigureDestinationCatalog(settings.HuntDestinations);
             Cards3D.CardPrefabRegistry.Configure(settings.CardPrefabs);
             if (!PlayableCampaignContentAssembler.TryBuild(sourceBundle, out PlayableCampaignContentCandidate contentCandidate, out PlayableContentDiagnosticReport buildReport))
             {
@@ -76,6 +81,12 @@ namespace HuntingInDarkness.Bootstrap
             var managerObject = new GameObject("GameManager (Playable)");
             managerObject.SetActive(false);
             var manager = managerObject.AddComponent<GameManager>();
+            if (boardCamera == null)
+            {
+                Debug.LogError("[PlayableGameBootstrap] 入口场景 Bootstrap 未显式绑定棋盘相机。", this);
+                Destroy(managerObject);
+                return false;
+            }
             if (!manager.ConfigureCampaign(new CampaignBootstrapRequest
                 {
                     BattleSetup = contentCandidate.DefaultBattleSetup,
@@ -89,6 +100,12 @@ namespace HuntingInDarkness.Bootstrap
                 Destroy(managerObject);
                 return false;
             }
+            if (!manager.ConfigureScreenInteraction(true, boardCamera))
+            {
+                Debug.LogError("[PlayableGameBootstrap] 正式物理交互屏幕或战斗相机配置被拒绝。", manager);
+                Destroy(managerObject);
+                return false;
+            }
             if (!PlayableCampaignContentAssembler.Install(contentCandidate, out PlayableContentDiagnosticReport installReport))
             {
                 Debug.LogError($"[PlayableGameBootstrap] 内容安装失败：{installReport}", settings);
@@ -98,10 +115,7 @@ namespace HuntingInDarkness.Bootstrap
             EnsureRequiredWorldSpacePorts(gameObject, manager, settings);
             managerObject.SetActive(true);
 
-            var mainCamera = Camera.main;
-            if (mainCamera != null)
-                mainCamera.gameObject.AddComponent<PlayablePhaseCameraRig>().Initialize(manager, settings.BossCameraPosition, settings.BossCameraEulerAngles, settings.KeyLightColor, settings.KeyLightIntensity);
-            gameObject.AddComponent<PlayableBossVitalityView>().Initialize(() => manager != null ? manager.CurrentGamePhase : GamePhase.Settlement, () => manager != null ? manager.ShowdownGameplay?.Boss : null);
+            boardCamera.gameObject.AddComponent<PlayablePhaseCameraRig>().Initialize(manager, settings.BossCameraPosition, settings.BossCameraEulerAngles, settings.KeyLightColor, settings.KeyLightIntensity);
 
             if (settings.HideFrameworkDebugger && ZFramework.Debugger.Instance != null)
                 ZFramework.Debugger.Instance.ActiveWindow = false;

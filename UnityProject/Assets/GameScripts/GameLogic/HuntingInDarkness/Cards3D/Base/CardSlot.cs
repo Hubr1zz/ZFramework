@@ -154,11 +154,11 @@ namespace Cards3D
         // 仅堆叠模式：当前订阅在顶部卡上的抽卡委托（用于精确 -= 解绑，避免覆盖外部订阅者）
         System.Action<CardView3D> _drawHandler;
         // 用于射线检测吸附的触发碰撞体（由 Build() 创建/更新）
-        BoxCollider _triggerCol;
+        [SerializeField] BoxCollider _triggerCol;
         public int StackCount => _deck.Count;
 
-        Renderer[] _edges;
-        bool       _built;
+        [SerializeField] Renderer[] _edges;
+        [SerializeField] bool       _built;
         bool       _animating;
 
         // ─── 预览状态 ────────────────────────────────────────────────────────

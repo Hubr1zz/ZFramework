@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Cards3D;
 
 namespace UI
 {
@@ -17,7 +18,7 @@ namespace UI
         private void OnMouseUpAsButton()
         {
             // 不穿透 UI
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+            if (CardInspectionOverlay.BlocksWorldInput || EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
             OnDepart?.Invoke();
         }
     }

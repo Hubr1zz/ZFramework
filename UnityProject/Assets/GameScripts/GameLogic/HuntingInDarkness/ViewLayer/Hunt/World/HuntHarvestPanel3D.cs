@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using Cards3D;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.GameCore.Hunt;
 using HuntingInDarkness.Hunt;
 using TMPro;
+using HuntingInDarkness.ViewLayer.Tabletop;
 using UnityEngine;
 
 namespace UI.Hunt
@@ -95,10 +97,11 @@ namespace UI.Hunt
             textObject.transform.localPosition = localPosition;
             textObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             var text = textObject.AddComponent<TextMeshPro>();
-            text.fontSize = fontSize;
+            text.font = TabletopPresentationAssets.WorldFont;
+            text.fontSize = CardPresentationConsts.ResolveDynamicFontSize(objectName, fontSize);
             text.alignment = TextAlignmentOptions.Center;
             text.color = Color.white;
-            text.rectTransform.sizeDelta = size;
+            text.rectTransform.sizeDelta = CardPresentationConsts.ResolveDynamicRectSize(objectName, size);
             text.textWrappingMode = TextWrappingModes.Normal;
             text.overflowMode = TextOverflowModes.Ellipsis;
             return text;

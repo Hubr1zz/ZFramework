@@ -46,7 +46,8 @@ namespace Cards3D
             tGo.transform.SetParent(transform, false);
             tGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             Title = tGo.AddComponent<TextMeshPro>();
-            Title.fontSize  = 0.16f;
+            Title.fontSize  = CardPresentationConsts.DynamicTitleFontSize;
+            Title.font = TabletopPresentationAssets.WorldFont;
             Title.fontStyle = FontStyles.Bold;
             Title.alignment = TextAlignmentOptions.Center;
             Title.color     = new Color(0.95f, 0.88f, 0.62f);

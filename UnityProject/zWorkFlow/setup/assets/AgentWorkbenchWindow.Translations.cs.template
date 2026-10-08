@@ -161,20 +161,22 @@ namespace AgentWorkflow.Editor
             string canonicalPath,
             string canonicalTitle)
         {
-            if (string.IsNullOrWhiteSpace(canonicalPath) || !File.Exists(canonicalPath))
-                return Or(ConfiguredSpecTitle(capability, CurrentWorkbenchLanguage), canonicalTitle);
-
-            var canonicalContent = File.ReadAllText(canonicalPath, Encoding.UTF8);
-            var localized = ResolveLocalizedDocument(canonicalPath, canonicalContent);
-            if (localized.State == LocalizedDocumentState.Authority)
-                return canonicalTitle;
-
             var configured = ConfiguredSpecTitle(capability, CurrentWorkbenchLanguage);
             if (!string.IsNullOrWhiteSpace(configured))
                 return configured;
 
+            if (string.IsNullOrWhiteSpace(canonicalPath) || !File.Exists(canonicalPath))
+                return canonicalTitle;
+
+            var canonicalContent = File.ReadAllText(canonicalPath, Encoding.UTF8);
+            var localized = ResolveLocalizedDocument(canonicalPath, canonicalContent);
+            if (localized.State == LocalizedDocumentState.Authority)
+                return CurrentWorkbenchLanguage == "zh-CN"
+                    ? Or(ReadFrontmatterValue(canonicalContent, "title"), canonicalTitle)
+                    : ExtractMarkdownTitle(canonicalContent, canonicalTitle);
+
             return localized.State == LocalizedDocumentState.Current
-                ? ExtractMarkdownTitle(localized.Content, canonicalTitle)
+                ? ExtractSpecTitle(localized.Content, canonicalTitle)
                 : canonicalTitle;
         }
 

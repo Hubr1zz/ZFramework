@@ -1,27 +1,45 @@
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 using Cards3D;
 using Core;
-using HuntingInDarkness.Settlement;
 using HuntingInDarkness.ViewLayer.Tabletop;
+using HuntingInDarkness.Settlement;
 using NUnit.Framework;
 using TMPro;
 using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace HuntingInDarkness.Adapter.Tests
 {
-    public sealed class SettlementTableInitializationTests
+        public sealed class SettlementTableInitializationTests
     {
+        private const string PresentationRegistryPrefabPath = "Assets/AssetRaw/UI/Prefabs/TabletopPresentationAssets.prefab";
+        private GameObject presentationAssets;
+
         [SetUp]
-        public void SetUp() => EventBus.Clear();
+        public void SetUp()
+        {
+            EventBus.Clear();
+#if UNITY_EDITOR
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PresentationRegistryPrefabPath);
+            Assert.That(prefab, Is.Not.Null, $"缺少已安装的事件/年鉴注册 Prefab：{PresentationRegistryPrefabPath}");
+            presentationAssets = Object.Instantiate(prefab);
+            InvokePrivateLifecycle(presentationAssets.GetComponent<TabletopPresentationAssets>(), "OnEnable");
+#endif
+        }
 
         [TearDown]
         public void TearDown()
         {
             EventBus.Clear();
             CardPrefabRegistry.Configure(null);
+            if (presentationAssets != null) Object.DestroyImmediate(presentationAssets);
+            presentationAssets = null;
         }
 
         [Test]
@@ -43,7 +61,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 table.Init(secondManager);
                 int secondChildCount = root.GetComponentsInChildren<Transform>(true).Length;
                 ledger.Open(secondManager.Data, Vector3.zero);
-                TextMeshPro ledgerTitle = ledger.GetComponentsInChildren<TextMeshPro>(true)[0];
+                TMP_Text ledgerTitle = ledger.GetComponentsInChildren<TMP_Text>(true).Single(text => text.name == "Title");
 
                 Assert.That(secondChildCount, Is.EqualTo(firstChildCount));
                 Assert.That(secondChildCount, Is.GreaterThan(1));
@@ -90,16 +108,10 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void Init_FallbackWorkshopGridFitsProjectedCards()
+        public void Init_PersistedWorkshopAreaFitsProjectedCards()
         {
-            var root = new GameObject("FallbackWorkshopLayoutTest");
-            SettlementTable3D table = root.AddComponent<SettlementTable3D>();
+            GameObject root = new("PersistedWorkshopLayoutTest");
             PlayableWorkshopCatalog catalog = ScriptableObject.CreateInstance<PlayableWorkshopCatalog>();
-            CardPrefabCatalog cardCatalog = ScriptableObject.CreateInstance<CardPrefabCatalog>();
-            var workshopPrefabObject = new GameObject("WorkshopCardPrefab");
-            WorkshopCard3D workshopPrefab = workshopPrefabObject.AddComponent<WorkshopCard3D>();
-            SetPrivateField(cardCatalog, "cards", new List<CardPrefabDefinition> { new(workshopPrefab, new CardDimensions(1.4f, 1.6f, 0.04f)) });
-            CardPrefabRegistry.Configure(cardCatalog);
             SetPrivateField(catalog, "workshops", new List<PlayableWorkshopDefinition>
             {
                 CreateWorkshop("workshop_1"),
@@ -107,45 +119,51 @@ namespace HuntingInDarkness.Adapter.Tests
                 CreateWorkshop("workshop_3"),
                 CreateWorkshop("workshop_4")
             });
+            SettlementTable3D table = root.AddComponent<SettlementTable3D>();
             bool previousIgnoreState = LogAssert.ignoreFailingMessages;
             try
             {
                 LogAssert.ignoreFailingMessages = true;
                 table.Init(new SettlementManager(1), catalog);
 
-                WorkshopZone workshopZone = GetPrivateField<WorkshopZone>(table, "_workshopZone");
-                SlotGrid grid = GetPrivateField<SlotGrid>(workshopZone, "_grid");
-                Transform tableSurface = root.transform.Find("SettlementTableSurface");
-                Assert.That(grid.Columns, Is.EqualTo(3));
-                Assert.That(grid.Rows, Is.EqualTo(2));
-                Assert.That(grid.Slots, Has.Count.EqualTo(6));
-                Assert.That(grid.SlotW, Is.EqualTo(1.4f * 1.35f).Within(0.001f));
-                Assert.That(grid.SlotH, Is.EqualTo(1.6f * 1.35f).Within(0.001f));
-                Assert.That(tableSurface, Is.Not.Null);
-                Assert.That(tableSurface.GetComponent<Renderer>().bounds.size.x, Is.GreaterThanOrEqualTo(11.9f));
-                Assert.That(tableSurface.GetComponent<Renderer>().bounds.size.z, Is.GreaterThanOrEqualTo(7.9f));
-                foreach (TextMeshPro text in root.GetComponentsInChildren<TextMeshPro>(true))
+                SettlementTableVisualLayout layout = root.GetComponentInChildren<SettlementTableVisualLayout>(true);
+                Assert.That(layout, Is.Not.Null);
+                layout.WorkshopExpansion.Open();
+                WorkshopZone workshopZone = layout.WorkshopZone;
+                SlotGrid grid = workshopZone.GetComponentInChildren<SlotGrid>(true);
+                Assert.That(grid, Is.Not.Null);
+                Assert.That(grid.Slots, Has.Count.GreaterThanOrEqualTo(4));
+                WorkshopBlueprintCard3D[] cards = workshopZone.GetComponentsInChildren<WorkshopBlueprintCard3D>(true);
+                Assert.That(cards, Has.Length.EqualTo(4));
+                foreach (WorkshopBlueprintCard3D card in cards)
                 {
-                    CardView3D card = text.GetComponentInParent<CardView3D>();
-                    if (card != null)
-                    {
-                        Assert.That(text.enableAutoSizing, Is.False, text.gameObject.name);
-                        continue;
-                    }
-
-                    Assert.That(text.fontSize, Is.GreaterThanOrEqualTo(2.7f), text.gameObject.name);
-                    text.ForceMeshUpdate(true, true);
-                    Assert.That(text.isTextOverflowing, Is.False, $"文字被截断：{text.gameObject.name} · {text.text}");
+                    Assert.That(card.Width, Is.LessThanOrEqualTo(grid.SlotW + 0.001f), card.name);
+                    Assert.That(card.Height, Is.LessThanOrEqualTo(grid.SlotH + 0.001f), card.name);
+                    Renderer renderer = card.transform.Find("Body")?.GetComponent<Renderer>();
+                    Assert.That(renderer, Is.Not.Null, card.name);
+                    Assert.That(renderer.bounds.size.x, Is.LessThanOrEqualTo(grid.SlotW + 0.001f), card.name);
+                    Assert.That(renderer.bounds.size.z, Is.LessThanOrEqualTo(grid.SlotH + 0.001f), card.name);
                 }
-                Assert.That(workshopZone.GetComponentsInChildren<WorkshopBlueprintCard3D>(true), Has.Length.EqualTo(4));
+                for (int firstIndex = 0; firstIndex < cards.Length; firstIndex++)
+                {
+                    Renderer firstRenderer = cards[firstIndex].transform.Find("Body")?.GetComponent<Renderer>();
+                    for (int secondIndex = firstIndex + 1; secondIndex < cards.Length; secondIndex++)
+                    {
+                        Renderer secondRenderer = cards[secondIndex].transform.Find("Body")?.GetComponent<Renderer>();
+                        Bounds firstBounds = firstRenderer.bounds;
+                        Bounds secondBounds = secondRenderer.bounds;
+                        bool overlapX = firstBounds.min.x < secondBounds.max.x && secondBounds.min.x < firstBounds.max.x;
+                        bool overlapZ = firstBounds.min.z < secondBounds.max.z && secondBounds.min.z < firstBounds.max.z;
+                        Assert.That(overlapX && overlapZ, Is.False, $"工坊蓝图卡面重叠：{cards[firstIndex].name} / {cards[secondIndex].name}");
+                    }
+                }
+                Assert.That(layout.TableRenderer, Is.Not.Null);
             }
             finally
             {
                 LogAssert.ignoreFailingMessages = previousIgnoreState;
                 Object.DestroyImmediate(root);
                 Object.DestroyImmediate(catalog);
-                Object.DestroyImmediate(workshopPrefabObject);
-                Object.DestroyImmediate(cardCatalog);
             }
         }
 
@@ -175,10 +193,10 @@ namespace HuntingInDarkness.Adapter.Tests
         }
 
         [Test]
-        public void ContextPanel_OpenTemporarilyOverridesTableCameraFrameAndHideRestoresIt()
+        public void LedgerOpenAndHideUsesScreenModalState()
         {
             var root = new GameObject("ContextPanelFramingTest");
-            SettlementTable3D table = root.AddComponent<SettlementTable3D>();
+                SettlementTable3D table = root.AddComponent<SettlementTable3D>();
             var manager = new SettlementManager(1);
             bool previousIgnoreState = LogAssert.ignoreFailingMessages;
             try
@@ -188,12 +206,11 @@ namespace HuntingInDarkness.Adapter.Tests
                 CampLedgerPanel3D ledger = GetPrivateField<CampLedgerPanel3D>(table, "campLedgerPanel");
                 ledger.Open(manager.Data, new Vector3(3f, 0.1f, -2f));
 
-                Assert.That(TabletopCameraFraming.TryGetActiveFrame(out _, out int priority), Is.True);
-                Assert.That(priority, Is.EqualTo(50));
+                Assert.That(ledger.IsOpen, Is.True);
+                Assert.That(ScreenModalInputGate.IsBlocked, Is.True);
 
                 ledger.Hide();
-                Assert.That(TabletopCameraFraming.TryGetActiveFrame(out _, out priority), Is.True);
-                Assert.That(priority, Is.EqualTo(0));
+                Assert.That(ledger.IsOpen, Is.False);
             }
             finally
             {
@@ -222,6 +239,14 @@ namespace HuntingInDarkness.Adapter.Tests
             FieldInfo field = instance.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(field, Is.Not.Null, $"Missing field: {fieldName}");
             field.SetValue(instance, value);
+        }
+
+        private static void InvokePrivateLifecycle(object instance, string methodName)
+        {
+            Assert.That(instance, Is.Not.Null, methodName);
+            MethodInfo method = instance.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null, methodName);
+            method.Invoke(instance, null);
         }
     }
 }

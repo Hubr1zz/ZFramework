@@ -5,6 +5,7 @@ using System.Threading;
 using Core;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Events;
+using HuntingInDarkness.Adapter.PlayModeTests;
 using HuntingInDarkness.Bootstrap;
 using HuntingInDarkness.Data;
 using HuntingInDarkness.GameCore.Settlement;
@@ -28,6 +29,7 @@ namespace HuntingInDarkness.Adapter.Tests
             managerHost.SetActive(false);
             var settings = ScriptableObject.CreateInstance<PlayableBootstrapSettings>();
             var destinations = ScriptableObject.CreateInstance<PlayableHuntDestinationCatalog>();
+            GameObject presentationAssets = TabletopUsabilityPlayModeTests.CreatePresentationAssets();
             SetPrivateField(settings, "showSettlementHud", false);
             SetPrivateField(settings, "huntDestinations", destinations);
             EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
@@ -49,9 +51,9 @@ namespace HuntingInDarkness.Adapter.Tests
                 Assert.That(eventView.ActivePanel.InteractableChoiceCount, Is.EqualTo(1));
                 Assert.That(PlayableHuntInputGuard.IsBlocked, Is.True);
 
-                TabletopEventChoiceCard3D choiceCard = eventView.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single();
-                Assert.That(choiceCard.Clicked, Is.Not.Null);
-                choiceCard.Clicked.Invoke();
+                ScreenEventChoice choice = eventView.ActivePanel.Choices.Single();
+                Assert.That(choice.IsInteractable, Is.True);
+                choice.Click();
                 await prompt;
 
                 Assert.That(eventView.IsPresenting, Is.False);
@@ -65,6 +67,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Object.Destroy(gameEvent);
                 Object.Destroy(destinations);
                 Object.Destroy(settings);
+                TabletopUsabilityPlayModeTests.DestroyPresentationAssets(presentationAssets);
                 await UniTask.Yield();
             }
         });
@@ -75,6 +78,7 @@ namespace HuntingInDarkness.Adapter.Tests
             var host = new GameObject("CarriedItemEventViewTest");
             var managerHost = new GameObject("CarriedItemEventViewManager");
             managerHost.SetActive(false);
+            GameObject presentationAssets = TabletopUsabilityPlayModeTests.CreatePresentationAssets();
             EventData gameEvent = ScriptableObject.CreateInstance<EventData>();
             gameEvent.eventName = "携带物事件";
             gameEvent.eventType = GameEventType.Choice;
@@ -97,18 +101,18 @@ namespace HuntingInDarkness.Adapter.Tests
                 UniTask<PlayableEventChoiceSelection> unavailablePrompt = eventView.SelectChoiceAsync(gameEvent, hunter, new[] { hunter }, new CarriedItemAvailability(hunter, 0), CancellationToken.None);
                 await UniTask.Yield();
 
-                TabletopEventChoiceCard3D unavailableCard = eventView.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.DisplayName == "使用旧式包扎布");
+                ScreenEventChoice unavailableCard = eventView.ActivePanel.Choices.Single(card => card.DisplayName == "使用旧式包扎布");
                 Assert.That(unavailableCard.IsInteractable, Is.False);
-                eventView.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.DisplayName == "接受沉默").Clicked.Invoke();
+                eventView.ActivePanel.Choices.Single(card => card.DisplayName == "接受沉默").Click();
                 Assert.That((await unavailablePrompt).IsValid, Is.False);
 
                 UniTask<PlayableEventChoiceSelection> availablePrompt = eventView.SelectChoiceAsync(gameEvent, hunter, new[] { hunter }, new CarriedItemAvailability(hunter, 1), CancellationToken.None);
                 await UniTask.Yield();
-                TabletopEventChoiceCard3D availableCard = eventView.ActivePanel.GetComponentsInChildren<TabletopEventChoiceCard3D>(true).Single(card => card.DisplayName == "使用旧式包扎布");
+                ScreenEventChoice availableCard = eventView.ActivePanel.Choices.Single(card => card.DisplayName == "使用旧式包扎布");
 
                 Assert.That(availableCard.IsInteractable, Is.True);
-                Assert.That(availableCard.GetComponentsInChildren<TMPro.TextMeshPro>(true).Any(text => text.text.Contains("旧式包扎布 ×1")), Is.True);
-                availableCard.Clicked.Invoke();
+                Assert.That(availableCard.Body, Does.Contain("旧式包扎布 ×1"));
+                availableCard.Click();
                 PlayableEventChoiceSelection selection = await availablePrompt;
                 Assert.That(selection.OptionIndex, Is.Zero);
                 Assert.That(selection.Actor, Is.SameAs(hunter));
@@ -118,6 +122,7 @@ namespace HuntingInDarkness.Adapter.Tests
                 Object.Destroy(host);
                 Object.Destroy(managerHost);
                 Object.Destroy(gameEvent);
+                TabletopUsabilityPlayModeTests.DestroyPresentationAssets(presentationAssets);
                 await UniTask.Yield();
             }
         });

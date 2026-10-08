@@ -835,6 +835,7 @@ namespace Core
                     return false;
                 }
                 huntPhase.DeactivateCurrentActionSession();
+                huntPhase.ReleaseCurrentScreenBindings();
             }
             if (phase == GamePhase.Settlement) CompleteSettlementEntry();
             else EnterPhase(phase);
@@ -1064,6 +1065,17 @@ namespace Core
         void ICampaignHuntReturnHost.PublishEventRestore(SettlementEventRestoreProjection projection) => SettlementRuntime?.PublishEventRestore(projection);
         bool ICampaignHuntReturnHost.TryClearAppliedReturnCheckpoint(SettlementInstance settlement, HuntRecord record, out string reason) => PlayableCampaignLoopContract.TryClearAppliedReturnCheckpoint(settlement, record, out reason);
         UniTask<bool> ICampaignHuntReturnHost.ResolveSettlementEventsAsync(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, SettlementEventRestorePlan plan, SettlementEventRestoreProjection projection) => settlementPhase.ResolveEventsAsync(runtime, session, plan.WorkItems, projection, plan.ChainId);
+        void ICampaignHuntReturnHost.NotifyReturnCommitted(HuntRecord record)
+        {
+            try
+            {
+                bindings.ReturnCommittedPresentation?.Invoke(record);
+            }
+            catch (Exception exception)
+            {
+                bindings.Warning?.Invoke($"回营结果已提交，但表现层未能打开：{exception.Message}");
+            }
+        }
 
         bool ICampaignHuntDepartureHost.CampaignStarted => CampaignStarted;
         GamePhase ICampaignHuntDepartureHost.CurrentPhase => CurrentPhase;

@@ -259,30 +259,31 @@ namespace CardTest3D
             CharacterActionCard view,
             CharacterActionCardInstance inst)
         {
-            // ── 翻面动画 0→90°（收起）──────────────────────────────────────
+            Quaternion originalRotation = view.transform.localRotation;
+            var cancellationToken = this.GetCancellationTokenOnDestroy();
             const float half = 0.15f;
-            for (float t = 0; t < half; t += Time.deltaTime)
+            try
             {
-                view.transform.localEulerAngles =
-                    new Vector3(Mathf.Lerp(0f, 90f, t / half), 0f, 0f);
-                await UniTask.Yield(PlayerLoopTiming.Update, this.GetCancellationTokenOnDestroy());
+                for (float elapsed = 0f; elapsed < half; elapsed += Time.unscaledDeltaTime)
+                {
+                    view.transform.localRotation = originalRotation * Quaternion.Euler(0f, 0f, Mathf.Lerp(0f, 90f, elapsed / half));
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
+
+                var newFace = inst.CurrentFace == CardFace.FaceUp ? CardFace.FaceDown : CardFace.FaceUp;
+                inst.SetFace(newFace);
+                view.Refresh(inst);
+
+                for (float elapsed = 0f; elapsed < half; elapsed += Time.unscaledDeltaTime)
+                {
+                    view.transform.localRotation = originalRotation * Quaternion.Euler(0f, 0f, Mathf.Lerp(-90f, 0f, elapsed / half));
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
             }
-
-            // ── 切换面（打出→背面；恢复→正面）────────────────────────────
-            var newFace = inst.CurrentFace == CardFace.FaceUp
-                ? CardFace.FaceDown
-                : CardFace.FaceUp;
-            inst.SetFace(newFace);
-            view.Refresh(inst);
-
-            // ── 翻面动画 -90°→0°（展开）────────────────────────────────────
-            for (float t = 0; t < half; t += Time.deltaTime)
+            finally
             {
-                view.transform.localEulerAngles =
-                    new Vector3(Mathf.Lerp(-90f, 0f, t / half), 0f, 0f);
-                await UniTask.Yield(PlayerLoopTiming.Update, this.GetCancellationTokenOnDestroy());
+                if (view != null) view.transform.localRotation = originalRotation;
             }
-            view.transform.localEulerAngles = Vector3.zero;
         }
 
         private void OnHitLocationCardDrawn(CardView3D card)
@@ -298,22 +299,28 @@ namespace CardTest3D
             if (card == null) return;
             var cancellationToken = this.GetCancellationTokenOnDestroy();
             await UniTask.Delay(System.TimeSpan.FromSeconds(0.20f), cancellationToken: cancellationToken);
+            if (card == null) return;
+            Quaternion originalRotation = card.transform.localRotation;
             const float dur = 0.15f;
-            for (float t = 0; t < dur; t += Time.deltaTime)
+            try
             {
-                card.transform.localEulerAngles =
-                    new Vector3(Mathf.Lerp(0f, 90f, t / dur), 0f, 0f);
-                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                for (float elapsed = 0f; elapsed < dur; elapsed += Time.unscaledDeltaTime)
+                {
+                    card.transform.localRotation = originalRotation * Quaternion.Euler(0f, 0f, Mathf.Lerp(0f, 90f, elapsed / dur));
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
+                state.IsFaceUp = true;
+                card.Refresh();
+                for (float elapsed = 0f; elapsed < dur; elapsed += Time.unscaledDeltaTime)
+                {
+                    card.transform.localRotation = originalRotation * Quaternion.Euler(0f, 0f, Mathf.Lerp(-90f, 0f, elapsed / dur));
+                    await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                }
             }
-            state.IsFaceUp = true;
-            card.Refresh();
-            for (float t = 0; t < dur; t += Time.deltaTime)
+            finally
             {
-                card.transform.localEulerAngles =
-                    new Vector3(Mathf.Lerp(-90f, 0f, t / dur), 0f, 0f);
-                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                if (card != null) card.transform.localRotation = originalRotation;
             }
-            card.transform.localEulerAngles = Vector3.zero;
         }
 
         // ─── 工具 ─────────────────────────────────────────────────────────

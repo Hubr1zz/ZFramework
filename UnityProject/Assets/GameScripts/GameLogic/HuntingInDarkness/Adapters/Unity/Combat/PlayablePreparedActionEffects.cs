@@ -174,7 +174,13 @@ namespace HuntingInDarkness.Combat
                 return false;
             }
 
-            int selectedId = await input.RequestSelectTarget("选择要鼓舞的队友", candidates, cancellationToken);
+            var targetPreview = new System.Text.StringBuilder("选择要鼓舞的队友：当前时点 → 援助后时点");
+            foreach (int candidateId in candidates)
+            {
+                CharacterRuntimeData candidate = combatData.GetCharacterData(candidateId);
+                if (candidate != null) targetPreview.AppendLine($"\n{candidate.Name}：{candidate.CurrentTimePoints} → {candidate.CurrentTimePoints + 1}");
+            }
+            int selectedId = await input.RequestSelectTarget(targetPreview.ToString(), candidates, cancellationToken);
             if (!candidates.Contains(selectedId)) return false;
 
             targetId = selectedId;

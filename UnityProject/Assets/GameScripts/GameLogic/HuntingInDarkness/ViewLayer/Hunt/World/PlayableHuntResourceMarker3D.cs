@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Cards3D;
 using HuntingInDarkness.Data;
+using HuntingInDarkness.ViewLayer.Tabletop;
 using TMPro;
 using UnityEngine;
 
@@ -86,7 +88,8 @@ namespace HuntingInDarkness.Hunt
             labelObject.transform.localPosition = new Vector3(0f, 0.29f, 0f);
             labelObject.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             label = labelObject.AddComponent<TextMeshPro>();
-            label.fontSize = 0.072f;
+            label.font = TabletopPresentationAssets.WorldFont;
+            label.fontSize = CardPresentationConsts.DynamicBodyFontSize;
             label.alignment = TextAlignmentOptions.Center;
             label.color = labelColor;
             label.rectTransform.sizeDelta = new Vector2(0.78f, 0.34f);

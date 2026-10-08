@@ -38,6 +38,7 @@ namespace Core
     {
         private int? _selectedCharacterId;
         private bool _isResolvingAction;
+        public bool IsResolvingAction => _isResolvingAction;
 
         public override void Enter()
         {

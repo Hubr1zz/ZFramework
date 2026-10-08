@@ -23,6 +23,7 @@ namespace Core
         void PublishEventRestore(SettlementEventRestoreProjection projection);
         bool TryClearAppliedReturnCheckpoint(SettlementInstance settlement, HuntRecord record, out string reason);
         UniTask<bool> ResolveSettlementEventsAsync(IPlayableSettlementRuntime runtime, PlayableSettlementActionSession session, SettlementEventRestorePlan plan, SettlementEventRestoreProjection projection);
+        void NotifyReturnCommitted(HuntRecord record);
     }
 
     internal sealed class CampaignHuntReturnTransaction
@@ -209,10 +210,16 @@ namespace Core
                 checkpointCleared = false;
                 if (host.SettlementRuntime?.Manager?.Data?.PendingHuntReturn != null) return SettlementHuntReturnCommandResult.Failed("回营检查点清除状态未生效。");
                 if (!IsCurrentSettlement(sequence, runtime, session)) return SettlementHuntReturnCommandResult.Failed("回营检查点保存后权威运行世代已经变化。");
-                if (!queueSettlementEvents) return result;
+                if (!queueSettlementEvents)
+                {
+                    host.NotifyReturnCommitted(record);
+                    return result;
+                }
 
                 host.PublishEventRestore(projection);
                 await host.ResolveSettlementEventsAsync(runtime, session, restorePlan, projection);
+                if (!IsCurrentSettlement(sequence, runtime, session)) return SettlementHuntReturnCommandResult.Failed("结算事件完成后权威运行世代已经变化。");
+                host.NotifyReturnCommitted(record);
                 return result;
             }
             catch (OperationCanceledException)

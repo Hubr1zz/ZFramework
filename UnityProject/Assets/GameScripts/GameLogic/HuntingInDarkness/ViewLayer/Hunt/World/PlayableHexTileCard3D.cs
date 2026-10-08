@@ -28,8 +28,9 @@ namespace HuntingInDarkness.Hunt
         {
             tileCollider = GetComponent<Collider>();
             frontLabel = CreateLabel("Front Label", new Vector3(0f, thickness * 0.5f + 0.025f, 0f), Quaternion.Euler(90f, 0f, 0f), radius);
-            backLabel = CreateLabel("Back Label", new Vector3(0f, -thickness * 0.5f - 0.025f, 0f), Quaternion.Euler(-90f, 0f, 180f), radius);
-            backLabel.transform.localScale = new Vector3(-1f, 1f, 1f);
+            Quaternion faceDownRotation = Quaternion.Euler(0f, 0f, 180f);
+            Quaternion frontLabelRotation = Quaternion.Euler(90f, 0f, 0f);
+            backLabel = CreateLabel("Back Label", new Vector3(0f, -thickness * 0.5f - 0.025f, 0f), Quaternion.Inverse(faceDownRotation) * frontLabelRotation, radius);
             backLabel.color = new Color(0.82f, 0.92f, 1f);
         }
 
@@ -105,7 +106,7 @@ namespace HuntingInDarkness.Hunt
                 backLabel.text = tile.Config.tileName;
         }
 
-        private static Quaternion ResolveRotation(bool faceUp) => faceUp ? Quaternion.identity : Quaternion.Euler(180f, 0f, 0f);
+        private static Quaternion ResolveRotation(bool faceUp) => faceUp ? Quaternion.identity : Quaternion.Euler(0f, 0f, 180f);
 
         private void SetColliderEnabled(bool enabled)
         {

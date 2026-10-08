@@ -35,6 +35,7 @@ namespace HuntingInDarkness.Combat
 
             int roll = await input.RequestRoll("投掷两枚三色专注骰", FocusInspirationRules.OutcomeCount, cancellationToken);
             (CombatInspirationColor first, CombatInspirationColor second) = FocusInspirationRules.ResolveRoll(roll);
+            await CombatPresentationDispatch.PresentResolvedFocusAsync(input, (int)first, (int)second, cancellationToken);
             InspirationGain firstGain = await commands.AddCombatInspirationAsync(context.SourceCharacterId, first, cancellationToken);
             InspirationGain secondGain = await commands.AddCombatInspirationAsync(context.SourceCharacterId, second, cancellationToken);
 
@@ -44,7 +45,7 @@ namespace HuntingInDarkness.Combat
                 $"第二枚：{CombatInspirationPresentation.GetName(second)}（{Describe(secondGain.Result)}）",
                 $"思维区：{commands.GetCombatInspirationTokens(context.SourceCharacterId).Count}/{commands.GetCombatInspirationCapacity(context.SourceCharacterId)}"
             };
-            await input.ShowResult(string.Join("\n", lines), cancellationToken);
+            await CombatPresentationDispatch.ShowOrdinary(input, string.Join("\n", lines), cancellationToken);
         }
 
         private static string Describe(InspirationGainResult result)

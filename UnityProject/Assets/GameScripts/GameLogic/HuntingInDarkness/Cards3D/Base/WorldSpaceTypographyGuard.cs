@@ -1,4 +1,5 @@
 using TMPro;
+using HuntingInDarkness.ViewLayer.Tabletop;
 using UnityEngine;
 
 namespace Cards3D
@@ -7,8 +8,8 @@ namespace Cards3D
     [DisallowMultipleComponent]
     public sealed class WorldSpaceTypographyGuard : MonoBehaviour
     {
-        [SerializeField, Min(0.1f)] private float minimumTitleFontSize = 3f;
-        [SerializeField, Min(0.1f)] private float minimumBodyFontSize = 2.7f;
+        [SerializeField, Min(0.1f)] private float minimumTitleFontSize = CardPresentationConsts.DynamicTitleFontSize;
+        [SerializeField, Min(0.1f)] private float minimumBodyFontSize = CardPresentationConsts.DynamicBodyFontSize;
         [SerializeField, Min(0f)] private float verticalPadding = 0.04f;
         private bool dirty = true;
         private bool applying;
@@ -25,14 +26,13 @@ namespace Cards3D
             applying = true;
             foreach (TextMeshPro text in GetComponentsInChildren<TextMeshPro>(true))
             {
-                if (text.GetComponentInParent<CardView3D>() != null)
-                    continue;
-                if (text.GetComponentInParent<WorldSpaceViewPanel>() != null)
-                    continue;
-
-                float minimum = IsTitle(text.gameObject.name) ? minimumTitleFontSize : minimumBodyFontSize;
-                text.fontSize = Mathf.Max(text.fontSize, minimum);
-                ExpandHeightToFit(text);
+                if (text == null) continue;
+                if (text.font == null || text.font == TMP_Settings.defaultFontAsset) TryAssignWorldFont(text);
+                float minimum = CardPresentationConsts.IsTitle(text.gameObject.name) ? minimumTitleFontSize : minimumBodyFontSize;
+                if (text.fontSize < CardPresentationConsts.LegacyFontSizeThreshold)
+                    text.fontSize = minimum;
+                if (text.GetComponentInParent<CardView3D>() == null && text.GetComponentInParent<WorldSpaceViewPanel>() == null)
+                    ExpandHeightToFit(text);
             }
             applying = false;
             dirty = false;
@@ -74,6 +74,9 @@ namespace Cards3D
             rectTransform.sizeDelta = new Vector2(size.x, requiredHeight);
         }
 
-        private static bool IsTitle(string objectName) => objectName == "Title" || objectName == "Name" || objectName == "GridLabel";
+        private void TryAssignWorldFont(TextMeshPro text)
+        {
+            text.font = TabletopPresentationAssets.WorldFont;
+        }
     }
 }

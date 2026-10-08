@@ -1,4 +1,5 @@
 using UnityEngine;
+using HuntingInDarkness.ViewLayer.Tabletop;
 
 namespace Cards3D
 {
@@ -9,6 +10,10 @@ namespace Cards3D
     public class ClickProxy : MonoBehaviour
     {
         public System.Action OnClick;
-        private void OnMouseDown() => OnClick?.Invoke();
+        private void OnMouseDown()
+        {
+            if (CardInspectionOverlay.BlocksWorldInput) return;
+            OnClick?.Invoke();
+        }
     }
 }

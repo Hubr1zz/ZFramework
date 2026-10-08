@@ -50,13 +50,14 @@ namespace UI.Hunt
             if (isRevealed || result.CardIndex != cardIndex) return;
             isActive = false;
             isFlipping = true;
+            Quaternion originalRotation = transform.localRotation;
             var cancellationToken = this.GetCancellationTokenOnDestroy();
             const float halfDuration = 0.14f;
             try
             {
-                for (float elapsed = 0f; elapsed < halfDuration; elapsed += Time.deltaTime)
+                for (float elapsed = 0f; elapsed < halfDuration; elapsed += Time.unscaledDeltaTime)
                 {
-                    transform.localEulerAngles = new Vector3(Mathf.Lerp(0f, 90f, elapsed / halfDuration), 0f, 0f);
+                    transform.localRotation = originalRotation * Quaternion.Euler(0f, 0f, Mathf.Lerp(0f, 90f, elapsed / halfDuration));
                     await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
                 }
                 isRevealed = true;
@@ -64,15 +65,15 @@ namespace UI.Hunt
                 string materialName = string.IsNullOrWhiteSpace(result.MaterialName) ? resourceName : result.MaterialName;
                 resultText.text = result.IsHit ? $"获得\n{materialName}" : $"{materialName}\n落空";
                 ApplyVisuals();
-                for (float elapsed = 0f; elapsed < halfDuration; elapsed += Time.deltaTime)
+                for (float elapsed = 0f; elapsed < halfDuration; elapsed += Time.unscaledDeltaTime)
                 {
-                    transform.localEulerAngles = new Vector3(Mathf.Lerp(-90f, 0f, elapsed / halfDuration), 0f, 0f);
+                    transform.localRotation = originalRotation * Quaternion.Euler(0f, 0f, Mathf.Lerp(-90f, 0f, elapsed / halfDuration));
                     await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
                 }
             }
             finally
             {
-                transform.localEulerAngles = Vector3.zero;
+                transform.localRotation = originalRotation;
                 isFlipping = false;
                 ApplyVisuals();
             }

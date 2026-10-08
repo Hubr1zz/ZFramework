@@ -263,7 +263,7 @@ namespace Core
             return gain;
         }
 
-        private bool CanPayResourceCosts(
+        public bool CanPayResourceCosts(
             int ownerId,
             IReadOnlyList<ActionCardCostDefinition> costs)
         {
@@ -284,26 +284,39 @@ namespace Core
         private async UniTask<bool> PrepareInspirationCost(int ownerId, ActionCardCostDefinition definition, List<PreparedActionCardCost> prepared, HashSet<int> selectedTokenIds, CancellationToken cancellationToken = default)
         {
             var selected = new List<int>(definition.Amount);
-            for (int index = 0; index < definition.Amount; index++)
+            IPlayerInputProvider input = _getInput();
+            ICombatInspirationPaymentPresentation paymentPresentation = input as ICombatInspirationPaymentPresentation;
+            try
             {
-                List<CombatInspirationToken> candidates = _resources.GetSpendableTokens(ownerId, definition.InspirationRequirement, selectedTokenIds);
-                if (candidates.Count == 0) return false;
-
-                int selectedTokenId = candidates[0].Id;
-                if (candidates.Count > 1 && _getInput() is IPlayerOptionInputProvider optionInput)
+                for (int index = 0; index < definition.Amount; index++)
                 {
-                    var options = new List<PlayerChoiceOption>(candidates.Count);
-                    foreach (CombatInspirationToken candidate in candidates)
-                        options.Add(new PlayerChoiceOption(candidate.Id, CombatInspirationPresentation.GetName(candidate.Color)));
-                    selectedTokenId = await optionInput.RequestSelectOption("选择要支付的战斗灵感", options, cancellationToken: cancellationToken);
-                }
-                if (!candidates.Exists(candidate => candidate.Id == selectedTokenId)) return false;
+                    List<CombatInspirationToken> candidates = _resources.GetSpendableTokens(ownerId, definition.InspirationRequirement, selectedTokenIds);
+                    if (candidates.Count == 0) return false;
+                    var candidateIds = new List<int>(candidates.Count);
+                    foreach (CombatInspirationToken candidate in candidates) candidateIds.Add(candidate.Id);
+                    paymentPresentation?.PresentInspirationPaymentPreview(ownerId, candidateIds, selectedTokenIds, definition.Amount - index);
 
-                selected.Add(selectedTokenId);
-                selectedTokenIds.Add(selectedTokenId);
+                    int selectedTokenId = candidates[0].Id;
+                    if (candidates.Count > 1 && input is IPlayerOptionInputProvider optionInput)
+                    {
+                        var options = new List<PlayerChoiceOption>(candidates.Count);
+                        foreach (CombatInspirationToken candidate in candidates)
+                            options.Add(new PlayerChoiceOption(candidate.Id, CombatInspirationPresentation.GetName(candidate.Color)));
+                        selectedTokenId = await optionInput.RequestSelectOption("选择要支付的战斗灵感", options, cancellationToken: cancellationToken);
+                    }
+                    if (!candidates.Exists(candidate => candidate.Id == selectedTokenId)) return false;
+
+                    selected.Add(selectedTokenId);
+                    selectedTokenIds.Add(selectedTokenId);
+                    paymentPresentation?.PresentInspirationPaymentPreview(ownerId, candidateIds, selectedTokenIds, definition.Amount - index - 1);
+                }
+                prepared.Add(new PreparedActionCardCost(definition, selected));
+                return true;
             }
-            prepared.Add(new PreparedActionCardCost(definition, selected));
-            return true;
+            finally
+            {
+                paymentPresentation?.ClearInspirationPaymentPreview(ownerId);
+            }
         }
 
         private void PublishInspirationChange(int ownerId, int oldCount)

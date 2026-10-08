@@ -17,10 +17,10 @@ namespace UI
     {
         [Header("默认位置 / 角度")]
         [SerializeField] private Vector3 defaultPosition = new Vector3(0f, 16f, -11f);
-        [SerializeField] private Vector3 defaultEulerAngles = new Vector3(55f, 0f, 0f);
+        [SerializeField] private Vector3 defaultEulerAngles = new Vector3(75f, 0f, 0f);
         [SerializeField, Range(25f, 65f)] private float perspectiveFieldOfView = 42f;
-        [SerializeField, Min(1f)] private float framingPadding = 1.15f;
-        [SerializeField, Min(1f)] private float minimumFramingDistance = 10f;
+        [SerializeField, Min(1f)] private float framingPadding = 1.08f;
+        [SerializeField, Min(1f)] private float minimumFramingDistance = 6f;
 
         [Header("桌面导航")]
         [SerializeField] private bool enablePan = true;
@@ -32,7 +32,7 @@ namespace UI
         [SerializeField, Range(0.1f, 1f)] private float minimumZoomRatio = 0.45f;
         [SerializeField, Min(1f)] private float maximumZoomRatio = 1.65f;
         [SerializeField] private KeyCode resetViewKey = KeyCode.Home;
-        [SerializeField] private string controlHint = "中键拖动 / WASD 移动 · 滚轮缩放 · Home 复位 · 悬停卡牌按 F 查看详情 · H 显示提示";
+        [SerializeField] private string controlHint = "中键拖动 / WASD 移动 · 滚轮缩放 · Home 复位 · 悬停卡牌查看详情 · H 显示提示";
 
         // 当前插值目标
         private Vector3    _targetPos;
@@ -122,7 +122,7 @@ namespace UI
 
         private void HandleScrollZoom()
         {
-            if (!enableScrollZoom || navigationLocked) return;
+            if (!enableScrollZoom || navigationLocked || CardInspectionOverlay.IsShowingHover) return;
 
             float scroll = Input.mouseScrollDelta.y;
             if (Mathf.Abs(scroll) < 0.001f) return;

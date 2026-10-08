@@ -9,9 +9,9 @@ namespace Cards3D
     /// <summary>营地桌面的招募入口卡，持续展示当前年度的接纳条件。</summary>
     public sealed class RecruitmentLauncherCard3D : CardView3D
     {
-        private TextMeshPro titleText;
-        private TextMeshPro costText;
-        private TextMeshPro stateText;
+        [SerializeField] private TextMeshPro titleText;
+        [SerializeField] private TextMeshPro costText;
+        [SerializeField] private TextMeshPro stateText;
         private SettlementInstance settlement;
         private PlayableSettlementContentCatalog catalog;
         private bool canRecruit;
@@ -47,19 +47,26 @@ namespace Cards3D
         {
             if (titleText != null) return;
             float textY = CD * 0.5f + 0.003f;
-            titleText = MakeText("Title", new Vector3(0f, textY, CH * 0.32f), 0.11f, TextAlignmentOptions.Center, new Vector2(CW - 0.06f, 0.24f));
-            costText = MakeText("Cost", new Vector3(0f, textY, 0f), 0.07f, TextAlignmentOptions.Center, new Vector2(CW - 0.06f, 0.26f));
-            stateText = MakeText("State", new Vector3(0f, textY, -CH * 0.34f), 0.06f, TextAlignmentOptions.Center, new Vector2(CW - 0.06f, 0.24f));
+            titleText = MakeText("Title", new Vector3(0f, textY, CH * 0.32f), 0.11f, TextAlignmentOptions.Center, new Vector2(CW - 0.06f, 0.30f));
+            costText = MakeText("Cost", new Vector3(0f, textY, 0f), 0.07f, TextAlignmentOptions.Center, new Vector2(CW - 0.06f, 0.30f));
+            stateText = MakeText("State", new Vector3(0f, textY, -CH * 0.34f), 0.06f, TextAlignmentOptions.Center, new Vector2(CW - 0.06f, 0.30f));
+            costText.enableWordWrapping = true;
+            stateText.enableWordWrapping = true;
+            costText.overflowMode = TextOverflowModes.Overflow;
+            stateText.overflowMode = TextOverflowModes.Overflow;
         }
 
         protected override void ApplyVisuals()
         {
             if (_bodyRenderer == null) return;
-            _bodyRenderer.material.color = canRecruit ? IsHovered ? new Color(0.54f, 0.31f, 0.12f) : new Color(0.40f, 0.22f, 0.10f) : new Color(0.17f, 0.16f, 0.15f);
+            _bodyRenderer.material.color = canRecruit ? IsHovered ? new Color(0.30f, 0.16f, 0.06f) : new Color(0.18f, 0.09f, 0.04f) : new Color(0.12f, 0.11f, 0.10f);
             if (titleText == null) return;
             titleText.text = "营火招募";
             costText.text = FormatCost();
-            stateText.text = canRecruit ? "点击呼唤幸存者" : unavailableReason;
+            stateText.text = canRecruit ? "可招募" : "条件不足";
+            titleText.color = new Color(0.98f, 0.82f, 0.45f);
+            costText.color = new Color(0.90f, 0.88f, 0.82f);
+            stateText.color = new Color(0.90f, 0.88f, 0.82f);
         }
 
         protected override bool CanHover() => canRecruit;
@@ -67,6 +74,14 @@ namespace Cards3D
         protected override void OnClickReleased()
         {
             if (canRecruit) Clicked?.Invoke();
+        }
+
+        public override bool TryGetInspectionContent(out CardInspectionContent content)
+        {
+            if (!base.TryGetInspectionContent(out content)) return false;
+            if (canRecruit || string.IsNullOrWhiteSpace(unavailableReason)) return true;
+            content = new CardInspectionContent(content.Title, $"{content.Body}\n\n{unavailableReason}", content.Footer);
+            return true;
         }
 
         private bool EvaluateAvailability(out string reason)
@@ -92,14 +107,14 @@ namespace Cards3D
             int aliveCount = settlement?.GetAliveHunters().Count ?? 0;
             int cost = RecruitmentRules.GetCost(aliveCount, catalog?.RecruitmentCost ?? 0);
             int populationCost = RecruitmentRules.GetPopulationCost(aliveCount, catalog?.RecruitmentPopulationCost ?? 0);
-            if (cost == 0 && populationCost == 0) return aliveCount <= 0 ? "无人守火 · 免费援助" : "无需额外成本";
+            if (cost == 0 && populationCost == 0) return "免费";
             string resourceLabel = string.Empty;
             if (cost > 0)
-                resourceLabel = catalog?.RecruitmentCostItem != null ? $"{catalog.RecruitmentCostItem.itemName} ×{cost}" : "接纳物资未配置";
+                resourceLabel = catalog?.RecruitmentCostItem != null ? $"{catalog.RecruitmentCostItem.itemName} ×{cost}" : $"物资 ×{cost}";
             string populationLabel = populationCost > 0 ? $"人口 ×{populationCost}" : string.Empty;
             if (string.IsNullOrEmpty(resourceLabel)) return populationLabel;
             if (string.IsNullOrEmpty(populationLabel)) return resourceLabel;
-            return $"{resourceLabel} + {populationLabel}";
+            return $"{resourceLabel}\n{populationLabel}";
         }
 
         private bool HasTemplate()

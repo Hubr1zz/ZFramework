@@ -2,6 +2,9 @@ using Core;
 using HuntingInDarkness.ActionFlow.Hunt;
 using HuntingInDarkness.Hunt;
 using UnityEngine;
+using GameLogic;
+using HuntingInDarkness.ActionFlow.Hunt;
+using HuntingInDarkness.ViewLayer.Presentation;
 
 namespace UI.Hunt
 {
@@ -15,11 +18,13 @@ namespace UI.Hunt
         private HuntMapVisualizer huntVisualizer;
         private IHuntExplorationPort explorationPort;
         private bool _initialized;
+        private bool screenMode;
 
         private HuntHarvestPanel3D harvestPanel3D;
         private HuntStatusBoard3D statusBoard3D;
 
         public bool IsTabletopReady => huntVisualizer != null && explorationPort != null && statusBoard3D != null;
+        public bool IsScreenReady => screenMode && huntVisualizer != null && explorationPort != null && HuntScreenView.Current != null && HuntScreenView.Current.IsBound;
 
         // ─── 初始化 ──────────────────────────────────────────────
 
@@ -69,6 +74,35 @@ namespace UI.Hunt
             if (!IsTabletopReady) throw new System.InvalidOperationException("狩猎 3D 状态桌初始化失败。");
         }
 
+        public void InitScreen(HuntManager huntMgr, HuntMapVisualizer visualizer, IHuntExplorationPort port, IPlayableHuntRetreatInput retreatInput)
+        {
+            if (huntMgr == null) throw new System.ArgumentNullException(nameof(huntMgr));
+            if (visualizer == null) throw new System.ArgumentNullException(nameof(visualizer));
+            if (port == null) throw new System.ArgumentNullException(nameof(port));
+            if (retreatInput == null) throw new System.ArgumentNullException(nameof(retreatInput));
+            if (_initialized || screenMode) ReleaseBindings();
+            screenMode = true;
+            harvestPanel3D?.DismissForSessionChange();
+            ClearResourcePresentationCallbacks();
+            _huntMgr = huntMgr;
+            huntVisualizer = visualizer;
+            explorationPort = port;
+            huntMgr.OnResourcePointClicked = null;
+            GameModule.UI.ShowUI<HuntScreenWindow>();
+            HuntScreenView view = HuntScreenView.Current;
+            if (view == null) throw new System.InvalidOperationException("狩猎屏幕窗口未同步加载；请检查 HuntScreen.prefab 与窗口注册。");
+            view.Bind(huntMgr, visualizer, port, retreatInput);
+            SubscribeEvents();
+            _initialized = true;
+            Refresh();
+        }
+
+        public void CloseScreenWindow()
+        {
+            if (!screenMode) return;
+            ReleaseBindings();
+        }
+
         public void ReleaseBindings()
         {
             EventBus.Unsubscribe<GameEventTriggeredEvent>(OnGameEvent);
@@ -78,6 +112,9 @@ namespace UI.Hunt
             EventBus.Unsubscribe<HuntActorSelectionCommittedEvent>(OnHuntActorSelectionCommitted);
             EventBus.Unsubscribe<HuntConsumableUsedEvent>(OnHuntConsumableUsed);
             ClearResourcePresentationCallbacks();
+            if (screenMode && HuntScreenView.Current != null)
+                GameModule.UI.CloseUI<HuntScreenWindow>();
+            screenMode = false;
         }
 
         private void BuildUI()
@@ -92,6 +129,11 @@ namespace UI.Hunt
         public void Refresh()
         {
             if (_huntMgr == null) return;
+            if (screenMode)
+            {
+                HuntScreenView.Current?.Refresh();
+                return;
+            }
             if (statusBoard3D != null)
             {
                 statusBoard3D.Refresh();
@@ -113,6 +155,16 @@ namespace UI.Hunt
         {
             if (e.EventId?.StartsWith("tile_reveal:") == true)
                 Refresh();
+        }
+
+        private void SubscribeEvents()
+        {
+            EventBus.Subscribe<GameEventTriggeredEvent>(OnGameEvent);
+            EventBus.Subscribe<HuntTileInteractionCommittedEvent>(OnTileInteractionCommitted);
+            EventBus.Subscribe<HarvestCommittedEvent>(OnHarvestCommitted);
+            EventBus.Subscribe<HuntEventNodeCommittedEvent>(OnHuntEventNodeCommitted);
+            EventBus.Subscribe<HuntActorSelectionCommittedEvent>(OnHuntActorSelectionCommitted);
+            EventBus.Subscribe<HuntConsumableUsedEvent>(OnHuntConsumableUsed);
         }
 
         private void OnTileInteractionCommitted(HuntTileInteractionCommittedEvent _) => Refresh();

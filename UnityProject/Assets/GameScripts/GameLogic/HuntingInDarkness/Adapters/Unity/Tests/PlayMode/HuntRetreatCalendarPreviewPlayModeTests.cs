@@ -17,6 +17,14 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
     public sealed class HuntRetreatCalendarPreviewPlayModeTests
     {
         private readonly List<Object> createdObjects = new();
+        private GameObject presentationAssets;
+
+        [UnitySetUp]
+        public IEnumerator SetUp()
+        {
+            presentationAssets = TabletopUsabilityPlayModeTests.CreatePresentationAssets();
+            yield return null;
+        }
 
         [UnityTearDown]
         public IEnumerator TearDown()
@@ -25,6 +33,8 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
                 if (createdObject != null)
                     Object.Destroy(createdObject);
             createdObjects.Clear();
+            TabletopUsabilityPlayModeTests.DestroyPresentationAssets(presentationAssets);
+            presentationAssets = null;
             yield return null;
         }
 

@@ -133,12 +133,14 @@ namespace HuntingInDarkness.ActionFlow.Presentation
     {
         private readonly ITabletopRandomInteractionPresenter dicePresenter;
         private readonly ITabletopRandomInteractionPresenter cardPresenter;
+        public bool ScreenPresentationEnabled { get; }
         private bool isPresenting;
 
-        public TabletopRandomInteractionRouter(ITabletopRandomInteractionPresenter dicePresenter, ITabletopRandomInteractionPresenter cardPresenter)
+        public TabletopRandomInteractionRouter(ITabletopRandomInteractionPresenter dicePresenter, ITabletopRandomInteractionPresenter cardPresenter, bool screenPresentationEnabled = false)
         {
             this.dicePresenter = dicePresenter;
             this.cardPresenter = cardPresenter;
+            ScreenPresentationEnabled = screenPresentationEnabled;
         }
 
         public async UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)

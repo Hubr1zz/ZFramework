@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Presentation;
+using HuntingInDarkness.ViewLayer.Presentation;
 using TMPro;
 using UnityEngine;
 
@@ -27,11 +28,13 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         [SerializeField, Min(2)] private int maxDeckSize = 20;
         [SerializeField, Min(1)] private int maxSelectionCount = 12;
         [SerializeField, Min(0f)] private float revealDuration = 0.35f;
+        [SerializeField, Min(0f)] private float shuffleDuration = 0.3f;
         [SerializeField, Min(0f)] private float resultDisplayDuration = 1.0f;
         [SerializeField] private Material cardBackMaterialTemplate;
         [SerializeField] private Material cardFrontMaterialTemplate;
         [SerializeField] private Material tableMaterialTemplate;
         [SerializeField] private TMP_FontAsset cardFont;
+        [SerializeField] private bool screenModeEnabled;
 
         private UniTaskCompletionSource<int> selectionSource;
         private IReadOnlyList<CardOption> activeCards = Array.Empty<CardOption>();
@@ -42,11 +45,16 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         public bool IsPresenting => isPresenting;
         public TabletopRandomInteractionResult LastCompletedResult { get; private set; }
 
+        public void ConfigureScreenMode(bool enabled) => screenModeEnabled = enabled;
+
         public async UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
         {
             ValidateRequest(request);
             while (isPresenting)
                 await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+
+            if (screenModeEnabled)
+                return await PresentOnScreenAsync(request, cancellationToken);
 
             isPresenting = true;
             CancellationTokenSource activeCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, this.GetCancellationTokenOnDestroy());
@@ -70,8 +78,11 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 BuildInstruction(interactionRoot.transform, request.Instruction);
                 List<CardOption> cards = BuildCards(request, interactionRoot.transform, cardBackMaterial, cardFrontMaterial);
                 activeCards = cards;
+                DisableAll(cards);
+                await AnimateShuffleAsync(cards, activeCancellationToken);
 
                 var selected = new HashSet<int>();
+                ConfigureSelectableCards(request.Kind, cards, selected);
                 var values = new List<int>(request.Count);
                 var cardIds = new List<string>(request.Count);
                 for (int selectionIndex = 0; selectionIndex < request.Count; selectionIndex++)
@@ -84,9 +95,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                     CardOption card = cards[cardIndex];
                     values.Add(card.Value);
                     cardIds.Add(card.Id);
-                    RevealCard(card, selectionIndex, request.Count);
-                    if (revealDuration > 0f)
-                        await UniTask.Delay(TimeSpan.FromSeconds(revealDuration), cancellationToken: activeCancellationToken);
+                    await RevealCardAsync(card, selectionIndex, request.Count, activeCancellationToken);
                 }
 
                 DisableAll(cards);
@@ -110,6 +119,82 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 backgroundInputBlocker?.Dispose();
                 isPresenting = false;
             }
+        }
+
+        private async UniTask<TabletopRandomInteractionResult> PresentOnScreenAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
+        {
+            isPresenting = true;
+            PhysicalInteractionScreenView screen = null;
+            try
+            {
+                screen = await PhysicalInteractionScreenView.OpenAsync(cancellationToken);
+                CancellationToken operationToken = screen.OperationToken;
+                List<CardOption> cards = CreateDeck(request);
+                Shuffle(cards);
+                for (int index = 0; index < cards.Count; index++)
+                    cards[index].FaceLabel = ResolveFaceLabel(request, cards[index].Id);
+
+                var selected = new HashSet<int>();
+                var values = new List<int>(request.Count);
+                var cardIds = new List<string>(request.Count);
+                await screen.BeginCardSelectionAsync("桌面牌组", request.Instruction, cards.Count, operationToken);
+                for (int selectionIndex = 0; selectionIndex < request.Count; selectionIndex++)
+                {
+                    List<int> availableCards = GetScreenSelectableIndices(request.Kind, cards.Count, selected);
+                    int cardIndex = await screen.WaitForCardSelectionAsync(request.Instruction, availableCards, operationToken);
+                    if (cardIndex < 0 || cardIndex >= cards.Count || !availableCards.Contains(cardIndex)) throw new InvalidOperationException("屏幕返回了无效的原始牌序号。");
+                    selected.Add(cardIndex);
+                    CardOption card = cards[cardIndex];
+                    values.Add(card.Value);
+                    cardIds.Add(card.Id);
+                    await screen.RevealSelectionAsync(cardIndex, ResolveScreenFace(card, request.Kind), operationToken, card.FaceLabel);
+                    if (request.Kind == TabletopRandomInteractionKind.DeathDeck)
+                        await screen.WaitForContinueAsync("确认命运结果后继续", operationToken);
+                    if (revealDuration > 0f)
+                        await UniTask.Delay(TimeSpan.FromSeconds(revealDuration), cancellationToken: operationToken);
+                }
+
+                screen.PresentCardsResult(FormatResult(request.Kind, values, cardIds));
+                if (resultDisplayDuration > 0f)
+                    await UniTask.Delay(TimeSpan.FromSeconds(resultDisplayDuration), cancellationToken: operationToken);
+                LastCompletedResult = new TabletopRandomInteractionResult(request.InteractionId, values, cardIds);
+                return LastCompletedResult;
+            }
+            finally
+            {
+                if (screen != null)
+                {
+                    screen.ClearStage();
+                    screen.Close();
+                }
+                isPresenting = false;
+            }
+        }
+
+        private static List<int> GetScreenSelectableIndices(TabletopRandomInteractionKind kind, int cardCount, ISet<int> selected)
+        {
+            var available = new List<int>();
+            for (int index = 0; index < cardCount; index++)
+                if (!selected.Contains(index))
+                    available.Add(index);
+            return available;
+        }
+
+        private static string ResolveScreenFace(CardOption card, TabletopRandomInteractionKind kind)
+        {
+            if (card.IsDeathDeck) return card.FaceLabel;
+            if (card.IsOldMaid) return "鬼牌";
+            if (kind == TabletopRandomInteractionKind.OldMaid) return "安全";
+            return card.Value.ToString();
+        }
+
+        private static string FormatResult(TabletopRandomInteractionKind kind, IReadOnlyList<int> values, IReadOnlyList<string> cardIds)
+        {
+            if (kind == TabletopRandomInteractionKind.OldMaid) return cardIds.Count > 0 && cardIds[0].EndsWith(":old-maid", StringComparison.Ordinal) ? "抽中鬼牌" : "抽到安全牌";
+            if (kind == TabletopRandomInteractionKind.DeathDeck) return "已选择命运牌";
+            int total = 0;
+            foreach (int value in values) total += value;
+            return values.Count == 1 ? $"牌面 {total}" : $"牌面合计 {total}";
         }
 
         private void ValidateRequest(TabletopRandomInteractionRequest request)
@@ -180,29 +265,17 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
 
         private Vector3 ResolveCardPosition(TabletopRandomInteractionKind kind, int index, int count)
         {
-            if (kind == TabletopRandomInteractionKind.DrawCards)
-                return new Vector3(0f, index * cardThickness * 0.55f, 0.05f - index * 0.002f);
-            int columns = Mathf.Min(count, 10);
+            int columns = Mathf.Min(count, 4);
             int row = index / columns;
             int column = index % columns;
-            float spacing = cardWidth * 0.82f;
+            float spacing = cardWidth * 1.05f;
             float rowOffset = -(Mathf.Min(columns, count - row * columns) - 1) * spacing * 0.5f;
-            return new Vector3(rowOffset + column * spacing, row * cardThickness * 0.25f, 0.15f - row * cardHeight * 0.78f);
+            return new Vector3(rowOffset + column * spacing, row * cardThickness * 0.25f, 0.15f - row * cardHeight * 1.05f);
         }
 
         private void ConfigureSelectableCards(TabletopRandomInteractionKind kind, IReadOnlyList<CardOption> cards, ISet<int> selected)
         {
             DisableAll(cards);
-            if (kind == TabletopRandomInteractionKind.DrawCards)
-            {
-                for (int index = cards.Count - 1; index >= 0; index--)
-                    if (!selected.Contains(index))
-                    {
-                        cards[index].View.SetSelectable(true);
-                        return;
-                    }
-                return;
-            }
             for (int index = 0; index < cards.Count; index++)
                 cards[index].View.SetSelectable(!selected.Contains(index));
         }
@@ -215,10 +288,31 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             selectionSource.TrySetResult(index);
         }
 
-        private void RevealCard(CardOption card, int selectionIndex, int selectionCount)
+        private async UniTask RevealCardAsync(CardOption card, int selectionIndex, int selectionCount, CancellationToken cancellationToken)
         {
             float spacing = cardWidth * 1.05f;
-            card.View.Reveal(new Vector3(-(selectionCount - 1) * spacing * 0.5f + selectionIndex * spacing, 0.10f, -1.05f));
+            await card.View.RevealAsync(new Vector3(-(selectionCount - 1) * spacing * 0.5f + selectionIndex * spacing, 0.10f, -1.05f), revealDuration, cancellationToken);
+        }
+
+        private async UniTask AnimateShuffleAsync(IReadOnlyList<CardOption> cards, CancellationToken cancellationToken)
+        {
+            if (shuffleDuration <= 0f) return;
+            var positions = new Vector3[cards.Count];
+            for (int index = 0; index < cards.Count; index++) positions[index] = cards[index].View.transform.localPosition;
+            float elapsed = 0f;
+            while (elapsed < shuffleDuration)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                elapsed += Time.unscaledDeltaTime;
+                float progress = Mathf.Clamp01(elapsed / shuffleDuration);
+                for (int index = 0; index < cards.Count; index++)
+                {
+                    float direction = index % 2 == 0 ? 1f : -1f;
+                    cards[index].View.transform.localPosition = positions[index] + new Vector3(Mathf.Sin(progress * Mathf.PI * 4f + index) * cardWidth * 0.16f * direction * (1f - progress), 0f, Mathf.Cos(progress * Mathf.PI * 4f + index) * cardHeight * 0.08f * (1f - progress));
+                }
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+            }
+            for (int index = 0; index < cards.Count; index++) cards[index].View.transform.localPosition = positions[index];
         }
 
         private static void DisableAll(IReadOnlyList<CardOption> cards)

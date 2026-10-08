@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using HuntingInDarkness.ActionFlow.Presentation;
+using HuntingInDarkness.ViewLayer.Presentation;
 using TMPro;
 using UnityEngine;
 
@@ -26,12 +27,15 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
         [SerializeField] private Material diceMaterialTemplate;
         [SerializeField] private Material trayMaterialTemplate;
         [SerializeField] private TMP_FontAsset resultFont;
+        [SerializeField] private bool screenModeEnabled;
 
         private bool isPresenting;
 
         public Func<TabletopRandomInteractionRequest, Vector3> AnchorResolver { private get; set; }
         public bool IsPresenting => isPresenting;
         public TabletopRandomInteractionResult LastCompletedResult { get; private set; }
+
+        public void ConfigureScreenMode(bool enabled) => screenModeEnabled = enabled;
 
         public async UniTask<TabletopRandomInteractionResult> PresentAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
         {
@@ -42,6 +46,9 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
 
             isPresenting = true;
+            if (screenModeEnabled)
+                return await PresentOnScreenAsync(request, cancellationToken);
+
             GameObject interactionRoot = null;
             Material diceMaterial = null;
             Material trayMaterial = null;
@@ -73,6 +80,66 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
                 if (trayMaterial != null && trayMaterial != trayMaterialTemplate) Destroy(trayMaterial);
                 isPresenting = false;
             }
+        }
+
+        private async UniTask<TabletopRandomInteractionResult> PresentOnScreenAsync(TabletopRandomInteractionRequest request, CancellationToken cancellationToken)
+        {
+            PhysicalInteractionScreenView screen = null;
+            try
+            {
+                screen = await PhysicalInteractionScreenView.OpenAsync(cancellationToken);
+                CancellationToken operationToken = screen.OperationToken;
+                screen.ClearStage();
+                GameObject tray = Instantiate(screen.DiceTrayPrefab, screen.RuntimeContentRoot, false);
+                tray.transform.localPosition = Vector3.zero;
+                tray.transform.localScale = new Vector3(trayWidth / screen.DiceTrayBaseSize.x, 1f, trayDepth / screen.DiceTrayBaseSize.y);
+                screen.SetStageLayerRecursively(tray);
+                List<PhysicalDie3D> dice = CreateScreenDice(request, screen);
+                foreach (PhysicalDie3D die in dice)
+                    die.Body.isKinematic = true;
+                await screen.WaitForThrowAsync(() =>
+                {
+                    foreach (PhysicalDie3D die in dice)
+                        die.Body.isKinematic = false;
+                    ThrowDice(dice);
+                }, operationToken);
+                await WaitForStableAsync(dice, operationToken);
+                var values = new List<int>(dice.Count);
+                foreach (PhysicalDie3D die in dice)
+                    values.Add(die.GetUpwardValue());
+                screen.PresentThrowResult(FormatResult(values));
+                if (resultDisplayDuration > 0f)
+                    await UniTask.Delay(TimeSpan.FromSeconds(resultDisplayDuration), cancellationToken: operationToken);
+                LastCompletedResult = new TabletopRandomInteractionResult(request.InteractionId, values, Array.Empty<string>());
+                return LastCompletedResult;
+            }
+            finally
+            {
+                if (screen != null)
+                {
+                    screen.ClearStage();
+                    screen.Close();
+                }
+                isPresenting = false;
+            }
+        }
+
+        private List<PhysicalDie3D> CreateScreenDice(TabletopRandomInteractionRequest request, PhysicalInteractionScreenView screen)
+        {
+            var dice = new List<PhysicalDie3D>(request.Count);
+            float spacing = dieSize * 1.35f;
+            float start = -(request.Count - 1) * spacing * 0.5f;
+            PhysicalDie3D prefab = request.Sides == 10 ? screen.DieD10Prefab : screen.DieD6Prefab;
+            for (int index = 0; index < request.Count; index++)
+            {
+                PhysicalDie3D die = Instantiate(prefab, screen.RuntimeContentRoot, false);
+                die.transform.localScale = CalculateScreenPrefabScale(prefab.transform.localScale, dieSize, screen.DiePrefabBaseSize);
+                die.transform.localPosition = new Vector3(start + index * spacing, launchHeight + index * 0.05f, 0f);
+                die.transform.localRotation = UnityEngine.Random.rotationUniform;
+                screen.SetStageLayerRecursively(die.gameObject);
+                dice.Add(die);
+            }
+            return dice;
         }
 
         private List<PhysicalDie3D> CreateDice(TabletopRandomInteractionRequest request, Transform parent, Material material)
@@ -184,6 +251,20 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
             label.alignment = TextAlignmentOptions.Center;
             label.color = new Color(0.98f, 0.86f, 0.42f);
             label.rectTransform.sizeDelta = new Vector2(2.2f, 0.28f);
+        }
+
+        private static string FormatResult(IReadOnlyList<int> values)
+        {
+            int total = 0;
+            foreach (int value in values)
+                total += value;
+            return values.Count == 1 ? $"骰点 {total}" : $"骰点 {string.Join(" + ", values)} = {total}";
+        }
+
+        internal static Vector3 CalculateScreenPrefabScale(Vector3 prefabScale, float requestedSize, float prefabBaseSize)
+        {
+            if (prefabBaseSize <= 0f) throw new ArgumentOutOfRangeException(nameof(prefabBaseSize));
+            return prefabScale * (requestedSize / prefabBaseSize);
         }
     }
 }

@@ -7,17 +7,20 @@ namespace Cards3D
 {
     public class InventionCard3D : SlotDraggableCardView3D
     {
-        static readonly Color ColBody = new(0.20f, 0.28f, 0.36f);
-        static readonly Color ColHover = new(0.32f, 0.44f, 0.58f);
-        static readonly Color ColAvailable = new(0.34f, 0.30f, 0.12f);
-        static readonly Color ColAvailableHover = new(0.48f, 0.42f, 0.18f);
+        static readonly Color ColBody = new(0.02f, 0.04f, 0.07f);
+        static readonly Color ColHover = new(0.06f, 0.11f, 0.18f);
+        static readonly Color ColAvailable = new(0.08f, 0.06f, 0.015f);
+        static readonly Color ColAvailableHover = new(0.13f, 0.10f, 0.025f);
         static readonly Color ColLocked = new(0.13f, 0.14f, 0.17f);
 
         InventionData              _data;
         List<InventionActiveEffect> _effects = new();
         bool isUnlocked;
         bool canUnlock;
+        bool isReadOnlyPreview;
         string availabilityReason = string.Empty;
+        CardInspectionContent inspectionContent;
+        bool hasInspectionContent;
 
         [SerializeField] TextMeshPro    _nameText;
         [SerializeField] TextMeshPro    _descText;
@@ -65,19 +68,19 @@ namespace Cards3D
             float ty = CD * 0.5f + 0.003f;
 
             _nameText = MakeText("Name",
-                new Vector3(0f, ty, CH * 0.38f), 0.095f,
+                new Vector3(0f, ty, 0.34f), CardPresentationConsts.CompactTitleFontSize,
                 TextAlignmentOptions.Center,
-                new Vector2(CW - 0.06f, 0.20f));
+                new Vector2(CW - 0.06f, 0.34f));
 
             _descText = MakeText("Desc",
-                new Vector3(0f, ty, CH * 0.00f), 0.068f,
+                new Vector3(0f, ty, -0.03f), 0.068f,
                 TextAlignmentOptions.Center,
-                new Vector2(CW - 0.06f, 0.44f));
+                new Vector2(CW - 0.06f, 0.30f));
 
             _hintText = MakeText("Hint",
-                new Vector3(0f, ty, -CH * 0.40f), 0.065f,
+                new Vector3(0f, ty, -0.365f), 0.065f,
                 TextAlignmentOptions.Center,
-                new Vector2(CW - 0.06f, 0.12f));
+                new Vector2(CW - 0.06f, 0.24f));
 
             if (_imageRenderer == null)
             {
@@ -104,15 +107,16 @@ namespace Cards3D
             _nameText.color = new Color(0.88f, 0.92f, 0.96f);
 
             _descText.text  = _data.description ?? "";
-            _descText.color = new Color(0.65f, 0.70f, 0.78f);
+            _descText.color = new Color(0.86f, 0.89f, 0.94f);
 
             bool hasEffects = _effects != null && _effects.Count > 0;
-            _hintText.text = isUnlocked ? (hasEffects ? "已掌握 · 点击使用" : "已掌握") : (canUnlock ? "点击发明" : availabilityReason);
-            _hintText.color = new Color(0.70f, 0.82f, 0.95f);
+            _hintText.text = isReadOnlyPreview ? "只读 · 悬停查看" : isUnlocked ? (hasEffects ? "点击使用" : "已掌握 · 悬停查看") : (canUnlock ? "点击发明 · 悬停查看" : $"{availabilityReason} · 悬停查看");
+            _hintText.color = new Color(0.88f, 0.90f, 0.94f);
         }
 
         protected override void OnClickReleased()
         {
+            if (isReadOnlyPreview) return;
             if (!isUnlocked)
             {
                 OnUnlockRequested?.Invoke(this);
@@ -128,11 +132,37 @@ namespace Cards3D
         {
             isUnlocked = unlocked;
             canUnlock = unlockable;
+            isReadOnlyPreview = false;
             availabilityReason = reason ?? string.Empty;
             ApplyVisuals();
         }
 
+        public void ConfigurePreview()
+        {
+            isUnlocked = false;
+            canUnlock = true;
+            isReadOnlyPreview = true;
+            availabilityReason = "只读预览";
+            ApplyVisuals();
+        }
+
         public void Refresh() => ApplyVisuals();
+
+        public void ConfigureInspectionContent(CardInspectionContent content)
+        {
+            inspectionContent = content;
+            hasInspectionContent = true;
+        }
+
+        public override bool TryGetInspectionContent(out CardInspectionContent content)
+        {
+            if (hasInspectionContent)
+            {
+                content = inspectionContent;
+                return true;
+            }
+            return base.TryGetInspectionContent(out content);
+        }
 
         private Color ResolveBodyColor()
         {

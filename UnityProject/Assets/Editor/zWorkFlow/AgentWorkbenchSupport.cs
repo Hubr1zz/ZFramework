@@ -11,11 +11,12 @@ namespace AgentWorkflow.Editor
     [Serializable]
     internal sealed class AgentWorkbenchConfig
     {
-        public int schemaVersion = 6;
+        public int schemaVersion = 7;
         public string currentLanguage = "zh-CN";
         public string themeMode = "normal";
         public float defaultWindowWidth = 1100f;
         public float defaultWindowHeight = 720f;
+        public float navigationPanelWidth = 320f;
         public bool hasSavedWindowPosition;
         public float windowPositionX;
         public float windowPositionY;
@@ -85,11 +86,11 @@ namespace AgentWorkflow.Editor
 
             config ??= new AgentWorkbenchConfig();
             var migratedFromV1 = config.schemaVersion < 2;
-            var migrated = config.schemaVersion < 6;
+            var migrated = config.schemaVersion < 7;
             if (migratedFromV1 && config.headingColorsDark != null &&
                 config.headingColorsDark.SequenceEqual(AgentWorkbenchTheme.LegacyDarkHex, StringComparer.OrdinalIgnoreCase))
                 config.headingColorsDark = AgentWorkbenchTheme.DefaultDarkHex.ToArray();
-            config.schemaVersion = 6;
+            config.schemaVersion = 7;
             config.headingColorsDark = NormalizeColors(config.headingColorsDark, AgentWorkbenchTheme.DefaultDarkHex);
             config.headingColorsLight = NormalizeColors(config.headingColorsLight, AgentWorkbenchTheme.DefaultLightHex);
             config.markdownBodyColorDark = NormalizeColor(config.markdownBodyColorDark, "#D8DEE8");
@@ -113,6 +114,9 @@ namespace AgentWorkflow.Editor
                 config.workbenchPanelColorLight,
                 AgentWorkbenchTheme.DefaultLightPanelHex);
             config.markdownApplicationPath ??= string.Empty;
+            if (config.navigationPanelWidth <= 0f)
+                config.navigationPanelWidth = 320f;
+            config.navigationPanelWidth = Mathf.Clamp(config.navigationPanelWidth, 220f, 420f);
             config.specFolders ??= Array.Empty<SpecFolderConfig>();
             config.specFolderAssignments ??= Array.Empty<SpecFolderAssignment>();
             config.dependencyGraphLayoutSignature ??= string.Empty;
@@ -324,9 +328,9 @@ namespace AgentWorkflow.Editor
             ["engineering.missing"] = ("尚未安装工程能力目录：{0}", "Engineering capability catalog is not installed: {0}"),
             ["engineering.invalid"] = ("工程能力目录读取失败：{0}", "Failed to read engineering capability catalog: {0}"),
             ["engineering.all"] = ("全部", "All"),
-            ["engineering.plugin"] = ("Plugin 插件", "Plugin"),
-            ["engineering.architecture"] = ("Architecture 架构", "Architecture"),
-            ["engineering.system"] = ("System 系统", "System"),
+            ["engineering.plugin"] = ("插件", "Plugin"),
+            ["engineering.architecture"] = ("架构", "Architecture"),
+            ["engineering.system"] = ("系统", "System"),
             ["engineering.layerFilter"] = ("实现分层", "Implementation Layer"),
             ["engineering.allLayers"] = ("全部分层", "All Layers"),
             ["engineering.layers"] = ("涉及分层", "Layers"),
@@ -373,9 +377,10 @@ namespace AgentWorkflow.Editor
             ["common.cancel"] = ("取消", "Cancel"),
             ["spec.formal"] = ("正式 Spec", "Formal Specs"),
             ["spec.graph"] = ("关系图谱", "Dependency Graph"),
-            ["spec.changes"] = ("Changes", "Changes"),
-            ["spec.architecture"] = ("System 系统", "System"),
-            ["spec.feature"] = ("Feature 实现", "Feature"),
+            ["spec.changes"] = ("变更", "Changes"),
+            ["spec.summary"] = ("Spec：{0}", "Specs: {0}"),
+            ["spec.architecture"] = ("系统", "System"),
+            ["spec.feature"] = ("功能", "Feature"),
             ["spec.rule"] = ("游戏规则", "Game Rule"),
             ["spec.uncategorized"] = ("未分类", "Uncategorized"),
             ["spec.empty"] = ("当前筛选下没有正式 Spec。", "No formal specs match the current filters."),
@@ -411,8 +416,9 @@ namespace AgentWorkflow.Editor
             ["spec.emptyFolder"] = ("当前文件夹没有正式 Spec 或 Change。", "This folder contains no formal specs or changes."),
             ["spec.renameEmpty"] = ("Spec 名称不能为空。", "Spec name cannot be empty."),
             ["change.renameEmpty"] = ("Change 名称不能为空。", "Change name cannot be empty."),
+            ["change.summary"] = ("变更：{0}", "Open Changes: {0}"),
             ["import.renameEmpty"] = ("Draft Change 名称不能为空。", "Draft Change name cannot be empty."),
-            ["spec.codeReadiness"] = ("Code Readiness", "Code Readiness"),
+            ["spec.codeReadiness"] = ("代码就绪度", "Code Readiness"),
             ["import.records"] = ("导入记录", "Import Runs"),
             ["import.recordInfo"] = ("导入记录信息", "Import run information"),
             ["import.proposals"] = ("Spec 提案", "Spec Proposals"),

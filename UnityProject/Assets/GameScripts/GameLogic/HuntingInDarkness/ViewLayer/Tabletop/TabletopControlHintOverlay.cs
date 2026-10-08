@@ -1,4 +1,5 @@
 using Cards3D;
+using HuntingInDarkness.ViewLayer.Presentation;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,7 +25,7 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
 
         public void Show(Object hintOwner, string message)
         {
-            if (hintOwner == null || string.IsNullOrWhiteSpace(message)) return;
+            if (hintOwner == null || string.IsNullOrWhiteSpace(message) || CampaignScreenView.IsProductionMode) return;
             owner = hintOwner;
             hint = message;
             visibleUntil = Time.unscaledTime + defaultDuration;
@@ -54,6 +55,11 @@ namespace HuntingInDarkness.ViewLayer.Tabletop
 
         private void Update()
         {
+            if (CampaignScreenView.IsProductionMode)
+            {
+                if (owner != null) Hide(owner);
+                return;
+            }
             if (owner == null)
             {
                 SetExpandedVisible(false);

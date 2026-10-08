@@ -319,7 +319,7 @@ RectTransform:
   m_GameObject: {fileID: 361693370864845818}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1541888760563683720}
@@ -329,10 +329,10 @@ RectTransform:
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &5787000722609474335
 Canvas:
   m_ObjectHideFlags: 0
@@ -355,7 +355,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 200
+  m_SortingOrder: 6000
   m_TargetDisplay: 0
 --- !u!114 &855304819830652693
 MonoBehaviour:
@@ -411,14 +411,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: GameLogic::Cards3D.CardInspectionOverlay
   canvas: {fileID: 5787000722609474335}
   modalRoot: {fileID: 7981510187673696168}
+  panelRect: {fileID: 6694033681649545473}
+  panelBackgroundRect: {fileID: 3058226589343647926}
   titleText: {fileID: 5462486808881315077}
   bodyText: {fileID: 7535400670062808995}
   footerText: {fileID: 463427305527094327}
   bodyScrollRect: {fileID: 1368903117373488555}
   closeButton: {fileID: 1040080418126054200}
-  hoverHintRect: {fileID: 3042744664586410050}
-  hoverHintText: {fileID: 2253460896424492356}
-  inputCamera: {fileID: 0}
 --- !u!114 &6783281270109905100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1640,7 +1639,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.015, g: 0.025, b: 0.045, a: 0.78}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:

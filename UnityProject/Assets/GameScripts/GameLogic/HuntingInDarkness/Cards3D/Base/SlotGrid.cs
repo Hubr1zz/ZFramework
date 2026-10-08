@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using HuntingInDarkness.ViewLayer.Tabletop;
 using Sirenix.OdinInspector;
 using TMPro;
 using UI;
@@ -8,7 +10,7 @@ namespace Cards3D
 {
     /// <summary>
     /// NxM 卡槽网格。槽间距由 Gap 保证，不会产生重叠。
-    /// AutoExpand = true 时，TryPlaceCard 如果全部槽已满，会追加新列再放置。
+    /// AutoExpand = true 时，TryPlaceCard 如果全部槽已满，会按当前列数追加新行再放置。
     ///
     /// 运行时在 Inspector 修改 Columns/Rows/SlotW/SlotH/Gap 可即时预览（Odin OnValueChanged）。
     /// 注意：动态调整尺寸后已有卡牌不会随槽重排，暂无自动重布局。
@@ -35,6 +37,9 @@ namespace Cards3D
         [BoxGroup("网格"), LabelText("自动扩展列")]
         public bool AutoExpand = false;
 
+        [BoxGroup("网格"), LabelText("向正Z扩展")]
+        public bool GrowTowardsPositiveZ = false;
+
         [BoxGroup("过滤"), LabelText("允许类别")]
         public CardCategory[] AcceptedCategories = { CardCategory.Any };
 
@@ -45,17 +50,27 @@ namespace Cards3D
         public bool OccupantsDraggable = true;
 
         // ─── 只读状态 ─────────────────────────────────────────────────────────
-        readonly List<CardSlot> _slots = new();
+        [SerializeField] private List<CardSlot> _slots = new();
         public IReadOnlyList<CardSlot> Slots => _slots;
+        public int Capacity => Columns * Rows;
 
-        bool _built;
+        [SerializeField] private bool _built;
+        public event Action LayoutChanged;
 
         // ─── 生命周期 ─────────────────────────────────────────────────────────
 
         private void Start()
         {
             // 场景预放置时：Unity 反序列化完成后才执行 Start，此时属性已就绪可安全 Build
-            if (!_built) Build();
+            if (!_built || !HasValidSerializedSlots()) Build();
+        }
+
+        private bool HasValidSerializedSlots()
+        {
+            if (_slots == null || _slots.Count != Columns * Rows) return false;
+            foreach (CardSlot slot in _slots)
+                if (slot == null) return false;
+            return true;
         }
 
         // ─── 工厂 ─────────────────────────────────────────────────────────────
@@ -132,15 +147,9 @@ namespace Cards3D
         /// </summary>
         private CardSlot CreateSlotAt(int col, int row)
         {
-            // stepX/stepZ = 槽尺寸 + 间距，确保相邻槽不重叠
-            float stepX = SlotW + Gap;
-            float stepZ = SlotH + Gap;
-            float x = (col - (Columns - 1) * 0.5f) * stepX;
-            float z = (row - (Rows    - 1) * 0.5f) * stepZ;
-
             var go = new GameObject($"Slot_{col}_{row}");
             go.transform.SetParent(transform, false);
-            go.transform.localPosition = new Vector3(x, 0f, z);
+            go.transform.localPosition = SlotLocalPosition(col, row);
 
             var slot = go.AddComponent<CardSlot>(); // Awake: 注册 AllSlots，不 Build
             slot.SlotW              = SlotW;        // 赋属性（此时才安全）
@@ -154,9 +163,27 @@ namespace Cards3D
             return slot;
         }
 
+        private Vector3 SlotLocalPosition(int col, int row)
+        {
+            float stepX = SlotW + Gap;
+            float stepZ = SlotH + Gap;
+            float x = (col - (Columns - 1) * 0.5f) * stepX;
+            float z = GrowTowardsPositiveZ ? row * stepZ : (row - (Rows - 1) * 0.5f) * stepZ;
+            return new Vector3(x, 0f, z);
+        }
+
+        private void SetSlotPosition(CardSlot slot, int col, int row)
+        {
+            slot.transform.localPosition = SlotLocalPosition(col, row);
+            CardView3D card = slot.OccupantCard;
+            if (card == null || card.transform.parent == slot.transform) return;
+            Transform parent = card.transform.parent;
+            card.MoveTo(parent.InverseTransformPoint(slot.transform.position + Vector3.up * 0.013f));
+        }
+
         // ─── 放置 API ─────────────────────────────────────────────────────────
 
-        /// <summary>找到第一个可接受该卡的空槽放置。AutoExpand 时满格则新增一列。</summary>
+        /// <summary>找到第一个可接受该卡的空槽放置。AutoExpand 时满格则按当前列数新增一行。</summary>
         public bool TryPlaceCard(CardView3D card)
         {
             foreach (var slot in _slots)
@@ -164,17 +191,46 @@ namespace Cards3D
 
             if (!AutoExpand) return false;
 
-            int newCol = Columns;
-            Columns++;
-            for (int r = 0; r < Rows; r++)
-            {
-                var s = CreateSlotAt(newCol, r);
-                if (s.CanAccept(card)) { s.PlaceCard(card); return true; }
-            }
+            EnsureCapacityPreservingCards(_slots.Count + 1, Columns);
+            foreach (var slot in _slots)
+                if (slot.CanAccept(card)) { slot.PlaceCard(card); return true; }
             return false;
         }
 
-        /// <summary>返回第一个空槽（动画目标查询用）；AutoExpand 时若满则预先扩展。</summary>
+        /// <summary>按固定列数安全扩容；重排已有卡牌时保留卡对象和占用关系。</summary>
+        public bool EnsureCapacityPreservingCards(int requiredCount, int fixedColumns)
+        {
+            fixedColumns = Mathf.Max(1, fixedColumns);
+            int previousColumns = Mathf.Max(1, Columns);
+            int targetColumns = Mathf.Max(previousColumns, fixedColumns);
+            int targetRows = Mathf.Max(Rows, Mathf.CeilToInt(Mathf.Max(0, requiredCount) / (float)targetColumns));
+            if (!_built)
+            {
+                Columns = targetColumns;
+                Rows = targetRows;
+                Build();
+                return true;
+            }
+            if (Columns == targetColumns && Rows >= targetRows) return true;
+
+            int oldSlotCount = _slots.Count;
+            Columns = targetColumns;
+            Rows = targetRows;
+            for (int index = 0; index < oldSlotCount; index++)
+            {
+                CardSlot slot = _slots[index];
+                if (slot == null) continue;
+                SetSlotPosition(slot, index % previousColumns, index / previousColumns);
+            }
+            for (int index = oldSlotCount; index < Columns * Rows; index++)
+                CreateSlotAt(index % Columns, index / Columns);
+            for (int index = 0; index < _slots.Count; index++)
+                SetSlotPosition(_slots[index], index % Columns, index / Columns);
+            LayoutChanged?.Invoke();
+            return true;
+        }
+
+        /// <summary>返回第一个空槽（动画目标查询用）；AutoExpand 时若满则预先增加一行。</summary>
         public CardSlot GetFirstEmptySlot()
         {
             foreach (var s in _slots)
@@ -182,28 +238,25 @@ namespace Cards3D
 
             if (!AutoExpand) return null;
 
-            int newCol = Columns;
-            Columns++;
-            for (int r = 0; r < Rows; r++)
-            {
-                var s = CreateSlotAt(newCol, r);
-                if (s.OccupantCard == null) return s;
-            }
+            EnsureCapacityPreservingCards(_slots.Count + 1, Columns);
+            foreach (var slot in _slots)
+                if (slot.OccupantCard == null) return slot;
             return null;
         }
 
         // ─── 标签 ─────────────────────────────────────────────────────────────
 
-        public void AddLabel(string text, float zOffset = 0.34f)
+        public void AddLabel(string text, float zOffset = 0.34f, TMP_FontAsset font = null)
         {
             var go = new GameObject("GridLabel");
             go.transform.SetParent(transform, false);
-            float halfZ = (Rows - 1) * 0.5f * (SlotH + Gap) + SlotH * 0.5f + zOffset;
+            float halfZ = GrowTowardsPositiveZ ? -SlotH * 0.5f - Mathf.Abs(zOffset) : (Rows - 1) * 0.5f * (SlotH + Gap) + SlotH * 0.5f + zOffset;
             go.transform.localPosition = new Vector3(0f, 0.01f, halfZ);
             go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             var tmp = go.AddComponent<TextMeshPro>();
             tmp.text      = text;
-            tmp.fontSize  = 3f;
+            tmp.font = font ?? TabletopPresentationAssets.WorldFont;
+            tmp.fontSize  = CardPresentationConsts.DynamicTitleFontSize;
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color     = new Color(0.88f, 0.84f, 0.75f);

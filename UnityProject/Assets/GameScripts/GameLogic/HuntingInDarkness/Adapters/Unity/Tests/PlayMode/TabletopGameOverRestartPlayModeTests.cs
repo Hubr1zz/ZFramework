@@ -10,6 +10,23 @@ namespace HuntingInDarkness.Adapter.PlayModeTests
 {
     public sealed class TabletopGameOverRestartPlayModeTests
     {
+        private GameObject presentationAssets;
+
+        [UnitySetUp]
+        public IEnumerator SetUp()
+        {
+            presentationAssets = TabletopUsabilityPlayModeTests.CreatePresentationAssets();
+            yield return null;
+        }
+
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            TabletopUsabilityPlayModeTests.DestroyPresentationAssets(presentationAssets);
+            presentationAssets = null;
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator Restart_KeepsDefeatCardOnFailureAndClosesAfterSuccess()
         {

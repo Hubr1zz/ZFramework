@@ -548,7 +548,7 @@ namespace AgentWorkflow.Editor
                     if (File.Exists(reviewPath))
                         implementation = JsonUtility.FromJson<FormalImplementation>(File.ReadAllText(reviewPath, Encoding.UTF8));
                     var category = NormalizeCategory(ReadFrontmatterValue(content, "category"));
-                    var canonicalTitle = ExtractMarkdownTitle(content, capability);
+                    var canonicalTitle = ExtractSpecTitle(content, capability);
                     capability = Or(implementation?.capability, capability);
                     var title = ResolveSpecDisplayTitle(capability, path, canonicalTitle);
                     var verification = implementation?.verification == null ? null : new ImportSpecVerification
@@ -717,7 +717,7 @@ namespace AgentWorkflow.Editor
                     new DirectoryInfo(Path.GetDirectoryName(specPath) ?? specsDirectory).Name);
                 var canonicalTitle = Or(
                     specReview?.title,
-                    ExtractMarkdownTitle(content, capability));
+                    ExtractSpecTitle(content, capability));
                 result.Add(new SpecFile(
                     ResolveSpecDisplayTitle(capability, specPath, canonicalTitle),
                     specPath,
@@ -1277,7 +1277,7 @@ namespace AgentWorkflow.Editor
             var dependencies = availableDependencies.Where(edge => dependencyIds.Length > 0
                 ? dependencyIds.Contains(edge.id)
                 : string.Equals(edge.from, capability, StringComparison.OrdinalIgnoreCase)).ToList();
-            var canonicalTitle = Or(review?.title, ExtractMarkdownTitle(content, capability));
+            var canonicalTitle = Or(review?.title, ExtractSpecTitle(content, capability));
             var title = ResolveSpecDisplayTitle(capability, specPath, canonicalTitle);
             return new DesignImportSpec
             {
@@ -1431,11 +1431,13 @@ namespace AgentWorkflow.Editor
                     .ToList();
 
                 nodes.TryGetValue(capability, out var node);
-                var title = Or(review?.title, ExtractMarkdownTitle(content, capability));
+                var canonicalTitle = Or(review?.title, ExtractSpecTitle(content, capability));
+                var title = ResolveSpecDisplayTitle(capability, specPath, canonicalTitle);
                 var item = new DesignImportSpec
                 {
                     Capability = capability,
                     Title = title,
+                    CanonicalTitle = canonicalTitle,
                     Category = NormalizeCategory(Or(review?.category, "game-rule")),
                     SpecPath = specPath,
                     SpecContent = content,
@@ -1466,6 +1468,11 @@ namespace AgentWorkflow.Editor
             }
 
             return result;
+        }
+
+        private static string ExtractSpecTitle(string content, string fallback)
+        {
+            return Or(ReadFrontmatterValue(content, "title"), ExtractMarkdownTitle(content, fallback));
         }
 
         private static string ExtractMarkdownTitle(string content, string fallback)
